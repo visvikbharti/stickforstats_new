@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Probability Calculator Test</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    #root {
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .button:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="container">
+      <h1>Probability Calculator Test</h1>
+      
+      <div class="card">
+        <h2>Instructions</h2>
+        <p>This is a standalone test page for the Probability Calculator component.</p>
+        <p>To run the full React component test:</p>
+        <ol>
+          <li>Create a temporary route in your React app that renders <code>TestCalculatorWithProviders</code></li>
+          <li>Run the development server with <code>npm start</code></li>
+          <li>Navigate to the test route in your browser</li>
+        </ol>
+        
+        <p>Alternatively, you can test the component directly in the main Probability Distributions page.</p>
+        
+        <a href="/" class="button">Go to Main App</a>
+      </div>
+      
+      <div class="card">
+        <h2>Component Functionality</h2>
+        <p>The Probability Calculator component provides:</p>
+        <ul>
+          <li>Calculation of probabilities for various distributions</li>
+          <li>Visual representation of probability areas</li>
+          <li>Calculation history tracking</li>
+          <li>Support for different probability types (less than, greater than, between, exactly)</li>
+        </ul>
+        
+        <h3>Supported Distributions</h3>
+        <ul>
+          <li>Normal (Gaussian) Distribution</li>
+          <li>Binomial Distribution</li>
+          <li>Poisson Distribution</li>
+          <li>Exponential Distribution</li>
+          <li>Uniform Distribution</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

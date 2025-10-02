@@ -1,0 +1,463 @@
+.effect-size-comparison {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+
+  .comparison-header {
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+
+      .mode-selector,
+      .metric-selector {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        label {
+          font-size: 12px;
+          color: #34495e;
+          font-weight: 500;
+        }
+
+        select {
+          padding: 4px 8px;
+          font-size: 12px;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          background: white;
+          font-family: 'IBM Plex Sans', sans-serif;
+
+          &:focus {
+            outline: none;
+            border-color: #3498db;
+          }
+        }
+      }
+    }
+  }
+
+  .comparison-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+
+    .studies-panel {
+      flex: 1;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+
+      .panel-header {
+        background: #f8f8f8;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #34495e;
+          margin: 0;
+        }
+
+        .add-study-btn {
+          padding: 4px 8px;
+          font-size: 12px;
+          background: #3498db;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+
+          &:hover {
+            background: #2980b9;
+          }
+        }
+      }
+
+      .studies-table {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px;
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 12px;
+
+          thead {
+            background: #f8f8f8;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+
+            th {
+              padding: 6px;
+              text-align: left;
+              font-weight: 600;
+              color: #34495e;
+              border-bottom: 2px solid #d0d0d0;
+              white-space: nowrap;
+            }
+          }
+
+          tbody {
+            tr {
+              border-bottom: 1px solid #ecf0f1;
+
+              &:hover {
+                background: #f8f9fa;
+              }
+
+              td {
+                padding: 4px;
+
+                input {
+                  width: 100%;
+                  padding: 3px 4px;
+                  font-size: 11px;
+                  border: 1px solid #d0d0d0;
+                  border-radius: 2px;
+                  font-family: 'IBM Plex Mono', monospace;
+
+                  &:focus {
+                    outline: none;
+                    border-color: #3498db;
+                    background: #f0f8ff;
+                  }
+
+                  &[type="number"] {
+                    text-align: right;
+                  }
+                }
+
+                select {
+                  width: 100%;
+                  padding: 3px 4px;
+                  font-size: 11px;
+                  border: 1px solid #d0d0d0;
+                  border-radius: 2px;
+                  background: white;
+
+                  &:focus {
+                    outline: none;
+                    border-color: #3498db;
+                  }
+                }
+
+                .ci-inputs {
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+
+                  input {
+                    flex: 1;
+                  }
+
+                  span {
+                    color: #7f8c8d;
+                  }
+                }
+
+                .remove-btn {
+                  padding: 2px 6px;
+                  font-size: 14px;
+                  background: #e74c3c;
+                  color: white;
+                  border: none;
+                  border-radius: 2px;
+                  cursor: pointer;
+
+                  &:hover {
+                    background: #c0392b;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .meta-controls {
+        padding: 12px;
+        background: #f8f8f8;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        .method-selector {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          label {
+            font-size: 12px;
+            color: #34495e;
+            font-weight: 500;
+          }
+
+          select {
+            flex: 1;
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 3px;
+            background: white;
+
+            &:focus {
+              outline: none;
+              border-color: #3498db;
+            }
+          }
+        }
+
+        .run-meta-btn {
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 500;
+          background: #27ae60;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+
+          &:hover:not(:disabled) {
+            background: #229954;
+          }
+
+          &:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .visualization-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+
+      .forest-plot-container {
+        padding: 16px;
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #34495e;
+          margin: 0 0 12px 0;
+        }
+
+        .forest-plot {
+          border: 1px solid #d0d0d0;
+          background: white;
+          max-width: 100%;
+          height: auto;
+        }
+      }
+
+      .meta-results,
+      .heterogeneity-results,
+      .publication-bias-results,
+      .sensitivity-results {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e0e0e0;
+
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #34495e;
+          margin: 0 0 12px 0;
+        }
+
+        h4 {
+          font-size: 13px;
+          font-weight: 600;
+          color: #34495e;
+          margin: 8px 0 6px 0;
+        }
+
+        .results-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 8px;
+          margin-bottom: 12px;
+
+          .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 3px;
+            font-size: 12px;
+
+            label {
+              color: #7f8c8d;
+              font-weight: 500;
+            }
+
+            span {
+              font-family: 'IBM Plex Mono', monospace;
+              color: #2c3e50;
+              font-weight: 500;
+
+              &.significant {
+                color: #e74c3c;
+                font-weight: 600;
+              }
+
+              &.warning {
+                color: #e67e22;
+              }
+
+              &.good {
+                color: #27ae60;
+              }
+            }
+
+            &.highlight {
+              background: #ebf5fb;
+              border: 1px solid #3498db;
+            }
+          }
+        }
+
+        .interpretation {
+          padding: 8px;
+          background: #f0f4f8;
+          border-left: 3px solid #3498db;
+          border-radius: 3px;
+          font-size: 12px;
+          color: #34495e;
+          line-height: 1.4;
+
+          strong {
+            font-weight: 600;
+          }
+        }
+
+        .heterogeneity-low {
+          color: #27ae60;
+        }
+
+        .heterogeneity-moderate {
+          color: #f39c12;
+        }
+
+        .heterogeneity-substantial {
+          color: #e67e22;
+        }
+
+        .heterogeneity-considerable {
+          color: #e74c3c;
+        }
+      }
+
+      .sensitivity-results {
+        .leave-one-out {
+          margin-bottom: 12px;
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+
+            thead {
+              background: #f8f8f8;
+
+              th {
+                padding: 6px;
+                text-align: left;
+                font-weight: 600;
+                color: #34495e;
+                border-bottom: 2px solid #d0d0d0;
+              }
+            }
+
+            tbody {
+              tr {
+                border-bottom: 1px solid #ecf0f1;
+
+                &:hover {
+                  background: #f8f9fa;
+                }
+
+                &.influential {
+                  background: #fff3cd;
+                }
+
+                td {
+                  padding: 4px 6px;
+                  font-family: 'IBM Plex Mono', monospace;
+                  font-size: 11px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .comparison-footer {
+    background: #f8f8f8;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .export-controls {
+      display: flex;
+      gap: 8px;
+
+      button {
+        padding: 6px 12px;
+        font-size: 12px;
+        background: #34495e;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+
+        &:hover {
+          background: #2c3e50;
+        }
+      }
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+  }
+}

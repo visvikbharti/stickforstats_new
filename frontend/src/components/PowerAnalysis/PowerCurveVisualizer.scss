@@ -1,0 +1,540 @@
+// PowerCurveVisualizer.scss
+// Interactive power curve visualization with D3-style charts
+// Enterprise dense layout for power analysis
+
+.power-curve-visualizer {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+
+  .visualizer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #d0d0d0;
+
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 8px;
+
+      select {
+        padding: 3px 8px;
+        border: 1px solid #bdbdbd;
+        border-radius: 3px;
+        font-size: 12px;
+        background: #ffffff;
+        cursor: pointer;
+
+        &:focus {
+          outline: none;
+          border-color: #34495e;
+        }
+      }
+
+      .export-controls {
+        display: flex;
+        gap: 4px;
+
+        select {
+          padding: 3px 6px;
+          font-size: 11px;
+        }
+
+        .btn-export {
+          padding: 4px 12px;
+          background: #2196f3;
+          color: #ffffff;
+          border: none;
+          border-radius: 3px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: background 0.15s;
+
+          &:hover {
+            background: #1976d2;
+          }
+        }
+      }
+    }
+  }
+
+  .visualizer-body {
+    padding: 8px;
+
+    .chart-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 8px;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      margin-bottom: 8px;
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        label {
+          font-size: 10px;
+          font-weight: 600;
+          color: #555;
+          text-transform: uppercase;
+        }
+
+        input[type="number"] {
+          padding: 3px 6px;
+          border: 1px solid #bdbdbd;
+          border-radius: 3px;
+          font-size: 11px;
+          font-family: 'IBM Plex Mono', monospace;
+          width: 80px;
+
+          &:focus {
+            outline: none;
+            border-color: #34495e;
+            background: #f0f8ff;
+          }
+        }
+
+        select {
+          padding: 3px 6px;
+          border: 1px solid #bdbdbd;
+          border-radius: 3px;
+          font-size: 11px;
+          background: #ffffff;
+          cursor: pointer;
+
+          &:focus {
+            outline: none;
+            border-color: #34495e;
+          }
+        }
+
+        .range-inputs {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+
+          input {
+            width: 60px;
+          }
+
+          span {
+            font-size: 10px;
+            color: #666;
+          }
+        }
+      }
+
+      .effect-sizes-list {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+
+        .effect-size-item {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          padding: 2px 6px;
+          background: #ffffff;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+
+          span {
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'IBM Plex Mono', monospace;
+          }
+
+          .btn-remove {
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            background: #f44336;
+            color: #ffffff;
+            border: none;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+
+            &:hover {
+              background: #d32f2f;
+            }
+
+            &:disabled {
+              background: #bdbdbd;
+              cursor: not-allowed;
+            }
+          }
+        }
+
+        .btn-add {
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          background: #4caf50;
+          color: #ffffff;
+          border: none;
+          border-radius: 3px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+
+          &:hover {
+            background: #388e3c;
+          }
+        }
+      }
+
+      .view-options {
+        display: flex;
+        gap: 10px;
+        padding: 4px 8px;
+        background: #ffffff;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+
+        .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 11px;
+          color: #666;
+          cursor: pointer;
+
+          input[type="checkbox"] {
+            width: 12px;
+            height: 12px;
+          }
+        }
+      }
+
+      .zoom-controls {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 4px;
+        background: #ffffff;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+
+        button {
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          background: #34495e;
+          color: #ffffff;
+          border: none;
+          border-radius: 3px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s;
+
+          &:hover {
+            background: #2c3e50;
+          }
+
+          &:last-child {
+            width: auto;
+            padding: 0 8px;
+            font-size: 11px;
+          }
+        }
+
+        span {
+          font-size: 11px;
+          font-weight: 600;
+          color: #34495e;
+          min-width: 40px;
+          text-align: center;
+        }
+      }
+    }
+
+    .chart-container {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #d0d0d0;
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: crosshair;
+      user-select: none;
+
+      &:active {
+        cursor: move;
+      }
+
+      .power-curve-chart {
+        display: block;
+
+        .grid {
+          line {
+            stroke: #e0e0e0;
+            stroke-width: 0.5;
+          }
+        }
+
+        .axes {
+          text {
+            font-family: 'IBM Plex Sans', sans-serif;
+            fill: #424242;
+          }
+
+          line {
+            stroke: #424242;
+            stroke-width: 1;
+          }
+        }
+
+        .curves {
+          path {
+            transition: stroke-width 0.15s, opacity 0.15s;
+
+            &:hover {
+              stroke-width: 3;
+            }
+          }
+
+          circle {
+            transition: opacity 0.15s;
+          }
+        }
+
+        .reference-lines {
+          line {
+            pointer-events: none;
+          }
+        }
+
+        .legend {
+          rect {
+            fill: #ffffff;
+            stroke: #e0e0e0;
+            stroke-width: 1;
+            rx: 3;
+          }
+
+          text {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 11px;
+            fill: #424242;
+          }
+
+          line {
+            stroke-width: 2;
+          }
+        }
+
+        .tooltip {
+          rect {
+            fill: #ffffff;
+            stroke: #424242;
+            stroke-width: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+          }
+
+          text {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            fill: #424242;
+          }
+        }
+      }
+    }
+
+    .chart-instructions {
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 3px;
+
+      p {
+        margin: 0 0 3px 0;
+        font-size: 11px;
+        color: #666;
+
+        strong {
+          font-weight: 600;
+          color: #34495e;
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 1200px) {
+    .visualizer-body {
+      .chart-controls {
+        .control-group {
+          flex: 0 1 auto;
+        }
+      }
+
+      .chart-container {
+        overflow-x: auto;
+
+        .power-curve-chart {
+          min-width: 600px;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .visualizer-header {
+      flex-direction: column;
+      gap: 8px;
+
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+    }
+
+    .visualizer-body {
+      .chart-controls {
+        flex-direction: column;
+        align-items: stretch;
+
+        .control-group {
+          width: 100%;
+
+          input[type="number"],
+          select {
+            width: 100%;
+          }
+
+          .range-inputs {
+            input {
+              flex: 1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // High-density displays
+  @media (min-width: 1600px) {
+    .chart-container {
+      .power-curve-chart {
+        width: 1000px;
+        height: 600px;
+      }
+    }
+  }
+
+  // Print styles
+  @media print {
+    .visualizer-header {
+      .header-controls {
+        display: none;
+      }
+    }
+
+    .visualizer-body {
+      .chart-controls {
+        display: none;
+      }
+
+      .chart-instructions {
+        display: none;
+      }
+
+      .chart-container {
+        border: 2px solid #000;
+
+        .power-curve-chart {
+          .grid line {
+            stroke: #cccccc;
+          }
+
+          .axes {
+            text {
+              font-size: 9px;
+            }
+          }
+
+          .curves {
+            path {
+              stroke-width: 1.5;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Animation for hover effects
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  // Special states
+  &.loading {
+    .chart-container {
+      position: relative;
+
+      &::after {
+        content: 'Calculating...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+        font-weight: 600;
+        color: #34495e;
+        animation: pulse 1.5s infinite;
+      }
+    }
+  }
+
+  &.error {
+    .chart-container {
+      background: #ffebee;
+      border-color: #f44336;
+
+      &::after {
+        content: 'Error loading chart';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+        color: #c62828;
+      }
+    }
+  }
+}

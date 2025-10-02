@@ -1,0 +1,715 @@
+// EffectSizeCalculator.scss
+// Enterprise-grade effect size calculator styling
+// Professional, dense interface matching statistical software
+
+@import '../../styles/enterprise-design-system.scss';
+
+.effect-size-calculator {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $surface-100;
+  font-size: 12px;
+  
+  // Calculator header
+  .calculator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, $surface-200 0%, $surface-300 100%);
+    border-bottom: 2px solid $border-300;
+    
+    .header-title {
+      h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-primary;
+        letter-spacing: -0.01em;
+      }
+      
+      .subtitle {
+        font-size: 11px;
+        color: $text-secondary;
+        margin-left: 12px;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      
+      .btn-toggle {
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 500;
+        background: $surface-100;
+        color: $text-primary;
+        border: 1px solid $border-300;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        transition: all 0.15s ease;
+        
+        &:hover {
+          background: rgba($primary-500, 0.1);
+          border-color: $primary-400;
+        }
+        
+        &.active {
+          background: $primary-500;
+          color: white;
+          border-color: $primary-600;
+        }
+      }
+    }
+  }
+  
+  // Test type selector
+  .test-type-selector {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: $surface-200;
+    border-bottom: 1px solid $border-200;
+    
+    > label {
+      font-size: 11px;
+      font-weight: 600;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-right: 12px;
+    }
+    
+    .test-buttons {
+      display: flex;
+      gap: 8px;
+      
+      .test-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        background: $surface-100;
+        color: $text-primary;
+        border: 1px solid $border-300;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        transition: all 0.15s ease;
+        
+        &:hover {
+          background: rgba($primary-500, 0.05);
+          border-color: $primary-400;
+        }
+        
+        &.active {
+          background: $primary-500;
+          color: white;
+          border-color: $primary-600;
+        }
+      }
+    }
+  }
+  
+  // Main content area
+  .calculator-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 360px;
+    gap: 1px;
+    background: $border-200;
+    overflow: hidden;
+    
+    .panel {
+      background: $surface-100;
+      padding: 16px;
+      overflow-y: auto;
+      
+      h3 {
+        margin: 0 0 16px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding-bottom: 8px;
+        border-bottom: 1px solid $border-200;
+      }
+      
+      h4 {
+        margin: 12px 0 8px 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      
+      // Scrollbar
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: $surface-200;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: $border-400;
+        border-radius: 2px;
+        
+        &:hover {
+          background: $border-500;
+        }
+      }
+    }
+    
+    .input-panel {
+      border-right: 1px solid $border-200;
+    }
+    
+    .selection-panel {
+      padding: 16px 20px;
+    }
+    
+    .results-panel {
+      border-left: 1px solid $border-200;
+      background: rgba($surface-200, 0.3);
+    }
+  }
+  
+  // Input mode toggle
+  .input-mode-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding: 4px;
+    background: $surface-200;
+    border-radius: 3px;
+    
+    .mode-btn {
+      flex: 1;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: transparent;
+      color: $text-secondary;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      
+      &:hover {
+        background: rgba($primary-500, 0.1);
+        color: $text-primary;
+      }
+      
+      &.active {
+        background: white;
+        color: $primary-600;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+  
+  // Summary inputs
+  .summary-inputs {
+    .input-group {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: $surface-200;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      
+      h4 {
+        margin: 0 0 8px 0;
+      }
+    }
+    
+    .form-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      
+      label {
+        min-width: 60px;
+        font-size: 11px;
+        font-weight: 500;
+        color: $text-primary;
+      }
+      
+      input {
+        flex: 1;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-family: $font-mono;
+        border: 1px solid $border-300;
+        background: white;
+        border-radius: 2px;
+        
+        &:focus {
+          outline: none;
+          border-color: $primary-500;
+          box-shadow: 0 0 0 2px rgba($primary-500, 0.1);
+        }
+      }
+    }
+  }
+  
+  // Raw data input
+  .raw-data-input {
+    textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 11px;
+      font-family: $font-mono;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      resize: vertical;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-500;
+        box-shadow: 0 0 0 2px rgba($primary-500, 0.1);
+      }
+    }
+    
+    .data-format-info {
+      margin-top: 8px;
+      padding: 8px;
+      background: $surface-200;
+      border-radius: 2px;
+      
+      p {
+        margin: 0;
+        font-size: 10px;
+        color: $text-secondary;
+        font-family: $font-mono;
+      }
+    }
+  }
+  
+  // Measures list
+  .measures-list {
+    max-height: 400px;
+    overflow-y: auto;
+    
+    .measure-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: $surface-200;
+      border: 1px solid $border-200;
+      border-radius: 3px;
+      transition: all 0.15s ease;
+      
+      &:hover {
+        background: rgba($primary-500, 0.03);
+        border-color: $border-300;
+      }
+      
+      .measure-checkbox {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        
+        input[type="checkbox"] {
+          margin-right: 8px;
+        }
+        
+        .measure-name {
+          font-size: 12px;
+          font-weight: 500;
+          color: $text-primary;
+        }
+      }
+      
+      .measure-formula {
+        margin: 8px 0;
+        padding: 6px 8px;
+        background: $surface-100;
+        border-left: 3px solid $primary-400;
+        
+        code {
+          font-size: 10px;
+          font-family: $font-mono;
+          color: $primary-600;
+        }
+      }
+      
+      .measure-interpretation {
+        margin: 6px 0;
+        font-size: 10px;
+        
+        .interp-label {
+          font-weight: 500;
+          color: $text-secondary;
+          margin-right: 4px;
+        }
+        
+        .interp-values {
+          color: $text-primary;
+          font-family: $font-mono;
+        }
+      }
+      
+      .measure-reference {
+        margin-top: 4px;
+        
+        cite {
+          font-size: 10px;
+          color: $text-secondary;
+          font-style: italic;
+        }
+      }
+    }
+  }
+  
+  // CI settings
+  .ci-settings {
+    padding: 12px;
+    margin: 16px 0;
+    background: $surface-200;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+    
+    .form-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      label {
+        min-width: 120px;
+        font-size: 11px;
+        font-weight: 500;
+        color: $text-primary;
+      }
+      
+      select,
+      input {
+        flex: 1;
+        padding: 4px 8px;
+        font-size: 11px;
+        border: 1px solid $border-300;
+        background: white;
+        border-radius: 2px;
+        
+        &:focus {
+          outline: none;
+          border-color: $primary-500;
+        }
+      }
+      
+      input {
+        font-family: $font-mono;
+      }
+    }
+  }
+  
+  // Calculate button
+  .btn-calculate {
+    width: 100%;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    
+    &.primary {
+      background: $primary-500;
+      color: white;
+      border-color: $primary-600;
+      
+      &:hover:not(:disabled) {
+        background: $primary-600;
+      }
+      
+      &:disabled {
+        background: $border-300;
+        color: $text-disabled;
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  // Results display
+  .results-display {
+    .result-card {
+      padding: 12px;
+      margin-bottom: 12px;
+      background: white;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        
+        h4 {
+          margin: 0;
+          font-size: 12px;
+          font-weight: 600;
+          color: $text-primary;
+        }
+        
+        .interpretation {
+          padding: 2px 6px;
+          font-size: 10px;
+          font-weight: 600;
+          border-radius: 2px;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          
+          &.negligible,
+          &.trivial {
+            background: rgba($non-sig, 0.1);
+            color: $non-sig;
+          }
+          
+          &.small {
+            background: rgba($warning, 0.1);
+            color: $warning;
+          }
+          
+          &.medium {
+            background: rgba($sig-05, 0.1);
+            color: $sig-05;
+          }
+          
+          &.large {
+            background: rgba($sig-01, 0.1);
+            color: $sig-01;
+          }
+        }
+      }
+      
+      .result-value {
+        margin-bottom: 8px;
+        
+        .value {
+          display: block;
+          font-size: 20px;
+          font-weight: 600;
+          font-family: $font-mono;
+          color: $primary-600;
+        }
+        
+        .ci {
+          display: block;
+          margin-top: 4px;
+          font-size: 11px;
+          color: $text-secondary;
+          font-family: $font-mono;
+        }
+      }
+      
+      .result-details {
+        display: flex;
+        gap: 16px;
+        padding-top: 8px;
+        border-top: 1px solid $border-200;
+        
+        .detail-item {
+          font-size: 10px;
+          
+          label {
+            font-weight: 500;
+            color: $text-secondary;
+            margin-right: 4px;
+          }
+          
+          span {
+            font-family: $font-mono;
+            color: $text-primary;
+          }
+        }
+      }
+    }
+    
+    // Comparison table
+    .comparison-table {
+      margin-top: 16px;
+      padding: 12px;
+      background: white;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      
+      h4 {
+        margin: 0 0 12px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+      
+      table {
+        width: 100%;
+        font-size: 11px;
+        border-collapse: collapse;
+        
+        thead {
+          background: $surface-200;
+          
+          th {
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid $border-300;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-size: 10px;
+          }
+        }
+        
+        tbody {
+          td {
+            padding: 6px 8px;
+            border-bottom: 1px solid $border-200;
+            
+            &.numeric {
+              font-family: $font-mono;
+              text-align: right;
+            }
+            
+            .interpretation-badge {
+              display: inline-block;
+              padding: 2px 4px;
+              font-size: 9px;
+              font-weight: 600;
+              border-radius: 2px;
+              text-transform: uppercase;
+              
+              &.trivial {
+                background: rgba($non-sig, 0.1);
+                color: $non-sig;
+              }
+              
+              &.small {
+                background: rgba($warning, 0.1);
+                color: $warning;
+              }
+              
+              &.medium {
+                background: rgba($sig-05, 0.1);
+                color: $sig-05;
+              }
+              
+              &.large {
+                background: rgba($sig-01, 0.1);
+                color: $sig-01;
+              }
+            }
+          }
+          
+          tr:last-child td {
+            border-bottom: none;
+          }
+          
+          tr:hover {
+            background: rgba($primary-500, 0.03);
+          }
+        }
+      }
+    }
+    
+    // Conversion section
+    .conversion-section {
+      margin-top: 16px;
+      padding: 12px;
+      background: $surface-200;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+      
+      .conversions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        
+        .conversion-item {
+          font-size: 11px;
+          
+          label {
+            font-weight: 500;
+            color: $text-secondary;
+            margin-right: 4px;
+          }
+          
+          span {
+            font-family: $font-mono;
+            color: $text-primary;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+  
+  // Export section
+  .export-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    margin-top: 16px;
+    background: $surface-200;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+    
+    label {
+      font-size: 11px;
+      font-weight: 500;
+      color: $text-secondary;
+    }
+    
+    select {
+      flex: 1;
+      padding: 4px 8px;
+      font-size: 11px;
+      border: 1px solid $border-300;
+      background: white;
+      border-radius: 2px;
+    }
+    
+    .btn-export {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: $surface-100;
+      color: $text-primary;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      
+      &:hover:not(:disabled) {
+        background: $primary-500;
+        color: white;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

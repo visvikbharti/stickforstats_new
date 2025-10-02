@@ -1,0 +1,60 @@
+{
+  "total": 13,
+  "passed": 0,
+  "failed": 13,
+  "errors": [
+    {
+      "endpoint": "/api/v1/power/t-test/",
+      "error": "Status 401"
+    },
+    {
+      "endpoint": "/api/v1/power/sample-size/anova/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/power/curves/",
+      "error": "Status 401"
+    },
+    {
+      "endpoint": "/api/v1/regression/linear/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/regression/multiple/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/nonparametric/mann-whitney/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/nonparametric/kruskal-wallis/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/categorical/chi-square/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/categorical/fishers-exact/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/missing/pattern/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/missing/impute/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/stats/t-test/one-sample/",
+      "error": "Status 404"
+    },
+    {
+      "endpoint": "/api/v1/stats/anova/one-way/",
+      "error": "Status 404"
+    }
+  ],
+  "precision_checks": []
+}

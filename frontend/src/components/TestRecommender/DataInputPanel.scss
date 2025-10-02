@@ -1,0 +1,388 @@
+/**
+ * Data Input Panel Styles
+ * =======================
+ * Professional data loading interface styling
+ */
+
+@import '../../styles/enterprise-design-system.scss';
+
+.data-input-panel {
+  background-color: white;
+  border: 1px solid $border-color-medium;
+  border-radius: $border-radius-md;
+  
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-base $spacing-lg;
+    background-color: $bg-secondary;
+    border-bottom: 1px solid $border-color-light;
+    
+    h2 {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $neutral-800;
+      margin: 0;
+    }
+    
+    .header-actions {
+      .btn-text {
+        background: none;
+        border: none;
+        color: $primary-600;
+        font-size: $font-size-sm;
+        cursor: pointer;
+        padding: $spacing-xs $spacing-sm;
+        
+        &:hover {
+          color: $primary-700;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+  // Data Source Selector
+  .data-source-selector {
+    padding: $spacing-lg;
+    
+    .source-tabs {
+      display: flex;
+      gap: $spacing-xs;
+      margin-bottom: $spacing-lg;
+      border-bottom: 2px solid $border-color-light;
+      
+      .source-tab {
+        padding: $spacing-sm $spacing-base;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: $neutral-600;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: -2px;
+        
+        &:hover {
+          color: $neutral-800;
+          background-color: $bg-hover;
+        }
+        
+        &.active {
+          color: $primary-700;
+          border-bottom-color: $primary-600;
+          background-color: white;
+        }
+      }
+    }
+    
+    // Upload Interface
+    .upload-interface {
+      .upload-dropzone {
+        border: 2px dashed $border-color-medium;
+        border-radius: $border-radius-md;
+        padding: $spacing-xxxl;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background-color: $bg-secondary;
+        
+        &:hover {
+          border-color: $primary-400;
+          background-color: rgba($primary-100, 0.3);
+        }
+        
+        .dropzone-content {
+          .upload-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: $spacing-base;
+            opacity: 0.5;
+          }
+          
+          p {
+            font-size: $font-size-md;
+            color: $neutral-700;
+            margin: $spacing-sm 0;
+          }
+          
+          small {
+            font-size: $font-size-xs;
+            color: $neutral-500;
+          }
+        }
+      }
+      
+      .upload-options {
+        margin-top: $spacing-lg;
+        padding: $spacing-base;
+        background-color: $bg-tertiary;
+        border-radius: $border-radius-sm;
+        
+        .option-group {
+          margin-bottom: $spacing-sm;
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          
+          label {
+            font-size: $font-size-sm;
+            color: $neutral-700;
+            font-weight: $font-weight-medium;
+            
+            input[type="checkbox"] {
+              margin-right: $spacing-xs;
+            }
+          }
+          
+          select, input[type="text"] {
+            @include input-base;
+            min-width: 120px;
+          }
+        }
+      }
+    }
+    
+    // Paste Interface
+    .paste-interface {
+      .paste-area {
+        @include input-base;
+        width: 100%;
+        min-height: 200px;
+        font-family: $font-family-mono;
+        font-size: $font-size-xs;
+        resize: vertical;
+        margin-bottom: $spacing-base;
+      }
+      
+      .btn-primary {
+        @include button-primary;
+      }
+    }
+    
+    // Sample Datasets
+    .sample-datasets {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: $spacing-base;
+      
+      .sample-dataset-card {
+        padding: $spacing-base;
+        background-color: $bg-secondary;
+        border: 1px solid $border-color-light;
+        border-radius: $border-radius-md;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+          background-color: $bg-hover;
+          border-color: $primary-400;
+          box-shadow: $shadow-sm;
+        }
+        
+        h4 {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-semibold;
+          color: $neutral-800;
+          margin: 0 0 $spacing-xs 0;
+        }
+        
+        p {
+          font-size: $font-size-xs;
+          color: $neutral-600;
+          margin: 0;
+          line-height: $line-height-tight;
+        }
+      }
+    }
+  }
+  
+  // Error Message
+  .error-message {
+    margin: $spacing-base $spacing-lg;
+    padding: $spacing-sm $spacing-base;
+    background-color: rgba($error-main, 0.05);
+    border: 1px solid $error-light;
+    border-radius: $border-radius-sm;
+    color: $error-dark;
+    font-size: $font-size-sm;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    
+    .error-icon {
+      font-size: $font-size-lg;
+    }
+  }
+  
+  // Variables Configuration
+  .variables-configuration {
+    padding: 0 $spacing-lg;
+    margin-bottom: $spacing-lg;
+    
+    h3 {
+      font-size: $font-size-md;
+      font-weight: $font-weight-semibold;
+      color: $neutral-800;
+      margin: 0 0 $spacing-base 0;
+      padding-bottom: $spacing-xs;
+      border-bottom: 1px solid $border-color-light;
+    }
+    
+    .variables-table {
+      overflow-x: auto;
+      
+      table {
+        @include data-table;
+        
+        .var-name {
+          font-weight: $font-weight-medium;
+          color: $primary-700;
+        }
+        
+        .var-type {
+          .type-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: $border-radius-sm;
+            font-size: $font-size-xxs;
+            font-weight: $font-weight-semibold;
+            text-transform: uppercase;
+            
+            &.type-continuous {
+              background-color: rgba($info-main, 0.1);
+              color: $info-dark;
+            }
+            
+            &.type-categorical {
+              background-color: rgba($success-main, 0.1);
+              color: $success-dark;
+            }
+            
+            &.type-binary {
+              background-color: rgba($warning-main, 0.1);
+              color: $warning-dark;
+            }
+            
+            &.type-ordinal {
+              background-color: rgba($accent-500, 0.1);
+              color: $accent-700;
+            }
+            
+            &.type-text {
+              background-color: rgba($neutral-500, 0.1);
+              color: $neutral-700;
+            }
+          }
+        }
+        
+        .var-stat {
+          text-align: center;
+          font-family: $font-family-mono;
+          font-size: $font-size-xs;
+        }
+        
+        .role-select,
+        .transform-select {
+          @include input-base;
+          width: 100%;
+          min-width: 100px;
+          font-size: $font-size-xs;
+          padding: 2px 4px;
+        }
+      }
+    }
+  }
+  
+  // Data Preview
+  .data-preview {
+    padding: 0 $spacing-lg;
+    margin-bottom: $spacing-lg;
+    
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: $spacing-sm;
+      
+      h3 {
+        font-size: $font-size-md;
+        font-weight: $font-weight-semibold;
+        color: $neutral-800;
+        margin: 0;
+      }
+      
+      .preview-info {
+        font-size: $font-size-xs;
+        color: $neutral-600;
+        background-color: $bg-tertiary;
+        padding: 2px 8px;
+        border-radius: $border-radius-sm;
+      }
+    }
+    
+    .preview-table-container {
+      overflow: auto;
+      max-height: 300px;
+      border: 1px solid $border-color-medium;
+      border-radius: $border-radius-sm;
+      
+      .preview-table {
+        @include data-table;
+        margin: 0;
+        
+        thead {
+          position: sticky;
+          top: 0;
+          background-color: $bg-tertiary;
+          z-index: 10;
+        }
+        
+        .row-number {
+          background-color: $bg-tertiary;
+          font-weight: $font-weight-semibold;
+          text-align: center;
+          color: $neutral-600;
+          width: 40px;
+        }
+        
+        .cell-continuous {
+          text-align: right;
+          font-family: $font-family-mono;
+        }
+        
+        .cell-categorical,
+        .cell-binary {
+          text-align: center;
+        }
+        
+        .cell-text {
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+  
+  // Action Buttons
+  .panel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    padding: $spacing-base $spacing-lg;
+    background-color: $bg-secondary;
+    border-top: 1px solid $border-color-light;
+    
+    .btn-primary {
+      @include button-primary;
+    }
+    
+    .btn-secondary {
+      @include button-secondary;
+    }
+  }
+}

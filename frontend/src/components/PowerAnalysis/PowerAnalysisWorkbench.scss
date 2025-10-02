@@ -1,0 +1,735 @@
+// PowerAnalysisWorkbench.scss
+// Enterprise-grade power analysis interface styling
+// Dense, professional design matching SPSS/G*Power aesthetic
+
+@import '../../styles/enterprise-design-system.scss';
+
+.power-analysis-workbench {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $surface-100;
+  font-size: 12px;
+  
+  // Workbench header
+  .workbench-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, $surface-200 0%, $surface-300 100%);
+    border-bottom: 2px solid $border-300;
+    
+    .header-title {
+      h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-primary;
+        letter-spacing: -0.01em;
+      }
+      
+      .subtitle {
+        font-size: 11px;
+        color: $text-secondary;
+        margin-left: 12px;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      
+      button {
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 500;
+        background: $surface-100;
+        color: $text-primary;
+        border: 1px solid $border-300;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        
+        &:hover {
+          background: $primary-500;
+          color: white;
+          border-color: $primary-600;
+        }
+        
+        &.btn-help {
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          font-size: 12px;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+  
+  // Mode selector
+  .mode-selector {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: $surface-200;
+    border-bottom: 1px solid $border-200;
+    
+    > label {
+      font-size: 11px;
+      font-weight: 600;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-right: 12px;
+    }
+    
+    .mode-buttons {
+      display: flex;
+      gap: 8px;
+      
+      .mode-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 16px;
+        background: $surface-100;
+        border: 1px solid $border-300;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        
+        .mode-icon {
+          font-size: 16px;
+          font-weight: 600;
+          font-family: $font-mono;
+          color: $text-secondary;
+          margin-bottom: 2px;
+        }
+        
+        .mode-label {
+          font-size: 10px;
+          font-weight: 500;
+          color: $text-secondary;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+        
+        &:hover {
+          background: rgba($primary-500, 0.05);
+          border-color: $primary-400;
+        }
+        
+        &.active {
+          background: $primary-500;
+          border-color: $primary-600;
+          
+          .mode-icon,
+          .mode-label {
+            color: white;
+          }
+        }
+      }
+    }
+  }
+  
+  // Main content area with three panels
+  .workbench-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 1px;
+    background: $border-200;
+    overflow: hidden;
+    
+    .panel {
+      background: $surface-100;
+      padding: 16px;
+      overflow-y: auto;
+      
+      // Panel headers
+      h3 {
+        margin: 0 0 16px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding-bottom: 8px;
+        border-bottom: 1px solid $border-200;
+      }
+      
+      h4 {
+        margin: 16px 0 8px 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      
+      // Scrollbar styling
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: $surface-200;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: $border-400;
+        border-radius: 2px;
+        
+        &:hover {
+          background: $border-500;
+        }
+      }
+    }
+    
+    // Test selection panel
+    .test-selection {
+      border-right: 1px solid $border-200;
+    }
+    
+    // Parameters panel
+    .parameters {
+      padding: 16px 20px;
+    }
+    
+    // Results panel
+    .results {
+      border-left: 1px solid $border-200;
+      background: rgba($surface-200, 0.3);
+    }
+  }
+  
+  // Form groups
+  .form-group {
+    margin-bottom: 16px;
+    
+    > label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: $text-primary;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      
+      .conventions {
+        display: block;
+        font-size: 10px;
+        color: $text-secondary;
+        font-weight: 400;
+        text-transform: none;
+        margin-top: 2px;
+        font-family: $font-mono;
+      }
+    }
+    
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 11px;
+      border: 1px solid $border-300;
+      background: white;
+      border-radius: 2px;
+      font-family: $font-mono;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-500;
+        box-shadow: 0 0 0 2px rgba($primary-500, 0.1);
+      }
+      
+      &:disabled {
+        background: $surface-200;
+        color: $text-disabled;
+        cursor: not-allowed;
+      }
+    }
+    
+    select {
+      cursor: pointer;
+    }
+    
+    // Radio groups
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      
+      label {
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        color: $text-primary;
+        cursor: pointer;
+        
+        input[type="radio"] {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+  
+  // Effect size input with presets
+  .effect-size-input {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    input {
+      flex: 1;
+    }
+    
+    .preset-buttons {
+      display: flex;
+      gap: 4px;
+      
+      .preset-btn {
+        flex: 1;
+        padding: 4px 8px;
+        font-size: 10px;
+        font-weight: 500;
+        background: $surface-200;
+        color: $text-primary;
+        border: 1px solid $border-300;
+        border-radius: 2px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        
+        &:hover {
+          background: $primary-100;
+          color: $primary-700;
+          border-color: $primary-400;
+        }
+      }
+    }
+  }
+  
+  // Power scale visualization
+  .power-scale {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 10px;
+    color: $text-secondary;
+    
+    .power-bar {
+      flex: 1;
+      height: 20px;
+      background: $surface-200;
+      border: 1px solid $border-300;
+      border-radius: 2px;
+      overflow: hidden;
+      
+      .power-fill {
+        height: 100%;
+        background: linear-gradient(90deg, $warning 0%, $success 100%);
+        transition: width 0.3s ease;
+      }
+    }
+  }
+  
+  // Allocation ratio
+  .allocation-ratio {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid $border-200;
+    
+    label {
+      font-size: 10px;
+      color: $text-secondary;
+      display: block;
+      margin-bottom: 4px;
+    }
+  }
+  
+  // Advanced options
+  .advanced-options {
+    padding: 12px;
+    margin-top: 16px;
+    background: $surface-200;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+  }
+  
+  // Calculate section
+  .calculate-section {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid $border-200;
+    
+    button {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      transition: all 0.15s ease;
+      
+      &.primary {
+        background: $primary-500;
+        color: white;
+        border-color: $primary-600;
+        
+        &:hover {
+          background: $primary-600;
+        }
+        
+        &:disabled {
+          background: $border-300;
+          cursor: not-allowed;
+        }
+      }
+      
+      &.btn-power-curve {
+        background: $surface-100;
+        color: $text-primary;
+        
+        &:hover {
+          background: $primary-100;
+          color: $primary-700;
+        }
+      }
+    }
+  }
+  
+  // Results display
+  .result-display {
+    padding: 12px;
+    background: white;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    
+    .result-main {
+      margin-bottom: 12px;
+      
+      label {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 4px;
+      }
+      
+      .result-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: $primary-600;
+        font-family: $font-mono;
+      }
+    }
+    
+    .result-groups,
+    .result-detail {
+      padding: 8px;
+      background: $surface-200;
+      border-radius: 2px;
+      margin-bottom: 8px;
+      
+      label {
+        font-size: 10px;
+        font-weight: 500;
+        color: $text-secondary;
+        margin-bottom: 4px;
+        display: block;
+      }
+      
+      div,
+      span {
+        font-size: 11px;
+        color: $text-primary;
+        font-family: $font-mono;
+      }
+    }
+    
+    .result-interpretation {
+      padding: 8px;
+      background: $surface-200;
+      border-radius: 2px;
+      
+      label {
+        font-size: 10px;
+        font-weight: 500;
+        color: $text-secondary;
+        margin-right: 8px;
+      }
+      
+      .interpretation {
+        display: inline-block;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: 600;
+        border-radius: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        
+        &.trivial {
+          background: rgba($non-sig, 0.1);
+          color: $non-sig;
+        }
+        
+        &.small {
+          background: rgba($warning, 0.1);
+          color: $warning;
+        }
+        
+        &.medium {
+          background: rgba($sig-05, 0.1);
+          color: $sig-05;
+        }
+        
+        &.large {
+          background: rgba($sig-01, 0.1);
+          color: $sig-01;
+        }
+      }
+    }
+  }
+  
+  // Sensitivity analysis results
+  .sensitivity-results {
+    margin-bottom: 16px;
+    
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: $text-primary;
+    }
+    
+    .sensitivity-table {
+      width: 100%;
+      font-size: 10px;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid $border-300;
+      
+      thead {
+        background: $surface-200;
+        
+        th {
+          padding: 6px 8px;
+          text-align: left;
+          font-weight: 600;
+          border-bottom: 1px solid $border-300;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+      }
+      
+      tbody {
+        td {
+          padding: 6px 8px;
+          border-bottom: 1px solid $border-200;
+          font-family: $font-mono;
+        }
+        
+        tr:last-child td {
+          border-bottom: none;
+        }
+        
+        tr:hover {
+          background: rgba($primary-500, 0.03);
+        }
+      }
+    }
+  }
+  
+  // Recommendations
+  .recommendations {
+    padding: 12px;
+    background: $surface-100;
+    border: 1px solid $border-200;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: $text-primary;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 16px;
+      
+      li {
+        font-size: 11px;
+        color: $text-primary;
+        margin-bottom: 4px;
+        
+        &.warning {
+          color: $warning;
+          
+          &::marker {
+            color: $warning;
+          }
+        }
+        
+        &.info {
+          color: $primary-600;
+          
+          &::marker {
+            color: $primary-600;
+          }
+        }
+      }
+    }
+  }
+  
+  // Export section
+  .export-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: $surface-200;
+    border: 1px solid $border-300;
+    border-radius: 3px;
+    
+    label {
+      font-size: 11px;
+      font-weight: 500;
+      color: $text-secondary;
+    }
+    
+    select {
+      flex: 1;
+      padding: 4px 8px;
+      font-size: 11px;
+      border: 1px solid $border-300;
+      background: white;
+      border-radius: 2px;
+    }
+    
+    .btn-export {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: $surface-100;
+      color: $text-primary;
+      border: 1px solid $border-300;
+      border-radius: 3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      
+      &:hover {
+        background: $primary-500;
+        color: white;
+      }
+    }
+  }
+  
+  // Power curve visualization modal
+  .power-curve-visualization {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    max-width: 90vw;
+    background: white;
+    border: 2px solid $border-400;
+    border-radius: 3px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: $surface-200;
+      border-bottom: 1px solid $border-300;
+      
+      h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+      
+      .btn-close {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        background: transparent;
+        border: 1px solid $border-300;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 16px;
+        color: $text-secondary;
+        
+        &:hover {
+          background: $error;
+          color: white;
+          border-color: $error;
+        }
+      }
+    }
+    
+    .viz-content {
+      padding: 20px;
+      
+      .plot-placeholder {
+        height: 400px;
+        background: $surface-200;
+        border: 1px solid $border-300;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $text-secondary;
+        font-size: 11px;
+        text-align: center;
+      }
+    }
+    
+    .viz-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      background: $surface-200;
+      border-top: 1px solid $border-300;
+      
+      button {
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        background: white;
+        color: $text-primary;
+        border: 1px solid $border-300;
+        border-radius: 3px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        
+        &:hover {
+          background: $primary-500;
+          color: white;
+        }
+      }
+    }
+  }
+}

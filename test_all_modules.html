@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StickForStats - Module Testing Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #4a0080 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .golden-ratio {
+            color: #FFD700;
+            font-size: 1.2rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .module-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .module-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-operational {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .status-testing {
+            background: rgba(255, 193, 7, 0.3);
+            color: #FFC107;
+            border: 1px solid #FFC107;
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.3);
+            color: #F44336;
+            border: 1px solid #F44336;
+        }
+
+        .test-results {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .feature-chip {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        .test-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #0a0e27;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .guardian-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .summary-section {
+            margin: 30px auto;
+            max-width: 1400px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 StickForStats Module Testing Dashboard</h1>
+        <div class="golden-ratio">φ = 1.618033988749... | Testing with Scientific Integrity</div>
+    </div>
+
+    <div class="summary-section">
+        <h2 style="color: #FFD700; margin-bottom: 15px;">📊 System Overview</h2>
+        <div class="summary-grid">
+            <div class="summary-stat">
+                <div class="summary-value" id="total-modules">0</div>
+                <div class="summary-label">Total Modules</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-value" id="operational-count">0</div>
+                <div class="summary-label">Operational</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-value" id="guardian-enabled">0</div>
+                <div class="summary-label">Guardian Protected</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-value" id="precision-50">0</div>
+                <div class="summary-label">50-Decimal Precision</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard" id="module-dashboard">
+        <!-- Module cards will be dynamically added here -->
+    </div>
+
+    <script>
+        // Module definitions with test endpoints
+        const modules = [
+            {
+                name: 'T-Test Module',
+                endpoint: '/api/v1/stats/ttest/',
+                route: '/modules/t-test',
+                features: ['50-decimal', 'Two-sample', 'Paired', 'One-sample'],
+                testData: {
+                    test_type: 'two_sample',
+                    data1: [1, 2, 3, 4, 5],
+                    data2: [6, 7, 8, 9, 10]
+                }
+            },
+            {
+                name: 'ANOVA Module',
+                endpoint: '/api/v1/stats/anova/',
+                route: '/modules/anova',
+                features: ['50-decimal', 'One-way', 'Two-way', 'Repeated measures'],
+                testData: {
+                    groups: [[1,2,3], [4,5,6], [7,8,9]],
+                    test_type: 'one_way'
+                }
+            },
+            {
+                name: 'Correlation Analysis',
+                endpoint: '/api/v1/stats/correlation/',
+                route: '/api/v1/stats/correlation/',
+                features: ['50-decimal', 'Pearson', 'Spearman', 'Kendall'],
+                testData: {
+                    x: [1, 2, 3, 4, 5],
+                    y: [2, 4, 6, 8, 10],
+                    method: 'pearson'
+                }
+            },
+            {
+                name: 'Linear Regression',
+                endpoint: '/api/v1/stats/regression/',
+                route: '/api/v1/stats/regression/',
+                features: ['50-decimal', 'Simple', 'Multiple', 'Polynomial'],
+                testData: {
+                    type: 'simple_linear',
+                    X: [1, 2, 3, 4, 5],
+                    y: [2, 4, 6, 8, 10]
+                }
+            },
+            {
+                name: 'Guardian System',
+                endpoint: '/api/guardian/check/',
+                route: '/api/guardian/',
+                features: ['Assumption checking', 'Visual evidence', 'Alternatives'],
+                testData: {
+                    data: { group1: [1,2,3,4,5], group2: [6,7,8,9,10] },
+                    test_type: 't_test'
+                }
+            },
+            {
+                name: 'Power Analysis',
+                endpoint: '/api/power/calculate/',
+                route: '/modules/power-analysis',
+                features: ['Sample size', 'Effect size', 'Power curves'],
+                testData: {
+                    test_type: 't_test',
+                    effect_size: 0.5,
+                    alpha: 0.05,
+                    power: 0.8
+                }
+            },
+            {
+                name: 'Non-Parametric Tests',
+                endpoint: '/api/v1/non-parametric/',
+                route: '/modules/non-parametric',
+                features: ['Mann-Whitney', 'Kruskal-Wallis', 'Wilcoxon'],
+                testData: {
+                    test_type: 'mann_whitney',
+                    data1: [1,2,3,4,5],
+                    data2: [6,7,8,9,10]
+                }
+            },
+            {
+                name: 'Confidence Intervals',
+                endpoint: '/api/v1/confidence/',
+                route: '/modules/confidence-intervals',
+                features: ['Mean', 'Proportion', 'Difference', 'Bootstrap'],
+                testData: {
+                    data: [1,2,3,4,5],
+                    confidence_level: 0.95
+                }
+            }
+        ];
+
+        // Test individual module
+        async function testModule(module) {
+            const cardId = module.name.replace(/\s+/g, '-');
+            const card = document.getElementById(cardId);
+            const statusBadge = card.querySelector('.status-badge');
+            const testResults = card.querySelector('.test-results');
+
+            statusBadge.className = 'status-badge status-testing loading';
+            statusBadge.textContent = 'Testing...';
+            testResults.textContent = 'Running test...';
+
+            try {
+                const response = await fetch(`http://localhost:8000${module.endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(module.testData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusBadge.className = 'status-badge status-operational';
+                    statusBadge.textContent = 'Operational';
+
+                    // Check for key features
+                    let resultText = 'Test Successful!\n';
+                    if (data.high_precision_result) {
+                        resultText += '✅ 50-decimal precision active\n';
+                        resultText += `Sample result: ${JSON.stringify(data.high_precision_result).substring(0, 100)}...\n`;
+                    }
+                    if (data.guardian_status) {
+                        resultText += '✅ Guardian protection active\n';
+                    }
+                    if (data.assumptions_checked) {
+                        resultText += `✅ Assumptions checked: ${data.assumptions_checked.join(', ')}\n`;
+                    }
+
+                    testResults.textContent = resultText;
+                    updateSummary();
+                } else {
+                    throw new Error(data.error || 'Test failed');
+                }
+            } catch (error) {
+                statusBadge.className = 'status-badge status-error';
+                statusBadge.textContent = 'Error';
+                testResults.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Create module cards
+        function createModuleCard(module) {
+            const card = document.createElement('div');
+            card.className = 'module-card';
+            card.id = module.name.replace(/\s+/g, '-');
+
+            const hasGuardian = module.name.includes('Guardian') || module.features.includes('Guardian');
+            const has50Decimal = module.features.includes('50-decimal');
+
+            card.innerHTML = `
+                <div class="module-header">
+                    <div class="module-name">${module.name}</div>
+                    <div class="status-badge status-testing">Pending</div>
+                </div>
+
+                ${hasGuardian ? '<div class="guardian-indicator">🛡️ Guardian Enabled</div>' : ''}
+                ${has50Decimal ? '<div class="guardian-indicator">🎯 50-Decimal Precision</div>' : ''}
+
+                <div class="feature-list">
+                    ${module.features.map(f => `<div class="feature-chip">${f}</div>`).join('')}
+                </div>
+
+                <div class="test-results">Waiting for test...</div>
+
+                <button class="test-button" onclick="testModule(modules[${modules.indexOf(module)}])">
+                    Test Module
+                </button>
+            `;
+
+            return card;
+        }
+
+        // Update summary statistics
+        function updateSummary() {
+            const total = modules.length;
+            const operational = document.querySelectorAll('.status-operational').length;
+            const guardianEnabled = modules.filter(m =>
+                m.name.includes('Guardian') || m.features.includes('Guardian')
+            ).length;
+            const precision50 = modules.filter(m =>
+                m.features.includes('50-decimal')
+            ).length;
+
+            document.getElementById('total-modules').textContent = total;
+            document.getElementById('operational-count').textContent = operational;
+            document.getElementById('guardian-enabled').textContent = guardianEnabled;
+            document.getElementById('precision-50').textContent = precision50;
+        }
+
+        // Test all modules
+        async function testAllModules() {
+            for (const module of modules) {
+                await testModule(module);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Delay between tests
+            }
+        }
+
+        // Initialize dashboard
+        function initDashboard() {
+            const dashboard = document.getElementById('module-dashboard');
+            modules.forEach(module => {
+                dashboard.appendChild(createModuleCard(module));
+            });
+            updateSummary();
+
+            // Auto-test Guardian first to show it's working
+            setTimeout(() => {
+                testModule(modules.find(m => m.name === 'Guardian System'));
+            }, 1000);
+        }
+
+        // Start on load
+        window.addEventListener('load', initDashboard);
+    </script>
+</body>
+</html>

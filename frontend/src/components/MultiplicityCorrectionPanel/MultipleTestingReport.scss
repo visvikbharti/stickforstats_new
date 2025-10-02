@@ -1,0 +1,424 @@
+// MultipleTestingReport.scss
+// Comprehensive report generator for multiple testing corrections
+// Enterprise document generation with professional formatting
+
+.multiple-testing-report {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+
+  .report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #d0d0d0;
+
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+
+      select {
+        padding: 3px 8px;
+        border: 1px solid #bdbdbd;
+        border-radius: 3px;
+        font-size: 12px;
+        background: #ffffff;
+        cursor: pointer;
+
+        &:focus {
+          outline: none;
+          border-color: #34495e;
+        }
+      }
+
+      .btn-generate {
+        padding: 4px 12px;
+        background: #4caf50;
+        color: #ffffff;
+        border: none;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+
+        &:hover {
+          background: #388e3c;
+        }
+      }
+    }
+  }
+
+  .report-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
+
+    .section-selector {
+      h4 {
+        margin: 0 0 6px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+      }
+
+      .section-checkboxes {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+          color: #666;
+          cursor: pointer;
+
+          input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+          }
+        }
+      }
+    }
+
+    .visualization-control {
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #666;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
+  }
+
+  .report-preview {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 12px;
+    background: #ffffff;
+
+    h4 {
+      margin: 0 0 12px 0;
+      padding: 6px 8px;
+      background: #34495e;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+
+    .preview-content {
+      padding: 12px;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+
+      .report-section {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+
+        &:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+        }
+
+        h2 {
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 700;
+          color: #34495e;
+          border-bottom: 1px solid #d0d0d0;
+          padding-bottom: 6px;
+        }
+
+        .report-item {
+          margin-bottom: 12px;
+
+          h3 {
+            margin: 0 0 6px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+          }
+
+          p {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            color: #424242;
+            line-height: 1.5;
+          }
+
+          ul {
+            margin: 0 0 8px 0;
+            padding-left: 20px;
+
+            li {
+              margin-bottom: 4px;
+              font-size: 12px;
+              color: #424242;
+              line-height: 1.4;
+            }
+          }
+
+          .report-table {
+            width: 100%;
+            margin: 8px 0;
+            border-collapse: collapse;
+            font-size: 11px;
+
+            thead {
+              background: #f5f5f5;
+
+              tr {
+                border-bottom: 2px solid #d0d0d0;
+              }
+
+              th {
+                padding: 6px 8px;
+                text-align: left;
+                font-weight: 600;
+                color: #34495e;
+                text-transform: capitalize;
+              }
+            }
+
+            tbody {
+              tr {
+                border-bottom: 1px solid #e0e0e0;
+
+                &:hover {
+                  background: #f8f8f8;
+                }
+              }
+
+              td {
+                padding: 4px 8px;
+                color: #424242;
+              }
+            }
+          }
+
+          .citations {
+            margin: 8px 0;
+            padding-left: 20px;
+            background: #f8f9fa;
+            border-left: 3px solid #34495e;
+            padding: 8px 8px 8px 24px;
+
+            li {
+              margin-bottom: 4px;
+              font-size: 11px;
+              color: #666;
+              font-style: italic;
+              line-height: 1.4;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .report-footer {
+    padding: 8px;
+    background: #f5f5f5;
+    border-top: 1px solid #d0d0d0;
+
+    .report-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 11px;
+      color: #666;
+
+      span {
+        &:not(:last-child):not(:nth-last-child(2)) {
+          padding-right: 8px;
+        }
+      }
+    }
+  }
+
+  // Special styling for different report templates
+  &.regulatory-template {
+    .report-section {
+      h2 {
+        background: #e3f2fd;
+        padding: 8px;
+        color: #1565c0;
+      }
+    }
+  }
+
+  &.publication-template {
+    .preview-content {
+      font-family: 'Times New Roman', serif;
+
+      .report-section {
+        h2 {
+          font-style: italic;
+          font-weight: normal;
+        }
+
+        p {
+          text-align: justify;
+        }
+      }
+    }
+  }
+
+  // Print-specific styles
+  @media print {
+    .report-header,
+    .report-controls,
+    .report-footer {
+      display: none;
+    }
+
+    .report-preview {
+      max-height: none;
+      padding: 0;
+
+      h4 {
+        display: none;
+      }
+
+      .preview-content {
+        border: none;
+        background: #ffffff;
+        padding: 0;
+
+        .report-section {
+          page-break-inside: avoid;
+          margin-bottom: 20px;
+
+          h2 {
+            font-size: 18pt;
+            margin-top: 20px;
+          }
+
+          h3 {
+            font-size: 14pt;
+          }
+
+          p, li {
+            font-size: 11pt;
+          }
+
+          .report-table {
+            font-size: 9pt;
+
+            thead tr {
+              background: #f0f0f0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    .report-header {
+      flex-direction: column;
+      gap: 8px;
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    .report-controls {
+      flex-direction: column;
+      gap: 12px;
+
+      .section-selector {
+        width: 100%;
+      }
+    }
+
+    .report-preview {
+      max-height: 400px;
+
+      .preview-content {
+        padding: 8px;
+
+        .report-section {
+          h2 {
+            font-size: 14px;
+          }
+
+          .report-table {
+            font-size: 10px;
+            overflow-x: auto;
+            display: block;
+          }
+        }
+      }
+    }
+  }
+
+  // Export format specific styling hints
+  &.export-html {
+    .preview-content {
+      background: #ffffff;
+    }
+  }
+
+  &.export-markdown {
+    .preview-content {
+      font-family: 'IBM Plex Mono', monospace;
+      
+      .report-table {
+        border: 1px solid #333;
+      }
+    }
+  }
+
+  &.export-latex {
+    .preview-content {
+      .report-section {
+        h2::before {
+          content: '\\section{';
+        }
+        h2::after {
+          content: '}';
+        }
+        
+        h3::before {
+          content: '\\subsection{';
+        }
+        h3::after {
+          content: '}';
+        }
+      }
+    }
+  }
+}

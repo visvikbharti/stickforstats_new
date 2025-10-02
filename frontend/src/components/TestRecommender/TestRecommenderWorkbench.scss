@@ -1,0 +1,574 @@
+/**
+ * Test Recommender Workbench Styles
+ * ==================================
+ * Enterprise-grade styling for statistical analysis interface
+ */
+
+@import '../../styles/enterprise-design-system.scss';
+
+.test-recommender-workbench {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: $bg-primary;
+  font-family: $font-family-primary;
+  font-size: $font-size-base;
+  color: $neutral-900;
+  
+  // ==========================================
+  // TOP TOOLBAR
+  // ==========================================
+  .workbench-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 $spacing-lg;
+    background-color: $primary-800;
+    border-bottom: 2px solid $primary-900;
+    box-shadow: $shadow-md;
+    
+    .toolbar-section {
+      display: flex;
+      align-items: center;
+      gap: $spacing-base;
+      
+      .workbench-title {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: white;
+        margin: 0;
+        letter-spacing: -0.5px;
+      }
+      
+      .version-badge {
+        padding: 2px 6px;
+        background-color: rgba(white, 0.2);
+        color: white;
+        font-size: $font-size-xxs;
+        font-weight: $font-weight-medium;
+        border-radius: $border-radius-sm;
+        text-transform: uppercase;
+      }
+    }
+    
+    .view-mode-selector {
+      display: flex;
+      background-color: rgba(white, 0.1);
+      border-radius: $border-radius-sm;
+      padding: 2px;
+      
+      .mode-btn {
+        padding: 4px 12px;
+        background: transparent;
+        color: rgba(white, 0.7);
+        border: none;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+          color: white;
+        }
+        
+        &.active {
+          background-color: $primary-600;
+          color: white;
+          border-radius: $border-radius-sm;
+        }
+      }
+    }
+    
+    .toolbar-actions {
+      gap: $spacing-xs;
+      
+      .toolbar-btn {
+        @include button-base;
+        background-color: transparent;
+        color: white;
+        border: 1px solid rgba(white, 0.3);
+        padding: 6px 12px;
+        font-size: $font-size-sm;
+        
+        &:hover:not(:disabled) {
+          background-color: rgba(white, 0.1);
+          border-color: rgba(white, 0.5);
+        }
+        
+        &:disabled {
+          opacity: 0.3;
+        }
+        
+        &.danger {
+          &:hover:not(:disabled) {
+            background-color: rgba($error-main, 0.2);
+            border-color: $error-light;
+            color: $error-light;
+          }
+        }
+      }
+    }
+  }
+  
+  // ==========================================
+  // WORKFLOW PROGRESS BAR
+  // ==========================================
+  .workflow-progress {
+    display: flex;
+    background-color: $bg-secondary;
+    border-bottom: 1px solid $border-color-light;
+    padding: $spacing-base $spacing-lg;
+    
+    .workflow-step {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      
+      &.completed {
+        opacity: 1;
+        
+        .step-indicator {
+          background-color: $success-main;
+          border-color: $success-dark;
+          color: white;
+        }
+      }
+      
+      &.active {
+        opacity: 1;
+        
+        .step-indicator {
+          background-color: $primary-500;
+          border-color: $primary-600;
+          color: white;
+          box-shadow: 0 0 0 3px rgba($primary-500, 0.2);
+        }
+        
+        .step-info {
+          .step-label {
+            color: $primary-700;
+            font-weight: $font-weight-semibold;
+          }
+        }
+      }
+      
+      &:hover {
+        opacity: 1;
+      }
+      
+      .step-indicator {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: white;
+        border: 2px solid $border-color-medium;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        
+        .step-icon {
+          font-size: $font-size-lg;
+        }
+        
+        .step-number {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          width: 16px;
+          height: 16px;
+          background-color: $neutral-700;
+          color: white;
+          border-radius: 50%;
+          font-size: $font-size-xxs;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: $font-weight-bold;
+        }
+      }
+      
+      .step-info {
+        margin-left: $spacing-base;
+        
+        .step-label {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
+          color: $neutral-800;
+          line-height: 1.2;
+        }
+        
+        .step-description {
+          font-size: $font-size-xs;
+          color: $neutral-600;
+          margin-top: 2px;
+        }
+      }
+      
+      .step-connector {
+        position: absolute;
+        left: 36px;
+        right: -50%;
+        height: 2px;
+        background-color: $border-color-light;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: -1;
+      }
+    }
+  }
+  
+  // ==========================================
+  // MAIN CONTENT AREA
+  // ==========================================
+  .workbench-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    
+    // ==========================================
+    // SIDEBARS
+    // ==========================================
+    .workbench-sidebar {
+      width: 240px;
+      background-color: $bg-secondary;
+      border-right: 1px solid $border-color-light;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      
+      &.workbench-sidebar-right {
+        border-right: none;
+        border-left: 1px solid $border-color-light;
+      }
+      
+      .sidebar-panel {
+        border-bottom: 1px solid $border-color-light;
+        
+        .panel-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: $spacing-sm $spacing-base;
+          background-color: $bg-tertiary;
+          border-bottom: 1px solid $border-color-light;
+          
+          h3 {
+            font-size: $font-size-sm;
+            font-weight: $font-weight-semibold;
+            color: $neutral-800;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          .panel-action {
+            background: none;
+            border: none;
+            color: $neutral-600;
+            cursor: pointer;
+            padding: 2px;
+            
+            &:hover {
+              color: $neutral-800;
+            }
+          }
+          
+          .history-count {
+            font-size: $font-size-xs;
+            color: $neutral-600;
+            background-color: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+          }
+        }
+        
+        // Variable List
+        .variable-list {
+          padding: $spacing-xs;
+          
+          .variable-item {
+            display: flex;
+            align-items: center;
+            padding: $spacing-xs $spacing-sm;
+            background-color: white;
+            border: 1px solid $border-color-light;
+            border-radius: $border-radius-sm;
+            margin-bottom: $spacing-xs;
+            cursor: pointer;
+            transition: all 0.15s;
+            
+            &:hover {
+              background-color: $bg-hover;
+              border-color: $primary-300;
+            }
+            
+            .variable-type {
+              width: 20px;
+              height: 20px;
+              background-color: $primary-100;
+              color: $primary-700;
+              border-radius: $border-radius-sm;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: $font-size-xs;
+              font-weight: $font-weight-bold;
+              margin-right: $spacing-sm;
+            }
+            
+            .variable-name {
+              flex: 1;
+              font-size: $font-size-sm;
+              color: $neutral-800;
+              font-weight: $font-weight-medium;
+            }
+            
+            .variable-stats {
+              font-size: $font-size-xs;
+              color: $neutral-600;
+              font-family: $font-family-mono;
+            }
+          }
+          
+          .empty-state {
+            padding: $spacing-lg;
+            text-align: center;
+            color: $neutral-500;
+            font-size: $font-size-sm;
+            font-style: italic;
+          }
+        }
+        
+        // History List
+        .history-list {
+          padding: $spacing-xs;
+          
+          .history-item {
+            padding: $spacing-xs $spacing-sm;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            
+            &:hover {
+              background-color: $bg-hover;
+              border-left-color: $primary-400;
+            }
+            
+            .history-time {
+              display: block;
+              font-size: $font-size-xs;
+              color: $neutral-600;
+              font-family: $font-family-mono;
+            }
+            
+            .history-test {
+              display: block;
+              font-size: $font-size-sm;
+              color: $neutral-800;
+              margin-top: 2px;
+            }
+          }
+        }
+        
+        // Properties List
+        .properties-list {
+          padding: $spacing-base;
+          
+          .property-group {
+            margin-bottom: $spacing-lg;
+            
+            h4 {
+              font-size: $font-size-xs;
+              font-weight: $font-weight-semibold;
+              color: $neutral-600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin: 0 0 $spacing-sm 0;
+            }
+            
+            .property-list {
+              dt {
+                font-size: $font-size-xs;
+                color: $neutral-600;
+                margin-bottom: 2px;
+              }
+              
+              dd {
+                font-size: $font-size-sm;
+                color: $neutral-800;
+                font-weight: $font-weight-medium;
+                margin: 0 0 $spacing-sm 0;
+                font-family: $font-family-mono;
+                
+                &.pass {
+                  color: $success-main;
+                }
+                
+                &.fail {
+                  color: $error-main;
+                }
+              }
+            }
+          }
+        }
+        
+        // Help Content
+        .help-content {
+          padding: $spacing-base;
+          
+          .help-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: $spacing-sm;
+            font-size: $font-size-sm;
+            
+            kbd {
+              background-color: $neutral-800;
+              color: white;
+              padding: 2px 6px;
+              border-radius: $border-radius-sm;
+              font-family: $font-family-mono;
+              font-size: $font-size-xs;
+              margin-right: $spacing-sm;
+              box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3);
+            }
+          }
+        }
+      }
+    }
+    
+    // ==========================================
+    // MAIN PANEL
+    // ==========================================
+    .workbench-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: $spacing-lg;
+      overflow-y: auto;
+      background-color: white;
+      
+      // Alert Messages
+      .alert {
+        display: flex;
+        align-items: flex-start;
+        padding: $spacing-base;
+        border-radius: $border-radius-md;
+        margin-bottom: $spacing-base;
+        border: 1px solid;
+        
+        &.alert-error {
+          background-color: rgba($error-main, 0.05);
+          border-color: $error-light;
+          color: $error-dark;
+        }
+        
+        &.alert-warning {
+          background-color: rgba($warning-main, 0.05);
+          border-color: $warning-light;
+          color: $warning-dark;
+        }
+        
+        .alert-icon {
+          font-size: $font-size-lg;
+          margin-right: $spacing-sm;
+        }
+        
+        .alert-message,
+        .alert-messages {
+          flex: 1;
+          font-size: $font-size-sm;
+          line-height: $line-height-normal;
+        }
+        
+        .warning-item {
+          margin-bottom: $spacing-xs;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+        
+        .alert-close {
+          background: none;
+          border: none;
+          color: inherit;
+          font-size: $font-size-xl;
+          line-height: 1;
+          cursor: pointer;
+          opacity: 0.7;
+          
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+  
+  // ==========================================
+  // CONSOLE PANEL
+  // ==========================================
+  .workbench-console {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background-color: $neutral-900;
+    border-top: 2px solid $primary-600;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    z-index: $z-index-fixed;
+    display: flex;
+    flex-direction: column;
+    
+    .console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: $spacing-sm $spacing-base;
+      background-color: $neutral-950;
+      border-bottom: 1px solid $neutral-800;
+      
+      h3 {
+        font-size: $font-size-sm;
+        color: white;
+        margin: 0;
+        font-weight: $font-weight-medium;
+      }
+      
+      .console-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: $font-size-xl;
+        cursor: pointer;
+        opacity: 0.7;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+    
+    .console-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: $spacing-sm;
+      
+      .console-output {
+        font-family: $font-family-mono;
+        font-size: $font-size-xs;
+        color: #00ff00;
+        margin: 0;
+        line-height: $line-height-relaxed;
+      }
+    }
+  }
+}

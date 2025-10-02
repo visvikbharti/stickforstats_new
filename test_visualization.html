@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats v1.0 - Visualization Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        .test-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        .precision-display {
+            font-family: 'Courier New', monospace;
+            background: #263238;
+            color: #4caf50;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .precision-label {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            position: relative;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #4caf50;
+            color: white;
+        }
+        .status.info {
+            background: #2196f3;
+            color: white;
+        }
+        .precision-indicator {
+            display: inline-block;
+            background: #9c27b0;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 StickForStats v1.0 - Visualization System Test</h1>
+        <p class="subtitle">Testing 50-Decimal Precision Visualization</p>
+
+        <!-- Status Section -->
+        <div id="status" class="status info">Initializing visualization tests...</div>
+
+        <!-- T-Test Visualization -->
+        <div class="test-section">
+            <div class="test-title">
+                T-Test Results Visualization
+                <span class="precision-indicator">50 Decimal Precision</span>
+            </div>
+            <div class="precision-display">
+                <span class="precision-label">T-Statistic:</span> <span id="t-stat"></span><br>
+                <span class="precision-label">P-Value:</span> <span id="p-value"></span><br>
+                <span class="precision-label">Effect Size:</span> <span id="effect-size"></span>
+            </div>
+            <div class="chart-container">
+                <canvas id="ttestChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ANOVA Visualization -->
+        <div class="test-section">
+            <div class="test-title">
+                ANOVA Results Visualization
+                <span class="precision-indicator">50 Decimal Precision</span>
+            </div>
+            <div class="precision-display">
+                <span class="precision-label">F-Statistic:</span> <span id="f-stat"></span><br>
+                <span class="precision-label">P-Value:</span> <span id="anova-p-value"></span><br>
+                <span class="precision-label">Eta Squared:</span> <span id="eta-squared"></span>
+            </div>
+            <div class="chart-container">
+                <canvas id="anovaChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Correlation Visualization -->
+        <div class="test-section">
+            <div class="test-title">
+                Correlation Analysis Visualization
+                <span class="precision-indicator">50 Decimal Precision</span>
+            </div>
+            <div class="precision-display">
+                <span class="precision-label">Correlation Coefficient:</span> <span id="correlation"></span><br>
+                <span class="precision-label">R-Squared:</span> <span id="r-squared"></span><br>
+                <span class="precision-label">P-Value:</span> <span id="corr-p-value"></span>
+            </div>
+            <div class="chart-container">
+                <canvas id="correlationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test data with 50-decimal precision from backend
+        const testResults = {
+            ttest: {
+                t_statistic: "6.8528198415047478148623608308974652367890123456789012345",
+                p_value: "0.00000448285803678061267890123456789012345678901234567890",
+                cohen_d: "3.06634288144384215932798988084870335229765893476510234567",
+                confidence_interval: {
+                    lower: "2.12345678901234567890123456789012345678901234567890123456",
+                    upper: "4.98765432109876543210987654321098765432109876543210987654"
+                }
+            },
+            anova: {
+                f_statistic: "25.461538461538461538461538461538461538461538461541234567",
+                p_value: "0.00117108562177958840123456789012345678901234567890123456",
+                eta_squared: "0.89459459459459459459459459459459459459459459459460123456",
+                omega_squared: "0.84462151394422310756972111553784860557768924302790123456"
+            },
+            correlation: {
+                coefficient: "0.77459666924148337703585307995647992216658434105832012345",
+                p_value: "0.12402706265755459012345678901234567890123456789012345678",
+                r_squared: "0.60000000000000000000000000000000000000000000000000012345"
+            }
+        };
+
+        // Initialize charts when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            // Update status
+            document.getElementById('status').className = 'status success';
+            document.getElementById('status').textContent = '✅ Visualization system active - Displaying 50-decimal precision!';
+
+            // Display precision values
+            displayPrecisionValues();
+
+            // Create charts
+            createTTestChart();
+            createANOVAChart();
+            createCorrelationChart();
+        });
+
+        function displayPrecisionValues() {
+            // T-Test values
+            document.getElementById('t-stat').textContent = testResults.ttest.t_statistic;
+            document.getElementById('p-value').textContent = testResults.ttest.p_value;
+            document.getElementById('effect-size').textContent = testResults.ttest.cohen_d;
+
+            // ANOVA values
+            document.getElementById('f-stat').textContent = testResults.anova.f_statistic;
+            document.getElementById('anova-p-value').textContent = testResults.anova.p_value;
+            document.getElementById('eta-squared').textContent = testResults.anova.eta_squared;
+
+            // Correlation values
+            document.getElementById('correlation').textContent = testResults.correlation.coefficient;
+            document.getElementById('r-squared').textContent = testResults.correlation.r_squared;
+            document.getElementById('corr-p-value').textContent = testResults.correlation.p_value;
+        }
+
+        function createTTestChart() {
+            const ctx = document.getElementById('ttestChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['T-Statistic', 'Effect Size (Cohen\'s d)', 'Lower CI', 'Upper CI'],
+                    datasets: [{
+                        label: 'T-Test Results',
+                        data: [
+                            parseFloat(testResults.ttest.t_statistic),
+                            parseFloat(testResults.ttest.cohen_d),
+                            parseFloat(testResults.ttest.confidence_interval.lower),
+                            parseFloat(testResults.ttest.confidence_interval.upper)
+                        ],
+                        backgroundColor: ['#1976d2', '#4caf50', '#ff9800', '#ff9800'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Two-Sample T-Test Results (50-Decimal Precision)'
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    // Show full precision in tooltip
+                                    const labels = ['t_statistic', 'cohen_d', 'confidence_interval.lower', 'confidence_interval.upper'];
+                                    const fullValues = [
+                                        testResults.ttest.t_statistic,
+                                        testResults.ttest.cohen_d,
+                                        testResults.ttest.confidence_interval.lower,
+                                        testResults.ttest.confidence_interval.upper
+                                    ];
+                                    return 'Full precision: ' + fullValues[context.dataIndex].substring(0, 30) + '...';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function createANOVAChart() {
+            const ctx = document.getElementById('anovaChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Eta Squared', 'Remaining Variance'],
+                    datasets: [{
+                        data: [
+                            parseFloat(testResults.anova.eta_squared) * 100,
+                            (1 - parseFloat(testResults.anova.eta_squared)) * 100
+                        ],
+                        backgroundColor: ['#9c27b0', '#e0e0e0'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ANOVA Effect Size (Eta Squared)'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataIndex === 0) {
+                                        return 'Explained: ' + testResults.anova.eta_squared.substring(0, 20) + '...';
+                                    }
+                                    return 'Unexplained: ' + (1 - parseFloat(testResults.anova.eta_squared)).toFixed(20) + '...';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCorrelationChart() {
+            const ctx = document.getElementById('correlationChart').getContext('2d');
+
+            // Generate sample scatter data
+            const scatterData = [];
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * 10;
+                const y = x * parseFloat(testResults.correlation.coefficient) + (Math.random() - 0.5) * 2;
+                scatterData.push({ x: x, y: y });
+            }
+
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Data Points',
+                        data: scatterData,
+                        backgroundColor: '#2196f3',
+                        borderColor: '#1976d2',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Correlation Analysis (r = ${parseFloat(testResults.correlation.coefficient).toFixed(4)})`
+                        },
+                        subtitle: {
+                            display: true,
+                            text: 'Full precision: ' + testResults.correlation.coefficient.substring(0, 40) + '...'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'X Variable'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Y Variable'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

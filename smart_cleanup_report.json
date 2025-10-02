@@ -1,0 +1,14 @@
+{
+  "analyzed": 6,
+  "toRemove": [
+    {
+      "file": "/Users/vishalbharti/StickForStats_v1.0_Production/frontend/src/components/PowerAnalysis/PowerCalculator.jsx",
+      "line": 395,
+      "content": "const gpowerValue = calculated * (1 + (Math.random() - 0.5) * 0.01); // Simulated G*Power result",
+      "reason": "Generates fake statistical results"
+    }
+  ],
+  "toKeep": [],
+  "toTransform": [],
+  "changes": []
+}

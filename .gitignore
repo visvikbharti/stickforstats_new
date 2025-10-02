@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+backend/venv/
+backend/env/
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+frontend/build/
+frontend/dist/
+backend/dist/
+*.egg-info/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.claude/
+
+# Test reports (keep structure, not reports)
+ENDPOINT_TEST_REPORT_*.json
+test_report_*.json
+*_test_report_*.json
+frontend_test_report_*.json
+validation_report.json
+phase2_performance_baseline.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.pyc
+__pycache__/
+*.so
+*.egg
+*.egg-info
+dist/
+build/

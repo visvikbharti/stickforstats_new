@@ -1,0 +1,564 @@
+.interpretation-guide {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+
+  .guide-header {
+    background: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px;
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0 0 4px 0;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+  }
+
+  .guide-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+
+    .input-panel {
+      width: 380px;
+      border-right: 1px solid #e0e0e0;
+      padding: 16px;
+      overflow-y: auto;
+      background: #f8f9fa;
+
+      .domain-selector {
+        margin-bottom: 16px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+
+        label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          color: #34495e;
+          margin-bottom: 6px;
+        }
+
+        select {
+          width: 100%;
+          padding: 6px 8px;
+          font-size: 12px;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          background: white;
+          font-family: 'IBM Plex Sans', sans-serif;
+
+          &:focus {
+            outline: none;
+            border-color: #3498db;
+          }
+        }
+
+        .domain-description {
+          margin-top: 8px;
+          font-size: 11px;
+          color: #7f8c8d;
+          font-style: italic;
+        }
+      }
+
+      .metric-selector {
+        margin-bottom: 16px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+
+        label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          color: #34495e;
+          margin-bottom: 6px;
+        }
+
+        select {
+          width: 100%;
+          padding: 6px 8px;
+          font-size: 12px;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          background: white;
+
+          &:focus {
+            outline: none;
+            border-color: #3498db;
+          }
+        }
+
+        .metric-info {
+          margin-top: 8px;
+          padding: 8px;
+          background: #f8f9fa;
+          border-radius: 2px;
+
+          .formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: #2c3e50;
+            margin-bottom: 4px;
+          }
+
+          .interpretation {
+            font-size: 11px;
+            color: #7f8c8d;
+          }
+        }
+      }
+
+      .value-input {
+        margin-bottom: 16px;
+
+        label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          color: #34495e;
+          margin-bottom: 6px;
+        }
+
+        input {
+          width: 100%;
+          padding: 8px;
+          font-size: 14px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-weight: 500;
+          border: 2px solid #3498db;
+          border-radius: 3px;
+          background: white;
+          text-align: center;
+
+          &:focus {
+            outline: none;
+            border-color: #2980b9;
+            background: #ebf5fb;
+          }
+
+          &::placeholder {
+            color: #95a5a6;
+            font-size: 12px;
+          }
+        }
+      }
+
+      .optional-inputs {
+        margin-bottom: 16px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #d0d0d0;
+        border-radius: 3px;
+
+        .input-group {
+          margin-bottom: 10px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          label {
+            display: block;
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+          }
+
+          input {
+            width: 100%;
+            padding: 4px 6px;
+            font-size: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            border: 1px solid #d0d0d0;
+            border-radius: 2px;
+
+            &:focus {
+              outline: none;
+              border-color: #3498db;
+              background: #f0f8ff;
+            }
+
+            &::placeholder {
+              color: #bdc3c7;
+              font-size: 11px;
+            }
+          }
+        }
+      }
+
+      .interpret-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover:not(:disabled) {
+          background: #229954;
+        }
+
+        &:disabled {
+          background: #95a5a6;
+          cursor: not-allowed;
+        }
+      }
+
+      .interpretation-result {
+        margin-top: 16px;
+        padding: 12px;
+        background: white;
+        border: 2px solid #27ae60;
+        border-radius: 3px;
+
+        h3 {
+          font-size: 13px;
+          font-weight: 600;
+          color: #27ae60;
+          margin: 0 0 8px 0;
+        }
+
+        .category-badge {
+          display: inline-block;
+          padding: 6px 12px;
+          font-size: 14px;
+          font-weight: 600;
+          border-radius: 3px;
+          margin-bottom: 12px;
+          
+          &.negligible { background: #ecf0f1; color: #95a5a6; }
+          &.very-small { background: #ebf5fb; color: #3498db; }
+          &.small { background: #d5f4e6; color: #27ae60; }
+          &.medium,
+          &.moderate { background: #fef5e7; color: #f39c12; }
+          &.large { background: #fdebd0; color: #e67e22; }
+          &.very-large { background: #fadbd8; color: #e74c3c; }
+          &.huge { background: #f5b7b1; color: #c0392b; }
+          &.substantial { background: #fdebd0; color: #e67e22; }
+          &.educationally-significant { background: #fef5e7; color: #f39c12; }
+        }
+
+        .narrative {
+          font-size: 12px;
+          line-height: 1.5;
+          color: #34495e;
+
+          p {
+            margin: 0 0 8px 0;
+            padding-left: 16px;
+            position: relative;
+
+            &:before {
+              content: '▸';
+              position: absolute;
+              left: 0;
+              color: #27ae60;
+            }
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+
+        .significance-info {
+          margin-top: 12px;
+          padding: 8px;
+          background: #f8f9fa;
+          border-radius: 3px;
+
+          h4 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #34495e;
+            margin: 0 0 6px 0;
+          }
+
+          .significance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+
+            .stat-item {
+              display: flex;
+              justify-content: space-between;
+              font-size: 11px;
+
+              label {
+                color: #7f8c8d;
+              }
+
+              span {
+                font-family: 'IBM Plex Mono', monospace;
+                font-weight: 500;
+                color: #2c3e50;
+
+                &.significant {
+                  color: #e74c3c;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .visualization-panel {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+
+      .viz-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+
+        .viz-btn {
+          padding: 6px 12px;
+          font-size: 12px;
+          background: #ecf0f1;
+          color: #34495e;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #d5dbdd;
+          }
+
+          &.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+          }
+        }
+      }
+
+      .scale-visualization {
+        .effect-scale {
+          width: 100%;
+          height: auto;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          background: white;
+        }
+
+        .benchmark-examples {
+          margin-top: 16px;
+          padding: 12px;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 3px;
+
+          h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #34495e;
+            margin: 0 0 12px 0;
+          }
+
+          .examples-list {
+            .example-item {
+              display: flex;
+              align-items: center;
+              padding: 6px 0;
+              border-bottom: 1px solid #ecf0f1;
+              font-size: 12px;
+
+              &:last-child {
+                border-bottom: none;
+              }
+
+              .effect-value {
+                min-width: 60px;
+                font-family: 'IBM Plex Mono', monospace;
+                font-weight: 500;
+                color: #3498db;
+              }
+
+              .description {
+                flex: 1;
+                color: #34495e;
+                padding-left: 12px;
+              }
+            }
+          }
+        }
+      }
+
+      .distribution-visualization {
+        .distribution-plot {
+          width: 100%;
+          height: auto;
+          border: 1px solid #d0d0d0;
+          border-radius: 3px;
+          background: white;
+        }
+      }
+
+      .metrics-visualization {
+        padding: 16px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 3px;
+
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          color: #34495e;
+          margin: 0 0 16px 0;
+        }
+
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 12px;
+          margin-bottom: 16px;
+
+          .metric-card {
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #d0d0d0;
+            border-radius: 3px;
+
+            h4 {
+              font-size: 11px;
+              font-weight: 600;
+              color: #7f8c8d;
+              margin: 0 0 8px 0;
+              text-transform: uppercase;
+            }
+
+            .metric-value {
+              font-size: 24px;
+              font-weight: 600;
+              color: #2c3e50;
+              margin-bottom: 4px;
+            }
+
+            .metric-description {
+              font-size: 10px;
+              color: #95a5a6;
+            }
+
+            &.highlight {
+              background: #fff3cd;
+              border-color: #ffc107;
+
+              h4 {
+                color: #856404;
+              }
+
+              .metric-value {
+                color: #856404;
+              }
+            }
+          }
+        }
+
+        .conversions {
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 3px;
+
+          h4 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #34495e;
+            margin: 0 0 8px 0;
+          }
+
+          table {
+            width: 100%;
+            font-size: 12px;
+
+            td {
+              padding: 4px 0;
+
+              &:first-child {
+                color: #7f8c8d;
+              }
+
+              &:last-child {
+                font-family: 'IBM Plex Mono', monospace;
+                font-weight: 500;
+                color: #2c3e50;
+                text-align: right;
+              }
+            }
+          }
+        }
+      }
+
+      .interpretation-tips {
+        margin-top: 16px;
+        padding: 12px;
+        background: #ebf5fb;
+        border-left: 3px solid #3498db;
+        border-radius: 3px;
+
+        h4 {
+          font-size: 13px;
+          font-weight: 600;
+          color: #2980b9;
+          margin: 0 0 8px 0;
+        }
+
+        ul {
+          margin: 0;
+          padding-left: 20px;
+          font-size: 11px;
+          color: #34495e;
+
+          li {
+            margin-bottom: 4px;
+            line-height: 1.4;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .guide-footer {
+    background: #f8f8f8;
+    border-top: 1px solid #e0e0e0;
+    padding: 8px 12px;
+
+    .references {
+      font-size: 11px;
+      color: #7f8c8d;
+      font-style: italic;
+
+      strong {
+        font-weight: 600;
+      }
+    }
+  }
+}

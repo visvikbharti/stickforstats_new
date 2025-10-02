@@ -1,0 +1,55 @@
+{
+  "short_name": "StickForStats",
+  "name": "StickForStats Statistical Analysis Platform",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "images/probability/image-placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/probability/image-placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#3f51b5",
+  "background_color": "#ffffff",
+  "description": "Comprehensive statistical analysis platform with interactive visualizations",
+  "categories": ["education", "statistics", "productivity"],
+  "screenshots": [
+    {
+      "src": "images/probability/image-placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "640x320",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Probability Distributions",
+      "short_name": "Probability",
+      "description": "Explore probability distributions",
+      "url": "/probability-distributions",
+      "icons": [{ "src": "images/probability/image-placeholder.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Statistical Quality Control",
+      "short_name": "SQC",
+      "description": "Statistical quality control tools",
+      "url": "/sqc-analysis",
+      "icons": [{ "src": "images/probability/image-placeholder.svg", "sizes": "192x192" }]
+    }
+  ]
+}

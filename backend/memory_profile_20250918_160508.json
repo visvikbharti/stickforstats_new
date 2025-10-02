@@ -1,0 +1,337 @@
+{
+  "timestamp": "2025-09-18T16:05:06.916754",
+  "memory_profiles": {
+    "ttest": [
+      {
+        "label": "Small Dataset (10 values)",
+        "memory_used": {
+          "rss_mb": 0.43359375,
+          "vms_mb": 0.25,
+          "top_allocations": [
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/simplejson/decoder.py\", line 416",
+              "size_kb": 6.67578125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 49",
+              "size_kb": 6.3564453125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/threading.py\", line 250",
+              "size_kb": 1.828125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 41",
+              "size_kb": 1.625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 464",
+              "size_kb": 1.6123046875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/StickForStats_v1.0_Production/backend/memory_profile_50decimal.py\", line 110",
+              "size_kb": 1.421875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/psutil/_psosx.py\", line 343",
+              "size_kb": 1.3359375
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/psutil/_common.py\", line 444",
+              "size_kb": 1.2265625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 1289",
+              "size_kb": 1.0634765625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/threading.py\", line 93",
+              "size_kb": 0.984375
+            }
+          ]
+        },
+        "precision_stats": {
+          "decimal_places": [
+            {
+              "field": "t_statistic",
+              "decimals": 49
+            },
+            {
+              "field": "p_value",
+              "decimals": 17
+            },
+            {
+              "field": "mean1",
+              "decimals": 15
+            },
+            {
+              "field": "mean2",
+              "decimals": 15
+            },
+            {
+              "field": "mean_diff",
+              "decimals": 15
+            },
+            {
+              "field": "se",
+              "decimals": 49
+            }
+          ],
+          "has_high_precision": true,
+          "fields_analyzed": 6
+        }
+      },
+      {
+        "label": "Medium Dataset (100 values)",
+        "memory_used": {
+          "rss_mb": 0.12890625,
+          "vms_mb": 0.0,
+          "top_allocations": [
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/simplejson/decoder.py\", line 416",
+              "size_kb": 6.7685546875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 49",
+              "size_kb": 6.3564453125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/models.py\", line 515",
+              "size_kb": 3.8818359375
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 464",
+              "size_kb": 1.6494140625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 41",
+              "size_kb": 1.625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/StickForStats_v1.0_Production/backend/memory_profile_50decimal.py\", line 110",
+              "size_kb": 1.421875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 1289",
+              "size_kb": 1.0634765625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/threading.py\", line 93",
+              "size_kb": 0.984375
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 227",
+              "size_kb": 0.7265625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 225",
+              "size_kb": 0.703125
+            }
+          ]
+        },
+        "precision_stats": {
+          "decimal_places": [
+            {
+              "field": "t_statistic",
+              "decimals": 49
+            },
+            {
+              "field": "p_value",
+              "decimals": 19
+            },
+            {
+              "field": "mean1",
+              "decimals": 17
+            },
+            {
+              "field": "mean2",
+              "decimals": 16
+            },
+            {
+              "field": "mean_diff",
+              "decimals": 17
+            },
+            {
+              "field": "se",
+              "decimals": 49
+            }
+          ],
+          "has_high_precision": true,
+          "fields_analyzed": 6
+        }
+      },
+      {
+        "label": "Large Dataset (1000 values)",
+        "memory_used": {
+          "rss_mb": 0.1796875,
+          "vms_mb": 0.0,
+          "top_allocations": [
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/models.py\", line 515",
+              "size_kb": 38.140625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/simplejson/decoder.py\", line 416",
+              "size_kb": 7.0
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 49",
+              "size_kb": 6.3564453125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 464",
+              "size_kb": 1.7841796875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 41",
+              "size_kb": 1.625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/StickForStats_v1.0_Production/backend/memory_profile_50decimal.py\", line 110",
+              "size_kb": 1.421875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 1289",
+              "size_kb": 1.0634765625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/threading.py\", line 93",
+              "size_kb": 0.984375
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 227",
+              "size_kb": 0.7265625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 225",
+              "size_kb": 0.703125
+            }
+          ]
+        },
+        "precision_stats": {
+          "decimal_places": [
+            {
+              "field": "t_statistic",
+              "decimals": 48
+            },
+            {
+              "field": "p_value",
+              "decimals": 20
+            },
+            {
+              "field": "mean1",
+              "decimals": 17
+            },
+            {
+              "field": "mean2",
+              "decimals": 17
+            },
+            {
+              "field": "mean_diff",
+              "decimals": 17
+            },
+            {
+              "field": "se",
+              "decimals": 50
+            }
+          ],
+          "has_high_precision": true,
+          "fields_analyzed": 6
+        }
+      },
+      {
+        "label": "Very Large Dataset (5000 values)",
+        "memory_used": {
+          "rss_mb": 1.5390625,
+          "vms_mb": 0.25,
+          "top_allocations": [
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/models.py\", line 515",
+              "size_kb": 190.1650390625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/simplejson/decoder.py\", line 416",
+              "size_kb": 7.0947265625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 49",
+              "size_kb": 6.3564453125
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 464",
+              "size_kb": 1.794921875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/requests/structures.py\", line 41",
+              "size_kb": 1.625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/StickForStats_v1.0_Production/backend/memory_profile_50decimal.py\", line 110",
+              "size_kb": 1.421875
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/http/client.py\", line 1289",
+              "size_kb": 1.0634765625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/threading.py\", line 93",
+              "size_kb": 0.984375
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 227",
+              "size_kb": 0.7265625
+            },
+            {
+              "file": "  File \"/Users/vishalbharti/opt/anaconda3/lib/python3.9/site-packages/urllib3/_collections.py\", line 225",
+              "size_kb": 0.703125
+            }
+          ]
+        },
+        "precision_stats": {
+          "decimal_places": [
+            {
+              "field": "t_statistic",
+              "decimals": 48
+            },
+            {
+              "field": "p_value",
+              "decimals": 1
+            },
+            {
+              "field": "mean1",
+              "decimals": 19
+            },
+            {
+              "field": "mean2",
+              "decimals": 18
+            },
+            {
+              "field": "mean_diff",
+              "decimals": 19
+            },
+            {
+              "field": "se",
+              "decimals": 50
+            }
+          ],
+          "has_high_precision": true,
+          "fields_analyzed": 6
+        }
+      }
+    ]
+  },
+  "precision_analysis": {
+    "decimal_50_memory_mb": 0.08203125,
+    "numpy_float64_memory_mb": 0.0,
+    "overhead_percentage": 0
+  },
+  "summary": {
+    "tests_run": 4,
+    "high_precision_tests": 4,
+    "avg_memory_rss_mb": 0.5703125,
+    "max_memory_rss_mb": 1.5390625,
+    "min_memory_rss_mb": 0.12890625,
+    "avg_memory_vms_mb": 0.125,
+    "memory_efficiency": "EXCELLENT (< 1MB avg)"
+  }
+}

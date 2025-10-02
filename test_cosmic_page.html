@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Cosmic Landing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #333;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌌 Cosmic Landing Page Test</h1>
+
+    <div id="status"></div>
+
+    <h2>Live Preview:</h2>
+    <iframe src="http://localhost:3001" id="preview"></iframe>
+
+    <h2>Test Results:</h2>
+    <div id="results"></div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+
+        // Test if the app is running
+        fetch('http://localhost:3001')
+            .then(response => {
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">✅ Frontend is running on port 3001</div>';
+                    return response.text();
+                } else {
+                    throw new Error('Frontend not responding');
+                }
+            })
+            .then(html => {
+                // Check if the page loads
+                const hasReact = html.includes('root');
+                resultsDiv.innerHTML += `<div class="status ${hasReact ? 'success' : 'error'}">
+                    ${hasReact ? '✅' : '❌'} React root element found
+                </div>`;
+
+                // Check bundle.js
+                return fetch('http://localhost:3001/static/js/bundle.js');
+            })
+            .then(response => response.text())
+            .then(bundle => {
+                const hasCosmicPage = bundle.includes('CosmicLandingPage');
+                const hasGoldenRatio = bundle.includes('1.618') || bundle.includes('Math.sqrt(5)');
+                const hasThreeJS = bundle.includes('three');
+                const hasFramerMotion = bundle.includes('framer-motion');
+
+                resultsDiv.innerHTML += `
+                    <div class="status ${hasCosmicPage ? 'success' : 'error'}">
+                        ${hasCosmicPage ? '✅' : '❌'} CosmicLandingPage component found
+                    </div>
+                    <div class="status ${hasGoldenRatio ? 'success' : 'error'}">
+                        ${hasGoldenRatio ? '✅' : '❌'} Golden Ratio (φ) implementation found
+                    </div>
+                    <div class="status ${hasThreeJS ? 'success' : 'error'}">
+                        ${hasThreeJS ? '✅' : '❌'} Three.js library loaded
+                    </div>
+                    <div class="status ${hasFramerMotion ? 'success' : 'error'}">
+                        ${hasFramerMotion ? '✅' : '❌'} Framer Motion animations loaded
+                    </div>
+                    <div class="status info">
+                        📊 Bundle size: ${(bundle.length / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                `;
+
+                // Test backend
+                return fetch('http://localhost:8000/api/core/health/');
+            })
+            .then(response => {
+                statusDiv.innerHTML += '<div class="status success">✅ Backend is running on port 8000</div>';
+            })
+            .catch(error => {
+                console.error('Backend test error:', error);
+                statusDiv.innerHTML += '<div class="status info">ℹ️ Backend health check endpoint not accessible</div>';
+            });
+
+        // Add instructions
+        setTimeout(() => {
+            resultsDiv.innerHTML += `
+                <h3>Instructions:</h3>
+                <ol>
+                    <li>The cosmic landing page should display automatically when you open the app</li>
+                    <li>Look for the golden ratio spiral animation</li>
+                    <li>Check for the universe background with stars</li>
+                    <li>Click "Enter the Universe of Statistics" to proceed to the main app</li>
+                </ol>
+                <div class="status info">
+                    💫 Golden Ratio (φ) = (1 + √5) / 2 ≈ 1.618033988749...
+                </div>
+            `;
+        }, 2000);
+    </script>
+</body>
+</html>
