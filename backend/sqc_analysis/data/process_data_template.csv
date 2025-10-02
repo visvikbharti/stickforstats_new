@@ -1,0 +1,13 @@
+Date,Operator,Sample,Measurement,Subgroup
+# Date: Date of measurement (YYYY-MM-DD format)
+# Operator: Person taking the measurement
+# Sample: Sample identifier or sequence number
+# Measurement: Actual measured value (numeric)
+# Subgroup: Logical grouping for control charts (optional)
+#
+# Instructions:
+# 1. Replace with your actual process data
+# 2. Remove these comment lines (starting with #)
+# 3. Ensure measurements represent real process data
+# 4. Upload through the SQC Analysis interface
+# 5. Data must be authentic - no fabricated values

@@ -1,0 +1,52 @@
+================================================================================
+STATISTICAL VALIDATION REPORT
+================================================================================
+
+OVERALL SUMMARY
+----------------------------------------
+Total Tests Run: 7
+Passed: 5 (71.4%)
+Failed: 2 (28.6%)
+Average Accuracy: 13.1 decimal places
+
+
+T-Test Validation (one_sample)
+------------------------------
+Tests: 3 | Passed: 2 | Failed: 1
+Execution Time: 0.729s
+Average Accuracy: 12.3 decimal places
+
+  Failed Tests:
+    • t_test_statistic (R)
+      Our value: -1.143472005758846
+      Reference: -1.143472000000000
+      Difference: 5.76e-09
+
+
+T-Test Validation (two_sample)
+------------------------------
+Tests: 3 | Passed: 2 | Failed: 1
+Execution Time: 0.151s
+Average Accuracy: 12.0 decimal places
+
+  Failed Tests:
+    • t_test_statistic (R)
+      Our value: -1.344716173123778
+      Reference: -1.344716000000000
+      Difference: 1.73e-07
+
+
+ANOVA Validation
+----------------
+Tests: 1 | Passed: 1 | Failed: 0
+Execution Time: 0.000s
+Average Accuracy: 15.0 decimal places
+
+
+RECOMMENDATIONS
+----------------------------------------
+• Review calculations with failed tests
+• Consider numerical stability improvements
+• Verify algorithm implementations
+
+================================================================================

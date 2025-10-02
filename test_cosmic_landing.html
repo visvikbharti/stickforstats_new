@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cosmic Landing Page Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .golden-ratio {
+            font-size: 24px;
+            color: #FFD700;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <h1>🌌 StickForStats Cosmic Landing Page Test</h1>
+
+    <div class="golden-ratio">
+        φ = (1 + √5) / 2 = 1.618033988749...
+    </div>
+
+    <div id="status-container">
+        <div class="status info">
+            <strong>Testing Cosmic Landing Page Integration...</strong>
+        </div>
+    </div>
+
+    <h2>Live Preview:</h2>
+    <iframe id="app-frame" src="http://localhost:3001" title="StickForStats App"></iframe>
+
+    <script>
+        // Test configuration
+        const FRONTEND_URL = 'http://localhost:3001';
+        const BACKEND_URL = 'http://localhost:8000';
+        const PHI = (1 + Math.sqrt(5)) / 2; // Golden Ratio
+
+        // Status display function
+        function addStatus(message, type = 'info') {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            document.getElementById('status-container').appendChild(statusDiv);
+        }
+
+        // Test frontend availability
+        async function testFrontend() {
+            try {
+                const response = await fetch(FRONTEND_URL);
+                if (response.ok) {
+                    addStatus('✅ Frontend is running on port 3001', 'success');
+
+                    // Check if cosmic landing page elements are present
+                    const text = await response.text();
+                    if (text.includes('StickForStats')) {
+                        addStatus('✅ StickForStats app loaded successfully', 'success');
+                    }
+                } else {
+                    addStatus(`❌ Frontend returned status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addStatus(`❌ Frontend connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test backend availability
+        async function testBackend() {
+            try {
+                const response = await fetch(BACKEND_URL);
+                if (response.ok) {
+                    const text = await response.text();
+                    if (text.includes('StickForStats')) {
+                        addStatus('✅ Backend is running on port 8000', 'success');
+                    }
+                } else {
+                    addStatus(`⚠️ Backend returned status ${response.status}`, 'info');
+                }
+            } catch (error) {
+                addStatus(`❌ Backend connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test API endpoint
+        async function testAPI() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/v1/test/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    addStatus('✅ API endpoint accessible', 'success');
+                } else if (response.status === 404) {
+                    addStatus('ℹ️ API endpoint not found (expected for some endpoints)', 'info');
+                } else {
+                    addStatus(`⚠️ API returned status ${response.status}`, 'info');
+                }
+            } catch (error) {
+                addStatus(`ℹ️ API test: ${error.message}`, 'info');
+            }
+        }
+
+        // Monitor iframe loading
+        function monitorIframe() {
+            const iframe = document.getElementById('app-frame');
+
+            iframe.onload = function() {
+                addStatus('✅ App iframe loaded successfully', 'success');
+                addStatus(`🌌 Cosmic Landing Page should be visible now!`, 'success');
+                addStatus(`✨ Look for the golden ratio spiral and floating constants`, 'info');
+
+                // Add golden ratio animation to this page
+                animateGoldenRatio();
+            };
+
+            iframe.onerror = function(error) {
+                addStatus(`❌ Iframe loading error: ${error}`, 'error');
+            };
+        }
+
+        // Animate golden ratio display
+        function animateGoldenRatio() {
+            const goldenDiv = document.querySelector('.golden-ratio');
+            let opacity = 0.5;
+            let increasing = true;
+
+            setInterval(() => {
+                if (increasing) {
+                    opacity += 0.01;
+                    if (opacity >= 1) increasing = false;
+                } else {
+                    opacity -= 0.01;
+                    if (opacity <= 0.5) increasing = true;
+                }
+                goldenDiv.style.opacity = opacity;
+            }, 50);
+        }
+
+        // Run all tests
+        async function runTests() {
+            addStatus('🚀 Starting comprehensive tests...', 'info');
+            addStatus(`📐 Golden Ratio (φ) = ${PHI.toFixed(15)}`, 'info');
+
+            await testFrontend();
+            await testBackend();
+            await testAPI();
+            monitorIframe();
+
+            setTimeout(() => {
+                addStatus('✨ All tests completed. Check the iframe above for the cosmic experience!', 'success');
+            }, 3000);
+        }
+
+        // Run tests when page loads
+        window.onload = runTests;
+
+        // Refresh iframe
+        function refreshApp() {
+            document.getElementById('app-frame').src = FRONTEND_URL;
+            addStatus('🔄 Refreshing app...', 'info');
+        }
+    </script>
+
+    <br>
+    <button onclick="refreshApp()" style="padding: 10px 20px; font-size: 16px; background: #FFD700; border: none; border-radius: 5px; cursor: pointer;">
+        🔄 Refresh App
+    </button>
+
+    <div style="margin-top: 30px; padding: 20px; background: #333; color: #FFD700; border-radius: 10px;">
+        <h3>Expected Features in Cosmic Landing Page:</h3>
+        <ul>
+            <li>🌌 Animated universe background with stars</li>
+            <li>🌀 Golden ratio spiral (φ = 1.618...)</li>
+            <li>🔢 Floating mathematical constants (π, e, √2, ∞)</li>
+            <li>✨ "WELCOME TO THE STICKFORSTATS!" with typewriter effect</li>
+            <li>🪐 "Unfolding Mysteries Significantly by Using the Universe's own Language!"</li>
+            <li>🚀 "Enter the Universe of Statistics" button</li>
+            <li>🛡️ Features preview (Guardian, Learn, Precision)</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="400" height="225" viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f0f0f0"/>
+  <rect x="5" y="5" width="390" height="215" rx="10" fill="#ffffff" stroke="#cccccc" stroke-width="2"/>
+  <g transform="translate(200, 112.5)">
+    <!-- Normal distribution curve -->
+    <path d="M-150,50 C-120,50 -100,-50 -60,-50 C-20,-50 -10,30 0,30 C10,30 20,-50 60,-50 C100,-50 120,50 150,50" 
+          fill="none" stroke="#3f51b5" stroke-width="3"/>
+    <!-- X and Y axis -->
+    <line x1="-150" y1="60" x2="150" y2="60" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-60" x2="0" y2="60" stroke="#333" stroke-width="2"/>
+    <!-- Tick marks -->
+    <line x1="-100" y1="60" x2="-100" y2="65" stroke="#333" stroke-width="2"/>
+    <line x1="-50" y1="60" x2="-50" y2="65" stroke="#333" stroke-width="2"/>
+    <line x1="50" y1="60" x2="50" y2="65" stroke="#333" stroke-width="2"/>
+    <line x1="100" y1="60" x2="100" y2="65" stroke="#333" stroke-width="2"/>
+    <!-- Placeholder text -->
+    <text x="0" y="-70" font-family="Arial" font-size="16" text-anchor="middle" fill="#333">Probability Distribution</text>
+    <text x="0" y="80" font-family="Arial" font-size="12" text-anchor="middle" fill="#666">Placeholder Image</text>
+  </g>
+</svg>

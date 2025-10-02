@@ -1,0 +1,22 @@
+
+🚀 Starting StickForStats Performance Benchmark...
+Please ensure the backend server is running on http://localhost:8000
+
+================================================================================
+STICKFORSTATS v1.0 - PERFORMANCE BENCHMARK SUITE
+================================================================================
+
+📊 Testing: stats/ttest/
+----------------------------------------
+  Dataset size: 10
+Error in stats/ttest/: 400
+Error in stats/ttest/: 400
+Error in stats/ttest/: 400
+Error in stats/ttest/: 400
+Error in stats/ttest/: 400
+Traceback (most recent call last):
+  File "/Users/vishalbharti/StickForStats_v1.0_Production/backend/performance_benchmark.py", line 328, in <module>
+    results = benchmark.run_comprehensive_benchmark()
+  File "/Users/vishalbharti/StickForStats_v1.0_Production/backend/performance_benchmark.py", line 225, in run_comprehensive_benchmark
+    print(f"    Avg response: {perf['avg_time_ms']:.2f}ms")
+TypeError: unsupported format string passed to NoneType.__format__

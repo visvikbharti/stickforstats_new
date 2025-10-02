@@ -1,0 +1,14 @@
+Factor1,Factor2,Factor3,Response1,Response2,Response3
+# Factor1: Your first experimental factor (numeric or categorical)
+# Factor2: Your second experimental factor (numeric or categorical)  
+# Factor3: Your third experimental factor (numeric or categorical)
+# Response1: Your first measured response variable (numeric)
+# Response2: Your second measured response variable (numeric)
+# Response3: Your third measured response variable (numeric)
+#
+# Instructions:
+# 1. Replace column headers with your actual factor and response names
+# 2. Remove these comment lines (starting with #)
+# 3. Add your experimental data rows
+# 4. Ensure all runs represent actual experimental conditions and measurements
+# 5. Upload through the DOE Analysis interface

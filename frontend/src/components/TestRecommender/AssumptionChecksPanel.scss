@@ -1,0 +1,579 @@
+/**
+ * Assumption Checks Panel Styles
+ * ===============================
+ * Professional statistical diagnostics interface
+ * 
+ * DESIGN PRINCIPLES:
+ * - Dense information display with visual indicators
+ * - Color-coded severity levels (red/yellow/green paradigm)
+ * - Diagnostic plots in professional grayscale
+ * - Clear hierarchical information structure
+ */
+
+@import '../../styles/enterprise-design-system.scss';
+
+.assumption-checks-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+  border: 1px solid $border-color-medium;
+  border-radius: $border-radius-md;
+  
+  // ==========================================
+  // PANEL HEADER WITH HEALTH SCORE
+  // ==========================================
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-base $spacing-lg;
+    background: linear-gradient(to bottom, $bg-secondary, $bg-tertiary);
+    border-bottom: 2px solid $border-color-medium;
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: $spacing-lg;
+      
+      h2 {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: $neutral-800;
+        margin: 0;
+      }
+      
+      .health-score {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        padding: $spacing-xs $spacing-base;
+        border-radius: 20px;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-bold;
+        
+        &.health-score-good {
+          background-color: rgba($success-main, 0.1);
+          border: 1px solid $success-main;
+          color: $success-dark;
+        }
+        
+        &.health-score-warning {
+          background-color: rgba($warning-main, 0.1);
+          border: 1px solid $warning-main;
+          color: $warning-dark;
+        }
+        
+        &.health-score-poor {
+          background-color: rgba($error-main, 0.1);
+          border: 1px solid $error-main;
+          color: $error-dark;
+        }
+        
+        .score-label {
+          font-size: $font-size-xs;
+          text-transform: uppercase;
+          opacity: 0.8;
+        }
+        
+        .score-value {
+          font-size: $font-size-md;
+          font-family: $font-family-mono;
+        }
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: $spacing-sm;
+      
+      .btn-action {
+        @include button-secondary;
+        font-size: $font-size-sm;
+        
+        &:disabled {
+          opacity: 0.4;
+        }
+      }
+    }
+  }
+  
+  // ==========================================
+  // MAIN CONTENT AREA
+  // ==========================================
+  .panel-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    
+    // ==========================================
+    // LEFT SIDEBAR - ASSUMPTION CATEGORIES
+    // ==========================================
+    .assumptions-sidebar {
+      width: 260px;
+      background-color: $bg-secondary;
+      border-right: 1px solid $border-color-light;
+      overflow-y: auto;
+      
+      .sidebar-title {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $neutral-700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: $spacing-sm $spacing-base;
+        background-color: $bg-tertiary;
+        border-bottom: 1px solid $border-color-light;
+        margin: 0;
+      }
+      
+      .assumption-item {
+        padding: $spacing-base;
+        border-bottom: 1px solid $border-color-light;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+        
+        &:hover {
+          background-color: rgba($primary-100, 0.2);
+        }
+        
+        &.selected {
+          background-color: white;
+          border-left: 3px solid $primary-600;
+          
+          &::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: white;
+          }
+        }
+        
+        // Severity color coding
+        &.severity-pass {
+          .assumption-icon { color: $success-main; }
+        }
+        
+        &.severity-warning {
+          .assumption-icon { color: $warning-main; }
+        }
+        
+        &.severity-fail {
+          .assumption-icon { color: $error-main; }
+        }
+        
+        &.severity-critical {
+          .assumption-icon { 
+            color: $error-dark;
+            font-weight: $font-weight-bold;
+          }
+        }
+        
+        .assumption-header {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          margin-bottom: $spacing-xs;
+          
+          .assumption-icon {
+            font-size: $font-size-lg;
+            width: 20px;
+            text-align: center;
+          }
+          
+          .assumption-name {
+            font-size: $font-size-sm;
+            font-weight: $font-weight-semibold;
+            color: $neutral-800;
+          }
+        }
+        
+        .assumption-description {
+          font-size: $font-size-xs;
+          color: $neutral-600;
+          margin-left: 28px;
+          line-height: $line-height-tight;
+        }
+        
+        .assumption-summary {
+          display: flex;
+          justify-content: space-between;
+          margin-top: $spacing-xs;
+          margin-left: 28px;
+          font-size: $font-size-xs;
+          
+          .test-name {
+            color: $neutral-500;
+            font-style: italic;
+          }
+          
+          .p-value {
+            font-family: $font-family-mono;
+            font-weight: $font-weight-semibold;
+            color: $neutral-700;
+          }
+        }
+      }
+    }
+    
+    // ==========================================
+    // CENTER - TEST RESULTS AND DIAGNOSTICS
+    // ==========================================
+    .results-area {
+      flex: 1;
+      padding: $spacing-lg;
+      overflow-y: auto;
+      
+      // Test Results Section
+      .test-results-section {
+        margin-bottom: $spacing-xl;
+        
+        h3 {
+          font-size: $font-size-md;
+          font-weight: $font-weight-semibold;
+          color: $neutral-800;
+          margin: 0 0 $spacing-base 0;
+          padding-bottom: $spacing-xs;
+          border-bottom: 1px solid $border-color-light;
+        }
+        
+        .results-table {
+          @include data-table;
+          
+          .test-method {
+            font-weight: $font-weight-medium;
+            color: $neutral-800;
+          }
+          
+          .statistic {
+            font-family: $font-family-mono;
+            text-align: right;
+          }
+          
+          .p-value {
+            font-family: $font-family-mono;
+            text-align: right;
+            font-weight: $font-weight-semibold;
+            
+            &.sig-001 { color: $sig-001; }
+            &.sig-01 { color: $sig-01; }
+            &.sig-05 { color: $sig-05; }
+          }
+          
+          .decision {
+            text-align: center;
+            
+            .decision-badge {
+              display: inline-block;
+              padding: 2px 8px;
+              border-radius: $border-radius-sm;
+              font-size: $font-size-xs;
+              font-weight: $font-weight-semibold;
+              text-transform: uppercase;
+              
+              &.pass {
+                background-color: rgba($success-main, 0.1);
+                color: $success-dark;
+                border: 1px solid $success-main;
+              }
+              
+              &.fail {
+                background-color: rgba($error-main, 0.1);
+                color: $error-dark;
+                border: 1px solid $error-main;
+              }
+            }
+          }
+          
+          .confidence {
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+            
+            .confidence-bar {
+              flex: 1;
+              height: 6px;
+              background-color: $bg-tertiary;
+              border-radius: 3px;
+              overflow: hidden;
+              
+              .confidence-fill {
+                height: 100%;
+                background: linear-gradient(to right, $warning-main, $success-main);
+                transition: width 0.3s;
+              }
+            }
+            
+            .confidence-value {
+              font-size: $font-size-xs;
+              font-family: $font-family-mono;
+              color: $neutral-600;
+              min-width: 35px;
+              text-align: right;
+            }
+          }
+          
+          tr.pass {
+            background-color: rgba($success-light, 0.03);
+          }
+          
+          tr.fail {
+            background-color: rgba($error-light, 0.03);
+          }
+        }
+      }
+      
+      // Diagnostics Section
+      .diagnostics-section {
+        margin-bottom: $spacing-xl;
+        
+        .diagnostics-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: $spacing-base;
+          
+          h3 {
+            font-size: $font-size-md;
+            font-weight: $font-weight-semibold;
+            color: $neutral-800;
+            margin: 0;
+          }
+          
+          .plot-controls {
+            display: flex;
+            gap: $spacing-base;
+            
+            label {
+              display: flex;
+              align-items: center;
+              gap: $spacing-xs;
+              font-size: $font-size-xs;
+              color: $neutral-600;
+              cursor: pointer;
+              
+              input[type="checkbox"] {
+                cursor: pointer;
+              }
+            }
+          }
+        }
+        
+        .plots-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: $spacing-base;
+          
+          .plot-container {
+            background-color: $bg-secondary;
+            border: 1px solid $border-color-medium;
+            border-radius: $border-radius-sm;
+            padding: $spacing-base;
+            
+            h4 {
+              font-size: $font-size-sm;
+              font-weight: $font-weight-medium;
+              color: $neutral-700;
+              margin: 0 0 $spacing-sm 0;
+              text-align: center;
+            }
+            
+            .plot-canvas {
+              background-color: white;
+              border: 1px solid $border-color-light;
+              border-radius: $border-radius-sm;
+              padding: $spacing-xs;
+              
+              .diagnostic-plot {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+              }
+            }
+          }
+        }
+      }
+      
+      // Recommendations Section
+      .recommendations-section {
+        h3 {
+          font-size: $font-size-md;
+          font-weight: $font-weight-semibold;
+          color: $neutral-800;
+          margin: 0 0 $spacing-base 0;
+        }
+        
+        .recommendation-box {
+          padding: $spacing-base;
+          border-radius: $border-radius-md;
+          border: 1px solid;
+          
+          &.recommendation-proceed {
+            background-color: rgba($success-light, 0.05);
+            border-color: $success-main;
+            
+            .recommendation-message {
+              color: $success-dark;
+            }
+          }
+          
+          &.recommendation-caution {
+            background-color: rgba($warning-light, 0.05);
+            border-color: $warning-main;
+            
+            .recommendation-message {
+              color: $warning-dark;
+            }
+          }
+          
+          &.recommendation-change {
+            background-color: rgba($error-light, 0.05);
+            border-color: $error-main;
+            
+            .recommendation-message {
+              color: $error-dark;
+            }
+          }
+          
+          .recommendation-message {
+            font-size: $font-size-sm;
+            font-weight: $font-weight-medium;
+            margin-bottom: $spacing-sm;
+          }
+          
+          .alternatives {
+            h4 {
+              font-size: $font-size-xs;
+              font-weight: $font-weight-semibold;
+              color: $neutral-700;
+              text-transform: uppercase;
+              margin: $spacing-sm 0 $spacing-xs 0;
+            }
+            
+            ul {
+              margin: 0;
+              padding-left: $spacing-lg;
+              
+              li {
+                font-size: $font-size-sm;
+                color: $neutral-700;
+                margin-bottom: $spacing-xs;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // ==========================================
+    // RIGHT SIDEBAR - ACTIONS AND SUMMARY
+    // ==========================================
+    .actions-sidebar {
+      width: 220px;
+      background-color: $bg-secondary;
+      border-left: 1px solid $border-color-light;
+      padding: $spacing-base;
+      overflow-y: auto;
+      
+      .summary-card,
+      .actions-card,
+      .export-card {
+        background-color: white;
+        border: 1px solid $border-color-light;
+        border-radius: $border-radius-sm;
+        padding: $spacing-base;
+        margin-bottom: $spacing-base;
+        
+        h3 {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-semibold;
+          color: $neutral-700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin: 0 0 $spacing-sm 0;
+          padding-bottom: $spacing-xs;
+          border-bottom: 1px solid $border-color-light;
+        }
+      }
+      
+      .summary-list {
+        dt {
+          font-size: $font-size-xs;
+          color: $neutral-600;
+          margin-bottom: 2px;
+        }
+        
+        dd {
+          font-size: $font-size-sm;
+          font-weight: $font-weight-semibold;
+          color: $neutral-800;
+          margin: 0 0 $spacing-sm 0;
+          font-family: $font-family-mono;
+        }
+      }
+      
+      .action-btn {
+        @include button-secondary;
+        width: 100%;
+        margin-bottom: $spacing-xs;
+        font-size: $font-size-xs;
+        padding: $spacing-xs $spacing-sm;
+        text-align: left;
+      }
+      
+      .export-select {
+        @include input-base;
+        width: 100%;
+        margin-bottom: $spacing-sm;
+        font-size: $font-size-xs;
+      }
+      
+      .export-btn {
+        @include button-primary;
+        width: 100%;
+        font-size: $font-size-xs;
+        padding: $spacing-xs $spacing-sm;
+      }
+    }
+  }
+  
+  // ==========================================
+  // STATUS BAR
+  // ==========================================
+  .panel-status-bar {
+    display: flex;
+    align-items: center;
+    padding: $spacing-xs $spacing-lg;
+    background-color: $neutral-800;
+    border-top: 1px solid $neutral-700;
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      margin-right: $spacing-xl;
+      
+      .status-label {
+        font-size: $font-size-xs;
+        color: $neutral-400;
+        margin-right: $spacing-xs;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .status-value {
+        font-size: $font-size-sm;
+        color: white;
+        font-weight: $font-weight-semibold;
+        font-family: $font-family-mono;
+        
+        &.violations {
+          color: $error-light;
+        }
+      }
+    }
+  }
+}

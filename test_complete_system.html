@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StickForStats Complete System Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        h1 {
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: rgba(40, 167, 69, 0.8); }
+        .warning { background-color: rgba(255, 193, 7, 0.8); color: #333; }
+        .error { background-color: rgba(220, 53, 69, 0.8); }
+        .info { background-color: rgba(23, 162, 184, 0.8); }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .phi {
+            color: #FFD700;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌌 StickForStats Complete System Test 🚀</h1>
+    <div class="phi" style="text-align: center;">φ = 1.618033988749... (The Golden Ratio)</div>
+
+    <div class="test-section">
+        <h2>📊 System Status</h2>
+        <div id="system-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌠 Cosmic Landing Page</h2>
+        <div id="landing-status"></div>
+        <iframe src="http://localhost:3001" id="landing-iframe"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>🛡️ Guardian System Tests</h2>
+        <div id="guardian-tests"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📈 Statistical Endpoints</h2>
+        <div id="api-tests"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 Available UI Versions</h2>
+        <div class="grid" id="ui-versions"></div>
+    </div>
+
+    <script>
+        // Test System Components
+        async function runTests() {
+            const systemStatus = document.getElementById('system-status');
+            const landingStatus = document.getElementById('landing-status');
+            const guardianTests = document.getElementById('guardian-tests');
+            const apiTests = document.getElementById('api-tests');
+            const uiVersions = document.getElementById('ui-versions');
+
+            // 1. Check Frontend Status
+            try {
+                const frontendResponse = await fetch('http://localhost:3001');
+                if (frontendResponse.ok) {
+                    systemStatus.innerHTML += '<div class="status success">✅ Frontend Running on Port 3001</div>';
+
+                    // Check bundle for cosmic landing
+                    const bundleResponse = await fetch('http://localhost:3001/static/js/bundle.js');
+                    const bundleText = await bundleResponse.text();
+
+                    if (bundleText.includes('CosmicLandingPage')) {
+                        landingStatus.innerHTML = '<div class="status success">✅ Cosmic Landing Page Found in Bundle</div>';
+                    }
+                    if (bundleText.includes('1.618')) {
+                        landingStatus.innerHTML += '<div class="status success">✅ Golden Ratio Implementation Detected</div>';
+                    }
+                    if (bundleText.includes('@react-three/fiber')) {
+                        landingStatus.innerHTML += '<div class="status success">✅ Three.js Integration Active</div>';
+                    }
+                } else {
+                    systemStatus.innerHTML += '<div class="status error">❌ Frontend Not Responding</div>';
+                }
+            } catch (error) {
+                systemStatus.innerHTML += '<div class="status error">❌ Frontend Connection Failed: ' + error.message + '</div>';
+            }
+
+            // 2. Check Backend Status
+            try {
+                const backendResponse = await fetch('http://localhost:8000/api/guardian/health/');
+                const guardianHealth = await backendResponse.json();
+
+                systemStatus.innerHTML += '<div class="status success">✅ Backend Running on Port 8000</div>';
+                systemStatus.innerHTML += '<div class="status info">🛡️ Guardian Status: ' + guardianHealth.status + '</div>';
+
+                // Display Guardian validators
+                guardianTests.innerHTML = '<h3>Available Validators:</h3>';
+                guardianTests.innerHTML += '<div class="grid">';
+                guardianHealth.validators_available.forEach(validator => {
+                    guardianTests.innerHTML += `<div class="card">✓ ${validator}</div>`;
+                });
+                guardianTests.innerHTML += '</div>';
+
+                // Test Guardian with sample data
+                const guardianTestResponse = await fetch('http://localhost:8000/api/guardian/check/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: { group1: [1,2,3,4,5], group2: [6,7,8,9,10] },
+                        test_type: 't_test'
+                    })
+                });
+
+                const guardianResult = await guardianTestResponse.json();
+                guardianTests.innerHTML += `<div class="status ${guardianResult.can_proceed ? 'success' : 'warning'}">
+                    Guardian Check: ${guardianResult.guardian_status.message}
+                </div>`;
+
+            } catch (error) {
+                systemStatus.innerHTML += '<div class="status warning">⚠️ Backend Connection Issue: ' + error.message + '</div>';
+            }
+
+            // 3. Test Statistical API Endpoints
+            const endpoints = [
+                { name: 'T-Test', url: '/api/v1/stats/ttest/', data: {test_type: 'two_sample', data1: [1,2,3], data2: [4,5,6]} },
+                { name: 'Correlation', url: '/api/v1/stats/correlation/', data: {x: [1,2,3], y: [2,4,6], method: 'pearson'} },
+                { name: 'Regression', url: '/api/v1/stats/regression/', data: {type: 'simple_linear', X: [1,2,3], y: [2,4,6]} }
+            ];
+
+            apiTests.innerHTML = '<div class="grid">';
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch('http://localhost:8000' + endpoint.url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(endpoint.data)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        apiTests.innerHTML += `<div class="card">
+                            <strong>✅ ${endpoint.name}</strong><br>
+                            ${data.high_precision_result ? '50-decimal precision active' : 'Standard precision'}
+                        </div>`;
+                    } else {
+                        apiTests.innerHTML += `<div class="card">❌ ${endpoint.name}: Failed</div>`;
+                    }
+                } catch (error) {
+                    apiTests.innerHTML += `<div class="card">⚠️ ${endpoint.name}: ${error.message}</div>`;
+                }
+            }
+            apiTests.innerHTML += '</div>';
+
+            // 4. List Available UI Versions
+            const uiRoutes = [
+                { name: 'Direct Analysis', path: '/direct-analysis', description: 'No auth required for testing' },
+                { name: 'Professional Analysis', path: '/professional-analysis', description: 'Beautiful UI with animations' },
+                { name: 'Enhanced Analysis', path: '/enhanced-analysis', description: 'Educational content included' },
+                { name: 'Statistical Dashboard', path: '/statistical-dashboard', description: 'Main hub interface' },
+                { name: 'T-Test Module', path: '/modules/t-test', description: '50-decimal precision t-test' },
+                { name: 'ANOVA Module', path: '/modules/anova', description: 'Analysis of variance' }
+            ];
+
+            uiVersions.innerHTML = '';
+            uiRoutes.forEach(route => {
+                uiVersions.innerHTML += `
+                    <div class="card">
+                        <h4>${route.name}</h4>
+                        <p>${route.description}</p>
+                        <a href="http://localhost:3001${route.path}" target="_blank" style="color: #FFD700;">
+                            Open ${route.path} →
+                        </a>
+                    </div>
+                `;
+            });
+
+            // Summary
+            setTimeout(() => {
+                systemStatus.innerHTML += '<div class="status info">📊 All systems checked. Ready for testing!</div>';
+            }, 2000);
+        }
+
+        // Run tests on load
+        window.addEventListener('load', runTests);
+
+        // Auto-refresh iframe
+        setTimeout(() => {
+            document.getElementById('landing-iframe').src = 'http://localhost:3001';
+        }, 1000);
+    </script>
+</body>
+</html>
