@@ -95,6 +95,7 @@ const PCAEducationHub = lazy(() => import('./components/pca/education/PCAEducati
 const CIEducationHub = lazy(() => import('./components/confidence_intervals/education/CIEducationHub'));
 const DOEEducationHub = lazy(() => import('./components/doe/education/DOEEducationHub'));
 const ProbabilityEducationHub = lazy(() => import('./components/probability_distributions/education/ProbabilityEducationHub'));
+const SQCEducationHub = lazy(() => import('./components/sqc/education/SQCEducationHub'));
 const LearningHub = lazy(() => import('./components/education/LearningHub'));
 const WorkflowManagementPage = lazy(() => import('./pages/WorkflowManagementPage'));
 const ReportManagementPage = lazy(() => import('./pages/ReportManagementPage'));
@@ -561,6 +562,17 @@ function App() {
                           <ProtectedRoute>
                             <Suspense fallback={<LoadingComponent message="Loading Probability Education..." />}>
                               <ProbabilityEducationHub />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      <Route
+                        path="/sqc-learn"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingComponent message="Loading SQC Education..." />}>
+                              <SQCEducationHub />
                             </Suspense>
                           </ProtectedRoute>
                         }
