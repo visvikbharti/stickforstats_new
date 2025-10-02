@@ -157,6 +157,35 @@ const LearningHub = () => {
         'Understand the CLT',
         'Apply distributions to real problems'
       ]
+    },
+    {
+      id: 'sqc',
+      title: 'Statistical Quality Control',
+      shortTitle: 'SQC',
+      icon: <TimelineIcon sx={{ fontSize: 48 }} />,
+      color: '#d32f2f',
+      bgColor: '#ffebee',
+      route: '/sqc-learn',
+      category: 'Quality Control',
+      difficulty: 'Intermediate',
+      duration: '60-90 min',
+      lessonsTotal: 6,
+      lessonsAvailable: 6,
+      description: 'Master control charts, process capability, and quality improvement through SPC methods',
+      topics: [
+        'Control charts (variables & attributes)',
+        'Process capability (Cp, Cpk, Pp, Ppk)',
+        'Measurement system analysis',
+        'Acceptance sampling',
+        'Six Sigma fundamentals'
+      ],
+      prerequisites: ['Statistics fundamentals', 'Normal distribution'],
+      learningOutcomes: [
+        'Design and interpret control charts',
+        'Assess process capability',
+        'Conduct Gage R&R studies',
+        'Apply SPC to real processes'
+      ]
     }
   ];
 
