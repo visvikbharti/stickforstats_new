@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from stickforstats.core.models import AnalysisSession, AnalysisResult, Dataset
-from stickforstats.sqc_analysis.models import (
+from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis,
     AcceptanceSamplingPlan, MeasurementSystemAnalysis,
     EconomicDesignAnalysis, SPCImplementationPlan

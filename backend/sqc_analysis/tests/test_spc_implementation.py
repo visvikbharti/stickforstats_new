@@ -3,7 +3,7 @@ Tests for the SPCImplementationService.
 """
 import unittest
 from datetime import datetime, timedelta
-from stickforstats.sqc_analysis.services.spc_implementation_service import SPCImplementationService
+from sqc_analysis.services.spc_implementation_service import SPCImplementationService
 
 
 class TestSPCImplementationService(unittest.TestCase):

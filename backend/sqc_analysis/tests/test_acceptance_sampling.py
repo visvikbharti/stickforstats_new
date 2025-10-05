@@ -3,7 +3,7 @@ Tests for the AcceptanceSamplingService.
 """
 import unittest
 import numpy as np
-from stickforstats.sqc_analysis.services.acceptance_sampling_service import AcceptanceSamplingService
+from sqc_analysis.services.acceptance_sampling_service import AcceptanceSamplingService
 
 
 class TestAcceptanceSamplingService(unittest.TestCase):
