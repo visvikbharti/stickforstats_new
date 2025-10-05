@@ -19,10 +19,11 @@ import {
   Card,
   CardContent,
   Grid,
-  ToggleButton,
-  ToggleButtonGroup
+  CircularProgress,
+  Chip
 } from '@mui/material';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
 
 /**
  * Lesson 3: Attributes Control Charts
@@ -41,9 +42,16 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
 
   // Interactive state
-  const [chartType, setChartType] = useState('p');
   const [sampleSize, setSampleSize] = useState(100);
   const [defectRate, setDefectRate] = useState(0.05);
+
+  // Backend integration state
+  const [backendResults, setBackendResults] = useState(null);
+  const [backendLoading, setBackendLoading] = useState(false);
+  const [backendError, setBackendError] = useState(null);
+
+  // Initialize API hook
+  const { quickControlChart } = useSQCAnalysisAPI();
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -60,6 +68,33 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
   const handleComplete = () => {
     if (onComplete) {
       onComplete();
+    }
+  };
+
+  // Backend API integration
+  const handleTestBackendAPI = async () => {
+    try {
+      setBackendLoading(true);
+      setBackendError(null);
+
+      // Extract proportions as individual measurements for I-MR chart analysis
+      const measurements = proportionData.map(d => d.proportion);
+
+      const response = await quickControlChart({
+        measurements: measurements,
+        chart_type: 'i_mr'
+      });
+
+      if (response.status === 'success') {
+        setBackendResults(response.data);
+      } else {
+        setBackendError(response.message || 'Failed to analyze control chart');
+      }
+    } catch (error) {
+      console.error('Backend API error:', error);
+      setBackendError(error.message || 'Failed to connect to backend API');
+    } finally {
+      setBackendLoading(false);
     }
   };
 
@@ -474,6 +509,132 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
               <strong>Observation:</strong> Larger sample sizes produce narrower control limits (more
               precise estimates). Lower defect rates also produce narrower limits.
             </Alert>
+
+            {/* Backend Integration Section */}
+            <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
+                🔬 Test with Backend API (Real Statistical Engine)
+              </Typography>
+              <Typography variant="body2" paragraph sx={{ color: 'text.secondary' }}>
+                Connect to the Django backend to analyze proportion data with real SciPy/NumPy calculations.
+                The backend will treat proportions as individual measurements and perform I-MR chart analysis
+                with professional matplotlib visualization.
+              </Typography>
+
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleTestBackendAPI}
+                disabled={backendLoading}
+                sx={{
+                  bgcolor: '#2e7d32',
+                  '&:hover': { bgcolor: '#1b5e20' },
+                  mb: 2
+                }}
+                fullWidth
+              >
+                {backendLoading ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                    Analyzing Proportions with Backend...
+                  </>
+                ) : (
+                  '🔬 Analyze Proportions with Backend API'
+                )}
+              </Button>
+
+              {backendError && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  <strong>Backend Error:</strong> {backendError}
+                </Alert>
+              )}
+
+              {backendResults && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                    Backend Analysis Results (I-MR Chart for Proportions)
+                  </Typography>
+
+                  <Grid container spacing={1} sx={{ mt: 1 }}>
+                    <Grid item xs={6} md={3}>
+                      <Chip
+                        label={`Chart Type: ${backendResults.results?.chart_type?.toUpperCase() || 'N/A'}`}
+                        color="primary"
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip
+                        label={`UCL: ${backendResults.results?.upper_control_limit?.toFixed(4) || 'N/A'}`}
+                        color="error"
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip
+                        label={`CL: ${backendResults.results?.center_line?.toFixed(4) || 'N/A'}`}
+                        color="success"
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip
+                        label={`LCL: ${backendResults.results?.lower_control_limit?.toFixed(4) || 'N/A'}`}
+                        color="warning"
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Chip
+                        label={`Violations: ${backendResults.results?.violations?.length || 0}`}
+                        color={backendResults.results?.violations?.length > 0 ? 'error' : 'success'}
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Chip
+                        label={`In Control: ${backendResults.results?.is_in_control ? 'Yes ✓' : 'No ✗'}`}
+                        color={backendResults.results?.is_in_control ? 'success' : 'error'}
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Chip
+                        label={`Patterns Detected: ${Object.keys(backendResults.results?.patterns || {}).filter(k => backendResults.results?.patterns[k]).length}`}
+                        color="info"
+                        sx={{ width: '100%' }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {backendResults.visualizations?.control_chart && (
+                    <Paper sx={{ mt: 3, p: 2, bgcolor: 'white' }}>
+                      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+                        Backend-Generated I-MR Chart for Proportions (matplotlib SVG)
+                      </Typography>
+                      <Box
+                        dangerouslySetInnerHTML={{
+                          __html: backendResults.visualizations.control_chart
+                        }}
+                        sx={{
+                          '& svg': {
+                            width: '100%',
+                            height: 'auto'
+                          }
+                        }}
+                      />
+                    </Paper>
+                  )}
+
+                  <Alert severity="success" sx={{ mt: 2 }}>
+                    <strong>Real Backend Analysis:</strong> These results come from the Django backend
+                    using SciPy/NumPy for calculations and matplotlib for visualization. Proportions are
+                    treated as individual measurements for I-MR chart analysis, which is statistically
+                    valid for monitoring attribute data over time!
+                  </Alert>
+                </Box>
+              )}
+            </Box>
           </Paper>
         </Box>
       )
