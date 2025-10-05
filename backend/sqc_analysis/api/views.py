@@ -1624,12 +1624,19 @@ class QuickControlChartView(APIView):
             )
             
             # Extract control limits based on chart type
-            if chart_type == 'imr':
+            if chart_type == 'imr' or chart_type == 'i_mr':
                 limits = result.get('limits', {}).get('individuals', {})
                 center_line = limits.get('center', 0)
                 ucl = limits.get('ucl', 0)
                 lcl = limits.get('lcl', 0)
+            elif chart_type in ['p', 'np', 'c', 'u']:
+                # Attributes control charts
+                limits = result.get('limits', {})
+                center_line = limits.get('center', limits.get('CL', 0))
+                ucl = limits.get('ucl', limits.get('UCL', 0))
+                lcl = limits.get('lcl', limits.get('LCL', 0))
             else:
+                # Variables control charts (xbar_r, xbar_s, etc.)
                 limits = result.get('limits', {}).get('xbar', {})
                 center_line = limits.get('center', 0)
                 ucl = limits.get('ucl', 0)
@@ -1712,14 +1719,18 @@ class QuickControlChartView(APIView):
         x = list(range(len(points)))
         
         # Extract control limits
-        if chart_type == 'imr':
+        if chart_type == 'imr' or chart_type == 'i_mr':
             limits = result.get('limits', {}).get('individuals', {})
+        elif chart_type in ['p', 'np', 'c', 'u']:
+            # Attributes control charts
+            limits = result.get('limits', {})
         else:
+            # Variables control charts (xbar_r, xbar_s, etc.)
             limits = result.get('limits', {}).get('xbar', {})
-        
-        center_line = limits.get('center', 0)
-        ucl = limits.get('ucl', 0)
-        lcl = limits.get('lcl', 0)
+
+        center_line = limits.get('center', limits.get('CL', 0))
+        ucl = limits.get('ucl', limits.get('UCL', 0))
+        lcl = limits.get('lcl', limits.get('LCL', 0))
         
         # Control lines
         ax.axhline(y=center_line, color='green', linestyle='-', label='CL', linewidth=2)
