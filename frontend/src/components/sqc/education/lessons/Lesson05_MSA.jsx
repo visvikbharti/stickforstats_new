@@ -18,7 +18,8 @@ import {
   Card,
   CardContent,
   Grid,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
@@ -36,6 +37,10 @@ import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
 const Lesson05_MSA = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
+
+  // Backend API integration - Quick MSA API (no auth required!)
+  const [backendResults, setBackendResults] = useState(null);
+  const [isLoadingBackend, setIsLoadingBackend] = useState(false);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -107,6 +112,56 @@ const Lesson05_MSA = ({ onComplete }) => {
       partPercent: Number(partPercent.toFixed(1))
     };
   }, []);
+
+  // REAL backend integration - Transform data and call Quick MSA API
+  const handleTestBackendAPI = async () => {
+    setIsLoadingBackend(true);
+    setBackendResults(null);
+
+    try {
+      // Transform frontend data structure to backend format
+      // Backend expects: { "Part1": { "Operator1": [trial1, trial2], "Operator2": [...] } }
+      const measurements = {};
+
+      gageRRData.data.forEach(row => {
+        const partKey = `Part${row.part}`;
+        const opKey = row.operator.replace(' ', '');
+
+        if (!measurements[partKey]) {
+          measurements[partKey] = {};
+        }
+        if (!measurements[partKey][opKey]) {
+          measurements[partKey][opKey] = [];
+        }
+        measurements[partKey][opKey].push(row.measurement);
+      });
+
+      // Call REAL backend Quick MSA API (public endpoint, no auth!)
+      const response = await fetch('http://localhost:8000/api/v1/sqc-analysis/quick-msa/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          msa_type: 'gage_rr',
+          measurements: measurements
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        setBackendResults(result.data);
+      } else {
+        setBackendResults({ error: result.error?.message || 'Backend calculation failed' });
+      }
+    } catch (err) {
+      console.error('Backend API error:', err);
+      setBackendResults({ error: `Backend not available: ${err.message}` });
+    } finally {
+      setIsLoadingBackend(false);
+    }
+  };
 
   const getAcceptability = (percent) => {
     if (percent < 10) return { rating: 'Acceptable', color: '#2e7d32' };
@@ -455,6 +510,111 @@ const Lesson05_MSA = ({ onComplete }) => {
             {gageRRData.rrPercent >= 30 &&
               `Unacceptable! Gage R&R is ${gageRRData.rrPercent}%, consuming too much variation. Improve measurement system before use.`}
           </Alert>
+
+          {/* REAL Backend Integration - No Authentication Required! */}
+          <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
+              🚀 Test with REAL Backend API
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2, color: '#555' }}>
+              Click below to send this Gage R&R data to the Django/Python backend for authentic
+              SciPy/NumPy variance component analysis.
+            </Typography>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleTestBackendAPI}
+              disabled={isLoadingBackend}
+              startIcon={isLoadingBackend && <CircularProgress size={20} color="inherit" />}
+              sx={{ mb: 2 }}
+            >
+              {isLoadingBackend ? 'Analyzing on Backend...' : '🔬 Analyze with Backend API'}
+            </Button>
+
+            {backendResults && (
+              <Box sx={{ mt: 2 }}>
+                {backendResults.error ? (
+                  <Alert severity="error">
+                    <strong>Backend Error:</strong> {backendResults.error}
+                  </Alert>
+                ) : (
+                  <>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      <strong>Backend Results (Python/SciPy):</strong> Real variance component analysis from Django backend
+                    </Alert>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={`%R&R: ${backendResults.rrPercent?.toFixed(1)}%`}
+                          color={
+                            backendResults.rrPercent < 10 ? 'success' :
+                            backendResults.rrPercent < 30 ? 'warning' : 'error'
+                          }
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={`Repeatability: ${backendResults.repeatabilityPercent?.toFixed(1)}%`}
+                          color="default"
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={`Reproducibility: ${backendResults.reproducibilityPercent?.toFixed(1)}%`}
+                          color="default"
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={`Part-to-Part: ${backendResults.partToPartPercent?.toFixed(1)}%`}
+                          color="primary"
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={`NDC: ${backendResults.ndc?.toFixed(0)}`}
+                          color={backendResults.ndc >= 5 ? 'success' : 'warning'}
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                      <Grid item xs={6} sm={4}>
+                        <Chip
+                          label={backendResults.assessment || 'N/A'}
+                          color={
+                            backendResults.assessment === 'Acceptable' ? 'success' : 'error'
+                          }
+                          sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                        />
+                      </Grid>
+                    </Grid>
+
+                    {backendResults.chart && (
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                          Variance Components (Backend-generated):
+                        </Typography>
+                        <Box
+                          component="div"
+                          dangerouslySetInnerHTML={{ __html: backendResults.chart }}
+                          sx={{
+                            '& svg': { width: '100%', height: 'auto', maxHeight: '400px' }
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    <Typography variant="caption" display="block" sx={{ mt: 2, color: '#666' }}>
+                      📊 Calculations performed by Django backend using Python SciPy/NumPy libraries
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            )}
+          </Box>
         </Box>
       )
     },
