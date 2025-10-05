@@ -292,7 +292,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
 
                   <li>
                     <Typography paragraph>
-                      Find quantiles of {t*₁, ..., t*ᴮ}: [t₍α/₂₎, t₍₁₋α/₂₎]
+                      Find quantiles of {'{'}&apos;t*₁, ..., t*ᴮ{'}'}: [t₍α/₂₎, t₍₁₋α/₂₎]
                     </Typography>
                   </li>
 
