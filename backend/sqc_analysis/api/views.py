@@ -6,6 +6,10 @@ control charts, process capability, acceptance sampling, MSA, economic design,
 and SPC implementation strategies.
 """
 
+# Configure matplotlib for headless operation (MUST be before pandas import)
+import matplotlib
+matplotlib.use('Agg')  # Non-GUI backend for API/server context
+
 import pandas as pd
 import io
 import json
@@ -16,7 +20,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
@@ -24,12 +28,12 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
 from typing import Any as Dataset  # Placeholder type
 from typing import Any as AnalysisSession  # Placeholder type
 from typing import Any as AnalysisResult  # Placeholder type
-from stickforstats.sqc_analysis.models import (
+from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis, 
     AcceptanceSamplingPlan, MeasurementSystemAnalysis,
     EconomicDesignAnalysis, SPCImplementationPlan
 )
-from stickforstats.sqc_analysis.api.serializers import (
+from sqc_analysis.api.serializers import (
     ControlChartAnalysisSerializer, ProcessCapabilityAnalysisSerializer,
     AcceptanceSamplingPlanSerializer, MeasurementSystemAnalysisSerializer,
     EconomicDesignAnalysisSerializer, SPCImplementationPlanSerializer,
@@ -37,13 +41,13 @@ from stickforstats.sqc_analysis.api.serializers import (
     AcceptanceSamplingRequestSerializer, MeasurementSystemAnalysisRequestSerializer,
     EconomicDesignRequestSerializer, SPCImplementationRequestSerializer
 )
-from stickforstats.sqc_analysis.services.control_chart_service import ControlChartService
-from stickforstats.sqc_analysis.services.process_capability_service import ProcessCapabilityService
-from stickforstats.sqc_analysis.services.acceptance_sampling_service import AcceptanceSamplingService
-from stickforstats.sqc_analysis.services.msa_service import MSAService
-from stickforstats.sqc_analysis.services.economic_design_service import EconomicDesignService
-from stickforstats.sqc_analysis.services.spc_implementation_service import SPCImplementationService
-from core.tasks.notification_tasks import send_notification
+from sqc_analysis.services.control_chart_service import ControlChartService
+from sqc_analysis.services.process_capability_service import ProcessCapabilityService
+from sqc_analysis.services.acceptance_sampling_service import AcceptanceSamplingService
+from sqc_analysis.services.msa_service import MSAService
+from sqc_analysis.services.economic_design_service import EconomicDesignService
+from sqc_analysis.services.spc_implementation_service import SPCImplementationService
+# from core.tasks.notification_tasks import send_notification  # Module does not exist
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -1546,7 +1550,7 @@ warnings.filterwarnings('ignore')
 
 class QuickControlChartView(APIView):
     """Quick control chart analysis without project setup"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def post(self, request):
         """Perform quick control chart analysis"""
@@ -1808,7 +1812,7 @@ class QuickControlChartView(APIView):
 
 class QuickProcessCapabilityView(APIView):
     """Quick process capability analysis"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def post(self, request):
         """Perform quick process capability analysis"""
@@ -2003,7 +2007,7 @@ class QuickProcessCapabilityView(APIView):
 
 class QuickAcceptanceSamplingView(APIView):
     """Quick acceptance sampling plan generation"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def post(self, request):
         """Generate quick acceptance sampling plan"""
@@ -2177,7 +2181,7 @@ class QuickAcceptanceSamplingView(APIView):
 
 class QuickMSAView(APIView):
     """Quick measurement system analysis"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def post(self, request):
         """Perform quick MSA analysis"""
@@ -2384,7 +2388,7 @@ class QuickMSAView(APIView):
 
 class SQCSimulationView(APIView):
     """Interactive SQC simulations for education"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def get(self, request):
         """Get available simulations"""
@@ -2565,7 +2569,7 @@ class SQCSimulationView(APIView):
 
 class SQCDemoDataView(APIView):
     """Generate demo datasets for SQC analysis"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Public for educational platform
     
     def get(self, request):
         """Get available demo datasets"""

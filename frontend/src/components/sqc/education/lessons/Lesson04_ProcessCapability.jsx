@@ -19,7 +19,8 @@ import {
   Card,
   CardContent,
   Grid,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
@@ -45,6 +46,10 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
   const [lsl, setLsl] = useState(94);
   const [usl, setUsl] = useState(106);
 
+  // Backend API integration - NEW Quick API (no auth required!)
+  const [backendResults, setBackendResults] = useState(null);
+  const [isLoadingBackend, setIsLoadingBackend] = useState(false);
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -60,6 +65,61 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
   const handleComplete = () => {
     if (onComplete) {
       onComplete();
+    }
+  };
+
+  // Generate sample data based on current slider values
+  const generateSampleData = () => {
+    const sampleSize = 100;
+    const samples = [];
+
+    for (let i = 0; i < sampleSize; i++) {
+      // Box-Muller transform for normal distribution
+      const u1 = Math.random();
+      const u2 = Math.random();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      const value = processMean + (z * processStdDev);
+      samples.push({ id: i + 1, value: value.toFixed(4) });
+    }
+    return samples;
+  };
+
+  // REAL backend integration - Quick API (no authentication required!)
+  const handleTestBackendAPI = async () => {
+    setIsLoadingBackend(true);
+    setBackendResults(null);
+
+    try {
+      // Generate sample data based on current slider settings
+      const sampleData = generateSampleData();
+      const measurements = sampleData.map(s => parseFloat(s.value));
+
+      // Call REAL backend Quick API (public endpoint, no auth!)
+      const response = await fetch('http://localhost:8000/api/v1/sqc-analysis/quick-capability/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          measurements: measurements,
+          lower_spec_limit: lsl,
+          upper_spec_limit: usl,
+          target_value: (lsl + usl) / 2
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        setBackendResults(result.data);
+      } else {
+        setBackendResults({ error: result.error?.message || 'Backend calculation failed' });
+      }
+    } catch (err) {
+      console.error('Backend API error:', err);
+      setBackendResults({ error: `Backend not available: ${err.message}` });
+    } finally {
+      setIsLoadingBackend(false);
     }
   };
 
@@ -570,6 +630,97 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             <Alert severity="info" sx={{ mt: 2 }}>
               <strong>Tip:</strong> Try setting μ = {capabilityMetrics.target} (perfect centering) to see Cp and Cpk converge!
             </Alert>
+
+            {/* REAL Backend Integration - No Authentication Required! */}
+            <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
+                🚀 Test with REAL Backend API
+              </Typography>
+              <Typography paragraph variant="body2">
+                Click below to calculate these metrics using the <strong>real Django/Python backend</strong>.
+                The backend will perform authentic statistical calculations using SciPy and NumPy with
+                100 samples generated from your current settings. <strong>No authentication required!</strong>
+              </Typography>
+
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleTestBackendAPI}
+                disabled={isLoadingBackend}
+                startIcon={isLoadingBackend && <CircularProgress size={20} color="inherit" />}
+                sx={{ mb: 2 }}
+              >
+                {isLoadingBackend ? 'Calculating on Backend...' : '🔬 Calculate with Backend API'}
+              </Button>
+
+              {backendResults && !backendResults.error && (
+                <Paper sx={{ p: 3, mt: 3, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+                    ✅ Backend Results (Python/SciPy Calculated)
+                  </Typography>
+
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={6} md={3}>
+                      <Chip label={`Cp: ${backendResults.results?.cp?.toFixed(3)}`} color="primary" sx={{ width: '100%' }} />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip label={`Cpk: ${backendResults.results?.cpk?.toFixed(3)}`} color="primary" sx={{ width: '100%' }} />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip label={`Pp: ${backendResults.results?.pp?.toFixed(3)}`} color="secondary" sx={{ width: '100%' }} />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Chip label={`Ppk: ${backendResults.results?.ppk?.toFixed(3)}`} color="secondary" sx={{ width: '100%' }} />
+                    </Grid>
+                  </Grid>
+
+                  <Grid container spacing={2} sx={{ mt: 2 }}>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body2"><strong>Mean:</strong> {backendResults.results?.mean?.toFixed(3)}</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body2"><strong>Std Dev:</strong> {backendResults.results?.std_dev?.toFixed(3)}</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body2"><strong>Sigma Level:</strong> {backendResults.results?.sigma_level}σ</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="body2"><strong>DPMO:</strong> {backendResults.results?.dpm?.toLocaleString()}</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="body2"><strong>Yield:</strong> {backendResults.results?.process_yield?.toFixed(2)}%</Typography>
+                    </Grid>
+                  </Grid>
+
+                  {backendResults.visualizations?.capability_plot && (
+                    <Box sx={{ mt: 3 }}>
+                      <Typography variant="subtitle2" gutterBottom><strong>Backend Generated Visualization:</strong></Typography>
+                      <img
+                        src={backendResults.visualizations.capability_plot}
+                        alt="Backend capability histogram"
+                        style={{ width: '100%', maxWidth: '600px', border: '1px solid #ddd', borderRadius: '4px' }}
+                      />
+                    </Box>
+                  )}
+
+                  <Alert severity="success" sx={{ mt: 3 }}>
+                    <strong>✓ Authentic Backend Calculation:</strong> These results were calculated by the Django backend using Python's SciPy and NumPy libraries. The histogram above was generated using matplotlib on the server.
+                  </Alert>
+                </Paper>
+              )}
+
+              {backendResults && backendResults.error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  <strong>Backend Error:</strong> {backendResults.error}
+                </Alert>
+              )}
+
+              {!backendResults && !isLoadingBackend && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <strong>How it works:</strong> When you click the button above, your browser sends the current slider values to the Django backend at <code>localhost:8000</code>. The backend generates 100 random samples, calculates all metrics using SciPy, and returns the results along with a matplotlib-generated visualization.
+                </Alert>
+              )}
+            </Box>
           </Paper>
         </Box>
       )
