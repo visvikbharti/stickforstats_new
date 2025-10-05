@@ -2,7 +2,7 @@
 Tests for the EconomicDesignService.
 """
 import unittest
-from stickforstats.sqc_analysis.services.economic_design_service import EconomicDesignService
+from sqc_analysis.services.economic_design_service import EconomicDesignService
 
 
 class TestEconomicDesignService(unittest.TestCase):

@@ -413,7 +413,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
             • <strong>Synergistic:</strong> Factors enhance each other (1+1 > 2)
           </Typography>
           <Typography paragraph>
-            • <strong>Antagonistic:</strong> Factors interfere (1+1 < 2)
+            • <strong>Antagonistic:</strong> Factors interfere (1+1 &lt; 2)
           </Typography>
           <Typography paragraph>
             • <strong>OFAT experiments miss interactions</strong> — that's why factorial designs are essential!

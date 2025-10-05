@@ -15,8 +15,8 @@ import json
 import logging
 
 from stickforstats.core.models import Dataset, AnalysisSession, AnalysisResult
-from stickforstats.sqc_analysis.models import ControlChartAnalysis
-from stickforstats.sqc_analysis.services.control_charts import ControlChartService
+from sqc_analysis.models import ControlChartAnalysis
+from sqc_analysis.services.control_charts import ControlChartService
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ Compatibility tests for the SQC Analysis module.
 import unittest
 import importlib
 from unittest.mock import MagicMock
-from stickforstats.sqc_analysis import module_info
+from sqc_analysis import module_info
 
 
 class TestModuleCompatibility(unittest.TestCase):
@@ -72,7 +72,7 @@ class TestModuleCompatibility(unittest.TestCase):
         
         # Check if SQC models properly reference core models
         try:
-            from stickforstats.sqc_analysis.models import ControlChartAnalysis
+            from sqc_analysis.models import ControlChartAnalysis
             
             # Check field relationships
             self.assertTrue(hasattr(ControlChartAnalysis, 'analysis_session'))
@@ -83,12 +83,12 @@ class TestModuleCompatibility(unittest.TestCase):
     def test_api_compatibility(self):
         """Test compatibility with Django REST Framework."""
         try:
-            from stickforstats.sqc_analysis.api.views import (
+            from sqc_analysis.api.views import (
                 ControlChartViewSet, ProcessCapabilityViewSet,
                 AcceptanceSamplingViewSet, MeasurementSystemAnalysisViewSet,
                 EconomicDesignViewSet, SPCImplementationViewSet
             )
-            from stickforstats.sqc_analysis.api.serializers import (
+            from sqc_analysis.api.serializers import (
                 ControlChartAnalysisSerializer, ProcessCapabilityAnalysisSerializer,
                 AcceptanceSamplingPlanSerializer, MeasurementSystemAnalysisSerializer,
                 EconomicDesignAnalysisSerializer, SPCImplementationPlanSerializer

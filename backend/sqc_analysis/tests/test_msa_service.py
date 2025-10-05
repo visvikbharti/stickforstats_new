@@ -4,7 +4,7 @@ Tests for the MSAService.
 import unittest
 import pandas as pd
 import numpy as np
-from stickforstats.sqc_analysis.services.msa_service import MSAService
+from sqc_analysis.services.msa_service import MSAService
 
 
 class TestMSAService(unittest.TestCase):

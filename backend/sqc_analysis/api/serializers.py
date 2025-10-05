@@ -8,7 +8,7 @@ from rest_framework import serializers
 # from core.models import AnalysisSession, AnalysisResult  # Models don't exist yet
 from typing import Any as AnalysisSession  # Placeholder type
 from typing import Any as AnalysisResult  # Placeholder type
-from stickforstats.sqc_analysis.models import (
+from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis,
     AcceptanceSamplingPlan, MeasurementSystemAnalysis,
     EconomicDesignAnalysis, SPCImplementationPlan

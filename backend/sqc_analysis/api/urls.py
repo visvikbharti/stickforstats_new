@@ -7,7 +7,7 @@ This module defines the URL patterns for the SQC Analysis API endpoints.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from stickforstats.sqc_analysis.api.views import (
+from sqc_analysis.api.views import (
     ControlChartViewSet, ProcessCapabilityViewSet,
     AcceptanceSamplingViewSet, MeasurementSystemAnalysisViewSet,
     EconomicDesignViewSet, SPCImplementationViewSet,

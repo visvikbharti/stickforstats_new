@@ -20,11 +20,11 @@ from django.db import transaction
 from typing import Any as AnalysisSession  # Placeholder type
 from typing import Any as AnalysisResult  # Placeholder type
 from typing import Any as User  # Placeholder type
-from stickforstats.sqc_analysis.models import (
+from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis, 
     AcceptanceSamplingPlan, MeasurementSystemAnalysis
 )
-from stickforstats.sqc_analysis.services.control_charts import ControlChartService
+from sqc_analysis.services.control_charts import ControlChartService
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

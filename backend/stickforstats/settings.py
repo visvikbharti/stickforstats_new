@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     # Temporarily commented out due to import errors - TODO: Fix imports
     # 'confidence_intervals.apps.ConfidenceIntervalsConfig',
     # 'probability_distributions.apps.ProbabilityDistributionsConfig',
-    # 'sqc_analysis.apps.SQCAnalysisConfig',
+    'sqc_analysis.apps.SQCAnalysisConfig',  # ← ENABLED for backend integration
     # 'doe_analysis.apps.DOEAnalysisConfig',
     # 'pca_analysis.apps.PCAAnalysisConfig',
 ]
