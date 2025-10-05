@@ -12,6 +12,21 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor for authentication
+api.interceptors.request.use(
+  (config) => {
+    // Get auth token from localStorage
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Token ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Mock data for demo mode
 const generateMockControlChart = (chartType, dataSize = 100) => {
   const centerLine = 50;
@@ -264,7 +279,63 @@ export const useSQCAnalysisAPI = () => {
   const runProcessCapabilityAnalysis = useCallback(async (params) => {
     setIsLoading(true);
     setError(null);
-    
+
+    if (isDemoMode) {
+      // Simulate process capability analysis in demo mode
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const mean = params.processMean || 100;
+      const stdDev = params.processStdDev || 2;
+      const lsl = params.lowerSpecLimit || 94;
+      const usl = params.upperSpecLimit || 106;
+      const target = params.targetValue || ((usl + lsl) / 2);
+
+      // Calculate capability indices
+      const cp = (usl - lsl) / (6 * stdDev);
+      const cpk = Math.min((usl - mean) / (3 * stdDev), (mean - lsl) / (3 * stdDev));
+      const pp = cp; // Simplified for demo
+      const ppk = cpk; // Simplified for demo
+
+      // Calculate sigma level and DPMO
+      const zMin = Math.min((usl - mean) / stdDev, (mean - lsl) / stdDev);
+      const sigmaLevel = zMin;
+      const dpmo = Math.max(0, Math.round((1 - (erf(zMin / Math.sqrt(2)) + 1) / 2) * 2 * 1000000));
+
+      const mockResult = {
+        id: `demo-capability-${Date.now()}`,
+        cp: Number(cp.toFixed(3)),
+        cpk: Number(cpk.toFixed(3)),
+        pp: Number(pp.toFixed(3)),
+        ppk: Number(ppk.toFixed(3)),
+        sigma_level: Number(sigmaLevel.toFixed(2)),
+        dpmo: dpmo,
+        within_spec_percentage: Number((100 - (dpmo / 10000)).toFixed(2)),
+        process_mean: mean,
+        process_std_dev: stdDev,
+        lower_spec_limit: lsl,
+        upper_spec_limit: usl,
+        target_value: target,
+        interpretation: cpk >= 1.33 ? 'Capable' : cpk >= 1.0 ? 'Marginally Capable' : 'Not Capable',
+        recommendations: [
+          cpk < 1.33 && {
+            type: 'warning',
+            title: 'Process Capability Below Target',
+            description: `Cpk of ${cpk.toFixed(2)} is below the industry standard of 1.33`,
+            action: 'Consider process improvement initiatives'
+          },
+          Math.abs(mean - target) > stdDev && {
+            type: 'info',
+            title: 'Process Not Centered',
+            description: 'Process mean deviates from target value',
+            action: 'Adjust process to center on target'
+          }
+        ].filter(Boolean)
+      };
+
+      setIsLoading(false);
+      return mockResult;
+    }
+
     try {
       const response = await api.post('/sqc/process-capability/', {
         session_id: params.sessionId,
@@ -276,7 +347,7 @@ export const useSQCAnalysisAPI = () => {
         assume_normality: params.assumeNormality,
         transformation_method: params.transformationMethod
       });
-      
+
       return response.data;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -285,6 +356,22 @@ export const useSQCAnalysisAPI = () => {
       setIsLoading(false);
     }
   }, []);
+
+  // Helper function for error function (erf) approximation
+  function erf(x) {
+    // Abramowitz and Stegun approximation
+    const sign = x >= 0 ? 1 : -1;
+    x = Math.abs(x);
+    const a1 = 0.254829592;
+    const a2 = -0.284496736;
+    const a3 = 1.421413741;
+    const a4 = -1.453152027;
+    const a5 = 1.061405429;
+    const p = 0.3275911;
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    return sign * y;
+  }
   
   /**
    * Create an acceptance sampling plan
