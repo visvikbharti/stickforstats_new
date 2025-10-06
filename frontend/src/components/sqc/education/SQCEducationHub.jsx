@@ -124,8 +124,8 @@ const SQCEducationHub = () => {
     const LessonComponent = lesson.component;
 
     return (
-      <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
-        <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e0e0e0', py: 2 }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
           <Container>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -134,7 +134,7 @@ const SQCEducationHub = () => {
             >
               Back to Lessons
             </Button>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'error.main' }}>
               Lesson {lesson.id}: {lesson.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -152,14 +152,14 @@ const SQCEducationHub = () => {
 
   // Show lesson selection hub
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <SchoolIcon sx={{ fontSize: 48, color: '#d32f2f', mr: 2 }} />
+            <SchoolIcon sx={{ fontSize: 48, color: 'error.main', mr: 2 }} />
             <Box>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: '#d32f2f' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>
                 Learn Statistical Quality Control
               </Typography>
               <Typography variant="h6" color="text.secondary">
@@ -285,7 +285,7 @@ const SQCEducationHub = () => {
                           sx={{
                             display: 'block',
                             mt: 2,
-                            color: '#999',
+                            color: 'text.disabled',
                             fontStyle: 'italic'
                           }}
                         >
@@ -301,8 +301,8 @@ const SQCEducationHub = () => {
         </Grid>
 
         {/* Footer info */}
-        <Paper sx={{ p: 3, mt: 4, bgcolor: '#ffebee' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f' }}>
+        <Paper sx={{ p: 3, mt: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'error.light' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main' }}>
             Why Learn Statistical Quality Control?
           </Typography>
           <Typography variant="body2" paragraph>
