@@ -56,53 +56,72 @@ class AcceptanceSamplingService:
             
         c_guess = max(int(n_guess * p1 * 2), 1)
         
-        # Search for optimal n and c
+        # OPTIMIZED: Search for optimal n and c using geometric progression
         best_n = n_guess
         best_c = c_guess
         best_risk_diff = float('inf')
-        
-        # Search range for n and c
-        n_range = range(max(5, n_guess // 2), min(n_guess * 2, lot_size) + 1)
-        
-        for n in n_range:
-            # Calculate acceptance probability at p1 (AQL)
-            pa_p1 = sum(stats.binom.pmf(i, n, p1) for i in range(n + 1))
-            
-            # Start with c at max(1, n*p1) and decrease to find optimal value
-            for c in range(min(n, max(1, int(n * p1 * 2))), -1, -1):
-                # Calculate producer's and consumer's actual risks
-                producer_actual_risk = 1 - sum(stats.binom.pmf(i, n, p1) for i in range(c + 1))
-                consumer_actual_risk = sum(stats.binom.pmf(i, n, p2) for i in range(c + 1))
-                
-                # Check if both risks are satisfied
-                if producer_actual_risk <= producer_risk and consumer_actual_risk <= consumer_risk:
-                    # Calculate the difference from target risks
-                    risk_diff = abs(producer_actual_risk - producer_risk) + abs(consumer_actual_risk - consumer_risk)
-                    
-                    # Update best plan if this is better
-                    if risk_diff < best_risk_diff:
-                        best_risk_diff = risk_diff
-                        best_n = n
-                        best_c = c
-        
-        # If no plan satisfies both risks, find the closest compromise
-        if best_risk_diff == float('inf'):
-            best_risk_diff = float('inf')
-            
-            for n in n_range:
-                for c in range(min(n, max(1, int(n * p1 * 2))), -1, -1):
-                    # Calculate producer's and consumer's actual risks
-                    producer_actual_risk = 1 - sum(stats.binom.pmf(i, n, p1) for i in range(c + 1))
-                    consumer_actual_risk = sum(stats.binom.pmf(i, n, p2) for i in range(c + 1))
-                    
-                    # Calculate weighted risk difference
-                    risk_diff = abs(producer_actual_risk - producer_risk) + abs(consumer_actual_risk - consumer_risk)
-                    
-                    # Update best plan if this is better
-                    if risk_diff < best_risk_diff:
-                        best_risk_diff = risk_diff
-                        best_n = n
-                        best_c = c
+
+        # Generate n candidates using strategic sampling (faster than full linear range)
+        # Combine key values + geometric progression for good coverage with speed
+        n_candidates = []
+        min_n = max(5, n_guess // 2)
+        max_n = min(n_guess * 2, lot_size)
+
+        # Always include key values around n_guess
+        key_values = [
+            min_n,
+            int(n_guess * 0.7),
+            int(n_guess * 0.85),
+            n_guess,
+            int(n_guess * 1.15),
+            int(n_guess * 1.3),
+            max_n
+        ]
+        n_candidates.extend([n for n in key_values if min_n <= n <= max_n])
+
+        # Add geometric progression for broader coverage (1.15x for finer steps)
+        n = min_n
+        while n <= max_n:
+            if n not in n_candidates:
+                n_candidates.append(n)
+            n = int(n * 1.15)  # Finer geometric progression: ~15% increase
+
+        # Remove duplicates and sort
+        n_candidates = sorted(set(n_candidates))
+
+        # Early termination threshold - stop when solution is "good enough"
+        ACCEPTABLE_RISK_TOLERANCE = 0.001
+
+        # OPTIMIZED: Single combined search (no duplicate if-else blocks)
+        for n in n_candidates:
+            # Calculate c search range
+            max_c = min(n, max(1, int(n * p1 * 2)))
+
+            # Search for best c for this n (decreasing order to find smallest c first)
+            for c in range(max_c, -1, -1):
+                # OPTIMIZED: Use binom.cdf() for cumulative probability (much faster than sum of pmf)
+                # P(X <= c) = cdf(c, n, p)
+                # Producer's risk = P(reject | p=p1) = P(X > c | p1) = 1 - P(X <= c | p1)
+                # Consumer's risk = P(accept | p=p2) = P(X <= c | p2)
+                producer_actual_risk = 1 - stats.binom.cdf(c, n, p1)
+                consumer_actual_risk = stats.binom.cdf(c, n, p2)
+
+                # Calculate risk difference
+                risk_diff = abs(producer_actual_risk - producer_risk) + abs(consumer_actual_risk - consumer_risk)
+
+                # Update best plan if this is better (works for both satisfying risks AND best compromise)
+                if risk_diff < best_risk_diff:
+                    best_risk_diff = risk_diff
+                    best_n = n
+                    best_c = c
+
+                    # Early termination: if solution is good enough, stop searching
+                    if best_risk_diff < ACCEPTABLE_RISK_TOLERANCE:
+                        break
+
+            # Early termination at n level
+            if best_risk_diff < ACCEPTABLE_RISK_TOLERANCE:
+                break
         
         # Calculate actual risks with the chosen plan
         producer_actual_risk = 1 - sum(stats.binom.pmf(i, best_n, p1) for i in range(best_c + 1))
