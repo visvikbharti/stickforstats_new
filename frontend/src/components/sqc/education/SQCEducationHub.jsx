@@ -18,14 +18,13 @@ import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  Lesson01_IntroductionToSQC,
-  Lesson02_VariablesControlCharts,
-  Lesson03_AttributesControlCharts,
-  Lesson04_ProcessCapability,
-  Lesson05_MSA,
-  Lesson06_AcceptanceSampling
-} from './index';
+// Import lessons directly to avoid circular dependency
+import Lesson01_IntroductionToSQC from './lessons/Lesson01_IntroductionToSQC';
+import Lesson02_VariablesControlCharts from './lessons/Lesson02_VariablesControlCharts';
+import Lesson03_AttributesControlCharts from './lessons/Lesson03_AttributesControlCharts';
+import Lesson04_ProcessCapability from './lessons/Lesson04_ProcessCapability';
+import Lesson05_MSA from './lessons/Lesson05_MSA';
+import Lesson06_AcceptanceSampling from './lessons/Lesson06_AcceptanceSampling';
 
 /**
  * Statistical Quality Control Education Hub
