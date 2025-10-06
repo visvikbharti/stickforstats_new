@@ -21,9 +21,11 @@ import {
   TableHead,
   TableRow,
   Divider,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import { MathJax } from 'better-react-mathjax';
+import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
 
 /**
  * Lesson 6: Acceptance Sampling
@@ -41,11 +43,47 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
   const [aql, setAql] = useState(1.0); // Acceptable Quality Level (%)
   const [ltpd, setLtpd] = useState(5.0); // Lot Tolerance Percent Defective (%)
 
+  // Backend integration state
+  const [backendResults, setBackendResults] = useState(null);
+  const [backendLoading, setBackendLoading] = useState(false);
+  const [backendError, setBackendError] = useState(null);
+
+  // Initialize API hook
+  const { quickAcceptanceSampling } = useSQCAnalysisAPI();
+
   const handleNext = () => setActiveStep((prev) => prev + 1);
   const handleBack = () => setActiveStep((prev) => prev - 1);
   const handleReset = () => setActiveStep(0);
   const handleComplete = () => {
     if (onComplete) onComplete();
+  };
+
+  // Backend API integration
+  const handleTestBackendAPI = async () => {
+    try {
+      setBackendLoading(true);
+      setBackendError(null);
+
+      // Call backend API with current parameters
+      const response = await quickAcceptanceSampling({
+        lot_size: 1000, // Default lot size
+        aql: aql,
+        ltpd: ltpd,
+        producer_risk: 0.05,
+        consumer_risk: 0.10
+      });
+
+      if (response.status === 'success') {
+        setBackendResults(response.data);
+      } else {
+        setBackendError(response.message || 'Failed to generate sampling plan');
+      }
+    } catch (error) {
+      console.error('Backend API error:', error);
+      setBackendError(error.message || 'Failed to connect to backend API');
+    } finally {
+      setBackendLoading(false);
+    }
   };
 
   // Binomial probability calculation
@@ -600,6 +638,130 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             <strong>Design Goal:</strong> Choose <em>n</em> and <em>c</em> such that producer's risk
             (α) ≤ 5% and consumer's risk (β) ≤ 10%. Increasing sample size generally reduces both risks.
           </Alert>
+
+          {/* Backend API Integration */}
+          <Paper sx={{ p: 3, mt: 3, bgcolor: '#f0f7ff', border: '2px solid #1976d2' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+              🔬 Generate Optimal Plan with Backend API
+            </Typography>
+
+            <Typography paragraph variant="body2">
+              Use real SciPy/NumPy optimization to calculate the optimal sampling plan based on your AQL and LTPD:
+            </Typography>
+
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleTestBackendAPI}
+              disabled={backendLoading}
+              fullWidth
+              sx={{ mt: 2, mb: 3 }}
+            >
+              {backendLoading ? (
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: '#fff' }} />
+                  Optimizing Sampling Plan...
+                </>
+              ) : (
+                '🔬 Generate Optimal Plan with Backend API'
+              )}
+            </Button>
+
+            {backendError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {backendError}
+              </Alert>
+            )}
+
+            {backendResults && (
+              <Box>
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  ✅ Successfully generated optimal sampling plan using real SciPy/NumPy optimization!
+                  The backend calculated the best n and c values to meet your specified producer and consumer risk targets.
+                </Alert>
+
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  Backend Results:
+                </Typography>
+
+                <Grid container spacing={1} sx={{ mt: 1, mb: 3 }}>
+                  <Grid item>
+                    <Chip
+                      label={`Plan Type: ${backendResults.results.plan_type.toUpperCase()}`}
+                      color="primary"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`Sample Size (n): ${backendResults.results.sample_size}`}
+                      color="primary"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`Acceptance Number (c): ${backendResults.results.acceptance_number}`}
+                      color="primary"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`Producer Risk (α): ${(backendResults.results.producer_risk_actual * 100).toFixed(2)}%`}
+                      color={backendResults.results.producer_risk_actual <= 0.05 ? 'success' : 'warning'}
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`Consumer Risk (β): ${(backendResults.results.consumer_risk_actual * 100).toFixed(2)}%`}
+                      color={backendResults.results.consumer_risk_actual <= 0.10 ? 'success' : 'warning'}
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`AQL: ${(backendResults.results.aql * 100).toFixed(2)}%`}
+                      color="info"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Chip
+                      label={`AOQL: ${(backendResults.results.aoql * 100).toFixed(2)}%`}
+                      color="info"
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Grid>
+                </Grid>
+
+                {backendResults.visualizations?.oc_curve && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                      Backend-Generated Operating Characteristic (OC) Curve:
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        p: 2,
+                        bgcolor: '#fff',
+                        borderRadius: 1,
+                        border: '1px solid #e0e0e0'
+                      }}
+                      dangerouslySetInnerHTML={{ __html: backendResults.visualizations.oc_curve }}
+                    />
+                  </Box>
+                )}
+
+                {backendResults.interpretation && (
+                  <Alert severity="info" sx={{ mt: 3 }}>
+                    <strong>Interpretation:</strong> {backendResults.interpretation}
+                  </Alert>
+                )}
+              </Box>
+            )}
+          </Paper>
         </Box>
       )
     },
