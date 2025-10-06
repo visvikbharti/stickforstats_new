@@ -631,26 +631,22 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
               <strong>Tip:</strong> Try setting μ = {capabilityMetrics.target} (perfect centering) to see Cp and Cpk converge!
             </Alert>
 
-            {/* REAL Backend Integration - No Authentication Required! */}
-            <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
-                🚀 Test with REAL Backend API
-              </Typography>
-              <Typography paragraph variant="body2">
-                Click below to calculate these metrics using the <strong>real Django/Python backend</strong>.
-                The backend will perform authentic statistical calculations using SciPy and NumPy with
-                100 samples generated from your current settings. <strong>No authentication required!</strong>
-              </Typography>
-
+            {/* Professional Statistical Analysis Section */}
+            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
               <Button
                 variant="contained"
-                color="success"
+                size="large"
                 onClick={handleTestBackendAPI}
                 disabled={isLoadingBackend}
-                startIcon={isLoadingBackend && <CircularProgress size={20} color="inherit" />}
-                sx={{ mb: 2 }}
+                startIcon={isLoadingBackend ? <CircularProgress size={20} /> : null}
+                sx={{
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  mb: 2
+                }}
+                fullWidth
               >
-                {isLoadingBackend ? 'Calculating on Backend...' : '🔬 Calculate with Backend API'}
+                {isLoadingBackend ? 'Performing Capability Analysis...' : '📊 Perform Capability Analysis'}
               </Button>
 
               {backendResults && !backendResults.error && (

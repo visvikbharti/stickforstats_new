@@ -648,36 +648,22 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
                 'Significant process shift! Points exceed UCL after subgroup 15. Investigate and correct.'}
             </Alert>
 
-            {/* Backend Integration Section */}
-            <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
-                🔬 Test with Backend API (Real Statistical Engine)
-              </Typography>
-              <Typography variant="body2" paragraph sx={{ color: 'text.secondary' }}>
-                Connect to the Django backend to analyze your data with real SciPy/NumPy calculations.
-                The backend will generate an I-MR control chart with professional matplotlib visualization.
-              </Typography>
-
+            {/* Professional Statistical Analysis Section */}
+            <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
               <Button
                 variant="contained"
                 size="large"
                 onClick={handleTestBackendAPI}
                 disabled={backendLoading}
+                startIcon={backendLoading ? <CircularProgress size={20} /> : null}
                 sx={{
-                  bgcolor: '#2e7d32',
-                  '&:hover': { bgcolor: '#1b5e20' },
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
                   mb: 2
                 }}
                 fullWidth
               >
-                {backendLoading ? (
-                  <>
-                    <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                    Analyzing with Backend...
-                  </>
-                ) : (
-                  '🔬 Analyze with Backend API'
-                )}
+                {backendLoading ? 'Performing Statistical Analysis...' : '📊 Perform Statistical Analysis'}
               </Button>
 
               {backendError && (

@@ -511,24 +511,22 @@ const Lesson05_MSA = ({ onComplete }) => {
               `Unacceptable! Gage R&R is ${gageRRData.rrPercent}%, consuming too much variation. Improve measurement system before use.`}
           </Alert>
 
-          {/* REAL Backend Integration - No Authentication Required! */}
-          <Box sx={{ mt: 4, p: 3, bgcolor: '#e8f5e9', borderRadius: 2, border: '2px solid #4caf50' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600 }}>
-              🚀 Test with REAL Backend API
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2, color: '#555' }}>
-              Click below to send this Gage R&R data to the Django/Python backend for authentic
-              SciPy/NumPy variance component analysis.
-            </Typography>
+          {/* Professional Statistical Analysis Section */}
+          <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
             <Button
               variant="contained"
-              color="success"
+              size="large"
               onClick={handleTestBackendAPI}
               disabled={isLoadingBackend}
-              startIcon={isLoadingBackend && <CircularProgress size={20} color="inherit" />}
-              sx={{ mb: 2 }}
+              startIcon={isLoadingBackend ? <CircularProgress size={20} /> : null}
+              sx={{
+                bgcolor: 'primary.main',
+                '&:hover': { bgcolor: 'primary.dark' },
+                mb: 2
+              }}
+              fullWidth
             >
-              {isLoadingBackend ? 'Analyzing on Backend...' : '🔬 Analyze with Backend API'}
+              {isLoadingBackend ? 'Performing Gage R&R Analysis...' : '📊 Perform Gage R&R Analysis'}
             </Button>
 
             {backendResults && (
