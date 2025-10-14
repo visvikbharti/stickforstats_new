@@ -20,7 +20,8 @@ import {
   CardActionArea,
   Chip,
   Button,
-  Alert
+  Alert,
+  Divider
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PsychologyIcon from '@mui/icons-material/Psychology';
