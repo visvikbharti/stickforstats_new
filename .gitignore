@@ -21,6 +21,7 @@ backend/dist/
 .env.local
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 backend/.env
 frontend/.env
@@ -65,3 +66,42 @@ __pycache__/
 *.egg-info
 dist/
 build/
+
+# Session Notes & Development Documentation
+# Excludes internal development notes, session summaries, and status reports
+# while preserving committed documentation (DEPLOYMENT_GUIDE.md, etc.)
+*_COMPLETE.md
+*_SESSION*.md
+*_REPORT.md
+*_PLAN.md
+*_GUIDE.md
+*_SUMMARY.md
+*_CHECKLIST.md
+*_ROADMAP.md
+*_ANALYSIS.md
+*_VERDICT.md
+*_SYNTHESIS.md
+*_VERIFICATION.md
+*_OUTLINE.md
+*_ANNOUNCEMENT*.md
+*_SCRIPT*.md
+*_PACKAGE*.md
+*_PROTOCOL*.md
+*_AUDIT.md
+*_PROGRESS.md
+NEXT_SESSION*
+README_FOR_*.md
+START_HERE_*.md
+HONEST_*.md
+QUICK_DEMO_*.md
+TECHNICAL_WHITEPAPER_*.md
+LAUNCH_ANNOUNCEMENT*.md
+VISION_AND_ROADMAP*.md
+frontend/*_COMPLETE.md
+frontend/*_PROGRESS.md
+
+# Note: Committed documentation is preserved:
+# - DEPLOYMENT_GUIDE.md (root, already committed)
+# - docs/api-integration-guide.md (subdirectory)
+# - frontend/INTEGRATION_TESTS_README.md (specific name)
+# - frontend/QUICK_TEST_GUIDE.md (specific name)
