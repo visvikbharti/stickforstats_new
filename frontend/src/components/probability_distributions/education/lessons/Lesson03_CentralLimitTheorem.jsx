@@ -320,23 +320,25 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
           ✅ Key Takeaways
         </Typography>
 
-        <Box sx={{ pl: 2 }}>
-          <Typography paragraph>
-            • <strong>CLT = Averages are Normal</strong> — regardless of the original distribution
-          </Typography>
-          <Typography paragraph>
-            • <strong>Larger n → Better approximation</strong> — typically n ≥ 30 is sufficient
-          </Typography>
-          <Typography paragraph>
-            • <strong>Mean unchanged, variance shrinks</strong> — {"\\(\\mu\\)"} stays same, {"\\(\\sigma^2/n\\)"} decreases
-          </Typography>
-          <Typography paragraph>
-            • <strong>Foundation of inference</strong> — enables t-tests, z-tests, confidence intervals
-          </Typography>
-          <Typography paragraph>
-            • <strong>Works for any distribution</strong> — Uniform, Exponential, Binomial, custom distributions
-          </Typography>
-        </Box>
+        <MathJax>
+          <Box sx={{ pl: 2 }}>
+            <Typography paragraph>
+              • <strong>CLT = Averages are Normal</strong> — regardless of the original distribution
+            </Typography>
+            <Typography paragraph>
+              • <strong>Larger n → Better approximation</strong> — typically n ≥ 30 is sufficient
+            </Typography>
+            <Typography paragraph>
+              • <strong>Mean unchanged, variance shrinks</strong> — {"\\(\\mu\\)"} stays same, {"\\(\\sigma^2/n\\)"} decreases
+            </Typography>
+            <Typography paragraph>
+              • <strong>Foundation of inference</strong> — enables t-tests, z-tests, confidence intervals
+            </Typography>
+            <Typography paragraph>
+              • <strong>Works for any distribution</strong> — Uniform, Exponential, Binomial, custom distributions
+            </Typography>
+          </Box>
+        </MathJax>
 
         {onComplete && (
           <Box sx={{ mt: 3, textAlign: 'center' }}>

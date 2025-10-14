@@ -21,6 +21,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import { MathJax } from 'better-react-mathjax';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 /**
  * Lesson 6: Non-Normal Data & Transformations
@@ -46,6 +47,59 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
     const key = sampleSize >= 500 ? 'n500' : sampleSize >= 100 ? 'n100' : sampleSize >= 50 ? 'n50' : 'n30';
     return scenarios[distribution][key];
   }, [distribution, sampleSize]);
+
+  // Generate skewed data and apply transformations
+  const transformationData = useMemo(() => {
+    // Generate right-skewed data (exponential-like)
+    const rawData = [];
+    for (let i = 0; i < 100; i++) {
+      // Exponential distribution approximation
+      const u = Math.random();
+      const value = -Math.log(1 - u) * 2 + 1; // exponential shifted to be positive
+      rawData.push(value);
+    }
+
+    // Apply transformation
+    let transformedData = [];
+    switch (transformation) {
+      case 'log':
+        transformedData = rawData.map(x => Math.log(x));
+        break;
+      case 'sqrt':
+        transformedData = rawData.map(x => Math.sqrt(x));
+        break;
+      case 'reciprocal':
+        transformedData = rawData.map(x => 1 / x);
+        break;
+      case 'none':
+      default:
+        transformedData = rawData;
+        break;
+    }
+
+    // Create histograms
+    const createHistogram = (data, numBins = 15) => {
+      const min = Math.min(...data);
+      const max = Math.max(...data);
+      const binWidth = (max - min) / numBins;
+
+      const bins = Array(numBins).fill(0);
+      data.forEach(val => {
+        const binIndex = Math.min(Math.floor((val - min) / binWidth), numBins - 1);
+        bins[binIndex]++;
+      });
+
+      return Array.from({ length: numBins }, (_, i) => ({
+        bin: (min + i * binWidth).toFixed(2),
+        count: bins[i]
+      }));
+    };
+
+    return {
+      original: createHistogram(rawData),
+      transformed: createHistogram(transformedData)
+    };
+  }, [transformation]);
 
   const handleNext = () => setActiveStep(prev => Math.min(prev + 1, 4));
   const handleBack = () => setActiveStep(prev => Math.max(prev - 1, 0));
@@ -297,6 +351,94 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                   <ToggleButton value="sqrt">Square Root</ToggleButton>
                   <ToggleButton value="reciprocal">Reciprocal</ToggleButton>
                 </ToggleButtonGroup>
+              </Paper>
+
+              {/* Interactive Visualization: Before & After */}
+              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                  🎨 Transformation Effect Visualization
+                </Typography>
+                <Typography variant="body2" paragraph>
+                  This shows how the selected transformation affects right-skewed data (exponential distribution).
+                  Notice how log and sqrt transformations make the distribution more symmetric!
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" align="center" gutterBottom>
+                      Original Data (Right-Skewed)
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={transformationData.original}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="bin"
+                          label={{ value: 'Value', position: 'insideBottom', offset: -5 }}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <YAxis label={{ value: 'Frequency', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#ff9800" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" align="center" gutterBottom>
+                      {transformation === 'none' ? 'No Transformation Applied' :
+                       transformation === 'log' ? 'After Log Transformation' :
+                       transformation === 'sqrt' ? 'After Square Root Transformation' :
+                       'After Reciprocal Transformation'}
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={transformationData.transformed}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="bin"
+                          label={{
+                            value: transformation === 'none' ? 'Value' :
+                                   transformation === 'log' ? 'log(Value)' :
+                                   transformation === 'sqrt' ? '√Value' :
+                                   '1/Value',
+                            position: 'insideBottom',
+                            offset: -5
+                          }}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <YAxis label={{ value: 'Frequency', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill={transformation === 'none' ? '#ff9800' : '#4caf50'} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Grid>
+                </Grid>
+
+                <Alert severity={transformation === 'none' ? 'info' : 'success'} sx={{ mt: 2 }}>
+                  {transformation === 'none' && (
+                    <Typography variant="body2">
+                      <strong>Original data is right-skewed.</strong> Try selecting Log or Square Root to see
+                      how transformations can make the distribution more symmetric (closer to normal).
+                    </Typography>
+                  )}
+                  {transformation === 'log' && (
+                    <Typography variant="body2">
+                      <strong>Log transformation</strong> pulls in the right tail, making the distribution
+                      more symmetric. Best for data spanning multiple orders of magnitude.
+                    </Typography>
+                  )}
+                  {transformation === 'sqrt' && (
+                    <Typography variant="body2">
+                      <strong>Square root transformation</strong> is milder than log, good for count data
+                      (Poisson). It also reduces right skewness.
+                    </Typography>
+                  )}
+                  {transformation === 'reciprocal' && (
+                    <Typography variant="body2">
+                      <strong>Reciprocal transformation (1/x)</strong> reverses the skewness direction and
+                      is useful for rate data. Notice how it creates left skewness from right skewness.
+                    </Typography>
+                  )}
+                </Alert>
               </Paper>
 
               <Grid container spacing={2} sx={{ mb: 2 }}>

@@ -46,10 +46,22 @@ const renderLatex = (formula) => {
  * a Normal distribution with interactive visualization of control charts
  * and process capability metrics
  */
-const QualityControlD3 = ({ projectId, setLoading, setError, setSimulationResult, result }) => {
+const QualityControlD3 = ({ projectId, setLoading: setLoadingProp, setError: setErrorProp, setSimulationResult: setSimulationResultProp, result: resultProp }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
+  // Internal state (used when component is standalone)
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [internalError, setInternalError] = useState(null);
+  const [internalResult, setInternalResult] = useState(null);
+
+  // Use internal state if props not provided (standalone mode)
+  const isStandalone = !setLoadingProp;
+  const setLoading = setLoadingProp || setInternalLoading;
+  const setError = setErrorProp || setInternalError;
+  const setSimulationResult = setSimulationResultProp || setInternalResult;
+  const result = resultProp !== undefined ? resultProp : internalResult;
+
   // Main simulation parameters
   const [mean, setMean] = useState(100);
   const [stdDev, setStdDev] = useState(5);

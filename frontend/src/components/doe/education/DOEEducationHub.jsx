@@ -16,18 +16,16 @@ import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router-dom';
 
-import {
-  Lesson01_FactorialDesign,
-  Lesson02_DesignTypes,
-  Lesson03_Interactions,
-  Lesson04_Analysis,
-  Lesson05_Blocking,
-  Lesson06_RSM,
-  Lesson07_Desirability,
-  Lesson08_Taguchi
-} from './index';
+// Import lessons directly to avoid circular dependency
+import Lesson01_FactorialDesign from './lessons/Lesson01_FactorialDesign';
+import Lesson02_DesignTypes from './lessons/Lesson02_DesignTypes';
+import Lesson03_Interactions from './lessons/Lesson03_Interactions';
+import Lesson04_Analysis from './lessons/Lesson04_Analysis';
+import Lesson05_Blocking from './lessons/Lesson05_Blocking';
+import Lesson06_RSM from './lessons/Lesson06_RSM';
+import Lesson07_Desirability from './lessons/Lesson07_Desirability';
+import Lesson08_Taguchi from './lessons/Lesson08_Taguchi';
 
 /**
  * DOE Education Hub
@@ -37,7 +35,6 @@ import {
  */
 
 const DOEEducationHub = () => {
-  const navigate = useNavigate();
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
 

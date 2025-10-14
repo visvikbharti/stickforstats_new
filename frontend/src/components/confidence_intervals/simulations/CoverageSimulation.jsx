@@ -509,8 +509,41 @@ const CoverageSimulation = ({ projectId }) => {
       { name: 'Nominal', value: confidenceLevel * 100 }
     ];
 
-    // Prepare data for the interval widths histogram (not used in current client-side implementation)
+    // Prepare data for the interval widths histogram
     const widthsData = [];
+
+    // Calculate histogram of interval widths if intervals are available
+    if (result.intervals && result.intervals.length > 0) {
+      // Extract widths from intervals
+      const widths = result.intervals.map(interval => interval.upper - interval.lower);
+
+      // Create histogram bins
+      const minWidth = Math.min(...widths);
+      const maxWidth = Math.max(...widths);
+      const numBins = 20;
+      const binSize = (maxWidth - minWidth) / numBins;
+
+      // Initialize bins
+      const bins = Array(numBins).fill(0);
+      const binLabels = [];
+
+      // Fill bins
+      widths.forEach(width => {
+        const binIndex = Math.min(Math.floor((width - minWidth) / binSize), numBins - 1);
+        bins[binIndex]++;
+      });
+
+      // Create chart data
+      for (let i = 0; i < numBins; i++) {
+        const binStart = minWidth + i * binSize;
+        const binEnd = binStart + binSize;
+        widthsData.push({
+          name: binStart.toFixed(2),
+          value: bins[i],
+          binRange: `${binStart.toFixed(2)} - ${binEnd.toFixed(2)}`
+        });
+      }
+    }
 
     // Calculate coverage difference for display
     const coverageDiff = (result.coverage * 100) - (confidenceLevel * 100);
@@ -571,34 +604,28 @@ const CoverageSimulation = ({ projectId }) => {
               <Typography variant="subtitle1" gutterBottom>
                 Interval Widths Distribution
               </Typography>
-              {result.width_histogram ? (
+              {widthsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart 
+                  <BarChart
                     data={widthsData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="name" 
-                      label={{ value: 'Interval Width', position: 'insideBottom', offset: -5 }} 
+                    <XAxis
+                      dataKey="name"
+                      label={{ value: 'Interval Width', position: 'insideBottom', offset: -5 }}
                     />
-                    <YAxis 
-                      label={{ value: 'Frequency', angle: -90, position: 'insideLeft' }} 
+                    <YAxis
+                      label={{ value: 'Frequency', angle: -90, position: 'insideLeft' }}
                     />
                     <RechartsTooltip />
                     <Bar dataKey="value" fill="#3f51b5" />
-                    <ReferenceLine 
-                      x={result.mean_interval_width.toFixed(2)}
-                      stroke="#e91e63" 
-                      strokeWidth={2}
-                      label={{ value: 'Mean', position: 'top', fill: '#e91e63' }}
-                    />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                   <Typography variant="body2" color="text.secondary">
-                    Width histogram data not available
+                    Run simulation to see interval widths distribution
                   </Typography>
                 </Box>
               )}

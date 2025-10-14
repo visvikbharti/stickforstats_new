@@ -183,8 +183,10 @@ const Lesson06_Transformations = ({ onComplete }) => {
     const height = 300;
     const margin = 50;
 
-    const xMin = transformType === 'square' ? 0 : (transformType === 'linear' ? (a * -4 + b) : -4);
-    const xMax = transformType === 'square' ? 9 : (transformType === 'linear' ? (a * 4 + b) : 4);
+    // Use fixed axis range for linear transformation to show the shift when b changes
+    // For square transformation, use appropriate range for chi-squared
+    const xMin = transformType === 'square' ? 0 : -10;
+    const xMax = transformType === 'square' ? 9 : 20;
     const yMax = 0.5;
 
     return (

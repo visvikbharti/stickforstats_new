@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Box, 
   Typography, 
@@ -143,7 +143,7 @@ const CLTSimulator = () => {
       
       case 'bimodal':
         // Bimodal distribution (mixture of two normals)
-        for (let i = 0; i < size; i += 2) {
+        for (let i = 0; i < size; i++) {
           const u1 = Math.random();
           const u2 = Math.random();
           const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
@@ -162,7 +162,7 @@ const CLTSimulator = () => {
       
       case 'skewed':
         // Skewed distribution using squared standard normals
-        for (let i = 0; i < size; i += 2) {
+        for (let i = 0; i < size; i++) {
           const u1 = Math.random();
           const u2 = Math.random();
           const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
@@ -214,16 +214,23 @@ const CLTSimulator = () => {
   };
   
   // Render the distribution chart with D3.js
-  const renderPopulationChart = () => {
+  const renderPopulationChart = useCallback(() => {
     if (!originalChartRef.current || originalData.length === 0) return;
-    
-    // Clear previous chart
-    d3.select(originalChartRef.current).selectAll('*').remove();
-    
-    // Set up dimensions and margins
-    const margin = { top: 40, right: 30, bottom: 50, left: 50 };
+
+    // Check if element has valid dimensions
     const width = originalChartRef.current.clientWidth;
     const height = originalChartRef.current.clientHeight || 250;
+
+    if (!width || width === 0) {
+      console.warn('CLT Simulator: Original chart ref has no width, skipping render');
+      return;
+    }
+
+    // Clear previous chart
+    d3.select(originalChartRef.current).selectAll('*').remove();
+
+    // Set up dimensions and margins
+    const margin = { top: 40, right: 30, bottom: 50, left: 50 };
     
     // Create SVG element
     const svg = d3.select(originalChartRef.current)
@@ -314,19 +321,26 @@ const CLTSimulator = () => {
       .style('font-size', '14px')
       .style('font-weight', 'bold')
       .text('Original Distribution');
-  };
-  
+  }, [originalData]);
+
   // Render the sample means chart with D3.js
-  const renderSampleMeansChart = () => {
+  const renderSampleMeansChart = useCallback(() => {
     if (!sampleMeansChartRef.current || sampleMeans.length === 0) return;
-    
-    // Clear previous chart
-    d3.select(sampleMeansChartRef.current).selectAll('*').remove();
-    
-    // Set up dimensions and margins
-    const margin = { top: 40, right: 30, bottom: 50, left: 50 };
+
+    // Check if element has valid dimensions
     const width = sampleMeansChartRef.current.clientWidth;
     const height = sampleMeansChartRef.current.clientHeight || 250;
+
+    if (!width || width === 0) {
+      console.warn('CLT Simulator: Sample means chart ref has no width, skipping render');
+      return;
+    }
+
+    // Clear previous chart
+    d3.select(sampleMeansChartRef.current).selectAll('*').remove();
+
+    // Set up dimensions and margins
+    const margin = { top: 40, right: 30, bottom: 50, left: 50 };
     
     // Create SVG element
     const svg = d3.select(sampleMeansChartRef.current)
@@ -483,17 +497,22 @@ const CLTSimulator = () => {
       .style('font-size', '14px')
       .style('font-weight', 'bold')
       .text('Sampling Distribution of the Mean');
-  };
-  
+  }, [sampleMeans]);
+
   // Update charts when data changes
   useEffect(() => {
-    if (originalData.length > 0) {
-      renderPopulationChart();
-    }
-    if (sampleMeans.length > 0) {
-      renderSampleMeansChart();
-    }
-  }, [originalData, sampleMeans]);
+    // Use setTimeout to ensure DOM is ready and has dimensions
+    const timer = setTimeout(() => {
+      if (originalData.length > 0) {
+        renderPopulationChart();
+      }
+      if (sampleMeans.length > 0) {
+        renderSampleMeansChart();
+      }
+    }, 10); // Small delay to allow layout to complete
+
+    return () => clearTimeout(timer);
+  }, [originalData, sampleMeans, renderPopulationChart, renderSampleMeansChart]);
   
   // Handle window resize
   useEffect(() => {
@@ -505,10 +524,10 @@ const CLTSimulator = () => {
         renderSampleMeansChart();
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [originalData, sampleMeans]);
+  }, [originalData, sampleMeans, renderPopulationChart, renderSampleMeansChart]);
   
   return (
     <Box>
