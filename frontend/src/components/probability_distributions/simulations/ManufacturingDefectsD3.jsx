@@ -51,10 +51,22 @@ const renderLatex = (formula) => {
  * manufacturing defects, implement acceptance sampling plans,
  * and visualize operating characteristic curves for quality control
  */
-const ManufacturingDefectsD3 = ({ projectId, setLoading, setError, setSimulationResult, result }) => {
+const ManufacturingDefectsD3 = ({ projectId, setLoading: setLoadingProp, setError: setErrorProp, setSimulationResult: setSimulationResultProp, result: resultProp }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
+  // Internal state (used when component is standalone)
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [internalError, setInternalError] = useState(null);
+  const [internalResult, setInternalResult] = useState(null);
+
+  // Use internal state if props not provided (standalone mode)
+  const isStandalone = !setLoadingProp;
+  const setLoading = setLoadingProp || setInternalLoading;
+  const setError = setErrorProp || setInternalError;
+  const setSimulationResult = setSimulationResultProp || setInternalResult;
+  const result = resultProp !== undefined ? resultProp : internalResult;
+
   // Main simulation parameters
   const [defectRate, setDefectRate] = useState(0.05); // Defect rate (probability of defect)
   const [batchSize, setBatchSize] = useState(1000); // Total batch size

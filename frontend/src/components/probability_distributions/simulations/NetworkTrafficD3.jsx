@@ -54,10 +54,22 @@ const renderLatex = (formula) => {
  * This component demonstrates queueing theory concepts in network traffic
  * with interactive visualizations for Poisson arrivals and service times
  */
-const NetworkTrafficD3 = ({ projectId, setLoading, setError, setSimulationResult, result }) => {
+const NetworkTrafficD3 = ({ projectId, setLoading: setLoadingProp, setError: setErrorProp, setSimulationResult: setSimulationResultProp, result: resultProp }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
+  // Internal state (used when component is standalone)
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [internalError, setInternalError] = useState(null);
+  const [internalResult, setInternalResult] = useState(null);
+
+  // Use internal state if props not provided (standalone mode)
+  const isStandalone = !setLoadingProp;
+  const setLoading = setLoadingProp || setInternalLoading;
+  const setError = setErrorProp || setInternalError;
+  const setSimulationResult = setSimulationResultProp || setInternalResult;
+  const result = resultProp !== undefined ? resultProp : internalResult;
+
   // Main simulation parameters
   const [arrivalRate, setArrivalRate] = useState(5); // λ: Average packet arrivals per second
   const [serviceRate, setServiceRate] = useState(8); // μ: Average packets serviced per second

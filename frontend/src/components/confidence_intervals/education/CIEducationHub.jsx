@@ -16,18 +16,15 @@ import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router-dom';
-
-import {
-  Lesson01_Interpretation,
-  Lesson02_Coverage,
-  Lesson03_Bootstrap,
-  Lesson04_SampleSize,
-  Lesson05_HypothesisTests,
-  Lesson06_NonNormalData,
-  Lesson07_AdvancedBootstrap,
-  Lesson08_BayesianCredible
-} from './index';
+// Import lessons directly to avoid circular dependency
+import Lesson01_Interpretation from './lessons/Lesson01_Interpretation';
+import Lesson02_Coverage from './lessons/Lesson02_Coverage';
+import Lesson03_Bootstrap from './lessons/Lesson03_Bootstrap';
+import Lesson04_SampleSize from './lessons/Lesson04_SampleSize';
+import Lesson05_HypothesisTests from './lessons/Lesson05_HypothesisTests';
+import Lesson06_NonNormalData from './lessons/Lesson06_NonNormalData';
+import Lesson07_AdvancedBootstrap from './lessons/Lesson07_AdvancedBootstrap';
+import Lesson08_BayesianCredible from './lessons/Lesson08_BayesianCredible';
 
 /**
  * CI Education Hub
@@ -37,7 +34,6 @@ import {
  */
 
 const CIEducationHub = () => {
-  const navigate = useNavigate();
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
 

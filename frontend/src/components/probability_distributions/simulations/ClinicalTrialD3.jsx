@@ -50,10 +50,22 @@ const renderLatex = (formula) => {
  * with interactive visualizations for binomial distribution and
  * hypothesis testing for treatment effectiveness
  */
-const ClinicalTrialD3 = ({ projectId, setLoading, setError, setSimulationResult, result }) => {
+const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setErrorProp, setSimulationResult: setSimulationResultProp, result: resultProp }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
+  // Internal state (used when component is standalone)
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [internalError, setInternalError] = useState(null);
+  const [internalResult, setInternalResult] = useState(null);
+
+  // Use internal state if props not provided (standalone mode)
+  const isStandalone = !setLoadingProp;
+  const setLoading = setLoadingProp || setInternalLoading;
+  const setError = setErrorProp || setInternalError;
+  const setSimulationResult = setSimulationResultProp || setInternalResult;
+  const result = resultProp !== undefined ? resultProp : internalResult;
+
   // Main simulation parameters
   const [controlSuccess, setControlSuccess] = useState(0.3); // Success rate in control group
   const [treatmentEffect, setTreatmentEffect] = useState(0.2); // Additional success rate in treatment group

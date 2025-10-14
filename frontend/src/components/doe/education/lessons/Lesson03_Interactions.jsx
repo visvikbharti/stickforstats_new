@@ -35,6 +35,30 @@ const Lesson03_Interactions = ({ onComplete }) => {
   const [factorAEffect, setFactorAEffect] = useState(5);
   const [factorBEffect, setFactorBEffect] = useState(3);
 
+  // Sample data for the real DOE example
+  const realExperimentData = [
+    {
+      id: 'temp_ph',
+      factor1: 'Temperature (°C)',
+      factor2: 'pH',
+      points: [
+        { x: '60°C', line1: 45, line2: 52 },
+        { x: '80°C', line1: 58, line2: 78 }
+      ],
+      pValue: 0.012
+    },
+    {
+      id: 'pressure_time',
+      factor1: 'Pressure (bar)',
+      factor2: 'Time',
+      points: [
+        { x: '2 bar', line1: 62, line2: 65 },
+        { x: '4 bar', line1: 70, line2: 85 }
+      ],
+      pValue: 0.008
+    }
+  ];
+
   // Generate data for interaction plot
   const interactionData = useMemo(() => {
     const baseYield = 50;
@@ -344,7 +368,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
           response surface reveals interaction patterns.
         </Typography>
 
-        <InteractionPlot />
+        <InteractionPlot data={realExperimentData} />
       </Paper>
 
       {/* Detecting Interactions */}

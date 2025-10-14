@@ -16,16 +16,14 @@ import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router-dom';
 
-import {
-  Lesson01_DiscreteDistributions,
-  Lesson02_ContinuousDistributions,
-  Lesson03_CentralLimitTheorem,
-  Lesson04_Applications,
-  Lesson05_JointDistributions,
-  Lesson06_Transformations
-} from './index';
+// Import lessons directly to avoid circular dependency
+import Lesson01_DiscreteDistributions from './lessons/Lesson01_DiscreteDistributions';
+import Lesson02_ContinuousDistributions from './lessons/Lesson02_ContinuousDistributions';
+import Lesson03_CentralLimitTheorem from './lessons/Lesson03_CentralLimitTheorem';
+import Lesson04_Applications from './lessons/Lesson04_Applications';
+import Lesson05_JointDistributions from './lessons/Lesson05_JointDistributions';
+import Lesson06_Transformations from './lessons/Lesson06_Transformations';
 
 /**
  * Probability Education Hub
@@ -35,7 +33,6 @@ import {
  */
 
 const ProbabilityEducationHub = () => {
-  const navigate = useNavigate();
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
 

@@ -697,8 +697,6 @@ const Lesson08_Taguchi = ({ onComplete }) => {
                     { value: 60, label: '60' }
                   ]}
                   valueLabelDisplay="on"
-                  disabled
-                  sx={{ opacity: 0.6 }}
                 />
                 <Typography variant="body2" gutterBottom sx={{ mt: 2 }}>
                   Material Variation — Simulate variation
@@ -715,8 +713,6 @@ const Lesson08_Taguchi = ({ onComplete }) => {
                     { value: 1, label: 'Good' }
                   ]}
                   valueLabelDisplay="off"
-                  disabled
-                  sx={{ opacity: 0.6 }}
                 />
               </Paper>
             </Grid>
@@ -767,6 +763,21 @@ const Lesson08_Taguchi = ({ onComplete }) => {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Paper>
+
+          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Your Selected Noise Condition
+            </Typography>
+            <Typography variant="body2" paragraph>
+              Response at Humidity={noiseHumidity}%, Material={noiseMaterial === -1 ? 'Poor' : noiseMaterial === 0 ? 'Avg' : 'Good'}:
+            </Typography>
+            <Typography variant="h4" align="center" sx={{ color: 'primary.main' }}>
+              {calculateResponse(temp, pressure, noiseHumidity, noiseMaterial).toFixed(2)}
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+              Adjust the noise sliders to see how the response changes under different conditions
+            </Typography>
           </Paper>
 
           <Alert
