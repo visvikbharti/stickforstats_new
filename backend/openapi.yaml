@@ -1,0 +1,1881 @@
+openapi: 3.0.3
+info:
+  title: StickForStats API
+  description: |
+    Enterprise-grade statistical analysis platform API with FDA 21 CFR Part 11 compliance.
+
+    ## Features
+    - Advanced statistical calculations
+    - Real-time validation
+    - Audit logging with blockchain integrity
+    - WebSocket support for live updates
+    - Batch processing capabilities
+
+    ## Authentication
+    All endpoints require JWT authentication unless specified otherwise.
+    Use the `/auth/login` endpoint to obtain access and refresh tokens.
+
+    ## Rate Limiting
+    - Standard users: 1000 requests/hour
+    - Professional users: 5000 requests/hour
+    - Enterprise users: Unlimited
+
+    ## Compliance
+    This API is fully compliant with:
+    - FDA 21 CFR Part 11
+    - GxP guidelines
+    - ISO 9001:2015
+    - HIPAA (when configured)
+
+  version: 1.0.0
+  contact:
+    name: StickForStats API Support
+    email: api-support@stickforstats.com
+    url: https://api.stickforstats.com/support
+  license:
+    name: Enterprise License
+    url: https://stickforstats.com/license
+
+servers:
+  - url: https://api.stickforstats.com/v1
+    description: Production server
+  - url: https://staging-api.stickforstats.com/v1
+    description: Staging server
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Probability Distributions
+    description: Statistical distribution calculations
+  - name: Confidence Intervals
+    description: Confidence interval computations
+  - name: Design of Experiments
+    description: DOE design and analysis
+  - name: Statistical Quality Control
+    description: SQC charts and process capability
+  - name: Validation
+    description: Data validation and audit logging
+  - name: Education
+    description: Educational content and lessons
+  - name: Admin
+    description: Administrative operations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login endpoint
+
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for enterprise clients
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "Invalid parameter value"
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+          format: uuid
+
+    ValidationResult:
+      type: object
+      required:
+        - isValid
+        - validatedAt
+      properties:
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+              code:
+                type: string
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        validatedAt:
+          type: string
+          format: date-time
+        validator:
+          type: string
+          enum: [automatic, manual, system]
+
+    AuditEntry:
+      type: object
+      required:
+        - id
+        - timestamp
+        - userId
+        - action
+        - resourceType
+        - resourceId
+        - signature
+      properties:
+        id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        userId:
+          type: string
+        action:
+          type: string
+          enum: [CREATE, READ, UPDATE, DELETE, CALCULATE, VALIDATE, EXPORT]
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        details:
+          type: object
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        signature:
+          type: string
+          description: SHA-256 signature for integrity verification
+        previousEntryId:
+          type: string
+          format: uuid
+          description: Blockchain-style link to previous entry
+
+    NormalDistribution:
+      type: object
+      required:
+        - mean
+        - standardDeviation
+      properties:
+        mean:
+          type: number
+          format: double
+          description: Mean (μ) of the distribution
+          example: 0
+        standardDeviation:
+          type: number
+          format: double
+          minimum: 0.0001
+          description: Standard deviation (σ) of the distribution
+          example: 1
+
+    BinomialDistribution:
+      type: object
+      required:
+        - trials
+        - probability
+      properties:
+        trials:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          description: Number of trials (n)
+          example: 10
+        probability:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Probability of success (p)
+          example: 0.5
+
+    PoissonDistribution:
+      type: object
+      required:
+        - lambda
+      properties:
+        lambda:
+          type: number
+          format: double
+          minimum: 0.0001
+          maximum: 1000
+          description: Rate parameter (λ)
+          example: 3.5
+
+    ExponentialDistribution:
+      type: object
+      required:
+        - rate
+      properties:
+        rate:
+          type: number
+          format: double
+          minimum: 0.0001
+          description: Rate parameter (λ)
+          example: 1.5
+
+    DistributionCalculation:
+      type: object
+      required:
+        - distribution
+        - operation
+        - parameters
+      properties:
+        distribution:
+          type: string
+          enum: [normal, binomial, poisson, exponential, t, chi-square, f]
+        operation:
+          type: string
+          enum: [pdf, cdf, quantile, random, mean, variance, moment]
+        parameters:
+          oneOf:
+            - $ref: '#/components/schemas/NormalDistribution'
+            - $ref: '#/components/schemas/BinomialDistribution'
+            - $ref: '#/components/schemas/PoissonDistribution'
+            - $ref: '#/components/schemas/ExponentialDistribution'
+        x:
+          type: number
+          format: double
+          description: Value for PDF/CDF calculation
+        p:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Probability for quantile calculation
+        n:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          description: Number of random samples to generate
+        seed:
+          type: integer
+          description: Random seed for reproducibility
+
+    DistributionResult:
+      type: object
+      required:
+        - result
+        - calculation
+        - timestamp
+      properties:
+        result:
+          oneOf:
+            - type: number
+            - type: array
+              items:
+                type: number
+        calculation:
+          $ref: '#/components/schemas/DistributionCalculation'
+        statistics:
+          type: object
+          properties:
+            mean:
+              type: number
+            variance:
+              type: number
+            standardDeviation:
+              type: number
+            skewness:
+              type: number
+            kurtosis:
+              type: number
+        visualizationData:
+          type: object
+          properties:
+            x:
+              type: array
+              items:
+                type: number
+            y:
+              type: array
+              items:
+                type: number
+            type:
+              type: string
+              enum: [line, scatter, histogram, bar]
+        validation:
+          $ref: '#/components/schemas/ValidationResult'
+        auditId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+
+    ConfidenceIntervalRequest:
+      type: object
+      required:
+        - type
+        - data
+        - confidenceLevel
+      properties:
+        type:
+          type: string
+          enum: [mean, proportion, variance, difference]
+        data:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 100000
+        confidenceLevel:
+          type: number
+          format: double
+          minimum: 0.5
+          maximum: 0.999
+          default: 0.95
+        method:
+          type: string
+          enum: [t, z, bootstrap, wilson, exact]
+          default: auto
+        populationStandardDeviation:
+          type: number
+          format: double
+          minimum: 0
+          description: Known population standard deviation (for z-method)
+        bootstrapSamples:
+          type: integer
+          minimum: 1000
+          maximum: 100000
+          default: 10000
+          description: Number of bootstrap samples
+
+    ConfidenceIntervalResult:
+      type: object
+      required:
+        - lowerBound
+        - upperBound
+        - confidenceLevel
+        - method
+        - pointEstimate
+      properties:
+        lowerBound:
+          type: number
+          format: double
+        upperBound:
+          type: number
+          format: double
+        confidenceLevel:
+          type: number
+          format: double
+        method:
+          type: string
+        pointEstimate:
+          type: number
+          format: double
+        standardError:
+          type: number
+          format: double
+        marginOfError:
+          type: number
+          format: double
+        degreesOfFreedom:
+          type: integer
+        criticalValue:
+          type: number
+          format: double
+        sampleSize:
+          type: integer
+        validation:
+          $ref: '#/components/schemas/ValidationResult'
+        auditId:
+          type: string
+          format: uuid
+
+    DOEDesign:
+      type: object
+      required:
+        - type
+        - factors
+      properties:
+        type:
+          type: string
+          enum: [full_factorial, fractional_factorial, ccd, box_behnken, plackett_burman, taguchi]
+        factors:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - levels
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [continuous, categorical]
+              levels:
+                oneOf:
+                  - type: array
+                    items:
+                      type: number
+                  - type: array
+                    items:
+                      type: string
+              low:
+                type: number
+              high:
+                type: number
+              center:
+                type: number
+          minItems: 2
+          maxItems: 15
+        replicates:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+        centerPoints:
+          type: integer
+          minimum: 0
+          maximum: 20
+          default: 0
+        resolution:
+          type: integer
+          minimum: 3
+          maximum: 7
+          description: Resolution for fractional factorial designs
+        blocks:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+        randomize:
+          type: boolean
+          default: true
+
+    DOEAnalysis:
+      type: object
+      required:
+        - design
+        - responses
+      properties:
+        design:
+          $ref: '#/components/schemas/DOEDesign'
+        responses:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - values
+            properties:
+              name:
+                type: string
+              values:
+                type: array
+                items:
+                  type: number
+              target:
+                type: number
+              weight:
+                type: number
+                minimum: 0
+                maximum: 1
+                default: 1
+        analysisType:
+          type: string
+          enum: [anova, regression, response_surface, optimization]
+          default: anova
+        includeInteractions:
+          type: boolean
+          default: true
+        confidenceLevel:
+          type: number
+          format: double
+          minimum: 0.5
+          maximum: 0.999
+          default: 0.95
+
+    DOEResult:
+      type: object
+      required:
+        - design
+        - analysisType
+        - results
+      properties:
+        design:
+          type: object
+          properties:
+            matrix:
+              type: array
+              items:
+                type: array
+                items:
+                  type: number
+            runOrder:
+              type: array
+              items:
+                type: integer
+            totalRuns:
+              type: integer
+        analysisType:
+          type: string
+        results:
+          type: object
+          properties:
+            anova:
+              type: object
+            regression:
+              type: object
+              properties:
+                coefficients:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      factor:
+                        type: string
+                      coefficient:
+                        type: number
+                      standardError:
+                        type: number
+                      tValue:
+                        type: number
+                      pValue:
+                        type: number
+                rSquared:
+                  type: number
+                adjustedRSquared:
+                  type: number
+            optimization:
+              type: object
+              properties:
+                optimalSettings:
+                  type: object
+                predictedResponse:
+                  type: number
+                desirability:
+                  type: number
+        visualization:
+          type: object
+          properties:
+            mainEffectsPlot:
+              type: string
+              format: uri
+            interactionPlot:
+              type: string
+              format: uri
+            contourPlot:
+              type: string
+              format: uri
+            surfacePlot:
+              type: string
+              format: uri
+        validation:
+          $ref: '#/components/schemas/ValidationResult'
+        auditId:
+          type: string
+          format: uuid
+
+    SQCChartRequest:
+      type: object
+      required:
+        - chartType
+        - data
+      properties:
+        chartType:
+          type: string
+          enum: [xbar, r, s, i_mr, p, np, c, u, cusum, ewma]
+        data:
+          oneOf:
+            - type: array
+              items:
+                type: number
+              description: For I-MR charts
+            - type: array
+              items:
+                type: array
+                items:
+                  type: number
+              description: For subgroup charts (X-bar, R, S)
+        subgroupSize:
+          type: integer
+          minimum: 1
+          maximum: 50
+        centerLine:
+          type: number
+          description: Process center (auto-calculated if not provided)
+        controlLimits:
+          type: object
+          properties:
+            lower:
+              type: number
+            upper:
+              type: number
+            warningLower:
+              type: number
+            warningUpper:
+              type: number
+        westernElectricRules:
+          type: boolean
+          default: true
+        nelsonRules:
+          type: boolean
+          default: false
+        specifications:
+          type: object
+          properties:
+            lsl:
+              type: number
+              description: Lower specification limit
+            usl:
+              type: number
+              description: Upper specification limit
+            target:
+              type: number
+
+    ProcessCapability:
+      type: object
+      required:
+        - data
+        - lsl
+        - usl
+      properties:
+        data:
+          type: array
+          items:
+            type: number
+          minItems: 30
+        lsl:
+          type: number
+          description: Lower specification limit
+        usl:
+          type: number
+          description: Upper specification limit
+        target:
+          type: number
+          description: Target value
+        confidenceLevel:
+          type: number
+          format: double
+          minimum: 0.5
+          maximum: 0.999
+          default: 0.95
+        distribution:
+          type: string
+          enum: [normal, non-normal]
+          default: normal
+
+    SQCResult:
+      type: object
+      required:
+        - chartType
+        - statistics
+        - controlLimits
+        - violations
+      properties:
+        chartType:
+          type: string
+        statistics:
+          type: object
+          properties:
+            mean:
+              type: number
+            standardDeviation:
+              type: number
+            range:
+              type: number
+            centerLine:
+              type: number
+        controlLimits:
+          type: object
+          properties:
+            ucl:
+              type: number
+            lcl:
+              type: number
+            uwl:
+              type: number
+            lwl:
+              type: number
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              point:
+                type: integer
+              value:
+                type: number
+              rule:
+                type: string
+              description:
+                type: string
+        processCapability:
+          type: object
+          properties:
+            cp:
+              type: number
+            cpk:
+              type: number
+            pp:
+              type: number
+            ppk:
+              type: number
+            ppm:
+              type: number
+            sigma:
+              type: number
+            yield:
+              type: number
+        chartData:
+          type: object
+          properties:
+            points:
+              type: array
+              items:
+                type: object
+                properties:
+                  x:
+                    type: integer
+                  y:
+                    type: number
+                  violation:
+                    type: boolean
+            centerLine:
+              type: number
+            ucl:
+              type: number
+            lcl:
+              type: number
+        validation:
+          $ref: '#/components/schemas/ValidationResult'
+        auditId:
+          type: string
+          format: uuid
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, professional, standard, educational]
+        organization:
+          type: string
+        department:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastLogin:
+          type: string
+          format: date-time
+        preferences:
+          type: object
+        quotas:
+          type: object
+          properties:
+            apiCallsRemaining:
+              type: integer
+            storageUsed:
+              type: integer
+            storageLimit:
+              type: integer
+
+    AuthRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        mfaCode:
+          type: string
+          pattern: '^[0-9]{6}$'
+
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+        - expiresIn
+        - user
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+        tokenType:
+          type: string
+          default: Bearer
+        user:
+          $ref: '#/components/schemas/User'
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Exchange refresh token for new access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current tokens
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /distributions/calculate:
+    post:
+      tags:
+        - Probability Distributions
+      summary: Calculate distribution values
+      description: |
+        Perform calculations on statistical distributions including PDF, CDF, quantiles, and random sampling.
+        All calculations are validated and audit logged for compliance.
+      operationId: calculateDistribution
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistributionCalculation'
+            examples:
+              normalPDF:
+                summary: Normal distribution PDF
+                value:
+                  distribution: normal
+                  operation: pdf
+                  parameters:
+                    mean: 0
+                    standardDeviation: 1
+                  x: 1.96
+              binomialCDF:
+                summary: Binomial distribution CDF
+                value:
+                  distribution: binomial
+                  operation: cdf
+                  parameters:
+                    trials: 10
+                    probability: 0.5
+                  x: 7
+              poissonRandom:
+                summary: Poisson random samples
+                value:
+                  distribution: poisson
+                  operation: random
+                  parameters:
+                    lambda: 3.5
+                  n: 1000
+                  seed: 12345
+      responses:
+        '200':
+          description: Calculation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResult'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /distributions/batch:
+    post:
+      tags:
+        - Probability Distributions
+      summary: Batch distribution calculations
+      description: Perform multiple distribution calculations in a single request
+      operationId: batchCalculateDistributions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - calculations
+              properties:
+                calculations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DistributionCalculation'
+                  minItems: 1
+                  maxItems: 100
+                parallel:
+                  type: boolean
+                  default: true
+                  description: Process calculations in parallel
+      responses:
+        '200':
+          description: Batch calculation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DistributionResult'
+                  summary:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      successful:
+                        type: integer
+                      failed:
+                        type: integer
+                      processingTime:
+                        type: number
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /confidence-intervals/calculate:
+    post:
+      tags:
+        - Confidence Intervals
+      summary: Calculate confidence interval
+      description: |
+        Calculate confidence intervals for various parameters including mean, proportion, and variance.
+        Supports multiple methods including t-distribution, z-distribution, and bootstrap.
+      operationId: calculateConfidenceInterval
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfidenceIntervalRequest'
+            examples:
+              meanInterval:
+                summary: Mean confidence interval
+                value:
+                  type: mean
+                  data: [23.5, 24.1, 22.8, 25.2, 23.9, 24.5, 23.3, 24.8, 23.7, 24.2]
+                  confidenceLevel: 0.95
+                  method: t
+              proportionInterval:
+                summary: Proportion confidence interval
+                value:
+                  type: proportion
+                  data: [1, 1, 0, 1, 0, 1, 1, 1, 0, 1]
+                  confidenceLevel: 0.99
+                  method: wilson
+      responses:
+        '200':
+          description: Confidence interval calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfidenceIntervalResult'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /doe/design:
+    post:
+      tags:
+        - Design of Experiments
+      summary: Generate experimental design
+      description: |
+        Generate various types of experimental designs including full factorial, fractional factorial,
+        Central Composite Design (CCD), Box-Behnken, Plackett-Burman, and Taguchi designs.
+      operationId: generateDOEDesign
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DOEDesign'
+            examples:
+              fullFactorial:
+                summary: 2^3 Full factorial design
+                value:
+                  type: full_factorial
+                  factors:
+                    - name: Temperature
+                      type: continuous
+                      low: 150
+                      high: 200
+                    - name: Pressure
+                      type: continuous
+                      low: 10
+                      high: 20
+                    - name: Time
+                      type: continuous
+                      low: 30
+                      high: 60
+                  replicates: 2
+                  centerPoints: 3
+                  randomize: true
+      responses:
+        '200':
+          description: Design generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  design:
+                    $ref: '#/components/schemas/DOEDesign'
+                  matrix:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                  runOrder:
+                    type: array
+                    items:
+                      type: integer
+                  totalRuns:
+                    type: integer
+                  efficiency:
+                    type: object
+                    properties:
+                      dEfficiency:
+                        type: number
+                      aEfficiency:
+                        type: number
+                      gEfficiency:
+                        type: number
+        '400':
+          description: Invalid design parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /doe/analyze:
+    post:
+      tags:
+        - Design of Experiments
+      summary: Analyze experimental results
+      description: |
+        Perform analysis on experimental data including ANOVA, regression analysis,
+        response surface methodology, and optimization.
+      operationId: analyzeDOE
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DOEAnalysis'
+      responses:
+        '200':
+          description: Analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DOEResult'
+        '400':
+          description: Invalid analysis parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sqc/control-chart:
+    post:
+      tags:
+        - Statistical Quality Control
+      summary: Generate control chart
+      description: |
+        Generate various control charts including X-bar, R, S, I-MR, p, np, c, u, CUSUM, and EWMA charts.
+        Includes automatic detection of out-of-control points using Western Electric and Nelson rules.
+      operationId: generateControlChart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SQCChartRequest'
+            examples:
+              xbarChart:
+                summary: X-bar chart with subgroups
+                value:
+                  chartType: xbar
+                  data:
+                    - [25.1, 25.3, 25.2, 25.0, 25.4]
+                    - [24.9, 25.1, 25.2, 25.3, 25.0]
+                    - [25.2, 25.1, 25.0, 25.3, 25.1]
+                  westernElectricRules: true
+                  specifications:
+                    lsl: 24.5
+                    usl: 25.5
+                    target: 25.0
+      responses:
+        '200':
+          description: Control chart generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SQCResult'
+        '400':
+          description: Invalid chart parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sqc/process-capability:
+    post:
+      tags:
+        - Statistical Quality Control
+      summary: Calculate process capability
+      description: |
+        Calculate process capability indices including Cp, Cpk, Pp, Ppk, and sigma level.
+        Provides confidence intervals and process performance metrics.
+      operationId: calculateProcessCapability
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessCapability'
+      responses:
+        '200':
+          description: Process capability calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capability:
+                    type: object
+                    properties:
+                      cp:
+                        type: number
+                      cpk:
+                        type: number
+                      pp:
+                        type: number
+                      ppk:
+                        type: number
+                      cpl:
+                        type: number
+                      cpu:
+                        type: number
+                  performance:
+                    type: object
+                    properties:
+                      ppm:
+                        type: number
+                      ppmLower:
+                        type: number
+                      ppmUpper:
+                        type: number
+                      yield:
+                        type: number
+                      sigma:
+                        type: number
+                  statistics:
+                    type: object
+                    properties:
+                      mean:
+                        type: number
+                      standardDeviation:
+                        type: number
+                      sampleSize:
+                        type: integer
+                  confidenceIntervals:
+                    type: object
+                    properties:
+                      cp:
+                        type: object
+                        properties:
+                          lower:
+                            type: number
+                          upper:
+                            type: number
+                      cpk:
+                        type: object
+                        properties:
+                          lower:
+                            type: number
+                          upper:
+                            type: number
+                  validation:
+                    $ref: '#/components/schemas/ValidationResult'
+                  auditId:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /validation/validate:
+    post:
+      tags:
+        - Validation
+      summary: Validate data
+      description: Validate statistical data according to FDA 21 CFR Part 11 requirements
+      operationId: validateData
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dataType
+                - data
+              properties:
+                dataType:
+                  type: string
+                  enum: [numeric, array, matrix, distribution_parameters, experimental_design]
+                data:
+                  type: object
+                schema:
+                  type: object
+                  description: Custom validation schema
+                strict:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /validation/audit-log:
+    get:
+      tags:
+        - Validation
+      summary: Retrieve audit log entries
+      description: |
+        Retrieve audit log entries with filtering and pagination.
+        All entries are cryptographically signed for integrity verification.
+      operationId: getAuditLog
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start date for audit log retrieval
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End date for audit log retrieval
+        - name: userId
+          in: query
+          schema:
+            type: string
+          description: Filter by user ID
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [CREATE, READ, UPDATE, DELETE, CALCULATE, VALIDATE, EXPORT]
+          description: Filter by action type
+        - name: resourceType
+          in: query
+          schema:
+            type: string
+          description: Filter by resource type
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of entries per page
+      responses:
+        '200':
+          description: Audit log entries retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEntry'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+                  integrity:
+                    type: object
+                    properties:
+                      verified:
+                        type: boolean
+                      chainIntact:
+                        type: boolean
+                      lastVerified:
+                        type: string
+                        format: date-time
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /validation/verify-integrity:
+    post:
+      tags:
+        - Validation
+      summary: Verify audit log integrity
+      description: Verify the cryptographic integrity of audit log entries
+      operationId: verifyAuditIntegrity
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entryIds
+              properties:
+                entryIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  minItems: 1
+                  maxItems: 100
+                verifyChain:
+                  type: boolean
+                  default: true
+                  description: Verify blockchain-style chain integrity
+      responses:
+        '200':
+          description: Integrity verification completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        entryId:
+                          type: string
+                          format: uuid
+                        valid:
+                          type: boolean
+                        signature:
+                          type: string
+                        expectedSignature:
+                          type: string
+                  chainIntegrity:
+                    type: object
+                    properties:
+                      intact:
+                        type: boolean
+                      brokenLinks:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /education/lessons:
+    get:
+      tags:
+        - Education
+      summary: List available lessons
+      description: Get list of all available educational lessons
+      operationId: listLessons
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: module
+          in: query
+          schema:
+            type: string
+            enum: [probability, confidence_intervals, doe, sqc, pca]
+          description: Filter by module
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+          description: Filter by difficulty level
+      responses:
+        '200':
+          description: Lessons retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lessons:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        module:
+                          type: string
+                        difficulty:
+                          type: string
+                        duration:
+                          type: integer
+                          description: Duration in minutes
+                        description:
+                          type: string
+                        prerequisites:
+                          type: array
+                          items:
+                            type: string
+                        completed:
+                          type: boolean
+                        progress:
+                          type: number
+                          minimum: 0
+                          maximum: 100
+
+  /education/lessons/{lessonId}:
+    get:
+      tags:
+        - Education
+      summary: Get lesson content
+      description: Retrieve the content of a specific lesson
+      operationId: getLesson
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Lesson identifier
+      responses:
+        '200':
+          description: Lesson content retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lesson:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      title:
+                        type: string
+                      content:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum: [text, code, interactive, quiz]
+                            content:
+                              type: string
+                            metadata:
+                              type: object
+                      exercises:
+                        type: array
+                        items:
+                          type: object
+                      resources:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            url:
+                              type: string
+                            title:
+                              type: string
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /education/progress:
+    get:
+      tags:
+        - Education
+      summary: Get learning progress
+      description: Retrieve user's learning progress across all modules
+      operationId: getLearningProgress
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Progress retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    type: object
+                    properties:
+                      completedLessons:
+                        type: integer
+                      totalLessons:
+                        type: integer
+                      percentComplete:
+                        type: number
+                      totalTime:
+                        type: integer
+                        description: Total time spent in minutes
+                      lastActivity:
+                        type: string
+                        format: date-time
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        module:
+                          type: string
+                        progress:
+                          type: number
+                        completedLessons:
+                          type: integer
+                        totalLessons:
+                          type: integer
+                  achievements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        earnedAt:
+                          type: string
+                          format: date-time
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: List users
+      description: Get list of users (admin only)
+      operationId: listUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, professional, standard, educational]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Users retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin access required
+
+  /admin/system/health:
+    get:
+      tags:
+        - Admin
+      summary: System health check
+      description: Get system health status and metrics
+      operationId: getSystemHealth
+      responses:
+        '200':
+          description: System health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      api:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          responseTime:
+                            type: number
+                      database:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          connections:
+                            type: integer
+                      cache:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          hitRate:
+                            type: number
+                      storage:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          usage:
+                            type: number
+                  metrics:
+                    type: object
+                    properties:
+                      uptime:
+                        type: integer
+                      requestsPerSecond:
+                        type: number
+                      activeUsers:
+                        type: integer
+                      cpuUsage:
+                        type: number
+                      memoryUsage:
+                        type: number
+
+security:
+  - bearerAuth: []
+
+externalDocs:
+  description: Full API documentation
+  url: https://docs.stickforstats.com/api
