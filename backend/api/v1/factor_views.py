@@ -36,6 +36,29 @@ logger = logging.getLogger(__name__)
 factor_service = get_factor_service()
 
 
+def sanitize_for_json(obj):
+    """
+    Recursively sanitize data to be JSON-safe.
+    Converts NaN and inf values to None.
+    """
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    elif isinstance(obj, (np.ndarray, pd.Series)):
+        return sanitize_for_json(obj.tolist())
+    elif isinstance(obj, float):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, (np.integer, np.floating)):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return float(obj) if isinstance(obj, np.floating) else int(obj)
+    else:
+        return obj
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def check_factor_availability(request):
@@ -115,9 +138,12 @@ def test_adequacy(request):
 
         logger.info(f"Adequacy testing completed for {len(df)} observations")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'adequacy_testing'
         }, status=status.HTTP_200_OK)
 
@@ -213,9 +239,12 @@ def determine_factors(request):
 
         logger.info(f"Factor determination completed: {results['consensus']['recommended_n_factors']} factors recommended")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'factor_determination'
         }, status=status.HTTP_200_OK)
 
@@ -316,9 +345,12 @@ def exploratory_factor_analysis(request):
 
         logger.info(f"EFA completed: {results['n_factors']} factors extracted from {len(df)} observations")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'exploratory_factor_analysis'
         }, status=status.HTTP_200_OK)
 
@@ -411,9 +443,12 @@ def transform_factors(request):
 
         logger.info(f"Factor transformation completed for {len(df)} observations using model {model_id}")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'factor_transformation'
         }, status=status.HTTP_200_OK)
 

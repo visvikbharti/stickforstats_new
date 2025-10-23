@@ -36,6 +36,29 @@ logger = logging.getLogger(__name__)
 survival_service = get_survival_service()
 
 
+def sanitize_for_json(obj):
+    """
+    Recursively sanitize data to be JSON-safe.
+    Converts NaN and inf values to None.
+    """
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    elif isinstance(obj, (np.ndarray, pd.Series)):
+        return sanitize_for_json(obj.tolist())
+    elif isinstance(obj, float):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, (np.integer, np.floating)):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return float(obj) if isinstance(obj, np.floating) else int(obj)
+    else:
+        return obj
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def check_survival_availability(request):
@@ -131,9 +154,12 @@ def kaplan_meier_analysis(request):
 
         logger.info(f"Kaplan-Meier analysis completed for {len(df)} subjects")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'kaplan_meier'
         }, status=status.HTTP_200_OK)
 
@@ -262,9 +288,12 @@ def cox_regression(request):
 
         logger.info(f"Cox regression completed for {len(df)} subjects with {len(covariate_cols)} covariates")
 
+        # Sanitize results for JSON serialization (handle NaN/inf values)
+        sanitized_results = sanitize_for_json(results)
+
         return Response({
             'success': True,
-            'results': results,
+            'results': sanitized_results,
             'method': 'cox_proportional_hazards'
         }, status=status.HTTP_200_OK)
 
