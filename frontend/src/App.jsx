@@ -91,6 +91,8 @@ const StatisticsPage = lazy(() => import('./pages/StatisticsPage'));
 const SQCAnalysisPage = lazy(() => import('./pages/SQCAnalysisPage'));
 const DOEAnalysisPage = lazy(() => import('./pages/DOEAnalysisPage'));
 const PCAAnalysisPage = lazy(() => import('./pages/PCAAnalysisPage'));
+const SurvivalAnalysisPage = lazy(() => import('./pages/SurvivalAnalysisPage'));
+const FactorAnalysisPage = lazy(() => import('./pages/FactorAnalysisPage'));
 const PCAEducationHub = lazy(() => import('./components/pca/education/PCAEducationHub'));
 const CIEducationHub = lazy(() => import('./components/confidence_intervals/education/CIEducationHub'));
 const DOEEducationHub = lazy(() => import('./components/doe/education/DOEEducationHub'));
@@ -480,136 +482,130 @@ function App() {
                           } 
                         />
                       
-                      <Route 
-                        path="/sqc-analysis/*" 
+                      <Route
+                        path="/sqc-analysis/*"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading SQC Analysis Module..." />}>
-                              <SQCAnalysisPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
+                          <Suspense fallback={<LoadingComponent message="Loading SQC Analysis Module..." />}>
+                            <SQCAnalysisPage />
+                          </Suspense>
+                        }
                       />
-                      
-                      <Route 
-                        path="/doe-analysis/*" 
+
+                      <Route
+                        path="/doe-analysis/*"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading DOE Analysis Module..." />}>
-                              <DOEAnalysisPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
+                          <Suspense fallback={<LoadingComponent message="Loading DOE Analysis Module..." />}>
+                            <DOEAnalysisPage />
+                          </Suspense>
+                        }
                       />
-                      
+
                       <Route
                         path="/pca-analysis/*"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading PCA Analysis Module..." />}>
-                              <PCAAnalysisPage />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading PCA Analysis Module..." />}>
+                            <PCAAnalysisPage />
+                          </Suspense>
+                        }
+                      />
+
+                      <Route
+                        path="/survival-analysis/*"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Survival Analysis Module..." />}>
+                            <SurvivalAnalysisPage />
+                          </Suspense>
+                        }
+                      />
+
+                      <Route
+                        path="/factor-analysis/*"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Factor Analysis Module..." />}>
+                            <FactorAnalysisPage />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Learning Hub..." />}>
-                              <LearningHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading Learning Hub..." />}>
+                            <LearningHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/pca-learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading PCA Education..." />}>
-                              <PCAEducationHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading PCA Education..." />}>
+                            <PCAEducationHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/ci-learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading CI Education..." />}>
-                              <CIEducationHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading CI Education..." />}>
+                            <CIEducationHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/doe-learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading DOE Education..." />}>
-                              <DOEEducationHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading DOE Education..." />}>
+                            <DOEEducationHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/probability-learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Probability Education..." />}>
-                              <ProbabilityEducationHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading Probability Education..." />}>
+                            <ProbabilityEducationHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/sqc-learn"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading SQC Education..." />}>
-                              <SQCEducationHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading SQC Education..." />}>
+                            <SQCEducationHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
                         path="/statistical-analysis-tools"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Statistical Analysis Platform..." />}>
-                              <StatisticalAnalysisHub />
-                            </Suspense>
-                          </ProtectedRoute>
+                          <Suspense fallback={<LoadingComponent message="Loading Statistical Analysis Platform..." />}>
+                            <StatisticalAnalysisHub />
+                          </Suspense>
                         }
                       />
 
                       <Route
-                        path="/probability-distributions/*" 
+                        path="/probability-distributions/*"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Probability Distributions Module..." />}>
-                              <ProbabilityDistributionsPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
+                          <Suspense fallback={<LoadingComponent message="Loading Probability Distributions Module..." />}>
+                            <ProbabilityDistributionsPage />
+                          </Suspense>
+                        }
                       />
-                      
-                      <Route 
-                        path="/confidence-intervals/*" 
+
+                      <Route
+                        path="/confidence-intervals/*"
                         element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Confidence Intervals Module..." />}>
-                              <ConfidenceIntervalsPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
+                          <Suspense fallback={<LoadingComponent message="Loading Confidence Intervals Module..." />}>
+                            <ConfidenceIntervalsPage />
+                          </Suspense>
+                        }
                       />
                       
                       <Route 

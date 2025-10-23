@@ -74,6 +74,21 @@ from .audit_views import (
     AuditMetricsView,
     audit_health_check
 )
+from .survival_views import (
+    check_survival_availability,
+    kaplan_meier_analysis,
+    cox_regression,
+    predict_survival,
+    survival_tutorial
+)
+from .factor_views import (
+    check_factor_availability,
+    test_adequacy,
+    determine_factors,
+    exploratory_factor_analysis,
+    transform_factors,
+    factor_tutorial
+)
 
 app_name = 'api-v1'
 
@@ -160,4 +175,19 @@ urlpatterns = [
     path('audit/record/', AuditRecordView.as_view(), name='audit-record'),
     path('audit/metrics/<str:metric_type>/', AuditMetricsView.as_view(), name='audit-metrics'),
     path('audit/health/', audit_health_check, name='audit-health'),
+
+    # Survival Analysis endpoints
+    path('survival/availability/', check_survival_availability, name='survival-availability'),
+    path('survival/kaplan-meier/', kaplan_meier_analysis, name='kaplan-meier'),
+    path('survival/cox-regression/', cox_regression, name='cox-regression'),
+    path('survival/predict/', predict_survival, name='survival-predict'),
+    path('survival/tutorial/', survival_tutorial, name='survival-tutorial'),
+
+    # Factor Analysis endpoints
+    path('factor/availability/', check_factor_availability, name='factor-availability'),
+    path('factor/adequacy/', test_adequacy, name='factor-adequacy'),
+    path('factor/determine/', determine_factors, name='determine-factors'),
+    path('factor/efa/', exploratory_factor_analysis, name='exploratory-factor-analysis'),
+    path('factor/transform/', transform_factors, name='factor-transform'),
+    path('factor/tutorial/', factor_tutorial, name='factor-tutorial'),
 ]

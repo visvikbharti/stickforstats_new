@@ -561,18 +561,39 @@ const Lesson04_Eigenvectors = () => {
                   label={`λ₁ = ${eigen.lambda1.toFixed(3)}`}
                   color="error"
                   size="small"
-                  sx={{ mr: 1 }}
+                  sx={{ mr: 1, mb: 0.5 }}
                 />
                 <Chip
                   label={`λ₂ = ${eigen.lambda2.toFixed(3)}`}
                   color="secondary"
                   size="small"
+                  sx={{ mb: 0.5 }}
                 />
               </Box>
 
               <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                 Eigenvectors are scaled by these factors when transformed.
               </Typography>
+
+              <Divider sx={{ my: 1.5 }} />
+
+              <Typography variant="subtitle2" gutterBottom>
+                Eigenvectors:
+              </Typography>
+              <Box sx={{ mb: 1 }}>
+                <Typography variant="caption" display="block" color="error">
+                  v₁ = [{eigen.v1.x.toFixed(3)}, {eigen.v1.y.toFixed(3)}]
+                </Typography>
+                <Typography variant="caption" display="block" color="secondary">
+                  v₂ = [{eigen.v2.x.toFixed(3)}, {eigen.v2.y.toFixed(3)}]
+                </Typography>
+              </Box>
+
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="caption">
+                  <strong>Live Update:</strong> Change the matrix sliders above to see how eigenvalues and eigenvectors change in real-time!
+                </Typography>
+              </Alert>
             </Paper>
           )}
         </Grid>

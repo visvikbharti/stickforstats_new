@@ -1185,37 +1185,199 @@ class HighPrecisionNonParametric:
 
     def _mann_whitney_exact_p(self, u: Decimal, n1: int, n2: int,
                              alternative: str) -> Decimal:
-        """Calculate exact p-value for Mann-Whitney U test"""
-        # For small samples, use exact distribution
-        # This is computationally intensive for large samples
+        """
+        Calculate exact p-value for Mann-Whitney U test using the distribution of U.
 
-        # Simplified approximation for now
-        # In production, would implement full exact calculation
-        from scipy import stats
+        For small samples (n1, n2 < 20), we calculate the exact p-value by
+        using the exact distribution of the U statistic under the null hypothesis.
+        This uses dynamic programming to efficiently compute the distribution.
+
+        Args:
+            u: Mann-Whitney U statistic
+            n1: Size of first sample
+            n2: Size of second sample
+            alternative: 'two-sided', 'less', or 'greater'
+
+        Returns:
+            Exact p-value as Decimal
+        """
+        from scipy.special import comb
+
+        # Convert U to integer for exact calculation
+        u_int = int(float(u))
+
+        # Maximum possible U value
+        max_u = n1 * n2
+
+        # Calculate exact p-value using the distribution of U
+        # Under H0, all rank assignments are equally likely
+        # We use dynamic programming to count favorable outcomes
 
         if alternative == 'two-sided':
-            p = 2 * stats.mannwhitneyu(
-                np.random.rand(n1), np.random.rand(n2),
-                alternative='two-sided'
-            )[1]
-        else:
-            p = stats.mannwhitneyu(
-                np.random.rand(n1), np.random.rand(n2),
-                alternative=alternative
-            )[1]
+            # Two-tailed: probability of being this extreme on either tail
+            u_lower = min(u_int, max_u - u_int)
 
-        return self._to_decimal(min(p, 1.0))
+            # Calculate P(U <= u_lower) using exact distribution
+            prob = self._mann_whitney_cdf(u_lower, n1, n2)
+
+            # Two-tailed probability
+            p_value = 2.0 * min(prob, 0.5)
+
+        elif alternative == 'less':
+            # P(U <= u)
+            p_value = self._mann_whitney_cdf(u_int, n1, n2)
+
+        else:  # 'greater'
+            # P(U >= u) = 1 - P(U < u) = 1 - P(U <= u-1)
+            if u_int > 0:
+                p_value = 1.0 - self._mann_whitney_cdf(u_int - 1, n1, n2)
+            else:
+                p_value = 1.0
+
+        return self._to_decimal(p_value)
+
+    def _mann_whitney_cdf(self, u: int, n1: int, n2: int) -> float:
+        """
+        Calculate P(U <= u) using dynamic programming.
+
+        The distribution of U can be computed using the recursive relationship:
+        f(u, n1, n2) = [n1/(n1+n2)] * f(u, n1-1, n2) + [n2/(n1+n2)] * f(u-n1, n1, n2-1)
+
+        We use DP to accumulate the cumulative probability.
+        """
+        from scipy.special import comb
+
+        # Total number of possible rank assignments
+        total = comb(n1 + n2, n1, exact=True)
+
+        # Count number of rank assignments giving U <= u
+        count = 0
+
+        # Use DP table: dp[i][j][k] = number of ways to get U=k with i items from group1, j from group2
+        # This is memory-intensive, so for very small samples we can enumerate
+
+        # For small n1, n2, we can use exact enumeration
+        # Dynamic programming approach:
+        dp = {}
+
+        def count_arrangements(remaining_u, rem_n1, rem_n2):
+            """Count arrangements giving U <= remaining_u"""
+            if remaining_u < 0:
+                return 0
+            if rem_n1 == 0 and rem_n2 == 0:
+                return 1
+            if rem_n1 == 0:
+                # All remaining ranks go to group 2
+                return 1 if remaining_u >= 0 else 0
+            if rem_n2 == 0:
+                # All remaining ranks go to group 1
+                # Each contributes n2 to U
+                total_contrib = rem_n1 * n2
+                return 1 if total_contrib <= remaining_u else 0
+
+            key = (remaining_u, rem_n1, rem_n2)
+            if key in dp:
+                return dp[key]
+
+            # Next rank can go to either group
+            # If it goes to group 1: contributes rem_n2 to U
+            # If it goes to group 2: contributes 0 to U
+            count = (count_arrangements(remaining_u - rem_n2, rem_n1 - 1, rem_n2) +
+                    count_arrangements(remaining_u, rem_n1, rem_n2 - 1))
+
+            dp[key] = count
+            return count
+
+        # Count favorable outcomes
+        favorable = count_arrangements(u, n1, n2)
+
+        return float(favorable) / float(total)
 
     def _wilcoxon_exact_p(self, w: Decimal, n: int, alternative: str) -> Decimal:
-        """Calculate exact p-value for Wilcoxon signed-rank test"""
-        # Simplified approximation for small samples
-        from scipy import stats
+        """
+        Calculate exact p-value for Wilcoxon signed-rank test.
 
-        # Use scipy's exact calculation
-        dummy_data = np.random.randn(n)
-        _, p = stats.wilcoxon(dummy_data, alternative=alternative)
+        For small samples (n < 25), we calculate the exact p-value by
+        using the exact distribution of the signed-rank statistic W under H0.
+        This uses dynamic programming to efficiently compute the distribution.
 
-        return self._to_decimal(p)
+        Args:
+            w: Wilcoxon signed-rank statistic (sum of positive ranks)
+            n: Number of non-zero differences
+            alternative: 'two-sided', 'less', or 'greater'
+
+        Returns:
+            Exact p-value as Decimal
+        """
+        # Convert W to integer
+        w_int = int(float(w))
+
+        # Maximum possible W value (sum of all ranks)
+        max_w = n * (n + 1) // 2
+
+        # Calculate exact p-value using the distribution of W
+        # Under H0, each rank has probability 0.5 of being positive or negative
+        # Total number of possible sign assignments: 2^n
+
+        if alternative == 'two-sided':
+            # Two-tailed: use the minimum of w and max_w - w for symmetry
+            w_lower = min(w_int, max_w - w_int)
+
+            # Calculate P(W <= w_lower)
+            prob = self._wilcoxon_cdf(w_lower, n)
+
+            # Two-tailed probability
+            p_value = 2.0 * min(prob, 0.5)
+
+        elif alternative == 'less':
+            # P(W <= w)
+            p_value = self._wilcoxon_cdf(w_int, n)
+
+        else:  # 'greater'
+            # P(W >= w) = 1 - P(W < w) = 1 - P(W <= w-1)
+            if w_int > 0:
+                p_value = 1.0 - self._wilcoxon_cdf(w_int - 1, n)
+            else:
+                p_value = 1.0
+
+        return self._to_decimal(p_value)
+
+    def _wilcoxon_cdf(self, w: int, n: int) -> float:
+        """
+        Calculate P(W <= w) for Wilcoxon signed-rank statistic using DP.
+
+        The distribution of W can be computed using dynamic programming.
+        W is the sum of ranks that are positive. Each rank i has probability 0.5
+        of being included in W.
+
+        We use DP: dp[i][s] = number of ways to get sum s using first i ranks
+        """
+        # Total number of possible sign assignments
+        total = 2 ** n
+
+        # Count number of sign assignments giving W <= w
+        # DP table: dp[s] = number of ways to get sum exactly s
+        # We iterate through ranks 1, 2, ..., n
+
+        # Initialize DP table
+        dp = {0: 1}  # Base case: sum 0 with no ranks
+
+        # Iterate through each rank
+        for rank in range(1, n + 1):
+            new_dp = {}
+            for current_sum, count in dp.items():
+                # Don't include this rank (assign negative sign)
+                new_dp[current_sum] = new_dp.get(current_sum, 0) + count
+                # Include this rank (assign positive sign)
+                new_sum = current_sum + rank
+                new_dp[new_sum] = new_dp.get(new_sum, 0) + count
+
+            dp = new_dp
+
+        # Count all sums <= w
+        favorable = sum(count for s, count in dp.items() if s <= w)
+
+        return float(favorable) / float(total)
 
     def _apply_multiple_comparison_correction(self, p_values: List[float],
                                             method: str) -> List[float]:

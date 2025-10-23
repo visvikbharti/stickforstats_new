@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Grid, Paper, Typography, Box, Stepper, Step, StepLabel, Button, Alert } from '@mui/material';
+import { Container, Grid, Paper, Typography, Box, Stepper, Step, StepLabel, Button, Alert, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Divider, Chip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
 
 import LoadingOverlay from '../common/LoadingOverlay';
 import PcaIntroduction from './PcaIntroduction';
@@ -37,6 +39,7 @@ const PcaPage = () => {
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [socket, setSocket] = useState(null);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   // WebSocket connection for real-time updates
   const wsUrl = projectId ?
     `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/pca_analysis/${projectId}/` :
@@ -111,6 +114,43 @@ const PcaPage = () => {
     setActiveStep(0);
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ignore if user is typing in an input field
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'n':
+          if (activeStep < steps.length - 1 && !isRunningAnalysis) {
+            handleNext();
+          }
+          break;
+        case 'ArrowLeft':
+        case 'b':
+          if (activeStep > 0) {
+            handleBack();
+          }
+          break;
+        case '?':
+        case 'h':
+          setHelpDialogOpen(true);
+          break;
+        case 'Escape':
+          setHelpDialogOpen(false);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeStep, isRunningAnalysis]);
+
   const renderStepContent = () => {
     switch (activeStep) {
       case 0:
@@ -171,9 +211,20 @@ const PcaPage = () => {
   return (
     <Container maxWidth="xl">
       <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-          Principal Component Analysis
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+            Principal Component Analysis
+          </Typography>
+          <Tooltip title="View keyboard shortcuts and help">
+            <IconButton
+              onClick={() => setHelpDialogOpen(true)}
+              sx={{ position: 'absolute', right: 0 }}
+              color="primary"
+            >
+              <HelpOutlineIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
         
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -235,6 +286,111 @@ const PcaPage = () => {
             </Button>
           )}
         </Box>
+
+        {/* Help Dialog */}
+        <Dialog open={helpDialogOpen} onClose={() => setHelpDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <KeyboardIcon />
+            Keyboard Shortcuts & Quick Help
+          </DialogTitle>
+          <DialogContent dividers>
+            <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>
+              Navigation Shortcuts
+            </Typography>
+            <List>
+              <ListItem>
+                <Chip label="→" sx={{ mr: 2, minWidth: 60 }} /> or <Chip label="N" sx={{ mx: 2, minWidth: 60 }} />
+                <ListItemText primary="Go to next step" />
+              </ListItem>
+              <ListItem>
+                <Chip label="←" sx={{ mr: 2, minWidth: 60 }} /> or <Chip label="B" sx={{ mx: 2, minWidth: 60 }} />
+                <ListItemText primary="Go to previous step" />
+              </ListItem>
+              <ListItem>
+                <Chip label="?" sx={{ mr: 2, minWidth: 60 }} /> or <Chip label="H" sx={{ mx: 2, minWidth: 60 }} />
+                <ListItemText primary="Show this help dialog" />
+              </ListItem>
+              <ListItem>
+                <Chip label="ESC" sx={{ mr: 2, minWidth: 60 }} />
+                <ListItemText primary="Close dialogs" />
+              </ListItem>
+            </List>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="h6" gutterBottom>
+              Workflow Steps
+            </Typography>
+            <List dense>
+              {steps.map((step, index) => (
+                <ListItem key={step}>
+                  <Chip
+                    label={index + 1}
+                    size="small"
+                    color={activeStep === index ? 'primary' : 'default'}
+                    sx={{ mr: 2, minWidth: 40 }}
+                  />
+                  <ListItemText
+                    primary={step}
+                    secondary={
+                      index === 0 ? 'Learn about PCA fundamentals with interactive visualizations' :
+                      index === 1 ? 'Upload your gene expression data or create a demo project' :
+                      index === 2 ? 'Organize samples into groups for visualization' :
+                      index === 3 ? 'Configure PCA parameters and run the analysis' :
+                      index === 4 ? 'Explore PCA plots, loadings, and variance explained' :
+                      index === 5 ? 'Understand and interpret your PCA results' :
+                      index === 6 ? 'Generate comprehensive PDF reports'
+                      : ''
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="h6" gutterBottom>
+              Tips & Features
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemText
+                  primary="🎓 Interactive Learning"
+                  secondary="Start with the Introduction tab to learn PCA visually with step-by-step animations"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="📊 Demo Mode"
+                  secondary="Create demo projects to explore the interface without uploading your own data"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="⚡ Offline Support"
+                  secondary="Core functionality works offline with fallback demo mode"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="💾 Export Data"
+                  secondary="Export visualization data as JSON for further analysis"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="🔄 Real-time Updates"
+                  secondary="Analysis results update in real-time via WebSocket connection"
+                />
+              </ListItem>
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setHelpDialogOpen(false)} variant="contained">
+              Got it!
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Container>
   );

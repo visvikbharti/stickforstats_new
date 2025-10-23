@@ -1,0 +1,201 @@
+CustomerID,Gender,Age,Income,Education,Purchases,Satisfaction,Region
+C0001,Female,54,66095.78,High School,31,6,South
+C0002,Female,31,53283.82,Master,38,5,North
+C0003,Male,23,45049.46,Bachelor,44,8,West
+C0004,Female,68,36530.91,PhD,44,4,East
+C0005,Female,48,62795.74,Master,22,8,East
+C0006,Female,34,26828.6,Master,7,9,South
+C0007,Male,31,71315.35,Master,6,4,East
+C0008,Male,41,61613.91,High School,35,5,South
+C0009,Female,24,90023.82,PhD,30,8,East
+C0010,Male,21,59330.51,High School,9,3,East
+C0011,Male,33,77432.06,Bachelor,49,9,West
+C0012,Female,46,43102.43,PhD,19,10,North
+C0013,Male,66,47292.42,High School,10,4,South
+C0014,Male,28,64541.46,Bachelor,18,5,West
+C0015,Male,61,47563.49,Bachelor,27,2,South
+C0016,Male,35,43445.16,Master,28,2,West
+C0017,Female,62,55403.68,PhD,28,2,North
+C0018,Female,65,51867.68,High School,14,10,North
+C0019,Female,54,57095.67,Master,11,10,West
+C0020,Female,23,58260.87,Master,42,2,South
+C0021,Female,44,69335.79,PhD,48,9,North
+C0022,Female,23,50595.87,PhD,32,1,West
+C0023,Female,21,43204.53,PhD,40,8,North
+C0024,Male,35,83348.78,PhD,44,8,North
+C0025,Male,58,64910.52,Bachelor,19,9,North
+C0026,Female,23,65990.34,Master,32,5,West
+C0027,Female,48,40405.5,PhD,12,10,South
+C0028,Male,35,34119.55,Master,0,5,East
+C0029,Female,73,33870.01,Master,21,9,West
+C0030,Female,38,45476.01,PhD,2,6,West
+C0031,Female,42,66151.54,High School,8,9,East
+C0032,Male,73,73142.3,PhD,41,2,East
+C0033,Female,38,98650.49,PhD,34,1,North
+C0034,Male,58,68878.28,Bachelor,47,2,West
+C0035,Male,66,96014.24,PhD,10,5,North
+C0036,Male,38,74379.26,Master,27,3,South
+C0037,Female,54,67607.44,Bachelor,5,10,West
+C0038,Male,49,58213.23,Master,42,1,West
+C0039,Female,61,61726.32,Master,37,5,West
+C0040,Female,47,74794.98,PhD,30,2,South
+C0041,Female,54,53127.4,Master,1,7,East
+C0042,Male,54,110322.67,Master,49,4,East
+C0043,Male,58,45812.48,Bachelor,40,2,North
+C0044,Female,68,55170.64,Bachelor,5,5,East
+C0045,Female,29,11913.29,Master,33,9,East
+C0046,Male,34,82750.96,Master,7,8,North
+C0047,Male,66,37998.4,High School,16,9,North
+C0048,Female,41,78097.58,PhD,40,6,North
+C0049,Male,48,84862.16,Bachelor,41,2,West
+C0050,Female,59,56342.32,High School,19,8,North
+C0051,Male,33,55173.17,PhD,37,3,West
+C0052,Male,71,59382.47,Master,2,6,South
+C0053,Female,46,128854.81,Master,3,7,East
+C0054,Male,25,42218.54,High School,3,6,South
+C0055,Male,68,62378.92,Bachelor,37,4,South
+C0056,Female,67,45987.54,Master,11,2,North
+C0057,Male,18,37010.82,Master,1,3,East
+C0058,Male,26,77499.95,High School,30,8,East
+C0059,Male,46,62412.92,High School,46,9,East
+C0060,Female,59,58794.85,High School,31,8,North
+C0061,Male,38,63976.96,Master,39,10,East
+C0062,Female,56,61919.19,PhD,6,2,South
+C0063,Female,46,82715.67,PhD,25,7,North
+C0064,Female,45,51367.16,Bachelor,43,8,North
+C0065,Male,71,34959.0,Master,8,9,North
+C0066,Female,60,39948.3,PhD,46,1,East
+C0067,Female,40,32389.3,Bachelor,42,8,South
+C0068,Male,40,78736.91,Master,36,4,West
+C0069,Male,56,50264.58,Master,21,6,North
+C0070,Male,73,24278.28,High School,9,1,North
+C0071,Male,42,55826.77,Master,19,6,North
+C0072,Male,27,29242.2,High School,17,8,West
+C0073,Female,56,57264.16,High School,22,7,North
+C0074,Female,61,71929.01,Master,2,4,West
+C0075,Male,18,98894.78,Master,20,2,North
+C0076,Female,65,57267.77,Bachelor,32,9,East
+C0077,Male,43,89285.71,PhD,45,7,East
+C0078,Male,43,35653.28,PhD,44,6,North
+C0079,Female,72,36036.7,PhD,33,2,West
+C0080,Female,65,51743.7,Bachelor,4,9,North
+C0081,Male,75,74605.55,Bachelor,15,2,South
+C0082,Female,30,46776.02,High School,11,8,West
+C0083,Female,61,93416.06,Master,40,6,South
+C0084,Female,22,57107.18,Master,37,1,East
+C0085,Male,37,58636.07,Master,18,2,North
+C0086,Female,47,120219.26,High School,28,10,South
+C0087,Female,56,59015.26,High School,28,2,East
+C0088,Male,50,65217.94,PhD,28,9,South
+C0089,Female,41,83408.47,Master,43,10,North
+C0090,Female,22,46780.73,PhD,18,5,South
+C0091,Female,23,63306.47,Master,19,7,South
+C0092,Male,37,65670.72,Master,8,9,North
+C0093,Female,50,52562.38,Bachelor,13,6,West
+C0094,Male,32,26931.79,High School,42,6,South
+C0095,Female,27,108710.19,Bachelor,46,8,North
+C0096,Female,41,67936.2,PhD,39,5,West
+C0097,Male,52,27364.94,PhD,29,5,West
+C0098,Female,28,43457.6,PhD,23,9,North
+C0099,Male,36,56426.8,PhD,5,4,West
+C0100,Female,19,55162.04,Master,15,7,North
+C0101,Female,32,93245.77,Bachelor,8,1,East
+C0102,Female,62,107108.31,PhD,28,10,North
+C0103,Male,19,9257.5,PhD,7,5,South
+C0104,Female,25,33254.65,PhD,4,2,West
+C0105,Male,58,60695.92,Bachelor,18,7,North
+C0106,Female,33,62983.33,High School,33,6,North
+C0107,Male,42,53806.96,High School,22,2,East
+C0108,Male,64,66013.75,Master,8,1,East
+C0109,Female,70,88885.17,PhD,44,8,South
+C0110,Male,22,50829.41,PhD,34,8,East
+C0111,Male,66,67060.25,High School,41,6,East
+C0112,Male,69,19024.59,PhD,24,6,South
+C0113,Female,62,58877.34,Master,5,7,North
+C0114,Female,56,52115.03,Master,42,5,East
+C0115,Female,56,68961.53,PhD,22,8,North
+C0116,Female,57,19776.34,Master,32,3,North
+C0117,Male,72,76877.4,High School,8,2,South
+C0118,Female,41,50712.23,Bachelor,43,8,East
+C0119,Female,46,81185.25,Master,25,6,East
+C0120,Male,25,67042.19,High School,16,5,West
+C0121,Male,57,59655.87,High School,28,3,West
+C0122,Male,69,100407.45,Master,42,6,North
+C0123,Female,75,51853.25,Bachelor,50,6,South
+C0124,Male,30,73129.06,PhD,1,6,East
+C0125,Female,69,47655.94,PhD,33,7,West
+C0126,Male,26,54634.41,Master,8,9,South
+C0127,Male,45,60745.57,High School,33,3,East
+C0128,Male,28,39066.8,Master,33,5,North
+C0129,Female,30,70316.81,Bachelor,40,5,North
+C0130,Male,55,79494.82,Master,36,1,North
+C0131,Male,20,49768.28,PhD,39,1,West
+C0132,Female,59,90302.22,PhD,19,8,North
+C0133,Male,28,55982.21,Bachelor,21,10,South
+C0134,Female,73,88187.15,Master,25,3,East
+C0135,Male,38,49901.61,PhD,15,3,North
+C0136,Male,36,47340.91,PhD,31,5,West
+C0137,Male,23,90888.71,Bachelor,13,10,East
+C0138,Male,21,41361.15,PhD,18,9,North
+C0139,Male,45,42923.95,Master,48,7,East
+C0140,Male,43,24854.81,Master,35,5,North
+C0141,Female,50,56215.94,High School,8,2,West
+C0142,Female,68,54611.49,PhD,32,1,North
+C0143,Male,26,97383.56,PhD,9,10,South
+C0144,Female,57,49743.21,Master,37,6,West
+C0145,Female,48,77151.35,High School,26,10,East
+C0146,Male,56,33524.38,Bachelor,46,1,West
+C0147,Male,51,71641.72,PhD,9,4,North
+C0148,Male,30,35950.25,Bachelor,26,4,West
+C0149,Female,73,103848.5,Bachelor,33,4,East
+C0150,Female,51,57035.67,Master,43,5,West
+C0151,Male,33,49191.16,Master,49,5,South
+C0152,Female,38,58423.35,Master,18,2,West
+C0153,Female,70,36585.81,Bachelor,18,1,East
+C0154,Male,40,70796.67,Master,35,5,South
+C0155,Male,57,70864.87,High School,42,9,South
+C0156,Male,21,39517.25,PhD,6,3,North
+C0157,Male,44,103952.45,PhD,30,4,East
+C0158,Female,36,114374.03,High School,41,10,South
+C0159,Male,29,42650.88,High School,25,8,South
+C0160,Female,74,37380.82,High School,21,5,West
+C0161,Female,74,58640.68,High School,21,3,West
+C0162,Female,63,19121.43,Master,36,4,South
+C0163,Female,70,56309.12,PhD,42,2,South
+C0164,Male,48,51951.19,Master,24,4,West
+C0165,Female,39,35478.46,High School,16,6,South
+C0166,Male,60,41103.52,PhD,43,9,East
+C0167,Male,58,80253.09,Bachelor,14,3,West
+C0168,Male,47,81559.12,PhD,44,9,West
+C0169,Male,66,24671.84,High School,33,8,East
+C0170,Male,54,77325.86,Bachelor,10,6,West
+C0171,Male,61,35751.99,High School,32,8,North
+C0172,Female,26,60836.78,High School,35,8,East
+C0173,Male,43,49558.5,PhD,22,2,North
+C0174,Male,48,32820.95,Bachelor,49,7,East
+C0175,Female,46,46551.91,Bachelor,41,6,North
+C0176,Male,52,55795.33,Bachelor,0,1,East
+C0177,Female,61,73053.66,PhD,14,4,West
+C0178,Female,27,68702.76,PhD,39,1,South
+C0179,Male,22,71307.38,High School,15,1,West
+C0180,Female,32,65554.16,High School,8,9,East
+C0181,Male,70,93704.09,Master,15,5,South
+C0182,Male,44,52710.74,Bachelor,40,7,West
+C0183,Male,40,74393.97,PhD,26,3,East
+C0184,Female,29,76580.19,Bachelor,19,3,West
+C0185,Male,53,54865.25,Bachelor,24,4,East
+C0186,Male,39,69518.78,Master,24,10,North
+C0187,Male,30,85345.1,Bachelor,30,4,East
+C0188,Female,18,47792.19,High School,47,8,South
+C0189,Male,43,91798.53,Master,24,8,East
+C0190,Female,34,18906.47,PhD,6,8,East
+C0191,Male,41,53273.76,Bachelor,47,3,North
+C0192,Female,53,95443.85,PhD,18,3,South
+C0193,Female,32,35259.05,PhD,35,6,East
+C0194,Female,64,69543.72,Bachelor,46,6,South
+C0195,Male,64,61957.26,High School,33,1,North
+C0196,Male,66,64811.47,Bachelor,0,4,West
+C0197,Female,21,72132.18,PhD,42,8,North
+C0198,Male,52,61793.17,Master,34,5,North
+C0199,Female,69,90157.8,Bachelor,12,10,East
+C0200,Female,35,70987.67,PhD,29,10,South

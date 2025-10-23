@@ -1,0 +1,434 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stickforstats-frontend
+  namespace: production
+  labels:
+    app: stickforstats
+    component: frontend
+    environment: production
+    version: "1.0.0"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: stickforstats
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: stickforstats
+        component: frontend
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - stickforstats
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: frontend
+        image: stickforstats/frontend:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: REACT_APP_ENVIRONMENT
+          value: "production"
+        - name: REACT_APP_VERSION
+          value: "1.0.0"
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: stickforstats-config
+              key: api.url
+        - name: REACT_APP_WS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: stickforstats-config
+              key: ws.url
+        - name: VALIDATION_ENABLED
+          value: "true"
+        - name: AUDIT_ENABLED
+          value: "true"
+        - name: FDA_COMPLIANCE_MODE
+          value: "true"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: nginx-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: nginx-logs
+        emptyDir:
+          sizeLimit: 2Gi
+      imagePullSecrets:
+      - name: regcred
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stickforstats-backend
+  namespace: production
+  labels:
+    app: stickforstats
+    component: backend
+    environment: production
+    version: "1.0.0"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: stickforstats
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: stickforstats
+        component: backend
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - stickforstats
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for db; sleep 2; done;']
+      - name: db-migrate
+        image: stickforstats/backend:1.0.0
+        command: ['python', 'manage.py', 'migrate']
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: database.url
+      containers:
+      - name: backend
+        image: stickforstats/backend:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: database.url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: redis.url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: secret.key
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: jwt.secret
+        - name: ALLOWED_HOSTS
+          value: "*"
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: stickforstats-config
+              key: cors.origins
+        - name: FDA_COMPLIANCE_MODE
+          value: "true"
+        - name: AUDIT_LOG_RETENTION_DAYS
+          value: "2555"
+        - name: WORKER_CONCURRENCY
+          value: "4"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8000
+          initialDelaySeconds: 45
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: audit-logs
+          mountPath: /app/audit_logs
+        - name: media
+          mountPath: /app/media
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: audit-logs
+        persistentVolumeClaim:
+          claimName: audit-logs-pvc
+      - name: media
+        persistentVolumeClaim:
+          claimName: media-pvc
+      imagePullSecrets:
+      - name: regcred
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: production
+  labels:
+    app: stickforstats
+    component: database
+    environment: production
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stickforstats
+      component: database
+  template:
+    metadata:
+      labels:
+        app: stickforstats
+        component: database
+        environment: production
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: stickforstats_prod
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: db.user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: db.password
+        - name: POSTGRES_INITDB_ARGS
+          value: "--encoding=UTF-8 --locale=en_US.UTF-8"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-backup
+          mountPath: /backups
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - stickforstats_user
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - stickforstats_user
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata:
+      name: postgres-backup
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 200Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: production
+  labels:
+    app: stickforstats
+    component: cache
+    environment: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stickforstats
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: stickforstats
+        component: cache
+        environment: production
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - name: redis
+          containerPort: 6379
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --maxmemory
+        - 512mb
+        - --maxmemory-policy
+        - allkeys-lru
+        - --appendonly
+        - "yes"
+        - --save
+        - "900 1 300 10 60 10000"
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: stickforstats-secrets
+              key: redis.password
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-pvc

@@ -72,17 +72,21 @@ export const shapiroWilkTest = (data) => {
     return sum + a_i * x;
   }, 0);
 
-  const W = Math.pow(b, 2) / ss_total;
+  let W = Math.pow(b, 2) / ss_total;
+
+  // Clamp W to valid range (0, 1) to handle numerical precision issues
+  // W should be close to 1 for normal data
+  W = Math.max(0.001, Math.min(0.9999, W));
 
   // Approximate p-value using normal distribution
-  // W should be close to 1 for normal data
   const logW = Math.log(1 - W);
   const z = (logW - (-2.273)) / 0.459; // Approximate transformation
-  const pValue = 1 - jStat.normal.cdf(Math.abs(z), 0, 1);
+  let pValue = 1 - jStat.normal.cdf(Math.abs(z), 0, 1);
+  pValue = Math.max(0.001, Math.min(1, pValue * 2)); // Two-tailed, minimum 0.001
 
   return {
     statistic: W,
-    pValue: Math.max(0, Math.min(1, pValue * 2)), // Two-tailed
+    pValue: pValue,
     isNormal: pValue > 0.05
   };
 };
@@ -121,10 +125,31 @@ export const andersonDarlingTest = (data) => {
     '1%': 3.857
   };
 
+  // Determine if normal at 5% significance level
+  const isNormal = A2 < criticalValues['5%'];
+
+  // Approximate p-value based on critical value comparison
+  let pValue;
+  if (A2 < criticalValues['15%']) {
+    pValue = 0.15 + (criticalValues['15%'] - A2) / criticalValues['15%'] * 0.85;  // > 0.15
+  } else if (A2 < criticalValues['10%']) {
+    pValue = 0.10 + (criticalValues['10%'] - A2) / (criticalValues['10%'] - criticalValues['15%']) * 0.05;
+  } else if (A2 < criticalValues['5%']) {
+    pValue = 0.05 + (criticalValues['5%'] - A2) / (criticalValues['5%'] - criticalValues['10%']) * 0.05;
+  } else if (A2 < criticalValues['2.5%']) {
+    pValue = 0.025 + (criticalValues['2.5%'] - A2) / (criticalValues['2.5%'] - criticalValues['5%']) * 0.025;
+  } else if (A2 < criticalValues['1%']) {
+    pValue = 0.01 + (criticalValues['1%'] - A2) / (criticalValues['1%'] - criticalValues['2.5%']) * 0.015;
+  } else {
+    pValue = 0.001;  // Less than 1%
+  }
+
   return {
     statistic: A2,
+    pValue: Math.max(0.001, Math.min(1, pValue)),
     criticalValues,
-    significanceLevel: Object.entries(criticalValues).find(([_, val]) => A2 < val)?.[0] || '>1%'
+    significanceLevel: Object.entries(criticalValues).find(([_, val]) => A2 < val)?.[0] || '>1%',
+    isNormal: isNormal
   };
 };
 
@@ -325,7 +350,9 @@ const getRanks = (arr) => {
 export const linearRegression = (x, y) => {
   if (!x || !y || x.length !== y.length || x.length < 2) return null;
 
-  const regression = ss.linearRegression([x, y]);
+  // Convert to points format [[x1, y1], [x2, y2], ...] for simple-statistics
+  const points = x.map((xi, i) => [xi, y[i]]);
+  const regression = ss.linearRegression(points);
   const line = ss.linearRegressionLine(regression);
 
   // R-squared

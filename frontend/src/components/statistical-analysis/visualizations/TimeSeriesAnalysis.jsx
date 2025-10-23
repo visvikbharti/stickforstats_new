@@ -44,6 +44,54 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 /**
+ * Custom Tooltip Component for proper date/value display
+ */
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length > 0) {
+    // Get the full data point from the payload
+    const dataPoint = payload[0].payload;
+
+    // Format the date properly
+    let dateDisplay = label;
+    if (dataPoint && dataPoint.timeDisplay) {
+      dateDisplay = dataPoint.timeDisplay;
+    }
+
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          p: 1.5,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          border: '1px solid #ccc',
+          pointerEvents: 'none'
+        }}
+      >
+        <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', mb: 0.5 }}>
+          {dateDisplay}
+        </Typography>
+        {payload.map((entry, index) => {
+          // Get the actual value from the data
+          const value = entry.value;
+          const displayValue = typeof value === 'number' ? value.toFixed(2) : value;
+
+          return (
+            <Typography
+              key={index}
+              variant="caption"
+              sx={{ color: entry.color, display: 'block' }}
+            >
+              {entry.name}: {displayValue}
+            </Typography>
+          );
+        })}
+      </Paper>
+    );
+  }
+  return null;
+};
+
+/**
  * Main Time Series Analysis Component
  */
 const TimeSeriesAnalysis = ({ data }) => {
@@ -56,29 +104,40 @@ const TimeSeriesAnalysis = ({ data }) => {
    * Detect column types
    */
   const columnInfo = useMemo(() => {
-    if (!data || data.length === 0) return { time: [], numeric: [] };
+    if (!data || data.length === 0) return { time: [], numeric: [], allColumns: [] };
 
     const time = [];
     const numeric = [];
+    const allColumns = Object.keys(data[0]);
 
-    Object.keys(data[0]).forEach(key => {
+    allColumns.forEach(key => {
       const values = data.map(row => row[key]).filter(v => v !== null && v !== undefined && v !== '');
-      const numericCount = values.filter(v => !isNaN(parseFloat(v))).length;
+      if (values.length === 0) return;
 
-      // Try to parse as date
+      const numericCount = values.filter(v => typeof v === 'number' || (!isNaN(parseFloat(v)) && isFinite(parseFloat(v)))).length;
+
+      // Try to parse as date - but EXCLUDE pure numeric values
       const dateCount = values.filter(v => {
+        // Skip if it's a pure number
+        if (typeof v === 'number' || (!isNaN(v) && !isNaN(parseFloat(v)) && String(v).match(/^-?\d+\.?\d*$/))) {
+          return false;
+        }
+        // Try to parse as date string
         const date = new Date(v);
         return date.toString() !== 'Invalid Date' && !isNaN(date.getTime());
       }).length;
 
+      // Classify as time if majority are valid date strings (not numbers)
       if (dateCount / values.length > 0.5) {
         time.push(key);
-      } else if (numericCount / values.length > 0.8) {
+      }
+      // Classify as numeric if majority are valid numbers
+      if (numericCount / values.length > 0.5) {
         numeric.push(key);
       }
     });
 
-    return { time, numeric };
+    return { time, numeric, allColumns };
   }, [data]);
 
   /**
@@ -87,23 +146,40 @@ const TimeSeriesAnalysis = ({ data }) => {
   const timeSeriesData = useMemo(() => {
     if (!data || !timeColumn || !valueColumn) return [];
 
+    // Check if timeColumn is a true date column or a numeric sequential column
+    const isDateColumn = columnInfo.time.includes(timeColumn);
+
     return data
       .map(row => {
         const timeValue = row[timeColumn];
         const value = parseFloat(row[valueColumn]);
 
-        // Try to parse as date
-        let time = new Date(timeValue);
-        if (time.toString() === 'Invalid Date' || isNaN(time.getTime())) {
-          // If not a valid date, use as is (might be sequential index)
+        let time;
+        let timeDisplay;
+
+        if (isDateColumn) {
+          // Parse as actual date
+          time = new Date(timeValue);
+          if (time.toString() === 'Invalid Date' || isNaN(time.getTime())) {
+            // Fallback to string if date parsing fails
+            time = timeValue;
+            timeDisplay = String(timeValue);
+          } else {
+            // Format date to show full date (e.g., "Jan 1, 2024" or "1/1/2024")
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            timeDisplay = time.toLocaleDateString('en-US', options);
+          }
+        } else {
+          // For numeric/sequential columns, use the value directly
           time = timeValue;
+          timeDisplay = String(timeValue);
         }
 
         if (isNaN(value)) return null;
 
         return {
           time: time instanceof Date ? time.getTime() : timeValue,
-          timeDisplay: time instanceof Date ? time.toLocaleDateString() : String(timeValue),
+          timeDisplay: timeDisplay,
           value
         };
       })
@@ -114,7 +190,7 @@ const TimeSeriesAnalysis = ({ data }) => {
         }
         return 0;
       });
-  }, [data, timeColumn, valueColumn]);
+  }, [data, timeColumn, valueColumn, columnInfo.time]);
 
   /**
    * Calculate rolling statistics
@@ -230,20 +306,36 @@ const TimeSeriesAnalysis = ({ data }) => {
   }
 
   /**
-   * Render column selection
+   * Show warning if no time columns detected (but still allow manual selection)
    */
-  if (columnInfo.time.length === 0 && columnInfo.numeric.length < 2) {
+  const noTimeColumnsWarning = columnInfo.time.length === 0 && columnInfo.numeric.length > 0 && (
+    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+      <Alert severity="info">
+        <Typography variant="body1" gutterBottom>
+          <strong>No Date Columns Auto-Detected</strong>
+        </Typography>
+        <Typography variant="body2">
+          No date/time columns were found. You can still perform time series analysis by selecting a numeric column as the time axis (e.g., row index, day number, sequence).
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          Detected: <strong>{columnInfo.numeric.length}</strong> numeric columns available.
+        </Typography>
+      </Alert>
+    </Paper>
+  );
+
+  /**
+   * Render insufficient data message
+   */
+  if (columnInfo.numeric.length === 0) {
     return (
       <Paper elevation={2} sx={{ p: 4 }}>
         <Alert severity="warning">
           <Typography variant="body1">
-            Time series analysis requires at least one time/date column (or sequential index) and one numeric column.
+            Time series analysis requires at least one numeric column for values.
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            Detected: {columnInfo.time.length} time columns, {columnInfo.numeric.length} numeric columns.
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            <em>Tip: If you don't have a date column, you can use any sequential numeric column (e.g., index, day number) as the time axis.</em>
+            Detected: {columnInfo.time.length} date columns, {columnInfo.numeric.length} numeric columns.
           </Typography>
         </Alert>
       </Paper>
@@ -252,6 +344,9 @@ const TimeSeriesAnalysis = ({ data }) => {
 
   return (
     <Box>
+      {/* Show warning if no time columns */}
+      {noTimeColumnsWarning}
+
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -295,7 +390,7 @@ const TimeSeriesAnalysis = ({ data }) => {
                 <MenuItem value="">
                   <em>Select a column...</em>
                 </MenuItem>
-                {columnInfo.numeric.map((col) => (
+                {columnInfo.numeric.filter(col => col !== timeColumn).map((col) => (
                   <MenuItem key={col} value={col}>{col}</MenuItem>
                 ))}
               </Select>
@@ -321,16 +416,16 @@ const TimeSeriesAnalysis = ({ data }) => {
         </Grid>
 
         {/* Window Size Slider (for rolling statistics) */}
-        {plotType === 'rolling' && (
+        {plotType === 'rolling' && timeSeriesData.length > 0 && (
           <Box sx={{ mt: 3, px: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
               Rolling Window Size: {windowSize} periods
             </Typography>
             <Slider
-              value={windowSize}
+              value={Math.min(windowSize, Math.max(3, Math.floor(timeSeriesData.length / 2)))}
               onChange={(e, newValue) => setWindowSize(newValue)}
               min={2}
-              max={Math.min(50, Math.floor(timeSeriesData.length / 2))}
+              max={Math.max(3, Math.min(50, Math.floor(timeSeriesData.length / 2)))}
               step={1}
               marks
               valueLabelDisplay="auto"
@@ -414,9 +509,15 @@ const TimeSeriesAnalysis = ({ data }) => {
                     <XAxis
                       dataKey="timeDisplay"
                       label={{ value: timeColumn, position: 'insideBottom', offset: -5 }}
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
                     />
                     <YAxis label={{ value: valueColumn, angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ strokeDasharray: '3 3' }}
+                      isAnimationActive={false}
+                    />
                     <Legend />
                     <Line
                       type="monotone"
@@ -425,6 +526,7 @@ const TimeSeriesAnalysis = ({ data }) => {
                       strokeWidth={2}
                       dot={false}
                       name={valueColumn}
+                      activeDot={{ r: 6 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -440,9 +542,15 @@ const TimeSeriesAnalysis = ({ data }) => {
                     <XAxis
                       dataKey="timeDisplay"
                       label={{ value: timeColumn, position: 'insideBottom', offset: -5 }}
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
                     />
                     <YAxis label={{ value: valueColumn, angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ strokeDasharray: '3 3' }}
+                      isAnimationActive={false}
+                    />
                     <Legend />
                     <Area
                       type="monotone"
@@ -451,6 +559,7 @@ const TimeSeriesAnalysis = ({ data }) => {
                       fill="#8884d8"
                       fillOpacity={0.3}
                       name={valueColumn}
+                      activeDot={{ r: 6 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -466,9 +575,15 @@ const TimeSeriesAnalysis = ({ data }) => {
                     <XAxis
                       dataKey="timeDisplay"
                       label={{ value: timeColumn, position: 'insideBottom', offset: -5 }}
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
                     />
                     <YAxis label={{ value: valueColumn, angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ strokeDasharray: '3 3' }}
+                      isAnimationActive={false}
+                    />
                     <Legend />
                     <Line
                       type="monotone"
@@ -478,6 +593,7 @@ const TimeSeriesAnalysis = ({ data }) => {
                       dot={false}
                       name="Original"
                       opacity={0.5}
+                      activeDot={{ r: 4 }}
                     />
                     <Line
                       type="monotone"
@@ -486,6 +602,7 @@ const TimeSeriesAnalysis = ({ data }) => {
                       strokeWidth={2}
                       dot={false}
                       name={`${windowSize}-period MA`}
+                      activeDot={{ r: 6 }}
                     />
                     <Line
                       type="monotone"
@@ -522,8 +639,12 @@ const TimeSeriesAnalysis = ({ data }) => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="timeDisplay" hide />
                         <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ strokeDasharray: '3 3' }}
+                          isAnimationActive={false}
+                        />
+                        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} name="Original" activeDot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Box>
@@ -538,8 +659,12 @@ const TimeSeriesAnalysis = ({ data }) => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="timeDisplay" hide />
                         <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="trend" stroke="#ff7300" dot={false} strokeWidth={2} />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ strokeDasharray: '3 3' }}
+                          isAnimationActive={false}
+                        />
+                        <Line type="monotone" dataKey="trend" stroke="#ff7300" dot={false} strokeWidth={2} name="Trend" activeDot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Box>
@@ -554,9 +679,13 @@ const TimeSeriesAnalysis = ({ data }) => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="timeDisplay" hide />
                         <YAxis />
-                        <Tooltip />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ strokeDasharray: '3 3' }}
+                          isAnimationActive={false}
+                        />
                         <ReferenceLine y={0} stroke="#666" />
-                        <Line type="monotone" dataKey="seasonal" stroke="#82ca9d" dot={false} />
+                        <Line type="monotone" dataKey="seasonal" stroke="#82ca9d" dot={false} name="Seasonal" activeDot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Box>
@@ -571,9 +700,13 @@ const TimeSeriesAnalysis = ({ data }) => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="timeDisplay" />
                         <YAxis />
-                        <Tooltip />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ strokeDasharray: '3 3' }}
+                          isAnimationActive={false}
+                        />
                         <ReferenceLine y={0} stroke="#666" />
-                        <Line type="monotone" dataKey="residual" stroke="#d084d0" dot={false} />
+                        <Line type="monotone" dataKey="residual" stroke="#d084d0" dot={false} name="Residual" activeDot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Box>

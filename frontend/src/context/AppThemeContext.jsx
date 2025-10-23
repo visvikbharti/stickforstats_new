@@ -24,19 +24,20 @@ export const gradients = {
   deep: 'linear-gradient(135deg, #1a2980 0%, #26d0ce 100%)'
 };
 
-// Glass morphism effects
+// Glass morphism effects - ENHANCED FOR ACCESSIBILITY
+// Reduced transparency for better contrast and readability
 export const glassMorphism = {
   light: {
-    background: 'rgba(255, 255, 255, 0.25)',
+    background: 'rgba(255, 255, 255, 0.95)', // Changed from 0.25 to 0.95 for solid appearance
     backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
+    border: '1px solid rgba(102, 126, 234, 0.15)', // Subtle primary color border
+    boxShadow: '0 2px 12px 0 rgba(0, 0, 0, 0.08)' // Softer shadow for better readability
   },
   dark: {
-    background: 'rgba(17, 25, 40, 0.75)',
+    background: 'rgba(26, 26, 53, 0.98)', // Changed from 0.75 to 0.98 for near-solid appearance
     backdropFilter: 'blur(16px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.125)',
-    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+    border: '1px solid rgba(102, 126, 234, 0.25)', // Visible border in dark mode
+    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.5)' // Stronger shadow for depth
   }
 };
 
@@ -115,9 +116,10 @@ export const AppThemeProvider = ({ children }) => {
             gradient: gradients.primary
           },
       text: {
-        primary: darkMode ? '#e2e8f0' : '#2d3748',
-        secondary: darkMode ? '#a0aec0' : '#4a5568',
-        disabled: darkMode ? '#718096' : '#a0aec0'
+        // ENHANCED CONTRAST - WCAG AA Compliant (4.5:1 minimum)
+        primary: darkMode ? '#f7fafc' : '#1a202c', // Increased contrast from #e2e8f0 / #2d3748
+        secondary: darkMode ? '#cbd5e0' : '#4a5568', // Increased contrast from #a0aec0
+        disabled: darkMode ? '#a0aec0' : '#718096' // Swapped for better visibility
       }
     },
     typography: {
@@ -126,10 +128,10 @@ export const AppThemeProvider = ({ children }) => {
         fontSize: '3rem',
         fontWeight: 800,
         letterSpacing: '-0.02em',
-        background: darkMode ? gradients.blue : gradients.primary,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
+        // ENHANCED FOR ACCESSIBILITY - Solid color with optional gradient on hover
+        color: darkMode ? '#90caf9' : '#667eea', // Fallback solid color for accessibility
+        // Note: Gradient text removed to prevent invisibility issues
+        // Can be re-added as hover effect in specific components if needed
       },
       h2: {
         fontSize: '2.5rem',
@@ -196,7 +198,12 @@ export const AppThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
-            ...(darkMode ? glassMorphism.dark : glassMorphism.light),
+            // ENHANCED: Use solid backgrounds for critical UI elements with subtle glass effect
+            backgroundColor: darkMode ? '#1a1a35' : '#ffffff',
+            border: darkMode ? '1px solid rgba(102, 126, 234, 0.25)' : '1px solid rgba(102, 126, 234, 0.15)',
+            boxShadow: darkMode
+              ? '0 4px 20px 0 rgba(0, 0, 0, 0.5)'
+              : '0 2px 12px 0 rgba(0, 0, 0, 0.08)',
             transition: 'all 0.3s ease'
           }
         }
@@ -205,13 +212,19 @@ export const AppThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             borderRadius: 16,
-            ...(darkMode ? glassMorphism.dark : glassMorphism.light),
+            // ENHANCED: Solid background with subtle border for better contrast
+            backgroundColor: darkMode ? '#1a1a35' : '#ffffff',
+            border: darkMode ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.12)',
+            boxShadow: darkMode
+              ? '0 4px 20px 0 rgba(0, 0, 0, 0.4)'
+              : '0 2px 12px 0 rgba(0, 0, 0, 0.08)',
             transition: 'all 0.3s ease',
             '&:hover': {
               transform: 'translateY(-4px)',
               boxShadow: darkMode
-                ? '0 20px 40px -10px rgba(0, 0, 0, 0.5)'
-                : '0 20px 40px -10px rgba(102, 126, 234, 0.3)'
+                ? '0 20px 40px -10px rgba(0, 0, 0, 0.6)'
+                : '0 20px 40px -10px rgba(102, 126, 234, 0.25)',
+              borderColor: darkMode ? 'rgba(102, 126, 234, 0.5)' : 'rgba(102, 126, 234, 0.25)'
             }
           }
         }
@@ -221,9 +234,13 @@ export const AppThemeProvider = ({ children }) => {
           root: {
             borderRadius: 8,
             fontWeight: 600,
-            ...(darkMode
-              ? { background: 'rgba(102, 126, 234, 0.15)' }
-              : { background: 'rgba(102, 126, 234, 0.1)' })
+            // ENHANCED: Better contrast and visibility for chips
+            backgroundColor: darkMode ? 'rgba(102, 126, 234, 0.2)' : 'rgba(102, 126, 234, 0.12)',
+            color: darkMode ? '#cbd5e0' : '#2d3748',
+            border: darkMode ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.15)',
+            '&:hover': {
+              backgroundColor: darkMode ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.18)'
+            }
           }
         }
       },
@@ -248,14 +265,17 @@ export const AppThemeProvider = ({ children }) => {
           root: {
             minHeight: 48,
             borderRadius: 12,
-            ...(darkMode
-              ? { background: 'rgba(26, 26, 53, 0.6)' }
-              : { background: 'rgba(248, 250, 252, 0.8)' })
+            // ENHANCED: Solid background for better tab visibility
+            backgroundColor: darkMode ? '#1a1a35' : '#f8fafb',
+            border: darkMode ? '1px solid rgba(102, 126, 234, 0.2)' : '1px solid rgba(102, 126, 234, 0.1)',
+            boxShadow: darkMode
+              ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+              : '0 1px 4px rgba(0, 0, 0, 0.05)'
           },
           indicator: {
             height: 3,
             borderRadius: 3,
-            background: gradients.primary
+            backgroundColor: darkMode ? '#667eea' : '#764ba2' // Solid color instead of gradient
           }
         }
       },
@@ -266,8 +286,15 @@ export const AppThemeProvider = ({ children }) => {
             fontWeight: 600,
             fontSize: '0.95rem',
             marginRight: 8,
+            // ENHANCED: Better text contrast for tabs
+            color: darkMode ? '#cbd5e0' : '#4a5568',
             '&.Mui-selected': {
-              color: darkMode ? '#667eea' : '#764ba2'
+              color: darkMode ? '#90caf9' : '#667eea', // More vibrant selected color
+              fontWeight: 700 // Bolder when selected
+            },
+            '&:hover': {
+              color: darkMode ? '#e2e8f0' : '#2d3748',
+              backgroundColor: darkMode ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)'
             }
           }
         }
@@ -291,7 +318,14 @@ export const AppThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             borderRadius: 12,
-            ...(darkMode ? glassMorphism.dark : glassMorphism.light)
+            // ENHANCED: Solid backgrounds for alerts - critical information must be readable
+            border: darkMode ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.15)',
+            boxShadow: darkMode
+              ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+              : '0 2px 8px rgba(0, 0, 0, 0.08)',
+            '& .MuiAlert-message': {
+              color: darkMode ? '#f7fafc' : '#1a202c' // High contrast text
+            }
           }
         }
       },
@@ -300,7 +334,11 @@ export const AppThemeProvider = ({ children }) => {
           tooltip: {
             borderRadius: 8,
             fontSize: '0.85rem',
-            ...(darkMode ? glassMorphism.dark : glassMorphism.light)
+            // ENHANCED: Solid tooltip background for readability
+            backgroundColor: darkMode ? '#2d2d50' : '#2d3748',
+            color: '#ffffff',
+            border: darkMode ? '1px solid rgba(144, 202, 249, 0.5)' : 'none',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
           }
         }
       },

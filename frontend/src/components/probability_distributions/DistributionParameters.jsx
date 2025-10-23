@@ -156,14 +156,15 @@ const DistributionParameters = ({
   const handleDistributionTypeChange = (event) => {
     const newType = event.target.value;
     const newParams = defaultParameters[newType];
-    
+
+    // FIXED: Call onChange with just the distribution name (lowercase)
     if (onChange) {
-      onChange(newParams, newType);
-    } else if (onParameterChange) {
-      // Fall back to individual parameter changes if onChange not provided
-      Object.entries(newParams).forEach(([param, value]) => {
-        onParameterChange(param, value);
-      });
+      onChange(newType.toLowerCase());
+    }
+
+    // FIXED: Call onParameterChange with the full params object
+    if (onParameterChange) {
+      onParameterChange(newParams);
     }
   };
 
@@ -173,11 +174,12 @@ const DistributionParameters = ({
       ...currentParameters,
       [paramName]: value
     };
-    
+
     setCurrentParameters(newParameters);
-    
+
+    // FIXED: Call onParameterChange with an object, not individual params
     if (onParameterChange) {
-      onParameterChange(paramName, value);
+      onParameterChange({ [paramName]: value });
     }
   };
 

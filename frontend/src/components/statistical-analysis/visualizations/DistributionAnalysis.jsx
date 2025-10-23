@@ -44,7 +44,10 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
-  Cell
+  Cell,
+  Area,
+  AreaChart,
+  ComposedChart
 } from 'recharts';
 import { calculateDescriptiveStats, createHistogramBins, shapiroWilkTest } from '../utils/statisticalUtils';
 import jStat from 'jstat';
@@ -315,28 +318,157 @@ const DistributionAnalysis = ({ data }) => {
         );
 
       case 'boxplot':
+        // Custom SVG Box Plot Renderer
+        const renderBoxPlot = () => {
+          const width = 800;
+          const height = 400;
+          const margin = { top: 20, right: 40, bottom: 60, left: 60 };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+
+          // Y scale
+          const yMin = Math.min(boxPlotData.min, boxPlotData.lowerFence) - 0.1 * stats.iqr;
+          const yMax = Math.max(boxPlotData.max, boxPlotData.upperFence) + 0.1 * stats.iqr;
+          const yScale = (value) => margin.top + plotHeight - ((value - yMin) / (yMax - yMin)) * plotHeight;
+
+          // Box parameters
+          const boxCenterX = margin.left + plotWidth / 2;
+          const boxWidth = 60;
+          const boxLeft = boxCenterX - boxWidth / 2;
+          const boxRight = boxCenterX + boxWidth / 2;
+
+          return (
+            <svg width={width} height={height} style={{ border: '1px solid #e0e0e0' }}>
+              {/* Grid lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((fraction, i) => {
+                const y = margin.top + plotHeight * fraction;
+                const value = yMax - (yMax - yMin) * fraction;
+                return (
+                  <g key={i}>
+                    <line
+                      x1={margin.left}
+                      y1={y}
+                      x2={margin.left + plotWidth}
+                      y2={y}
+                      stroke="#e0e0e0"
+                      strokeDasharray="3 3"
+                    />
+                    <text x={margin.left - 10} y={y + 4} textAnchor="end" fontSize="12" fill="#666">
+                      {value.toFixed(1)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Whisker lines (min to Q1, Q3 to max) */}
+              <line
+                x1={boxCenterX}
+                y1={yScale(boxPlotData.min)}
+                x2={boxCenterX}
+                y2={yScale(boxPlotData.q1)}
+                stroke="#666"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+              />
+              <line
+                x1={boxCenterX}
+                y1={yScale(boxPlotData.q3)}
+                x2={boxCenterX}
+                y2={yScale(boxPlotData.max)}
+                stroke="#666"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+              />
+
+              {/* Min and Max caps */}
+              <line
+                x1={boxLeft}
+                y1={yScale(boxPlotData.min)}
+                x2={boxRight}
+                y2={yScale(boxPlotData.min)}
+                stroke="#666"
+                strokeWidth={2}
+              />
+              <line
+                x1={boxLeft}
+                y1={yScale(boxPlotData.max)}
+                x2={boxRight}
+                y2={yScale(boxPlotData.max)}
+                stroke="#666"
+                strokeWidth={2}
+              />
+
+              {/* Box (Q1 to Q3) */}
+              <rect
+                x={boxLeft}
+                y={yScale(boxPlotData.q3)}
+                width={boxWidth}
+                height={yScale(boxPlotData.q1) - yScale(boxPlotData.q3)}
+                fill="#1976d2"
+                fillOpacity={0.3}
+                stroke="#1976d2"
+                strokeWidth={2}
+              />
+
+              {/* Median line */}
+              <line
+                x1={boxLeft}
+                y1={yScale(boxPlotData.median)}
+                x2={boxRight}
+                y2={yScale(boxPlotData.median)}
+                stroke="#ff5722"
+                strokeWidth={3}
+              />
+
+              {/* Outliers */}
+              {boxPlotData.outliers.map((o, i) => (
+                <circle
+                  key={i}
+                  cx={boxCenterX}
+                  cy={yScale(o.value)}
+                  r={4}
+                  fill="#ff5722"
+                  stroke="#ff5722"
+                  strokeWidth={1}
+                />
+              ))}
+
+              {/* Axis labels */}
+              <text
+                x={boxCenterX}
+                y={height - 20}
+                textAnchor="middle"
+                fontSize="14"
+                fontWeight="bold"
+              >
+                {selectedColumn}
+              </text>
+              <text
+                x={20}
+                y={margin.top + plotHeight / 2}
+                textAnchor="middle"
+                fontSize="14"
+                fontWeight="bold"
+                transform={`rotate(-90 20 ${margin.top + plotHeight / 2})`}
+              >
+                {selectedColumn}
+              </text>
+
+              {/* Labels */}
+              <text x={boxRight + 10} y={yScale(boxPlotData.min)} fontSize="11" fill="#666">Min: {boxPlotData.min.toFixed(2)}</text>
+              <text x={boxRight + 10} y={yScale(boxPlotData.q1)} fontSize="11" fill="#1976d2">Q1: {boxPlotData.q1.toFixed(2)}</text>
+              <text x={boxRight + 10} y={yScale(boxPlotData.median)} fontSize="11" fill="#ff5722">Median: {boxPlotData.median.toFixed(2)}</text>
+              <text x={boxRight + 10} y={yScale(boxPlotData.q3)} fontSize="11" fill="#1976d2">Q3: {boxPlotData.q3.toFixed(2)}</text>
+              <text x={boxRight + 10} y={yScale(boxPlotData.max)} fontSize="11" fill="#666">Max: {boxPlotData.max.toFixed(2)}</text>
+            </svg>
+          );
+        };
+
         return (
           <Box>
-            <ResponsiveContainer width="100%" height={400}>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="category" dataKey="name" domain={['Box Plot']} />
-                <YAxis dataKey="value" domain={[boxPlotData.min - stats.std, boxPlotData.max + stats.std]} />
-                <Tooltip />
-
-                {/* Draw box plot manually */}
-                <ReferenceLine y={boxPlotData.median} stroke="#1976d2" strokeWidth={2} />
-                <ReferenceLine y={boxPlotData.q1} stroke="#666" strokeDasharray="3 3" />
-                <ReferenceLine y={boxPlotData.q3} stroke="#666" strokeDasharray="3 3" />
-
-                {/* Outliers */}
-                <Scatter
-                  data={boxPlotData.outliers}
-                  fill="#ff5722"
-                  name="Outliers"
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              {renderBoxPlot()}
+            </Box>
 
             {/* Box plot statistics */}
             <Grid container spacing={2} sx={{ mt: 2 }}>
@@ -373,32 +505,164 @@ const DistributionAnalysis = ({ data }) => {
         );
 
       case 'violin':
+        // Custom SVG Violin Plot Renderer
+        const renderViolinPlot = () => {
+          const width = 800;
+          const height = 400;
+          const margin = { top: 20, right: 40, bottom: 60, left: 60 };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+
+          // Y scale (values)
+          const yMin = stats.min;
+          const yMax = stats.max;
+          const yScale = (value) => margin.top + plotHeight - ((value - yMin) / (yMax - yMin)) * plotHeight;
+
+          // X scale (density) - find max density for scaling
+          const maxDensity = Math.max(...violinData.map(d => d.density));
+          const densityScale = (density) => (density / maxDensity) * (plotWidth / 3); // Use 1/3 of width for each side
+
+          const centerX = margin.left + plotWidth / 2;
+
+          // Create path for left and right sides of violin
+          const leftPath = violinData.map(d => ({
+            x: centerX - densityScale(d.density),
+            y: yScale(d.value)
+          }));
+
+          const rightPath = violinData.map(d => ({
+            x: centerX + densityScale(d.density),
+            y: yScale(d.value)
+          }));
+
+          // Create SVG path string
+          const createPathString = () => {
+            let path = `M ${centerX} ${yScale(violinData[0].value)}`;
+
+            // Left side (bottom to top)
+            leftPath.forEach(point => {
+              path += ` L ${point.x} ${point.y}`;
+            });
+
+            // Right side (top to bottom)
+            rightPath.reverse().forEach(point => {
+              path += ` L ${point.x} ${point.y}`;
+            });
+
+            path += ' Z'; // Close path
+            return path;
+          };
+
+          return (
+            <svg width={width} height={height} style={{ border: '1px solid #e0e0e0' }}>
+              {/* Grid lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((fraction, i) => {
+                const y = margin.top + plotHeight * fraction;
+                const value = yMax - (yMax - yMin) * fraction;
+                return (
+                  <g key={i}>
+                    <line
+                      x1={margin.left}
+                      y1={y}
+                      x2={margin.left + plotWidth}
+                      y2={y}
+                      stroke="#e0e0e0"
+                      strokeDasharray="3 3"
+                    />
+                    <text x={margin.left - 10} y={y + 4} textAnchor="end" fontSize="12" fill="#666">
+                      {value.toFixed(1)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* X-axis density labels */}
+              <text x={margin.left} y={height - 10} textAnchor="middle" fontSize="11" fill="#666">
+                0
+              </text>
+              <text x={centerX} y={height - 10} textAnchor="middle" fontSize="11" fill="#666">
+                {(maxDensity / 2).toFixed(4)}
+              </text>
+              <text x={margin.left + plotWidth} y={height - 10} textAnchor="middle" fontSize="11" fill="#666">
+                {maxDensity.toFixed(4)}
+              </text>
+
+              {/* Violin shape */}
+              <path
+                d={createPathString()}
+                fill="#1976d2"
+                fillOpacity={0.3}
+                stroke="#1976d2"
+                strokeWidth={2}
+              />
+
+              {/* Center line */}
+              <line
+                x1={centerX}
+                y1={yScale(yMin)}
+                x2={centerX}
+                y2={yScale(yMax)}
+                stroke="#666"
+                strokeWidth={1}
+                strokeDasharray="2 2"
+              />
+
+              {/* Median line */}
+              <line
+                x1={centerX - densityScale(maxDensity)}
+                y1={yScale(stats.median)}
+                x2={centerX + densityScale(maxDensity)}
+                y2={yScale(stats.median)}
+                stroke="#ff5722"
+                strokeWidth={3}
+                strokeDasharray="5 5"
+              />
+
+              {/* Axis labels */}
+              <text
+                x={centerX}
+                y={height - 30}
+                textAnchor="middle"
+                fontSize="14"
+                fontWeight="bold"
+              >
+                Density (mirrored)
+              </text>
+              <text
+                x={20}
+                y={margin.top + plotHeight / 2}
+                textAnchor="middle"
+                fontSize="14"
+                fontWeight="bold"
+                transform={`rotate(-90 20 ${margin.top + plotHeight / 2})`}
+              >
+                {selectedColumn}
+              </text>
+
+              {/* Median label */}
+              <text
+                x={centerX + densityScale(maxDensity) + 10}
+                y={yScale(stats.median)}
+                fontSize="11"
+                fill="#ff5722"
+              >
+                Median: {stats.median.toFixed(2)}
+              </text>
+            </svg>
+          );
+        };
+
         return (
           <Box>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={violinData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  dataKey="densityLeft"
-                  domain={['auto', 'auto']}
-                  label={{ value: 'Density', position: 'insideBottom' }}
-                />
-                <YAxis
-                  dataKey="value"
-                  label={{ value: selectedColumn, angle: -90, position: 'insideLeft' }}
-                />
-                <Tooltip />
-                <Line type="monotone" dataKey="densityLeft" stroke="#1976d2" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="densityRight" stroke="#1976d2" strokeWidth={2} dot={false} />
-                <ReferenceLine y={stats.median} stroke="#ff5722" strokeWidth={2} label="Median" />
-              </LineChart>
-            </ResponsiveContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              {renderViolinPlot()}
+            </Box>
 
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
                 The violin plot shows the probability density of the data at different values.
                 Wider sections indicate higher probability of data points at that value.
+                The mirrored shape helps visualize the full distribution.
               </Typography>
             </Alert>
           </Box>

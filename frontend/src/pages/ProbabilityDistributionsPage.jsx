@@ -50,7 +50,7 @@ function ProbabilityDistributionsPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedDistribution, setSelectedDistribution] = useState('normal');
-  const [parameters, setParameters] = useState({ mean: 0, stdDev: 1 });
+  const [parameters, setParameters] = useState({ mean: 0, std: 1 });
   const [plotData, setPlotData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -99,15 +99,20 @@ function ProbabilityDistributionsPage() {
 
   // Handle distribution selection
   const handleDistributionChange = (newDistribution) => {
-    setSelectedDistribution(newDistribution);
-    
+    // ROBUST: Handle both string values and event objects from different components
+    const distribution = typeof newDistribution === 'string'
+      ? newDistribution.toLowerCase()
+      : newDistribution?.target?.value?.toLowerCase() || 'normal';
+
+    setSelectedDistribution(distribution);
+
     // Set default parameters based on distribution type
-    switch (newDistribution) {
+    switch (distribution) {
       case 'normal':
-        setParameters({ mean: 0, stdDev: 1 });
+        setParameters({ mean: 0, std: 1 });
         break;
       case 'uniform':
-        setParameters({ min: 0, max: 1 });
+        setParameters({ a: 0, b: 1 });
         break;
       case 'binomial':
         setParameters({ n: 10, p: 0.5 });
@@ -118,8 +123,29 @@ function ProbabilityDistributionsPage() {
       case 'exponential':
         setParameters({ rate: 1 });
         break;
+      case 'gamma':
+        setParameters({ shape: 2, scale: 2 });
+        break;
+      case 'beta':
+        setParameters({ alpha: 2, beta: 2 });
+        break;
+      case 'lognormal':
+        setParameters({ mean: 0, sigma: 1 });
+        break;
+      case 'weibull':
+        setParameters({ shape: 1.5, scale: 1 });
+        break;
+      case 'geometric':
+        setParameters({ p: 0.5 });
+        break;
+      case 'negativebinomial':
+        setParameters({ r: 5, p: 0.5 });
+        break;
+      case 'hypergeometric':
+        setParameters({ N: 50, K: 20, n: 10 });
+        break;
       default:
-        setParameters({ mean: 0, stdDev: 1 });
+        setParameters({ mean: 0, std: 1 });
     }
   };
 
@@ -226,17 +252,30 @@ function ProbabilityDistributionsPage() {
               } />
               
               <Route path="/calculator" element={
-                <ProbabilityCalculator 
-                  distribution={selectedDistribution}
-                  parameters={parameters}
-                  onCalculate={handleCalculateProbability}
-                  plotData={plotData}
-                />
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={3}>
+                    {/* SINGLE unified distribution selector with parameters */}
+                    <DistributionParameters
+                      distributionType={(selectedDistribution || 'normal').toUpperCase()}
+                      parameters={parameters}
+                      onParameterChange={handleParameterChange}
+                      onChange={handleDistributionChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={9}>
+                    <ProbabilityCalculator
+                      distributionType={(selectedDistribution || 'normal').toUpperCase()}
+                      parameters={parameters}
+                      onCalculate={handleCalculateProbability}
+                      plotData={plotData}
+                    />
+                  </Grid>
+                </Grid>
               } />
               
               <Route path="/random-samples" element={
-                <RandomSampleGenerator 
-                  distributionType={selectedDistribution}
+                <RandomSampleGenerator
+                  distributionType={(selectedDistribution || 'normal').toUpperCase()}
                   parameters={parameters}
                 />
               } />

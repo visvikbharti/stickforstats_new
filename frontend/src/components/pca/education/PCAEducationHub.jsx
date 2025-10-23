@@ -210,7 +210,7 @@ const PCAEducationHub = () => {
                 Learn PCA Visually
               </Typography>
               <Typography variant="h6" color="text.secondary">
-                Interactive lessons inspired by 3Blue1Brown
+                Interactive lessons with step-by-step derivations
               </Typography>
             </Box>
           </Box>

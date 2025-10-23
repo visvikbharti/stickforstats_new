@@ -417,7 +417,7 @@ const ProbabilityCalculator = ({
         case 'UNIFORM': {
           const a = params.a;
           const b = params.b;
-          
+
           if (probType === 'less_than') {
             if (x <= a) probability = 0;
             else if (x >= b) probability = 1;
@@ -435,7 +435,166 @@ const ProbabilityCalculator = ({
           }
           break;
         }
-        
+
+        case 'GAMMA': {
+          const shape = params.shape;
+          const scale = params.scale;
+
+          if (probType === 'less_than') {
+            probability = gammaRegularizedP(shape, x / scale);
+          } else if (probType === 'greater_than') {
+            probability = 1 - gammaRegularizedP(shape, x / scale);
+          } else if (probType === 'exactly') {
+            probability = 0; // For continuous distributions
+          } else if (probType === 'between') {
+            probability = gammaRegularizedP(shape, upper / scale) - gammaRegularizedP(shape, lower / scale);
+          }
+          break;
+        }
+
+        case 'BETA': {
+          const alpha = params.alpha;
+          const beta = params.beta;
+
+          if (probType === 'less_than') {
+            probability = betaRegularizedI(x, alpha, beta);
+          } else if (probType === 'greater_than') {
+            probability = 1 - betaRegularizedI(x, alpha, beta);
+          } else if (probType === 'exactly') {
+            probability = 0; // For continuous distributions
+          } else if (probType === 'between') {
+            probability = betaRegularizedI(upper, alpha, beta) - betaRegularizedI(lower, alpha, beta);
+          }
+          break;
+        }
+
+        case 'LOGNORMAL': {
+          const mean = params.mean;
+          const sigma = params.sigma;
+
+          if (probType === 'less_than') {
+            if (x <= 0) {
+              probability = 0;
+            } else {
+              const z = (Math.log(x) - mean) / (Math.sqrt(2) * sigma);
+              probability = 0.5 * (1 + erf(z));
+            }
+          } else if (probType === 'greater_than') {
+            if (x <= 0) {
+              probability = 1;
+            } else {
+              const z = (Math.log(x) - mean) / (Math.sqrt(2) * sigma);
+              probability = 1 - 0.5 * (1 + erf(z));
+            }
+          } else if (probType === 'exactly') {
+            probability = 0; // For continuous distributions
+          } else if (probType === 'between') {
+            const lowerProb = lower <= 0 ? 0 : 0.5 * (1 + erf((Math.log(lower) - mean) / (Math.sqrt(2) * sigma)));
+            const upperProb = upper <= 0 ? 0 : 0.5 * (1 + erf((Math.log(upper) - mean) / (Math.sqrt(2) * sigma)));
+            probability = upperProb - lowerProb;
+          }
+          break;
+        }
+
+        case 'WEIBULL': {
+          const shape = params.shape;
+          const scale = params.scale;
+
+          if (probType === 'less_than') {
+            if (x < 0) {
+              probability = 0;
+            } else {
+              probability = 1 - Math.exp(-Math.pow(x / scale, shape));
+            }
+          } else if (probType === 'greater_than') {
+            if (x < 0) {
+              probability = 1;
+            } else {
+              probability = Math.exp(-Math.pow(x / scale, shape));
+            }
+          } else if (probType === 'exactly') {
+            probability = 0; // For continuous distributions
+          } else if (probType === 'between') {
+            const lowerProb = lower < 0 ? 0 : 1 - Math.exp(-Math.pow(lower / scale, shape));
+            const upperProb = upper < 0 ? 0 : 1 - Math.exp(-Math.pow(upper / scale, shape));
+            probability = upperProb - lowerProb;
+          }
+          break;
+        }
+
+        case 'GEOMETRIC': {
+          const p = params.p;
+
+          if (probType === 'less_than') {
+            probability = 0;
+            for (let i = 1; i < x; i++) {
+              probability += geometricPMF(i, p);
+            }
+          } else if (probType === 'greater_than') {
+            probability = Math.pow(1 - p, Math.floor(x));
+          } else if (probType === 'exactly') {
+            probability = geometricPMF(Math.round(x), p);
+          } else if (probType === 'between') {
+            probability = 0;
+            for (let i = Math.ceil(lower); i <= Math.floor(upper); i++) {
+              probability += geometricPMF(i, p);
+            }
+          }
+          break;
+        }
+
+        case 'NEGATIVEBINOMIAL': {
+          const r = params.r;
+          const p = params.p;
+
+          if (probType === 'less_than') {
+            probability = 0;
+            for (let i = 0; i < x; i++) {
+              probability += negativeBinomialPMF(i, r, p);
+            }
+          } else if (probType === 'greater_than') {
+            probability = 0;
+            const upperLimit = r + 5 * Math.sqrt(r * (1 - p) / p);
+            for (let i = Math.ceil(x); i <= upperLimit; i++) {
+              probability += negativeBinomialPMF(i, r, p);
+            }
+          } else if (probType === 'exactly') {
+            probability = negativeBinomialPMF(Math.round(x), r, p);
+          } else if (probType === 'between') {
+            probability = 0;
+            for (let i = Math.ceil(lower); i <= Math.floor(upper); i++) {
+              probability += negativeBinomialPMF(i, r, p);
+            }
+          }
+          break;
+        }
+
+        case 'HYPERGEOMETRIC': {
+          const N = params.N; // Population size
+          const K = params.K; // Number of success states in population
+          const n = params.n; // Number of draws
+
+          if (probType === 'less_than') {
+            probability = 0;
+            for (let i = 0; i < x; i++) {
+              probability += hypergeometricPMF(i, N, K, n);
+            }
+          } else if (probType === 'greater_than') {
+            probability = 0;
+            for (let i = Math.ceil(x); i <= Math.min(n, K); i++) {
+              probability += hypergeometricPMF(i, N, K, n);
+            }
+          } else if (probType === 'exactly') {
+            probability = hypergeometricPMF(Math.round(x), N, K, n);
+          } else if (probType === 'between') {
+            probability = 0;
+            for (let i = Math.ceil(lower); i <= Math.floor(upper); i++) {
+              probability += hypergeometricPMF(i, N, K, n);
+            }
+          }
+          break;
+        }
+
         default:
           throw new Error('Distribution type not supported for direct calculation');
       }
@@ -511,13 +670,169 @@ const ProbabilityCalculator = ({
   const poissonPMF = (k, lambda) => {
     // Poisson PMF calculation
     if (k < 0 || lambda <= 0) return 0;
-    
+
     // Using log calculation to avoid overflow
     const logLambda = Math.log(lambda);
     const logResult = k * logLambda - lambda - lnFactorial(k);
     return Math.exp(logResult);
   };
-  
+
+  // Geometric PMF
+  const geometricPMF = (k, p) => {
+    if (k < 1 || p <= 0 || p > 1) return 0;
+    return p * Math.pow(1 - p, k - 1);
+  };
+
+  // Negative Binomial PMF
+  const negativeBinomialPMF = (k, r, p) => {
+    if (k < 0 || r <= 0 || p <= 0 || p > 1) return 0;
+    // P(X = k) = C(k + r - 1, k) * p^r * (1-p)^k
+    const logP = Math.log(p);
+    const log1minusP = Math.log(1 - p);
+    const logResult = lnCombination(k + r - 1, k) + r * logP + k * log1minusP;
+    return Math.exp(logResult);
+  };
+
+  // Hypergeometric PMF
+  const hypergeometricPMF = (k, N, K, n) => {
+    // P(X = k) = C(K, k) * C(N-K, n-k) / C(N, n)
+    if (k < 0 || k > n || k > K || (n - k) > (N - K)) return 0;
+
+    const logNumerator = lnCombination(K, k) + lnCombination(N - K, n - k);
+    const logDenominator = lnCombination(N, n);
+    return Math.exp(logNumerator - logDenominator);
+  };
+
+  // Gamma function using Lanczos approximation
+  const gammaFunc = (z) => {
+    // Lanczos approximation for Gamma function
+    const g = 7;
+    const coef = [
+      0.99999999999980993,
+      676.5203681218851,
+      -1259.1392167224028,
+      771.32342877765313,
+      -176.61502916214059,
+      12.507343278686905,
+      -0.13857109526572012,
+      9.9843695780195716e-6,
+      1.5056327351493116e-7
+    ];
+
+    if (z < 0.5) {
+      return Math.PI / (Math.sin(Math.PI * z) * gammaFunc(1 - z));
+    }
+
+    z -= 1;
+    let x = coef[0];
+    for (let i = 1; i < g + 2; i++) {
+      x += coef[i] / (z + i);
+    }
+
+    const t = z + g + 0.5;
+    return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+  };
+
+  // Regularized incomplete gamma function P(a,x)
+  const gammaRegularizedP = (a, x) => {
+    if (x < 0 || a <= 0) return 0;
+    if (x === 0) return 0;
+    if (x >= a + 1) {
+      return 1 - gammaRegularizedQ(a, x);
+    }
+
+    // Series representation
+    let sum = 1 / a;
+    let term = 1 / a;
+    for (let n = 1; n < 100; n++) {
+      term *= x / (a + n);
+      sum += term;
+      if (Math.abs(term) < 1e-10) break;
+    }
+
+    return sum * Math.exp(-x + a * Math.log(x) - lnGamma(a));
+  };
+
+  // Regularized incomplete gamma function Q(a,x) = 1 - P(a,x)
+  const gammaRegularizedQ = (a, x) => {
+    if (x < 0 || a <= 0) return 1;
+    if (x === 0) return 1;
+
+    // Continued fraction representation
+    let b = x + 1 - a;
+    let c = 1 / 1e-30;
+    let d = 1 / b;
+    let h = d;
+
+    for (let i = 1; i < 100; i++) {
+      const an = -i * (i - a);
+      b += 2;
+      d = an * d + b;
+      if (Math.abs(d) < 1e-30) d = 1e-30;
+      c = b + an / c;
+      if (Math.abs(c) < 1e-30) c = 1e-30;
+      d = 1 / d;
+      const del = d * c;
+      h *= del;
+      if (Math.abs(del - 1) < 1e-10) break;
+    }
+
+    return h * Math.exp(-x + a * Math.log(x) - lnGamma(a));
+  };
+
+  // Log Gamma function
+  const lnGamma = (z) => {
+    return Math.log(gammaFunc(z));
+  };
+
+  // Regularized incomplete beta function I_x(a,b)
+  const betaRegularizedI = (x, a, b) => {
+    if (x < 0 || x > 1) return 0;
+    if (x === 0) return 0;
+    if (x === 1) return 1;
+
+    // Use symmetry relation if needed
+    if (x > (a + 1) / (a + b + 2)) {
+      return 1 - betaRegularizedI(1 - x, b, a);
+    }
+
+    // Continued fraction representation
+    const lnBeta = lnGamma(a) + lnGamma(b) - lnGamma(a + b);
+    const front = Math.exp(a * Math.log(x) + b * Math.log(1 - x) - lnBeta) / a;
+
+    let f = 1;
+    let c = 1;
+    let d = 0;
+
+    for (let m = 0; m <= 100; m++) {
+      let numerator, denominator;
+
+      if (m === 0) {
+        numerator = 1;
+      } else if (m % 2 === 0) {
+        const k = m / 2;
+        numerator = (k * (b - k) * x) / ((a + 2 * k - 1) * (a + 2 * k));
+      } else {
+        const k = (m - 1) / 2;
+        numerator = -((a + k) * (a + b + k) * x) / ((a + 2 * k) * (a + 2 * k + 1));
+      }
+
+      d = 1 + numerator * d;
+      if (Math.abs(d) < 1e-30) d = 1e-30;
+      d = 1 / d;
+
+      c = 1 + numerator / c;
+      if (Math.abs(c) < 1e-30) c = 1e-30;
+
+      const cd = c * d;
+      f *= cd;
+
+      if (Math.abs(cd - 1) < 1e-10) break;
+    }
+
+    return front * f;
+  };
+
   const handleCalculate = async () => {
     setLoading(true);
     setError(null);
