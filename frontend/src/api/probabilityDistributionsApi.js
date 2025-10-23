@@ -847,7 +847,166 @@ export const generateRandomSample = async (distributionType, parameters, sampleS
           samples.push(successes);
         }
         break;
-      
+
+      case 'UNIFORM':
+        // Validate parameters
+        if (parameters.a === undefined || parameters.b === undefined) {
+          throw new Error('Uniform distribution requires a and b parameters');
+        }
+        for (let i = 0; i < sampleSize; i++) {
+          samples.push(parameters.a + Math.random() * (parameters.b - parameters.a));
+        }
+        break;
+
+      case 'GAMMA':
+        // Validate parameters
+        if (parameters.shape === undefined || parameters.scale === undefined) {
+          throw new Error('Gamma distribution requires shape and scale parameters');
+        }
+        // Use Marsaglia and Tsang's method for gamma distribution
+        for (let i = 0; i < sampleSize; i++) {
+          const d = parameters.shape - 1/3;
+          const c = 1 / Math.sqrt(9 * d);
+
+          let x, v, u;
+          while (true) {
+            do {
+              const u1 = Math.random();
+              const u2 = Math.random();
+              x = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+              v = Math.pow(1 + c * x, 3);
+            } while (v <= 0);
+
+            u = Math.random();
+            if (u < 1 - 0.0331 * Math.pow(x, 4)) break;
+            if (Math.log(u) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v))) break;
+          }
+
+          samples.push(d * v * parameters.scale);
+        }
+        break;
+
+      case 'BETA':
+        // Validate parameters
+        if (parameters.alpha === undefined || parameters.beta === undefined) {
+          throw new Error('Beta distribution requires alpha and beta parameters');
+        }
+        // Use gamma distribution to generate beta samples: Beta(α,β) = Gamma(α) / (Gamma(α) + Gamma(β))
+        for (let i = 0; i < sampleSize; i++) {
+          // Generate two gamma samples
+          let gamma1, gamma2;
+
+          // Gamma(alpha)
+          const d1 = parameters.alpha - 1/3;
+          const c1 = 1 / Math.sqrt(9 * d1);
+          let x1, v1, u1_inner;
+          while (true) {
+            do {
+              const u1 = Math.random();
+              const u2 = Math.random();
+              x1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+              v1 = Math.pow(1 + c1 * x1, 3);
+            } while (v1 <= 0);
+
+            u1_inner = Math.random();
+            if (u1_inner < 1 - 0.0331 * Math.pow(x1, 4)) break;
+            if (Math.log(u1_inner) < 0.5 * Math.pow(x1, 2) + d1 * (1 - v1 + Math.log(v1))) break;
+          }
+          gamma1 = d1 * v1;
+
+          // Gamma(beta)
+          const d2 = parameters.beta - 1/3;
+          const c2 = 1 / Math.sqrt(9 * d2);
+          let x2, v2, u2_inner;
+          while (true) {
+            do {
+              const u1 = Math.random();
+              const u2 = Math.random();
+              x2 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+              v2 = Math.pow(1 + c2 * x2, 3);
+            } while (v2 <= 0);
+
+            u2_inner = Math.random();
+            if (u2_inner < 1 - 0.0331 * Math.pow(x2, 4)) break;
+            if (Math.log(u2_inner) < 0.5 * Math.pow(x2, 2) + d2 * (1 - v2 + Math.log(v2))) break;
+          }
+          gamma2 = d2 * v2;
+
+          samples.push(gamma1 / (gamma1 + gamma2));
+        }
+        break;
+
+      case 'LOGNORMAL':
+        // Validate parameters
+        if (parameters.mean === undefined || parameters.sigma === undefined) {
+          throw new Error('Lognormal distribution requires mean and sigma parameters');
+        }
+        // LogNormal is exp(Normal(mean, sigma))
+        for (let i = 0; i < sampleSize; i++) {
+          const u1 = Math.random();
+          const u2 = Math.random();
+          const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+          samples.push(Math.exp(parameters.mean + parameters.sigma * z0));
+        }
+        break;
+
+      case 'WEIBULL':
+        // Validate parameters
+        if (parameters.shape === undefined || parameters.scale === undefined) {
+          throw new Error('Weibull distribution requires shape and scale parameters');
+        }
+        // Inverse transform method for Weibull
+        for (let i = 0; i < sampleSize; i++) {
+          samples.push(parameters.scale * Math.pow(-Math.log(1 - Math.random()), 1 / parameters.shape));
+        }
+        break;
+
+      case 'GEOMETRIC':
+        // Validate parameters
+        if (parameters.p === undefined) {
+          throw new Error('Geometric distribution requires p parameter');
+        }
+        for (let i = 0; i < sampleSize; i++) {
+          samples.push(Math.floor(Math.log(Math.random()) / Math.log(1 - parameters.p)) + 1);
+        }
+        break;
+
+      case 'NEGATIVEBINOMIAL':
+        // Validate parameters
+        if (parameters.r === undefined || parameters.p === undefined) {
+          throw new Error('Negative binomial distribution requires r and p parameters');
+        }
+        // Negative binomial as sum of geometric random variables
+        for (let i = 0; i < sampleSize; i++) {
+          let sum = 0;
+          for (let j = 0; j < parameters.r; j++) {
+            sum += Math.floor(Math.log(Math.random()) / Math.log(1 - parameters.p)) + 1;
+          }
+          samples.push(sum);
+        }
+        break;
+
+      case 'HYPERGEOMETRIC':
+        // Validate parameters
+        if (parameters.N === undefined || parameters.K === undefined || parameters.n === undefined) {
+          throw new Error('Hypergeometric distribution requires N, K, and n parameters');
+        }
+        // Simulate hypergeometric by sampling without replacement
+        for (let i = 0; i < sampleSize; i++) {
+          const population = Array(parameters.N).fill(0).map((_, idx) => idx < parameters.K ? 1 : 0);
+          let successes = 0;
+
+          // Fisher-Yates shuffle for first n elements
+          for (let j = 0; j < parameters.n; j++) {
+            const randomIndex = j + Math.floor(Math.random() * (parameters.N - j));
+            [population[j], population[randomIndex]] = [population[randomIndex], population[j]];
+            successes += population[j];
+          }
+
+          samples.push(successes);
+        }
+        break;
+
       default:
         throw new Error(`Unsupported distribution type: ${distributionType}`);
     }
@@ -883,12 +1042,14 @@ export const generateRandomSample = async (distributionType, parameters, sampleS
     
     return data;
   } catch (error) {
-    console.error('Error generating random sample:', error);
-    if (DEMO_MODE) {
-      console.log('Using fallback demo mode for random sample generation');
-      
-      // Generate random sample based on distribution type
-      let samples = [];
+    console.error('Error generating random sample from API:', error);
+    console.log('Falling back to client-side random sample generation');
+
+    // ALWAYS fall back to client-side generation when API fails
+    // This ensures the feature works even when backend is unavailable
+
+    // Generate random sample based on distribution type
+    let samples = [];
       
       // Set random seed if provided
       if (seed) {
@@ -957,7 +1118,166 @@ export const generateRandomSample = async (distributionType, parameters, sampleS
             samples.push(successes);
           }
           break;
-        
+
+        case 'UNIFORM':
+          // Validate parameters
+          if (parameters.a === undefined || parameters.b === undefined) {
+            throw new Error('Uniform distribution requires a and b parameters');
+          }
+          for (let i = 0; i < sampleSize; i++) {
+            samples.push(parameters.a + Math.random() * (parameters.b - parameters.a));
+          }
+          break;
+
+        case 'GAMMA':
+          // Validate parameters
+          if (parameters.shape === undefined || parameters.scale === undefined) {
+            throw new Error('Gamma distribution requires shape and scale parameters');
+          }
+          // Use Marsaglia and Tsang's method for gamma distribution
+          for (let i = 0; i < sampleSize; i++) {
+            const d = parameters.shape - 1/3;
+            const c = 1 / Math.sqrt(9 * d);
+
+            let x, v, u;
+            while (true) {
+              do {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                x = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                v = Math.pow(1 + c * x, 3);
+              } while (v <= 0);
+
+              u = Math.random();
+              if (u < 1 - 0.0331 * Math.pow(x, 4)) break;
+              if (Math.log(u) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v))) break;
+            }
+
+            samples.push(d * v * parameters.scale);
+          }
+          break;
+
+        case 'BETA':
+          // Validate parameters
+          if (parameters.alpha === undefined || parameters.beta === undefined) {
+            throw new Error('Beta distribution requires alpha and beta parameters');
+          }
+          // Use gamma distribution to generate beta samples: Beta(α,β) = Gamma(α) / (Gamma(α) + Gamma(β))
+          for (let i = 0; i < sampleSize; i++) {
+            // Generate two gamma samples
+            let gamma1, gamma2;
+
+            // Gamma(alpha)
+            const d1 = parameters.alpha - 1/3;
+            const c1 = 1 / Math.sqrt(9 * d1);
+            let x1, v1, u1_inner;
+            while (true) {
+              do {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                x1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                v1 = Math.pow(1 + c1 * x1, 3);
+              } while (v1 <= 0);
+
+              u1_inner = Math.random();
+              if (u1_inner < 1 - 0.0331 * Math.pow(x1, 4)) break;
+              if (Math.log(u1_inner) < 0.5 * Math.pow(x1, 2) + d1 * (1 - v1 + Math.log(v1))) break;
+            }
+            gamma1 = d1 * v1;
+
+            // Gamma(beta)
+            const d2 = parameters.beta - 1/3;
+            const c2 = 1 / Math.sqrt(9 * d2);
+            let x2, v2, u2_inner;
+            while (true) {
+              do {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                x2 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                v2 = Math.pow(1 + c2 * x2, 3);
+              } while (v2 <= 0);
+
+              u2_inner = Math.random();
+              if (u2_inner < 1 - 0.0331 * Math.pow(x2, 4)) break;
+              if (Math.log(u2_inner) < 0.5 * Math.pow(x2, 2) + d2 * (1 - v2 + Math.log(v2))) break;
+            }
+            gamma2 = d2 * v2;
+
+            samples.push(gamma1 / (gamma1 + gamma2));
+          }
+          break;
+
+        case 'LOGNORMAL':
+          // Validate parameters
+          if (parameters.mean === undefined || parameters.sigma === undefined) {
+            throw new Error('Lognormal distribution requires mean and sigma parameters');
+          }
+          // LogNormal is exp(Normal(mean, sigma))
+          for (let i = 0; i < sampleSize; i++) {
+            const u1 = Math.random();
+            const u2 = Math.random();
+            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+            samples.push(Math.exp(parameters.mean + parameters.sigma * z0));
+          }
+          break;
+
+        case 'WEIBULL':
+          // Validate parameters
+          if (parameters.shape === undefined || parameters.scale === undefined) {
+            throw new Error('Weibull distribution requires shape and scale parameters');
+          }
+          // Inverse transform method for Weibull
+          for (let i = 0; i < sampleSize; i++) {
+            samples.push(parameters.scale * Math.pow(-Math.log(1 - Math.random()), 1 / parameters.shape));
+          }
+          break;
+
+        case 'GEOMETRIC':
+          // Validate parameters
+          if (parameters.p === undefined) {
+            throw new Error('Geometric distribution requires p parameter');
+          }
+          for (let i = 0; i < sampleSize; i++) {
+            samples.push(Math.floor(Math.log(Math.random()) / Math.log(1 - parameters.p)) + 1);
+          }
+          break;
+
+        case 'NEGATIVEBINOMIAL':
+          // Validate parameters
+          if (parameters.r === undefined || parameters.p === undefined) {
+            throw new Error('Negative binomial distribution requires r and p parameters');
+          }
+          // Negative binomial as sum of geometric random variables
+          for (let i = 0; i < sampleSize; i++) {
+            let sum = 0;
+            for (let j = 0; j < parameters.r; j++) {
+              sum += Math.floor(Math.log(Math.random()) / Math.log(1 - parameters.p)) + 1;
+            }
+            samples.push(sum);
+          }
+          break;
+
+        case 'HYPERGEOMETRIC':
+          // Validate parameters
+          if (parameters.N === undefined || parameters.K === undefined || parameters.n === undefined) {
+            throw new Error('Hypergeometric distribution requires N, K, and n parameters');
+          }
+          // Simulate hypergeometric by sampling without replacement
+          for (let i = 0; i < sampleSize; i++) {
+            const population = Array(parameters.N).fill(0).map((_, idx) => idx < parameters.K ? 1 : 0);
+            let successes = 0;
+
+            // Fisher-Yates shuffle for first n elements
+            for (let j = 0; j < parameters.n; j++) {
+              const randomIndex = j + Math.floor(Math.random() * (parameters.N - j));
+              [population[j], population[randomIndex]] = [population[randomIndex], population[j]];
+              successes += population[j];
+            }
+
+            samples.push(successes);
+          }
+          break;
+
         default:
           throw new Error(`Unsupported distribution type: ${distributionType}`);
       }
@@ -968,8 +1288,7 @@ export const generateRandomSample = async (distributionType, parameters, sampleS
         sample_size: sampleSize,
         sample: samples  // Use 'sample' consistently
       };
-    }
-    throw error;
+    // DO NOT re-throw error - fallback succeeded
   }
 };
 

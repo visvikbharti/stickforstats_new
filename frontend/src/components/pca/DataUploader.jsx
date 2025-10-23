@@ -109,24 +109,19 @@ const DataUploader = ({ projectId, onDataUploaded, onNext }) => {
         await new Promise(resolve => setTimeout(resolve, 800));
       }
       
-      setSuccess('Data uploaded successfully');
+      setSuccess('Data uploaded successfully! You can now proceed to configure sample groups.');
       setFile(null);
       setFilePreview(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      
+
       // Call the callback with the new project data
       if (onDataUploaded) {
         onDataUploaded(response.project_id);
       }
-      
-      // Proceed to next step
-      if (onNext) {
-        setTimeout(() => {
-          onNext();
-        }, 1500);
-      }
+
+      // Don't auto-proceed - let user click Continue button
       
     } catch (err) {
       console.error('PCA upload error:', err);
@@ -153,20 +148,16 @@ const DataUploader = ({ projectId, onDataUploaded, onNext }) => {
         project_description: projectDescription || 'Demo PCA project with gene expression data',
         scaling_method: scalingMethod
       });
-      
-      setSuccess('Demo project created successfully');
-      
+
+      const modeText = response.message && response.message.includes('offline') ? ' (Offline Mode)' : '';
+      setSuccess(`Demo project created successfully${modeText}! You can now proceed to configure sample groups.`);
+
       // Call the callback with the new project data
       if (onDataUploaded) {
         onDataUploaded(response.project_id);
       }
-      
-      // Proceed to next step
-      if (onNext) {
-        setTimeout(() => {
-          onNext();
-        }, 1500);
-      }
+
+      // Don't auto-proceed - let user click Continue button
       
     } catch (err) {
       setError(`Demo project creation failed: ${err.message}`);
@@ -346,28 +337,39 @@ const DataUploader = ({ projectId, onDataUploaded, onNext }) => {
       
       <Divider sx={{ my: 4 }} />
       
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          {loading ? "Processing..." : "Upload gene expression data to continue"}
+          {loading ? "Processing..." : success ? "Data uploaded successfully!" : "Upload gene expression data to continue"}
         </Typography>
-        
-        <Box>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleUpload}
-            disabled={loading || (!file && !projectId)}
-            sx={{ mr: 2 }}
-          >
-            {loading ? <CircularProgress size={24} /> : "Upload Data"}
-          </Button>
-          
-          <Button 
+
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {!success && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpload}
+              disabled={loading || (!file && !projectId)}
+            >
+              {loading ? <CircularProgress size={24} /> : "Upload Data"}
+            </Button>
+          )}
+
+          {success && (
+            <Button
+              variant="contained"
+              color="success"
+              onClick={onNext}
+            >
+              Continue to Sample Groups
+            </Button>
+          )}
+
+          <Button
             variant="outlined"
             onClick={onNext}
             disabled={loading}
           >
-            Skip
+            {success ? 'Continue Anyway' : 'Skip'}
           </Button>
         </Box>
       </Box>

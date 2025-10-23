@@ -31,6 +31,7 @@ import {
   Scatter,
   LineChart,
   Line,
+  ComposedChart,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -88,6 +89,19 @@ const RelationshipAnalysis = ({ data }) => {
   }, [data, xColumn, yColumn, colorColumn]);
 
   /**
+   * Calculate data validation metrics
+   */
+  const dataValidation = useMemo(() => {
+    if (!xColumn || !yColumn || !data) return { totalRows: 0, validRows: 0, excludedRows: 0 };
+
+    const totalRows = data.length;
+    const validRows = plotData.length;
+    const excludedRows = totalRows - validRows;
+
+    return { totalRows, validRows, excludedRows };
+  }, [data, xColumn, yColumn, plotData]);
+
+  /**
    * Calculate correlation
    */
   const correlation = useMemo(() => {
@@ -124,13 +138,51 @@ const RelationshipAnalysis = ({ data }) => {
   }, [regression, plotData]);
 
   /**
+   * Detect if color column is continuous numeric
+   */
+  const isColorColumnContinuous = useMemo(() => {
+    if (!colorColumn || !data || data.length === 0) return false;
+    const sampleValue = data[0][colorColumn];
+    if (typeof sampleValue !== 'number') return false;
+
+    // If numeric, check unique values ratio
+    const unique = [...new Set(data.map(row => row[colorColumn]))].filter(v => v !== null && v !== undefined);
+    const uniqueRatio = unique.length / data.length;
+
+    // If >30% unique values, consider it continuous
+    return uniqueRatio > 0.3;
+  }, [data, colorColumn]);
+
+  /**
    * Get unique color values for grouping
    */
   const colorGroups = useMemo(() => {
     if (!colorColumn || !data) return [];
+
+    // For continuous variables, bin into quartiles
+    if (isColorColumnContinuous) {
+      const values = data.map(row => row[colorColumn]).filter(v => typeof v === 'number' && !isNaN(v));
+      if (values.length === 0) return [];
+
+      const sorted = [...values].sort((a, b) => a - b);
+      const q1 = sorted[Math.floor(sorted.length * 0.25)];
+      const q2 = sorted[Math.floor(sorted.length * 0.5)];
+      const q3 = sorted[Math.floor(sorted.length * 0.75)];
+      const min = sorted[0];
+      const max = sorted[sorted.length - 1];
+
+      return [
+        { label: `Low (${min.toFixed(1)}-${q1.toFixed(1)})`, min, max: q1 },
+        { label: `Med-Low (${q1.toFixed(1)}-${q2.toFixed(1)})`, min: q1, max: q2 },
+        { label: `Med-High (${q2.toFixed(1)}-${q3.toFixed(1)})`, min: q2, max: q3 },
+        { label: `High (${q3.toFixed(1)}-${max.toFixed(1)})`, min: q3, max }
+      ];
+    }
+
+    // For categorical variables
     const unique = [...new Set(data.map(row => row[colorColumn]))].filter(v => v !== null && v !== undefined);
     return unique.slice(0, 10); // Limit to 10 colors
-  }, [data, colorColumn]);
+  }, [data, colorColumn, isColorColumnContinuous]);
 
   /**
    * Group data by color
@@ -138,11 +190,23 @@ const RelationshipAnalysis = ({ data }) => {
   const groupedData = useMemo(() => {
     if (!colorColumn || colorGroups.length === 0) return [{ name: 'Data', data: plotData }];
 
+    // For continuous variables (binned into quartiles)
+    if (isColorColumnContinuous) {
+      return colorGroups.map(group => ({
+        name: group.label,
+        data: plotData.filter(d => {
+          const value = d.color;
+          return typeof value === 'number' && value >= group.min && value <= group.max;
+        })
+      }));
+    }
+
+    // For categorical variables
     return colorGroups.map(group => ({
       name: String(group),
       data: plotData.filter(d => d.color === group)
     }));
-  }, [plotData, colorColumn, colorGroups]);
+  }, [plotData, colorColumn, colorGroups, isColorColumnContinuous]);
 
   /**
    * Color palette
@@ -200,41 +264,48 @@ const RelationshipAnalysis = ({ data }) => {
         );
 
       case 'line':
-        // Sort data by x value for line plot
-        const sortedData = [...plotData].sort((a, b) => a.x - b.x);
-
         return (
           <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={sortedData}>
+            <LineChart>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
+                type="number"
                 dataKey="x"
                 label={{ value: xColumn, position: 'insideBottom', offset: -5 }}
+                domain={['dataMin', 'dataMax']}
               />
               <YAxis
+                type="number"
+                dataKey="y"
                 label={{ value: yColumn, angle: -90, position: 'insideLeft' }}
               />
               <Tooltip />
               <Legend />
               {colorColumn ? (
-                groupedData.map((group, idx) => (
-                  <Line
-                    key={group.name}
-                    type="monotone"
-                    data={group.data.sort((a, b) => a.x - b.x)}
-                    dataKey="y"
-                    stroke={colors[idx % colors.length]}
-                    name={group.name}
-                    strokeWidth={2}
-                  />
-                ))
+                groupedData.map((group, idx) => {
+                  const sortedGroupData = [...group.data].sort((a, b) => a.x - b.x);
+                  return (
+                    <Line
+                      key={group.name}
+                      type="monotone"
+                      data={sortedGroupData}
+                      dataKey="y"
+                      stroke={colors[idx % colors.length]}
+                      name={group.name}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  );
+                })
               ) : (
                 <Line
                   type="monotone"
+                  data={[...plotData].sort((a, b) => a.x - b.x)}
                   dataKey="y"
                   stroke="#1976d2"
                   strokeWidth={2}
                   name={yColumn}
+                  dot={{ r: 3 }}
                 />
               )}
             </LineChart>
@@ -313,33 +384,51 @@ const RelationshipAnalysis = ({ data }) => {
         return (
           <Box>
             <ResponsiveContainer width="100%" height={500}>
-              <ScatterChart>
+              <ComposedChart>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   type="number"
                   dataKey="x"
                   name={xColumn}
                   label={{ value: xColumn, position: 'insideBottom', offset: -5 }}
+                  domain={['dataMin', 'dataMax']}
                 />
                 <YAxis
                   type="number"
                   dataKey="y"
                   name={yColumn}
                   label={{ value: yColumn, angle: -90, position: 'insideLeft' }}
+                  domain={['auto', 'auto']}
                 />
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                 <Legend />
-                <Scatter data={plotData} fill="#1976d2" name="Data Points" />
+
+                {/* Scatter points with color grouping support */}
+                {colorColumn ? (
+                  groupedData.map((group, idx) => (
+                    <Scatter
+                      key={group.name}
+                      name={group.name}
+                      data={group.data}
+                      fill={colors[idx % colors.length]}
+                    />
+                  ))
+                ) : (
+                  <Scatter data={plotData} fill="#1976d2" name="Data Points" />
+                )}
+
+                {/* Regression line */}
                 <Line
                   type="monotone"
                   data={regressionLineData}
                   dataKey="y"
                   stroke="#ff5722"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={false}
+                  strokeDasharray="5 5"
                   name={`Trendline (R² = ${regression.rSquared.toFixed(3)})`}
                 />
-              </ScatterChart>
+              </ComposedChart>
             </ResponsiveContainer>
 
             {/* Regression statistics */}

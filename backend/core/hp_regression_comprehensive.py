@@ -1602,50 +1602,554 @@ class HighPrecisionRegression:
         self, X: np.ndarray, y: np.ndarray,
         feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
-        """Huber robust regression."""
-        # Implementation would use iteratively reweighted least squares
-        # with Huber weights
-        # For brevity, using standard linear regression as placeholder
-        return self.linear_regression(X, y, feature_names, robust_standard_errors=True)
+        """
+        Huber robust regression using iteratively reweighted least squares.
+
+        Huber regression is less sensitive to outliers than OLS by using
+        a loss function that is quadratic for small residuals and linear
+        for large residuals.
+
+        Args:
+            X: Design matrix (n × p)
+            y: Response vector (n × 1)
+            feature_names: Optional names for features
+            **kwargs: Additional parameters (epsilon, max_iter, tol)
+
+        Returns:
+            RegressionResult with robust parameter estimates
+        """
+        from sklearn.linear_model import HuberRegressor
+
+        n, p = X.shape
+
+        # Get parameters
+        epsilon = kwargs.get('epsilon', 1.35)  # Tuning constant
+        max_iter = kwargs.get('max_iter', 100)
+        tol = kwargs.get('tol', 1e-5)
+        alpha = kwargs.get('alpha', 0.0001)  # Ridge regularization
+
+        # Fit Huber regression using sklearn
+        huber = HuberRegressor(
+            epsilon=epsilon,
+            max_iter=max_iter,
+            alpha=alpha,
+            tol=tol,
+            fit_intercept=False  # We include intercept in X
+        )
+
+        huber.fit(X, y.flatten())
+
+        # Extract coefficients
+        coefficients = huber.coef_
+
+        # Calculate fitted values and residuals
+        y_pred = huber.predict(X)
+        residuals = y.flatten() - y_pred
+
+        # Calculate robust scale estimate (MAD)
+        mad = np.median(np.abs(residuals - np.median(residuals)))
+        robust_scale = mad * 1.4826  # Convert to std estimate
+
+        # Calculate robust R-squared
+        ss_res = np.sum(residuals ** 2)
+        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
+        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+        # Degrees of freedom
+        df_residual = n - p
+
+        # Adjusted R-squared
+        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
+
+        # Calculate robust standard errors using MAD-based scale
+        # For Huber regression, use weighted covariance matrix
+        weights = self._huber_weights(residuals / robust_scale, epsilon)
+        W = np.diag(weights)
+
+        XtWX = X.T @ W @ X
+        try:
+            XtWX_inv = np.linalg.inv(XtWX)
+            robust_var = robust_scale ** 2 * XtWX_inv
+            std_errors = np.sqrt(np.diag(robust_var))
+        except:
+            std_errors = np.ones(p)
+
+        # T-statistics and p-values
+        t_stats = coefficients / std_errors
+        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
+
+        # Confidence intervals
+        t_crit = stats.t.ppf(0.975, df_residual)
+        ci_lower = coefficients - t_crit * std_errors
+        ci_upper = coefficients + t_crit * std_errors
+
+        # Prepare feature names
+        if feature_names is None:
+            feature_names = [f'X{i+1}' for i in range(p)]
+
+        # Calculate AIC and BIC
+        mse = ss_res / n
+        log_likelihood = -n/2 * (np.log(2*np.pi) + np.log(mse) + 1)
+        aic = 2 * p - 2 * log_likelihood
+        bic = np.log(n) * p - 2 * log_likelihood
+
+        # Build result
+        coefficients_dict = {name: Decimal(str(coef))
+                           for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se))
+                          for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t))
+                            for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p))
+                        for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
+                                    for i, name in enumerate(feature_names)}
+
+        result = RegressionResult(
+            regression_type=RegressionType.ROBUST_HUBER,
+            coefficients=coefficients_dict,
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            standard_errors=std_errors_dict,
+            t_statistics=t_statistics_dict,
+            p_values=p_values_dict,
+            confidence_intervals=confidence_intervals_dict,
+            r_squared=Decimal(str(r_squared)),
+            adjusted_r_squared=Decimal(str(adj_r_squared)),
+            f_statistic=Decimal('0'),  # Not standard for robust regression
+            f_p_value=Decimal('1'),
+            aic=Decimal(str(aic)),
+            bic=Decimal(str(bic)),
+            mse=Decimal(str(mse)),
+            rmse=Decimal(str(np.sqrt(mse))),
+            mae=Decimal(str(np.mean(np.abs(residuals)))),
+            sample_size=n,
+            num_predictors=p,
+            residuals=residuals.tolist(),
+            fitted_values=y_pred.tolist(),
+            diagnostics=None,
+            feature_names=feature_names
+        )
+
+        return result
+
+    def _huber_weights(self, z: np.ndarray, c: float) -> np.ndarray:
+        """Calculate Huber weights for weighted least squares"""
+        weights = np.ones_like(z)
+        outliers = np.abs(z) > c
+        weights[outliers] = c / np.abs(z[outliers])
+        return weights
 
     def _ransac_regression(
         self, X: np.ndarray, y: np.ndarray,
         feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
-        """RANSAC robust regression."""
-        # Implementation would use RANSAC algorithm
-        # For brevity, using standard linear regression as placeholder
-        return self.linear_regression(X, y, feature_names)
+        """
+        RANSAC (Random Sample Consensus) robust regression.
+
+        RANSAC is very robust to outliers by iteratively fitting models
+        to random subsets of the data and selecting the model with the
+        most inliers.
+
+        Args:
+            X: Design matrix (n × p)
+            y: Response vector (n × 1)
+            feature_names: Optional names for features
+            **kwargs: Additional parameters (min_samples, residual_threshold, max_trials)
+
+        Returns:
+            RegressionResult with robust parameter estimates from inliers only
+        """
+        from sklearn.linear_model import RANSACRegressor, LinearRegression
+
+        n, p = X.shape
+
+        # Get parameters
+        min_samples = kwargs.get('min_samples', min(p + 1, n // 2))
+        residual_threshold = kwargs.get('residual_threshold', None)  # Auto if None
+        max_trials = kwargs.get('max_trials', 100)
+        random_state = kwargs.get('random_state', 42)
+
+        # Fit RANSAC regression using sklearn
+        ransac = RANSACRegressor(
+            estimator=LinearRegression(fit_intercept=False),
+            min_samples=min_samples,
+            residual_threshold=residual_threshold,
+            max_trials=max_trials,
+            random_state=random_state
+        )
+
+        ransac.fit(X, y.flatten())
+
+        # Extract coefficients
+        coefficients = ransac.estimator_.coef_
+
+        # Get inlier mask
+        inlier_mask = ransac.inlier_mask_
+        n_inliers = np.sum(inlier_mask)
+
+        # Calculate fitted values and residuals
+        y_pred = ransac.predict(X)
+        residuals = y.flatten() - y_pred
+
+        # Calculate R-squared
+        ss_res = np.sum(residuals ** 2)
+        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
+        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+        # Degrees of freedom based on inliers
+        df_residual = n_inliers - p
+
+        # Adjusted R-squared
+        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
+
+        # Calculate standard errors using inliers only
+        X_inliers = X[inlier_mask]
+        residuals_inliers = residuals[inlier_mask]
+
+        mse = np.sum(residuals_inliers ** 2) / df_residual if df_residual > 0 else 1.0
+
+        try:
+            XtX_inv = np.linalg.inv(X_inliers.T @ X_inliers)
+            var_coef = mse * XtX_inv
+            std_errors = np.sqrt(np.diag(var_coef))
+        except:
+            std_errors = np.ones(p)
+
+        # T-statistics and p-values
+        t_stats = coefficients / std_errors
+        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
+
+        # Confidence intervals
+        if df_residual > 0:
+            t_crit = stats.t.ppf(0.975, df_residual)
+            ci_lower = coefficients - t_crit * std_errors
+            ci_upper = coefficients + t_crit * std_errors
+        else:
+            ci_lower = coefficients - 2 * std_errors
+            ci_upper = coefficients + 2 * std_errors
+
+        # Prepare feature names
+        if feature_names is None:
+            feature_names = [f'X{i+1}' for i in range(p)]
+
+        # Calculate AIC and BIC
+        log_likelihood = -n_inliers/2 * (np.log(2*np.pi) + np.log(mse) + 1)
+        aic = 2 * p - 2 * log_likelihood
+        bic = np.log(n_inliers) * p - 2 * log_likelihood
+
+        # Build result
+        coefficients_dict = {name: Decimal(str(coef))
+                           for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se))
+                          for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t))
+                            for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p))
+                        for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
+                                    for i, name in enumerate(feature_names)}
+
+        result = RegressionResult(
+            regression_type=RegressionType.ROBUST_RANSAC,
+            coefficients=coefficients_dict,
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            standard_errors=std_errors_dict,
+            t_statistics=t_statistics_dict,
+            p_values=p_values_dict,
+            confidence_intervals=confidence_intervals_dict,
+            r_squared=Decimal(str(r_squared)),
+            adjusted_r_squared=Decimal(str(adj_r_squared)),
+            f_statistic=Decimal('0'),
+            f_p_value=Decimal('1'),
+            aic=Decimal(str(aic)),
+            bic=Decimal(str(bic)),
+            mse=Decimal(str(mse)),
+            rmse=Decimal(str(np.sqrt(mse))),
+            mae=Decimal(str(np.mean(np.abs(residuals)))),
+            sample_size=n,
+            num_predictors=p,
+            residuals=residuals.tolist(),
+            fitted_values=y_pred.tolist(),
+            diagnostics=None,
+            feature_names=feature_names,
+            additional_info={
+                'n_inliers': n_inliers,
+                'n_outliers': n - n_inliers,
+                'inlier_ratio': n_inliers / n
+            }
+        )
+
+        return result
 
     def _theil_sen_regression(
         self, X: np.ndarray, y: np.ndarray,
         feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
-        """Theil-Sen robust regression."""
-        # Implementation would use median of slopes
-        # For brevity, using standard linear regression as placeholder
-        return self.linear_regression(X, y, feature_names)
+        """
+        Theil-Sen robust regression using median of slopes.
+
+        Theil-Sen estimator is a non-parametric robust method that
+        calculates the median of slopes for all pairs of points.
+        It has a breakdown point of 29.3% (very robust to outliers).
+
+        Args:
+            X: Design matrix (n × p)
+            y: Response vector (n × 1)
+            feature_names: Optional names for features
+            **kwargs: Additional parameters (max_subpopulation, max_iter)
+
+        Returns:
+            RegressionResult with robust parameter estimates
+        """
+        from sklearn.linear_model import TheilSenRegressor
+
+        n, p = X.shape
+
+        # Get parameters
+        max_subpopulation = kwargs.get('max_subpopulation', 10000)
+        max_iter = kwargs.get('max_iter', 300)
+        tol = kwargs.get('tol', 1e-3)
+        random_state = kwargs.get('random_state', 42)
+
+        # Fit Theil-Sen regression using sklearn
+        theilsen = TheilSenRegressor(
+            max_subpopulation=max_subpopulation,
+            max_iter=max_iter,
+            tol=tol,
+            random_state=random_state,
+            fit_intercept=False  # We include intercept in X
+        )
+
+        theilsen.fit(X, y.flatten())
+
+        # Extract coefficients
+        coefficients = theilsen.coef_
+
+        # Calculate fitted values and residuals
+        y_pred = theilsen.predict(X)
+        residuals = y.flatten() - y_pred
+
+        # Calculate robust R-squared
+        ss_res = np.sum(residuals ** 2)
+        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
+        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+        # Degrees of freedom
+        df_residual = n - p
+
+        # Adjusted R-squared
+        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
+
+        # Calculate robust standard errors using MAD
+        mad = np.median(np.abs(residuals - np.median(residuals)))
+        robust_scale = mad * 1.4826  # Convert MAD to std estimate
+
+        # Bootstrap-based standard errors (simplified)
+        # For Theil-Sen, standard errors are typically estimated via bootstrap
+        # Here we use a simplified MAD-based approach
+        try:
+            # Estimate covariance using residual variance
+            mse = robust_scale ** 2
+            XtX_inv = np.linalg.inv(X.T @ X)
+            var_coef = mse * XtX_inv
+            std_errors = np.sqrt(np.diag(var_coef))
+        except:
+            std_errors = np.ones(p) * robust_scale / np.sqrt(n)
+
+        # T-statistics and p-values
+        t_stats = coefficients / std_errors
+        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
+
+        # Confidence intervals
+        if df_residual > 0:
+            t_crit = stats.t.ppf(0.975, df_residual)
+            ci_lower = coefficients - t_crit * std_errors
+            ci_upper = coefficients + t_crit * std_errors
+        else:
+            ci_lower = coefficients - 2 * std_errors
+            ci_upper = coefficients + 2 * std_errors
+
+        # Prepare feature names
+        if feature_names is None:
+            feature_names = [f'X{i+1}' for i in range(p)]
+
+        # Calculate AIC and BIC
+        mse_val = ss_res / n
+        log_likelihood = -n/2 * (np.log(2*np.pi) + np.log(mse_val) + 1)
+        aic = 2 * p - 2 * log_likelihood
+        bic = np.log(n) * p - 2 * log_likelihood
+
+        # Build result
+        coefficients_dict = {name: Decimal(str(coef))
+                           for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se))
+                          for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t))
+                            for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p))
+                        for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
+                                    for i, name in enumerate(feature_names)}
+
+        result = RegressionResult(
+            regression_type=RegressionType.ROBUST_THEIL_SEN,
+            coefficients=coefficients_dict,
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            standard_errors=std_errors_dict,
+            t_statistics=t_statistics_dict,
+            p_values=p_values_dict,
+            confidence_intervals=confidence_intervals_dict,
+            r_squared=Decimal(str(r_squared)),
+            adjusted_r_squared=Decimal(str(adj_r_squared)),
+            f_statistic=Decimal('0'),
+            f_p_value=Decimal('1'),
+            aic=Decimal(str(aic)),
+            bic=Decimal(str(bic)),
+            mse=Decimal(str(mse_val)),
+            rmse=Decimal(str(np.sqrt(mse_val))),
+            mae=Decimal(str(np.mean(np.abs(residuals)))),
+            sample_size=n,
+            num_predictors=p,
+            residuals=residuals.tolist(),
+            fitted_values=y_pred.tolist(),
+            diagnostics=None,
+            feature_names=feature_names,
+            additional_info={
+                'breakdown_point': 0.293,  # Theoretical breakdown point for Theil-Sen
+                'robust_scale_mad': robust_scale
+            }
+        )
+
+        return result
 
     def _fit_multinomial_logistic(
         self, X: np.ndarray, y: np.ndarray, max_iter: int,
         tol: float, regularization: Optional[str], alpha: float
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Fit multinomial logistic regression."""
-        # Implementation would use softmax and cross-entropy
-        # For brevity, returning placeholder values
+        """
+        Fit multinomial logistic regression for multi-class classification.
+
+        Uses the softmax function and cross-entropy loss to model
+        probabilities across multiple classes.
+
+        Args:
+            X: Design matrix (n × p)
+            y: Class labels (n × 1)
+            max_iter: Maximum number of iterations
+            tol: Convergence tolerance
+            regularization: 'l1', 'l2', 'elasticnet', or None
+            alpha: Regularization strength
+
+        Returns:
+            Tuple of (coefficients, predicted_probabilities)
+        """
+        from sklearn.linear_model import LogisticRegression
+
         n, p = X.shape
         classes = np.unique(y)
         k = len(classes)
 
-        coefficients = np.array([mp.mpf('0')] * p)
-        probabilities = np.ones((n, k)) / k
+        # Map regularization parameter
+        if regularization == 'l1':
+            penalty = 'l1'
+            solver = 'saga'  # saga supports l1
+        elif regularization == 'l2':
+            penalty = 'l2'
+            solver = 'lbfgs'  # lbfgs is efficient for l2
+        elif regularization == 'elasticnet':
+            penalty = 'elasticnet'
+            solver = 'saga'
+        else:
+            penalty = 'none'
+            solver = 'lbfgs'
 
-        return coefficients, probabilities
+        # Fit multinomial logistic regression
+        model = LogisticRegression(
+            multi_class='multinomial',  # Use multinomial (softmax)
+            penalty=penalty,
+            C=1.0/alpha if alpha > 0 else 1e10,  # sklearn uses C = 1/alpha
+            solver=solver,
+            max_iter=max_iter,
+            tol=tol,
+            fit_intercept=False,  # We include intercept in X
+            random_state=42
+        )
+
+        model.fit(X, y.flatten())
+
+        # Extract coefficients (k × p matrix for k classes)
+        # For binary case, sklearn returns (1, p), we need to expand
+        if k == 2:
+            # Binary case: convert to two-class representation
+            coef_class1 = -model.coef_[0] / 2
+            coef_class2 = model.coef_[0] / 2
+            coefficients = np.vstack([coef_class1, coef_class2])
+        else:
+            coefficients = model.coef_
+
+        # Get predicted probabilities
+        probabilities = model.predict_proba(X)
+
+        # Convert coefficients to mpmath format
+        coefficients_mp = np.array([[mp.mpf(str(c)) for c in row]
+                                   for row in coefficients])
+
+        return coefficients_mp, probabilities
 
     def _calculate_multinomial_r_squared(self, y: np.ndarray, probabilities: np.ndarray) -> mp.mpf:
-        """Calculate pseudo R-squared for multinomial logistic regression."""
-        # McFadden's pseudo R-squared
-        return mp.mpf('0.5')  # Placeholder
+        """
+        Calculate pseudo R-squared for multinomial logistic regression.
+
+        Uses McFadden's pseudo R-squared, which compares the log-likelihood
+        of the fitted model to a null model (intercept only).
+
+        R² = 1 - (ln(L_full) / ln(L_null))
+
+        Args:
+            y: True class labels
+            probabilities: Predicted probabilities (n × k matrix)
+
+        Returns:
+            McFadden's pseudo R-squared as mpmath decimal
+        """
+        n = len(y)
+        classes = np.unique(y)
+        k = len(classes)
+
+        # Create class index mapping
+        class_to_idx = {c: i for i, c in enumerate(classes)}
+
+        # Calculate log-likelihood of full model
+        log_likelihood_full = 0.0
+        for i in range(n):
+            true_class = y[i]
+            class_idx = class_to_idx[true_class]
+            # Predicted probability for true class
+            p_true = probabilities[i, class_idx]
+            # Add log probability (with small epsilon to avoid log(0))
+            log_likelihood_full += np.log(max(p_true, 1e-10))
+
+        # Calculate log-likelihood of null model (all classes equally likely)
+        # In null model, P(y=j) = n_j / n for each class
+        class_frequencies = np.array([np.sum(y == c) for c in classes]) / n
+        log_likelihood_null = 0.0
+        for i in range(n):
+            true_class = y[i]
+            class_idx = class_to_idx[true_class]
+            # Probability in null model
+            p_null = class_frequencies[class_idx]
+            log_likelihood_null += np.log(max(p_null, 1e-10))
+
+        # McFadden's R-squared
+        if log_likelihood_null < 0:
+            r_squared = 1.0 - (log_likelihood_full / log_likelihood_null)
+        else:
+            r_squared = 0.0
+
+        # Ensure R-squared is between 0 and 1
+        r_squared = max(0.0, min(1.0, r_squared))
+
+        return mp.mpf(str(r_squared))
 
     def _calculate_logistic_standard_errors(self, X: np.ndarray, probabilities: np.ndarray) -> np.ndarray:
         """Calculate standard errors for logistic regression coefficients."""

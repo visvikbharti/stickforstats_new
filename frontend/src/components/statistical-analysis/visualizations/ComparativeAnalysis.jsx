@@ -80,6 +80,29 @@ const ComparativeAnalysis = ({ data }) => {
   }, [data]);
 
   /**
+   * Helper: Calculate median
+   */
+  const calculateMedian = (values) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+  };
+
+  /**
+   * Helper: Calculate percentile
+   */
+  const calculatePercentile = (values, percentile) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = (percentile / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index - lower;
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+  };
+
+  /**
    * Prepare data for plotting
    */
   const plotData = useMemo(() => {
@@ -112,29 +135,6 @@ const ComparativeAnalysis = ({ data }) => {
       q3: calculatePercentile(values, 75)
     }));
   }, [data, categoryColumn, valueColumn]);
-
-  /**
-   * Helper: Calculate median
-   */
-  const calculateMedian = (values) => {
-    const sorted = [...values].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0
-      ? (sorted[mid - 1] + sorted[mid]) / 2
-      : sorted[mid];
-  };
-
-  /**
-   * Helper: Calculate percentile
-   */
-  const calculatePercentile = (values, percentile) => {
-    const sorted = [...values].sort((a, b) => a - b);
-    const index = (percentile / 100) * (sorted.length - 1);
-    const lower = Math.floor(index);
-    const upper = Math.ceil(index);
-    const weight = index - lower;
-    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
-  };
 
   /**
    * Prepare bar chart data based on aggregation

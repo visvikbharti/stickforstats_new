@@ -24,9 +24,11 @@ const SimpleNavigation = () => {
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Learning Hub 🎓', path: '/learn' },
-    { name: 'Statistical Analysis', path: '/statistical-analysis' },
+    { name: 'Statistical Analysis', path: '/statistical-analysis-tools' },
     { name: 'Confidence Intervals', path: '/confidence-intervals' },
     { name: 'PCA Analysis', path: '/pca-analysis' },
+    { name: 'Factor Analysis', path: '/factor-analysis' },
+    { name: 'Survival Analysis', path: '/survival-analysis' },
     { name: 'DOE Analysis', path: '/doe-analysis' },
     { name: 'SQC Analysis', path: '/sqc-analysis' },
     { name: 'Probability Distributions', path: '/probability-distributions' }

@@ -218,10 +218,43 @@ const CoverageAnimation = ({
     setTimeout(() => addInterval(), 100);
   };
 
+  // Auto-start animation on mount
+  useEffect(() => {
+    // Start animation automatically after a short delay
+    const timer = setTimeout(() => {
+      setIsAnimating(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Animation loop - watches isAnimating state and continues the animation
+  useEffect(() => {
+    if (isAnimating && intervals.length < maxIntervals) {
+      animationRef.current = setTimeout(() => {
+        const newInterval = generateInterval();
+        const updatedIntervals = [...intervals, newInterval];
+        setIntervals(updatedIntervals);
+
+        // Calculate current coverage rate
+        const covered = updatedIntervals.filter(i => i.covers).length;
+        setCoverageRate(covered / updatedIntervals.length);
+      }, 500);
+    } else if (intervals.length >= maxIntervals) {
+      setIsAnimating(false);
+    }
+
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, [isAnimating, intervals, maxIntervals, confidenceLevel, distribution]);
+
   // Update visualization when parameters or data change
   useEffect(() => {
     if (!svgRef.current) return;
-    
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     

@@ -58,25 +58,32 @@ const CompositionAnalysis = ({ data }) => {
    * Detect column types
    */
   const columnInfo = useMemo(() => {
-    if (!data || data.length === 0) return { categorical: [], numeric: [] };
+    if (!data || data.length === 0) return { categorical: [], numeric: [], allColumns: [] };
 
     const categorical = [];
     const numeric = [];
+    const allColumns = Object.keys(data[0]);
 
-    Object.keys(data[0]).forEach(key => {
+    allColumns.forEach(key => {
       const values = data.map(row => row[key]).filter(v => v !== null && v !== undefined && v !== '');
-      const uniqueCount = new Set(values).size;
-      const numericCount = values.filter(v => !isNaN(parseFloat(v))).length;
+      if (values.length === 0) return;
 
-      // Consider categorical if: unique values < 20 OR less than 50% are numeric
-      if (uniqueCount < 20 || numericCount / values.length < 0.5) {
+      const uniqueCount = new Set(values).size;
+      const numericCount = values.filter(v => typeof v === 'number' || !isNaN(parseFloat(v))).length;
+      const uniqueRatio = uniqueCount / values.length;
+
+      // Consider categorical if:
+      // 1. Unique values < 50 (expanded from 20) OR
+      // 2. Less than 70% are numeric (more lenient) OR
+      // 3. Low unique ratio (< 0.5, indicates repeated categories)
+      if (uniqueCount < 50 || numericCount / values.length < 0.7 || uniqueRatio < 0.5) {
         categorical.push(key);
       } else {
         numeric.push(key);
       }
     });
 
-    return { categorical, numeric };
+    return { categorical, numeric, allColumns };
   }, [data]);
 
   /**
@@ -296,25 +303,27 @@ const CompositionAnalysis = ({ data }) => {
   }
 
   /**
-   * Render column selection
+   * Show warning if no categorical columns detected
    */
-  if (columnInfo.categorical.length === 0) {
-    return (
-      <Paper elevation={2} sx={{ p: 4 }}>
-        <Alert severity="warning">
-          <Typography variant="body1">
-            Composition analysis requires at least one categorical column for grouping.
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            Detected: {columnInfo.categorical.length} categorical columns.
-          </Typography>
-        </Alert>
-      </Paper>
-    );
-  }
+  const noCategoricalWarning = columnInfo.categorical.length === 0 && (
+    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+      <Alert severity="warning">
+        <Typography variant="body1" gutterBottom>
+          <strong>No Categorical Columns Auto-Detected</strong>
+        </Typography>
+        <Typography variant="body2">
+          The automatic detection found <strong>{columnInfo.numeric.length}</strong> numeric columns but
+          <strong> 0</strong> categorical columns. You can still manually select any column below for composition analysis.
+        </Typography>
+      </Alert>
+    </Paper>
+  );
 
   return (
     <Box>
+      {/* Show warning if no categorical columns */}
+      {noCategoricalWarning}
+
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -334,7 +343,8 @@ const CompositionAnalysis = ({ data }) => {
                 <MenuItem value="">
                   <em>Select a column...</em>
                 </MenuItem>
-                {columnInfo.categorical.map((col) => (
+                {/* Show categorical columns if available, otherwise show all columns */}
+                {(columnInfo.categorical.length > 0 ? columnInfo.categorical : columnInfo.allColumns).map((col) => (
                   <MenuItem key={col} value={col}>{col}</MenuItem>
                 ))}
               </Select>

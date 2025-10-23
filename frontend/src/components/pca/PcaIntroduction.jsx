@@ -904,16 +904,60 @@ const PcaIntroduction = ({ onNext }) => {
     const sliderContainer = leftCol.append("div")
       .style("padding", "10px 20px");
 
-    sliderContainer.append("div")
-      .style("display", "flex")
-      .style("align-items", "center")
-      .style("margin-bottom", "15px")
-      .html(`<span style="width: 80px; font-weight: bold;">λ₁:</span> <input type="range" min="1" max="10" value="7" style="flex-grow: 1;"> <span style="width: 30px; margin-left: 10px; font-weight: bold;">7</span>`);
+    // Lambda values (will be updated by sliders)
+    let lambda1Value = 7;
+    let lambda2Value = 3;
 
-    sliderContainer.append("div")
+    // Lambda 1 slider
+    const lambda1Container = sliderContainer.append("div")
       .style("display", "flex")
       .style("align-items", "center")
-      .html(`<span style="width: 80px; font-weight: bold;">λ₂:</span> <input type="range" min="1" max="10" value="3" style="flex-grow: 1;"> <span style="width: 30px; margin-left: 10px; font-weight: bold;">3</span>`);
+      .style("margin-bottom", "15px");
+
+    lambda1Container.append("span")
+      .style("width", "80px")
+      .style("font-weight", "bold")
+      .text("λ₁:");
+
+    const lambda1Slider = lambda1Container.append("input")
+      .attr("type", "range")
+      .attr("min", "0.5")
+      .attr("max", "10")
+      .attr("step", "0.1")
+      .attr("value", lambda1Value)
+      .style("flex-grow", "1");
+
+    const lambda1Label = lambda1Container.append("span")
+      .style("width", "50px")
+      .style("margin-left", "10px")
+      .style("font-weight", "bold")
+      .style("text-align", "right")
+      .text(lambda1Value.toFixed(1));
+
+    // Lambda 2 slider
+    const lambda2Container = sliderContainer.append("div")
+      .style("display", "flex")
+      .style("align-items", "center");
+
+    lambda2Container.append("span")
+      .style("width", "80px")
+      .style("font-weight", "bold")
+      .text("λ₂:");
+
+    const lambda2Slider = lambda2Container.append("input")
+      .attr("type", "range")
+      .attr("min", "0.5")
+      .attr("max", "10")
+      .attr("step", "0.1")
+      .attr("value", lambda2Value)
+      .style("flex-grow", "1");
+
+    const lambda2Label = lambda2Container.append("span")
+      .style("width", "50px")
+      .style("margin-left", "10px")
+      .style("font-weight", "bold")
+      .style("text-align", "right")
+      .text(lambda2Value.toFixed(1));
 
     // Right column - eigenvector interactive visualization
     const rightCol = container.append("div")
@@ -978,81 +1022,121 @@ const PcaIntroduction = ({ onNext }) => {
       .text("Y")
       .attr("font-size", "14px");
 
-    // Simulated covariance matrix
-    const covariance = {
-      xx: 2.0,
-      xy: 1.2,
-      yy: 1.0
-    };
-
-    // Calculate eigenvectors
-    const trace = covariance.xx + covariance.yy;
-    const determinant = covariance.xx * covariance.yy - covariance.xy * covariance.xy;
-    const lambda1 = (trace + Math.sqrt(trace * trace - 4 * determinant)) / 2;
-    const lambda2 = (trace - Math.sqrt(trace * trace - 4 * determinant)) / 2;
-
-    // First eigenvector
-    let ev1x = 1;
-    let ev1y = (lambda1 - covariance.xx) / covariance.xy;
-    const len1 = Math.sqrt(ev1x * ev1x + ev1y * ev1y);
-    ev1x /= len1;
-    ev1y /= len1;
-
-    // Second eigenvector
-    let ev2x = 1;
-    let ev2y = (lambda2 - covariance.xx) / covariance.xy;
-    const len2 = Math.sqrt(ev2x * ev2x + ev2y * ev2y);
-    ev2x /= len2;
-    ev2y /= len2;
-
-    // Generate random data points
-    const dataPoints = [];
-    for (let i = 0; i < 100; i++) {
-      // Generate points along eigenvectors
-      const a = (Math.random() - 0.5) * 150;
-      const b = (Math.random() - 0.5) * 60;
-
-      dataPoints.push({
-        x: a * ev1x + b * ev2x,
-        y: a * ev1y + b * ev2y
-      });
-    }
-
-    // Draw data points
-    g.selectAll(".data-point")
-      .data(dataPoints)
-      .enter()
-      .append("circle")
-      .attr("class", "data-point")
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y)
-      .attr("r", 3)
-      .attr("fill", theme.palette.primary.light)
-      .attr("opacity", 0.5);
-
-    // Draw eigenvectors
     // Factor for scaling eigenvectors by eigenvalues
     const scale = 80;
 
-    // PC1 (scaled by eigenvalue)
-    g.append("line")
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", ev1x * Math.sqrt(lambda1) * scale / 5)
-      .attr("y2", ev1y * Math.sqrt(lambda1) * scale / 5)
-      .attr("stroke", "red")
-      .attr("stroke-width", 3)
-      .attr("marker-end", "url(#eigen-arrow1)");
+    // Initialize eigenvector direction (orthogonal unit vectors)
+    // These will remain fixed in direction, but scale with lambda values
+    const baseEv1x = 0.8;
+    const baseEv1y = 0.6;
+    const baseEv2x = -0.6;
+    const baseEv2y = 0.8;
 
-    // PC2 (scaled by eigenvalue)
-    g.append("line")
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", ev2x * Math.sqrt(lambda2) * scale / 5)
-      .attr("y2", ev2y * Math.sqrt(lambda2) * scale / 5)
-      .attr("stroke", "green")
-      .attr("stroke-width", 3)
-      .attr("marker-end", "url(#eigen-arrow2)");
+    // Function to update visualization based on lambda values
+    const updateVisualization = (l1, l2) => {
+      // Remove old dynamic elements
+      g.selectAll(".data-point").remove();
+      g.selectAll(".pc-line").remove();
+      g.selectAll(".pc-label").remove();
+
+      // Determine which eigenvalue is larger (PC1 should have largest eigenvalue)
+      const isPc1Larger = l1 >= l2;
+
+      // Assign PC1 and PC2 based on eigenvalue magnitude
+      const pc1Lambda = isPc1Larger ? l1 : l2;
+      const pc2Lambda = isPc1Larger ? l2 : l1;
+      const pc1x = isPc1Larger ? baseEv1x : baseEv2x;
+      const pc1y = isPc1Larger ? baseEv1y : baseEv2y;
+      const pc2x = isPc1Larger ? baseEv2x : baseEv1x;
+      const pc2y = isPc1Larger ? baseEv2y : baseEv1y;
+
+      // Store PC1 direction for projection button
+      window.pcaPC1 = { x: pc1x, y: pc1y, lambda: pc1Lambda };
+
+      // Generate random data points along eigenvectors
+      const dataPoints = [];
+      for (let i = 0; i < 100; i++) {
+        // Generate points along eigenvectors, scaled by lambda values
+        const a = (Math.random() - 0.5) * Math.sqrt(pc1Lambda) * 30;
+        const b = (Math.random() - 0.5) * Math.sqrt(pc2Lambda) * 30;
+
+        dataPoints.push({
+          x: a * pc1x + b * pc2x,
+          y: a * pc1y + b * pc2y,
+          origX: a * pc1x + b * pc2x,
+          origY: a * pc1y + b * pc2y
+        });
+      }
+
+      // Draw data points
+      g.selectAll(".data-point")
+        .data(dataPoints)
+        .enter()
+        .append("circle")
+        .attr("class", "data-point")
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r", 3)
+        .attr("fill", theme.palette.primary.light)
+        .attr("opacity", 0.5);
+
+      // Draw PC1 (largest eigenvalue - always red)
+      g.append("line")
+        .attr("class", "pc-line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", pc1x * Math.sqrt(pc1Lambda) * scale / 5)
+        .attr("y2", pc1y * Math.sqrt(pc1Lambda) * scale / 5)
+        .attr("stroke", "red")
+        .attr("stroke-width", 3)
+        .attr("marker-end", "url(#eigen-arrow1)");
+
+      // Draw PC2 (smaller eigenvalue - always green)
+      g.append("line")
+        .attr("class", "pc-line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", pc2x * Math.sqrt(pc2Lambda) * scale / 5)
+        .attr("y2", pc2y * Math.sqrt(pc2Lambda) * scale / 5)
+        .attr("stroke", "green")
+        .attr("stroke-width", 3)
+        .attr("marker-end", "url(#eigen-arrow2)");
+
+      // PC labels - show which lambda it corresponds to
+      g.append("text")
+        .attr("class", "pc-label")
+        .attr("x", pc1x * Math.sqrt(pc1Lambda) * scale / 4)
+        .attr("y", pc1y * Math.sqrt(pc1Lambda) * scale / 4 - 10)
+        .attr("text-anchor", "middle")
+        .attr("fill", "red")
+        .attr("font-weight", "bold")
+        .text("PC1 (λ=" + pc1Lambda.toFixed(1) + ")");
+
+      g.append("text")
+        .attr("class", "pc-label")
+        .attr("x", pc2x * Math.sqrt(pc2Lambda) * scale / 4)
+        .attr("y", pc2y * Math.sqrt(pc2Lambda) * scale / 4 - 10)
+        .attr("text-anchor", "middle")
+        .attr("fill", "green")
+        .attr("font-weight", "bold")
+        .text("PC2 (λ=" + pc2Lambda.toFixed(1) + ")");
+    };
+
+    // Initial visualization
+    updateVisualization(lambda1Value, lambda2Value);
+
+    // Add slider event handlers
+    lambda1Slider.on("input", function() {
+      lambda1Value = +this.value;
+      lambda1Label.text(lambda1Value.toFixed(1));
+      updateVisualization(lambda1Value, lambda2Value);
+    });
+
+    lambda2Slider.on("input", function() {
+      lambda2Value = +this.value;
+      lambda2Label.text(lambda2Value.toFixed(1));
+      updateVisualization(lambda1Value, lambda2Value);
+    });
 
     // Add arrowhead markers
     svg.append("defs")
@@ -1071,23 +1155,6 @@ const PcaIntroduction = ({ onNext }) => {
       .attr("d", "M0,-5L10,0L0,5")
       .attr("fill", (d, i) => i === 0 ? "red" : "green");
 
-    // PC labels
-    g.append("text")
-      .attr("x", ev1x * Math.sqrt(lambda1) * scale / 4)
-      .attr("y", ev1y * Math.sqrt(lambda1) * scale / 4 - 10)
-      .attr("text-anchor", "middle")
-      .attr("fill", "red")
-      .attr("font-weight", "bold")
-      .text("λ₁ = " + lambda1.toFixed(1));
-
-    g.append("text")
-      .attr("x", ev2x * Math.sqrt(lambda2) * scale / 4)
-      .attr("y", ev2y * Math.sqrt(lambda2) * scale / 4 - 10)
-      .attr("text-anchor", "middle")
-      .attr("fill", "green")
-      .attr("font-weight", "bold")
-      .text("λ₂ = " + lambda2.toFixed(1));
-
     // Buttons to animate eigenvector exploration
     const buttonContainer = rightCol.append("div")
       .style("display", "flex")
@@ -1104,17 +1171,18 @@ const PcaIntroduction = ({ onNext }) => {
       .style("border-radius", "4px")
       .style("cursor", "pointer")
       .on("click", () => {
-        // Project points onto PC1
+        // Project points onto PC1 (direction with largest eigenvalue)
+        const pc1 = window.pcaPC1 || { x: baseEv1x, y: baseEv1y };
         g.selectAll(".data-point")
           .transition()
           .duration(1000)
           .attr("cx", d => {
-            const dot = d.x * ev1x + d.y * ev1y;
-            return dot * ev1x;
+            const dot = d.origX * pc1.x + d.origY * pc1.y;
+            return dot * pc1.x;
           })
           .attr("cy", d => {
-            const dot = d.x * ev1x + d.y * ev1y;
-            return dot * ev1y;
+            const dot = d.origX * pc1.x + d.origY * pc1.y;
+            return dot * pc1.y;
           });
       });
 
@@ -1127,12 +1195,8 @@ const PcaIntroduction = ({ onNext }) => {
       .style("border-radius", "4px")
       .style("cursor", "pointer")
       .on("click", () => {
-        // Reset points to original positions
-        g.selectAll(".data-point")
-          .transition()
-          .duration(1000)
-          .attr("cx", d => d.x)
-          .attr("cy", d => d.y);
+        // Reset visualization to current lambda values
+        updateVisualization(lambda1Value, lambda2Value);
       });
   };
 
@@ -1159,7 +1223,7 @@ const PcaIntroduction = ({ onNext }) => {
         }
       >
         <AlertTitle sx={{ fontWeight: 600 }}>🎓 New: Learn PCA Visually!</AlertTitle>
-        Want to deeply understand PCA before analyzing data? Check out our <strong>interactive visual lessons</strong> inspired by 3Blue1Brown.
+        Want to deeply understand PCA before analyzing data? Check out our <strong>interactive visual lessons</strong>.
         Build geometric intuition with step-by-step derivations and live simulations.
       </Alert>
 
