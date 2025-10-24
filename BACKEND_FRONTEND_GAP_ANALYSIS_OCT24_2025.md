@@ -10,7 +10,7 @@
 ## 📊 EXECUTIVE SUMMARY
 
 **Reality Check:**
-Your research paper claims **16/16 feature categories (100% complete)**, and this is TRUE for the **backend**. However, the **frontend UI** only exposes approximately **40-50%** of these features to users.
+Your research paper claims **16/16 feature categories (100% complete)**, and this is TRUE for the **backend**. The **frontend UI** exposes approximately **50-60%** of these features to users. (Updated after verification: Survival & Factor Analysis ARE integrated)
 
 **Gap Severity:** 🔴 **HIGH** - Major backend capabilities invisible to end users
 
@@ -49,8 +49,10 @@ These features are FULLY functional end-to-end:
 | 4 | **Probability Distributions** | ✅ Complete | ✅ Full UI | ✅ Working | ProbabilityDistributionsPage.jsx (exists) |
 | 5 | **Confidence Intervals** | ✅ Complete | ✅ Simulation UI | ✅ Working | Client-side simulations |
 | 6 | **Data Upload (CSV)** | ✅ Complete | ✅ Working | ✅ Working | DataUploadPage.jsx |
+| 7 | **Survival Analysis** | ✅ Complete | ✅ Full UI | ✅ Working | SurvivalAnalysisPage.jsx + 5 components, API verified |
+| 8 | **Factor Analysis** | ✅ Complete | ✅ Full UI | ✅ Working | FactorAnalysisPage.jsx + 6 components, API verified |
 
-**Total Accessible: 6/16 features (37.5%)**
+**Total Accessible: 8/16 features (50%)**
 
 ---
 
@@ -60,10 +62,10 @@ These features have backend but LIMITED frontend exposure:
 
 | # | Feature | Backend Status | Frontend Status | What's Missing | Priority |
 |---|---------|----------------|-----------------|----------------|----------|
-| 7 | **Statistical Tests** | ✅ 26+ tests | 🟡 Basic UI only | No exact p-values UI, No robust regression UI | 🔴 HIGH |
-| 8 | **Correlation Analysis** | ✅ Pearson, Spearman, Kendall | 🟡 Partial | Limited configuration options | 🟠 MEDIUM |
-| 9 | **ANOVA** | ✅ One-way, Two-way, ANCOVA | 🟡 Basic forms | No post-hoc test UI | 🟠 MEDIUM |
-| 10 | **Regression** | ✅ Linear, Multiple, Polynomial | 🟡 Basic UI | No robust regression (Huber, RANSAC, Theil-Sen) | 🔴 HIGH |
+| 9 | **Statistical Tests** | ✅ 26+ tests | 🟡 Basic UI only | No exact p-values UI, No robust regression UI | 🔴 HIGH |
+| 10 | **Correlation Analysis** | ✅ Pearson, Spearman, Kendall | 🟡 Partial | Limited configuration options | 🟠 MEDIUM |
+| 11 | **ANOVA** | ✅ One-way, Two-way, ANCOVA | 🟡 Basic forms | No post-hoc test UI | 🟠 MEDIUM |
+| 12 | **Regression** | ✅ Linear, Multiple, Polynomial | 🟡 Basic UI | No robust regression (Huber, RANSAC, Theil-Sen) | 🔴 HIGH |
 
 **Total Partial: 4/16 features (25%)**
 
@@ -75,14 +77,12 @@ These features are FULLY implemented in backend but have **ZERO user interface**
 
 | # | Feature | Backend Implementation | Frontend UI | Lines of Code (Backend) | Priority |
 |---|---------|----------------------|-------------|------------------------|----------|
-| 11 | **Survival Analysis** | ✅ Kaplan-Meier, Cox regression, Log-rank | ❌ **NONE** | ~750 lines | 🔴 **CRITICAL** |
-| 12 | **Factor Analysis** | ✅ EFA, 4 rotation methods, adequacy tests | ❌ **NONE** | ~850 lines | 🔴 **CRITICAL** |
 | 13 | **Time Series Analysis** | ✅ ARIMA, SARIMAX, forecasting | ❌ **NONE** | ~800 lines | 🔴 **CRITICAL** |
 | 14 | **Bayesian Inference** | ✅ Bayesian t-test, MCMC, credible intervals | ❌ **NONE** | ~600 lines | 🟠 HIGH |
 | 15 | **Machine Learning** | ✅ K-Means, Random Forest, SVM, Neural Networks | ❌ **NONE** | ~1,200 lines | 🟠 HIGH |
 | 16 | **Missing Data Handling** | ✅ 13 imputation methods, MICE, Little's MCAR | ❌ **NONE** | ~1,000 lines | 🟠 HIGH |
 
-**Total Missing UI: 6/16 features (37.5%)**
+**Total Missing UI: 4/16 features (25%)** ⬅️ Updated: Survival & Factor Analysis have full UIs!
 
 ---
 
