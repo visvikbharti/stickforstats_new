@@ -8,7 +8,7 @@
  * - Visual diagnostics: Q-Q Plot, Histogram with KDE
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -48,7 +48,10 @@ import {
 } from 'recharts';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
 import { shapiroWilkTest, andersonDarlingTest, calculateDescriptiveStats } from '../utils/statisticalUtils';
+import guardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
  * Main Normality Tests Component
@@ -56,6 +59,12 @@ import { shapiroWilkTest, andersonDarlingTest, calculateDescriptiveStats } from 
 const NormalityTests = ({ data }) => {
   const [selectedColumn, setSelectedColumn] = useState('');
   const [alpha, setAlpha] = useState(0.05);
+
+  // Guardian Integration State (informational only for normality tests)
+  const [guardianReport, setGuardianReport] = useState(null);
+  const [guardianLoading, setGuardianLoading] = useState(false);
+  const [guardianError, setGuardianError] = useState(null);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
    * Detect numeric columns
@@ -237,6 +246,61 @@ const NormalityTests = ({ data }) => {
   }, [columnData, stats]);
 
   /**
+   * Guardian Integration: Data quality checks for normality testing
+   * Note: We don't block normality tests (the whole point is to TEST normality),
+   * but Guardian can warn about data quality issues that affect test accuracy
+   */
+  useEffect(() => {
+    const checkGuardianAssumptions = async () => {
+      // Reset previous Guardian state
+      setGuardianReport(null);
+      setGuardianError(null);
+      setIsTestBlocked(false); // Never block normality tests
+
+      // Only check if we have selected column and data
+      if (!selectedColumn || !columnData || columnData.length === 0) {
+        return;
+      }
+
+      // Need minimum sample size for Guardian checks
+      if (columnData.length < 3) {
+        return;
+      }
+
+      try {
+        // Prepare data for Guardian - simple array format
+        const dataToCheck = {
+          'data': columnData
+        };
+
+        // Use t_test type for Guardian (it checks normality assumptions)
+        const backendTestType = 't_test';
+
+        // Call Guardian service (informational only)
+        setGuardianLoading(true);
+        const report = await guardianService.checkAssumptions(
+          dataToCheck,
+          backendTestType,
+          alpha
+        );
+
+        setGuardianReport(report);
+        // IMPORTANT: Never block normality tests - this is informational only
+        setIsTestBlocked(false);
+        setGuardianLoading(false);
+
+      } catch (error) {
+        console.error('Guardian check failed:', error);
+        setGuardianError(error.message || 'Failed to validate data quality');
+        setGuardianLoading(false);
+        setIsTestBlocked(false);
+      }
+    };
+
+    checkGuardianAssumptions();
+  }, [selectedColumn, columnData, alpha]);
+
+  /**
    * Render data requirement message
    */
   if (!data || data.length === 0) {
@@ -307,8 +371,46 @@ const NormalityTests = ({ data }) => {
         </Grid>
       </Paper>
 
+      {/* Guardian Loading State */}
+      {guardianLoading && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
+          <CircularProgress size={24} sx={{ mr: 2 }} />
+          <Typography variant="body1" component="span">
+            Checking data quality...
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Guardian Error State */}
+      {guardianError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Guardian data quality check unavailable:</strong> {guardianError}
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            Proceeding with normality tests. Results are still valid.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Guardian Warning Display (Informational Only) */}
+      {guardianReport && (
+        <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5', borderLeft: '4px solid #2196f3' }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+            ℹ️ Data Quality Information
+          </Typography>
+          <GuardianWarning guardianReport={guardianReport} />
+          <Alert severity="info" sx={{ mt: 2 }}>
+            <Typography variant="caption">
+              <strong>Note:</strong> These are informational warnings about data quality.
+              Normality tests will still run to help you assess your data distribution.
+            </Typography>
+          </Alert>
+        </Paper>
+      )}
+
       {/* Results */}
-      {selectedColumn && columnData.length > 0 && (
+      {selectedColumn && columnData.length > 0 && !isTestBlocked && (
         <>
           {/* Descriptive Statistics */}
           {stats && (
