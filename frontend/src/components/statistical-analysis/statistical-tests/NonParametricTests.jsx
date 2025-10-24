@@ -46,6 +46,7 @@ import {
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { mannWhitneyUTest, calculateDescriptiveStats } from '../utils/statisticalUtils';
 
 /**
