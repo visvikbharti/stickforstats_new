@@ -10,6 +10,14 @@ const ProfessionalLanding = ({ onEnter }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Smooth scroll to section
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="professional-landing">
       {/* Navigation Bar */}
@@ -20,10 +28,10 @@ const ProfessionalLanding = ({ onEnter }) => {
             <span className="logo-tag">Statistical Integrity Platform</span>
           </div>
           <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#guardian">Guardian System</a>
-            <a href="#precision">Precision</a>
-            <a href="#about">About</a>
+            <a href="#features" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a>
+            <a href="#guardian" onClick={(e) => { e.preventDefault(); scrollToSection('guardian'); }}>Guardian System</a>
+            <a href="#precision" onClick={(e) => { e.preventDefault(); scrollToSection('precision'); }}>Precision</a>
+            <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a>
           </div>
         </div>
       </nav>
@@ -47,9 +55,9 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Main Headline */}
             <h1 className="main-headline">
-              Stop Publishing
+              Publish Research with
               <br />
-              <span className="highlight-text">False Positives</span>
+              <span className="highlight-text">Confidence</span>
             </h1>
 
             {/* Value Proposition */}
@@ -60,7 +68,7 @@ const ProfessionalLanding = ({ onEnter }) => {
             </p>
 
             {/* Key Features Grid */}
-            <div className="features-grid">
+            <div id="features" className="features-grid">
               <div className="feature-item">
                 <div className="feature-icon guardian-icon">🛡️</div>
                 <div className="feature-content">
@@ -90,7 +98,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 Start Analysis
                 <span className="cta-arrow">→</span>
               </button>
-              <button className="secondary-cta">
+              <button className="secondary-cta" onClick={() => scrollToSection('about')}>
                 View Documentation
               </button>
             </div>
@@ -98,12 +106,12 @@ const ProfessionalLanding = ({ onEnter }) => {
             {/* Trust Indicators */}
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-number">0</span>
-                <span className="trust-label">False Positives Prevented</span>
+                <span className="trust-number">40+</span>
+                <span className="trust-label">Statistical Tests</span>
               </div>
               <div className="trust-item">
                 <span className="trust-number">50</span>
-                <span className="trust-label">Decimal Places</span>
+                <span className="trust-label">Decimal Precision</span>
               </div>
               <div className="trust-item">
                 <span className="trust-number">6</span>
@@ -115,7 +123,7 @@ const ProfessionalLanding = ({ onEnter }) => {
       </section>
 
       {/* Guardian System Section */}
-      <section className="guardian-section">
+      <section id="guardian" className="guardian-section">
         <div className="section-container">
           <motion.div
             initial={{ opacity: 0 }}
@@ -180,7 +188,7 @@ const ProfessionalLanding = ({ onEnter }) => {
       </section>
 
       {/* Our Commitment */}
-      <section className="credibility-section">
+      <section id="about" className="credibility-section">
         <div className="section-container">
           <div className="credibility-content">
             <h2 className="commitment-title">Our Commitment to Statistical Integrity</h2>
@@ -197,7 +205,7 @@ const ProfessionalLanding = ({ onEnter }) => {
       </section>
 
       {/* Technical Specifications */}
-      <section className="specs-section">
+      <section id="precision" className="specs-section">
         <div className="section-container">
           <h2 className="section-title">Technical Excellence</h2>
           <div className="specs-grid">
