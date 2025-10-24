@@ -2,13 +2,14 @@
  * Statistical Analysis Hub
  *
  * Main entry point for comprehensive statistical analysis tools.
- * Provides 6 modules:
+ * Provides 7 modules:
  * 1. Data Profiling - Dataset overview and column analysis
  * 2. Data Preprocessing - Missing values, scaling, encoding
  * 3. Visualization Suite - 5 types of analysis visualizations
  * 4. Statistical Tests - Normality, parametric, non-parametric, correlation, categorical tests
  * 5. Advanced Statistics - ANOVA variants, MANOVA, post-hoc tests
  * 6. Machine Learning - Regression, classification, clustering
+ * 7. Advanced Regression Analysis - Comprehensive regression with robust methods
  *
  * Ported from Python/Streamlit app to React/Material-UI
  */
@@ -38,6 +39,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import ScienceIcon from '@mui/icons-material/Science';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import FunctionsIcon from '@mui/icons-material/Functions';
 
 // Import module components
 import DataProfiling from './data-profiling/DataProfiling';
@@ -46,6 +48,7 @@ import VisualizationSuite from './visualizations/VisualizationSuite';
 import StatisticalTests from './statistical-tests/StatisticalTests';
 import AdvancedStatistics from './advanced-stats/AdvancedStatistics';
 import MachineLearning from './machine-learning/MachineLearning';
+import RegressionCalculator from '../statistical/RegressionCalculator';
 
 /**
  * Main Statistical Analysis Hub Component
@@ -131,6 +134,17 @@ const StatisticalAnalysisHub = () => {
       component: MachineLearning,
       available: true,
       features: ['Linear Regression', 'Classification', 'Clustering', 'Model Evaluation', 'Feature Importance']
+    },
+    {
+      id: 7,
+      title: 'Advanced Regression Analysis',
+      description: 'Comprehensive regression with 50-decimal precision: linear, polynomial, ridge/lasso, and robust methods',
+      duration: '15-25 min',
+      complexity: 'Advanced',
+      icon: FunctionsIcon,
+      component: RegressionCalculator,
+      available: true,
+      features: ['Linear Regression', 'Multiple Regression', 'Polynomial', 'Ridge/Lasso', 'Robust (Huber)', 'Robust (RANSAC)', 'Robust (Theil-Sen)', '50-decimal precision']
     }
   ];
 
