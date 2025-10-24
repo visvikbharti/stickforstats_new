@@ -176,6 +176,26 @@ const NonParametricTests = ({ data }) => {
   }, [groupedData]);
 
   /**
+   * Check if sample sizes qualify for exact p-values
+   */
+  const sampleSizeInfo = useMemo(() => {
+    if (Object.keys(groupedData).length !== 2) return null;
+
+    const groups = Object.values(groupedData);
+    const n1 = groups[0]?.length || 0;
+    const n2 = groups[1]?.length || 0;
+    const qualifiesForExact = n1 > 0 && n2 > 0 && n1 < 20 && n2 < 20;
+
+    return {
+      n1,
+      n2,
+      totalN: n1 + n2,
+      qualifiesForExact,
+      groupNames: Object.keys(groupedData)
+    };
+  }, [groupedData]);
+
+  /**
    * Automatically call backend when useBackend is enabled and data is ready
    */
   useEffect(() => {
@@ -248,7 +268,7 @@ const NonParametricTests = ({ data }) => {
           </Grid>
 
           <Grid item xs={12}>
-            <Tooltip title="Use backend API for high-precision calculations with exact p-values for small samples (n < 20). Supports 50-decimal precision.">
+            <Paper sx={{ p: 2, bgcolor: '#f8f9fa', border: '1px solid #e0e0e0' }}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -263,9 +283,9 @@ const NonParametricTests = ({ data }) => {
                 }
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography>Use High-Precision Backend</Typography>
+                    <Typography variant="body1" fontWeight={500}>High-Precision Backend API</Typography>
                     <Chip
-                      label="Exact p-values for small samples"
+                      label="50-decimal precision"
                       size="small"
                       color="primary"
                       variant="outlined"
@@ -273,7 +293,46 @@ const NonParametricTests = ({ data }) => {
                   </Box>
                 }
               />
-            </Tooltip>
+
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4, mt: 0.5 }}>
+                Calculates exact p-values for small samples (n₁, n₂ &lt; 20 per group) using dynamic programming.
+                For larger samples, uses high-precision normal approximation with continuity correction.
+              </Typography>
+
+              {/* Sample Size Information */}
+              {sampleSizeInfo && testType === 'mann-whitney' && (
+                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                  <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Current Sample Sizes:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Typography variant="caption">
+                      {sampleSizeInfo.groupNames[0]}: <strong>n₁ = {sampleSizeInfo.n1}</strong>
+                    </Typography>
+                    <Typography variant="caption">
+                      {sampleSizeInfo.groupNames[1]}: <strong>n₂ = {sampleSizeInfo.n2}</strong>
+                    </Typography>
+                    <Typography variant="caption">
+                      Total: <strong>N = {sampleSizeInfo.totalN}</strong>
+                    </Typography>
+                  </Box>
+
+                  {sampleSizeInfo.qualifiesForExact ? (
+                    <Alert severity="success" sx={{ mt: 1, py: 0.5 }}>
+                      <Typography variant="caption">
+                        ✓ Small sample detected - Exact p-values will be calculated
+                      </Typography>
+                    </Alert>
+                  ) : (
+                    <Alert severity="info" sx={{ mt: 1, py: 0.5 }}>
+                      <Typography variant="caption">
+                        ⓘ Large sample detected - High-precision normal approximation will be used (exact p-values only available when both n₁, n₂ &lt; 20)
+                      </Typography>
+                    </Alert>
+                  )}
+                </Box>
+              )}
+            </Paper>
           </Grid>
 
           {testType === 'mann-whitney' && (
@@ -338,12 +397,42 @@ const NonParametricTests = ({ data }) => {
       {/* Mann-Whitney U Test Results (Backend) */}
       {backendResult && backendResult.test_statistic !== undefined && (
         <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3, border: '2px solid #1976d2' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Mann-Whitney U Test Results (High-Precision Backend)
-              </Typography>
-              <Chip label="50-decimal precision" color="primary" size="small" />
+              <Box>
+                <Typography variant="h6">
+                  Mann-Whitney U Test Results
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                  <Chip
+                    label="Backend API"
+                    color="primary"
+                    size="small"
+                    icon={<CheckCircleIcon />}
+                  />
+                  <Chip
+                    label="50-decimal precision"
+                    color="success"
+                    size="small"
+                    variant="outlined"
+                  />
+                  {backendResult.exact_p_value && (
+                    <Chip
+                      label="Exact calculation"
+                      color="warning"
+                      size="small"
+                    />
+                  )}
+                  {!backendResult.exact_p_value && (
+                    <Chip
+                      label="Normal approximation"
+                      color="default"
+                      size="small"
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+              </Box>
             </Box>
             <Typography variant="caption" color="text.secondary" paragraph>
               H₀: The two groups have the same distribution
