@@ -10,7 +10,7 @@
  * - Feature importance
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -32,7 +32,8 @@ import {
   TableRow,
   Slider,
   Button,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import {
   ScatterChart,
@@ -49,6 +50,8 @@ import {
 } from 'recharts';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import guardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
  * Main Linear Regression Component
@@ -58,6 +61,12 @@ const LinearRegressionML = ({ data }) => {
   const [features, setFeatures] = useState([]);
   const [testSize, setTestSize] = useState(0.2);
   const [modelTrained, setModelTrained] = useState(false);
+
+  // Guardian Integration State
+  const [guardianReport, setGuardianReport] = useState(null);
+  const [guardianLoading, setGuardianLoading] = useState(false);
+  const [guardianError, setGuardianError] = useState(null);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
    * Detect numeric columns
@@ -304,6 +313,65 @@ const LinearRegressionML = ({ data }) => {
   };
 
   /**
+   * Guardian Integration: Check statistical assumptions for linear regression
+   */
+  useEffect(() => {
+    const checkGuardianAssumptions = async () => {
+      // Reset previous Guardian state
+      setGuardianReport(null);
+      setGuardianError(null);
+      setIsTestBlocked(false);
+
+      // Only check if we have target variable, features, and prepared data
+      if (!targetVariable || features.length === 0 || !preparedData || !data || data.length === 0) {
+        return;
+      }
+
+      try {
+        // Prepare data for Guardian: Send target and all features
+        // Use training data for assumption checks
+        const { trainData } = preparedData;
+
+        const dataToCheck = {};
+
+        // Add target variable
+        dataToCheck[targetVariable] = trainData.map(d => d.target);
+
+        // Add each feature
+        features.forEach(feature => {
+          dataToCheck[feature] = trainData.map(d => d[feature]);
+        });
+
+        // Guardian test type for regression
+        const backendTestType = 'regression';
+
+        // Use default alpha of 0.05 (this component doesn't have alpha parameter)
+        const alpha = 0.05;
+
+        setGuardianLoading(true);
+        const report = await guardianService.checkAssumptions(
+          dataToCheck,
+          backendTestType,
+          alpha
+        );
+
+        setGuardianReport(report);
+        setIsTestBlocked(!report.can_proceed);
+        setGuardianLoading(false);
+
+      } catch (error) {
+        console.error('Guardian check failed:', error);
+        setGuardianError(error.message || 'Failed to validate assumptions');
+        setGuardianLoading(false);
+        // Don't block test if Guardian service fails
+        setIsTestBlocked(false);
+      }
+    };
+
+    checkGuardianAssumptions();
+  }, [targetVariable, features, preparedData, data]);
+
+  /**
    * Handle train button
    */
   const handleTrain = () => {
@@ -430,7 +498,7 @@ const LinearRegressionML = ({ data }) => {
               size="large"
               startIcon={<PlayArrowIcon />}
               onClick={handleTrain}
-              disabled={modelTrained}
+              disabled={modelTrained || isTestBlocked}
             >
               {modelTrained ? 'Model Trained' : 'Train Model'}
             </Button>
@@ -438,8 +506,48 @@ const LinearRegressionML = ({ data }) => {
         )}
       </Paper>
 
+      {/* Guardian Loading State */}
+      {guardianLoading && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
+          <CircularProgress size={24} sx={{ mr: 2 }} />
+          <Typography variant="body1" component="span">
+            Validating statistical assumptions...
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Guardian Error State */}
+      {guardianError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Guardian validation unavailable:</strong> {guardianError}
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            Proceeding without assumption validation. Results may be unreliable if assumptions are violated.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Guardian Warning Display */}
+      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+
+      {/* Test Blocked Notice */}
+      {isTestBlocked && (
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+            🚫 Model Training Blocked
+          </Typography>
+          <Typography variant="body2" paragraph>
+            Linear regression cannot proceed due to critical assumption violations detected by the Guardian system.
+          </Typography>
+          <Typography variant="body2">
+            <strong>Recommendation:</strong> Review the violations above and use the suggested alternative methods or address the data issues.
+          </Typography>
+        </Paper>
+      )}
+
       {/* Model Results */}
-      {modelResults && !modelResults.error && (
+      {modelResults && !modelResults.error && !isTestBlocked && (
         <>
           {/* Performance Metrics */}
           <Grid container spacing={2} sx={{ mb: 3 }}>

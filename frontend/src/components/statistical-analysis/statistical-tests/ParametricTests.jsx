@@ -46,6 +46,7 @@ import {
 import TimelineIcon from '@mui/icons-material/Timeline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
 import {
   oneSampleTTest,
   independentTTest,
@@ -53,6 +54,8 @@ import {
   oneWayANOVA,
   calculateDescriptiveStats
 } from '../utils/statisticalUtils';
+import guardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
  * Main Parametric Tests Component
@@ -64,6 +67,12 @@ const ParametricTests = ({ data }) => {
   const [groupColumn, setGroupColumn] = useState('');
   const [populationMean, setPopulationMean] = useState(0);
   const [alpha, setAlpha] = useState(0.05);
+
+  // Guardian Integration State
+  const [guardianReport, setGuardianReport] = useState(null);
+  const [guardianLoading, setGuardianLoading] = useState(false);
+  const [guardianError, setGuardianError] = useState(null);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
    * Detect column types
@@ -243,6 +252,75 @@ const ParametricTests = ({ data }) => {
 
     return [];
   }, [testType, columnData, columnData2, groupedData, populationMean, selectedColumn, selectedColumn2]);
+
+  /**
+   * Guardian Integration: Check statistical assumptions
+   */
+  React.useEffect(() => {
+    const checkGuardianAssumptions = async () => {
+      // Reset previous Guardian state
+      setGuardianReport(null);
+      setGuardianError(null);
+      setIsTestBlocked(false);
+
+      // Only check if we have a test type and sufficient data
+      if (!testType || !data || data.length === 0) {
+        return;
+      }
+
+      // Prepare data based on test type
+      let dataToCheck = null;
+      let backendTestType = '';
+
+      try {
+        if (testType === 'one-sample') {
+          if (columnData.length < 2) return;
+          dataToCheck = columnData;
+          backendTestType = 't_test';
+        } else if (testType === 'independent') {
+          if (Object.keys(groupedData).length !== 2) return;
+          const groups = Object.values(groupedData);
+          if (groups[0].length < 2 || groups[1].length < 2) return;
+          dataToCheck = groupedData;
+          backendTestType = 't_test';
+        } else if (testType === 'paired') {
+          if (columnData.length < 2 || columnData2.length < 2) return;
+          if (columnData.length !== columnData2.length) return;
+          dataToCheck = columnData; // Check first column for normality
+          backendTestType = 't_test';
+        } else if (testType === 'anova') {
+          if (Object.keys(groupedData).length < 2) return;
+          const groups = Object.values(groupedData);
+          if (groups.some(g => g.length < 2)) return;
+          dataToCheck = groupedData;
+          backendTestType = 'anova';
+        } else {
+          return;
+        }
+
+        // Call Guardian service
+        setGuardianLoading(true);
+        const report = await guardianService.checkAssumptions(
+          dataToCheck,
+          backendTestType,
+          alpha
+        );
+
+        setGuardianReport(report);
+        setIsTestBlocked(!report.can_proceed);
+        setGuardianLoading(false);
+
+      } catch (error) {
+        console.error('Guardian check failed:', error);
+        setGuardianError(error.message || 'Failed to validate assumptions');
+        setGuardianLoading(false);
+        // Don't block test if Guardian service fails
+        setIsTestBlocked(false);
+      }
+    };
+
+    checkGuardianAssumptions();
+  }, [testType, columnData, columnData2, groupedData, alpha, data]);
 
   /**
    * Render data requirement message
@@ -448,9 +526,49 @@ const ParametricTests = ({ data }) => {
         </Grid>
       </Paper>
 
+      {/* Guardian Loading State */}
+      {guardianLoading && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
+          <CircularProgress size={24} sx={{ mr: 2 }} />
+          <Typography variant="body1" component="span">
+            Validating statistical assumptions...
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Guardian Error State */}
+      {guardianError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Guardian validation unavailable:</strong> {guardianError}
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            Proceeding without assumption validation. Results may be unreliable if assumptions are violated.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Guardian Warning Display */}
+      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+
+      {/* Test Blocked Notice */}
+      {isTestBlocked && (
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+            🚫 Test Execution Blocked
+          </Typography>
+          <Typography variant="body2" paragraph>
+            This parametric test cannot proceed due to critical assumption violations detected by the Guardian system.
+          </Typography>
+          <Typography variant="body2">
+            <strong>Recommendation:</strong> Review the violations above and use the suggested alternative tests or address the data issues.
+          </Typography>
+        </Paper>
+      )}
+
       {/* Test Results */}
       {/* One-Sample t-test Results */}
-      {oneSampleResult && (
+      {oneSampleResult && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -537,7 +655,7 @@ const ParametricTests = ({ data }) => {
       )}
 
       {/* Independent t-test Results */}
-      {independentResult && (
+      {independentResult && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -623,7 +741,7 @@ const ParametricTests = ({ data }) => {
       )}
 
       {/* Paired t-test Results */}
-      {pairedResult && (
+      {pairedResult && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -644,7 +762,7 @@ const ParametricTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Mean Difference</TableCell>
-                    <TableCell align="right">{pairedResult.meanDifference.toFixed(4)}</TableCell>
+                    <TableCell align="right">{pairedResult.sampleMean.toFixed(4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Standard Error</TableCell>
@@ -709,7 +827,7 @@ const ParametricTests = ({ data }) => {
       )}
 
       {/* ANOVA Results */}
-      {anovaResult && (
+      {anovaResult && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>

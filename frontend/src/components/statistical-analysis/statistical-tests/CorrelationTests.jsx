@@ -8,7 +8,7 @@
  * - Scatter plot visualizations
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -47,7 +47,10 @@ import {
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
 import { pearsonCorrelation, spearmanCorrelation } from '../utils/statisticalUtils';
+import guardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
  * Main Correlation Tests Component
@@ -58,6 +61,12 @@ const CorrelationTests = ({ data }) => {
   const [yColumn, setYColumn] = useState('');
   const [correlationType, setCorrelationType] = useState('pearson');
   const [alpha, setAlpha] = useState(0.05);
+
+  // Guardian Integration State
+  const [guardianReport, setGuardianReport] = useState(null);
+  const [guardianLoading, setGuardianLoading] = useState(false);
+  const [guardianError, setGuardianError] = useState(null);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
    * Detect numeric columns
@@ -157,6 +166,64 @@ const CorrelationTests = ({ data }) => {
 
     return { matrix, pValues };
   }, [data, numericColumns, analysisMode, correlationType]);
+
+  /**
+   * Guardian Integration: Check statistical assumptions for correlation tests
+   * Note: Especially important for Pearson correlation which assumes bivariate normality
+   */
+  useEffect(() => {
+    const checkGuardianAssumptions = async () => {
+      // Reset previous Guardian state
+      setGuardianReport(null);
+      setGuardianError(null);
+      setIsTestBlocked(false);
+
+      // Only check in pairwise mode with valid data
+      if (analysisMode !== 'pairwise' || !xColumn || !yColumn || !data || data.length === 0) {
+        return;
+      }
+
+      // Need sufficient data for correlation
+      if (pairwiseData.length < 3) {
+        return;
+      }
+
+      try {
+        // Prepare data for Guardian
+        // Guardian expects grouped data for correlation tests
+        const xValues = pairwiseData.map(d => d.x);
+        const yValues = pairwiseData.map(d => d.y);
+
+        const dataToCheck = {
+          'X Variable': xValues,
+          'Y Variable': yValues
+        };
+
+        const backendTestType = 'pearson'; // Guardian test type for correlation
+
+        // Call Guardian service
+        setGuardianLoading(true);
+        const report = await guardianService.checkAssumptions(
+          dataToCheck,
+          backendTestType,
+          alpha
+        );
+
+        setGuardianReport(report);
+        setIsTestBlocked(!report.can_proceed);
+        setGuardianLoading(false);
+
+      } catch (error) {
+        console.error('Guardian check failed:', error);
+        setGuardianError(error.message || 'Failed to validate assumptions');
+        setGuardianLoading(false);
+        // Don't block test if Guardian service fails
+        setIsTestBlocked(false);
+      }
+    };
+
+    checkGuardianAssumptions();
+  }, [analysisMode, xColumn, yColumn, pairwiseData, alpha, data, correlationType]);
 
   /**
    * Get correlation strength label
@@ -334,8 +401,48 @@ const CorrelationTests = ({ data }) => {
         </Alert>
       </Paper>
 
+      {/* Guardian Loading State */}
+      {guardianLoading && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
+          <CircularProgress size={24} sx={{ mr: 2 }} />
+          <Typography variant="body1" component="span">
+            Validating statistical assumptions...
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Guardian Error State */}
+      {guardianError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Guardian validation unavailable:</strong> {guardianError}
+          </Typography>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            Proceeding without assumption validation. Results may be unreliable if assumptions are violated.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Guardian Warning Display */}
+      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+
+      {/* Test Blocked Notice */}
+      {isTestBlocked && (
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+            🚫 Test Execution Blocked
+          </Typography>
+          <Typography variant="body2" paragraph>
+            This correlation test cannot proceed due to critical assumption violations detected by the Guardian system.
+          </Typography>
+          <Typography variant="body2">
+            <strong>Recommendation:</strong> Review the violations above and use the suggested alternative tests or address the data issues.
+          </Typography>
+        </Paper>
+      )}
+
       {/* Pairwise Correlation Results */}
-      {analysisMode === 'pairwise' && pairwiseCorrelation && xColumn && yColumn && (
+      {analysisMode === 'pairwise' && pairwiseCorrelation && xColumn && yColumn && !isTestBlocked && (
         <>
           {/* Correlation Statistics */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
