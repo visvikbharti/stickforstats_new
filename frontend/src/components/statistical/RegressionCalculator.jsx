@@ -15,7 +15,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -104,6 +104,8 @@ import { saveAs } from 'file-saver';
 
 // Import service
 import { RegressionAnalysisService } from '../../services/RegressionAnalysisService';
+import GuardianService from '../../services/GuardianService';
+import GuardianWarning from '../Guardian/GuardianWarning';
 
 // Configure Decimal precision
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
@@ -159,6 +161,11 @@ const RegressionCalculator = () => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [modelComparison, setModelComparison] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
+
+  // Guardian Integration State
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   // Regression types configuration
   const regressionTypes = {
@@ -222,6 +229,75 @@ const RegressionCalculator = () => {
 
   // Service instance
   const regressionService = useMemo(() => new RegressionAnalysisService(), []);
+
+  // Guardian: Validate linear regression assumptions
+  useEffect(() => {
+    const validateAssumptions = async () => {
+      // Only validate linear and multiple linear regression (parametric with strict assumptions)
+      // Skip polynomial, logistic, ridge, lasso, elasticnet, robust (different assumptions or robust to violations)
+      if (!['linear', 'multiple'].includes(regressionType)) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      // Check if we have sufficient data
+      if (!dataPoints.y || dataPoints.y.length < 3 ||
+          !dataPoints.X || dataPoints.X.length < 3) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        // For Guardian API, we need to format the data appropriately
+        // Linear regression: single X variable
+        // Multiple regression: multiple X variables
+        let formattedData;
+        if (regressionType === 'linear') {
+          // Simple linear: extract first X variable
+          formattedData = [
+            dataPoints.X.map(row => row[0]), // X values (first column)
+            dataPoints.y  // Y values
+          ];
+        } else {
+          // Multiple regression: all X variables + Y
+          const xTransposed = dataPoints.X[0].map((_, colIndex) =>
+            dataPoints.X.map(row => row[colIndex])
+          );
+          formattedData = [...xTransposed, dataPoints.y];
+        }
+
+        // Call Guardian API for linear regression validation
+        const result = await GuardianService.checkAssumptions(
+          formattedData,
+          'linear_regression',  // Test type for linear regression
+          1 - modelOptions.confidenceLevel // alpha
+        );
+
+        setGuardianResult(result);
+
+        // Block test if critical violations detected
+        setIsTestBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[RegressionCalculator] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[RegressionCalculator] Guardian validation error:', error);
+        // Don't block on Guardian errors - allow test to proceed
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateAssumptions();
+  }, [dataPoints.y, dataPoints.X, regressionType, modelOptions.confidenceLevel]);
 
   // Helper functions
   const formatNumber = useCallback((value, precision = displayPrecision) => {
@@ -813,22 +889,45 @@ const RegressionCalculator = () => {
           )}
         </Grid>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={performRegression}
-            disabled={loading || dataPoints.y.length < 3}
-            startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
-          >
-            {loading ? 'Calculating...' : 'Perform Regression'}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={resetCalculator}
-            startIcon={<RefreshIcon />}
-          >
-            Reset
-          </Button>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2, flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={performRegression}
+              disabled={loading || isCheckingAssumptions || isTestBlocked || dataPoints.y.length < 3}
+              startIcon={
+                loading || isCheckingAssumptions ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <CalculateIcon />
+                )
+              }
+            >
+              {isCheckingAssumptions
+                ? 'Validating Assumptions...'
+                : loading
+                ? 'Calculating...'
+                : isTestBlocked
+                ? '⛔ Test Blocked - Fix Violations'
+                : 'Perform Regression'}
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={resetCalculator}
+              startIcon={<RefreshIcon />}
+            >
+              Reset
+            </Button>
+          </Box>
+
+          {isTestBlocked && (
+            <Alert severity="error">
+              <AlertTitle>⛔ Test Execution Blocked</AlertTitle>
+              Critical assumption violations detected for linear regression. Please address the
+              violations above using the "Fix Data" button, or switch to a robust regression method
+              (Ridge, Lasso, or Robust Regression).
+            </Alert>
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -1437,6 +1536,66 @@ const RegressionCalculator = () => {
           <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
+      )}
+
+      {/* Guardian Warning Section */}
+      {guardianResult && (
+        <Box sx={{ mb: 2 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsTestBlocked(false)}
+            onSelectAlternative={(test) => {
+              // Suggest robust regression or regularized methods for violated assumptions
+              if (test.toLowerCase().includes('robust')) {
+                setRegressionType('robust');
+              } else if (test.toLowerCase().includes('ridge')) {
+                setRegressionType('ridge');
+              }
+            }}
+            onViewEvidence={() => {
+              console.log('[RegressionCalculator] Visual evidence requested');
+            }}
+            data={regressionType === 'linear'
+              ? [dataPoints.X.map(row => row[0]), dataPoints.y]
+              : [...(dataPoints.X[0]?.map((_, colIndex) =>
+                  dataPoints.X.map(row => row[colIndex])
+                ) || []), dataPoints.y]}
+            alpha={1 - modelOptions.confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, parameters) => {
+              console.log('[RegressionCalculator] Transformation applied:', transformationType, parameters);
+
+              // Handle transformation completion
+              if (Array.isArray(transformedData) && transformedData.length >= 2) {
+                // Extract transformed Y (last array) and X variables (all but last)
+                const transformedY = transformedData[transformedData.length - 1];
+                const transformedX = transformedData.slice(0, -1);
+
+                if (regressionType === 'linear') {
+                  // Simple linear: single X variable
+                  const newX = dataPoints.X.map((_, i) => [transformedX[0][i]]);
+                  setDataPoints({
+                    ...dataPoints,
+                    y: transformedY,
+                    X: newX
+                  });
+                } else {
+                  // Multiple regression: multiple X variables
+                  const newX = transformedY.map((_, i) =>
+                    transformedX.map(xVar => xVar[i])
+                  );
+                  setDataPoints({
+                    ...dataPoints,
+                    y: transformedY,
+                    X: newX
+                  });
+                }
+
+                setError(null);
+                console.log(`Data transformed using ${transformationType}. Re-validating assumptions...`);
+              }
+            }}
+          />
+        </Box>
       )}
 
       <Grid container spacing={3}>

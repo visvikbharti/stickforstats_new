@@ -16,9 +16,15 @@ import {
   ShowChart as ChartIcon,
   School as LearnIcon,
   SwapHoriz as AlternativeIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  PictureAsPdf as PdfIcon,
+  Code as JsonIcon,
+  Download as DownloadIcon,
+  AutoFixHigh as TransformIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import guardianService from '../../services/GuardianService';
+import TransformationWizard from './TransformationWizard';
 
 // Golden Ratio for confidence calculations
 const PHI = 1.618033988749;
@@ -28,12 +34,17 @@ const GuardianWarning = ({
   onProceed,
   onSelectAlternative,
   onViewEvidence,
-  educationalMode = false
+  educationalMode = false,
+  data = null,  // Add data prop for export
+  alpha = 0.05,  // Add alpha prop for export
+  onTransformComplete = null  // Callback when transformation is applied
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [showEducation, setShowEducation] = useState(false);
   const [selectedViolation, setSelectedViolation] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   if (!guardianReport) return null;
 
@@ -46,6 +57,81 @@ const GuardianWarning = ({
     visual_evidence = {},
     guardian_status = {}
   } = guardianReport;
+
+  // Debug logging
+  console.log('[GuardianWarning] Render:', {
+    hasData: !!data,
+    dataLength: Array.isArray(data) ? data.length : 'not array',
+    hasTestType: !!test_type,
+    test_type,
+    confidence_score,
+    exporting
+  });
+
+  // Check if there are transformable violations (normality, variance)
+  const hasTransformableViolations = violations.some(v =>
+    v.assumption.toLowerCase().includes('normality') ||
+    v.assumption.toLowerCase().includes('variance')
+  );
+
+  // Handle transformation completion
+  const handleTransformComplete = (transformedData, transformationType, parameters) => {
+    console.log('Transformation applied:', { transformationType, parameters });
+    setWizardOpen(false);
+
+    // Notify parent component if callback provided
+    if (onTransformComplete) {
+      onTransformComplete(transformedData, transformationType, parameters);
+    }
+  };
+
+  // Handle PDF export
+  const handleExportPDF = async () => {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      alert('Data not available for export. Please ensure data is loaded.');
+      return;
+    }
+
+    if (!test_type) {
+      alert('Test type not available. Cannot generate report.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const pdfBlob = await guardianService.exportPDF(data, test_type, alpha);
+      guardianService.downloadPDF(pdfBlob, test_type);
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      alert(`PDF export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Handle JSON export
+  const handleExportJSON = async () => {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      alert('Data not available for export. Please ensure data is loaded.');
+      return;
+    }
+
+    if (!test_type) {
+      alert('Test type not available. Cannot generate report.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const jsonData = await guardianService.exportJSON(data, test_type, alpha);
+      guardianService.downloadJSON(jsonData, test_type);
+    } catch (error) {
+      console.error('JSON export failed:', error);
+      alert(`JSON export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Determine severity level
   const getSeverityColor = () => {
@@ -168,6 +254,27 @@ const GuardianWarning = ({
               </Button>
             )}
 
+            {/* Transformation Wizard Button - Show if there are transformable violations */}
+            {hasTransformableViolations && data && (
+              <Tooltip title="Use data transformation to fix normality or variance violations">
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="warning"
+                  startIcon={<TransformIcon />}
+                  onClick={() => setWizardOpen(true)}
+                  sx={{
+                    background: 'linear-gradient(90deg, #FF9800, #FFD700)',
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #F57C00, #FFC107)'
+                    }
+                  }}
+                >
+                  Fix Data
+                </Button>
+              </Tooltip>
+            )}
+
             {alternative_tests.length > 0 && (
               <Button
                 size="small"
@@ -200,6 +307,49 @@ const GuardianWarning = ({
                 Learn More
               </Button>
             )}
+
+            {/* Export Buttons */}
+            <Tooltip title={
+              !data || (Array.isArray(data) && data.length === 0)
+                ? "Data not available for export"
+                : !test_type
+                ? "Test type not available"
+                : "Export validation report as PDF for publications"
+            }>
+              <span>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<PdfIcon />}
+                  onClick={handleExportPDF}
+                  disabled={exporting || !data || (Array.isArray(data) && data.length === 0) || !test_type}
+                >
+                  Export PDF
+                </Button>
+              </span>
+            </Tooltip>
+
+            <Tooltip title={
+              !data || (Array.isArray(data) && data.length === 0)
+                ? "Data not available for export"
+                : !test_type
+                ? "Test type not available"
+                : "Export validation report as JSON for programmatic access"
+            }>
+              <span>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<JsonIcon />}
+                  onClick={handleExportJSON}
+                  disabled={exporting || !data || (Array.isArray(data) && data.length === 0) || !test_type}
+                >
+                  Export JSON
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
 
           {/* Expanded Violations Detail */}
@@ -362,6 +512,15 @@ const GuardianWarning = ({
             </>
           )}
         </Dialog>
+
+        {/* Transformation Wizard */}
+        <TransformationWizard
+          open={wizardOpen}
+          onClose={() => setWizardOpen(false)}
+          data={data}
+          violations={violations}
+          onTransformComplete={handleTransformComplete}
+        />
       </motion.div>
     </AnimatePresence>
   );

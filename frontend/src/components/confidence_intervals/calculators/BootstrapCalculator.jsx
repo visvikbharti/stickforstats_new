@@ -33,6 +33,10 @@ import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import Papa from 'papaparse';
 
+// Guardian Integration - Step 1: Import Dependencies
+import GuardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
+
 // Import visualization components
 import IntervalVisualization from '../visualizations/IntervalVisualization';
 import BootstrapSimulationVisualization from '../visualizations/BootstrapSimulationVisualization';
@@ -67,7 +71,12 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
   const [rawData2, setRawData2] = useState('');
   const [parsedData2, setParsedData2] = useState([]);
   const [dataError2, setDataError2] = useState('');
-  
+
+  // Guardian Integration - Step 2: State Variables
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isCalculationBlocked, setIsCalculationBlocked] = useState(false);
+
   // State for calculation results
   const [result, setResult] = useState(null);
   const [savedResult, setSavedResult] = useState(null);
@@ -193,6 +202,73 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
       }
     }
   }, [rawData2]);
+
+  // Guardian Integration - Step 3: Validation Logic
+  useEffect(() => {
+    const validateBootstrapData = async () => {
+      // Only validate when using NEW data source with actual data
+      if (dataSource !== 'NEW') {
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+        return;
+      }
+
+      // Need parsed data to validate (bootstrap needs minimum sample size)
+      if (!parsedData || parsedData.length < 5) {
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+        return;
+      }
+
+      // For difference intervals, need both samples
+      if (intervalType === 'BOOTSTRAP_DIFFERENCE' && (!parsedData2 || parsedData2.length < 5)) {
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        let result;
+
+        if (intervalType === 'BOOTSTRAP_SINGLE') {
+          // Validate single sample bootstrap
+          result = await GuardianService.checkAssumptions(
+            [parsedData],
+            'one_sample_t_test', // Use for data quality checks
+            1 - confidenceLevel
+          );
+        } else {
+          // Validate both samples for difference bootstrap
+          result = await GuardianService.checkAssumptions(
+            [parsedData, parsedData2],
+            't_test', // Use for data quality checks
+            1 - confidenceLevel
+          );
+        }
+
+        setGuardianResult(result);
+
+        // Bootstrap is robust, so only block on CRITICAL violations
+        // (extreme outliers, very small sample size, severe data quality issues)
+        setIsCalculationBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[BootstrapCalculator] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[BootstrapCalculator] Guardian validation error:', error);
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateBootstrapData();
+  }, [parsedData, parsedData2, intervalType, confidenceLevel, dataSource]);
 
   // Handle saved data selection
   const handleDataSelection = (event) => {
@@ -770,7 +846,45 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
           {dataSource === 'SAVED' ? renderSavedDataSelection() : renderNewDataInput()}
         </Grid>
       </Paper>
-      
+
+      {/* Guardian Integration - Step 4: GuardianWarning Component */}
+      {guardianResult && dataSource === 'NEW' && (
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsCalculationBlocked(false)}
+            onSelectAlternative={(test) => {
+              console.log('[BootstrapCalculator] Alternative suggested:', test);
+              // Bootstrap is already a robust non-parametric method
+              enqueueSnackbar(
+                'Bootstrap is already robust to non-normality. Consider reviewing data quality issues if present.',
+                { variant: 'info' }
+              );
+            }}
+            onViewEvidence={() => {
+              console.log('[BootstrapCalculator] Visual evidence requested');
+            }}
+            data={intervalType === 'BOOTSTRAP_DIFFERENCE' ? [parsedData, parsedData2] : [parsedData]}
+            alpha={1 - confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, transformParams) => {
+              if (Array.isArray(transformedData)) {
+                if (transformedData.length >= 1) {
+                  const transformed1 = transformedData[0];
+                  setParsedData(transformed1);
+                  setRawData(transformed1.join(', '));
+                }
+                if (intervalType === 'BOOTSTRAP_DIFFERENCE' && transformedData.length >= 2) {
+                  const transformed2 = transformedData[1];
+                  setParsedData2(transformed2);
+                  setRawData2(transformed2.join(', '));
+                }
+                console.log(`[BootstrapCalculator] Data transformed using ${transformationType}. Re-validating...`);
+              }
+            }}
+          />
+        </Paper>
+      )}
+
       {/* Calculate Button */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Button
@@ -779,20 +893,35 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
           size="large"
           startIcon={<CalculateIcon />}
           onClick={handleCalculate}
-          disabled={calculating || 
+          disabled={isCheckingAssumptions || isCalculationBlocked || calculating ||
             (dataSource === 'NEW' && (
-              parsedData.length === 0 || 
-              !!dataError || 
+              parsedData.length === 0 ||
+              !!dataError ||
               (intervalType === 'BOOTSTRAP_DIFFERENCE' && (parsedData2.length === 0 || !!dataError2))
-            )) || 
+            )) ||
             (dataSource === 'SAVED' && (
-              !selectedDataId || 
+              !selectedDataId ||
               (intervalType === 'BOOTSTRAP_DIFFERENCE' && !selectedDataId2)
             ))}
         >
-          Calculate Bootstrap Interval
-          {calculating && <CircularProgress size={20} sx={{ ml: 1 }} />}
+          {isCheckingAssumptions
+            ? 'Validating Data Quality...'
+            : isCalculationBlocked
+            ? '⛔ Calculation Blocked - Fix Violations'
+            : calculating
+            ? 'Calculating...'
+            : 'Calculate Bootstrap Interval'}
+          {(calculating || isCheckingAssumptions) && <CircularProgress size={20} sx={{ ml: 1 }} />}
         </Button>
+
+        {isCalculationBlocked && (
+          <Alert severity="error" sx={{ mt: 2, maxWidth: 600, mx: 'auto' }}>
+            <AlertTitle>⛔ Calculation Blocked</AlertTitle>
+            Critical data quality violations detected. While bootstrap methods are robust to non-normality,
+            extreme outliers or very small sample sizes can still affect results.
+            Please use the "Fix Data" button above to address these issues.
+          </Alert>
+        )}
       </Box>
       
       {/* Results */}

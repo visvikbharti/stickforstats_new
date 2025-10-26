@@ -11,7 +11,7 @@
  * - Fisher LSD (Least Significant Difference)
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -33,7 +33,8 @@ import {
   TableRow,
   Divider,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  CircularProgress
 } from '@mui/material';
 import {
   ScatterChart,
@@ -51,6 +52,8 @@ import {
 import CalculateIcon from '@mui/icons-material/Calculate';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import GuardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
  * Main Post-hoc Tests Component
@@ -60,6 +63,11 @@ const PostHocTests = ({ data }) => {
   const [dependentVar, setDependentVar] = useState('');
   const [testMethod, setTestMethod] = useState('tukey');
   const [alpha, setAlpha] = useState(0.05);
+
+  // Guardian Integration - Statistical Assumption Validation
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
    * Detect column types
@@ -128,6 +136,54 @@ const PostHocTests = ({ data }) => {
       totalN: data.length
     };
   }, [data, groupVariable, dependentVar]);
+
+  /**
+   * Guardian Validation - Check ANOVA assumptions for post-hoc tests
+   * Post-hoc tests inherit ANOVA assumptions: normality, variance homogeneity, independence
+   */
+  useEffect(() => {
+    const validateAssumptions = async () => {
+      // Only validate if we have both variables selected and grouped data
+      if (!groupVariable || !dependentVar || !groupedData) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      // Need at least 3 groups for post-hoc tests
+      if (groupedData.groups.length < 3) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      setIsCheckingAssumptions(true);
+
+      try {
+        // Format data for Guardian: array of arrays (one per group)
+        const formattedData = groupedData.groups.map(group =>
+          groupedData.stats[group].values
+        );
+
+        // Call Guardian API with ANOVA test type (post-hoc inherits ANOVA assumptions)
+        const result = await GuardianService.checkAssumptions(formattedData, 'anova');
+
+        setGuardianResult(result);
+
+        // Block test if critical violations detected
+        setIsTestBlocked(result.hasViolations && result.criticalViolations.length > 0);
+      } catch (error) {
+        console.error('Guardian assumption check failed:', error);
+        // Fail open - don't block on Guardian errors
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateAssumptions();
+  }, [groupVariable, dependentVar, groupedData]);
 
   /**
    * Calculate pooled error term (MSE from ANOVA)
@@ -463,8 +519,28 @@ const PostHocTests = ({ data }) => {
         </Alert>
       </Paper>
 
-      {/* Results */}
-      {pairwiseComparisons && groupedData && (
+      {/* Guardian Assumption Validation */}
+      {isCheckingAssumptions && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, textAlign: 'center' }}>
+          <CircularProgress size={30} sx={{ mb: 2 }} />
+          <Typography variant="body2" color="text.secondary">
+            Validating statistical assumptions...
+          </Typography>
+        </Paper>
+      )}
+
+      {guardianResult && (
+        <Box sx={{ mb: 3 }}>
+          <GuardianWarning
+            result={guardianResult}
+            testName={`Post-hoc Tests (${testMethod.charAt(0).toUpperCase() + testMethod.slice(1)})`}
+            testType="anova"
+          />
+        </Box>
+      )}
+
+      {/* Results - Only show if test is not blocked */}
+      {pairwiseComparisons && groupedData && !isTestBlocked && (
         <>
           {/* Summary Statistics */}
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -604,6 +680,21 @@ const PostHocTests = ({ data }) => {
             Use a t-test for comparing just 2 groups.
           </Typography>
         </Alert>
+      )}
+
+      {/* Guardian Blocking Message */}
+      {isTestBlocked && groupVariable && dependentVar && groupedData && (
+        <Paper elevation={2} sx={{ p: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
+          <Alert severity="error">
+            <Typography variant="body1" gutterBottom>
+              <strong>Post-hoc Test Blocked Due to Assumption Violations</strong>
+            </Typography>
+            <Typography variant="body2">
+              The Guardian system has detected critical violations of statistical assumptions required for post-hoc tests.
+              Please review the violations above and consider the recommended alternatives.
+            </Typography>
+          </Alert>
+        </Paper>
       )}
     </Box>
   );

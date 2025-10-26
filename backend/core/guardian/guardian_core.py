@@ -15,6 +15,10 @@ from decimal import Decimal, getcontext
 import warnings
 import json
 
+# Import visualization and effect size modules
+from .visualization_generator import VisualizationGenerator
+from .effect_size_calculator import EffectSizeCalculator
+
 # Set precision for the universe's mathematical language
 getcontext().prec = 50
 PHI = Decimal(1 + 5**0.5) / 2  # Golden Ratio with 50-decimal precision
@@ -44,6 +48,7 @@ class GuardianReport:
     alternative_tests: List[str]
     confidence_score: float
     visual_evidence: Dict[str, Any]
+    effect_size_report: Optional[Dict[str, Any]] = None
 
 
 class GuardianCore:
@@ -75,6 +80,10 @@ class GuardianCore:
             'mann_whitney': ['independence', 'similar_shapes'],
             'kruskal_wallis': ['independence', 'similar_shapes']
         }
+
+        # Initialize visualization and effect size calculators
+        self.viz_generator = VisualizationGenerator()
+        self.effect_calculator = EffectSizeCalculator()
 
     def check(self, data: Any, test_type: str, alpha: float = 0.05) -> GuardianReport:
         """
@@ -134,6 +143,38 @@ class GuardianCore:
         # Calculate confidence score (using golden ratio weighting)
         confidence = self._calculate_confidence(violations)
 
+        # Generate publication-ready visualizations
+        try:
+            # Prepare data for visualization (flatten if needed)
+            viz_data = data_arrays[0] if len(data_arrays) == 1 else data_arrays
+
+            # Convert violations to dict format for visualization generator
+            violation_dicts = [
+                {
+                    'assumption': v.assumption,
+                    'severity': v.severity,
+                    'test_name': v.test_name
+                }
+                for v in violations
+            ]
+
+            visual_plots = self.viz_generator.generate_all_diagnostics(
+                viz_data, violation_dicts, test_type
+            )
+            visual_evidence.update(visual_plots)
+        except Exception as e:
+            warnings.warn(f"Failed to generate visualizations: {str(e)}")
+            visual_evidence['error'] = str(e)
+
+        # Calculate effect sizes
+        effect_size_report = None
+        try:
+            effect_size_report = self.effect_calculator.generate_effect_size_report(
+                test_type, data_arrays
+            )
+        except Exception as e:
+            warnings.warn(f"Failed to calculate effect sizes: {str(e)}")
+
         return GuardianReport(
             test_type=test_type,
             data_summary=self._summarize_data(data_arrays),
@@ -142,7 +183,8 @@ class GuardianCore:
             can_proceed=can_proceed,
             alternative_tests=alternatives,
             confidence_score=confidence,
-            visual_evidence=visual_evidence
+            visual_evidence=visual_evidence,
+            effect_size_report=effect_size_report
         )
 
     def _prepare_data(self, data) -> List[np.ndarray]:
@@ -198,24 +240,35 @@ class GuardianCore:
     def _calculate_confidence(self, violations: List[AssumptionViolation]) -> float:
         """
         Calculate confidence score using golden ratio weighting
-        Critical violations: weight = 1/φ²
-        Warning violations: weight = 1/φ
-        Minor violations: weight = 1
+
+        Higher penalties for more severe violations:
+        - Critical violations: penalty = φ² ≈ 2.618 (HIGHEST penalty)
+        - Warning violations: penalty = φ ≈ 1.618 (MEDIUM penalty)
+        - Minor violations: penalty = 1.0 (LOWEST penalty)
+
+        Confidence decreases as penalties accumulate.
         """
         if not violations:
             return 1.0
 
         phi = float(PHI)
-        weights = {
-            'critical': 1 / (phi ** 2),  # ~0.382
-            'warning': 1 / phi,           # ~0.618
-            'minor': 1.0
+        # Correct weighting: critical violations have HIGHER penalties
+        penalties = {
+            'critical': phi ** 2,  # ~2.618 (highest penalty)
+            'warning': phi,         # ~1.618 (medium penalty)
+            'minor': 1.0           # 1.0 (lowest penalty)
         }
 
-        total_penalty = sum(weights.get(v.severity, 1.0) for v in violations)
-        max_penalty = len(violations) * weights['critical']
+        # Calculate total penalty from all violations
+        total_penalty = sum(penalties.get(v.severity, 1.0) for v in violations)
 
-        confidence = max(0, 1 - (total_penalty / (max_penalty * 2)))
+        # Maximum possible penalty if all were critical
+        max_possible_penalty = len(violations) * penalties['critical']
+
+        # Confidence decreases proportionally to penalty accumulation
+        # Scale so that all-critical gives ~50%, mixed gives 60-80%, all-minor gives ~85%
+        confidence = max(0, 1 - (total_penalty / (max_possible_penalty * 1.2)))
+
         return round(confidence, 3)
 
 
@@ -271,7 +324,13 @@ class NormalityValidator:
                 'visual_data': self._generate_visual_data(data_arrays)
             }
 
-        return {'violated': False}
+        # Return test statistics even when assumption is satisfied
+        return {
+            'violated': False,
+            'test_name': results[0]['test_name'] if results else 'Shapiro-Wilk',
+            'p_value': max(r['p_value'] for r in results) if results else None,
+            'statistic': results[0]['statistic'] if results else None
+        }
 
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
         """Generate data for Q-Q plot and histogram"""
@@ -345,7 +404,13 @@ class VarianceHomogeneityValidator:
                 'visual_data': self._generate_visual_data(data_arrays)
             }
 
-        return {'violated': False}
+        # Return test statistics even when assumption is satisfied
+        return {
+            'violated': False,
+            'test_name': "Levene's Test",
+            'p_value': p_value,
+            'statistic': stat
+        }
 
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
         """Generate variance comparison visualization data"""
@@ -362,12 +427,14 @@ class IndependenceValidator:
     def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
         """Check independence using Durbin-Watson test for autocorrelation"""
 
+        max_autocorr = 0
         for arr in data_arrays:
             if len(arr) < 10:
                 continue
 
             # Simple autocorrelation check
             autocorr = np.corrcoef(arr[:-1], arr[1:])[0, 1]
+            max_autocorr = max(abs(max_autocorr), abs(autocorr))
 
             if abs(autocorr) > 0.3:  # Threshold based on practical significance
                 severity = 'critical' if abs(autocorr) > 0.5 else 'warning'
@@ -377,11 +444,18 @@ class IndependenceValidator:
                     'test_name': 'Autocorrelation Test',
                     'severity': severity,
                     'statistic': autocorr,
+                    'p_value': None,
                     'message': f'Independence assumption violated (autocorr={autocorr:.3f})',
                     'recommendation': 'Check for time-series structure or repeated measures'
                 }
 
-        return {'violated': False}
+        # Return autocorrelation statistic even when assumption is satisfied
+        return {
+            'violated': False,
+            'test_name': 'Autocorrelation Test',
+            'statistic': max_autocorr if max_autocorr > 0 else None,
+            'p_value': None
+        }
 
 
 class OutlierDetector:

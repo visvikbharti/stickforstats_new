@@ -1,6 +1,19 @@
 /**
  * Categorical Tests Component
  * ============================
+ * ⚠️ DEPRECATED - October 26, 2025 ⚠️
+ *
+ * This component has been DEPRECATED in favor of the Guardian-protected version at:
+ * /components/statistical-analysis/statistical-tests/CategoricalTests.jsx
+ *
+ * REASON: This component lacks Guardian assumption validation and test blocking.
+ * The protected version is integrated into StatisticalAnalysisHub at /statistical-analysis-tools
+ *
+ * STATUS: Route /statistical-tests has been disabled in App.jsx
+ * REPLACEMENT: Use /statistical-analysis-tools for Guardian-protected statistical tests
+ *
+ * ---
+ *
  * Complete UI for performing categorical data analysis with 50 decimal precision
  * Tests for independence, association, and goodness of fit
  *

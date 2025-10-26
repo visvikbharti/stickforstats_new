@@ -64,7 +64,8 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const DebugLoginPage = lazy(() => import('./pages/DebugLoginPage'));
 
 // Lazy-load main statistical pages
-const ProfessionalStatisticalAnalysis = lazy(() => import('./pages/ProfessionalStatisticalAnalysis'));
+// DEPRECATED: ProfessionalStatisticalAnalysis caused ChunkLoadError - replaced by StatisticalAnalysisHub
+// const ProfessionalStatisticalAnalysis = lazy(() => import('./pages/ProfessionalStatisticalAnalysis'));
 const EnhancedStatisticalAnalysis = lazy(() => import('./pages/EnhancedStatisticalAnalysis'));
 const TTestCompleteModule = lazy(() => import('./modules/TTestCompleteModule'));
 const ANOVACompleteModule = lazy(() => import('./modules/ANOVACompleteModule'));
@@ -257,16 +258,20 @@ function App() {
                         />
                         
                         {/* Professional Statistical Analysis - Main Analysis Interface */}
+                        {/* Updated to use StatisticalAnalysisHub (Guardian-protected version) */}
                         <Route
                           path="/analysis"
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Analysis Interface..." />}>
-                              <ProfessionalStatisticalAnalysis />
+                              <StatisticalAnalysisHub />
                             </Suspense>
                           }
                         />
 
-                        {/* Statistical Analysis Center - Main Statistical Analysis Page */}
+                        {/* DEPRECATED: Legacy Statistical Analysis Page - REPLACED by /statistical-analysis-tools */}
+                        {/* This route caused ChunkLoadError - ProfessionalStatisticalAnalysis.jsx is redundant */}
+                        {/* All links now point to /statistical-analysis-tools (StatisticalAnalysisHub) */}
+                        {/*
                         <Route
                           path="/statistical-analysis"
                           element={
@@ -275,6 +280,7 @@ function App() {
                             </Suspense>
                           }
                         />
+                        */}
 
 
                         {/* Enhanced Statistical Analysis with Educational Content */}
@@ -418,7 +424,11 @@ function App() {
                           }
                         />
 
-                        {/* Statistical Tests with 50 Decimal Precision */}
+                        {/* DEPRECATED: Legacy Statistical Tests Page - REPLACED by /statistical-analysis-tools */}
+                        {/* This route used unprotected NonParametricTests and CategoricalTests components */}
+                        {/* Guardian-protected versions are available in StatisticalAnalysisHub at /statistical-analysis-tools */}
+                        {/* Deprecated: October 26, 2025 - Guardian Phase 1 Batch 1.5-1.6 */}
+                        {/*
                         <Route
                           path="/statistical-tests"
                           element={
@@ -429,6 +439,7 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
+                        */}
                         
                         {/* Enterprise Dashboard */}
                         <Route 

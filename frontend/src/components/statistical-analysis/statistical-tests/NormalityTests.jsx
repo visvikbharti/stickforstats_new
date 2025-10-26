@@ -54,6 +54,48 @@ import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 
 /**
+ * Utility functions for statistical calculations
+ * Defined outside component to avoid re-creation and initialization errors
+ */
+
+/**
+ * Standard normal CDF (approximation)
+ */
+const normalCDF = (z) => {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp(-z * z / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+};
+
+/**
+ * Chi-square CDF (approximation for df=2)
+ */
+const chiSquareCDF = (x, df) => {
+  if (df === 2) {
+    return 1 - Math.exp(-x / 2);
+  }
+  // For other df, use a rough approximation
+  return normalCDF((Math.pow(x / df, 1 / 3) - (1 - 2 / (9 * df))) / Math.sqrt(2 / (9 * df)));
+};
+
+/**
+ * Inverse normal CDF (approximation)
+ */
+const inverseNormalCDF = (p) => {
+  // Approximation using rational function
+  if (p < 0.5) {
+    const t = Math.sqrt(-2 * Math.log(p));
+    return -(t - (2.515517 + 0.802853 * t + 0.010328 * t * t) /
+      (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t));
+  } else {
+    const t = Math.sqrt(-2 * Math.log(1 - p));
+    return t - (2.515517 + 0.802853 * t + 0.010328 * t * t) /
+      (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t);
+  }
+};
+
+/**
  * Main Normality Tests Component
  */
 const NormalityTests = ({ data }) => {
@@ -103,46 +145,6 @@ const NormalityTests = ({ data }) => {
     if (columnData.length === 0) return null;
     return calculateDescriptiveStats(columnData);
   }, [columnData]);
-
-  /**
-   * Standard normal CDF (approximation)
-   * MUST be defined before useMemo hooks that use it
-   */
-  const normalCDF = (z) => {
-    const t = 1 / (1 + 0.2316419 * Math.abs(z));
-    const d = 0.3989423 * Math.exp(-z * z / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-    return z > 0 ? 1 - p : p;
-  };
-
-  /**
-   * Chi-square CDF (approximation for df=2)
-   * MUST be defined before useMemo hooks that use it
-   */
-  const chiSquareCDF = (x, df) => {
-    if (df === 2) {
-      return 1 - Math.exp(-x / 2);
-    }
-    // For other df, use a rough approximation
-    return normalCDF((Math.pow(x / df, 1 / 3) - (1 - 2 / (9 * df))) / Math.sqrt(2 / (9 * df)));
-  };
-
-  /**
-   * Inverse normal CDF (approximation)
-   * MUST be defined before useMemo hooks that use it
-   */
-  const inverseNormalCDF = (p) => {
-    // Approximation using rational function
-    if (p < 0.5) {
-      const t = Math.sqrt(-2 * Math.log(p));
-      return -(t - (2.515517 + 0.802853 * t + 0.010328 * t * t) /
-        (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t));
-    } else {
-      const t = Math.sqrt(-2 * Math.log(1 - p));
-      return t - (2.515517 + 0.802853 * t + 0.010328 * t * t) /
-        (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t);
-    }
-  };
 
   /**
    * Perform Shapiro-Wilk test
@@ -399,7 +401,11 @@ const NormalityTests = ({ data }) => {
           <Typography variant="subtitle2" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
             ℹ️ Data Quality Information
           </Typography>
-          <GuardianWarning guardianReport={guardianReport} />
+          <GuardianWarning
+            guardianReport={guardianReport}
+            data={columnData}
+            alpha={alpha}
+          />
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="caption">
               <strong>Note:</strong> These are informational warnings about data quality.

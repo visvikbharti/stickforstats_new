@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './EffectSizeEstimator.scss';
 
+// Guardian Integration - Step 1: Import Dependencies
+import GuardianService from '../../services/GuardianService';
+import GuardianWarning from '../Guardian/GuardianWarning';
+
 const EffectSizeEstimator = ({ 
   testType = 't_test',
   onEstimation,
@@ -55,6 +59,62 @@ const EffectSizeEstimator = ({
   const [sensitivityResults, setSensitivityResults] = useState([]);
   const [validationMessages, setValidationMessages] = useState([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Guardian Integration - Step 2: State Variables
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isEstimationBlocked, setIsEstimationBlocked] = useState(false);
+
+  // Guardian Integration - Step 3: Validation Logic
+  useEffect(() => {
+    const validatePilotData = async () => {
+      // Only validate when using pilot_data method with actual raw data
+      if (estimationMethod !== 'pilot_data') {
+        setGuardianResult(null);
+        setIsEstimationBlocked(false);
+        return;
+      }
+
+      const { group1, group2 } = parameters.pilotData;
+
+      // Check if raw data arrays are populated (not just summary statistics)
+      if (!group1 || !group2 || group1.length < 3 || group2.length < 3) {
+        // No raw data - only summary statistics provided, skip Guardian validation
+        setGuardianResult(null);
+        setIsEstimationBlocked(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        // Validate pilot data meets t-test assumptions for effect size calculation
+        const result = await GuardianService.checkAssumptions(
+          [group1, group2],
+          't_test',
+          0.05
+        );
+
+        setGuardianResult(result);
+
+        // Block estimation if critical violations detected
+        setIsEstimationBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[EffectSizeEstimator] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[EffectSizeEstimator] Guardian validation error:', error);
+        setGuardianResult(null);
+        setIsEstimationBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validatePilotData();
+  }, [estimationMethod, parameters.pilotData.group1, parameters.pilotData.group2]);
 
   // Effect size calculation methods
   const EffectSizeCalculators = {
@@ -870,6 +930,40 @@ const EffectSizeEstimator = ({
           </div>
         )}
 
+        {/* Guardian Integration - Step 4: GuardianWarning Component */}
+        {guardianResult && estimationMethod === 'pilot_data' && (
+          <div style={{ marginBottom: '20px' }}>
+            <GuardianWarning
+              guardianReport={guardianResult}
+              onProceed={() => setIsEstimationBlocked(false)}
+              onSelectAlternative={(test) => {
+                // For effect size estimation, suggest robust measures
+                console.log('[EffectSizeEstimator] Alternative suggested:', test);
+                // Could auto-switch to Hedges' g or Glass's Delta for robust estimation
+              }}
+              onViewEvidence={() => {
+                console.log('[EffectSizeEstimator] Visual evidence requested');
+              }}
+              data={[parameters.pilotData.group1, parameters.pilotData.group2]}
+              alpha={0.05}
+              onTransformComplete={(transformedData, transformationType, transformParams) => {
+                // Handle pilot data transformation
+                if (Array.isArray(transformedData) && transformedData.length === 2) {
+                  setParameters({
+                    ...parameters,
+                    pilotData: {
+                      ...parameters.pilotData,
+                      group1: transformedData[0],
+                      group2: transformedData[1]
+                    }
+                  });
+                  console.log(`Pilot data transformed using ${transformationType}. Re-validating...`);
+                }
+              }}
+            />
+          </div>
+        )}
+
         {/* Advanced Settings */}
         {showAdvanced && (
           <div className="advanced-section">
@@ -952,9 +1046,40 @@ const EffectSizeEstimator = ({
           </div>
         )}
 
-        <button className="btn-estimate" onClick={performEstimation}>
-          Estimate Effect Size
+        {/* Guardian Integration - Step 5: Test Blocking Button */}
+        <button
+          className="btn-estimate"
+          onClick={performEstimation}
+          disabled={isCheckingAssumptions || isEstimationBlocked}
+          style={{
+            opacity: (isCheckingAssumptions || isEstimationBlocked) ? 0.6 : 1,
+            cursor: (isCheckingAssumptions || isEstimationBlocked) ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isCheckingAssumptions
+            ? 'Validating Assumptions...'
+            : isEstimationBlocked
+            ? '⛔ Estimation Blocked - Fix Violations'
+            : 'Estimate Effect Size'}
         </button>
+
+        {isEstimationBlocked && (
+          <div style={{
+            marginTop: '10px',
+            padding: '12px',
+            backgroundColor: '#fee',
+            border: '1px solid #fcc',
+            borderRadius: '4px',
+            color: '#c33'
+          }}>
+            <strong>⛔ Estimation Blocked</strong>
+            <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+              Critical assumption violations detected in pilot data. Please address the violations
+              using the "Fix Data" button above, or consider using robust effect size measures
+              (Hedges' g, Glass's Δ).
+            </p>
+          </div>
+        )}
 
         {/* Validation Messages */}
         {validationMessages.length > 0 && (
