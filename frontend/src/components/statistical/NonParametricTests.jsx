@@ -1,6 +1,19 @@
 /**
  * Non-Parametric Tests Component
  * ================================
+ * ⚠️ DEPRECATED - October 26, 2025 ⚠️
+ *
+ * This component has been DEPRECATED in favor of the Guardian-protected version at:
+ * /components/statistical-analysis/statistical-tests/NonParametricTests.jsx
+ *
+ * REASON: This component lacks Guardian assumption validation and test blocking.
+ * The protected version is integrated into StatisticalAnalysisHub at /statistical-analysis-tools
+ *
+ * STATUS: Route /statistical-tests has been disabled in App.jsx
+ * REPLACEMENT: Use /statistical-analysis-tools for Guardian-protected statistical tests
+ *
+ * ---
+ *
  * Complete UI for performing various non-parametric statistical tests with 50 decimal precision
  * Distribution-free alternatives to parametric tests
  *

@@ -14,7 +14,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -95,6 +95,8 @@ import { saveAs } from 'file-saver';
 
 // Import service
 import { HighPrecisionStatisticalService } from '../../services/HighPrecisionStatisticalService';
+import GuardianService from '../../services/GuardianService';
+import GuardianWarning from '../Guardian/GuardianWarning';
 
 // Configure Decimal precision
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
@@ -136,6 +138,11 @@ const CorrelationCalculator = () => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [interpretationOpen, setInterpretationOpen] = useState(false);
 
+  // Guardian Integration State
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
+
   // Correlation methods configuration
   const correlationMethods = {
     pearson: {
@@ -163,6 +170,77 @@ const CorrelationCalculator = () => {
 
   // Service instance
   const statService = useMemo(() => new HighPrecisionStatisticalService(), []);
+
+  // Guardian: Validate Pearson correlation assumptions
+  useEffect(() => {
+    const validateAssumptions = async () => {
+      // Only validate Pearson correlation (parametric test with assumptions)
+      // Spearman and Kendall are non-parametric - no normality assumptions
+      if (correlationType !== 'pearson') {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      // Check if we have sufficient data
+      if (analysisMode === 'pairwise') {
+        // Pairwise mode: need both X and Y arrays
+        if (!dataPoints.pairwiseX || !dataPoints.pairwiseY ||
+            dataPoints.pairwiseX.length < 3 || dataPoints.pairwiseY.length < 3) {
+          setGuardianResult(null);
+          setIsTestBlocked(false);
+          return;
+        }
+      } else {
+        // Matrix mode: need at least 2 variables with data
+        if (!dataPoints.data || dataPoints.data.length < 2 ||
+            !dataPoints.data[0] || dataPoints.data[0].length < 3) {
+          setGuardianResult(null);
+          setIsTestBlocked(false);
+          return;
+        }
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        let formattedData;
+        if (analysisMode === 'pairwise') {
+          // Format as array of two arrays for Guardian
+          formattedData = [dataPoints.pairwiseX, dataPoints.pairwiseY];
+        } else {
+          // Matrix mode: data is already in array of arrays format
+          formattedData = dataPoints.data;
+        }
+
+        // Call Guardian API
+        const result = await GuardianService.checkAssumptions(
+          formattedData,
+          'pearson',  // Test type for Pearson correlation
+          1 - options.confidenceLevel // alpha
+        );
+
+        setGuardianResult(result);
+
+        // Block test if critical violations detected
+        setIsTestBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[CorrelationCalculator] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[CorrelationCalculator] Guardian validation error:', error);
+        // Don't block on Guardian errors - allow test to proceed
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateAssumptions();
+  }, [dataPoints.pairwiseX, dataPoints.pairwiseY, dataPoints.data, correlationType, analysisMode, options.confidenceLevel]);
 
   // Helper functions
   const formatNumber = useCallback((value, precision = displayPrecision) => {
@@ -724,23 +802,46 @@ const CorrelationCalculator = () => {
           )}
         </Grid>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={performCorrelation}
-            disabled={loading ||
-              (analysisMode === 'pairwise' ? dataPoints.pairwiseX.length < 3 : dataPoints.data.length < 2)}
-            startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
-          >
-            {loading ? 'Calculating...' : 'Calculate Correlation'}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={resetCalculator}
-            startIcon={<RefreshIcon />}
-          >
-            Reset
-          </Button>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2, flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              onClick={performCorrelation}
+              disabled={loading || isCheckingAssumptions || isTestBlocked ||
+                (analysisMode === 'pairwise' ? dataPoints.pairwiseX.length < 3 : dataPoints.data.length < 2)}
+              startIcon={
+                loading || isCheckingAssumptions ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <CalculateIcon />
+                )
+              }
+            >
+              {isCheckingAssumptions
+                ? 'Validating Assumptions...'
+                : loading
+                ? 'Calculating...'
+                : isTestBlocked
+                ? '⛔ Test Blocked - Fix Violations'
+                : 'Calculate Correlation'}
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={resetCalculator}
+              startIcon={<RefreshIcon />}
+            >
+              Reset
+            </Button>
+          </Box>
+
+          {isTestBlocked && (
+            <Alert severity="error">
+              <AlertTitle>⛔ Test Execution Blocked</AlertTitle>
+              Critical assumption violations detected for Pearson correlation. Please address the
+              violations above using the "Fix Data" button, or switch to a non-parametric alternative
+              (Spearman or Kendall correlation).
+            </Alert>
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -1119,6 +1220,56 @@ const CorrelationCalculator = () => {
           <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
+      )}
+
+      {/* Guardian Warning Section */}
+      {guardianResult && (
+        <Box sx={{ mb: 2 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsTestBlocked(false)}
+            onSelectAlternative={(test) => {
+              if (test.toLowerCase().includes('spearman')) {
+                setCorrelationType('spearman');
+              } else if (test.toLowerCase().includes('kendall')) {
+                setCorrelationType('kendall');
+              }
+            }}
+            onViewEvidence={() => {
+              console.log('[CorrelationCalculator] Visual evidence requested');
+            }}
+            data={analysisMode === 'pairwise'
+              ? [dataPoints.pairwiseX, dataPoints.pairwiseY]
+              : dataPoints.data}
+            alpha={1 - options.confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, parameters) => {
+              console.log('[CorrelationCalculator] Transformation applied:', transformationType, parameters);
+
+              if (analysisMode === 'pairwise') {
+                // Pairwise mode: update X and Y arrays
+                if (Array.isArray(transformedData) && transformedData.length === 2) {
+                  setDataPoints({
+                    ...dataPoints,
+                    pairwiseX: transformedData[0],
+                    pairwiseY: transformedData[1]
+                  });
+                }
+              } else {
+                // Matrix mode: update data array
+                if (Array.isArray(transformedData)) {
+                  setDataPoints({
+                    ...dataPoints,
+                    data: transformedData
+                  });
+                }
+              }
+
+              // Show success feedback
+              setError(null);
+              console.log(`Data transformed using ${transformationType}. Re-validating assumptions...`);
+            }}
+          />
+        </Box>
       )}
 
       <Grid container spacing={3}>

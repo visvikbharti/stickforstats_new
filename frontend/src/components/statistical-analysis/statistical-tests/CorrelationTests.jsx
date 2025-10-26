@@ -69,6 +69,31 @@ const CorrelationTests = ({ data }) => {
   const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
+   * Guardian Action Handlers
+   */
+  const handleGuardianProceed = () => {
+    console.log('Guardian: User chose to proceed despite warnings');
+    setIsTestBlocked(false);
+  };
+
+  const handleSelectAlternative = (alternativeTest) => {
+    console.log('Guardian: User selected alternative test:', alternativeTest);
+    // Could auto-switch to the alternative test here
+    if (alternativeTest === 'spearman') {
+      setCorrelationType('spearman');
+      alert('Switched to Spearman correlation (non-parametric alternative)');
+    } else {
+      alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the available options.`);
+    }
+  };
+
+  const handleViewEvidence = () => {
+    console.log('Guardian: User requested visual evidence');
+    // Visual evidence would be shown in a modal or expanded section
+    alert('Visual evidence display coming soon!');
+  };
+
+  /**
    * Detect numeric columns
    */
   const numericColumns = useMemo(() => {
@@ -100,6 +125,17 @@ const CorrelationTests = ({ data }) => {
       }))
       .filter(point => !isNaN(point.x) && !isNaN(point.y));
   }, [data, xColumn, yColumn]);
+
+  /**
+   * Extract combined data for Guardian export (both X and Y columns)
+   */
+  const combinedData = useMemo(() => {
+    if (pairwiseData.length === 0) return [];
+
+    const xValues = pairwiseData.map(p => p.x);
+    const yValues = pairwiseData.map(p => p.y);
+    return [...xValues, ...yValues];
+  }, [pairwiseData]);
 
   /**
    * Calculate pairwise correlation
@@ -424,7 +460,16 @@ const CorrelationTests = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+      {guardianReport && (
+        <GuardianWarning
+          guardianReport={guardianReport}
+          data={combinedData}
+          alpha={alpha}
+          onProceed={handleGuardianProceed}
+          onSelectAlternative={handleSelectAlternative}
+          onViewEvidence={handleViewEvidence}
+        />
+      )}
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (

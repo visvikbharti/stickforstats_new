@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -56,6 +56,10 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import SchoolIcon from '@mui/icons-material/School';
 import ScienceIcon from '@mui/icons-material/Science';
 
+// Guardian Integration - Step 1: Import Dependencies
+import GuardianService from '../../services/GuardianService';
+import GuardianWarning from '../Guardian/GuardianWarning';
+
 const AdvancedStatisticalTests = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [testType, setTestType] = useState('t-test');
@@ -64,6 +68,11 @@ const AdvancedStatisticalTests = () => {
   const [hypothesisType, setHypothesisType] = useState('two-sided');
   const [alpha, setAlpha] = useState(0.05);
   const [testResults, setTestResults] = useState(null);
+
+  // Guardian Integration - Step 2: State Variables
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
   
   // Multiple testing state
   const [multipleTests, setMultipleTests] = useState([
@@ -88,6 +97,68 @@ const AdvancedStatisticalTests = () => {
   const parseData = (dataString) => {
     return dataString.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
   };
+
+  // Guardian Integration - Step 3: Validation Logic
+  useEffect(() => {
+    const validateTestData = async () => {
+      // Only validate for parametric tests (t-test, ANOVA)
+      const parametricTests = ['t-test', 'anova'];
+      if (!parametricTests.includes(testType)) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      const arr1 = parseData(data1);
+      const arr2 = parseData(data2);
+
+      // Need valid data to validate
+      if (arr1.length < 3 || arr2.length < 3) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        let result;
+        if (testType === 't-test') {
+          // Validate for two-sample t-test
+          result = await GuardianService.checkAssumptions(
+            [arr1, arr2],
+            't_test',
+            alpha
+          );
+        } else if (testType === 'anova') {
+          // Validate for ANOVA
+          result = await GuardianService.checkAssumptions(
+            [arr1, arr2],
+            'anova',
+            alpha
+          );
+        }
+
+        setGuardianResult(result);
+
+        // Block test if critical violations detected
+        setIsTestBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[AdvancedStatisticalTests] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[AdvancedStatisticalTests] Guardian validation error:', error);
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateTestData();
+  }, [data1, data2, testType, alpha]);
 
   // Perform statistical test
   const performTest = () => {
@@ -411,14 +482,55 @@ const AdvancedStatisticalTests = () => {
                   inputProps={{ min: 0.001, max: 0.5, step: 0.01 }}
                 />
 
+                {/* Guardian Integration - Step 4: GuardianWarning Component */}
+                {guardianResult && ['t-test', 'anova'].includes(testType) && (
+                  <Box sx={{ mb: 2 }}>
+                    <GuardianWarning
+                      guardianReport={guardianResult}
+                      onProceed={() => setIsTestBlocked(false)}
+                      onSelectAlternative={(test) => {
+                        console.log('[AdvancedStatisticalTests] Alternative suggested:', test);
+                        if (test.toLowerCase().includes('mann-whitney') || test.toLowerCase().includes('kruskal')) {
+                          setTestType(test.toLowerCase().includes('mann') ? 'mann-whitney' : 'anova');
+                        }
+                      }}
+                      onViewEvidence={() => {
+                        console.log('[AdvancedStatisticalTests] Visual evidence requested');
+                      }}
+                      data={[parseData(data1), parseData(data2)]}
+                      alpha={alpha}
+                      onTransformComplete={(transformedData, transformationType, transformParams) => {
+                        if (Array.isArray(transformedData) && transformedData.length >= 2) {
+                          const transformed1 = transformedData[0];
+                          const transformed2 = transformedData[1];
+                          setData1(transformed1.join(', '));
+                          setData2(transformed2.join(', '));
+                          console.log(`[AdvancedStatisticalTests] Data transformed using ${transformationType}. Re-validating...`);
+                        }
+                      }}
+                    />
+                  </Box>
+                )}
+
                 <Button
                   variant="contained"
                   fullWidth
                   startIcon={<PlayArrowIcon />}
                   onClick={performTest}
+                  disabled={isCheckingAssumptions || isTestBlocked}
                 >
-                  Perform Test
+                  {isCheckingAssumptions
+                    ? 'Validating Assumptions...'
+                    : isTestBlocked
+                    ? '⛔ Test Blocked - Fix Violations'
+                    : 'Perform Test'}
                 </Button>
+
+                {isTestBlocked && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    Critical assumption violations detected. Please fix the issues above or switch to a non-parametric test.
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </Grid>

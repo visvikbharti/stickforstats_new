@@ -71,6 +71,26 @@ const NonParametricTests = ({ data }) => {
   const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
+   * Guardian Action Handlers
+   */
+  const handleGuardianProceed = () => {
+    console.log('Guardian: User chose to proceed despite warnings');
+    setIsTestBlocked(false);
+  };
+
+  const handleSelectAlternative = (alternativeTest) => {
+    console.log('Guardian: User selected alternative test:', alternativeTest);
+    // Could auto-switch to the alternative test here
+    alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the Test Type dropdown.`);
+  };
+
+  const handleViewEvidence = () => {
+    console.log('Guardian: User requested visual evidence');
+    // Visual evidence would be shown in a modal or expanded section
+    alert('Visual evidence display coming soon!');
+  };
+
+  /**
    * Detect column types
    */
   const columnInfo = useMemo(() => {
@@ -93,6 +113,17 @@ const NonParametricTests = ({ data }) => {
 
     return { numeric, categorical };
   }, [data]);
+
+  /**
+   * Extract column data for Guardian and export
+   */
+  const columnData = useMemo(() => {
+    if (!selectedColumn || !data || data.length === 0) return [];
+
+    return data
+      .map(row => parseFloat(row[selectedColumn]))
+      .filter(val => !isNaN(val));
+  }, [data, selectedColumn]);
 
   /**
    * Get grouped data
@@ -475,7 +506,16 @@ const NonParametricTests = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+      {guardianReport && (
+        <GuardianWarning
+          guardianReport={guardianReport}
+          data={columnData}
+          alpha={alpha}
+          onProceed={handleGuardianProceed}
+          onSelectAlternative={handleSelectAlternative}
+          onViewEvidence={handleViewEvidence}
+        />
+      )}
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (

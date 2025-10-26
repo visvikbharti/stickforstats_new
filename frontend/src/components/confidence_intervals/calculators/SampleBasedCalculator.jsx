@@ -33,6 +33,10 @@ import * as StatCalc from '../../../utils/statisticalCalculations';
 // Import visualization component
 import IntervalVisualization from '../visualizations/IntervalVisualization';
 
+// Guardian Integration - Step 1: Import Dependencies
+import GuardianService from '../../../services/GuardianService';
+import GuardianWarning from '../../Guardian/GuardianWarning';
+
 /**
  * Get assumptions for each interval type
  * @param {string} intervalType - Type of confidence interval
@@ -113,6 +117,11 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
   const [result, setResult] = useState(null);
   const [savedResult, setSavedResult] = useState(null);
 
+  // Guardian Integration - Step 2: State Variables
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isCalculationBlocked, setIsCalculationBlocked] = useState(false);
+
   // Define interval types
   const intervalTypes = [
     { value: 'MEAN_T', label: 'Mean (Unknown Variance)', dataType: 'numeric' },
@@ -125,6 +134,61 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
 
   // Additional parameters for specific interval types
   const [populationStd, setPopulationStd] = useState('');
+
+  // Guardian Integration - Step 3: Validation Logic
+  useEffect(() => {
+    const validateSampleData = async () => {
+      // Only validate for parametric intervals that require normality
+      const parametricIntervals = ['MEAN_T', 'MEAN_Z', 'VARIANCE'];
+      if (!parametricIntervals.includes(intervalType)) {
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+        return;
+      }
+
+      // Need parsed data to validate
+      if (!parsedData || parsedData.length < 3) {
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+        return;
+      }
+
+      try {
+        setIsCheckingAssumptions(true);
+
+        // Determine test type for Guardian
+        let testType = 'one_sample_t_test'; // Default for mean intervals
+        if (intervalType === 'VARIANCE') {
+          testType = 'variance_test'; // Variance is highly sensitive to normality
+        }
+
+        // Call Guardian API
+        const result = await GuardianService.checkAssumptions(
+          [parsedData],
+          testType,
+          1 - confidenceLevel // alpha
+        );
+
+        setGuardianResult(result);
+
+        // Block calculation if critical violations detected
+        setIsCalculationBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+        console.log('[SampleBasedCalculator] Guardian validation result:', result);
+
+      } catch (error) {
+        console.error('[SampleBasedCalculator] Guardian validation error:', error);
+        setGuardianResult(null);
+        setIsCalculationBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateSampleData();
+  }, [parsedData, intervalType, confidenceLevel]);
 
   // Parse raw data into numeric values
   useEffect(() => {
@@ -677,6 +741,39 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
         </Grid>
       </Paper>
       
+      {/* Guardian Integration - Step 4: GuardianWarning Component */}
+      {guardianResult && ['MEAN_T', 'MEAN_Z', 'VARIANCE'].includes(intervalType) && (
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsCalculationBlocked(false)}
+            onSelectAlternative={(test) => {
+              // For CI calculations, suggest bootstrap or non-parametric methods
+              console.log('[SampleBasedCalculator] Alternative suggested:', test);
+              if (test.toLowerCase().includes('bootstrap')) {
+                enqueueSnackbar('Switch to Bootstrap Calculator for non-parametric confidence intervals',
+                  { variant: 'info' });
+              }
+            }}
+            onViewEvidence={() => {
+              console.log('[SampleBasedCalculator] Visual evidence requested');
+            }}
+            data={[parsedData]}
+            alpha={1 - confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, transformParams) => {
+              // Handle data transformation
+              if (Array.isArray(transformedData) && transformedData.length >= 1) {
+                const transformed = transformedData[0];
+                setParsedData(transformed);
+                // Update rawData to reflect transformation
+                setRawData(transformed.join(', '));
+                console.log(`Data transformed using ${transformationType}. Re-validating...`);
+              }
+            }}
+          />
+        </Paper>
+      )}
+
       {/* Calculate Button */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Button
@@ -685,12 +782,26 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
           size="large"
           startIcon={<CalculateIcon />}
           onClick={handleCalculate}
-          disabled={calculating || (dataSource === 'NEW' && (parsedData.length === 0 || !!dataError)) || 
+          disabled={isCheckingAssumptions || isCalculationBlocked || calculating || (dataSource === 'NEW' && (parsedData.length === 0 || !!dataError)) ||
             (dataSource === 'SAVED' && !selectedDataId)}
         >
-          Calculate Confidence Interval
-          {calculating && <CircularProgress size={20} sx={{ ml: 1 }} />}
+          {isCheckingAssumptions
+            ? 'Validating Assumptions...'
+            : isCalculationBlocked
+            ? '⛔ Calculation Blocked - Fix Violations'
+            : calculating
+            ? 'Calculating...'
+            : 'Calculate Confidence Interval'}
+          {(calculating || isCheckingAssumptions) && <CircularProgress size={20} sx={{ ml: 1 }} />}
         </Button>
+
+        {isCalculationBlocked && (
+          <Alert severity="error" sx={{ mt: 2, maxWidth: 600, mx: 'auto' }}>
+            <AlertTitle>⛔ Calculation Blocked</AlertTitle>
+            Critical assumption violations detected. {intervalType === 'VARIANCE' && 'Variance intervals are highly sensitive to non-normality. '}
+            Please use the "Fix Data" button above to apply transformations, or switch to Bootstrap Calculator for non-parametric confidence intervals.
+          </Alert>
+        )}
       </Box>
       
       {/* Results */}

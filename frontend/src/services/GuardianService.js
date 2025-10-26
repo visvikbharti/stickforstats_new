@@ -262,6 +262,110 @@ class GuardianService {
 
     return mapping[frontendTestName.toLowerCase()] || frontendTestName;
   }
+
+  /**
+   * Export validation report as PDF
+   *
+   * @param {Array|Object} data - The data to validate
+   * @param {string} testType - The statistical test type
+   * @param {number} alpha - Significance level (default: 0.05)
+   * @returns {Promise<Blob>} PDF file as blob
+   */
+  async exportPDF(data, testType, alpha = 0.05) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/export/pdf/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data,
+          test_type: testType,
+          alpha
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`PDF export error: ${response.statusText}`);
+      }
+
+      // Get PDF blob
+      const blob = await response.blob();
+      return blob;
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export validation report as JSON
+   *
+   * @param {Array|Object} data - The data to validate
+   * @param {string} testType - The statistical test type
+   * @param {number} alpha - Significance level (default: 0.05)
+   * @returns {Promise<Object>} Complete JSON validation report
+   */
+  async exportJSON(data, testType, alpha = 0.05) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/export/json/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data,
+          test_type: testType,
+          alpha
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`JSON export error: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('JSON export failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper function to trigger download of PDF report
+   *
+   * @param {Blob} pdfBlob - PDF file as blob
+   * @param {string} testType - Test type for filename
+   */
+  downloadPDF(pdfBlob, testType) {
+    const url = window.URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `guardian_validation_report_${testType}_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Helper function to trigger download of JSON report
+   *
+   * @param {Object} jsonData - JSON report data
+   * @param {string} testType - Test type for filename
+   */
+  downloadJSON(jsonData, testType) {
+    const dataStr = JSON.stringify(jsonData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `guardian_validation_report_${testType}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
 }
 
 // Export singleton instance

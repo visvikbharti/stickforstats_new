@@ -14,7 +14,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -83,9 +83,11 @@ import 'jspdf-autotable';
 
 // Import services
 import HighPrecisionStatisticalService from '../../services/HighPrecisionStatisticalService';
+import GuardianService from '../../services/GuardianService';
 
 // Import components
 import ExampleDataLoader from '../common/ExampleDataLoader';
+import GuardianWarning from '../Guardian/GuardianWarning';
 
 // Configure Decimal.js for 50 decimal precision
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
@@ -126,6 +128,11 @@ const TTestCalculator = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [dataInputMethod, setDataInputMethod] = useState('manual');
   const [errors, setErrors] = useState({});
+
+  // Guardian Integration State
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   // Parse data from text input
   const parseData = useCallback((text) => {
@@ -199,6 +206,79 @@ const TTestCalculator = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [data1, data2, testType, hypothesizedMean, parseData]);
+
+  // Guardian: Validate statistical assumptions
+  useEffect(() => {
+    const validateAssumptions = async () => {
+      // Only validate if we have data
+      if (!data1 || data1.trim().length === 0) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      // For paired/independent tests, also need data2
+      if (testType !== TEST_TYPES.ONE_SAMPLE && (!data2 || data2.trim().length === 0)) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      try {
+        const parsedData1 = parseData(data1);
+        if (parsedData1.length < 2) return;
+
+        let formattedData;
+        let guardianTestType;
+
+        if (testType === TEST_TYPES.ONE_SAMPLE) {
+          // One-sample t-test: single array
+          formattedData = parsedData1;
+          guardianTestType = 't_test';
+        } else if (testType === TEST_TYPES.PAIRED) {
+          // Paired t-test: compute differences
+          const parsedData2 = parseData(data2);
+          if (parsedData1.length !== parsedData2.length) return;
+
+          const differences = parsedData1.map((v, i) => v - parsedData2[i]);
+          formattedData = differences;
+          guardianTestType = 'paired_t_test';
+        } else {
+          // Independent samples t-test: array of arrays
+          const parsedData2 = parseData(data2);
+          if (parsedData2.length < 2) return;
+
+          formattedData = [parsedData1, parsedData2];
+          guardianTestType = 't_test';
+        }
+
+        setIsCheckingAssumptions(true);
+
+        const result = await GuardianService.checkAssumptions(
+          formattedData,
+          guardianTestType,
+          1 - confidenceLevel // alpha = 1 - confidence level
+        );
+
+        setGuardianResult(result);
+
+        // Block test if critical violations detected
+        setIsTestBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+      } catch (error) {
+        console.error('[TTestCalculator] Guardian validation error:', error);
+        // Don't block on Guardian errors - allow test to proceed
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateAssumptions();
+  }, [data1, data2, testType, confidenceLevel, parseData]);
 
   // Perform t-test calculation
   const performTTest = useCallback(async () => {
@@ -947,15 +1027,73 @@ const TTestCalculator = () => {
               variant="contained"
               color="primary"
               size="large"
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CalculateIcon />}
+              startIcon={
+                loading || isCheckingAssumptions ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <CalculateIcon />
+                )
+              }
               onClick={performTTest}
-              disabled={loading}
+              disabled={loading || isCheckingAssumptions || isTestBlocked}
             >
-              {loading ? 'Calculating...' : 'Perform T-Test'}
+              {isCheckingAssumptions
+                ? 'Validating Assumptions...'
+                : loading
+                ? 'Calculating...'
+                : isTestBlocked
+                ? '⛔ Test Blocked - Fix Violations'
+                : 'Perform T-Test'}
             </Button>
+            {isTestBlocked && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                <AlertTitle>⛔ Test Execution Blocked</AlertTitle>
+                Critical assumption violations detected. Please address the violations above using
+                the "Fix Data" button, or switch to a non-parametric alternative test.
+              </Alert>
+            )}
           </Box>
         </CardContent>
       </Card>
+
+      {/* Guardian Warning Section */}
+      {guardianResult && (
+        <Box sx={{ mt: 2 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsTestBlocked(false)}
+            onSelectAlternative={(test) => {
+              enqueueSnackbar(
+                `Alternative test suggested: ${test}. Please select appropriate test type.`,
+                { variant: 'info' }
+              );
+            }}
+            onViewEvidence={() => {
+              enqueueSnackbar('Visual evidence feature coming soon!', { variant: 'info' });
+            }}
+            data={testType === TEST_TYPES.INDEPENDENT && data2 ? [parseData(data1), parseData(data2)] : parseData(data1)}
+            alpha={1 - confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, parameters) => {
+              // Handle transformation completion
+              console.log('[TTestCalculator] Transformation applied:', transformationType, parameters);
+
+              if (testType === TEST_TYPES.INDEPENDENT && Array.isArray(transformedData[0])) {
+                // Independent samples: two arrays
+                setData1(transformedData[0].join(', '));
+                setData2(transformedData[1].join(', '));
+              } else {
+                // One-sample or paired: single array
+                setData1(transformedData.join(', '));
+              }
+
+              enqueueSnackbar(
+                `Data transformed using ${transformationType} transformation. Re-validating assumptions...`,
+                { variant: 'success' }
+              );
+            }}
+          />
+        </Box>
+      )}
 
       {/* Results section */}
       {results && renderResults()}

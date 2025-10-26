@@ -64,6 +64,24 @@ const CategoricalTests = ({ data }) => {
   const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   /**
+   * Guardian Action Handlers
+   */
+  const handleGuardianProceed = () => {
+    console.log('Guardian: User chose to proceed despite warnings');
+    setIsTestBlocked(false);
+  };
+
+  const handleSelectAlternative = (alternativeTest) => {
+    console.log('Guardian: User selected alternative test:', alternativeTest);
+    alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the available tests.`);
+  };
+
+  const handleViewEvidence = () => {
+    console.log('Guardian: User requested visual evidence');
+    alert('Visual evidence display coming soon!');
+  };
+
+  /**
    * Detect categorical columns
    */
   const categoricalColumns = useMemo(() => {
@@ -82,6 +100,31 @@ const CategoricalTests = ({ data }) => {
 
     return columns;
   }, [data]);
+
+  /**
+   * Extract categorical data for Guardian export
+   * For categorical tests, we encode categories as numeric indices for statistical validation
+   */
+  const categoryData = useMemo(() => {
+    if (!variable1 || !variable2 || !data || data.length === 0) return [];
+
+    // Extract both categorical variables and encode them as numeric indices
+    const var1Values = data.map(row => String(row[variable1] || 'Missing'));
+    const var2Values = data.map(row => String(row[variable2] || 'Missing'));
+
+    // Create category-to-index mapping
+    const uniqueVar1 = [...new Set(var1Values)];
+    const uniqueVar2 = [...new Set(var2Values)];
+
+    const var1Map = Object.fromEntries(uniqueVar1.map((cat, idx) => [cat, idx]));
+    const var2Map = Object.fromEntries(uniqueVar2.map((cat, idx) => [cat, idx]));
+
+    // Encode categories as numbers for export
+    const encoded1 = var1Values.map(v => var1Map[v]);
+    const encoded2 = var2Values.map(v => var2Map[v]);
+
+    return [...encoded1, ...encoded2];
+  }, [data, variable1, variable2]);
 
   /**
    * Build contingency table
@@ -447,7 +490,16 @@ const CategoricalTests = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+      {guardianReport && (
+        <GuardianWarning
+          guardianReport={guardianReport}
+          data={categoryData}
+          alpha={alpha}
+          onProceed={handleGuardianProceed}
+          onSelectAlternative={handleSelectAlternative}
+          onViewEvidence={handleViewEvidence}
+        />
+      )}
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (

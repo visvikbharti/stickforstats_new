@@ -549,7 +549,13 @@ const ParametricTests = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+      {guardianReport && (
+        <GuardianWarning
+          guardianReport={guardianReport}
+          data={columnData}
+          alpha={alpha}
+        />
+      )}
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (

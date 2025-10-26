@@ -15,7 +15,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -95,7 +95,11 @@ import 'jspdf-autotable';
 
 // Import services
 import HighPrecisionStatisticalService from '../../services/HighPrecisionStatisticalService';
+import GuardianService from '../../services/GuardianService';
+
+// Import components
 import ExampleDataLoader from '../common/ExampleDataLoader';
+import GuardianWarning from '../Guardian/GuardianWarning';
 import { ExampleDatasets } from '../../data/ExampleDatasets';
 
 // Configure Decimal.js for 50 decimal precision
@@ -171,6 +175,11 @@ const ANOVACalculator = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [dataInputMethod, setDataInputMethod] = useState('manual');
   const [errors, setErrors] = useState({});
+
+  // Guardian Integration State
+  const [guardianResult, setGuardianResult] = useState(null);
+  const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
+  const [isTestBlocked, setIsTestBlocked] = useState(false);
 
   // Handle loading example data
   const handleLoadExampleData = useCallback((exampleData) => {
@@ -269,6 +278,64 @@ const ANOVACalculator = () => {
         return num;
       });
   }, []);
+
+  // Guardian: Validate ANOVA assumptions
+  useEffect(() => {
+    const validateAssumptions = async () => {
+      // Only validate for one-way ANOVA (primary use case)
+      if (anovaType !== ANOVA_TYPES.ONE_WAY) {
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+        return;
+      }
+
+      // Validate we have at least 2 groups with data
+      try {
+        const validGroups = groups.filter(g => g.data && g.data.trim().length > 0);
+        if (validGroups.length < 2) {
+          setGuardianResult(null);
+          setIsTestBlocked(false);
+          return;
+        }
+
+        // Parse all group data
+        const groupArrays = validGroups.map(g => parseData(g.data));
+
+        // Check all groups have minimum sample size
+        if (groupArrays.some(arr => arr.length < 2)) {
+          setGuardianResult(null);
+          setIsTestBlocked(false);
+          return;
+        }
+
+        setIsCheckingAssumptions(true);
+
+        // Call Guardian with group data
+        const result = await GuardianService.checkAssumptions(
+          groupArrays,  // Array of arrays
+          'anova',
+          1 - confidenceLevel // alpha
+        );
+
+        setGuardianResult(result);
+
+        // Block if critical violations
+        setIsTestBlocked(
+          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+        );
+
+      } catch (error) {
+        console.error('[ANOVACalculator] Guardian validation error:', error);
+        // Don't block on errors
+        setGuardianResult(null);
+        setIsTestBlocked(false);
+      } finally {
+        setIsCheckingAssumptions(false);
+      }
+    };
+
+    validateAssumptions();
+  }, [groups, anovaType, confidenceLevel, parseData]);
 
   // Validate inputs
   const validateInputs = useCallback(() => {
@@ -1415,15 +1482,79 @@ const ANOVACalculator = () => {
               variant="contained"
               color="primary"
               size="large"
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CalculateIcon />}
+              startIcon={
+                loading || isCheckingAssumptions ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <CalculateIcon />
+                )
+              }
               onClick={performANOVA}
-              disabled={loading}
+              disabled={loading || isCheckingAssumptions || isTestBlocked}
             >
-              {loading ? 'Calculating...' : 'Perform ANOVA'}
+              {isCheckingAssumptions
+                ? 'Validating Assumptions...'
+                : loading
+                ? 'Calculating...'
+                : isTestBlocked
+                ? '⛔ Test Blocked - Fix Violations'
+                : 'Perform ANOVA'}
             </Button>
+            {isTestBlocked && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                <AlertTitle>⛔ Test Execution Blocked</AlertTitle>
+                Critical assumption violations detected. Please address the violations above using
+                the "Fix Data" button, or switch to Kruskal-Wallis test (non-parametric alternative).
+              </Alert>
+            )}
           </Box>
         </CardContent>
       </Card>
+
+      {/* Guardian Warning Section */}
+      {guardianResult && (
+        <Box sx={{ mt: 2 }}>
+          <GuardianWarning
+            guardianReport={guardianResult}
+            onProceed={() => setIsTestBlocked(false)}
+            onSelectAlternative={(test) => {
+              enqueueSnackbar(
+                `Alternative test suggested: ${test}. Consider using Kruskal-Wallis test for non-normal data.`,
+                { variant: 'info' }
+              );
+            }}
+            onViewEvidence={() => {
+              enqueueSnackbar('Visual evidence feature coming soon!', { variant: 'info' });
+            }}
+            data={groups.filter(g => g.data && g.data.trim().length > 0).map(g => parseData(g.data))}
+            alpha={1 - confidenceLevel}
+            onTransformComplete={(transformedData, transformationType, parameters) => {
+              console.log('[ANOVACalculator] Transformation applied:', transformationType, parameters);
+
+              // Update group data with transformed values
+              if (Array.isArray(transformedData) && transformedData.length === groups.filter(g => g.data && g.data.trim().length > 0).length) {
+                const validGroups = groups.filter(g => g.data && g.data.trim().length > 0);
+                const newGroups = groups.map(g => {
+                  const index = validGroups.findIndex(vg => vg.name === g.name);
+                  if (index !== -1 && transformedData[index]) {
+                    return {
+                      ...g,
+                      data: transformedData[index].join(', ')
+                    };
+                  }
+                  return g;
+                });
+                setGroups(newGroups);
+
+                enqueueSnackbar(
+                  `Data transformed using ${transformationType}. Re-validating assumptions...`,
+                  { variant: 'success' }
+                );
+              }
+            }}
+          />
+        </Box>
+      )}
 
       {/* Results sections */}
       {results && renderResults()}
