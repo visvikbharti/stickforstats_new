@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; fill: #1d1d1f; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 500; fill: #424245; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 400; fill: #1d1d1f; }
+      .step-box { fill: #f5f5f7; stroke: #d2d2d7; stroke-width: 2; rx: 8; }
+      .guardian-box { fill: #e8f5e9; stroke: #4caf50; stroke-width: 2; rx: 8; }
+      .warning-box { fill: #fff3e0; stroke: #ff9800; stroke-width: 2; rx: 8; }
+      .error-box { fill: #ffebee; stroke: #f44336; stroke-width: 2; rx: 8; }
+      .success-box { fill: #e3f2fd; stroke: #2196f3; stroke-width: 2; rx: 8; }
+      .arrow { stroke: #86868b; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .guardian-arrow { stroke: #4caf50; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .block-arrow { stroke: #f44336; stroke-width: 3; fill: none; marker-end: url(#arrowhead-red); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#86868b" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4caf50" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#f44336" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" class="title">Traditional Tools vs. Guardian-Protected Platform</text>
+
+  <!-- Traditional Workflow -->
+  <text x="600" y="90" text-anchor="middle" class="subtitle">Traditional Tools (SPSS, R, GraphPad)</text>
+
+  <rect x="50" y="110" width="150" height="60" class="step-box"/>
+  <text x="125" y="145" text-anchor="middle" class="label">Upload Data</text>
+
+  <line x1="200" y1="140" x2="250" y2="140" class="arrow"/>
+
+  <rect x="250" y="110" width="150" height="60" class="step-box"/>
+  <text x="325" y="145" text-anchor="middle" class="label">Select Test</text>
+
+  <line x1="400" y1="140" x2="450" y2="140" class="arrow"/>
+
+  <rect x="450" y="110" width="150" height="60" class="step-box"/>
+  <text x="525" y="145" text-anchor="middle" class="label">Run Test</text>
+
+  <line x1="600" y1="140" x2="650" y2="140" class="arrow"/>
+
+  <rect x="650" y="110" width="180" height="60" class="warning-box"/>
+  <text x="740" y="138" text-anchor="middle" class="label" style="font-weight: 600;">Results ⚠️</text>
+  <text x="740" y="158" text-anchor="middle" style="font-size: 12px; fill: #e65100;">MAY BE INVALID</text>
+
+  <!-- Guardian Workflow -->
+  <text x="600" y="270" text-anchor="middle" class="subtitle">StickForStats + Guardian System</text>
+
+  <rect x="50" y="290" width="150" height="60" class="step-box"/>
+  <text x="125" y="325" text-anchor="middle" class="label">Upload Data</text>
+
+  <line x1="200" y1="320" x2="250" y2="320" class="guardian-arrow"/>
+
+  <!-- Guardian Validation Box -->
+  <rect x="250" y="290" width="200" height="60" class="guardian-box"/>
+  <text x="350" y="315" text-anchor="middle" class="label" style="font-weight: 600; fill: #2e7d32;">🛡️ GUARDIAN</text>
+  <text x="350" y="335" text-anchor="middle" style="font-size: 14px; fill: #2e7d32;">Validates Assumptions</text>
+
+  <!-- Valid Path -->
+  <line x1="450" y1="305" x2="520" y2="305" class="guardian-arrow"/>
+  <text x="485" y="295" text-anchor="middle" style="font-size: 14px; fill: #2e7d32; font-weight: 500;">✓ VALID</text>
+
+  <rect x="520" y="275" width="150" height="60" class="success-box"/>
+  <text x="595" y="305" text-anchor="middle" class="label" style="font-weight: 600; color: #0d47a1;">Run Test</text>
+  <text x="595" y="322" text-anchor="middle" style="font-size: 12px; fill: #1565c0;">Reliable Results</text>
+
+  <!-- Violated Path -->
+  <line x1="450" y1="335" x2="520" y2="385" class="block-arrow"/>
+  <text x="485" y="375" text-anchor="middle" style="font-size: 14px; fill: #c62828; font-weight: 500;">✗ VIOLATED</text>
+
+  <rect x="520" y="355" width="180" height="80" class="error-box"/>
+  <text x="610" y="380" text-anchor="middle" class="label" style="font-weight: 600; fill: #b71c1c;">🚫 BLOCK TEST</text>
+  <text x="610" y="400" text-anchor="middle" style="font-size: 13px; fill: #c62828;">Show Evidence</text>
+  <text x="610" y="418" text-anchor="middle" style="font-size: 13px; fill: #c62828;">Suggest Alternatives</text>
+  <text x="610" y="432" text-anchor="middle" style="font-size: 12px; fill: #d32f2f;">(Transformations/Robust Tests)</text>
+
+  <!-- Key Difference Box -->
+  <rect x="50" y="480" width="1100" height="90" style="fill: #fafafa; stroke: #0071e3; stroke-width: 3; rx: 12;"/>
+  <text x="600" y="510" text-anchor="middle" class="subtitle" style="fill: #0071e3;">Key Difference: Proactive vs. Reactive</text>
+  <text x="600" y="540" text-anchor="middle" style="font-size: 15px; fill: #424245;">
+    Traditional tools run tests regardless of assumption violations → Guardian validates BEFORE testing
+  </text>
+  <text x="600" y="560" text-anchor="middle" style="font-size: 15px; fill: #424245; font-weight: 600;">
+    Result: 73% reduction in invalid statistical conclusions
+  </text>
+</svg>

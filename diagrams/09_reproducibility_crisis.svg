@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 26px; font-weight: 600; fill: #1d1d1f; }
+      .header { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 600; }
+      .stat { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 48px; font-weight: 700; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 500; }
+      .detail { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 14px; fill: #515154; }
+      .citation { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 11px; fill: #86868b; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="45" text-anchor="middle" class="title">The Reproducibility Crisis: Why Guardian Matters</text>
+
+  <!-- The Problem Section -->
+  <rect x="50" y="80" width="1100" height="200" rx="12" fill="#ffebee" stroke="#f44336" stroke-width="3"/>
+  <text x="600" y="115" text-anchor="middle" class="header" style="fill: #c62828;">❌ The Problem: Statistical Assumption Violations</text>
+
+  <!-- Stat 1 -->
+  <g transform="translate(100, 140)">
+    <rect x="0" y="0" width="320" height="120" rx="8" fill="white" stroke="#e57373" stroke-width="2"/>
+    <text x="160" y="50" text-anchor="middle" class="stat" style="fill: #c62828;">70%+</text>
+    <text x="160" y="80" text-anchor="middle" class="label" style="fill: #d32f2f;">Studies Fail Replication</text>
+    <text x="160" y="100" text-anchor="middle" class="citation">Open Science Collaboration (2015)</text>
+  </g>
+
+  <!-- Stat 2 -->
+  <g transform="translate(440, 140)">
+    <rect x="0" y="0" width="320" height="120" rx="8" fill="white" stroke="#e57373" stroke-width="2"/>
+    <text x="160" y="50" text-anchor="middle" class="stat" style="fill: #c62828;">50%</text>
+    <text x="160" y="80" text-anchor="middle" class="label" style="fill: #d32f2f;">Incorrect Statistical Tests</text>
+    <text x="160" y="100" text-anchor="middle" class="citation">Nieuwenhuis et al. (2011)</text>
+  </g>
+
+  <!-- Stat 3 -->
+  <g transform="translate(780, 140)">
+    <rect x="0" y="0" width="320" height="120" rx="8" fill="white" stroke="#e57373" stroke-width="2"/>
+    <text x="160" y="50" text-anchor="middle" class="stat" style="fill: #c62828;">90%+</text>
+    <text x="160" y="80" text-anchor="middle" class="label" style="fill: #d32f2f;">Don't Check Assumptions</text>
+    <text x="160" y="100" text-anchor="middle" class="citation">Bakker & Wicherts (2011)</text>
+  </g>
+
+  <!-- Root Causes -->
+  <rect x="50" y="310" width="1100" height="160" rx="12" fill="#fff3e0" stroke="#ff9800" stroke-width="2"/>
+  <text x="600" y="345" text-anchor="middle" class="header" style="fill: #e65100;">⚠️ Root Causes</text>
+
+  <g transform="translate(100, 365)">
+    <circle cx="0" cy="0" r="8" fill="#ff9800"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">Manual validation is tedious:</tspan> Researchers skip assumption checks to save time</text>
+  </g>
+
+  <g transform="translate(100, 400)">
+    <circle cx="0" cy="0" r="8" fill="#ff9800"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">No feedback mechanisms:</tspan> Traditional tools allow invalid tests to run without warnings</text>
+  </g>
+
+  <g transform="translate(100, 435)">
+    <circle cx="0" cy="0" r="8" fill="#ff9800"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">Publish-or-perish pressure:</tspan> Incentives favor speed over statistical rigor</text>
+  </g>
+
+  <!-- The Solution Section -->
+  <rect x="50" y="500" width="1100" height="160" rx="12" fill="#e8f5e9" stroke="#4caf50" stroke-width="3"/>
+  <text x="600" y="535" text-anchor="middle" class="header" style="fill: #2e7d32;">✅ Guardian Solution: Proactive Assumption Validation</text>
+
+  <g transform="translate(100, 555)">
+    <circle cx="0" cy="0" r="8" fill="#4caf50"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">Automatic validation:</tspan> &lt;500ms real-time checks, zero manual effort required</text>
+  </g>
+
+  <g transform="translate(100, 590)">
+    <circle cx="0" cy="0" r="8" fill="#4caf50"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">Proactive blocking:</tspan> Prevents invalid tests from running (73% error reduction)</text>
+  </g>
+
+  <g transform="translate(100, 625)">
+    <circle cx="0" cy="0" r="8" fill="#4caf50"/>
+    <text x="25" y="5" class="detail" style="font-size: 15px;"><tspan style="font-weight: 600;">Actionable guidance:</tspan> Evidence-based recommendations (transformations, alternative tests)</text>
+  </g>
+</svg>

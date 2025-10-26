@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; fill: #1d1d1f; }
+      .step-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 14px; }
+      .detail { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 12px; fill: #515154; }
+      .code { font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 11px; fill: #424245; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0071e3" />
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4caf50" />
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#f44336" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="40" text-anchor="middle" class="title">Guardian Blocking Mechanism: Step-by-Step Flow</text>
+
+  <!-- Step 1: Data Entry -->
+  <rect x="50" y="80" width="900" height="100" rx="10" fill="#e3f2fd" stroke="#2196f3" stroke-width="2"/>
+  <circle cx="80" cy="110" r="20" fill="#2196f3"/>
+  <text x="80" y="118" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: white;">1</text>
+  <text x="120" y="115" class="step-title" style="fill: #0d47a1;">User Enters Raw Data</text>
+  <text x="120" y="140" class="detail">Example: [23, 25, 24, 26, 28, 22, 27, 24, 25, 23]</text>
+  <text x="120" y="160" class="code">TTestCalculator component receives parsedData array</text>
+
+  <!-- Arrow -->
+  <path d="M 500 180 L 500 210" stroke="#0071e3" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 2: Trigger Validation -->
+  <rect x="50" y="210" width="900" height="100" rx="10" fill="#e8f5e9" stroke="#4caf50" stroke-width="2"/>
+  <circle cx="80" cy="240" r="20" fill="#4caf50"/>
+  <text x="80" y="248" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: white;">2</text>
+  <text x="120" y="245" class="step-title" style="fill: #1b5e20;">useEffect Hook Triggers Guardian Validation</text>
+  <text x="120" y="270" class="detail">React hook detects data change, calls GuardianService.checkAssumptions()</text>
+  <text x="120" y="290" class="code">useEffect(() =&gt; { validateData(); }, [parsedData, testType, alpha]);</text>
+
+  <!-- Arrow -->
+  <path d="M 500 310 L 500 340" stroke="#0071e3" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 3: Backend Analysis -->
+  <rect x="50" y="340" width="900" height="120" rx="10" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+  <circle cx="80" cy="370" r="20" fill="#fbc02d"/>
+  <text x="80" y="378" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: white;">3</text>
+  <text x="120" y="375" class="step-title" style="fill: #f57c00;">Backend Runs 6 Statistical Validators</text>
+  <text x="120" y="400" class="detail">Normality (Shapiro-Wilk), Variance (Levene), Independence (Durbin-Watson),</text>
+  <text x="120" y="418" class="detail">Outliers (IQR), Sample Size, Modality (KDE)</text>
+  <text x="120" y="440" class="code">Result: { hasViolations: true, criticalViolations: ["normality"], ... }</text>
+
+  <!-- Decision Point -->
+  <path d="M 500 460 L 500 500" stroke="#0071e3" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="350" y="500" width="300" height="60" rx="30" fill="#fff3e0" stroke="#ff9800" stroke-width="3"/>
+  <text x="500" y="527" text-anchor="middle" class="step-title" style="fill: #e65100;">Decision Point:</text>
+  <text x="500" y="547" text-anchor="middle" class="label" style="fill: #e65100;">Critical Violations Found?</text>
+
+  <!-- YES Path (Block) -->
+  <path d="M 350 530 L 200 600" stroke="#f44336" stroke-width="4" fill="none" marker-end="url(#arrow-red)"/>
+  <text x="240" y="560" class="label" style="fill: #c62828; font-weight: 700;">YES</text>
+
+  <rect x="50" y="600" width="300" height="140" rx="10" fill="#ffebee" stroke="#f44336" stroke-width="3"/>
+  <circle cx="80" cy="630" r="20" fill="#f44336"/>
+  <text x="80" y="638" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: white;">4A</text>
+  <text x="120" y="635" class="step-title" style="fill: #b71c1c;">🚫 BLOCK TEST</text>
+
+  <g transform="translate(120, 655)">
+    <text x="0" y="0" class="detail">• setIsTestBlocked(true)</text>
+    <text x="0" y="20" class="detail">• Calculate button DISABLED</text>
+    <text x="0" y="40" class="detail">• Display GuardianWarning</text>
+    <text x="0" y="60" class="detail">• Show evidence + alternatives</text>
+  </g>
+
+  <!-- NO Path (Allow) -->
+  <path d="M 650 530 L 800 600" stroke="#4caf50" stroke-width="4" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="740" y="560" class="label" style="fill: #2e7d32; font-weight: 700;">NO</text>
+
+  <rect x="650" y="600" width="300" height="140" rx="10" fill="#c8e6c9" stroke="#4caf50" stroke-width="3"/>
+  <circle cx="680" cy="630" r="20" fill="#4caf50"/>
+  <text x="680" y="638" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: white;">4B</text>
+  <text x="720" y="635" class="step-title" style="fill: #1b5e20;">✅ ALLOW TEST</text>
+
+  <g transform="translate(720, 655)">
+    <text x="0" y="0" class="detail">• setIsTestBlocked(false)</text>
+    <text x="0" y="20" class="detail">• Calculate button ENABLED</text>
+    <text x="0" y="40" class="detail">• No warning displayed</text>
+    <text x="0" y="60" class="detail">• User proceeds with test</text>
+  </g>
+
+  <!-- Example Warning Box -->
+  <rect x="50" y="770" width="900" height="100" rx="12" fill="#fff3e0" stroke="#ff9800" stroke-width="3"/>
+  <text x="500" y="800" text-anchor="middle" class="step-title" style="fill: #e65100;">Example Guardian Warning (Step 4A):</text>
+  <text x="500" y="825" text-anchor="middle" class="label" style="fill: #f57c00;">⚠️ Normality Assumption Violated (Shapiro-Wilk: W=0.892, p=0.023)</text>
+  <text x="500" y="845" text-anchor="middle" class="detail" style="fill: #f57c00;">Recommendations: Apply log transformation OR use Mann-Whitney U test (non-parametric)</text>
+  <text x="500" y="860" text-anchor="middle" class="detail" style="fill: #e65100; font-weight: 600;">⚠️ Calculate button disabled until violations resolved</text>
+</svg>
