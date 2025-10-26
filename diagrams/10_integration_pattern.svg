@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; fill: #1d1d1f; }
+      .step-header { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; }
+      .code { font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 11px; fill: #1d1d1f; }
+      .comment { font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 11px; fill: #007400; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" class="title">5-Step Guardian Integration Pattern (React Component)</text>
+
+  <!-- Step 1 -->
+  <rect x="50" y="70" width="1100" height="160" rx="10" fill="#e3f2fd" stroke="#2196f3" stroke-width="2"/>
+  <circle cx="80" cy="95" r="18" fill="#2196f3"/>
+  <text x="80" y="102" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: white;">1</text>
+  <text x="120" y="100" class="step-header" style="fill: #0d47a1;">Import Guardian Dependencies</text>
+
+  <rect x="120" y="115" width="1000" height="100" rx="6" fill="#263238" stroke="#0277bd" stroke-width="1"/>
+  <text x="140" y="140" class="code" style="fill: #82aaff;">import</text>
+  <text x="195" y="140" class="code" style="fill: #c3e88d;"> GuardianService </text>
+  <text x="345" y="140" class="code" style="fill: #82aaff;">from</text>
+  <text x="400" y="140" class="code" style="fill: #c3e88d;"> '../services/GuardianService'</text>
+  <text x="750" y="140" class="code" style="fill: white;">;</text>
+
+  <text x="140" y="165" class="code" style="fill: #82aaff;">import</text>
+  <text x="195" y="165" class="code" style="fill: #c3e88d;"> GuardianWarning </text>
+  <text x="355" y="165" class="code" style="fill: #82aaff;">from</text>
+  <text x="410" y="165" class="code" style="fill: #c3e88d;"> '../components/common/GuardianWarning'</text>
+  <text x="820" y="165" class="code" style="fill: white;">;</text>
+
+  <text x="140" y="195" class="comment">// GuardianService: API client for backend validation</text>
+  <text x="140" y="210" class="comment">// GuardianWarning: UI component to display violations</text>
+
+  <!-- Step 2 -->
+  <rect x="50" y="250" width="1100" height="145" rx="10" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+  <circle cx="80" cy="275" r="18" fill="#fbc02d"/>
+  <text x="80" y="282" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: white;">2</text>
+  <text x="120" y="280" class="step-header" style="fill: #f57c00;">Add State Variables</text>
+
+  <rect x="120" y="295" width="1000" height="85" rx="6" fill="#263238" stroke="#f9a825" stroke-width="1"/>
+  <text x="140" y="320" class="code" style="fill: #82aaff;">const</text>
+  <text x="190" y="320" class="code" style="fill: white;"> [guardianResult, setGuardianResult] = </text>
+  <text x="570" y="320" class="code" style="fill: #c792ea;">useState</text>
+  <text x="660" y="320" class="code" style="fill: white;">(</text>
+  <text x="670" y="320" class="code" style="fill: #f78c6c;">null</text>
+  <text x="710" y="320" class="code" style="fill: white;">);</text>
+
+  <text x="140" y="345" class="code" style="fill: #82aaff;">const</text>
+  <text x="190" y="345" class="code" style="fill: white;"> [isCheckingAssumptions, setIsCheckingAssumptions] = </text>
+  <text x="690" y="345" class="code" style="fill: #c792ea;">useState</text>
+  <text x="780" y="345" class="code" style="fill: white;">(</text>
+  <text x="790" y="345" class="code" style="fill: #f78c6c;">false</text>
+  <text x="840" y="345" class="code" style="fill: white;">);</text>
+
+  <text x="140" y="370" class="code" style="fill: #82aaff;">const</text>
+  <text x="190" y="370" class="code" style="fill: white;"> [isTestBlocked, setIsTestBlocked] = </text>
+  <text x="540" y="370" class="code" style="fill: #c792ea;">useState</text>
+  <text x="630" y="370" class="code" style="fill: white;">(</text>
+  <text x="640" y="370" class="code" style="fill: #f78c6c;">false</text>
+  <text x="690" y="370" class="code" style="fill: white;">);</text>
+
+  <!-- Step 3 -->
+  <rect x="50" y="415" width="1100" height="265" rx="10" fill="#e8f5e9" stroke="#4caf50" stroke-width="2"/>
+  <circle cx="80" cy="440" r="18" fill="#4caf50"/>
+  <text x="80" y="447" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: white;">3</text>
+  <text x="120" y="445" class="step-header" style="fill: #1b5e20;">Create useEffect Validation Hook</text>
+
+  <rect x="120" y="460" width="1000" height="205" rx="6" fill="#263238" stroke="#66bb6a" stroke-width="1"/>
+  <text x="140" y="485" class="code" style="fill: #c792ea;">useEffect</text>
+  <text x="230" y="485" class="code" style="fill: white;">(() </text>
+  <text x="270" y="485" class="code" style="fill: #89ddff;">=&gt;</text>
+  <text x="310" y="485" class="code" style="fill: white;"> {</text>
+
+  <text x="160" y="510" class="code" style="fill: #82aaff;">  const</text>
+  <text x="220" y="510" class="code" style="fill: white;"> validateData = </text>
+  <text x="380" y="510" class="code" style="fill: #82aaff;">async</text>
+  <text x="440" y="510" class="code" style="fill: white;"> () </text>
+  <text x="490" y="510" class="code" style="fill: #89ddff;">=&gt;</text>
+  <text x="530" y="510" class="code" style="fill: white;"> {</text>
+
+  <text x="180" y="535" class="code" style="fill: #82aaff;">    try</text>
+  <text x="230" y="535" class="code" style="fill: white;"> {</text>
+
+  <text x="200" y="560" class="code" style="fill: white;">      </text>
+  <text x="240" y="560" class="code" style="fill: #c792ea;">setIsCheckingAssumptions</text>
+  <text x="460" y="560" class="code" style="fill: white;">(</text>
+  <text x="470" y="560" class="code" style="fill: #f78c6c;">true</text>
+  <text x="515" y="560" class="code" style="fill: white;">);</text>
+
+  <text x="200" y="585" class="code" style="fill: #82aaff;">      const</text>
+  <text x="260" y="585" class="code" style="fill: white;"> result = </text>
+  <text x="360" y="585" class="code" style="fill: #82aaff;">await</text>
+  <text x="420" y="585" class="code" style="fill: white;"> GuardianService.</text>
+  <text x="610" y="585" class="code" style="fill: #ffcb6b;">checkAssumptions</text>
+  <text x="810" y="585" class="code" style="fill: white;">([parsedData], testType, alpha);</text>
+
+  <text x="200" y="610" class="code" style="fill: white;">      </text>
+  <text x="240" y="610" class="code" style="fill: #c792ea;">setGuardianResult</text>
+  <text x="420" y="610" class="code" style="fill: white;">(result);</text>
+
+  <text x="200" y="635" class="code" style="fill: white;">      </text>
+  <text x="240" y="635" class="code" style="fill: #c792ea;">setIsTestBlocked</text>
+  <text x="410" y="635" class="code" style="fill: white;">(result.</text>
+  <text x="510" y="635" class="code" style="fill: #ffcb6b;">criticalViolations</text>
+  <text x="680" y="635" class="code" style="fill: white;">.</text>
+  <text x="690" y="635" class="code" style="fill: #ffcb6b;">length</text>
+  <text x="750" y="635" class="code" style="fill: white;"> &gt; </text>
+  <text x="790" y="635" class="code" style="fill: #f78c6c;">0</text>
+  <text x="810" y="635" class="code" style="fill: white;">);</text>
+
+  <text x="180" y="655" class="code" style="fill: white;">    } </text>
+  <text x="220" y="655" class="code" style="fill: #82aaff;">finally</text>
+  <text x="285" y="655" class="code" style="fill: white;"> { </text>
+  <text x="325" y="655" class="code" style="fill: #c792ea;">setIsCheckingAssumptions</text>
+  <text x="545" y="655" class="code" style="fill: white;">(</text>
+  <text x="555" y="655" class="code" style="fill: #f78c6c;">false</text>
+  <text x="600" y="655" class="code" style="fill: white;">); }</text>
+
+  <text x="160" y="675" class="code" style="fill: white;">  };</text>
+  <text x="210" y="675" class="code" style="fill: white;"> validateData();</text>
+  <text x="140" y="675" class="code" style="fill: white;">}, [parsedData, testType, alpha]);</text>
+
+  <!-- Step 4 -->
+  <rect x="50" y="700" width="1100" height="130" rx="10" fill="#f3e5f5" stroke="#9c27b0" stroke-width="2"/>
+  <circle cx="80" cy="725" r="18" fill="#9c27b0"/>
+  <text x="80" y="732" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: white;">4</text>
+  <text x="120" y="730" class="step-header" style="fill: #6a1b9a;">Add GuardianWarning to UI (JSX)</text>
+
+  <rect x="120" y="745" width="1000" height="70" rx="6" fill="#263238" stroke="#ab47bc" stroke-width="1"/>
+  <text x="140" y="770" class="code" style="fill: white;">&lt;</text>
+  <text x="150" y="770" class="code" style="fill: #f07178;">GuardianWarning</text>
+
+  <text x="160" y="790" class="code" style="fill: #c792ea;">  guardianResult</text>
+  <text x="320" y="790" class="code" style="fill: white;">=</text>
+  <text x="340" y="790" class="code" style="fill: #89ddff;">{</text>
+  <text x="350" y="790" class="code" style="fill: white;">guardianResult</text>
+  <text x="500" y="790" class="code" style="fill: #89ddff;">}</text>
+
+  <text x="160" y="810" class="code" style="fill: #c792ea;">  isLoading</text>
+  <text x="280" y="810" class="code" style="fill: white;">=</text>
+  <text x="300" y="810" class="code" style="fill: #89ddff;">{</text>
+  <text x="310" y="810" class="code" style="fill: white;">isCheckingAssumptions</text>
+  <text x="520" y="810" class="code" style="fill: #89ddff;">}</text>
+  <text x="140" y="810" class="code" style="fill: white;"> /&gt;</text>
+
+  <!-- Step 5 -->
+  <rect x="50" y="850" width="1100" height="120" rx="10" fill="#ffebee" stroke="#f44336" stroke-width="2"/>
+  <circle cx="80" cy="875" r="18" fill="#f44336"/>
+  <text x="80" y="882" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: white;">5</text>
+  <text x="120" y="880" class="step-header" style="fill: #c62828;">Add Test Blocking to Button</text>
+
+  <rect x="120" y="895" width="1000" height="60" rx="6" fill="#263238" stroke="#e57373" stroke-width="1"/>
+  <text x="140" y="920" class="code" style="fill: white;">&lt;</text>
+  <text x="150" y="920" class="code" style="fill: #f07178;">Button</text>
+  <text x="220" y="920" class="code" style="fill: white;"> </text>
+  <text x="230" y="920" class="code" style="fill: #c792ea;">onClick</text>
+  <text x="320" y="920" class="code" style="fill: white;">=</text>
+  <text x="340" y="920" class="code" style="fill: #89ddff;">{</text>
+  <text x="350" y="920" class="code" style="fill: white;">handleCalculate</text>
+  <text x="510" y="920" class="code" style="fill: #89ddff;">}</text>
+
+  <text x="140" y="945" class="code" style="fill: white;">  </text>
+  <text x="160" y="945" class="code" style="fill: #c792ea;">disabled</text>
+  <text x="260" y="945" class="code" style="fill: white;">=</text>
+  <text x="280" y="945" class="code" style="fill: #89ddff;">{</text>
+  <text x="290" y="945" class="code" style="fill: white;">isTestBlocked || isCheckingAssumptions</text>
+  <text x="650" y="945" class="code" style="fill: #89ddff;">}</text>
+  <text x="660" y="945" class="code" style="fill: white;"> &gt;Calculate&lt;/</text>
+  <text x="830" y="945" class="code" style="fill: #f07178;">Button</text>
+  <text x="910" y="945" class="code" style="fill: white;">&gt;</text>
+</svg>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; fill: #1d1d1f; }
+      .question { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 500; fill: #1d1d1f; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 14px; fill: #1d1d1f; }
+      .example { font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 13px; fill: #424245; }
+      .decision-box { fill: #fff9c4; stroke: #f57c00; stroke-width: 2; rx: 8; }
+      .validate-box { fill: #c8e6c9; stroke: #388e3c; stroke-width: 3; rx: 8; }
+      .skip-box { fill: #e3f2fd; stroke: #1976d2; stroke-width: 3; rx: 8; }
+      .arrow { stroke: #757575; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .yes-arrow { stroke: #388e3c; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .no-arrow { stroke: #1976d2; stroke-width: 3; fill: none; marker-end: url(#arrowhead-blue); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#757575" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#388e3c" />
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#1976d2" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" class="title">Guardian Philosophy: "Data vs Parameters" Decision Tree</text>
+
+  <!-- Root Question -->
+  <rect x="450" y="70" width="300" height="80" class="decision-box"/>
+  <text x="600" y="100" text-anchor="middle" class="question">Does component accept</text>
+  <text x="600" y="120" text-anchor="middle" class="question" style="font-weight: 700;">RAW DATA</text>
+  <text x="600" y="138" text-anchor="middle" class="question">(actual measurements)?</text>
+
+  <!-- Yes Branch -->
+  <line x1="450" y1="130" x2="300" y2="200" class="yes-arrow"/>
+  <text x="340" y="165" class="label" style="fill: #388e3c; font-weight: 600;">YES</text>
+
+  <rect x="100" y="200" width="400" height="120" class="validate-box"/>
+  <text x="300" y="230" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: #2e7d32;">✓ VALIDATE ASSUMPTIONS</text>
+  <text x="300" y="255" text-anchor="middle" class="label">Run 6 statistical validators:</text>
+  <text x="300" y="275" text-anchor="middle" class="label">Normality • Variance • Independence</text>
+  <text x="300" y="292" text-anchor="middle" class="label">Outliers • Sample Size • Modality</text>
+  <text x="300" y="312" text-anchor="middle" class="label" style="fill: #2e7d32; font-weight: 600;">Block test if critical violations found</text>
+
+  <!-- Yes Examples -->
+  <rect x="50" y="350" width="500" height="120" style="fill: #f1f8e9; stroke: #689f38; stroke-width: 2; rx: 8;"/>
+  <text x="300" y="375" text-anchor="middle" style="font-size: 15px; font-weight: 600; fill: #33691e;">Examples: Components That Accept Raw Data</text>
+  <text x="300" y="400" text-anchor="middle" class="example">• TTestCalculator: [23, 25, 24, 26, 28, 22]</text>
+  <text x="300" y="420" text-anchor="middle" class="example">• ANOVAAnalyzer: Group1=[data], Group2=[data]</text>
+  <text x="300" y="440" text-anchor="middle" class="example">• SampleBasedCalculator: rawData=[measurements]</text>
+  <text x="300" y="460" text-anchor="middle" class="label" style="fill: #558b2f;">→ Can assess distribution shape, outliers, variance</text>
+
+  <!-- No Branch -->
+  <line x1="750" y1="130" x2="900" y2="200" class="no-arrow"/>
+  <text x="860" y="165" class="label" style="fill: #1976d2; font-weight: 600;">NO</text>
+
+  <!-- Second Decision -->
+  <rect x="700" y="200" width="400" height="80" class="decision-box"/>
+  <text x="900" y="225" text-anchor="middle" class="question">What type of input?</text>
+  <text x="900" y="245" text-anchor="middle" class="question">Parameters / Summaries / Visualizations?</text>
+
+  <!-- Parameters Branch -->
+  <line x1="800" y1="280" x2="700" y2="350" class="no-arrow"/>
+  <text x="720" y="320" class="label" style="fill: #1976d2; font-weight: 600;">Parameters</text>
+
+  <rect x="600" y="350" width="200" height="120" class="skip-box"/>
+  <text x="700" y="380" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0d47a1;">⏭️ SKIP</text>
+  <text x="700" y="402" text-anchor="middle" class="label">Just configuration</text>
+  <text x="700" y="420" text-anchor="middle" class="example">α = 0.05</text>
+  <text x="700" y="438" text-anchor="middle" class="example">power = 0.80</text>
+  <text x="700" y="456" text-anchor="middle" class="label" style="font-size: 12px;">No distribution to check</text>
+
+  <!-- Summaries Branch -->
+  <line x1="900" y1="280" x2="900" y2="350" class="no-arrow"/>
+  <text x="920" y="315" class="label" style="fill: #1976d2; font-weight: 600;">Summaries</text>
+
+  <rect x="820" y="350" width="160" height="120" class="skip-box"/>
+  <text x="900" y="380" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0d47a1;">⏭️ SKIP</text>
+  <text x="900" y="402" text-anchor="middle" class="label">Pre-calculated</text>
+  <text x="900" y="420" text-anchor="middle" class="example">mean = 25.3</text>
+  <text x="900" y="438" text-anchor="middle" class="example">SD = 2.1</text>
+  <text x="900" y="456" text-anchor="middle" class="label" style="font-size: 12px;">Can't reconstruct data</text>
+
+  <!-- Visualizations Branch -->
+  <line x1="1000" y1="280" x2="1100" y2="350" class="no-arrow"/>
+  <text x="1080" y="320" class="label" style="fill: #1976d2; font-weight: 600;">Visualizations</text>
+
+  <rect x="1010" y="350" width="160" height="120" class="skip-box"/>
+  <text x="1090" y="380" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0d47a1;">⏭️ SKIP</text>
+  <text x="1090" y="402" text-anchor="middle" class="label">Already validated</text>
+  <text x="1090" y="420" text-anchor="middle" class="label">at entry point</text>
+  <text x="1090" y="438" text-anchor="middle" class="label" style="font-size: 12px;">Don't re-validate</text>
+  <text x="1090" y="456" text-anchor="middle" class="label" style="font-size: 12px;">display components</text>
+
+  <!-- Key Insight Box -->
+  <rect x="150" y="520" width="900" height="230" style="fill: #fafafa; stroke: #0071e3; stroke-width: 3; rx: 12;"/>
+  <text x="600" y="555" text-anchor="middle" style="font-size: 20px; font-weight: 700; fill: #0071e3;">🔑 Key Innovation: Intelligent Selective Validation</text>
+
+  <text x="600" y="590" text-anchor="middle" class="label" style="font-size: 15px;">Guardian asks: "Can we meaningfully assess distributional assumptions with this input?"</text>
+
+  <g transform="translate(200, 615)">
+    <rect x="0" y="0" width="800" height="40" style="fill: #e8f5e9; rx: 6;"/>
+    <text x="20" y="25" class="label" style="font-size: 14px;"><tspan style="fill: #2e7d32; font-weight: 600;">✓ YES (Raw Data):</tspan> We can compute distribution statistics → VALIDATE</text>
+  </g>
+
+  <g transform="translate(200, 665)">
+    <rect x="0" y="0" width="800" height="40" style="fill: #e3f2fd; rx: 6;"/>
+    <text x="20" y="25" class="label" style="font-size: 14px;"><tspan style="fill: #0d47a1; font-weight: 600;">⏭️ NO (Parameters/Summaries):</tspan> No distributional information available → SKIP</text>
+  </g>
+
+  <text x="600" y="735" text-anchor="middle" class="label" style="font-size: 14px; font-weight: 600;">Result: Maximum protection, zero false positives, respects component purpose</text>
+</svg>
