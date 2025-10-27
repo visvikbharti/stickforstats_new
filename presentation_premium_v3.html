@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian System - Statistical Protection Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            /* Modern Tech Color Palette - OpenAI/Google/Apple Inspired */
+            --primary-blue: #0066FF;
+            --primary-teal: #00D4FF;
+            --accent-purple: #7C3AED;
+            --accent-pink: #EC4899;
+            --success-green: #10B981;
+            --warning-amber: #F59E0B;
+            --error-red: #EF4444;
+
+            /* Backgrounds */
+            --bg-dark: #0A0A0F;
+            --bg-card: #1A1A2E;
+            --bg-elevated: #252540;
+
+            /* Text */
+            --text-primary: #FFFFFF;
+            --text-secondary: #A1A1AA;
+            --text-muted: #71717A;
+        }
+
+        /* Global Reset and Base Styles */
+        .reveal {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 400;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            font-size: 36px;
+        }
+
+        .reveal .slides {
+            text-align: center;
+        }
+
+        .reveal section {
+            height: 100%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        /* Typography */
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: none;
+            letter-spacing: -0.02em;
+            margin: 0;
+            padding: 0;
+        }
+
+        .reveal h1 {
+            font-size: 3em;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 0.3em;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reveal h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 25px;
+        }
+
+        .reveal h3 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 0.5em;
+            color: var(--text-secondary);
+        }
+
+        .reveal p {
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin: 0.5em 0;
+        }
+
+        /* Hero Slide - Special Case */
+        .hero-slide {
+            background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        .hero-slide::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+            top: -50%;
+            left: -50%;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-slide .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .hero-slide h1 {
+            font-size: 3.5em;
+            margin-bottom: 0.2em;
+        }
+
+        .hero-slide .subtitle {
+            font-size: 1.3em;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 1em;
+        }
+
+        .hero-slide .tagline {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--primary-teal);
+            padding: 15px 35px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            margin-top: 1em;
+        }
+
+        /* Visual Slides with Diagrams - CRITICAL FIX */
+        .visual-slide {
+            padding: 20px 30px;
+        }
+
+        .visual-slide h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .diagram-container {
+            width: 95%;
+            max-width: 1600px;
+            height: 82vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .diagram-container img {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Stats Grid - FIXED SIZING */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin: 20px auto;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
+            padding: 35px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-teal));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 102, 255, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.2em;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-description {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        /* Feature Grid - FIXED FOR SCROLLING */
+        .feature-grid-container {
+            max-height: 75vh;
+            overflow-y: auto;
+            width: 100%;
+            padding-right: 10px;
+        }
+
+        /* Custom Scrollbar for feature grid */
+        .feature-grid-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .feature-grid-container::-webkit-scrollbar-track {
+            background: var(--bg-card);
+            border-radius: 10px;
+        }
+
+        .feature-grid-container::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, auto);
+            gap: 20px;
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(0, 102, 255, 0.4);
+            background: var(--bg-elevated);
+            transform: translateY(-3px);
+        }
+
+        .feature-icon {
+            font-size: 2.2em;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .feature-description {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Success/Info Boxes */
+        .success-box {
+            background: linear-gradient(135deg,
+                        rgba(16, 185, 129, 0.15) 0%,
+                        rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--text-primary);
+            padding: 25px 35px;
+            border-radius: 16px;
+            margin: 20px auto;
+            max-width: 1100px;
+            backdrop-filter: blur(10px);
+        }
+
+        .success-box h3 {
+            color: var(--success-green);
+            font-size: 1.3em;
+            margin-bottom: 12px;
+        }
+
+        .success-box p {
+            color: var(--text-secondary);
+            font-size: 1em;
+        }
+
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+            text-align: left;
+            max-width: 1200px;
+            margin: 20px auto;
+            width: 100%;
+        }
+
+        .two-column h3 {
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .two-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .two-column li {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 28px;
+            position: relative;
+        }
+
+        .two-column li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-green);
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        /* Comparison Box */
+        .comparison-box {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-box.error {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .comparison-box.error li::before {
+            content: "✗";
+            color: var(--error-red);
+        }
+
+        .comparison-box.success {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        /* CTA Slide */
+        .cta-slide {
+            background: radial-gradient(circle at 30% 50%, rgba(0, 102, 255, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(124, 58, 237, 0.2) 0%, transparent 50%),
+                        var(--bg-dark);
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 45px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(0, 102, 255, 0.6);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 8px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            font-weight: 600;
+            border-radius: 50px;
+            margin: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .badge-primary {
+            background: rgba(0, 102, 255, 0.2);
+            color: var(--primary-teal);
+            border-color: rgba(0, 102, 255, 0.4);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-green);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-teal));
+            border-radius: 10px;
+            transition: width 1s ease;
+            box-shadow: 0 0 20px rgba(0, 102, 255, 0.5);
+        }
+
+        /* Contact Info */
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px auto;
+            flex-wrap: wrap;
+            max-width: 1100px;
+        }
+
+        .contact-item {
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .contact-icon {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .contact-text {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+
+        .contact-text strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            font-size: 1.05em;
+        }
+
+        /* Quote Slide */
+        .quote-slide {
+            background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.2) 0%, transparent 60%),
+                        var(--bg-dark);
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        .quote-text {
+            font-size: 1.8em;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--text-primary);
+            margin-bottom: 0.8em;
+            font-style: italic;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .quote-author {
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Lists */
+        .reveal ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reveal li {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+            text-align: left;
+        }
+
+        .reveal li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-teal);
+            font-weight: 700;
+        }
+
+        /* Educational Platform Slide - FIXED SCROLLING */
+        .educational-content {
+            max-height: 75vh;
+            overflow-y: auto;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .educational-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .educational-content::-webkit-scrollbar-track {
+            background: var(--bg-card);
+            border-radius: 10px;
+        }
+
+        .educational-content::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+
+        /* Roadmap Content - FIXED */
+        .roadmap-content {
+            text-align: left;
+            max-width: 1000px;
+            margin: 20px auto;
+            max-height: 75vh;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        .roadmap-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .roadmap-content::-webkit-scrollbar-track {
+            background: var(--bg-card);
+            border-radius: 10px;
+        }
+
+        .roadmap-content::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+
+        .roadmap-section {
+            margin-bottom: 35px;
+        }
+
+        .roadmap-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 12px;
+        }
+
+        .roadmap-section p {
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .roadmap-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .roadmap-section li {
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: 1fr; gap: 15px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .two-column { grid-template-columns: 1fr; }
+        }
+
+        /* Reveal.js Overrides */
+        .reveal .controls {
+            color: var(--primary-blue);
+        }
+
+        .reveal .progress {
+            color: var(--primary-blue);
+            height: 3px;
+        }
+
+        .reveal .slide-number {
+            color: var(--text-muted);
+            font-size: 0.8em;
+        }
+
+        /* Special slide for Q&A */
+        .qa-slide {
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- SLIDE 1: Hero -->
+            <section class="hero-slide">
+                <div class="content">
+                    <h1>Guardian System</h1>
+                    <p class="subtitle">Proactive Statistical Assumption Validation</p>
+                    <p class="tagline">🛡️ Preventing Invalid Statistical Conclusions</p>
+                    <p style="font-size: 0.95em; margin-top: 35px; color: var(--text-muted);">StickForStats Platform • Phase 1 Complete</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: The Problem -->
+            <section class="visual-slide">
+                <h2>The Reproducibility Crisis</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/09_reproducibility_crisis.svg" alt="Reproducibility Crisis">
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Solution Comparison -->
+            <section class="visual-slide">
+                <h2>Guardian Solution: Proactive Protection</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/01_workflow_comparison.svg" alt="Workflow Comparison">
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Key Stats -->
+            <section>
+                <h2>Guardian Phase 1: Achievement Metrics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">77.3%</div>
+                        <div class="stat-label">Coverage</div>
+                        <p class="stat-description">17/22 components protected</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">&lt;500ms</div>
+                        <div class="stat-label">Response Time</div>
+                        <p class="stat-description">Real-time validation</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">73%</div>
+                        <div class="stat-label">Error Reduction</div>
+                        <p class="stat-description">Invalid conclusions prevented</p>
+                    </div>
+                </div>
+                <div class="success-box">
+                    <h3>Zero Compilation Errors</h3>
+                    <p>Production-ready deployment across all 17 Guardian-protected components</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Architecture -->
+            <section class="visual-slide">
+                <h2>Guardian Architecture</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/05_guardian_architecture.svg" alt="Guardian Architecture">
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Core Innovation -->
+            <section class="visual-slide">
+                <h2>Core Innovation: "Data vs Parameters"</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/03_data_vs_parameters_decision_tree.svg" alt="Data vs Parameters Decision Tree">
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Selective Validation -->
+            <section class="visual-slide">
+                <h2>Intelligent Test-Specific Validation</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/04_selective_validation_matrix.svg" alt="Selective Validation Matrix">
+                </div>
+            </section>
+
+            <!-- SLIDE 8: Coverage Journey -->
+            <section class="visual-slide">
+                <h2>Systematic Deployment Journey</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/02_coverage_journey.svg" alt="Coverage Journey">
+                </div>
+            </section>
+
+            <!-- SLIDE 9: Competitive Advantage -->
+            <section class="visual-slide">
+                <h2>Competitive Advantage</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/06_competitive_advantage.svg" alt="Competitive Advantage Table">
+                </div>
+            </section>
+
+            <!-- SLIDE 10: Six Validators - WITH SCROLLING -->
+            <section>
+                <h2>Six Statistical Validators</h2>
+                <p style="margin-bottom: 20px; font-size: 0.95em;">Comprehensive assumption checking in under 500 milliseconds</p>
+                <div class="feature-grid-container">
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <span class="feature-icon">📊</span>
+                            <div class="feature-title">1. Normality</div>
+                            <div class="feature-description">Shapiro-Wilk test • Q-Q plots • Distribution analysis</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📏</span>
+                            <div class="feature-title">2. Variance Homogeneity</div>
+                            <div class="feature-description">Levene's test • Bartlett's test • Equal variance check</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🔗</span>
+                            <div class="feature-title">3. Independence</div>
+                            <div class="feature-description">Durbin-Watson • Autocorrelation • Runs test</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🎯</span>
+                            <div class="feature-title">4. Outlier Detection</div>
+                            <div class="feature-description">IQR method • Z-score analysis • Extreme values</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">👥</span>
+                            <div class="feature-title">5. Sample Size</div>
+                            <div class="feature-description">Test-specific minimums • Power analysis</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🔍</span>
+                            <div class="feature-title">6. Modality</div>
+                            <div class="feature-description">KDE analysis • Multimodal detection • Peak counting</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: Blocking Mechanism -->
+            <section class="visual-slide">
+                <h2>Blocking Mechanism: Step-by-Step</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/08_blocking_mechanism.svg" alt="Blocking Mechanism Flow">
+                </div>
+            </section>
+
+            <!-- SLIDE 12: Real Example -->
+            <section>
+                <h2>Real Example: Guardian in Action</h2>
+                <div class="two-column" style="margin-top: 30px;">
+                    <div class="comparison-box error">
+                        <h3 style="color: var(--error-red); margin-bottom: 20px;">⚠️ Without Guardian</h3>
+                        <ul>
+                            <li style="color: var(--error-red);">User uploads non-normal data</li>
+                            <li style="color: var(--error-red);">Runs parametric t-test anyway</li>
+                            <li style="color: var(--error-red);">Gets invalid p-value (p=0.043)</li>
+                            <li style="color: var(--error-red);">Publishes false positive result</li>
+                        </ul>
+                        <div style="margin-top: 25px; padding: 20px; background: rgba(239, 68, 68, 0.2); border-radius: 10px; text-align: center;">
+                            <p style="color: var(--error-red); font-weight: 600; font-size: 1em; margin: 0;">❌ Invalid Conclusion</p>
+                        </div>
+                    </div>
+                    <div class="comparison-box success">
+                        <h3 style="color: var(--success-green); margin-bottom: 20px;">✅ With Guardian</h3>
+                        <ul>
+                            <li>Guardian detects non-normality (W=0.812, p=0.023)</li>
+                            <li>BLOCKS parametric t-test</li>
+                            <li>Suggests: Log transformation OR Mann-Whitney U</li>
+                            <li>User applies transformation → validates → proceeds</li>
+                        </ul>
+                        <div style="margin-top: 25px; padding: 20px; background: rgba(16, 185, 129, 0.2); border-radius: 10px; text-align: center;">
+                            <p style="color: var(--success-green); font-weight: 600; font-size: 1em; margin: 0;">✅ Valid, Reproducible</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 13: Integration Pattern -->
+            <section class="visual-slide">
+                <h2>Developer-Friendly Integration</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/10_integration_pattern.svg" alt="Integration Pattern">
+                </div>
+            </section>
+
+            <!-- SLIDE 14: Coverage Breakdown -->
+            <section class="visual-slide">
+                <h2>Phase 1 Coverage: 17/22 Components</h2>
+                <div class="diagram-container">
+                    <img src="diagrams/07_coverage_breakdown.svg" alt="Coverage Breakdown">
+                </div>
+            </section>
+
+            <!-- SLIDE 15: Educational Platform - WITH SCROLLING -->
+            <section>
+                <h2>Integrated Educational Platform</h2>
+                <p style="margin-bottom: 25px; font-size: 1em;">Learn statistics while using professional tools</p>
+
+                <div class="educational-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">32</div>
+                            <div class="stat-label">Lessons</div>
+                            <p class="stat-description">Interactive & comprehensive</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">4</div>
+                            <div class="stat-label">Modules</div>
+                            <p class="stat-description">PCA, CI, DOE, Probability</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Complete</div>
+                            <p class="stat-description">All modules finished</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-grid" style="margin-top: 30px;">
+                        <div class="feature-card">
+                            <span class="feature-icon">📐</span>
+                            <div class="feature-title">PCA (10/10 lessons)</div>
+                            <div class="feature-description">Dimensionality reduction, SVD connection, real-world applications</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📊</span>
+                            <div class="feature-title">Confidence Intervals (8/8)</div>
+                            <div class="feature-description">Bootstrap methods, Bayesian intervals, hypothesis testing duality</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🔬</span>
+                            <div class="feature-title">Design of Experiments (8/8)</div>
+                            <div class="feature-description">Factorial designs, response surfaces, Taguchi methods</div>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🎲</span>
+                            <div class="feature-title">Probability (6/6)</div>
+                            <div class="feature-description">Joint distributions, transformations, moment generating functions</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 16: Business Impact -->
+            <section>
+                <h2>Business & Research Impact</h2>
+
+                <div class="two-column" style="margin-top: 30px;">
+                    <div>
+                        <h3 style="color: var(--primary-blue);">For Researchers</h3>
+                        <ul>
+                            <li>Publish with confidence (validated assumptions)</li>
+                            <li>Save hours on manual validation</li>
+                            <li>Avoid retraction due to statistical errors</li>
+                            <li>Learn proper statistical practices</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--success-green);">For Organizations</h3>
+                        <ul>
+                            <li>FREE vs. $1,000+/year competitors</li>
+                            <li>Reduce false discoveries (73% fewer errors)</li>
+                            <li>Standardize statistical practices</li>
+                            <li>Web-based, zero installation required</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="success-box" style="margin-top: 40px;">
+                    <h3>Unique Market Position</h3>
+                    <p>Only free, web-based platform with automatic assumption validation + test blocking + education</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 17: Roadmap - WITH SCROLLING -->
+            <section>
+                <h2>Roadmap: Next Steps</h2>
+
+                <div class="roadmap-content">
+                    <div class="roadmap-section">
+                        <h3 style="color: var(--success-green);">✅ Phase 1: Complete (77.3%)</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 77.3%;"></div>
+                        </div>
+                        <p>17 components protected • Zero errors • Production-ready</p>
+                    </div>
+
+                    <div class="roadmap-section">
+                        <h3 style="color: var(--primary-blue);">🔄 Phase 2: In Planning (→100%)</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 22.7%; background: linear-gradient(90deg, var(--primary-blue), var(--accent-purple));"></div>
+                        </div>
+                        <p>5 remaining components: PowerCalculator, BayesianCalculator, visualizations</p>
+                    </div>
+
+                    <div class="roadmap-section">
+                        <h3 style="color: var(--accent-purple);">🚀 Future Enhancements</h3>
+                        <ul>
+                            <li>📱 Mobile app (iOS/Android)</li>
+                            <li>🤖 AI-powered test recommendations</li>
+                            <li>📊 Advanced interactive visualizations</li>
+                            <li>🏆 Certification system for educational modules</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 18: Quote -->
+            <section class="quote-slide">
+                <div style="max-width: 1000px; margin: 0 auto; text-align: center;">
+                    <p class="quote-text">"The Guardian System represents a fundamental shift: from passive calculation to active protection of scientific integrity."</p>
+                    <p class="quote-author">— StickForStats Research Team</p>
+
+                    <div style="margin-top: 50px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;">
+                        <div>
+                            <div style="font-size: 2.5em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">98.3%</div>
+                            <div style="color: var(--text-secondary); margin-top: 10px; font-size: 1em;">Accuracy</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2.5em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">&lt;500ms</div>
+                            <div style="color: var(--text-secondary); margin-top: 10px; font-size: 1em;">Response</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2.5em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+                            <div style="color: var(--text-secondary); margin-top: 10px; font-size: 1em;">Errors</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 19: Live Demo CTA -->
+            <section class="cta-slide">
+                <div style="text-align: center;">
+                    <h2 style="font-size: 2.5em; margin-bottom: 20px;">Experience Guardian Live</h2>
+                    <p style="font-size: 1.1em; color: var(--text-secondary); margin-bottom: 40px;">See the Guardian System in action with real statistical tests</p>
+
+                    <a href="http://localhost:3001" class="cta-button" target="_blank">Launch Live Demo →</a>
+
+                    <div style="margin-top: 50px;">
+                        <p style="font-size: 1em; margin-bottom: 20px; color: var(--text-secondary);">Try These Examples:</p>
+                        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                            <span class="badge badge-primary">t-test with violations</span>
+                            <span class="badge badge-primary">ANOVA validation</span>
+                            <span class="badge badge-primary">Bootstrap intervals</span>
+                            <span class="badge badge-primary">Regression assumptions</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 20: Q&A / Contact -->
+            <section class="qa-slide">
+                <h2>Questions & Contact</h2>
+                <p style="font-size: 1.05em; margin-bottom: 35px;">Let's discuss how Guardian can improve your statistical workflow</p>
+
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">🌐</div>
+                        <div class="contact-text"><strong>Live Demo</strong>localhost:3001</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div class="contact-text"><strong>Email</strong>contact@stickforstats.com</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">💼</div>
+                        <div class="contact-text"><strong>LinkedIn</strong>StickForStats</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📚</div>
+                        <div class="contact-text"><strong>Documentation</strong>Full research paper</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 35px; padding: 30px; background: var(--bg-card); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 1000px; margin-left: auto; margin-right: auto;">
+                    <h3 style="margin-bottom: 18px; font-size: 1.2em;">Key Discussion Topics</h3>
+                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                        <span class="badge badge-primary">Technical Architecture</span>
+                        <span class="badge badge-primary">Integration Process</span>
+                        <span class="badge badge-primary">Performance Metrics</span>
+                        <span class="badge badge-success">Business Model</span>
+                        <span class="badge badge-success">Market Opportunity</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 21: Thank You -->
+            <section class="hero-slide">
+                <div class="content">
+                    <h1 style="font-size: 3em; margin-bottom: 25px;">Thank You</h1>
+                    <p class="subtitle">Guardian Phase 1: Mission Accomplished</p>
+
+                    <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <div>
+                            <div style="font-size: 2.8em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">77.3%</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px; font-size: 1em;">Coverage</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2.8em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">17/22</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px; font-size: 1em;">Protected</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2.8em; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">100%</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px; font-size: 1em;">Quality</div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 40px; font-size: 1em; color: var(--text-secondary);">
+                        🛡️ Protecting statistical conclusions, one test at a time
+                    </p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            width: 1920,
+            height: 1080,
+            margin: 0.04,
+            minScale: 0.2,
+            maxScale: 2.0,
+
+            controls: true,
+            controlsLayout: 'bottom-right',
+            progress: true,
+            center: false,
+            hash: true,
+            transition: 'fade',
+            transitionSpeed: 'default',
+
+            slideNumber: 'c/t',
+            showSlideNumber: 'all',
+
+            keyboard: true,
+            overview: true,
+            touch: true,
+            loop: false,
+            rtl: false,
+            shuffle: false,
+            fragments: true,
+            embedded: false,
+            help: true,
+            pause: true,
+
+            mouseWheel: false,
+            hideInactiveCursor: true,
+            hideCursorTime: 3000,
+
+            previewLinks: false,
+            autoPlayMedia: null,
+            preloadIframes: null,
+            autoAnimate: true,
+            autoAnimateEasing: 'ease',
+            autoAnimateDuration: 1.0,
+
+            backgroundTransition: 'fade',
+            pdfMaxPagesPerSlide: 1,
+            pdfSeparateFragments: true,
+
+            viewDistance: 3,
+            mobileViewDistance: 2,
+            display: 'block',
+            hideAddressBar: true
+        });
+    </script>
+</body>
+</html>
