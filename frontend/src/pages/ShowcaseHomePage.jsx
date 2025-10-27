@@ -37,7 +37,7 @@ const ShowcaseHomePage = () => {
       title: 'Statistical Analysis Center',
       description: 'Statistical analysis tools for data exploration and hypothesis testing (in development).',
       icon: <AssessmentIcon fontSize="large" color="error" />,
-      path: '/statistical-analysis',
+      path: '/statistical-analysis-tools',
       features: ['Descriptive Statistics', 'Hypothesis Testing', 'Regression Analysis', 'ANOVA', 'Time Series'],
       status: 'Featured'
     },
@@ -129,12 +129,12 @@ const ShowcaseHomePage = () => {
             Currently featuring confidence intervals with more modules in development.
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button 
-              variant="contained" 
-              color="secondary" 
+            <Button
+              variant="contained"
+              color="secondary"
               size="large"
               component={Link}
-              to="/statistical-analysis"
+              to="/statistical-analysis-tools"
             >
               Start Statistical Analysis
             </Button>
