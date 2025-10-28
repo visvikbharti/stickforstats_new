@@ -67,7 +67,9 @@ class GuardianCore:
             'independence': IndependenceValidator(),
             'outliers': OutlierDetector(),
             'sample_size': SampleSizeValidator(),
-            'modality': ModalityDetector()
+            'modality': ModalityDetector(),
+            'linearity': LinearityValidator(),
+            'homoscedasticity': HomoscedasticityValidator()
         }
 
         # Test requirements mapping
@@ -333,7 +335,7 @@ class NormalityValidator:
         }
 
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
-        """Generate data for Q-Q plot and histogram"""
+        """Generate data for Q-Q plot and histogram (lightweight version)"""
         visual_data = {}
 
         for i, arr in enumerate(data_arrays):
@@ -349,22 +351,11 @@ class NormalityValidator:
                 'histogram': {
                     'values': arr.tolist(),
                     'bins': 30
-                },
-                'kde': self._calculate_kde(arr)
+                }
+                # KDE removed for performance - can be generated client-side if needed
             }
 
         return visual_data
-
-    def _calculate_kde(self, data: np.ndarray) -> Dict:
-        """Calculate kernel density estimate"""
-        kde = stats.gaussian_kde(data)
-        x_range = np.linspace(data.min(), data.max(), 100)
-        density = kde(x_range)
-
-        return {
-            'x': x_range.tolist(),
-            'y': density.tolist()
-        }
 
 
 class VarianceHomogeneityValidator:
@@ -551,9 +542,13 @@ class ModalityDetector:
         """Detect multimodality using Hartigan's dip test approximation"""
 
         for arr in data_arrays:
-            # Simple peak detection in KDE
+            # Skip if sample too small
+            if len(arr) < 20:
+                continue
+
+            # Simple peak detection in KDE (optimized with fewer points)
             kde = stats.gaussian_kde(arr)
-            x_range = np.linspace(arr.min(), arr.max(), 200)
+            x_range = np.linspace(arr.min(), arr.max(), 50)  # Reduced from 200 to 50
             density = kde(x_range)
 
             # Find peaks
@@ -583,3 +578,291 @@ class ModalityDetector:
                     }
 
         return {'violated': False}
+
+
+class LinearityValidator:
+    """
+    Validates linearity assumption for regression and correlation
+
+    Uses residual analysis to detect non-linear relationships:
+    - Fits linear regression and examines residuals
+    - Applies runs test to detect patterns in residuals
+    - Calculates R-squared for polynomial fit comparison
+    """
+
+    def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
+        """
+        Check linearity assumption using residual analysis
+
+        For regression: requires exactly 2 arrays (X and Y)
+        For correlation: also requires 2 arrays
+        """
+
+        if len(data_arrays) != 2:
+            return {'violated': False}  # Not applicable
+
+        x = data_arrays[0]
+        y = data_arrays[1]
+
+        if len(x) < 3:
+            return {
+                'violated': True,
+                'test_name': 'Linearity Check',
+                'severity': 'critical',
+                'message': 'Insufficient data for linearity assessment',
+                'recommendation': 'Collect more data points (n ≥ 10)'
+            }
+
+        # Fit linear regression
+        from sklearn.linear_model import LinearRegression
+        from sklearn.preprocessing import PolynomialFeatures
+        from sklearn.metrics import r2_score
+
+        # Reshape data for sklearn
+        X = x.reshape(-1, 1)
+
+        # Fit linear model
+        linear_model = LinearRegression()
+        linear_model.fit(X, y)
+        y_pred_linear = linear_model.predict(X)
+        residuals = y - y_pred_linear
+        r2_linear = r2_score(y, y_pred_linear)
+
+        # Fit quadratic model to compare
+        poly_features = PolynomialFeatures(degree=2)
+        X_poly = poly_features.fit_transform(X)
+        poly_model = LinearRegression()
+        poly_model.fit(X_poly, y)
+        y_pred_poly = poly_model.predict(X_poly)
+        r2_poly = r2_score(y, y_pred_poly)
+
+        # Calculate improvement in R² with polynomial fit
+        r2_improvement = r2_poly - r2_linear
+
+        # Runs test on residuals to detect patterns
+        runs_test_result = self._runs_test(residuals)
+
+        # Check sample size - runs test requires n ≥ 20 for adequate statistical power
+        # For n < 20, we'll still run tests but warn about low power
+        n = len(x)
+        low_power_warning = None
+        if n < 20:
+            low_power_warning = (
+                f"Small sample size (n={n}) limits statistical power for linearity testing. "
+                f"Runs test may fail to detect non-linearity with fewer than 20 observations. "
+                f"Visual inspection of residual plots recommended."
+            )
+
+        # Determine if linearity is violated
+        # Criteria:
+        # 1. Polynomial fit improves R² significantly (> 0.05 for warning, > 0.10 for critical)
+        # 2. Runs test detects pattern in residuals (primary indicator, but requires n ≥ 20)
+        #
+        # Statistical Note: Runs test has low power when n < 20
+        # - At n=8, even perfect quadratic patterns may not reach significance (p<0.05)
+        # - At n=20+, runs test reliably detects non-linear patterns
+        # - We do NOT lower thresholds to compensate - that would be statistically unsound
+
+        violated = False
+        severity = 'minor'
+
+        # Runs test is primary indicator of non-linearity (reliable for n ≥ 20)
+        if runs_test_result['pattern_detected']:
+            violated = True
+            severity = 'critical'  # Pattern in residuals is serious
+
+        # R² improvement provides additional evidence
+        # Thresholds based on standard statistical practice:
+        # - 10%+ improvement: Strong evidence of non-linearity
+        # - 5-10% improvement: Moderate evidence (warning level)
+        if r2_improvement > 0.10:  # Polynomial explains 10%+ more variance
+            violated = True
+            severity = 'critical'
+        elif r2_improvement > 0.05:  # Polynomial explains 5-10% more variance
+            violated = True
+            if severity != 'critical':  # Don't downgrade if runs test already critical
+                severity = 'warning'
+
+        if violated:
+            # Build message with low power warning if applicable
+            base_message = f'Linearity violated (R² improvement with polynomial: {r2_improvement:.3f})'
+            if low_power_warning:
+                message = f'{base_message}. NOTE: {low_power_warning}'
+            else:
+                message = base_message
+
+            return {
+                'violated': True,
+                'test_name': 'Linearity Check (Residual Analysis)',
+                'severity': severity,
+                'p_value': runs_test_result.get('p_value'),
+                'statistic': r2_improvement,
+                'message': message,
+                'recommendation': 'Consider polynomial regression, transformation (log, sqrt), or GAM',
+                'visual_data': {
+                    'x': x.tolist(),
+                    'y': y.tolist(),
+                    'y_pred_linear': y_pred_linear.tolist(),
+                    'y_pred_poly': y_pred_poly.tolist(),
+                    'residuals': residuals.tolist(),
+                    'r2_linear': float(r2_linear),
+                    'r2_poly': float(r2_poly),
+                    'r2_improvement': float(r2_improvement),
+                    'sample_size': n,
+                    'runs_test_p_value': runs_test_result.get('p_value')
+                }
+            }
+
+        # No violation detected, but still warn about low power if applicable
+        base_message = f'Linearity assumption satisfied (R² linear: {r2_linear:.3f})'
+        if low_power_warning:
+            message = f'{base_message}. NOTE: {low_power_warning}'
+        else:
+            message = base_message
+
+        return {
+            'violated': False,
+            'test_name': 'Linearity Check (Residual Analysis)',
+            'statistic': r2_improvement,
+            'message': message,
+            'visual_data': {
+                'sample_size': n,
+                'runs_test_p_value': runs_test_result.get('p_value')
+            }
+        }
+
+    def _runs_test(self, residuals: np.ndarray) -> Dict:
+        """
+        Runs test to detect non-random patterns in residuals
+
+        The runs test checks if residuals above/below zero are randomly distributed.
+        Too few runs suggests a pattern (non-linearity).
+        """
+        # Get median
+        median = np.median(residuals)
+
+        # Convert to binary sequence (above/below median)
+        binary = (residuals > median).astype(int)
+
+        # Count runs
+        runs = 1
+        for i in range(1, len(binary)):
+            if binary[i] != binary[i-1]:
+                runs += 1
+
+        # Expected runs under null hypothesis (random)
+        n1 = np.sum(binary == 1)
+        n2 = np.sum(binary == 0)
+        n = len(binary)
+
+        if n1 == 0 or n2 == 0:
+            return {'pattern_detected': True, 'p_value': 0.0}
+
+        expected_runs = (2 * n1 * n2) / n + 1
+        variance_runs = (2 * n1 * n2 * (2 * n1 * n2 - n)) / (n**2 * (n - 1))
+
+        if variance_runs == 0:
+            return {'pattern_detected': False, 'p_value': 1.0}
+
+        # Z-score
+        z_score = (runs - expected_runs) / np.sqrt(variance_runs)
+
+        # Two-tailed p-value
+        p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))
+
+        # Pattern detected if too few runs (p < 0.05)
+        pattern_detected = p_value < 0.05
+
+        return {
+            'pattern_detected': pattern_detected,
+            'p_value': float(p_value),
+            'runs': runs,
+            'expected_runs': float(expected_runs)
+        }
+
+
+class HomoscedasticityValidator:
+    """
+    Validates homoscedasticity (constant variance) assumption for regression
+
+    Uses Breusch-Pagan test and visual inspection of residuals
+    """
+
+    def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
+        """
+        Check homoscedasticity using Breusch-Pagan test
+
+        Tests if variance of residuals is constant across predicted values
+        """
+
+        if len(data_arrays) != 2:
+            return {'violated': False}  # Not applicable
+
+        x = data_arrays[0]
+        y = data_arrays[1]
+
+        if len(x) < 10:
+            return {'violated': False}  # Skip for small samples
+
+        # Fit linear regression
+        from sklearn.linear_model import LinearRegression
+
+        X = x.reshape(-1, 1)
+        model = LinearRegression()
+        model.fit(X, y)
+        y_pred = model.predict(X)
+        residuals = y - y_pred
+
+        # Breusch-Pagan test
+        # Regress squared residuals on X to test for heteroscedasticity
+        residuals_squared = residuals ** 2
+
+        bp_model = LinearRegression()
+        bp_model.fit(X, residuals_squared)
+        r2_bp = bp_model.score(X, residuals_squared)
+
+        # Test statistic: n * R²
+        n = len(residuals)
+        bp_statistic = n * r2_bp
+
+        # Under null hypothesis, follows chi-square(1) distribution
+        p_value = 1 - stats.chi2.cdf(bp_statistic, df=1)
+
+        if p_value < alpha:
+            # Check variance ratio across fitted values
+            sorted_indices = np.argsort(y_pred)
+            first_half = residuals[sorted_indices[:n//2]]
+            second_half = residuals[sorted_indices[n//2:]]
+
+            var_ratio = np.var(second_half) / (np.var(first_half) + 1e-10)
+
+            # Determine severity using golden ratio
+            phi = float(PHI)
+            if var_ratio > phi ** 2 or var_ratio < 1 / (phi ** 2):
+                severity = 'critical'
+            elif var_ratio > phi or var_ratio < 1 / phi:
+                severity = 'warning'
+            else:
+                severity = 'minor'
+
+            return {
+                'violated': True,
+                'test_name': 'Breusch-Pagan Test',
+                'severity': severity,
+                'p_value': float(p_value),
+                'statistic': float(bp_statistic),
+                'message': f'Homoscedasticity violated (BP test p={p_value:.4f}, variance ratio={var_ratio:.2f})',
+                'recommendation': 'Consider weighted least squares, robust regression, or transformation',
+                'visual_data': {
+                    'fitted_values': y_pred.tolist(),
+                    'residuals': residuals.tolist(),
+                    'variance_ratio': float(var_ratio)
+                }
+            }
+
+        return {
+            'violated': False,
+            'test_name': 'Breusch-Pagan Test',
+            'p_value': float(p_value),
+            'statistic': float(bp_statistic)
+        }
