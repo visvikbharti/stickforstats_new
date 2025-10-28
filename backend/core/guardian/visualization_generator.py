@@ -51,8 +51,8 @@ class VisualizationGenerator:
 
         Parameters:
         -----------
-        data : np.ndarray
-            The data array to visualize
+        data : np.ndarray or list
+            The data array(s) to visualize - can be single array or list of arrays
         violations : List[Dict]
             List of violations detected
         test_type : str
@@ -64,18 +64,33 @@ class VisualizationGenerator:
         """
         plots = {}
 
+        # Convert list to numpy array if needed (for single group data)
+        if isinstance(data, list) and len(data) > 0:
+            # Check if it's a list of arrays (multiple groups) or single list
+            if isinstance(data[0], (list, np.ndarray)):
+                # Multiple groups - combine for overall visualization
+                data_combined = np.concatenate([np.array(g).flatten() for g in data])
+            else:
+                # Single list - convert to array
+                data_combined = np.array(data)
+        elif isinstance(data, np.ndarray):
+            data_combined = data.flatten() if len(data.shape) > 1 else data
+        else:
+            # Invalid data type - skip visualization
+            return plots
+
         # Always generate basic plots
-        plots['histogram'] = self.generate_histogram(data)
-        plots['boxplot'] = self.generate_boxplot(data)
+        plots['histogram'] = self.generate_histogram(data_combined)
+        plots['boxplot'] = self.generate_boxplot(data_combined)
 
         # Generate Q-Q plot for tests that check normality (parametric tests)
         # Show Q-Q plot for any test that requires normality assumption
         if test_type in ['t_test', 'anova', 'pearson', 'regression']:
-            plots['qq_plot'] = self.generate_qq_plot(data)
+            plots['qq_plot'] = self.generate_qq_plot(data_combined)
 
         # Generate additional plots based on test type
         if test_type in ['t_test', 'anova', 'mann_whitney']:
-            if len(data.shape) > 1 or isinstance(data, list):
+            if isinstance(data, list) and len(data) > 1:
                 # Multiple groups - generate comparison plot
                 plots['group_comparison'] = self.generate_group_comparison(data)
 
