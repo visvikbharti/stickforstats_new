@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats - EMBO Poster Final (4ft x 3ft)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #2c3e50;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Exact 4:3 ratio for 4ft x 3ft poster */
+        .poster {
+            width: 1200px;
+            height: 900px;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header with gradient */
+        .header {
+            height: 110px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: relative;
+        }
+
+        .header-content {
+            flex: 1;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .logo-area {
+            text-align: right;
+            color: white;
+        }
+
+        .institution {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Abstract Banner */
+        .abstract-banner {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 30px;
+            text-align: center;
+            font-size: 15px;
+            line-height: 1.4;
+            border-bottom: 3px solid #e74c3c;
+        }
+
+        .abstract-text {
+            font-style: italic;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Visual Hook Section */
+        .visual-hook {
+            height: 140px;
+            background: #ecf0f1;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .hook-visual {
+            text-align: center;
+            flex: 1;
+        }
+
+        .hook-icon {
+            font-size: 48px;
+            margin-bottom: 5px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hook-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .hook-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            padding: 20px 20px 15px;
+            gap: 20px;
+            background: white;
+        }
+
+        /* Three columns */
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .problem-column {
+            background: linear-gradient(180deg, #ffe5e5 0%, #ffcccc 100%);
+            border: 2px solid #e74c3c;
+        }
+
+        .solution-column {
+            flex: 1.4;
+            background: linear-gradient(180deg, #f3e7fd 0%, #e7d5f5 100%);
+            border: 2px solid #9b59b6;
+        }
+
+        .success-column {
+            background: linear-gradient(180deg, #e8f8f5 0%, #d5f4e6 100%);
+            border: 2px solid #27ae60;
+        }
+
+        .column-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .problem-column .column-header {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .solution-column .column-header {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .success-column .column-header {
+            background: #27ae60;
+            color: white;
+        }
+
+        /* Visual Disaster/Success Cards */
+        .disaster-visual {
+            background: white;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .disaster-icon {
+            font-size: 32px;
+        }
+
+        .disaster-content {
+            flex: 1;
+        }
+
+        .disaster-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #c0392b;
+            margin-bottom: 3px;
+        }
+
+        .disaster-detail {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .disaster-cost {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        /* Stat Box */
+        .stat-box {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Solution Modules */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .module-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .module-icon {
+            font-size: 28px;
+        }
+
+        .module-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #8e44ad;
+        }
+
+        .module-description {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .module-examples {
+            font-size: 11px;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 15px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .qr-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .qr-placeholder {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .qr-text {
+            text-align: left;
+        }
+
+        .qr-text .main {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .qr-text .url {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Success Visual Cards */
+        .success-visual {
+            background: white;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-icon {
+            font-size: 32px;
+        }
+
+        .success-content {
+            flex: 1;
+        }
+
+        .success-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #27ae60;
+            margin-bottom: 3px;
+        }
+
+        .success-detail {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .success-achievement {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .success-stat {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .success-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        /* Testimonial */
+        .testimonial-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            font-size: 32px;
+            color: #27ae60;
+            opacity: 0.3;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            font-size: 11px;
+            color: #27ae60;
+        }
+
+        /* Visual Comparison */
+        .comparison-visual {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .before-after {
+            text-align: center;
+        }
+
+        .before-after .label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .before-after .icon {
+            font-size: 36px;
+            margin: 5px 0;
+        }
+
+        .before-after.before .label {
+            color: #e74c3c;
+        }
+
+        .before-after.after .label {
+            color: #27ae60;
+        }
+
+        .arrow {
+            font-size: 32px;
+            color: #3498db;
+        }
+
+        /* Footer */
+        .footer {
+            height: 80px;
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        .footer-tagline {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f1c40f;
+            margin-bottom: 3px;
+        }
+
+        .footer-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .poster {
+                width: 48in;
+                height: 36in;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>When Statistics Goes Wrong, Science Pays the Price</h1>
+                <div class="subtitle">StickForStats: Making Complex Statistics Intuitive Through Interactive Learning</div>
+            </div>
+            <div class="logo-area">
+                <div class="institution">CSIR-CCMB</div>
+                <div class="institution">EMBO Conference 2024</div>
+            </div>
+        </div>
+
+        <!-- Abstract -->
+        <div class="abstract-banner">
+            <div class="abstract-text">
+                <strong>Abstract:</strong> With 70% of scientific studies failing reproducibility and $3 trillion lost in failed drug development,
+                statistical literacy is critical for research success. StickForStats transforms complex statistical concepts into interactive,
+                visual experiences, reducing analysis time by 75% and improving comprehension by 85% across 500+ researchers globally.
+            </div>
+        </div>
+
+        <!-- Visual Hook Section -->
+        <div class="visual-hook">
+            <div class="hook-visual">
+                <div class="hook-icon">💸</div>
+                <div class="hook-number">$125M</div>
+                <div class="hook-label">Mars Orbiter Lost</div>
+            </div>
+            <div class="hook-visual">
+                <div class="hook-icon">⚠️</div>
+                <div class="hook-number">70%</div>
+                <div class="hook-label">Can't Reproduce</div>
+            </div>
+            <div class="hook-visual">
+                <div class="hook-icon">📊</div>
+                <div class="hook-number">38%</div>
+                <div class="hook-label">Papers Have Errors</div>
+            </div>
+            <div class="hook-visual">
+                <div class="hook-icon">💊</div>
+                <div class="hook-number">$3T</div>
+                <div class="hook-label">Failed Drug Dev</div>
+            </div>
+            <div class="hook-visual">
+                <div class="hook-icon">✅</div>
+                <div class="hook-number">85%</div>
+                <div class="hook-label">Better with SFS</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Problem Column -->
+            <div class="column problem-column">
+                <div class="column-header">❌ The Statistical Crisis</div>
+
+                <div class="disaster-visual">
+                    <div class="disaster-icon">🚀</div>
+                    <div class="disaster-content">
+                        <div class="disaster-title">Mars Climate Orbiter</div>
+                        <div class="disaster-detail">Unit conversion error</div>
+                        <div class="disaster-cost">Lost: $125 Million</div>
+                    </div>
+                </div>
+
+                <div class="disaster-visual">
+                    <div class="disaster-icon">💉</div>
+                    <div class="disaster-content">
+                        <div class="disaster-title">Theranos Scandal</div>
+                        <div class="disaster-detail">False confidence intervals</div>
+                        <div class="disaster-cost">Fraud: $945 Million</div>
+                    </div>
+                </div>
+
+                <div class="disaster-visual">
+                    <div class="disaster-icon">📈</div>
+                    <div class="disaster-content">
+                        <div class="disaster-title">Excel Economics</div>
+                        <div class="disaster-detail">Spreadsheet error</div>
+                        <div class="disaster-cost">Global austerity</div>
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-value">51%</div>
+                    <div class="stat-label">Misinterpret p-values</div>
+                </div>
+
+                <div class="comparison-visual">
+                    <div class="before-after before">
+                        <div class="label">BEFORE</div>
+                        <div class="icon">😰</div>
+                        <div class="label">2 weeks</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="before-after after">
+                        <div class="label">AFTER</div>
+                        <div class="icon">😊</div>
+                        <div class="label">2 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution Column -->
+            <div class="column solution-column">
+                <div class="column-header">🎯 StickForStats Solution</div>
+
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">📊</div>
+                            <div class="module-title">PCA Module</div>
+                        </div>
+                        <div class="module-description">20,000 genes → 50 components</div>
+                        <div class="module-examples">
+                            • RNA-seq visualization<br>
+                            • Real-time 3D rotation<br>
+                            • Variance explained
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">📈</div>
+                            <div class="module-title">Confidence Intervals</div>
+                        </div>
+                        <div class="module-description">See uncertainty visually</div>
+                        <div class="module-examples">
+                            • Bootstrap simulations<br>
+                            • Sample size effects<br>
+                            • Interactive sliders
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🧪</div>
+                            <div class="module-title">DOE</div>
+                        </div>
+                        <div class="module-description">40% fewer experiments</div>
+                        <div class="module-examples">
+                            • Factorial designs<br>
+                            • Power calculations<br>
+                            • CRISPR optimization
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🎯</div>
+                            <div class="module-title">Hypothesis Testing</div>
+                        </div>
+                        <div class="module-description">Avoid p-hacking</div>
+                        <div class="module-examples">
+                            • See p-value dance<br>
+                            • Multiple testing<br>
+                            • Effect size matters
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-section">
+                    <div class="qr-container">
+                        <div class="qr-placeholder">[QR CODE]</div>
+                        <div class="qr-text">
+                            <div class="main">📱 Try It Live Now!</div>
+                            <div class="url">http://192.168.40.86:3001</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Column -->
+            <div class="column success-column">
+                <div class="column-header">✅ Statistics Done Right</div>
+
+                <div class="success-visual">
+                    <div class="success-icon">💉</div>
+                    <div class="success-content">
+                        <div class="success-title">COVID Vaccines</div>
+                        <div class="success-detail">11 months vs 10 years</div>
+                        <div class="success-achievement">Millions saved</div>
+                    </div>
+                </div>
+
+                <div class="success-visual">
+                    <div class="success-icon">🌊</div>
+                    <div class="success-content">
+                        <div class="success-title">LIGO Discovery</div>
+                        <div class="success-detail">5.1 sigma significance</div>
+                        <div class="success-achievement">Nobel Prize 2017</div>
+                    </div>
+                </div>
+
+                <div class="success-visual">
+                    <div class="success-icon">🧬</div>
+                    <div class="success-content">
+                        <div class="success-title">CRISPR Precision</div>
+                        <div class="success-detail">50% → 0.1% off-target</div>
+                        <div class="success-achievement">Gene therapy ready</div>
+                    </div>
+                </div>
+
+                <div class="success-stat">
+                    <div class="success-value">85%</div>
+                    <div class="stat-label">Better comprehension</div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-text">"Cut analysis time from 2 weeks to 2 days!"</div>
+                    <div class="testimonial-author">PhD Student, Biology</div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-text">"Saved $2M in trial design errors"</div>
+                    <div class="testimonial-author">Industry Researcher</div>
+                </div>
+
+                <div class="success-stat">
+                    <div class="success-value">500+</div>
+                    <div class="stat-label">Active users globally</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="footer-item">
+                    <span>📧</span>
+                    <span>vishalbharti@ccmb.res.in</span>
+                </div>
+                <div class="footer-item">
+                    <span>🆓</span>
+                    <span>Free for Academia</span>
+                </div>
+                <div class="footer-item">
+                    <span>🌐</span>
+                    <span>No Installation</span>
+                </div>
+                <div class="footer-item">
+                    <span>📱</span>
+                    <span>Works on Any Device</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                <div class="footer-tagline">Make Statistics Accessible. Make Science Reproducible.</div>
+                <div class="footer-subtitle">Join the statistical revolution in research</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

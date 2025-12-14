@@ -198,6 +198,8 @@
             box-shadow: 0 3px 15px rgba(0,0,0,0.3);
             text-align: center;
             transition: transform 0.3s ease;
+            overflow: hidden;
+            word-wrap: break-word;
         }
 
         .stat-card:hover {
@@ -561,18 +563,18 @@
                     </div>
                     <div class="stat-card">
                         <h3>Response Time</h3>
-                        <div class="value">&lt;500ms</div>
-                        <p>95th percentile</p>
+                        <div class="value">&lt;200ms</div>
+                        <p>Simple validators<br>(4/5 tests)</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Error Reduction</h3>
-                        <div class="value">73%</div>
-                        <p>Invalid conclusions<br>prevented</p>
+                        <h3>Test Blocking</h3>
+                        <div class="value">Active</div>
+                        <p>Invalid tests<br>prevented</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Accuracy</h3>
-                        <div class="value">98.3%</div>
-                        <p>Normality<br>detection</p>
+                        <h3>Test Quality</h3>
+                        <div class="value">Gold Std</div>
+                        <p>Shapiro-Wilk<br>Levene's</p>
                     </div>
                 </div>
 
@@ -719,7 +721,7 @@
                         <h3 style="color: var(--success-green);">For Organizations</h3>
                         <ul>
                             <li>✓ FREE vs. $1,000+/year competitors</li>
-                            <li>✓ Reduce false discoveries (73% fewer errors)</li>
+                            <li>✓ Prevent invalid statistical conclusions via automated blocking</li>
                             <li>✓ Standardize statistical practices</li>
                             <li>✓ Web-based, zero installation required</li>
                         </ul>
@@ -794,7 +796,178 @@
                 </div>
             </section>
 
-            <!-- Slide 13: Q&A -->
+            <!-- Slide 13: Comparison with Other Platforms -->
+            <section>
+                <h2>How is Guardian Different?</h2>
+
+                <div style="font-size: 0.75em; margin-top: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));">
+                                <th style="padding: 15px; border: 1px solid #444;">Feature</th>
+                                <th style="padding: 15px; border: 1px solid #444;">GraphPad</th>
+                                <th style="padding: 15px; border: 1px solid #444;">SPSS</th>
+                                <th style="padding: 15px; border: 1px solid #444;">R/Python</th>
+                                <th style="padding: 15px; border: 1px solid #444; background: var(--success-green);">Guardian</th>
+                            </tr>
+                        </thead>
+                        <tbody style="color: #A1A1AA;">
+                            <tr>
+                                <td style="padding: 12px; border: 1px solid #444; text-align: left;">Assumption Testing</td>
+                                <td style="padding: 12px; border: 1px solid #444;">⚠️ Manual</td>
+                                <td style="padding: 12px; border: 1px solid #444;">⚠️ Manual</td>
+                                <td style="padding: 12px; border: 1px solid #444;">⚠️ Manual</td>
+                                <td style="padding: 12px; border: 1px solid #444; color: var(--success-green);">✅ Automatic</td>
+                            </tr>
+                            <tr style="background: rgba(255,255,255,0.05);">
+                                <td style="padding: 12px; border: 1px solid #444; text-align: left;">Active Blocking</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444; color: var(--success-green);">✅ Yes</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; border: 1px solid #444; text-align: left;">Alternative Suggestions</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ No</td>
+                                <td style="padding: 12px; border: 1px solid #444; color: var(--success-green);">✅ Yes</td>
+                            </tr>
+                            <tr style="background: rgba(255,255,255,0.05);">
+                                <td style="padding: 12px; border: 1px solid #444; text-align: left;">Learning Curve</td>
+                                <td style="padding: 12px; border: 1px solid #444;">⚠️ Moderate</td>
+                                <td style="padding: 12px; border: 1px solid #444;">⚠️ High</td>
+                                <td style="padding: 12px; border: 1px solid #444;">❌ Very High</td>
+                                <td style="padding: 12px; border: 1px solid #444; color: var(--success-green);">✅ Zero</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; border: 1px solid #444; text-align: left;">Annual Cost (Academic)</td>
+                                <td style="padding: 12px; border: 1px solid #444;">$1,995</td>
+                                <td style="padding: 12px; border: 1px solid #444;">~$2,000</td>
+                                <td style="padding: 12px; border: 1px solid #444;">$0*</td>
+                                <td style="padding: 12px; border: 1px solid #444; color: var(--success-green);">$0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 0.85em; margin-top: 15px; text-align: center; color: #999;">
+                        *R/Python are free but require programming expertise
+                    </p>
+                </div>
+
+                <div class="feature-box" style="margin-top: 25px; font-size: 0.85em;">
+                    <strong>Key Distinction:</strong> Other tools make validation <em>POSSIBLE</em>.
+                    Guardian makes validation <em>UNAVOIDABLE</em>.
+                </div>
+            </section>
+
+            <!-- Slide 14: Guardian's Unique Value -->
+            <section>
+                <h2>Why Guardian Matters</h2>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; font-size: 0.75em;">
+                    <div>
+                        <div class="warning-box" style="padding: 20px; height: 100%;">
+                            <h3 style="color: white; margin-bottom: 15px;">❌ The Problem</h3>
+                            <ul style="color: white; line-height: 1.8;">
+                                <li>70%+ reproduction failures persist</li>
+                                <li>Existing tools haven't solved it</li>
+                                <li>Validation is optional → skipped 80%+</li>
+                                <li>Time pressure + lack of training</li>
+                                <li>Human factor causes mistakes</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="success-box" style="padding: 20px; height: 100%;">
+                            <h3 style="color: white; margin-bottom: 15px;">✅ Guardian's Solution</h3>
+                            <ul style="color: white; line-height: 1.8;">
+                                <li><strong>Automatic:</strong> No remembering required</li>
+                                <li><strong>Blocking:</strong> Prevents invalid tests</li>
+                                <li><strong>Educational:</strong> Explains why + how to fix</li>
+                                <li><strong>Context-aware:</strong> Test-specific validation</li>
+                                <li><strong>Accessible:</strong> Zero learning curve</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background: rgba(0,102,255,0.1); border-left: 4px solid var(--primary-blue); border-radius: 5px;">
+                    <p style="font-size: 0.85em; color: white; margin: 0;">
+                        <strong>Target Users:</strong> Graduate students, core facilities, clinical researchers,
+                        pre-publication validation - the 80% who need guardrails but lack statistical training.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Slide 15: Future Enhancements -->
+            <section>
+                <h2>Roadmap: Next-Generation Features</h2>
+
+                <div style="font-size: 0.75em; margin-top: 20px;">
+                    <div class="two-column">
+                        <div>
+                            <div style="background: linear-gradient(135deg, var(--accent-purple), #6d28d9); padding: 18px; border-radius: 10px; margin-bottom: 15px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">🎯 Reproducibility Score (0-100)</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Single metric assessing power, effect size, assumptions.
+                                    Journals could set minimum scores.
+                                </p>
+                            </div>
+
+                            <div style="background: linear-gradient(135deg, var(--success-green), #059669); padding: 18px; border-radius: 10px; margin-bottom: 15px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">📜 Guardian Certificate</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Exportable PDF proving validation. Include in
+                                    supplementary materials. Makes rigor provable.
+                                </p>
+                            </div>
+
+                            <div style="background: linear-gradient(135deg, var(--primary-blue), #0055b3); padding: 18px; border-radius: 10px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">🔧 Intelligent Fixes</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Don't just block - offer to transform data, switch
+                                    tests, or remove outliers with documentation.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="background: linear-gradient(135deg, var(--warning-orange), #d97706); padding: 18px; border-radius: 10px; margin-bottom: 15px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">⚡ Power Analysis</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Automatic calculation. Warn if &lt;80% power.
+                                    Prevent underpowered studies.
+                                </p>
+                            </div>
+
+                            <div style="background: linear-gradient(135deg, var(--primary-teal), #0891b2); padding: 18px; border-radius: 10px; margin-bottom: 15px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">📝 Auto Methods Section</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Guardian writes statistical methods in APA format.
+                                    Copy-paste into manuscript.
+                                </p>
+                            </div>
+
+                            <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 18px; border-radius: 10px;">
+                                <h3 style="color: white; margin: 0 0 10px 0;">🎚️ Flexible Modes</h3>
+                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.95em;">
+                                    Explorer (warnings only), Guardian (blocking),
+                                    Expert (override with justification).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px; text-align: center;">
+                    <p style="font-size: 0.85em; color: var(--success-green);">
+                        <strong>Timeline:</strong> 9-12 months for all Tier 1 features
+                    </p>
+                </div>
+            </section>
+
+            <!-- Slide 16: Q&A -->
             <section class="title-slide">
                 <h1 style="color: var(--primary-blue);">Questions & Discussion</h1>
 
