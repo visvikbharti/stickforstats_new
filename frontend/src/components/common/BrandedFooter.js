@@ -55,29 +55,27 @@ const BrandedFooter = ({
 
   const footerLinks = {
     product: [
-      { label: 'Features', href: '/features' },
-      { label: 'Pricing', href: '/pricing' },
-      { label: 'Documentation', href: '/docs' },
-      { label: 'API', href: '/api' },
+      { label: 'Statistical Tools', href: '/statistical-analysis-tools' },
+      { label: 'Confidence Intervals', href: '/confidence-intervals' },
+      { label: 'PCA Analysis', href: '/pca' },
+      { label: 'Design of Experiments', href: '/design-of-experiments' },
     ],
-    company: [
-      { label: 'About', href: '/about' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Careers', href: '/careers' },
-      { label: 'Contact', href: '/contact' },
+    resources: [
+      { label: 'Documentation', href: 'https://github.com/visvikbharti/stickforstats_new#readme' },
+      { label: 'Source Code', href: 'https://github.com/visvikbharti/stickforstats_new' },
+      { label: 'Report Issues', href: 'https://github.com/visvikbharti/stickforstats_new/issues' },
+      { label: 'Contributing', href: 'https://github.com/visvikbharti/stickforstats_new/blob/main/CONTRIBUTING.md' },
     ],
-    support: [
-      { label: 'Help Center', href: '/help' },
-      { label: 'Community', href: '/community' },
-      { label: 'Status', href: '/status' },
-      { label: 'Terms', href: '/terms' },
+    legal: [
+      { label: 'Open Source (MIT)', href: 'https://github.com/visvikbharti/stickforstats_new/blob/main/LICENSE' },
+      { label: 'Academic Use', href: '#academic-use' },
+      { label: 'Citation', href: '#citation' },
+      { label: 'Disclaimer', href: '#disclaimer' },
     ],
   };
 
   const socialLinks = [
-    { icon: <GitHubIcon />, href: 'https://github.com', label: 'GitHub' },
-    { icon: <LinkedInIcon />, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: <TwitterIcon />, href: 'https://twitter.com', label: 'Twitter' },
+    { icon: <GitHubIcon />, href: 'https://github.com/visvikbharti/stickforstats_new', label: 'GitHub' },
     { icon: <EmailIcon />, href: 'mailto:contact@stickforstats.com', label: 'Email' },
   ];
 
@@ -127,7 +125,7 @@ const BrandedFooter = ({
             <>
               <Grid item xs={6} sm={4} md={2}>
                 <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                  Product
+                  Tools
                 </Typography>
                 <Stack spacing={1}>
                   {footerLinks.product.map((link) => (
@@ -140,10 +138,10 @@ const BrandedFooter = ({
 
               <Grid item xs={6} sm={4} md={2}>
                 <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                  Company
+                  Resources
                 </Typography>
                 <Stack spacing={1}>
-                  {footerLinks.company.map((link) => (
+                  {footerLinks.resources.map((link) => (
                     <FooterLink key={link.label} href={link.href}>
                       {link.label}
                     </FooterLink>
@@ -153,10 +151,10 @@ const BrandedFooter = ({
 
               <Grid item xs={6} sm={4} md={2}>
                 <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                  Support
+                  Legal
                 </Typography>
                 <Stack spacing={1}>
-                  {footerLinks.support.map((link) => (
+                  {footerLinks.legal.map((link) => (
                     <FooterLink key={link.label} href={link.href}>
                       {link.label}
                     </FooterLink>
@@ -190,27 +188,27 @@ const BrandedFooter = ({
         <Divider sx={{ my: 4 }} />
 
         {/* Copyright Section */}
-        <Box 
-          display="flex" 
-          justifyContent="space-between" 
+        <Box
+          display="flex"
+          justifyContent="space-between"
           alignItems="center"
           flexWrap="wrap"
           gap={2}
         >
           <Typography variant="body2" color="text.secondary">
-            © {currentYear} {companyName}. All rights reserved.
+            © {currentYear} {companyName}. Open Source Project.
           </Typography>
-          
+
           <Stack direction="row" spacing={3}>
-            <FooterLink href="/privacy">
-              Privacy Policy
+            <FooterLink href="https://github.com/visvikbharti/stickforstats_new/blob/main/LICENSE">
+              MIT License
             </FooterLink>
-            <FooterLink href="/terms">
-              Terms of Service
+            <FooterLink href="https://github.com/visvikbharti/stickforstats_new">
+              View on GitHub
             </FooterLink>
-            <FooterLink href="/cookies">
-              Cookie Policy
-            </FooterLink>
+            <Typography variant="body2" color="text.secondary">
+              Pre-Alpha v1.0
+            </Typography>
           </Stack>
         </Box>
       </Container>
