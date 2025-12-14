@@ -1,0 +1,184 @@
+{
+  "title": "Analyse Statistique",
+  "subtitle": "Outils Statistiques de Niveau Professionnel",
+
+  "categories": {
+    "parametric": "Tests Paramétriques",
+    "nonparametric": "Tests Non-Paramétriques",
+    "categorical": "Analyse Catégorielle",
+    "correlation": "Corrélation et Régression",
+    "normality": "Tests de Normalité",
+    "multivariate": "Analyse Multivariée",
+    "timeSeries": "Séries Chronologiques",
+    "bayesian": "Statistique Bayésienne"
+  },
+
+  "tests": {
+    "tTest": {
+      "name": "Test t",
+      "description": "Comparer les moyennes entre groupes",
+      "oneSample": "Test t à un échantillon",
+      "independent": "Test t indépendant",
+      "paired": "Test t apparié",
+      "welch": "Test t de Welch"
+    },
+    "anova": {
+      "name": "ANOVA",
+      "description": "Analyse de la variance",
+      "oneWay": "ANOVA à un facteur",
+      "twoWay": "ANOVA à deux facteurs",
+      "repeated": "ANOVA à mesures répétées",
+      "mixed": "ANOVA mixte"
+    },
+    "mannWhitney": {
+      "name": "Mann-Whitney U",
+      "description": "Alternative non-paramétrique au test t indépendant"
+    },
+    "wilcoxon": {
+      "name": "Test de Wilcoxon",
+      "description": "Alternative non-paramétrique au test t apparié"
+    },
+    "kruskalWallis": {
+      "name": "Kruskal-Wallis",
+      "description": "Alternative non-paramétrique à l'ANOVA à un facteur"
+    },
+    "chiSquare": {
+      "name": "Chi-carré",
+      "description": "Test d'indépendance pour données catégorielles"
+    },
+    "fisherExact": {
+      "name": "Test Exact de Fisher",
+      "description": "Pour petits tableaux de contingence"
+    },
+    "pearson": {
+      "name": "Corrélation de Pearson",
+      "description": "Corrélation linéaire entre variables continues"
+    },
+    "spearman": {
+      "name": "Corrélation de Spearman",
+      "description": "Corrélation de rang pour relations monotones"
+    },
+    "kendall": {
+      "name": "Tau de Kendall",
+      "description": "Mesure de corrélation robuste"
+    },
+    "shapiroWilk": {
+      "name": "Shapiro-Wilk",
+      "description": "Test de normalité"
+    },
+    "kolmogorovSmirnov": {
+      "name": "Kolmogorov-Smirnov",
+      "description": "Comparer les distributions"
+    },
+    "andersonDarling": {
+      "name": "Anderson-Darling",
+      "description": "Test de normalité sensible aux queues"
+    },
+    "levene": {
+      "name": "Test de Levene",
+      "description": "Test d'homogénéité des variances"
+    }
+  },
+
+  "parameters": {
+    "sampleSize": "Taille d'Échantillon",
+    "mean": "Moyenne",
+    "median": "Médiane",
+    "mode": "Mode",
+    "standardDeviation": "Écart-type",
+    "variance": "Variance",
+    "standardError": "Erreur Standard",
+    "confidenceInterval": "Intervalle de Confiance",
+    "confidenceLevel": "Niveau de Confiance",
+    "degreesOfFreedom": "Degrés de Liberté",
+    "effectSize": "Taille d'Effet",
+    "pValue": "Valeur-p",
+    "alpha": "Niveau Alpha",
+    "power": "Puissance Statistique",
+    "testStatistic": "Statistique de Test",
+    "criticalValue": "Valeur Critique",
+    "nullHypothesis": "Hypothèse Nulle",
+    "alternativeHypothesis": "Hypothèse Alternative"
+  },
+
+  "effectSizes": {
+    "cohensD": "d de Cohen",
+    "hedgesG": "g de Hedges",
+    "glasssDelta": "Delta de Glass",
+    "etaSquared": "Êta carré (η²)",
+    "partialEtaSquared": "Êta carré partiel",
+    "omegaSquared": "Oméga carré (ω²)",
+    "cramersV": "V de Cramér",
+    "phiCoefficient": "Coefficient Phi (φ)",
+    "oddsRatio": "Rapport des Cotes",
+    "relativeRisk": "Risque Relatif",
+    "rSquared": "R carré (R²)",
+    "adjustedRSquared": "R² Ajusté"
+  },
+
+  "interpretation": {
+    "significant": "Statistiquement significatif",
+    "notSignificant": "Non statistiquement significatif",
+    "rejectNull": "Rejeter l'hypothèse nulle",
+    "failToRejectNull": "Ne pas rejeter l'hypothèse nulle",
+    "effectSizeSmall": "Petite taille d'effet",
+    "effectSizeMedium": "Taille d'effet moyenne",
+    "effectSizeLarge": "Grande taille d'effet",
+    "normalDistribution": "Données normalement distribuées",
+    "nonNormalDistribution": "Données non normalement distribuées",
+    "equalVariances": "Variances égales (homogénéité)",
+    "unequalVariances": "Variances inégales (hétérogénéité)"
+  },
+
+  "dataInput": {
+    "enterData": "Saisir les Données",
+    "pasteData": "Coller les Données",
+    "uploadFile": "Télécharger un Fichier",
+    "sampleData": "Données d'Exemple",
+    "group": "Groupe",
+    "variable": "Variable",
+    "addGroup": "Ajouter un Groupe",
+    "removeGroup": "Supprimer le Groupe",
+    "clearData": "Effacer les Données",
+    "dataFormat": "Format des Données",
+    "delimiter": "Délimiteur",
+    "hasHeaders": "Contient des En-têtes"
+  },
+
+  "results": {
+    "title": "Résultats",
+    "summary": "Résumé",
+    "descriptiveStatistics": "Statistiques Descriptives",
+    "testResults": "Résultats du Test",
+    "assumptions": "Hypothèses",
+    "postHoc": "Analyses Post-Hoc",
+    "effectSizeAnalysis": "Analyse de la Taille d'Effet",
+    "confidenceIntervals": "Intervalles de Confiance",
+    "visualization": "Visualisation",
+    "exportResults": "Exporter les Résultats",
+    "interpretation": "Interprétation",
+    "recommendations": "Recommandations"
+  },
+
+  "assumptions": {
+    "title": "Vérification des Hypothèses",
+    "normality": "Normalité",
+    "homogeneity": "Homogénéité des Variances",
+    "independence": "Indépendance des Observations",
+    "linearity": "Linéarité",
+    "noOutliers": "Pas de Valeurs Aberrantes Significatives",
+    "sampleSize": "Taille d'Échantillon Adéquate",
+    "passed": "Validé",
+    "violated": "Violé",
+    "warning": "À Vérifier",
+    "checkAssumptions": "Vérifier les Hypothèses"
+  },
+
+  "errors": {
+    "insufficientData": "Données insuffisantes pour l'analyse",
+    "invalidInput": "Entrée invalide",
+    "missingValues": "Valeurs manquantes détectées",
+    "calculationError": "Erreur de calcul",
+    "assumptionViolation": "Violation d'hypothèse détectée"
+  }
+}

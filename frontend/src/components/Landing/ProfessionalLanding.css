@@ -561,3 +561,149 @@
     border: 2px solid #000000;
   }
 }
+
+/* Documentation Section */
+.documentation-section {
+  padding: 6rem 0;
+  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+}
+
+.section-subtitle {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  margin: -1rem 0 3rem 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.documentation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.doc-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.doc-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+}
+
+.doc-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doc-content h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem 0;
+  color: #ffffff;
+}
+
+.doc-content h4:first-child {
+  margin-top: 0;
+}
+
+.doc-content p {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.doc-list {
+  list-style-position: inside;
+  padding-left: 0;
+  margin: 0.75rem 0;
+}
+
+.doc-list li {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.8;
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  text-indent: -1.5rem;
+}
+
+.doc-list li strong {
+  color: #ffffff;
+}
+
+.doc-list ol li {
+  list-style-type: decimal;
+}
+
+.quick-reference {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.quick-reference h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: #ffffff;
+  text-align: center;
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.ref-item {
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.ref-item strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.ref-item p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive adjustments for documentation */
+@media (max-width: 768px) {
+  .documentation-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .reference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-card {
+    padding: 1.5rem;
+  }
+}

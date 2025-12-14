@@ -1,0 +1,71 @@
+{
+  "title": "学习中心",
+  "subtitle": "通过互动课程掌握统计学",
+
+  "modules": {
+    "pca": "主成分分析",
+    "confidenceIntervals": "置信区间",
+    "doe": "实验设计",
+    "probability": "概率分布",
+    "sqc": "统计质量控制",
+    "powerAnalysis": "功效分析",
+    "biophysics": "生物物理统计"
+  },
+
+  "levels": {
+    "beginner": "初学者",
+    "intermediate": "中级",
+    "advanced": "高级",
+    "expert": "专家"
+  },
+
+  "lesson": {
+    "title": "课程",
+    "duration": "时长",
+    "objectives": "学习目标",
+    "prerequisites": "前置条件",
+    "content": "内容",
+    "exercises": "练习",
+    "quiz": "测验",
+    "summary": "总结",
+    "nextLesson": "下一课",
+    "previousLesson": "上一课",
+    "complete": "完成课程",
+    "progress": "进度"
+  },
+
+  "progress": {
+    "notStarted": "未开始",
+    "inProgress": "进行中",
+    "completed": "已完成",
+    "lessonsCompleted": "已完成课程",
+    "totalLessons": "总课程数",
+    "overallProgress": "总体进度"
+  },
+
+  "interactive": {
+    "tryIt": "动手试试",
+    "simulation": "互动模拟",
+    "calculator": "计算器",
+    "visualization": "可视化",
+    "example": "示例",
+    "practice": "练习题"
+  },
+
+  "concepts": {
+    "whatIs": "什么是",
+    "whyImportant": "为什么重要？",
+    "howToCalculate": "如何计算",
+    "whenToUse": "何时使用",
+    "commonMistakes": "常见错误",
+    "bestPractices": "最佳实践",
+    "realWorldExamples": "实际应用案例"
+  },
+
+  "resources": {
+    "additionalReading": "延伸阅读",
+    "references": "参考文献",
+    "downloadMaterials": "下载资料",
+    "relatedTopics": "相关主题"
+  }
+}

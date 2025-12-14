@@ -27,6 +27,9 @@ python-dotenv>=1.0.0
 # File handling
 Pillow>=9.5.0
 
+# AI Integration
+anthropic>=0.39.0  # Claude API SDK for AI Statistical Advisor
+
 # Development and testing
 pytest>=7.3.1
 pytest-django>=4.5.2

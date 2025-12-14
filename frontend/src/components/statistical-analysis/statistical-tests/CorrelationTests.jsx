@@ -51,6 +51,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { pearsonCorrelation, spearmanCorrelation } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { CodeExportPanel } from '../../common';
+import { DebuggerPanel } from '../../statistical-debugger';
 
 /**
  * Main Correlation Tests Component
@@ -638,6 +640,54 @@ const CorrelationTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType={correlationType === 'pearson' ? 'pearson_correlation' : 'spearman_correlation'}
+            data={{
+              xValues: pairwiseData.map(d => d.x),
+              yValues: pairwiseData.map(d => d.y),
+              xColumn,
+              yColumn,
+              n: pairwiseCorrelation.n
+            }}
+            results={{
+              coefficient: pairwiseCorrelation.coefficient,
+              pValue: pairwiseCorrelation.pValue,
+              rSquared: pairwiseCorrelation.coefficient ** 2,
+              significant: pairwiseCorrelation.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType={correlationType === 'pearson' ? 'pearson_correlation' : 'spearman_correlation'}
+            data={{
+              xValues: pairwiseData.map(d => d.x),
+              yValues: pairwiseData.map(d => d.y),
+              xColumn,
+              yColumn,
+              n: pairwiseCorrelation.n
+            }}
+            results={{
+              statistic: pairwiseCorrelation.coefficient,
+              coefficient: pairwiseCorrelation.coefficient,
+              pValue: pairwiseCorrelation.pValue,
+              rSquared: pairwiseCorrelation.coefficient ** 2,
+              effectSize: Math.abs(pairwiseCorrelation.coefficient),
+              significant: pairwiseCorrelation.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 

@@ -10,11 +10,13 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Chip
+  Chip,
+  Divider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../context/AuthContext';
 import DarkModeToggle from './common/DarkModeToggle';
+import LanguageSelector from './common/LanguageSelector';
 
 const SimpleNavigation = () => {
   const location = useLocation();
@@ -25,6 +27,8 @@ const SimpleNavigation = () => {
     { name: 'Home', path: '/' },
     { name: 'Learning Hub 🎓', path: '/learn' },
     { name: 'Statistical Analysis', path: '/statistical-analysis-tools' },
+    { name: 'Meta-Analysis', path: '/meta-analysis' },
+    { name: 'Paper Parser', path: '/paper-parser' },
     { name: 'Confidence Intervals', path: '/confidence-intervals' },
     { name: 'PCA Analysis', path: '/pca-analysis' },
     { name: 'Factor Analysis', path: '/factor-analysis' },
@@ -120,6 +124,9 @@ const SimpleNavigation = () => {
               ))}
             </Menu>
           </Box>
+
+          {/* Language Selector */}
+          <LanguageSelector variant="icon" size="small" />
 
           {/* Dark Mode Toggle */}
           <DarkModeToggle />

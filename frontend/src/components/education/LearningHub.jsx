@@ -27,6 +27,8 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import BoltIcon from '@mui/icons-material/Bolt';
+import BiotechIcon from '@mui/icons-material/Biotech';
 
 /**
  * Unified Learning Hub
@@ -53,8 +55,8 @@ const LearningHub = () => {
       category: 'Multivariate Analysis',
       difficulty: 'Intermediate',
       duration: '60-90 min',
-      lessonsTotal: 10,
-      lessonsAvailable: 10,
+      lessonsTotal: 11,
+      lessonsAvailable: 11,
       description: 'Master dimensionality reduction, data visualization, and feature extraction through interactive lessons',
       topics: [
         'Variance maximization',
@@ -185,6 +187,70 @@ const LearningHub = () => {
         'Assess process capability',
         'Conduct Gage R&R studies',
         'Apply SPC to real processes'
+      ]
+    },
+    {
+      id: 'power',
+      title: 'Statistical Power Analysis',
+      shortTitle: 'Power',
+      icon: <BoltIcon sx={{ fontSize: 48 }} />,
+      color: '#f44336',
+      bgColor: '#ffebee',
+      route: '/power-learn',
+      category: 'Study Design',
+      difficulty: 'Intermediate',
+      duration: '120-150 min',
+      lessonsTotal: 11,
+      lessonsAvailable: 11,
+      description: 'Master sample size determination, effect size interpretation, power curves, and Bayesian alternatives',
+      topics: [
+        'Type I and II errors',
+        'Effect size (Cohen\'s d, f, r)',
+        'Sample size calculation',
+        'Power curves & sensitivity',
+        'Non-parametric power',
+        'Bayesian power analysis'
+      ],
+      prerequisites: ['Basic statistics', 'Hypothesis testing'],
+      learningOutcomes: [
+        'Calculate required sample sizes',
+        'Interpret and report effect sizes',
+        'Design adequately powered studies',
+        'Understand non-parametric power',
+        'Apply Bayesian design analysis',
+        'Avoid common power analysis mistakes'
+      ]
+    },
+    {
+      id: 'biophysics',
+      title: 'Biophysics & Enzyme Kinetics',
+      shortTitle: 'Biophysics',
+      icon: <BiotechIcon sx={{ fontSize: 48 }} />,
+      color: '#00796b',
+      bgColor: '#e0f2f1',
+      route: '/biophysics-learn',
+      category: 'Biophysics',
+      difficulty: 'Intermediate',
+      duration: '90-120 min',
+      lessonsTotal: 9,
+      lessonsAvailable: 9,
+      description: 'Master enzyme kinetics, Michaelis-Menten analysis, binding equilibria, and spectroscopy methods',
+      topics: [
+        'Michaelis-Menten kinetics',
+        'Enzyme inhibition (competitive, non-competitive)',
+        'Hill equation & cooperativity',
+        'Dose-response (IC50/EC50)',
+        'Circular dichroism spectroscopy',
+        'Thermal stability analysis'
+      ],
+      prerequisites: ['Biochemistry basics', 'Calculus fundamentals'],
+      learningOutcomes: [
+        'Derive and apply Michaelis-Menten equation',
+        'Analyze enzyme inhibition mechanisms',
+        'Calculate Km, Vmax, Ki from data',
+        'Interpret dose-response curves',
+        'Analyze CD spectra for structure',
+        'Determine thermal stability parameters'
       ]
     }
   ];

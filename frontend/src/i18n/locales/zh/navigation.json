@@ -1,0 +1,39 @@
+{
+  "home": "首页",
+  "dashboard": "仪表板",
+  "learningHub": "学习中心",
+  "statisticalAnalysis": "统计分析",
+  "metaAnalysis": "Meta分析",
+  "paperParser": "论文分析器",
+  "confidenceIntervals": "置信区间",
+  "pcaAnalysis": "主成分分析",
+  "factorAnalysis": "因子分析",
+  "survivalAnalysis": "生存分析",
+  "doeAnalysis": "实验设计",
+  "sqcAnalysis": "统计质量控制",
+  "probabilityDistributions": "概率分布",
+  "powerAnalysis": "功效分析",
+  "biophysics": "生物物理",
+  "enterprise": "企业版",
+  "admin": "管理",
+  "branding": "品牌",
+  "security": "安全",
+  "monitoring": "监控",
+
+  "menu": {
+    "analysis": "分析",
+    "education": "教育",
+    "tools": "工具",
+    "advanced": "高级",
+    "settings": "设置"
+  },
+
+  "footer": {
+    "aboutUs": "关于我们",
+    "contactUs": "联系我们",
+    "termsOfService": "服务条款",
+    "privacyPolicy": "隐私政策",
+    "copyright": "© 2025 StickForStats. 保留所有权利。",
+    "poweredBy": "由先进统计算法驱动"
+  }
+}

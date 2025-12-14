@@ -1,0 +1,184 @@
+{
+  "title": "Análise Estatística",
+  "subtitle": "Ferramentas Estatísticas de Nível Profissional",
+
+  "categories": {
+    "parametric": "Testes Paramétricos",
+    "nonparametric": "Testes Não-Paramétricos",
+    "categorical": "Análise Categórica",
+    "correlation": "Correlação e Regressão",
+    "normality": "Testes de Normalidade",
+    "multivariate": "Análise Multivariada",
+    "timeSeries": "Séries Temporais",
+    "bayesian": "Estatística Bayesiana"
+  },
+
+  "tests": {
+    "tTest": {
+      "name": "Teste t",
+      "description": "Comparar médias entre grupos",
+      "oneSample": "Teste t de uma amostra",
+      "independent": "Teste t independente",
+      "paired": "Teste t pareado",
+      "welch": "Teste t de Welch"
+    },
+    "anova": {
+      "name": "ANOVA",
+      "description": "Análise de variância",
+      "oneWay": "ANOVA de um fator",
+      "twoWay": "ANOVA de dois fatores",
+      "repeated": "ANOVA de medidas repetidas",
+      "mixed": "ANOVA mista"
+    },
+    "mannWhitney": {
+      "name": "Mann-Whitney U",
+      "description": "Alternativa não-paramétrica ao teste t independente"
+    },
+    "wilcoxon": {
+      "name": "Teste de Wilcoxon",
+      "description": "Alternativa não-paramétrica ao teste t pareado"
+    },
+    "kruskalWallis": {
+      "name": "Kruskal-Wallis",
+      "description": "Alternativa não-paramétrica à ANOVA de um fator"
+    },
+    "chiSquare": {
+      "name": "Qui-quadrado",
+      "description": "Teste de independência para dados categóricos"
+    },
+    "fisherExact": {
+      "name": "Teste Exato de Fisher",
+      "description": "Para tabelas de contingência pequenas"
+    },
+    "pearson": {
+      "name": "Correlação de Pearson",
+      "description": "Correlação linear entre variáveis contínuas"
+    },
+    "spearman": {
+      "name": "Correlação de Spearman",
+      "description": "Correlação de postos para relações monotônicas"
+    },
+    "kendall": {
+      "name": "Tau de Kendall",
+      "description": "Medida de correlação robusta"
+    },
+    "shapiroWilk": {
+      "name": "Shapiro-Wilk",
+      "description": "Teste de normalidade"
+    },
+    "kolmogorovSmirnov": {
+      "name": "Kolmogorov-Smirnov",
+      "description": "Comparar distribuições"
+    },
+    "andersonDarling": {
+      "name": "Anderson-Darling",
+      "description": "Teste de normalidade com sensibilidade nas caudas"
+    },
+    "levene": {
+      "name": "Teste de Levene",
+      "description": "Teste de homogeneidade de variâncias"
+    }
+  },
+
+  "parameters": {
+    "sampleSize": "Tamanho da Amostra",
+    "mean": "Média",
+    "median": "Mediana",
+    "mode": "Moda",
+    "standardDeviation": "Desvio Padrão",
+    "variance": "Variância",
+    "standardError": "Erro Padrão",
+    "confidenceInterval": "Intervalo de Confiança",
+    "confidenceLevel": "Nível de Confiança",
+    "degreesOfFreedom": "Graus de Liberdade",
+    "effectSize": "Tamanho do Efeito",
+    "pValue": "Valor-p",
+    "alpha": "Nível Alpha",
+    "power": "Poder Estatístico",
+    "testStatistic": "Estatística de Teste",
+    "criticalValue": "Valor Crítico",
+    "nullHypothesis": "Hipótese Nula",
+    "alternativeHypothesis": "Hipótese Alternativa"
+  },
+
+  "effectSizes": {
+    "cohensD": "d de Cohen",
+    "hedgesG": "g de Hedges",
+    "glasssDelta": "Delta de Glass",
+    "etaSquared": "Eta ao quadrado (η²)",
+    "partialEtaSquared": "Eta parcial ao quadrado",
+    "omegaSquared": "Omega ao quadrado (ω²)",
+    "cramersV": "V de Cramér",
+    "phiCoefficient": "Coeficiente Phi (φ)",
+    "oddsRatio": "Razão de Chances",
+    "relativeRisk": "Risco Relativo",
+    "rSquared": "R ao quadrado (R²)",
+    "adjustedRSquared": "R² Ajustado"
+  },
+
+  "interpretation": {
+    "significant": "Estatisticamente significativo",
+    "notSignificant": "Não estatisticamente significativo",
+    "rejectNull": "Rejeitar hipótese nula",
+    "failToRejectNull": "Não rejeitar hipótese nula",
+    "effectSizeSmall": "Tamanho de efeito pequeno",
+    "effectSizeMedium": "Tamanho de efeito médio",
+    "effectSizeLarge": "Tamanho de efeito grande",
+    "normalDistribution": "Dados normalmente distribuídos",
+    "nonNormalDistribution": "Dados não normalmente distribuídos",
+    "equalVariances": "Variâncias iguais (homogeneidade)",
+    "unequalVariances": "Variâncias desiguais (heterogeneidade)"
+  },
+
+  "dataInput": {
+    "enterData": "Inserir Dados",
+    "pasteData": "Colar Dados",
+    "uploadFile": "Carregar Arquivo",
+    "sampleData": "Dados de Exemplo",
+    "group": "Grupo",
+    "variable": "Variável",
+    "addGroup": "Adicionar Grupo",
+    "removeGroup": "Remover Grupo",
+    "clearData": "Limpar Dados",
+    "dataFormat": "Formato dos Dados",
+    "delimiter": "Delimitador",
+    "hasHeaders": "Tem Cabeçalhos"
+  },
+
+  "results": {
+    "title": "Resultados",
+    "summary": "Resumo",
+    "descriptiveStatistics": "Estatísticas Descritivas",
+    "testResults": "Resultados do Teste",
+    "assumptions": "Pressupostos",
+    "postHoc": "Análises Post-Hoc",
+    "effectSizeAnalysis": "Análise do Tamanho do Efeito",
+    "confidenceIntervals": "Intervalos de Confiança",
+    "visualization": "Visualização",
+    "exportResults": "Exportar Resultados",
+    "interpretation": "Interpretação",
+    "recommendations": "Recomendações"
+  },
+
+  "assumptions": {
+    "title": "Verificação de Pressupostos",
+    "normality": "Normalidade",
+    "homogeneity": "Homogeneidade de Variâncias",
+    "independence": "Independência das Observações",
+    "linearity": "Linearidade",
+    "noOutliers": "Sem Outliers Significativos",
+    "sampleSize": "Tamanho de Amostra Adequado",
+    "passed": "Aprovado",
+    "violated": "Violado",
+    "warning": "Verificar",
+    "checkAssumptions": "Verificar Pressupostos"
+  },
+
+  "errors": {
+    "insufficientData": "Dados insuficientes para análise",
+    "invalidInput": "Entrada inválida",
+    "missingValues": "Valores ausentes detectados",
+    "calculationError": "Erro de cálculo",
+    "assumptionViolation": "Violação de pressuposto detectada"
+  }
+}

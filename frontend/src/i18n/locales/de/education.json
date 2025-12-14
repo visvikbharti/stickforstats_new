@@ -1,0 +1,71 @@
+{
+  "title": "Lernzentrum",
+  "subtitle": "Meistern Sie Statistik durch interaktive Lektionen",
+
+  "modules": {
+    "pca": "Hauptkomponentenanalyse",
+    "confidenceIntervals": "Konfidenzintervalle",
+    "doe": "Versuchsplanung",
+    "probability": "Wahrscheinlichkeitsverteilungen",
+    "sqc": "Statistische Qualitätskontrolle",
+    "powerAnalysis": "Teststärkenanalyse",
+    "biophysics": "Biophysik-Statistik"
+  },
+
+  "levels": {
+    "beginner": "Anfänger",
+    "intermediate": "Fortgeschritten",
+    "advanced": "Experte",
+    "expert": "Meister"
+  },
+
+  "lesson": {
+    "title": "Lektion",
+    "duration": "Dauer",
+    "objectives": "Lernziele",
+    "prerequisites": "Voraussetzungen",
+    "content": "Inhalt",
+    "exercises": "Übungen",
+    "quiz": "Quiz",
+    "summary": "Zusammenfassung",
+    "nextLesson": "Nächste Lektion",
+    "previousLesson": "Vorherige Lektion",
+    "complete": "Lektion Abschließen",
+    "progress": "Fortschritt"
+  },
+
+  "progress": {
+    "notStarted": "Nicht Begonnen",
+    "inProgress": "In Bearbeitung",
+    "completed": "Abgeschlossen",
+    "lessonsCompleted": "Abgeschlossene Lektionen",
+    "totalLessons": "Gesamte Lektionen",
+    "overallProgress": "Gesamtfortschritt"
+  },
+
+  "interactive": {
+    "tryIt": "Ausprobieren",
+    "simulation": "Interaktive Simulation",
+    "calculator": "Rechner",
+    "visualization": "Visualisierung",
+    "example": "Beispiel",
+    "practice": "Übung"
+  },
+
+  "concepts": {
+    "whatIs": "Was ist",
+    "whyImportant": "Warum ist es wichtig?",
+    "howToCalculate": "Wie berechnen",
+    "whenToUse": "Wann verwenden",
+    "commonMistakes": "Häufige Fehler",
+    "bestPractices": "Best Practices",
+    "realWorldExamples": "Praxisbeispiele"
+  },
+
+  "resources": {
+    "additionalReading": "Weiterführende Literatur",
+    "references": "Referenzen",
+    "downloadMaterials": "Materialien Herunterladen",
+    "relatedTopics": "Verwandte Themen"
+  }
+}

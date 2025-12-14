@@ -1,0 +1,71 @@
+{
+  "title": "Learning Hub",
+  "subtitle": "Master statistics with interactive lessons",
+
+  "modules": {
+    "pca": "Principal Component Analysis",
+    "confidenceIntervals": "Confidence Intervals",
+    "doe": "Design of Experiments",
+    "probability": "Probability Distributions",
+    "sqc": "Statistical Quality Control",
+    "powerAnalysis": "Power Analysis",
+    "biophysics": "Biophysics Statistics"
+  },
+
+  "levels": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+
+  "lesson": {
+    "title": "Lesson",
+    "duration": "Duration",
+    "objectives": "Learning Objectives",
+    "prerequisites": "Prerequisites",
+    "content": "Content",
+    "exercises": "Exercises",
+    "quiz": "Quiz",
+    "summary": "Summary",
+    "nextLesson": "Next Lesson",
+    "previousLesson": "Previous Lesson",
+    "complete": "Complete Lesson",
+    "progress": "Progress"
+  },
+
+  "progress": {
+    "notStarted": "Not Started",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "lessonsCompleted": "Lessons Completed",
+    "totalLessons": "Total Lessons",
+    "overallProgress": "Overall Progress"
+  },
+
+  "interactive": {
+    "tryIt": "Try It Yourself",
+    "simulation": "Interactive Simulation",
+    "calculator": "Calculator",
+    "visualization": "Visualization",
+    "example": "Example",
+    "practice": "Practice Problem"
+  },
+
+  "concepts": {
+    "whatIs": "What is",
+    "whyImportant": "Why is it important?",
+    "howToCalculate": "How to calculate",
+    "whenToUse": "When to use",
+    "commonMistakes": "Common mistakes",
+    "bestPractices": "Best practices",
+    "realWorldExamples": "Real-world examples"
+  },
+
+  "resources": {
+    "additionalReading": "Additional Reading",
+    "references": "References",
+    "downloadMaterials": "Download Materials",
+    "relatedTopics": "Related Topics"
+  }
+}

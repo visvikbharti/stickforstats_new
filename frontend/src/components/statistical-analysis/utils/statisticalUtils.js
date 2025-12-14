@@ -278,14 +278,21 @@ export const oneWayANOVA = (groups) => {
   const etaSquared = ssBetween / (ssBetween + ssWithin);
 
   return {
-    statistic: fStatistic,
+    fStatistic,           // F-statistic
+    statistic: fStatistic, // Alias for consistency
     pValue,
-    dfBetween,
-    dfWithin,
-    msBetween,
-    msWithin,
-    ssBetween,
-    ssWithin,
+    dfb: dfBetween,       // Degrees of freedom between groups
+    dfw: dfWithin,        // Degrees of freedom within groups
+    dfBetween,            // Keep full name for compatibility
+    dfWithin,             // Keep full name for compatibility
+    msb: msBetween,       // Mean square between groups
+    msw: msWithin,        // Mean square within groups
+    msBetween,            // Keep full name for compatibility
+    msWithin,             // Keep full name for compatibility
+    ssb: ssBetween,       // Sum of squares between groups
+    ssw: ssWithin,        // Sum of squares within groups
+    ssBetween,            // Keep full name for compatibility
+    ssWithin,             // Keep full name for compatibility
     etaSquared,
     significant: pValue < 0.05
   };

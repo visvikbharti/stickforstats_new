@@ -1,0 +1,71 @@
+{
+  "title": "Centro de Aprendizagem",
+  "subtitle": "Domine estatística através de aulas interativas",
+
+  "modules": {
+    "pca": "Análise de Componentes Principais",
+    "confidenceIntervals": "Intervalos de Confiança",
+    "doe": "Planejamento de Experimentos",
+    "probability": "Distribuições de Probabilidade",
+    "sqc": "Controle Estatístico de Qualidade",
+    "powerAnalysis": "Análise de Poder",
+    "biophysics": "Estatística em Biofísica"
+  },
+
+  "levels": {
+    "beginner": "Iniciante",
+    "intermediate": "Intermediário",
+    "advanced": "Avançado",
+    "expert": "Especialista"
+  },
+
+  "lesson": {
+    "title": "Aula",
+    "duration": "Duração",
+    "objectives": "Objetivos de Aprendizagem",
+    "prerequisites": "Pré-requisitos",
+    "content": "Conteúdo",
+    "exercises": "Exercícios",
+    "quiz": "Questionário",
+    "summary": "Resumo",
+    "nextLesson": "Próxima Aula",
+    "previousLesson": "Aula Anterior",
+    "complete": "Completar Aula",
+    "progress": "Progresso"
+  },
+
+  "progress": {
+    "notStarted": "Não Iniciado",
+    "inProgress": "Em Andamento",
+    "completed": "Concluído",
+    "lessonsCompleted": "Aulas Concluídas",
+    "totalLessons": "Total de Aulas",
+    "overallProgress": "Progresso Geral"
+  },
+
+  "interactive": {
+    "tryIt": "Experimente",
+    "simulation": "Simulação Interativa",
+    "calculator": "Calculadora",
+    "visualization": "Visualização",
+    "example": "Exemplo",
+    "practice": "Prática"
+  },
+
+  "concepts": {
+    "whatIs": "O que é",
+    "whyImportant": "Por que é importante?",
+    "howToCalculate": "Como calcular",
+    "whenToUse": "Quando usar",
+    "commonMistakes": "Erros comuns",
+    "bestPractices": "Melhores práticas",
+    "realWorldExamples": "Exemplos do mundo real"
+  },
+
+  "resources": {
+    "additionalReading": "Leitura Adicional",
+    "references": "Referências",
+    "downloadMaterials": "Baixar Materiais",
+    "relatedTopics": "Tópicos Relacionados"
+  }
+}

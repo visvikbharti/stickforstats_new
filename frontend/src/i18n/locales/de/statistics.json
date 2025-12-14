@@ -1,0 +1,184 @@
+{
+  "title": "Statistische Analyse",
+  "subtitle": "Professionelle Statistische Werkzeuge",
+
+  "categories": {
+    "parametric": "Parametrische Tests",
+    "nonparametric": "Nicht-parametrische Tests",
+    "categorical": "Kategoriale Analyse",
+    "correlation": "Korrelation und Regression",
+    "normality": "Normalitätstests",
+    "multivariate": "Multivariate Analyse",
+    "timeSeries": "Zeitreihenanalyse",
+    "bayesian": "Bayessche Statistik"
+  },
+
+  "tests": {
+    "tTest": {
+      "name": "t-Test",
+      "description": "Mittelwerte zwischen Gruppen vergleichen",
+      "oneSample": "Einstichproben-t-Test",
+      "independent": "Unabhängiger t-Test",
+      "paired": "Gepaarter t-Test",
+      "welch": "Welch-t-Test"
+    },
+    "anova": {
+      "name": "ANOVA",
+      "description": "Varianzanalyse",
+      "oneWay": "Einfaktorielle ANOVA",
+      "twoWay": "Zweifaktorielle ANOVA",
+      "repeated": "ANOVA mit Messwiederholung",
+      "mixed": "Gemischte ANOVA"
+    },
+    "mannWhitney": {
+      "name": "Mann-Whitney-U-Test",
+      "description": "Nicht-parametrische Alternative zum unabhängigen t-Test"
+    },
+    "wilcoxon": {
+      "name": "Wilcoxon-Test",
+      "description": "Nicht-parametrische Alternative zum gepaarten t-Test"
+    },
+    "kruskalWallis": {
+      "name": "Kruskal-Wallis-Test",
+      "description": "Nicht-parametrische Alternative zur einfaktoriellen ANOVA"
+    },
+    "chiSquare": {
+      "name": "Chi-Quadrat-Test",
+      "description": "Unabhängigkeitstest für kategoriale Daten"
+    },
+    "fisherExact": {
+      "name": "Exakter Fisher-Test",
+      "description": "Für kleine Kontingenztafeln"
+    },
+    "pearson": {
+      "name": "Pearson-Korrelation",
+      "description": "Lineare Korrelation zwischen stetigen Variablen"
+    },
+    "spearman": {
+      "name": "Spearman-Korrelation",
+      "description": "Rangkorrelation für monotone Beziehungen"
+    },
+    "kendall": {
+      "name": "Kendalls Tau",
+      "description": "Robustes Korrelationsmaß"
+    },
+    "shapiroWilk": {
+      "name": "Shapiro-Wilk-Test",
+      "description": "Normalitätstest"
+    },
+    "kolmogorovSmirnov": {
+      "name": "Kolmogorov-Smirnov-Test",
+      "description": "Verteilungen vergleichen"
+    },
+    "andersonDarling": {
+      "name": "Anderson-Darling-Test",
+      "description": "Normalitätstest mit Endsensitivität"
+    },
+    "levene": {
+      "name": "Levene-Test",
+      "description": "Test auf Varianzhomogenität"
+    }
+  },
+
+  "parameters": {
+    "sampleSize": "Stichprobengröße",
+    "mean": "Mittelwert",
+    "median": "Median",
+    "mode": "Modalwert",
+    "standardDeviation": "Standardabweichung",
+    "variance": "Varianz",
+    "standardError": "Standardfehler",
+    "confidenceInterval": "Konfidenzintervall",
+    "confidenceLevel": "Konfidenzniveau",
+    "degreesOfFreedom": "Freiheitsgrade",
+    "effectSize": "Effektstärke",
+    "pValue": "p-Wert",
+    "alpha": "Alpha-Niveau",
+    "power": "Teststärke",
+    "testStatistic": "Teststatistik",
+    "criticalValue": "Kritischer Wert",
+    "nullHypothesis": "Nullhypothese",
+    "alternativeHypothesis": "Alternativhypothese"
+  },
+
+  "effectSizes": {
+    "cohensD": "Cohens d",
+    "hedgesG": "Hedges' g",
+    "glasssDelta": "Glass' Delta",
+    "etaSquared": "Eta-Quadrat (η²)",
+    "partialEtaSquared": "Partielles Eta-Quadrat",
+    "omegaSquared": "Omega-Quadrat (ω²)",
+    "cramersV": "Cramers V",
+    "phiCoefficient": "Phi-Koeffizient (φ)",
+    "oddsRatio": "Odds Ratio",
+    "relativeRisk": "Relatives Risiko",
+    "rSquared": "R-Quadrat (R²)",
+    "adjustedRSquared": "Adjustiertes R²"
+  },
+
+  "interpretation": {
+    "significant": "Statistisch signifikant",
+    "notSignificant": "Nicht statistisch signifikant",
+    "rejectNull": "Nullhypothese ablehnen",
+    "failToRejectNull": "Nullhypothese nicht ablehnen",
+    "effectSizeSmall": "Kleine Effektstärke",
+    "effectSizeMedium": "Mittlere Effektstärke",
+    "effectSizeLarge": "Große Effektstärke",
+    "normalDistribution": "Normalverteilte Daten",
+    "nonNormalDistribution": "Nicht normalverteilte Daten",
+    "equalVariances": "Gleiche Varianzen (Homogenität)",
+    "unequalVariances": "Ungleiche Varianzen (Heterogenität)"
+  },
+
+  "dataInput": {
+    "enterData": "Daten Eingeben",
+    "pasteData": "Daten Einfügen",
+    "uploadFile": "Datei Hochladen",
+    "sampleData": "Beispieldaten",
+    "group": "Gruppe",
+    "variable": "Variable",
+    "addGroup": "Gruppe Hinzufügen",
+    "removeGroup": "Gruppe Entfernen",
+    "clearData": "Daten Löschen",
+    "dataFormat": "Datenformat",
+    "delimiter": "Trennzeichen",
+    "hasHeaders": "Hat Kopfzeilen"
+  },
+
+  "results": {
+    "title": "Ergebnisse",
+    "summary": "Zusammenfassung",
+    "descriptiveStatistics": "Deskriptive Statistik",
+    "testResults": "Testergebnisse",
+    "assumptions": "Voraussetzungen",
+    "postHoc": "Post-Hoc-Analysen",
+    "effectSizeAnalysis": "Effektstärkenanalyse",
+    "confidenceIntervals": "Konfidenzintervalle",
+    "visualization": "Visualisierung",
+    "exportResults": "Ergebnisse Exportieren",
+    "interpretation": "Interpretation",
+    "recommendations": "Empfehlungen"
+  },
+
+  "assumptions": {
+    "title": "Voraussetzungsprüfung",
+    "normality": "Normalität",
+    "homogeneity": "Varianzhomogenität",
+    "independence": "Unabhängigkeit der Beobachtungen",
+    "linearity": "Linearität",
+    "noOutliers": "Keine signifikanten Ausreißer",
+    "sampleSize": "Ausreichende Stichprobengröße",
+    "passed": "Erfüllt",
+    "violated": "Verletzt",
+    "warning": "Prüfen",
+    "checkAssumptions": "Voraussetzungen Prüfen"
+  },
+
+  "errors": {
+    "insufficientData": "Unzureichende Daten für Analyse",
+    "invalidInput": "Ungültige Eingabe",
+    "missingValues": "Fehlende Werte erkannt",
+    "calculationError": "Berechnungsfehler",
+    "assumptionViolation": "Voraussetzungsverletzung erkannt"
+  }
+}

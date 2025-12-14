@@ -50,6 +50,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { mannWhitneyUTest, calculateDescriptiveStats } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { CodeExportPanel } from '../../common';
+import { DebuggerPanel } from '../../statistical-debugger';
 
 /**
  * Main Non-Parametric Tests Component
@@ -646,6 +648,52 @@ const NonParametricTests = ({ data }) => {
               </Typography>
             </Alert>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="mann_whitney_u"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: parseFloat(backendResult.test_statistic),
+              pValue: parseFloat(backendResult.exact_p_value || backendResult.p_value),
+              effectSize: backendResult.effect_size ? parseFloat(backendResult.effect_size) : null,
+              isExact: !!backendResult.exact_p_value,
+              significant: parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="mann_whitney_u"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn,
+              n1: sampleSizeInfo?.n1,
+              n2: sampleSizeInfo?.n2
+            }}
+            results={{
+              statistic: parseFloat(backendResult.test_statistic),
+              pValue: parseFloat(backendResult.exact_p_value || backendResult.p_value),
+              effectSize: backendResult.effect_size ? parseFloat(backendResult.effect_size) : null,
+              isExact: !!backendResult.exact_p_value,
+              significant: parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 
@@ -718,6 +766,48 @@ const NonParametricTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="mann_whitney_u"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: mannWhitneyResult.statistic,
+              pValue: mannWhitneyResult.pValue,
+              significant: mannWhitneyResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="mann_whitney_u"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn,
+              n1: sampleSizeInfo?.n1,
+              n2: sampleSizeInfo?.n2
+            }}
+            results={{
+              statistic: mannWhitneyResult.statistic,
+              pValue: mannWhitneyResult.pValue,
+              significant: mannWhitneyResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 

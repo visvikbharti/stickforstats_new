@@ -1,0 +1,71 @@
+{
+  "title": "Centro de Aprendizaje",
+  "subtitle": "Domina la estadística con lecciones interactivas",
+
+  "modules": {
+    "pca": "Análisis de Componentes Principales",
+    "confidenceIntervals": "Intervalos de Confianza",
+    "doe": "Diseño de Experimentos",
+    "probability": "Distribuciones de Probabilidad",
+    "sqc": "Control Estadístico de Calidad",
+    "powerAnalysis": "Análisis de Potencia",
+    "biophysics": "Estadística en Biofísica"
+  },
+
+  "levels": {
+    "beginner": "Principiante",
+    "intermediate": "Intermedio",
+    "advanced": "Avanzado",
+    "expert": "Experto"
+  },
+
+  "lesson": {
+    "title": "Lección",
+    "duration": "Duración",
+    "objectives": "Objetivos de aprendizaje",
+    "prerequisites": "Prerrequisitos",
+    "content": "Contenido",
+    "exercises": "Ejercicios",
+    "quiz": "Cuestionario",
+    "summary": "Resumen",
+    "nextLesson": "Siguiente lección",
+    "previousLesson": "Lección anterior",
+    "complete": "Completar lección",
+    "progress": "Progreso"
+  },
+
+  "progress": {
+    "notStarted": "No iniciado",
+    "inProgress": "En progreso",
+    "completed": "Completado",
+    "lessonsCompleted": "Lecciones completadas",
+    "totalLessons": "Total de lecciones",
+    "overallProgress": "Progreso general"
+  },
+
+  "interactive": {
+    "tryIt": "Inténtalo tú mismo",
+    "simulation": "Simulación interactiva",
+    "calculator": "Calculadora",
+    "visualization": "Visualización",
+    "example": "Ejemplo",
+    "practice": "Problema de práctica"
+  },
+
+  "concepts": {
+    "whatIs": "¿Qué es",
+    "whyImportant": "¿Por qué es importante?",
+    "howToCalculate": "Cómo calcular",
+    "whenToUse": "Cuándo usar",
+    "commonMistakes": "Errores comunes",
+    "bestPractices": "Mejores prácticas",
+    "realWorldExamples": "Ejemplos del mundo real"
+  },
+
+  "resources": {
+    "additionalReading": "Lectura adicional",
+    "references": "Referencias",
+    "downloadMaterials": "Descargar materiales",
+    "relatedTopics": "Temas relacionados"
+  }
+}

@@ -48,6 +48,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { chiSquareTest } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { CodeExportPanel } from '../../common';
+import { DebuggerPanel } from '../../statistical-debugger';
 
 /**
  * Main Categorical Tests Component
@@ -822,7 +824,7 @@ const CategoricalTests = ({ data }) => {
           </Paper>
 
           {/* Visualization */}
-          <Paper elevation={2} sx={{ p: 3 }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Grouped Bar Chart: {variable1} by {variable2}
             </Typography>
@@ -841,6 +843,56 @@ const CategoricalTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="chi_square"
+            data={{
+              contingencyTable: contingencyTable.table,
+              variable1,
+              variable2,
+              categories1: contingencyTable.categories1,
+              categories2: contingencyTable.categories2,
+              n: contingencyTable.grandTotal
+            }}
+            results={{
+              chiSquare: chiSquareResult.chiSquare,
+              df: chiSquareResult.df,
+              pValue: chiSquareResult.pValue,
+              cramersV: chiSquareResult.cramersV,
+              significant: chiSquareResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="chi_square"
+            data={{
+              contingencyTable: contingencyTable.table,
+              variable1,
+              variable2,
+              categories1: contingencyTable.categories1,
+              categories2: contingencyTable.categories2,
+              n: contingencyTable.grandTotal,
+              expected: chiSquareResult.expected
+            }}
+            results={{
+              statistic: chiSquareResult.chiSquare,
+              df: chiSquareResult.df,
+              pValue: chiSquareResult.pValue,
+              cramersV: chiSquareResult.cramersV,
+              effectSize: chiSquareResult.cramersV,
+              significant: chiSquareResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha
+            }}
+          />
         </>
       )}
 

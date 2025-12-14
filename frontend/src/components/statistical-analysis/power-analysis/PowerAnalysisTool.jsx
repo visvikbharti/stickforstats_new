@@ -1,0 +1,1206 @@
+/**
+ * Power Analysis Tool - Module 8 of Statistical Analysis Platform
+ *
+ * Client-side power analysis calculations validated against G*Power 3.1.9.7.
+ * Provides sample size determination, power calculation, and effect size analysis.
+ *
+ * Scientific Foundation:
+ * - Cohen, J. (1988). Statistical power analysis for the behavioral sciences.
+ * - Faul, F., et al. (2007). G*Power 3: A flexible statistical power analysis program.
+ * - Faul, F., et al. (2009). Statistical power analyses using G*Power 3.1.
+ *
+ * All calculations run client-side using validated statistical algorithms.
+ * No data leaves your browser.
+ */
+
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Alert,
+  AlertTitle,
+  Chip,
+  Slider,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  IconButton,
+  Divider,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  FormLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar
+} from '@mui/material';
+import BoltIcon from '@mui/icons-material/Bolt';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import GroupsIcon from '@mui/icons-material/Groups';
+import InfoIcon from '@mui/icons-material/Info';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import DownloadIcon from '@mui/icons-material/Download';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import ScienceIcon from '@mui/icons-material/Science';
+import CodeIcon from '@mui/icons-material/Code';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  ComposedChart
+} from 'recharts';
+
+// Import validated power calculation utilities
+import {
+  powerTwoSampleTTest,
+  powerOneSampleTTest,
+  powerPairedTTest,
+  powerOneWayANOVA,
+  powerCorrelation,
+  powerChiSquare,
+  powerMannWhitneyU,
+  powerWilcoxonSignedRank,
+  powerKruskalWallis,
+  sampleSizeTwoSampleTTest,
+  sampleSizeOneWayANOVA,
+  sampleSizeCorrelation,
+  generatePowerCurve,
+  findSampleSizeForPower,
+  minimumDetectableEffectSize,
+  cohensD,
+  hedgesG,
+  cohensF,
+  cohensW,
+  cohensH,
+  interpretEffectSize,
+  dToR,
+  rToD
+} from '../../power-analysis/education/utils/powerCalculations';
+
+// Import code generators for R and Python
+import {
+  generateRCode,
+  generatePythonCode,
+  downloadCode,
+  copyToClipboard
+} from '../../../utils/codeExport/powerAnalysisCodeGenerator';
+
+// Test type configurations with scientific metadata
+const TEST_TYPES = {
+  'two-sample-t': {
+    name: 'Independent Samples t-test',
+    description: 'Compare means of two independent groups',
+    effectSizeLabel: "Cohen's d",
+    effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
+    formula: 'Power = P(|t| > t_crit | λ = d × √(n₁n₂/(n₁+n₂)))',
+    reference: 'Cohen (1988), Chapter 2'
+  },
+  'one-sample-t': {
+    name: 'One-Sample t-test',
+    description: 'Compare sample mean to a known value',
+    effectSizeLabel: "Cohen's d",
+    effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
+    formula: 'Power = P(|t| > t_crit | λ = d × √n)',
+    reference: 'Cohen (1988), Chapter 2'
+  },
+  'paired-t': {
+    name: 'Paired Samples t-test',
+    description: 'Compare means of matched pairs',
+    effectSizeLabel: "Cohen's d (paired)",
+    effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
+    formula: 'Power = P(|t| > t_crit | λ = d × √n)',
+    reference: 'Cohen (1988), Chapter 2'
+  },
+  'anova': {
+    name: 'One-Way ANOVA',
+    description: 'Compare means across multiple groups',
+    effectSizeLabel: "Cohen's f",
+    effectSizeBenchmarks: { small: 0.10, medium: 0.25, large: 0.40 },
+    formula: 'Power = P(F > F_crit | λ = n × k × f²)',
+    reference: 'Cohen (1988), Chapter 8'
+  },
+  'correlation': {
+    name: 'Correlation (Pearson r)',
+    description: 'Test significance of correlation coefficient',
+    effectSizeLabel: 'Correlation r',
+    effectSizeBenchmarks: { small: 0.10, medium: 0.30, large: 0.50 },
+    formula: "Power based on Fisher's z transformation",
+    reference: 'Cohen (1988), Chapter 3'
+  },
+  'chi-square': {
+    name: 'Chi-Square Test',
+    description: 'Test of independence or goodness of fit',
+    effectSizeLabel: "Cohen's w",
+    effectSizeBenchmarks: { small: 0.10, medium: 0.30, large: 0.50 },
+    formula: 'Power = P(χ² > χ²_crit | λ = n × w²)',
+    reference: 'Cohen (1988), Chapter 7'
+  },
+  'mann-whitney': {
+    name: 'Mann-Whitney U Test',
+    description: 'Non-parametric alternative to independent t-test',
+    effectSizeLabel: "Cohen's d equivalent",
+    effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
+    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    reference: 'Lehmann (1975)'
+  },
+  'wilcoxon': {
+    name: 'Wilcoxon Signed-Rank Test',
+    description: 'Non-parametric alternative to paired t-test',
+    effectSizeLabel: "Cohen's d equivalent",
+    effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
+    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    reference: 'Lehmann (1975)'
+  },
+  'kruskal-wallis': {
+    name: 'Kruskal-Wallis Test',
+    description: 'Non-parametric alternative to one-way ANOVA',
+    effectSizeLabel: "Cohen's f equivalent",
+    effectSizeBenchmarks: { small: 0.10, medium: 0.25, large: 0.40 },
+    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    reference: 'Lehmann (1975)'
+  }
+};
+
+// Calculation modes
+const CALC_MODES = {
+  power: { label: 'Calculate Power', icon: <BoltIcon />, description: 'Given sample size and effect size, calculate power' },
+  sampleSize: { label: 'Calculate Sample Size', icon: <GroupsIcon />, description: 'Given power and effect size, calculate required n' },
+  effectSize: { label: 'Calculate Effect Size', icon: <TrendingUpIcon />, description: 'Given sample size and power, find detectable effect' }
+};
+
+/**
+ * Main Power Analysis Tool Component
+ */
+const PowerAnalysisTool = ({ data, setData, onComplete }) => {
+  // State management
+  const [calculationMode, setCalculationMode] = useState('sampleSize');
+  const [testType, setTestType] = useState('two-sample-t');
+  const [alternative, setAlternative] = useState('two-sided');
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Input parameters
+  const [alpha, setAlpha] = useState(0.05);
+  const [power, setPower] = useState(0.80);
+  const [effectSize, setEffectSize] = useState(0.5);
+  const [sampleSize, setSampleSize] = useState(30);
+  const [sampleSize2, setSampleSize2] = useState(30);
+  const [numGroups, setNumGroups] = useState(3);
+  const [degreesOfFreedom, setDegreesOfFreedom] = useState(1);
+  const [allocationRatio, setAllocationRatio] = useState(1);
+
+  // Results
+  const [results, setResults] = useState(null);
+  const [powerCurveData, setPowerCurveData] = useState(null);
+  const [error, setError] = useState(null);
+
+  // Code export state
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
+  const [codeTab, setCodeTab] = useState(0); // 0 = R, 1 = Python
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  // Get current test configuration
+  const currentTest = TEST_TYPES[testType];
+
+  /**
+   * Perform power calculation based on mode and test type
+   */
+  const calculatePower = useCallback(() => {
+    setError(null);
+
+    try {
+      let result = {};
+
+      if (calculationMode === 'power') {
+        // Calculate power given sample size and effect size
+        switch (testType) {
+          case 'two-sample-t':
+            result = powerTwoSampleTTest(sampleSize, sampleSize2, effectSize, alpha, alternative);
+            result.totalN = sampleSize + sampleSize2;
+            break;
+          case 'one-sample-t':
+            result = powerOneSampleTTest(sampleSize, effectSize, alpha, alternative);
+            result.totalN = sampleSize;
+            break;
+          case 'paired-t':
+            result = powerPairedTTest(sampleSize, effectSize, alpha, alternative);
+            result.totalN = sampleSize;
+            break;
+          case 'anova':
+            result = powerOneWayANOVA(sampleSize, numGroups, effectSize, alpha);
+            break;
+          case 'correlation':
+            result = powerCorrelation(sampleSize, effectSize, alpha, alternative);
+            result.totalN = sampleSize;
+            break;
+          case 'chi-square':
+            result = powerChiSquare(sampleSize, effectSize, degreesOfFreedom, alpha);
+            result.totalN = sampleSize;
+            break;
+          case 'mann-whitney':
+            result = powerMannWhitneyU(sampleSize, sampleSize2, effectSize, alpha, alternative);
+            result.totalN = sampleSize + sampleSize2;
+            break;
+          case 'wilcoxon':
+            result = powerWilcoxonSignedRank(sampleSize, effectSize, alpha, alternative);
+            result.totalN = sampleSize;
+            break;
+          case 'kruskal-wallis':
+            result = powerKruskalWallis(sampleSize, numGroups, effectSize, alpha);
+            break;
+          default:
+            throw new Error('Unknown test type');
+        }
+        result.mode = 'power';
+
+      } else if (calculationMode === 'sampleSize') {
+        // Calculate sample size given power and effect size
+        switch (testType) {
+          case 'two-sample-t':
+            result = sampleSizeTwoSampleTTest(effectSize, power, alpha, alternative, allocationRatio);
+            break;
+          case 'one-sample-t':
+          case 'paired-t':
+            result = findSampleSizeForPower('one-sample-t', effectSize, power, alpha, { alternative });
+            result.totalN = result.n;
+            break;
+          case 'anova':
+            result = sampleSizeOneWayANOVA(effectSize, numGroups, power, alpha);
+            break;
+          case 'correlation':
+            result = sampleSizeCorrelation(effectSize, power, alpha, alternative);
+            result.totalN = result.n;
+            break;
+          case 'chi-square':
+            result = findSampleSizeForPower('chi-square', effectSize, power, alpha, { df: degreesOfFreedom });
+            result.totalN = result.n;
+            break;
+          case 'mann-whitney':
+            // Need ~5% more than parametric due to ARE
+            const parametricResult = sampleSizeTwoSampleTTest(effectSize, power, alpha, alternative, allocationRatio);
+            result = {
+              n1: Math.ceil(parametricResult.n1 / 0.955),
+              n2: Math.ceil(parametricResult.n2 / 0.955),
+              achievedPower: parametricResult.achievedPower
+            };
+            result.totalN = result.n1 + result.n2;
+            break;
+          case 'wilcoxon':
+            const pairedResult = findSampleSizeForPower('paired-t', effectSize, power, alpha, { alternative });
+            result = { n: Math.ceil(pairedResult.n / 0.955), achievedPower: pairedResult.achievedPower };
+            result.totalN = result.n;
+            break;
+          case 'kruskal-wallis':
+            const anovaResult = sampleSizeOneWayANOVA(effectSize, numGroups, power, alpha);
+            result = {
+              nPerGroup: Math.ceil(anovaResult.nPerGroup / 0.955),
+              achievedPower: anovaResult.achievedPower
+            };
+            result.totalN = result.nPerGroup * numGroups;
+            break;
+          default:
+            throw new Error('Unknown test type');
+        }
+        result.mode = 'sampleSize';
+
+      } else if (calculationMode === 'effectSize') {
+        // Calculate minimum detectable effect size
+        const mdes = minimumDetectableEffectSize(sampleSize, power, alpha, testType);
+        result = {
+          effectSize: mdes,
+          interpretation: interpretEffectSize(mdes, currentTest.effectSizeLabel.includes('f') ? 'cohens_f' : 'cohens_d'),
+          sampleSize: sampleSize,
+          power: power,
+          alpha: alpha
+        };
+        result.mode = 'effectSize';
+      }
+
+      // Add common metadata
+      result.testType = testType;
+      result.testName = currentTest.name;
+      result.alpha = alpha;
+      result.effectSizeLabel = currentTest.effectSizeLabel;
+      result.reference = currentTest.reference;
+
+      setResults(result);
+
+      // Generate power curve
+      generatePowerCurveData();
+
+    } catch (err) {
+      setError(err.message);
+      setResults(null);
+    }
+  }, [calculationMode, testType, alpha, power, effectSize, sampleSize, sampleSize2,
+      numGroups, degreesOfFreedom, allocationRatio, alternative, currentTest]);
+
+  /**
+   * Generate power curve data for visualization
+   */
+  const generatePowerCurveData = useCallback(() => {
+    try {
+      const sampleSizes = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500];
+      const effectSizes = [0.2, 0.5, 0.8]; // Small, medium, large
+
+      const curveData = [];
+
+      for (const n of sampleSizes) {
+        const point = { n };
+        for (const es of effectSizes) {
+          const data = generatePowerCurve(testType, [n], [es], alpha, {
+            alternative,
+            k: numGroups
+          });
+          point[`d_${es}`] = data[0]?.power || 0;
+        }
+        curveData.push(point);
+      }
+
+      setPowerCurveData(curveData);
+    } catch (err) {
+      console.error('Power curve generation error:', err);
+    }
+  }, [testType, alpha, alternative, numGroups]);
+
+  /**
+   * Reset all inputs to defaults
+   */
+  const handleReset = () => {
+    setAlpha(0.05);
+    setPower(0.80);
+    setEffectSize(0.5);
+    setSampleSize(30);
+    setSampleSize2(30);
+    setNumGroups(3);
+    setDegreesOfFreedom(1);
+    setAllocationRatio(1);
+    setResults(null);
+    setPowerCurveData(null);
+    setError(null);
+  };
+
+  /**
+   * Export results as JSON
+   */
+  const handleExport = () => {
+    if (!results) return;
+
+    const exportData = {
+      analysis: 'Power Analysis',
+      timestamp: new Date().toISOString(),
+      parameters: {
+        testType: currentTest.name,
+        calculationMode,
+        alpha,
+        power: calculationMode === 'power' ? results.power : power,
+        effectSize: calculationMode === 'effectSize' ? results.effectSize : effectSize,
+        sampleSize: calculationMode === 'sampleSize' ? results.totalN : sampleSize,
+        alternative
+      },
+      results,
+      reference: currentTest.reference
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `power_analysis_${testType}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /**
+   * Get interpretation of power level
+   */
+  const getPowerInterpretation = (powerValue) => {
+    if (powerValue >= 0.95) return { level: 'Excellent', color: '#2e7d32', description: 'Very high probability of detecting effect' };
+    if (powerValue >= 0.80) return { level: 'Adequate', color: '#4caf50', description: 'Standard convention for most research' };
+    if (powerValue >= 0.60) return { level: 'Moderate', color: '#ff9800', description: 'Acceptable for exploratory research' };
+    if (powerValue >= 0.40) return { level: 'Low', color: '#f44336', description: 'High risk of Type II error' };
+    return { level: 'Very Low', color: '#d32f2f', description: 'Likely underpowered study' };
+  };
+
+  /**
+   * Get parameters for code generation
+   */
+  const getCodeParams = useCallback(() => ({
+    testType,
+    calculationMode,
+    alpha,
+    power,
+    effectSize,
+    sampleSize,
+    sampleSize2,
+    numGroups,
+    degreesOfFreedom,
+    allocationRatio,
+    alternative,
+    results: results || {}
+  }), [testType, calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, numGroups, degreesOfFreedom, allocationRatio, alternative, results]);
+
+  /**
+   * Generate code for current analysis
+   */
+  const generatedRCode = useMemo(() => {
+    if (!results) return '# Run a power analysis first to generate R code';
+    return generateRCode(getCodeParams());
+  }, [results, getCodeParams]);
+
+  const generatedPythonCode = useMemo(() => {
+    if (!results) return '# Run a power analysis first to generate Python code';
+    return generatePythonCode(getCodeParams());
+  }, [results, getCodeParams]);
+
+  /**
+   * Handle copy to clipboard
+   */
+  const handleCopyCode = async () => {
+    const code = codeTab === 0 ? generatedRCode : generatedPythonCode;
+    const success = await copyToClipboard(code);
+    if (success) {
+      setSnackbarMessage(`${codeTab === 0 ? 'R' : 'Python'} code copied to clipboard!`);
+      setSnackbarOpen(true);
+    }
+  };
+
+  /**
+   * Handle download code
+   */
+  const handleDownloadCode = () => {
+    const code = codeTab === 0 ? generatedRCode : generatedPythonCode;
+    const language = codeTab === 0 ? 'R' : 'Python';
+    downloadCode(code, language, testType);
+  };
+
+  return (
+    <Box sx={{ py: 2 }}>
+      {/* Header */}
+      <Paper elevation={2} sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', color: 'white' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <BoltIcon sx={{ fontSize: 40 }} />
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              Statistical Power Analysis
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Client-side calculations validated against G*Power 3.1.9.7
+            </Typography>
+          </Box>
+        </Box>
+
+        <Alert severity="info" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+          <Typography variant="body2">
+            <strong>Why Power Analysis?</strong> Determine the sample size needed to detect effects of scientific interest
+            with adequate probability. Avoid underpowered studies that waste resources and may produce false negatives.
+          </Typography>
+        </Alert>
+      </Paper>
+
+      <Grid container spacing={3}>
+        {/* Left Panel - Configuration */}
+        <Grid item xs={12} md={5}>
+          <Paper elevation={2} sx={{ p: 3 }}>
+            {/* Calculation Mode */}
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <FormLabel sx={{ mb: 1, fontWeight: 600 }}>What do you want to calculate?</FormLabel>
+              <RadioGroup
+                value={calculationMode}
+                onChange={(e) => setCalculationMode(e.target.value)}
+              >
+                {Object.entries(CALC_MODES).map(([key, mode]) => (
+                  <FormControlLabel
+                    key={key}
+                    value={key}
+                    control={<Radio />}
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {mode.icon}
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>{mode.label}</Typography>
+                          <Typography variant="caption" color="text.secondary">{mode.description}</Typography>
+                        </Box>
+                      </Box>
+                    }
+                    sx={{ mb: 1 }}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Test Type Selection */}
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <InputLabel>Statistical Test</InputLabel>
+              <Select
+                value={testType}
+                onChange={(e) => setTestType(e.target.value)}
+                label="Statistical Test"
+              >
+                <MenuItem disabled sx={{ fontWeight: 600, opacity: 1 }}>Parametric Tests</MenuItem>
+                <MenuItem value="two-sample-t">Independent Samples t-test</MenuItem>
+                <MenuItem value="one-sample-t">One-Sample t-test</MenuItem>
+                <MenuItem value="paired-t">Paired Samples t-test</MenuItem>
+                <MenuItem value="anova">One-Way ANOVA</MenuItem>
+                <MenuItem value="correlation">Correlation (Pearson r)</MenuItem>
+                <MenuItem value="chi-square">Chi-Square Test</MenuItem>
+                <MenuItem disabled sx={{ fontWeight: 600, opacity: 1, mt: 1 }}>Non-Parametric Tests</MenuItem>
+                <MenuItem value="mann-whitney">Mann-Whitney U</MenuItem>
+                <MenuItem value="wilcoxon">Wilcoxon Signed-Rank</MenuItem>
+                <MenuItem value="kruskal-wallis">Kruskal-Wallis</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Test-specific info */}
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <AlertTitle>{currentTest.name}</AlertTitle>
+              <Typography variant="body2">{currentTest.description}</Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                Effect size: <strong>{currentTest.effectSizeLabel}</strong>
+              </Typography>
+              <Typography variant="caption" display="block">
+                Benchmarks: Small={currentTest.effectSizeBenchmarks.small},
+                Medium={currentTest.effectSizeBenchmarks.medium},
+                Large={currentTest.effectSizeBenchmarks.large}
+              </Typography>
+            </Alert>
+
+            {/* Input Parameters */}
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+              Input Parameters
+            </Typography>
+
+            {/* Alpha (always shown) */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" gutterBottom>
+                Significance Level (α): <strong>{alpha}</strong>
+              </Typography>
+              <Slider
+                value={alpha}
+                onChange={(_, v) => setAlpha(v)}
+                min={0.001}
+                max={0.10}
+                step={0.001}
+                marks={[
+                  { value: 0.01, label: '0.01' },
+                  { value: 0.05, label: '0.05' },
+                  { value: 0.10, label: '0.10' }
+                ]}
+              />
+            </Box>
+
+            {/* Power (shown when calculating sample size or effect size) */}
+            {calculationMode !== 'power' && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" gutterBottom>
+                  Desired Power (1-β): <strong>{(power * 100).toFixed(0)}%</strong>
+                </Typography>
+                <Slider
+                  value={power}
+                  onChange={(_, v) => setPower(v)}
+                  min={0.50}
+                  max={0.99}
+                  step={0.01}
+                  marks={[
+                    { value: 0.80, label: '80%' },
+                    { value: 0.90, label: '90%' },
+                    { value: 0.95, label: '95%' }
+                  ]}
+                />
+              </Box>
+            )}
+
+            {/* Effect Size (shown when calculating power or sample size) */}
+            {calculationMode !== 'effectSize' && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" gutterBottom>
+                  Effect Size ({currentTest.effectSizeLabel}): <strong>{effectSize}</strong>
+                  <Chip
+                    label={interpretEffectSize(effectSize, currentTest.effectSizeLabel.includes('f') ? 'cohens_f' : 'cohens_d')}
+                    size="small"
+                    sx={{ ml: 1 }}
+                    color={effectSize >= currentTest.effectSizeBenchmarks.large ? 'success' :
+                           effectSize >= currentTest.effectSizeBenchmarks.medium ? 'warning' : 'default'}
+                  />
+                </Typography>
+                <Slider
+                  value={effectSize}
+                  onChange={(_, v) => setEffectSize(v)}
+                  min={0.01}
+                  max={testType.includes('anova') || testType === 'kruskal-wallis' ? 0.8 : 1.5}
+                  step={0.01}
+                  marks={[
+                    { value: currentTest.effectSizeBenchmarks.small, label: 'S' },
+                    { value: currentTest.effectSizeBenchmarks.medium, label: 'M' },
+                    { value: currentTest.effectSizeBenchmarks.large, label: 'L' }
+                  ]}
+                />
+              </Box>
+            )}
+
+            {/* Sample Size (shown when calculating power or effect size) */}
+            {calculationMode !== 'sampleSize' && (
+              <>
+                <TextField
+                  fullWidth
+                  label={testType === 'two-sample-t' || testType === 'mann-whitney' ? 'Sample Size (Group 1)' : 'Sample Size'}
+                  type="number"
+                  value={sampleSize}
+                  onChange={(e) => setSampleSize(parseInt(e.target.value) || 0)}
+                  sx={{ mb: 2 }}
+                  InputProps={{ inputProps: { min: 2 } }}
+                />
+
+                {(testType === 'two-sample-t' || testType === 'mann-whitney') && (
+                  <TextField
+                    fullWidth
+                    label="Sample Size (Group 2)"
+                    type="number"
+                    value={sampleSize2}
+                    onChange={(e) => setSampleSize2(parseInt(e.target.value) || 0)}
+                    sx={{ mb: 2 }}
+                    InputProps={{ inputProps: { min: 2 } }}
+                  />
+                )}
+              </>
+            )}
+
+            {/* Test-specific parameters */}
+            {(testType === 'anova' || testType === 'kruskal-wallis') && (
+              <TextField
+                fullWidth
+                label="Number of Groups"
+                type="number"
+                value={numGroups}
+                onChange={(e) => setNumGroups(parseInt(e.target.value) || 2)}
+                sx={{ mb: 2 }}
+                InputProps={{ inputProps: { min: 2, max: 20 } }}
+              />
+            )}
+
+            {testType === 'chi-square' && (
+              <TextField
+                fullWidth
+                label="Degrees of Freedom"
+                type="number"
+                value={degreesOfFreedom}
+                onChange={(e) => setDegreesOfFreedom(parseInt(e.target.value) || 1)}
+                sx={{ mb: 2 }}
+                InputProps={{ inputProps: { min: 1 } }}
+              />
+            )}
+
+            {/* Alternative hypothesis */}
+            {!['anova', 'chi-square', 'kruskal-wallis'].includes(testType) && (
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <InputLabel>Alternative Hypothesis</InputLabel>
+                <Select
+                  value={alternative}
+                  onChange={(e) => setAlternative(e.target.value)}
+                  label="Alternative Hypothesis"
+                >
+                  <MenuItem value="two-sided">Two-sided (μ₁ ≠ μ₂)</MenuItem>
+                  <MenuItem value="greater">One-sided (μ₁ &gt; μ₂)</MenuItem>
+                  <MenuItem value="less">One-sided (μ₁ &lt; μ₂)</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={calculatePower}
+                startIcon={<CalculateIcon />}
+                fullWidth
+              >
+                Calculate
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                startIcon={<RefreshIcon />}
+              >
+                Reset
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Right Panel - Results */}
+        <Grid item xs={12} md={7}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              <AlertTitle>Calculation Error</AlertTitle>
+              {error}
+            </Alert>
+          )}
+
+          {results && (
+            <>
+              {/* Main Result Card */}
+              <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Results: {currentTest.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Tooltip title="Export R/Python Code">
+                      <IconButton onClick={() => setCodeDialogOpen(true)} size="small" color="primary">
+                        <CodeIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Export JSON Results">
+                      <IconButton onClick={handleExport} size="small">
+                        <DownloadIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+
+                {/* Primary Result */}
+                <Card sx={{ bgcolor: '#e3f2fd', mb: 2 }}>
+                  <CardContent>
+                    {calculationMode === 'power' && (
+                      <>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {(results.power * 100).toFixed(1)}%
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                          Statistical Power
+                        </Typography>
+                        {(() => {
+                          const interp = getPowerInterpretation(results.power);
+                          return (
+                            <Chip
+                              label={interp.level}
+                              sx={{ mt: 1, bgcolor: interp.color, color: 'white' }}
+                            />
+                          );
+                        })()}
+                      </>
+                    )}
+
+                    {calculationMode === 'sampleSize' && (
+                      <>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {results.totalN || results.n || results.nPerGroup * numGroups}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                          Required Total Sample Size
+                        </Typography>
+                        {results.n1 && results.n2 && (
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            Group 1: {results.n1} | Group 2: {results.n2}
+                          </Typography>
+                        )}
+                        {results.nPerGroup && (
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            {results.nPerGroup} per group × {numGroups} groups
+                          </Typography>
+                        )}
+                      </>
+                    )}
+
+                    {calculationMode === 'effectSize' && (
+                      <>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                          {results.effectSize.toFixed(3)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                          Minimum Detectable {currentTest.effectSizeLabel}
+                        </Typography>
+                        <Chip
+                          label={results.interpretation}
+                          sx={{ mt: 1 }}
+                          color={results.interpretation === 'large' ? 'success' :
+                                 results.interpretation === 'medium' ? 'warning' : 'default'}
+                        />
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Results Table */}
+                <TableContainer>
+                  <Table size="small">
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 500 }}>Test Type</TableCell>
+                        <TableCell>{currentTest.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 500 }}>Significance Level (α)</TableCell>
+                        <TableCell>{alpha}</TableCell>
+                      </TableRow>
+                      {calculationMode === 'power' ? (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Power (1-β)</TableCell>
+                          <TableCell>{(results.power * 100).toFixed(2)}%</TableCell>
+                        </TableRow>
+                      ) : (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Target Power</TableCell>
+                          <TableCell>{(power * 100).toFixed(0)}%</TableCell>
+                        </TableRow>
+                      )}
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 500 }}>Effect Size ({currentTest.effectSizeLabel})</TableCell>
+                        <TableCell>
+                          {calculationMode === 'effectSize' ? results.effectSize.toFixed(3) : effectSize}
+                        </TableCell>
+                      </TableRow>
+                      {results.ncp !== undefined && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Noncentrality Parameter (λ)</TableCell>
+                          <TableCell>{results.ncp.toFixed(4)}</TableCell>
+                        </TableRow>
+                      )}
+                      {results.df !== undefined && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Degrees of Freedom</TableCell>
+                          <TableCell>{results.df}</TableCell>
+                        </TableRow>
+                      )}
+                      {results.criticalValue !== undefined && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Critical Value</TableCell>
+                          <TableCell>{results.criticalValue.toFixed(4)}</TableCell>
+                        </TableRow>
+                      )}
+                      {results.are !== undefined && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 500 }}>Asymptotic Relative Efficiency</TableCell>
+                          <TableCell>{results.are.toFixed(4)} (vs parametric)</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                {/* Reference */}
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                  Reference: {currentTest.reference}
+                </Typography>
+              </Paper>
+
+              {/* Power Curve Visualization */}
+              {powerCurveData && (
+                <Paper elevation={2} sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Power Curves by Effect Size
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Shows how power changes with sample size for small (d=0.2), medium (d=0.5), and large (d=0.8) effects
+                  </Typography>
+
+                  <ResponsiveContainer width="100%" height={350}>
+                    <ComposedChart data={powerCurveData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="n"
+                        label={{ value: 'Sample Size (per group)', position: 'bottom', offset: -5 }}
+                      />
+                      <YAxis
+                        domain={[0, 1]}
+                        tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
+                        label={{ value: 'Power', angle: -90, position: 'insideLeft' }}
+                      />
+                      <RechartsTooltip
+                        formatter={(value) => `${(value * 100).toFixed(1)}%`}
+                        labelFormatter={(n) => `n = ${n}`}
+                      />
+                      <Legend />
+                      <ReferenceLine y={0.8} stroke="#666" strokeDasharray="5 5" label="80%" />
+                      <Line
+                        type="monotone"
+                        dataKey="d_0.2"
+                        stroke="#90caf9"
+                        strokeWidth={2}
+                        name="Small (d=0.2)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="d_0.5"
+                        stroke="#42a5f5"
+                        strokeWidth={2}
+                        name="Medium (d=0.5)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="d_0.8"
+                        stroke="#1565c0"
+                        strokeWidth={2}
+                        name="Large (d=0.8)"
+                        dot={false}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </Paper>
+              )}
+
+              {/* Interpretation Guide */}
+              <Paper elevation={1} sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                  <ScienceIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Interpretation Guide
+                </Typography>
+
+                {calculationMode === 'power' && (
+                  <Box>
+                    {results.power >= 0.80 ? (
+                      <Alert severity="success" sx={{ mb: 1 }}>
+                        <AlertTitle>Adequate Power</AlertTitle>
+                        Your study has {(results.power * 100).toFixed(0)}% power to detect an effect of {effectSize}
+                        ({currentTest.effectSizeLabel}). This meets the conventional 80% threshold.
+                      </Alert>
+                    ) : (
+                      <Alert severity="warning" sx={{ mb: 1 }}>
+                        <AlertTitle>Underpowered Study</AlertTitle>
+                        Your study has only {(results.power * 100).toFixed(0)}% power. Consider increasing sample size
+                        or accepting a larger effect size of interest.
+                      </Alert>
+                    )}
+                  </Box>
+                )}
+
+                {calculationMode === 'sampleSize' && (
+                  <Alert severity="info">
+                    <AlertTitle>Sample Size Recommendation</AlertTitle>
+                    To detect an effect size of {effectSize} ({interpretEffectSize(effectSize, 'cohens_d')})
+                    with {(power * 100).toFixed(0)}% power at α={alpha}, you need{' '}
+                    <strong>{results.totalN || results.n || results.nPerGroup * numGroups}</strong> total participants.
+                  </Alert>
+                )}
+
+                {calculationMode === 'effectSize' && (
+                  <Alert severity="info">
+                    <AlertTitle>Sensitivity Analysis</AlertTitle>
+                    With n={sampleSize} and {(power * 100).toFixed(0)}% power at α={alpha},
+                    your study can reliably detect effects of {results.effectSize.toFixed(2)} ({results.interpretation}) or larger.
+                    Smaller effects may go undetected.
+                  </Alert>
+                )}
+
+                <Typography variant="caption" display="block" sx={{ mt: 2 }}>
+                  <strong>Note:</strong> Power analysis should be conducted <em>before</em> data collection (a priori).
+                  Post-hoc power analysis is generally uninformative—if your test was non-significant,
+                  post-hoc power tells you nothing new. Instead, report confidence intervals.
+                </Typography>
+              </Paper>
+            </>
+          )}
+
+          {/* Initial state - no results */}
+          {!results && !error && (
+            <Paper elevation={1} sx={{ p: 4, textAlign: 'center', bgcolor: '#fafafa' }}>
+              <BoltIcon sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Configure Your Analysis
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Select a test type, enter your parameters, and click Calculate to perform power analysis.
+              </Typography>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="subtitle2" gutterBottom>
+                Quick Effect Size Reference (Cohen's Benchmarks)
+              </Typography>
+              <TableContainer sx={{ maxWidth: 400, mx: 'auto' }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Test</TableCell>
+                      <TableCell align="center">Small</TableCell>
+                      <TableCell align="center">Medium</TableCell>
+                      <TableCell align="center">Large</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>t-test (d)</TableCell>
+                      <TableCell align="center">0.2</TableCell>
+                      <TableCell align="center">0.5</TableCell>
+                      <TableCell align="center">0.8</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>ANOVA (f)</TableCell>
+                      <TableCell align="center">0.10</TableCell>
+                      <TableCell align="center">0.25</TableCell>
+                      <TableCell align="center">0.40</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Correlation (r)</TableCell>
+                      <TableCell align="center">0.10</TableCell>
+                      <TableCell align="center">0.30</TableCell>
+                      <TableCell align="center">0.50</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Chi-square (w)</TableCell>
+                      <TableCell align="center">0.10</TableCell>
+                      <TableCell align="center">0.30</TableCell>
+                      <TableCell align="center">0.50</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+        </Grid>
+      </Grid>
+
+      {/* Scientific References */}
+      <Paper elevation={1} sx={{ p: 2, mt: 3, bgcolor: '#fafafa' }}>
+        <Typography variant="caption" color="text.secondary">
+          <strong>Scientific Foundation:</strong> Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.).
+          Lawrence Erlbaum Associates. | Faul, F., Erdfelder, E., Lang, A.-G., & Buchner, A. (2007). G*Power 3:
+          A flexible statistical power analysis program for the social, behavioral, and biomedical sciences.
+          Behavior Research Methods, 39(2), 175-191.
+        </Typography>
+      </Paper>
+
+      {/* Code Export Dialog */}
+      <Dialog
+        open={codeDialogOpen}
+        onClose={() => setCodeDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CodeIcon color="primary" />
+          Export Reproducible Code
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>Reproducibility:</strong> This code replicates your exact analysis in R or Python.
+              Run it to verify StickForStats calculations or include in your research paper's supplementary materials.
+            </Typography>
+          </Alert>
+
+          <Tabs
+            value={codeTab}
+            onChange={(_, v) => setCodeTab(v)}
+            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+          >
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#276DC3' }}>R</Typography>
+                  <Chip label="pwr" size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
+                </Box>
+              }
+            />
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#3776AB' }}>Python</Typography>
+                  <Chip label="statsmodels" size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
+                </Box>
+              }
+            />
+          </Tabs>
+
+          <Paper
+            elevation={0}
+            sx={{
+              bgcolor: '#1e1e1e',
+              color: '#d4d4d4',
+              p: 2,
+              borderRadius: 1,
+              maxHeight: 400,
+              overflow: 'auto',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}
+          >
+            {codeTab === 0 ? generatedRCode : generatedPythonCode}
+          </Paper>
+
+          <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+            <Chip
+              label={codeTab === 0 ? 'Requires: pwr package' : 'Requires: statsmodels, scipy'}
+              size="small"
+              variant="outlined"
+            />
+            <Chip
+              label="G*Power validated"
+              size="small"
+              color="success"
+              variant="outlined"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCodeDialogOpen(false)}>
+            Close
+          </Button>
+          <Button
+            startIcon={<ContentCopyIcon />}
+            onClick={handleCopyCode}
+            variant="outlined"
+          >
+            Copy Code
+          </Button>
+          <Button
+            startIcon={<DownloadIcon />}
+            onClick={handleDownloadCode}
+            variant="contained"
+          >
+            Download {codeTab === 0 ? '.R' : '.py'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for copy confirmation */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+    </Box>
+  );
+};
+
+export default PowerAnalysisTool;

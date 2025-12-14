@@ -58,6 +58,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import PeopleIcon from '@mui/icons-material/People';
 import BgColorsOutlined from '@mui/icons-material/PaletteOutlined';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 // Logo import
 import logo from '../assets/logo.png';
@@ -93,6 +94,7 @@ const pages = Object.freeze([
   { name: 'DOE Analysis', path: '/doe-analysis' },
   { name: 'PCA Analysis', path: '/pca-analysis' },
   { name: 'SQC Analysis', path: '/sqc-analysis' },
+  { name: 'Meta-Analysis', path: '/meta-analysis' },
   { name: 'Workflows', path: '/workflows' },
   { name: 'Reports', path: '/reports' },
   { name: 'Reporting Studio', path: '/reporting-studio' },
@@ -162,6 +164,8 @@ const getIconForPage = (pageName) => {
       return <AssessmentIcon />;
     case 'SQC Analysis':
       return <SchoolIcon />;
+    case 'Meta-Analysis':
+      return <LibraryBooksIcon />;
     case 'Workflows':
       return <AccountTreeIcon />;
     case 'Reports':

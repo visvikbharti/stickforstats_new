@@ -89,6 +89,23 @@ from .factor_views import (
     transform_factors,
     factor_tutorial
 )
+from .ai_advisor_views import (
+    AIAdvisorChatView,
+    AIAdvisorStatusView,
+    AIAdvisorConversationView,
+    quick_recommendation,
+    interpret_results,
+    generate_methods_section,
+    assumption_guidance
+)
+from .meta_analysis_views import (
+    MetaAnalysisView,
+    convert_effect_size,
+    calculate_effect_size_se,
+    publication_bias_test,
+    sensitivity_analysis as meta_sensitivity_analysis,
+    subgroup_analysis
+)
 
 app_name = 'api-v1'
 
@@ -190,4 +207,21 @@ urlpatterns = [
     path('factor/efa/', exploratory_factor_analysis, name='exploratory-factor-analysis'),
     path('factor/transform/', transform_factors, name='factor-transform'),
     path('factor/tutorial/', factor_tutorial, name='factor-tutorial'),
+
+    # AI Advisor endpoints (Claude-powered statistical guidance)
+    path('ai-advisor/chat/', AIAdvisorChatView.as_view(), name='ai-advisor-chat'),
+    path('ai-advisor/status/', AIAdvisorStatusView.as_view(), name='ai-advisor-status'),
+    path('ai-advisor/conversation/<str:conversation_id>/', AIAdvisorConversationView.as_view(), name='ai-advisor-conversation'),
+    path('ai-advisor/quick-recommend/', quick_recommendation, name='ai-advisor-quick-recommend'),
+    path('ai-advisor/interpret/', interpret_results, name='ai-advisor-interpret'),
+    path('ai-advisor/methods-section/', generate_methods_section, name='ai-advisor-methods'),
+    path('ai-advisor/assumption-guidance/', assumption_guidance, name='ai-advisor-assumption'),
+
+    # Meta-Analysis endpoints
+    path('meta-analysis/', MetaAnalysisView.as_view(), name='meta-analysis'),
+    path('meta-analysis/convert-effect/', convert_effect_size, name='meta-convert-effect'),
+    path('meta-analysis/calculate-se/', calculate_effect_size_se, name='meta-calculate-se'),
+    path('meta-analysis/publication-bias/', publication_bias_test, name='meta-publication-bias'),
+    path('meta-analysis/sensitivity/', meta_sensitivity_analysis, name='meta-sensitivity'),
+    path('meta-analysis/subgroup/', subgroup_analysis, name='meta-subgroup'),
 ]

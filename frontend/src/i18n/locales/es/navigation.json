@@ -1,0 +1,39 @@
+{
+  "home": "Inicio",
+  "dashboard": "Panel de control",
+  "learningHub": "Centro de Aprendizaje",
+  "statisticalAnalysis": "Análisis Estadístico",
+  "metaAnalysis": "Meta-Análisis",
+  "paperParser": "Analizador de Artículos",
+  "confidenceIntervals": "Intervalos de Confianza",
+  "pcaAnalysis": "Análisis PCA",
+  "factorAnalysis": "Análisis Factorial",
+  "survivalAnalysis": "Análisis de Supervivencia",
+  "doeAnalysis": "Diseño de Experimentos",
+  "sqcAnalysis": "Control Estadístico de Calidad",
+  "probabilityDistributions": "Distribuciones de Probabilidad",
+  "powerAnalysis": "Análisis de Potencia",
+  "biophysics": "Biofísica",
+  "enterprise": "Empresarial",
+  "admin": "Administración",
+  "branding": "Marca",
+  "security": "Seguridad",
+  "monitoring": "Monitoreo",
+
+  "menu": {
+    "analysis": "Análisis",
+    "education": "Educación",
+    "tools": "Herramientas",
+    "advanced": "Avanzado",
+    "settings": "Configuración"
+  },
+
+  "footer": {
+    "aboutUs": "Sobre nosotros",
+    "contactUs": "Contáctenos",
+    "termsOfService": "Términos de servicio",
+    "privacyPolicy": "Política de privacidad",
+    "copyright": "© 2025 StickForStats. Todos los derechos reservados.",
+    "poweredBy": "Impulsado por algoritmos estadísticos avanzados"
+  }
+}

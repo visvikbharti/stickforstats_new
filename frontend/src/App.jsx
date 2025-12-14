@@ -9,6 +9,9 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 // Import Three.js setup (only loads Three.js when needed)
 import './setupThree';
 
+// Import i18n configuration (must be imported before any components that use translations)
+import './i18n';
+
 // Import Professional Landing Page (Scientific, minimal design)
 import ProfessionalLandingPage from './components/Landing/ProfessionalLanding';
 
@@ -33,6 +36,9 @@ import AuthDebug from './components/auth/AuthDebug';
 
 // Import prefetching components
 import { PrefetchProvider } from './context/PrefetchContext';
+
+// AI Statistical Advisor - Global floating component
+import AIAdvisorHub from './components/ai-advisor/AIAdvisorHub';
 import PrefetchDebug from './components/navigation/PrefetchDebug';
 
 // Import command palette components
@@ -99,7 +105,11 @@ const CIEducationHub = lazy(() => import('./components/confidence_intervals/educ
 const DOEEducationHub = lazy(() => import('./components/doe/education/DOEEducationHub'));
 const ProbabilityEducationHub = lazy(() => import('./components/probability_distributions/education/ProbabilityEducationHub'));
 const SQCEducationHub = lazy(() => import('./components/sqc/education/SQCEducationHub'));
+const PowerAnalysisEducationHub = lazy(() => import('./components/power-analysis/education/PowerAnalysisEducationHub'));
+const BiophysicsLearningHub = lazy(() => import('./components/biophysics-education/BiophysicsLearningHub'));
 const StatisticalAnalysisHub = lazy(() => import('./components/statistical-analysis/StatisticalAnalysisHub'));
+const MetaAnalysisHub = lazy(() => import('./components/meta-analysis/MetaAnalysisHub'));
+const PaperParserHub = lazy(() => import('./components/paper-parser/PaperParserHub'));
 const LearningHub = lazy(() => import('./components/education/LearningHub'));
 const WorkflowManagementPage = lazy(() => import('./pages/WorkflowManagementPage'));
 const ReportManagementPage = lazy(() => import('./pages/ReportManagementPage'));
@@ -242,6 +252,8 @@ function App() {
                               <WelcomeModal />
                               {/* <OnboardingChecklist /> */}
                               <HelpButton />
+                              {/* AI Statistical Advisor - Available on all pages */}
+                              <AIAdvisorHub />
                               <main style={{ minHeight: 'calc(100vh - 120px)', padding: '0' }}>
                         <Routes>
                         {/* Home page after landing */}
@@ -538,6 +550,26 @@ function App() {
                         }
                       />
 
+                      {/* Meta-Analysis Module - Forest Plots, Heterogeneity, Publication Bias */}
+                      <Route
+                        path="/meta-analysis"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Meta-Analysis..." />}>
+                            <MetaAnalysisHub />
+                          </Suspense>
+                        }
+                      />
+
+                      {/* Paper Parser - Analyze papers for statistical quality */}
+                      <Route
+                        path="/paper-parser"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Paper Parser..." />}>
+                            <PaperParserHub />
+                          </Suspense>
+                        }
+                      />
+
                       <Route
                         path="/learn"
                         element={
@@ -588,6 +620,24 @@ function App() {
                         element={
                           <Suspense fallback={<LoadingComponent message="Loading SQC Education..." />}>
                             <SQCEducationHub />
+                          </Suspense>
+                        }
+                      />
+
+                      <Route
+                        path="/power-learn"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Power Analysis Education..." />}>
+                            <PowerAnalysisEducationHub />
+                          </Suspense>
+                        }
+                      />
+
+                      <Route
+                        path="/biophysics-learn"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Biophysics Education..." />}>
+                            <BiophysicsLearningHub />
                           </Suspense>
                         }
                       />

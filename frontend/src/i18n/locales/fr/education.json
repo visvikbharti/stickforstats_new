@@ -1,0 +1,71 @@
+{
+  "title": "Centre d'Apprentissage",
+  "subtitle": "Maîtrisez les statistiques grâce aux leçons interactives",
+
+  "modules": {
+    "pca": "Analyse en Composantes Principales",
+    "confidenceIntervals": "Intervalles de Confiance",
+    "doe": "Plans d'Expériences",
+    "probability": "Distributions de Probabilité",
+    "sqc": "Contrôle Statistique de la Qualité",
+    "powerAnalysis": "Analyse de Puissance",
+    "biophysics": "Statistique en Biophysique"
+  },
+
+  "levels": {
+    "beginner": "Débutant",
+    "intermediate": "Intermédiaire",
+    "advanced": "Avancé",
+    "expert": "Expert"
+  },
+
+  "lesson": {
+    "title": "Leçon",
+    "duration": "Durée",
+    "objectives": "Objectifs d'Apprentissage",
+    "prerequisites": "Prérequis",
+    "content": "Contenu",
+    "exercises": "Exercices",
+    "quiz": "Quiz",
+    "summary": "Résumé",
+    "nextLesson": "Leçon Suivante",
+    "previousLesson": "Leçon Précédente",
+    "complete": "Terminer la Leçon",
+    "progress": "Progression"
+  },
+
+  "progress": {
+    "notStarted": "Non Commencé",
+    "inProgress": "En Cours",
+    "completed": "Terminé",
+    "lessonsCompleted": "Leçons Terminées",
+    "totalLessons": "Total des Leçons",
+    "overallProgress": "Progression Globale"
+  },
+
+  "interactive": {
+    "tryIt": "Essayez",
+    "simulation": "Simulation Interactive",
+    "calculator": "Calculatrice",
+    "visualization": "Visualisation",
+    "example": "Exemple",
+    "practice": "Pratique"
+  },
+
+  "concepts": {
+    "whatIs": "Qu'est-ce que",
+    "whyImportant": "Pourquoi c'est important ?",
+    "howToCalculate": "Comment calculer",
+    "whenToUse": "Quand utiliser",
+    "commonMistakes": "Erreurs courantes",
+    "bestPractices": "Meilleures pratiques",
+    "realWorldExamples": "Exemples concrets"
+  },
+
+  "resources": {
+    "additionalReading": "Lectures Complémentaires",
+    "references": "Références",
+    "downloadMaterials": "Télécharger les Supports",
+    "relatedTopics": "Sujets Connexes"
+  }
+}

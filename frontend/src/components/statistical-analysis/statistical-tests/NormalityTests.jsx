@@ -52,6 +52,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { shapiroWilkTest, andersonDarlingTest, calculateDescriptiveStats } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { CodeExportPanel } from '../../common';
+import { DebuggerPanel } from '../../statistical-debugger';
 
 /**
  * Utility functions for statistical calculations
@@ -690,6 +692,63 @@ const NormalityTests = ({ data }) => {
               </Paper>
             </Grid>
           </Grid>
+
+          {/* R/Python Code Export */}
+          {shapiroResult && (
+            <CodeExportPanel
+              testType="shapiro_wilk"
+              data={{
+                values: columnData,
+                columnName: selectedColumn,
+                n: columnData.length
+              }}
+              results={{
+                shapiroStatistic: shapiroResult?.statistic,
+                shapiroPValue: shapiroResult?.pValue,
+                shapiroIsNormal: shapiroResult?.isNormal,
+                andersonStatistic: andersonResult?.statistic,
+                andersonPValue: andersonResult?.pValue,
+                andersonIsNormal: andersonResult?.isNormal,
+                skewness: stats?.skewness,
+                kurtosis: stats?.kurtosis,
+                mean: stats?.mean,
+                std: stats?.std
+              }}
+              assumptions={guardianReport || {}}
+              options={{
+                alpha
+              }}
+            />
+          )}
+
+          {/* Statistical Debugger */}
+          {shapiroResult && (
+            <DebuggerPanel
+              testType="shapiro_wilk"
+              data={{
+                values: columnData,
+                columnName: selectedColumn,
+                n: columnData.length
+              }}
+              results={{
+                statistic: shapiroResult?.statistic,
+                pValue: shapiroResult?.pValue,
+                isNormal: shapiroResult?.isNormal,
+                andersonStatistic: andersonResult?.statistic,
+                andersonPValue: andersonResult?.pValue,
+                andersonIsNormal: andersonResult?.isNormal,
+                skewness: stats?.skewness,
+                kurtosis: stats?.kurtosis,
+                mean: stats?.mean,
+                std: stats?.std,
+                significant: !shapiroResult?.isNormal
+              }}
+              assumptions={guardianReport || {}}
+              options={{
+                alpha
+              }}
+            />
+          )}
 
           {/* Sample Size Warnings */}
           {columnData.length < 20 && (

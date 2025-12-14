@@ -56,6 +56,8 @@ import {
 } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { CodeExportPanel } from '../../common';
+import { DebuggerPanel } from '../../statistical-debugger';
 
 /**
  * Main Parametric Tests Component
@@ -657,6 +659,54 @@ const ParametricTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="one_sample_t_test"
+            data={{
+              values: columnData,
+              columnName: selectedColumn,
+              n: columnData.length
+            }}
+            results={{
+              statistic: oneSampleResult.statistic,
+              pValue: oneSampleResult.pValue,
+              df: oneSampleResult.df,
+              sampleMean: oneSampleResult.sampleMean,
+              standardError: oneSampleResult.standardError,
+              significant: oneSampleResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              populationMean,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="one_sample_t_test"
+            data={{
+              values: columnData,
+              columnName: selectedColumn,
+              n: columnData.length
+            }}
+            results={{
+              statistic: oneSampleResult.statistic,
+              pValue: oneSampleResult.pValue,
+              df: oneSampleResult.df,
+              sampleMean: oneSampleResult.sampleMean,
+              standardError: oneSampleResult.standardError,
+              significant: oneSampleResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              populationMean,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 
@@ -743,6 +793,52 @@ const ParametricTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="independent_t_test"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: independentResult.statistic,
+              pValue: independentResult.pValue,
+              df: independentResult.df,
+              meanDifference: independentResult.meanDifference,
+              standardError: independentResult.standardError,
+              significant: independentResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="independent_t_test"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: independentResult.statistic,
+              pValue: independentResult.pValue,
+              df: independentResult.df,
+              meanDifference: independentResult.meanDifference,
+              standardError: independentResult.standardError,
+              significant: independentResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 
@@ -829,6 +925,56 @@ const ParametricTests = ({ data }) => {
               </ResponsiveContainer>
             </Box>
           </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="paired_t_test"
+            data={{
+              values1: columnData,
+              values2: columnData2,
+              column1Name: selectedColumn,
+              column2Name: selectedColumn2,
+              n: columnData.length
+            }}
+            results={{
+              statistic: pairedResult.statistic,
+              pValue: pairedResult.pValue,
+              df: pairedResult.df,
+              meanDifference: pairedResult.sampleMean,
+              standardError: pairedResult.standardError,
+              significant: pairedResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="paired_t_test"
+            data={{
+              values1: columnData,
+              values2: columnData2,
+              column1Name: selectedColumn,
+              column2Name: selectedColumn2,
+              n: columnData.length
+            }}
+            results={{
+              statistic: pairedResult.statistic,
+              pValue: pairedResult.pValue,
+              df: pairedResult.df,
+              meanDifference: pairedResult.sampleMean,
+              standardError: pairedResult.standardError,
+              significant: pairedResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
         </>
       )}
 
@@ -928,8 +1074,56 @@ const ParametricTests = ({ data }) => {
             </Box>
           </Paper>
 
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="one_way_anova"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              fStatistic: anovaResult.fStatistic,
+              pValue: anovaResult.pValue,
+              dfb: anovaResult.dfb,
+              dfw: anovaResult.dfw,
+              ssb: anovaResult.ssb,
+              ssw: anovaResult.ssw,
+              msb: anovaResult.msb,
+              msw: anovaResult.msw,
+              etaSquared: anovaResult.etaSquared,
+              significant: anovaResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="one_way_anova"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: anovaResult.fStatistic,
+              pValue: anovaResult.pValue,
+              dfb: anovaResult.dfb,
+              dfw: anovaResult.dfw,
+              etaSquared: anovaResult.etaSquared,
+              significant: anovaResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha
+            }}
+          />
+
           {anovaResult.significant && (
-            <Alert severity="info">
+            <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="body2">
                 <strong>Post-hoc Analysis Recommended:</strong> Since ANOVA is significant,
                 perform post-hoc tests (e.g., Tukey HSD) to determine which specific group
