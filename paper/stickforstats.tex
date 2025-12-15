@@ -15,6 +15,7 @@
 \usepackage{algpseudocode}
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning}
+\usepackage{graphicx}
 
 %% -- Article metainformation --------------------------------------------------
 
@@ -174,6 +175,13 @@ To our knowledge, no existing statistical platform implements mandatory, automat
 
 Four principles guided architectural decisions: computation correctness first, transparency by default, reproducibility built-in, and modularity for extension.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/figure1.pdf}
+\caption{StickForStats system architecture showing the three-tier design: user interface (React), application layer (Django REST with Guardian integration), and data layer (PostgreSQL, Redis, file storage). The Guardian layer intercepts all statistical test requests.}
+\label{fig:architecture}
+\end{figure}
+
 %% =============================================================================
 %% SECTION 4: THE GUARDIAN SYSTEM
 %% =============================================================================
@@ -208,6 +216,13 @@ Guardian computes a confidence score using golden ratio ($\phi \approx 1.618$) b
 \end{equation}
 
 where penalty weights are $\phi^2 \approx 2.618$ for critical violations, $\phi \approx 1.618$ for warnings, and $1.0$ for minor issues.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/figure2.pdf}
+\caption{Guardian assumption validation workflow: (1) identify test requirements, (2) run validators in parallel, (3) calculate confidence score, (4) proceed or recommend alternatives based on threshold.}
+\label{fig:workflow}
+\end{figure}
 
 \subsection{Alternative test recommendation}
 
