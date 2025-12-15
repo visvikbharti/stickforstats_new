@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retraction Panel - Layout Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 42px;
+            color: #1976D2;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 20px;
+            color: #424242;
+            line-height: 1.6;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .layout-option {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .option-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #1976D2;
+        }
+
+        .option-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .option-subtitle {
+            font-size: 18px;
+            color: #616161;
+            font-style: italic;
+        }
+
+        .preview-frame {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .preview-frame iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+        }
+
+        .pros-cons {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+
+        .pros-cons h3 {
+            font-size: 20px;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .pros-list, .cons-list {
+            margin-top: 10px;
+        }
+
+        .pros-list li {
+            color: #388E3C;
+            margin-bottom: 8px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .cons-list li {
+            color: #F57C00;
+            margin-bottom: 8px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .recommendation {
+            margin-top: 30px;
+            padding: 25px;
+            background: #E8F5E9;
+            border: 3px solid #388E3C;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .recommendation h2 {
+            font-size: 28px;
+            color: #388E3C;
+            margin-bottom: 15px;
+        }
+
+        .recommendation p {
+            font-size: 18px;
+            color: #212121;
+            line-height: 1.6;
+        }
+
+        .use-case {
+            display: inline-block;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 20px;
+            margin: 10px 5px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1976D2;
+            border: 2px solid #1976D2;
+        }
+
+        .stats-comparison {
+            margin-top: 30px;
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #F57C00;
+        }
+
+        .stats-comparison h3 {
+            text-align: center;
+            font-size: 24px;
+            color: #E65100;
+            margin-bottom: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #616161;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #E65100;
+        }
+
+        @media (max-width: 1400px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .view-button {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 0 10px;
+            background: #1976D2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .view-button:hover {
+            background: #1565C0;
+        }
+
+        .view-button.green {
+            background: #388E3C;
+        }
+
+        .view-button.green:hover {
+            background: #2E7D32;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Retraction Panel Layout Comparison</h1>
+        <p>Compare both layout options for your EMBO poster's "Statistical Failures" section</p>
+        <p style="margin-top: 10px; font-size: 18px; color: #F57C00;">
+            ⚡ Both layouts are scientifically accurate, citation-safe, and ready to use
+        </p>
+    </div>
+
+    <div class="comparison-container">
+        <!-- Option 1: Compact Table -->
+        <div class="layout-option">
+            <div class="option-header">
+                <div class="option-title">OPTION 1: Compact Table</div>
+                <div class="option-subtitle">Information-dense, professional, organized</div>
+            </div>
+
+            <div class="preview-frame">
+                <iframe src="retraction_layout_option1_compact.html"></iframe>
+            </div>
+
+            <div class="pros-cons">
+                <h3>✅ Strengths</h3>
+                <ul class="pros-list">
+                    <li><strong>Maximum information density</strong> - Fits all cases with details</li>
+                    <li><strong>Easy to read</strong> - Clear categories, logical flow</li>
+                    <li><strong>Professional appearance</strong> - Academic conference standard</li>
+                    <li><strong>Space-efficient</strong> - Fits in smaller poster area if needed</li>
+                    <li><strong>Good for text-focused visitors</strong> - Researchers who read details</li>
+                </ul>
+
+                <h3 style="margin-top: 15px; color: #F57C00;">⚠️ Considerations</h3>
+                <ul class="cons-list">
+                    <li>More text-heavy (may not catch eye from distance)</li>
+                    <li>Requires closer reading to appreciate impact</li>
+                    <li>Less visually striking than cards</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Option 2: Visual Cards -->
+        <div class="layout-option">
+            <div class="option-header">
+                <div class="option-title">OPTION 2: Visual Cards</div>
+                <div class="option-subtitle">Visually striking, memorable, scannable</div>
+            </div>
+
+            <div class="preview-frame">
+                <iframe src="retraction_layout_option2_cards.html"></iframe>
+            </div>
+
+            <div class="pros-cons">
+                <h3>✅ Strengths</h3>
+                <ul class="pros-list">
+                    <li><strong>Visually impactful</strong> - Catches attention from across room</li>
+                    <li><strong>Memorable layout</strong> - 9-grid format sticks in mind</li>
+                    <li><strong>Quick scanning</strong> - Numbers pop out immediately</li>
+                    <li><strong>Guardian card stands out</strong> - Clear solution vs. problems</li>
+                    <li><strong>Modern design</strong> - Contemporary poster aesthetic</li>
+                </ul>
+
+                <h3 style="margin-top: 15px; color: #F57C00;">⚠️ Considerations</h3>
+                <ul class="cons-list">
+                    <li>Requires more poster space (3×3 grid)</li>
+                    <li>Less detailed explanations in each card</li>
+                    <li>Need to explain details verbally to visitors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Comparison -->
+    <div class="stats-comparison">
+        <h3>📏 Layout Statistics Comparison</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-label">Information Density</div>
+                <div class="stat-value">Option 1 ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Visual Impact</div>
+                <div class="stat-value">Option 2 ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Space Required</div>
+                <div class="stat-value">Option 1 ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Memorability</div>
+                <div class="stat-value">Option 2 ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Detail Level</div>
+                <div class="stat-value">Option 1 ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Modern Design</div>
+                <div class="stat-value">Option 2 ⭐</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="recommendation">
+        <h2>🎯 Recommendation Guide</h2>
+
+        <p style="margin-bottom: 20px;">
+            <strong>Choose based on your poster's overall design and space:</strong>
+        </p>
+
+        <div>
+            <strong style="font-size: 20px; color: #1976D2;">Choose Option 1 (Compact Table) if:</strong><br>
+            <span class="use-case">Limited poster space</span>
+            <span class="use-case">Text-heavy poster overall</span>
+            <span class="use-case">Traditional academic style</span>
+            <span class="use-case">Want maximum detail</span>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <strong style="font-size: 20px; color: #388E3C;">Choose Option 2 (Visual Cards) if:</strong><br>
+            <span class="use-case" style="border-color: #388E3C; color: #388E3C;">Ample poster space</span>
+            <span class="use-case" style="border-color: #388E3C; color: #388E3C;">Visually-focused design</span>
+            <span class="use-case" style="border-color: #388E3C; color: #388E3C;">Modern aesthetic</span>
+            <span class="use-case" style="border-color: #388E3C; color: #388E3C;">Want to attract from distance</span>
+        </div>
+
+        <p style="margin-top: 25px; font-size: 20px; font-weight: bold; color: #D32F2F;">
+            💡 Pro Tip: You can also combine elements from both!
+        </p>
+        <p style="margin-top: 10px; color: #424242;">
+            Use cards for top failures (Wansink, Stapel, Duke, Anversa) + compact table for others
+        </p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="button-container">
+        <a href="retraction_layout_option1_compact.html" class="view-button" target="_blank">
+            Open Option 1 (Full Screen)
+        </a>
+        <a href="retraction_layout_option2_cards.html" class="view-button green" target="_blank">
+            Open Option 2 (Full Screen)
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; padding: 20px; background: white; border-radius: 10px;">
+        <h3 style="color: #1976D2; margin-bottom: 15px;">📁 Next Steps</h3>
+        <p style="font-size: 18px; color: #424242; line-height: 1.6;">
+            1. Review both layouts above<br>
+            2. Consider your poster's available space and overall design<br>
+            3. Copy text from <code>INKSCAPE_RETRACTION_PANEL_FINAL.txt</code><br>
+            4. Paste into Inkscape and apply colors from the guide<br>
+            5. Your scientifically bulletproof retraction section is ready! ✅
+        </p>
+    </div>
+</body>
+</html>

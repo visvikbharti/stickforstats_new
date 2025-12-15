@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats - EMBO Poster with Graphical Abstract (4ft x 3ft)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #34495e;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Exact 4:3 ratio for 4ft x 3ft poster */
+        .poster {
+            width: 1200px;
+            height: 900px;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header with gradient */
+        .header {
+            height: 90px;
+            background: linear-gradient(135deg, #2c7a7b, #38b2ac, #4fd1c5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: relative;
+            border-bottom: 4px solid #f6ad55;
+        }
+
+        .header-content {
+            flex: 1;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 38px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .logo-area {
+            text-align: right;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Main Layout - Three Columns */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            background: white;
+        }
+
+        /* Left Panel - Barriers/Problems */
+        .left-panel {
+            width: 280px;
+            background: linear-gradient(180deg, #2c5282, #2d3748);
+            color: white;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #fc8181;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .barrier-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #fc8181;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .barrier-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .barrier-title {
+            font-weight: bold;
+            color: #fc8181;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .barrier-text {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .barrier-stat {
+            font-weight: bold;
+            color: #fbb6ce;
+            margin-top: 4px;
+            font-size: 13px;
+        }
+
+        /* Center Panel - Graphical Abstract */
+        .center-panel {
+            flex: 1;
+            background: #f7fafc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .abstract-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        /* Central Circular Diagram */
+        .circular-diagram {
+            position: relative;
+            width: 580px;
+            height: 440px;
+            margin: 0 auto;
+        }
+
+        /* Main Circle */
+        .main-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(237, 137, 54, 0.4);
+            z-index: 10;
+        }
+
+        .main-circle-icon {
+            font-size: 56px;
+            margin-bottom: 8px;
+        }
+
+        .main-circle-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .main-circle-subtitle {
+            font-size: 13px;
+            color: white;
+            opacity: 0.95;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Surrounding Module Circles */
+        .module-circle {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .module-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .module-circle-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        .module-circle-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            padding: 0 8px;
+        }
+
+        /* Position each module */
+        .module-pca {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .module-ci {
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .module-doe {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .module-ht {
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+
+        /* Connecting Lines */
+        .connection-line {
+            position: absolute;
+            background: #cbd5e0;
+            z-index: 1;
+        }
+
+        .line-1 {
+            top: 80px;
+            left: 50%;
+            width: 2px;
+            height: 60px;
+            transform: translateX(-50%);
+        }
+
+        .line-2 {
+            top: 50%;
+            right: 80px;
+            width: 60px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        .line-3 {
+            bottom: 80px;
+            left: 50%;
+            width: 2px;
+            height: 60px;
+            transform: translateX(-50%);
+        }
+
+        .line-4 {
+            top: 50%;
+            left: 80px;
+            width: 60px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        /* Process Flow at Bottom */
+        .process-flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .flow-icon {
+            font-size: 32px;
+        }
+
+        .flow-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #38b2ac;
+        }
+
+        /* Right Panel - Moving Forward */
+        .right-panel {
+            width: 280px;
+            background: linear-gradient(180deg, #276749, #2f855a);
+            color: white;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-panel .panel-title {
+            color: #9ae6b4;
+        }
+
+        .success-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #9ae6b4;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .success-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .success-title {
+            font-weight: bold;
+            color: #9ae6b4;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .success-text {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .success-stat {
+            font-weight: bold;
+            color: #c6f6d5;
+            margin-top: 4px;
+            font-size: 13px;
+        }
+
+        /* QR Section in Right Panel */
+        .qr-section {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .qr-placeholder {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 8px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .qr-text {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        /* Footer */
+        .footer {
+            height: 65px;
+            background: linear-gradient(90deg, #1a202c, #2d3748);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            border-top: 3px solid #f6ad55;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        .footer-tagline {
+            font-size: 15px;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 2px;
+        }
+
+        .footer-subtitle {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Stick Figures using CSS */
+        .stick-figure {
+            display: inline-block;
+            position: relative;
+        }
+
+        .stick-figure-confused::before {
+            content: '🤷';
+            font-size: 20px;
+        }
+
+        .stick-figure-happy::before {
+            content: '🎓';
+            font-size: 20px;
+        }
+
+        /* Visual Stats in Barriers */
+        .visual-stat-box {
+            background: rgba(252, 129, 129, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .visual-stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #fc8181;
+        }
+
+        .visual-stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 3px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .poster {
+                width: 48in;
+                height: 36in;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>Transdisciplinary Education to Meet Global Health Needs</h1>
+                <div class="subtitle">StickForStats: Making Statistics Accessible for Research Excellence</div>
+            </div>
+            <div class="logo-area">
+                <div>CSIR-CCMB</div>
+                <div>EMBO Conference 2024</div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Left Panel - Barriers -->
+            <div class="left-panel">
+                <div class="panel-title">🚫 barriers</div>
+
+                <div class="barrier-item">
+                    <span class="barrier-icon">😰</span>
+                    <div class="barrier-title">Statistical Illiteracy</div>
+                    <div class="barrier-text">Researchers lack foundational understanding of core concepts</div>
+                    <div class="barrier-stat">51% misinterpret p-values</div>
+                </div>
+
+                <div class="barrier-item">
+                    <span class="barrier-icon">💸</span>
+                    <div class="barrier-title">Resource Waste</div>
+                    <div class="barrier-text">Poor experimental design leads to inefficient research</div>
+                    <div class="barrier-stat">$3T in failed drug dev</div>
+                </div>
+
+                <div class="barrier-item">
+                    <span class="barrier-icon">⚠️</span>
+                    <div class="barrier-title">Reproducibility Crisis</div>
+                    <div class="barrier-text">Inadequate statistical rigor undermines scientific validity</div>
+                    <div class="barrier-stat">70% can't reproduce studies</div>
+                </div>
+
+                <div class="barrier-item">
+                    <span class="barrier-icon">📊</span>
+                    <div class="barrier-title">Complex Tools</div>
+                    <div class="barrier-text">Statistical software is intimidating and not intuitive</div>
+                    <div class="barrier-stat">2 weeks → basic analysis</div>
+                </div>
+
+                <div class="visual-stat-box">
+                    <div class="visual-stat-number">38%</div>
+                    <div class="visual-stat-label">of papers have statistical errors</div>
+                </div>
+
+                <div class="barrier-item">
+                    <span class="barrier-icon">🎓</span>
+                    <div class="barrier-title">Teaching Gap</div>
+                    <div class="barrier-text">Traditional methods fail to build intuition</div>
+                    <div class="barrier-stat">Passive learning ≠ understanding</div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Graphical Abstract -->
+            <div class="center-panel">
+                <div class="abstract-title">A University Transdisciplinary Environment</div>
+
+                <!-- Circular Diagram -->
+                <div class="circular-diagram">
+                    <!-- Connecting Lines -->
+                    <div class="connection-line line-1"></div>
+                    <div class="connection-line line-2"></div>
+                    <div class="connection-line line-3"></div>
+                    <div class="connection-line line-4"></div>
+
+                    <!-- Main Central Circle -->
+                    <div class="main-circle">
+                        <div class="main-circle-icon">📊</div>
+                        <div class="main-circle-title">StickForStats</div>
+                        <div class="main-circle-subtitle">Interactive Learning<br>Statistical Mastery</div>
+                    </div>
+
+                    <!-- Module Circles -->
+                    <div class="module-circle module-pca">
+                        <div class="module-circle-icon">🔍</div>
+                        <div class="module-circle-title">PCA<br>Dimensionality<br>Reduction</div>
+                    </div>
+
+                    <div class="module-circle module-ci">
+                        <div class="module-circle-icon">📈</div>
+                        <div class="module-circle-title">Confidence<br>Intervals<br>Uncertainty</div>
+                    </div>
+
+                    <div class="module-circle module-doe">
+                        <div class="module-circle-icon">🧪</div>
+                        <div class="module-circle-title">DOE<br>Experimental<br>Design</div>
+                    </div>
+
+                    <div class="module-circle module-ht">
+                        <div class="module-circle-icon">🎯</div>
+                        <div class="module-circle-title">Hypothesis<br>Testing<br>Decisions</div>
+                    </div>
+                </div>
+
+                <!-- Process Flow -->
+                <div class="process-flow">
+                    <div class="flow-step">
+                        <div class="flow-icon">🤷</div>
+                        <div class="flow-label">Confused<br>Researcher</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">🖱️</div>
+                        <div class="flow-label">Interactive<br>Simulation</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">💡</div>
+                        <div class="flow-label">Intuitive<br>Understanding</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">✅</div>
+                        <div class="flow-label">Correct<br>Analysis</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">🏆</div>
+                        <div class="flow-label">Reproducible<br>Science</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Ideas for Moving Forward -->
+            <div class="right-panel">
+                <div class="panel-title">💡 ideas for moving forward</div>
+
+                <div class="success-item">
+                    <span class="success-icon">🎓</span>
+                    <div class="success-title">Interactive Learning</div>
+                    <div class="success-text">Visual simulations build deep intuition</div>
+                    <div class="success-stat">85% better comprehension</div>
+                </div>
+
+                <div class="success-item">
+                    <span class="success-icon">⚡</span>
+                    <div class="success-title">Instant Feedback</div>
+                    <div class="success-text">Real-time parameter adjustments show cause-effect</div>
+                    <div class="success-stat">Learn by doing</div>
+                </div>
+
+                <div class="success-item">
+                    <span class="success-icon">🌍</span>
+                    <div class="success-title">Universal Access</div>
+                    <div class="success-text">Web-based, no installation, works anywhere</div>
+                    <div class="success-stat">500+ global users</div>
+                </div>
+
+                <div class="success-item">
+                    <span class="success-icon">🧬</span>
+                    <div class="success-title">Real-World Examples</div>
+                    <div class="success-text">From genomics to clinical trials</div>
+                    <div class="success-stat">32 interactive lessons</div>
+                </div>
+
+                <div class="visual-stat-box" style="background: rgba(154, 230, 180, 0.2);">
+                    <div class="visual-stat-number" style="color: #9ae6b4;">75%</div>
+                    <div class="visual-stat-label">reduction in analysis time</div>
+                </div>
+
+                <div class="success-item">
+                    <span class="success-icon">💰</span>
+                    <div class="success-title">Cost Savings</div>
+                    <div class="success-text">Better designs reduce failed experiments</div>
+                    <div class="success-stat">$2M saved in trial errors</div>
+                </div>
+
+                <div class="success-item">
+                    <span class="success-icon">🔬</span>
+                    <div class="success-title">Research Impact</div>
+                    <div class="success-text">Rigorous statistics → reproducible results</div>
+                    <div class="success-stat">Make science trustworthy</div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="qr-section">
+                    <div class="qr-placeholder">[QR CODE]</div>
+                    <div class="qr-text">📱 Try it now!<br>Free for Academia</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="footer-item">
+                    <span>📧</span>
+                    <span>vishalbharti@ccmb.res.in</span>
+                </div>
+                <div class="footer-item">
+                    <span>🌐</span>
+                    <span>http://192.168.40.86:3001</span>
+                </div>
+                <div class="footer-item">
+                    <span>🆓</span>
+                    <span>Free for Academic Research</span>
+                </div>
+                <div class="footer-item">
+                    <span>💻</span>
+                    <span>No Installation Required</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                <div class="footer-tagline">Make Statistics Accessible. Make Science Reproducible.</div>
+                <div class="footer-subtitle">Join the statistical revolution in research</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

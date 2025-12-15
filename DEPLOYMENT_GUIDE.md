@@ -59,7 +59,7 @@ docker-compose up -d
 ```bash
 docker-compose ps
 curl http://localhost/health
-curl http://localhost:8000/api/health
+curl http://localhost:8000/api/v1/health/
 ```
 
 ### Container Details
@@ -407,7 +407,7 @@ curl -f http://localhost/health
 
 ### Backend Health
 ```bash
-curl -f http://localhost:8000/api/health
+curl -f http://localhost:8000/api/v1/health/
 ```
 
 ### Database Health

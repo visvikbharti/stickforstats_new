@@ -1,199 +1,261 @@
-# StickForStats v1.5 - Enterprise Statistical Analysis Platform
+# StickForStats
 
-**For Life Scientists, By Scientists** | Production-Grade Statistical Software
+**A Statistical Analysis Platform with Automatic Assumption Validation**
 
-## 🎯 Project Status
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Django 4.2](https://img.shields.io/badge/django-4.2-green.svg)](https://www.djangoproject.com/)
 
-| Component | Progress | Status |
-|-----------|----------|--------|
-| **Backend (Tier 0)** | 100% | ✅ Complete |
-| **Frontend (Tier 0)** | 100% | ✅ Complete (35/35 components) |
-| **Integration** | 20% | 🔄 Active Development |
-| **Overall (Tier 0)** | 73% | 🚀 Integration Phase |
+StickForStats is an open-source statistical analysis platform featuring the **Guardian system**—an automatic assumption validation layer that checks statistical assumptions before every test without requiring user action.
 
-**Last Updated**: 2025-01-13
-**Current Sprint**: Integration Sprint - Week 2
-**Next Task**: Connect ResultsPanel to backend
+## Key Features
 
-## 📚 Session Documentation
+### Guardian System: Automatic Assumption Validation
+- **8 Validators**: Normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity
+- **Automatic Execution**: Assumptions checked before every statistical test—no user action required
+- **Integrated Reporting**: Assumption status appears alongside statistical results
+- **Alternative Recommendations**: Suggests appropriate tests when violations are detected
 
-- **Quick Start**: Read `/CLAUDE_AI_README.md` first
-- **Detailed Handover**: `/docs/SESSION_HANDOVER.md`
-- **Next Tasks**: `/docs/NEXT_SESSION_PROMPT.md`
-- **API Reference**: `/docs/API_DOCUMENTATION.md`
-- **Integration Plan**: `/docs/INTEGRATION_PLAN.md`
+### Statistical Tests
+- **Parametric Tests**: t-tests (independent, paired, one-sample), ANOVA (one-way, factorial, repeated measures)
+- **Non-parametric Tests**: Mann-Whitney U, Wilcoxon, Kruskal-Wallis, Friedman
+- **Correlation & Regression**: Pearson, Spearman, Kendall, linear regression, logistic regression
+- **Effect Sizes**: Cohen's d, Hedges' g, Glass's delta, eta-squared, omega-squared
+- **Meta-Analysis**: Fixed and random effects (DerSimonian-Laird), forest plots, funnel plots
+- **Power Analysis**: Sample size determination, power curves, sensitivity analysis
 
-## 📊 What We've Built
+### Additional Features
+- **High-Precision Computing**: Optional 50-decimal-place precision using mpmath
+- **Code Export**: Generate equivalent R or Python code for any analysis
+- **Reproducibility Bundle**: SHA-256 data fingerprints, complete audit trails
+- **50 Interactive Lessons**: Integrated statistical education
 
-### ✅ Backend - 100% Complete (Tier 0)
-All must-have statistical features implemented with **zero placeholders** and **100% real algorithms**:
+## Installation
 
-1. **Test Recommender + Assumption Guardrails** (T0.1)
-   - Intelligent test selection with 25+ statistical tests
-   - Real assumption checking (Shapiro-Wilk, Levene's, Durbin-Watson)
-   - Automatic fallback to robust alternatives
-   - Confidence scoring and explanations
-
-2. **Multiplicity Corrections** (T0.2)
-   - FDR/FWER control (Bonferroni, Holm, Benjamini-Hochberg)
-   - Hypothesis registry to prevent p-hacking
-   - Sequential testing with alpha spending
-   - Session-wide test tracking
-
-3. **Reproducibility Bundle** (T0.3)
-   - Complete analysis state capture
-   - SHA-256 data fingerprinting
-   - Pipeline tracking with decorators
-   - Seed management for deterministic results
-   - Auto-generated methods sections
-
-4. **Power Analysis** (T0.4)
-   - G*Power-validated calculations
-   - All test types (t-test, ANOVA, correlation, regression)
-   - Sample size determination
-   - Power curves and sensitivity analysis
-
-5. **Effect Sizes & Robust Estimation** (T0.5)
-   - Cohen's d, Hedges' g, eta-squared, Cramér's V
-   - Bootstrap confidence intervals
-   - Robust estimators (trimmed means, M-estimators)
-   - Effect size interpretations
-
-### ✅ Frontend - 100% Complete (35/35 Tier 0 Components)
-
-**Enterprise-Grade UI** that looks like SPSS/SAS/JMP, **NOT** a modern web app:
-
-#### All 35 Tier 0 Components Completed (~50,000+ lines):
-- ✅ **TestRecommenderWorkbench** - Multi-view analysis interface
-- ✅ **DataInputPanel** - Smart data loading with type detection
-- ✅ **AssumptionChecksPanel** - 20+ statistical tests with diagnostics
-- ✅ **TestSelectionPanel** - Comprehensive test catalog
-- ✅ **ResultsPanel** - APA-style reporting with exports
-- ✅ **MultiplicityCorrectionPanel** - Hypothesis registry & corrections
-- ✅ **PowerAnalysisWorkbench** - Complete power analysis suite
-- ✅ **EffectSizeCalculator** - 20+ effect measures with CI
-- ✅ **ReproducibilityBundleManager** - Bundle management & validation
-
-#### Design Principles:
-- **Information Density**: 13px fonts, 8px padding (not 32px)
-- **Professional Aesthetic**: #34495e primary, muted colors
-- **Power User Features**: Keyboard shortcuts, console access
-- **No Modern Web Fluff**: Sharp corners (3px), no animations
-- **Statistical Rigor**: All calculations visible, nothing hidden
-
-## Quick Start
+### Prerequisites
+- Python 3.10 or higher
+- Node.js 18 or higher (for frontend)
+- PostgreSQL (production) or SQLite (development)
 
 ### Backend Setup
+
 ```bash
+# Clone the repository
+git clone https://github.com/visvikbharti/stickforstats.git
+cd stickforstats
+
+# Create virtual environment
 cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run migrations
 python manage.py migrate
+
+# Start development server
 python manage.py runserver
 ```
 
 ### Frontend Setup
+
 ```bash
+# In a new terminal
 cd frontend
 npm install
 npm start
 ```
 
-## 📁 Project Structure
+The application will be available at `http://localhost:3000`.
+
+## Quick Start
+
+### API Usage
+
+```bash
+# Run a t-test with automatic assumption validation
+curl -X POST http://localhost:8000/api/v1/stats/ttest/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data1": [23.5, 25.1, 22.8, 24.3, 26.0],
+    "data2": [28.2, 29.5, 27.8, 30.1, 28.9],
+    "test_type": "independent"
+  }'
 ```
-StickForStats_v1.0_Production/
-├── backend/                     # Django Backend (100% Complete)
-│   ├── core/                   
-│   │   ├── test_recommender/    # Intelligent test selection
-│   │   ├── assumption_checks/   # Statistical assumptions
-│   │   ├── multiplicity/        # P-value corrections
-│   │   ├── power_analysis/      # Power & sample size
-│   │   ├── effect_sizes/        # Effect size calculations
-│   │   └── reproducibility/     # Bundle system
-│   └── tests/                   # Comprehensive test suite
-├── frontend/                     # React Frontend (31.3% Complete)
+
+Response includes both statistical results AND Guardian report:
+
+```json
+{
+  "results": {
+    "t_statistic": -5.67,
+    "p_value": 0.0005,
+    "effect_size": {"cohens_d": 2.54}
+  },
+  "guardian_report": {
+    "assumptions_checked": ["normality", "variance_homogeneity", "independence", "outliers"],
+    "violations": [],
+    "confidence_score": 1.0,
+    "can_proceed": true
+  }
+}
+```
+
+### Python Usage
+
+```python
+import requests
+
+# Perform correlation with Guardian validation
+response = requests.post(
+    "http://localhost:8000/api/v1/stats/correlation/",
+    json={
+        "x": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "y": [2.1, 4.2, 5.8, 8.1, 9.9, 12.2, 14.0, 16.1, 17.9, 20.2],
+        "method": "pearson"
+    }
+)
+
+result = response.json()
+print(f"Pearson r: {result['results']['r']}")
+print(f"Guardian confidence: {result['guardian_report']['confidence_score']}")
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/stats/ttest/` | POST | T-tests (independent, paired, one-sample) |
+| `/api/v1/stats/anova/` | POST | ANOVA (one-way, factorial) |
+| `/api/v1/stats/correlation/` | POST | Correlation (Pearson, Spearman, Kendall) |
+| `/api/v1/stats/chi-square/` | POST | Chi-square tests |
+| `/api/v1/meta-analysis/` | POST | Meta-analysis (fixed/random effects) |
+| `/api/v1/power/` | POST | Power analysis |
+| `/api/v1/nonparametric/mann-whitney/` | POST | Mann-Whitney U test |
+| `/api/v1/nonparametric/wilcoxon/` | POST | Wilcoxon signed-rank test |
+
+## Guardian System
+
+The Guardian system automatically validates assumptions before every statistical test:
+
+```
+User Request → Guardian Interception → Assumption Validation → Analysis → Combined Response
+```
+
+### Validators
+
+| Validator | Statistical Test | Threshold |
+|-----------|-----------------|-----------|
+| Normality | Shapiro-Wilk / Anderson-Darling | p < 0.05 |
+| Variance Homogeneity | Levene's Test | p < 0.05 |
+| Independence | Autocorrelation | \|r\| > 0.3 |
+| Outliers | IQR + Z-score | Combined detection |
+| Linearity | R² comparison + Runs test | ΔR² > 0.05 |
+| Homoscedasticity | Breusch-Pagan | p < 0.05 |
+
+### Confidence Score
+
+Guardian calculates a confidence score (0-1) based on assumption status:
+
+| Score | Interpretation |
+|-------|----------------|
+| 0.90 - 1.00 | Excellent - proceed with confidence |
+| 0.70 - 0.89 | Acceptable - proceed with caution |
+| 0.50 - 0.69 | Questionable - consider alternatives |
+| 0.00 - 0.49 | Poor - use alternative test |
+
+## Validation
+
+StickForStats calculations are validated against reference implementations:
+
+| Test | Reference | Agreement |
+|------|-----------|-----------|
+| T-test | SciPy | Exact (16 digits) |
+| ANOVA | SciPy | Exact (14 digits) |
+| Correlation | SciPy | Exact (16 digits) |
+| Meta-analysis | Manual calculation | Exact (10 digits) |
+| Power analysis | G*Power 3.1 | Within 1% |
+
+See `paper/replication/` for reproducibility scripts.
+
+## Project Structure
+
+```
+stickforstats/
+├── backend/
+│   ├── api/v1/              # REST API endpoints
+│   ├── core/                # Statistical computations
+│   │   ├── guardian/        # Guardian assumption validation
+│   │   ├── stats/           # Statistical tests
+│   │   └── hp_*.py          # High-precision modules
+│   └── requirements.txt
+├── frontend/
 │   ├── src/
-│   │   ├── components/          # Enterprise UI components
-│   │   ├── styles/              # SPSS/SAS-inspired design
-│   │   └── store/               # Redux state management
+│   │   ├── components/      # React components
+│   │   └── services/        # API clients
 │   └── package.json
-└── docs/                        # Comprehensive documentation
-    ├── IMPLEMENTATION_TRACKER.md
-    ├── FRONTEND_IMPLEMENTATION_LOG.md
-    ├── FRONTEND_REMAINING_COMPONENTS.md
-    └── PRAGMATIC_IMPLEMENTATION_PLAN.md
+├── paper/                   # JSS paper materials
+│   ├── replication/         # Reproducibility scripts
+│   └── figures/             # Paper figures
+├── examples/                # Usage examples
+└── docs/                    # Documentation
 ```
 
-## 🚀 What's Remaining (22 Components)
+## Documentation
 
-### Priority Components to Complete:
-1. **ComparisonView** - Side-by-side test comparison
-2. **HypothesisRegistry** - Central hypothesis tracking
-3. **SessionTracker** - Prevent p-hacking
-4. **BundleValidator** - Integrity verification
-5. **PowerCalculator** - Core calculations
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Guardian System Guide](docs/GUARDIAN_GUIDE.md)
+- [Deployment Guide](DEPLOYMENT_GUIDE.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
 
-### By Sprint:
-- **Sprint 1**: 1 component remaining
-- **Sprint 2**: 6 components (Multiplicity suite)
-- **Sprint 3**: 7 components (Power Analysis suite)
-- **Sprint 4**: 5 components (Effect Size suite)
-- **Sprint 5**: 7 components (Reproducibility suite)
+## Citation
 
-**Estimated Work**: ~8,900 lines JSX + ~2,000 lines SCSS
+If you use StickForStats in your research, please cite:
 
-## 📖 Key Documentation
+```bibtex
+@article{stickforstats2025,
+  title = {{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation},
+  author = {Bharti, Vishal},
+  journal = {Journal of Statistical Software},
+  year = {2025},
+  note = {Submitted}
+}
+```
 
-| Document | Purpose |
-|----------|---------|
-| [IMPLEMENTATION_TRACKER.md](docs/IMPLEMENTATION_TRACKER.md) | Overall progress tracking |
-| [FRONTEND_IMPLEMENTATION_LOG.md](docs/FRONTEND_IMPLEMENTATION_LOG.md) | Detailed frontend progress |
-| [FRONTEND_REMAINING_COMPONENTS.md](docs/FRONTEND_REMAINING_COMPONENTS.md) | Specifications for remaining 22 components |
-| [PRAGMATIC_IMPLEMENTATION_PLAN.md](docs/PRAGMATIC_IMPLEMENTATION_PLAN.md) | Original implementation strategy |
+## Contributing
 
-## 🎨 Why This Looks Different
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-Unlike typical modern web apps with their rounded corners and excessive whitespace, StickForStats deliberately mimics enterprise statistical software:
+### Development Setup
 
-- **SPSS/SAS Aesthetic**: Dense information display
-- **No Bootstrap/Material**: Custom enterprise design system
-- **Power User Focus**: Keyboard shortcuts, console access
-- **Scientific Rigor**: Every calculation visible
-- **Production Quality**: No placeholders, no mock data
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
 
-## ⚡ Key Features Implemented
+# Run tests
+pytest
 
-### Statistical Integrity
-- ✅ 25+ real statistical tests (no placeholders)
-- ✅ Automatic assumption checking
-- ✅ P-value correction methods
-- ✅ Effect size calculations with CI
-- ✅ Power analysis matching G*Power
+# Run linting
+flake8 backend/
+```
 
-### Reproducibility
-- ✅ Complete state capture
-- ✅ SHA-256 data fingerprinting
-- ✅ Seed management
-- ✅ Pipeline tracking
-- ✅ Auto-generated methods
+## License
 
-### Professional UI
-- ✅ Dense layouts (13px fonts)
-- ✅ Minimal padding (8px)
-- ✅ Professional colors (#34495e)
-- ✅ No animations or fluff
-- ✅ Export to PDF/LaTeX/CSV
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔬 For Life Scientists
+## Acknowledgments
 
-Built specifically for researchers who need:
-- Rigorous statistical analysis
-- Complete reproducibility
-- Professional reporting
-- No black boxes
-- Enterprise-grade interface
+- Built with [Django](https://www.djangoproject.com/), [React](https://reactjs.org/), [SciPy](https://scipy.org/)
+- High-precision arithmetic via [mpmath](http://mpmath.org/)
+- Inspired by the need for better statistical practice in science
+
+## Contact
+
+- **Issues**: [GitHub Issues](https://github.com/visvikbharti/stickforstats/issues)
+- **Email**: [your-email@example.com]
 
 ---
 
-**Status**: Active Development | **Quality**: Production-Grade | **Last Updated**: 2025-09-12
+**StickForStats** - Making statistical assumptions visible, not optional.

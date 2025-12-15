@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats - EMBO Poster (4ft x 3ft)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 4 feet x 3 feet = 48 inches x 36 inches */
+        /* For screen display, we'll use 1200px x 900px (25px per inch) */
+        .poster {
+            width: 1200px;
+            height: 900px;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            grid-template-rows: 120px 1fr 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header - spans full width */
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #ee5a6f, #f8b500, #8e44ad);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 50px,
+                rgba(255,255,255,0.1) 50px,
+                rgba(255,255,255,0.1) 100px
+            );
+        }
+
+        .header-content {
+            z-index: 1;
+            flex: 1;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-size: 22px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .logo-area {
+            z-index: 1;
+            text-align: right;
+        }
+
+        .institution {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        /* Left Panel - Problem */
+        .left-panel {
+            grid-column: 1;
+            grid-row: 2;
+            padding: 30px;
+            background: linear-gradient(180deg, #ffebeb 0%, #fff5f5 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 28px;
+            color: #d32f2f;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .failure-stat {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #d32f2f;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .failure-stat .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .failure-stat .description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .case-example {
+            background: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ffcdd2;
+        }
+
+        .case-example .title {
+            font-weight: bold;
+            color: #b71c1c;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .case-example .detail {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .case-example .impact {
+            font-weight: bold;
+            color: #d32f2f;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        /* Center Panel - Solution */
+        .center-panel {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 30px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .solution-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .solution-header h2 {
+            font-size: 36px;
+            color: #4a148c;
+            margin-bottom: 10px;
+        }
+
+        .solution-header .tagline {
+            font-size: 18px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .modules-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .module {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+        }
+
+        .module-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .module h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .module-description {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+
+        .module-examples {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .demo-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            background: white;
+            margin: 0 auto 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .demo-text {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .demo-url {
+            font-size: 16px;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+
+        /* Right Panel - Success Stories */
+        .right-panel {
+            grid-column: 3;
+            grid-row: 2;
+            padding: 30px;
+            background: linear-gradient(180deg, #e8f5e9 0%, #f1f8e9 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel .panel-title {
+            color: #2e7d32;
+        }
+
+        .success-stat {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2e7d32;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .success-stat .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .success-stat .description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .success-example {
+            background: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #c8e6c9;
+        }
+
+        .success-example .title {
+            font-weight: bold;
+            color: #1b5e20;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .success-example .detail {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .success-example .achievement {
+            font-weight: bold;
+            color: #2e7d32;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            font-size: 40px;
+            color: #4caf50;
+            opacity: 0.3;
+        }
+
+        .testimonial p {
+            font-style: italic;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .testimonial .author {
+            font-weight: bold;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            background: #263238;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        .footer-tagline {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd54f;
+        }
+
+        .footer-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* Statistics Banner */
+        .stats-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 20px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 10;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .poster {
+                width: 48in;
+                height: 36in;
+                box-shadow: none;
+            }
+        }
+
+        /* Responsive adjustments for viewing */
+        @media (max-width: 1300px) {
+            .poster {
+                transform: scale(0.7);
+                transform-origin: top left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>When Statistics Goes Wrong, Science Pays the Price</h1>
+                <div class="subtitle">StickForStats: Making Complex Statistics Intuitive Through Interactive Learning</div>
+            </div>
+            <div class="logo-area">
+                <div class="institution">CSIR-CCMB</div>
+                <div class="institution">EMBO Conference 2024</div>
+            </div>
+        </div>
+
+        <!-- Left Panel - The Problem -->
+        <div class="left-panel">
+            <div class="panel-title">❌ The Statistical Crisis</div>
+
+            <div class="failure-stat">
+                <div class="number">70%</div>
+                <div class="description">Studies can't be reproduced</div>
+            </div>
+
+            <div class="failure-stat">
+                <div class="number">$3T</div>
+                <div class="description">Wasted in failed drug development</div>
+            </div>
+
+            <div class="case-example">
+                <div class="title">🚀 Mars Climate Orbiter</div>
+                <div class="detail">Unit conversion error in statistics</div>
+                <div class="impact">Loss: $125 Million</div>
+            </div>
+
+            <div class="case-example">
+                <div class="title">💉 Theranos Scandal</div>
+                <div class="detail">Manipulated confidence intervals</div>
+                <div class="impact">Impact: $945M fraud</div>
+            </div>
+
+            <div class="case-example">
+                <div class="title">📊 Excel Economics Error</div>
+                <div class="detail">Reinhart-Rogoff calculation mistake</div>
+                <div class="impact">Result: Global austerity</div>
+            </div>
+
+            <div class="failure-stat">
+                <div class="number">38%</div>
+                <div class="description">Papers have statistical errors</div>
+            </div>
+
+            <div class="failure-stat">
+                <div class="number">51%</div>
+                <div class="description">Misinterpret p-values</div>
+            </div>
+        </div>
+
+        <!-- Center Panel - The Solution -->
+        <div class="center-panel">
+            <div class="solution-header">
+                <h2>🎯 StickForStats Platform</h2>
+                <div class="tagline">"See Statistics Come Alive"</div>
+            </div>
+
+            <div class="modules-container">
+                <div class="module">
+                    <div class="module-icon">📊</div>
+                    <h3>PCA Module</h3>
+                    <div class="module-description">Reduce 20,000 genes to 50 components</div>
+                    <div class="module-examples">
+                        • RNA-seq analysis<br>
+                        • Drug discovery<br>
+                        • Image recognition
+                    </div>
+                </div>
+
+                <div class="module">
+                    <div class="module-icon">📈</div>
+                    <h3>Confidence Intervals</h3>
+                    <div class="module-description">Quantify uncertainty properly</div>
+                    <div class="module-examples">
+                        • Vaccine efficacy<br>
+                        • Clinical trials<br>
+                        • Quality control
+                    </div>
+                </div>
+
+                <div class="module">
+                    <div class="module-icon">🧪</div>
+                    <h3>Experimental Design</h3>
+                    <div class="module-description">40% fewer experiments needed</div>
+                    <div class="module-examples">
+                        • CRISPR optimization<br>
+                        • Factorial designs<br>
+                        • Response surfaces
+                    </div>
+                </div>
+
+                <div class="module">
+                    <div class="module-icon">🎯</div>
+                    <h3>Hypothesis Testing</h3>
+                    <div class="module-description">Avoid p-hacking traps</div>
+                    <div class="module-examples">
+                        • Power analysis<br>
+                        • Multiple testing<br>
+                        • Effect sizes
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="qr-placeholder">[QR CODE]</div>
+                <div class="demo-text">Try It Live Now!</div>
+                <div class="demo-url">192.168.40.86:3001</div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Success Stories -->
+        <div class="right-panel">
+            <div class="panel-title">✅ Statistics Done Right</div>
+
+            <div class="success-stat">
+                <div class="number">11mo</div>
+                <div class="description">COVID vaccine development</div>
+            </div>
+
+            <div class="success-example">
+                <div class="title">💉 mRNA Vaccines</div>
+                <div class="detail">Bayesian adaptive trials</div>
+                <div class="achievement">Saved millions of lives</div>
+            </div>
+
+            <div class="success-example">
+                <div class="title">🌊 LIGO Discovery</div>
+                <div class="detail">5.1 sigma significance achieved</div>
+                <div class="achievement">Nobel Prize 2017</div>
+            </div>
+
+            <div class="success-example">
+                <div class="title">🧬 CRISPR Precision</div>
+                <div class="detail">Off-targets: 50% → 0.1%</div>
+                <div class="achievement">Gene therapy revolution</div>
+            </div>
+
+            <div class="success-stat">
+                <div class="number">85%</div>
+                <div class="description">Improvement in comprehension</div>
+            </div>
+
+            <div class="testimonial">
+                <p>"Reduced analysis time from 2 weeks to 2 days!"</p>
+                <div class="author">PhD Student, Biology</div>
+            </div>
+
+            <div class="testimonial">
+                <p>"Caught $2M error in Phase II trial design"</p>
+                <div class="author">Industry Researcher</div>
+            </div>
+
+            <div class="success-stat">
+                <div class="number">500+</div>
+                <div class="description">Active researchers using it</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="contact-item">
+                    <span>📧</span>
+                    <span>vishalbharti@ccmb.res.in</span>
+                </div>
+                <div class="contact-item">
+                    <span>🌐</span>
+                    <span>Free for Academia</span>
+                </div>
+                <div class="contact-item">
+                    <span>📱</span>
+                    <span>No Installation Required</span>
+                </div>
+            </div>
+            <div class="footer-right">
+                <div class="footer-tagline">Make Statistics Accessible. Make Science Reproducible.</div>
+                <div class="footer-subtitle">Join 500+ researchers improving their statistical practice</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

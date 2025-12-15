@@ -105,3 +105,9 @@ frontend/*_PROGRESS.md
 # - docs/api-integration-guide.md (subdirectory)
 # - frontend/INTEGRATION_TESTS_README.md (specific name)
 # - frontend/QUICK_TEST_GUIDE.md (specific name)
+
+# Internal documentation archive (session logs - optional exclusion)
+# docs/archive/session_logs/
+
+# Release preparation files (can be removed after release)
+RELEASE_PREPARATION_COMPLETE.md

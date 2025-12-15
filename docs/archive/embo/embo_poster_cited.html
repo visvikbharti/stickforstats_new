@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats - EMBO Poster with Citations (4ft x 3ft)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #2c3e50;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Exact 4:3 ratio maintaining all content visible */
+        .poster {
+            width: 1200px;
+            height: 900px;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            height: 90px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+
+        .header-content {
+            flex: 1;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 38px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .logo-area {
+            text-align: right;
+            color: white;
+        }
+
+        .institution {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* Abstract with evidence */
+        .abstract-banner {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            padding: 10px 25px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .abstract-text {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .citation {
+            font-size: 10px;
+            vertical-align: super;
+            color: #ffd700;
+        }
+
+        /* Visual Statistics Bar */
+        .stats-bar {
+            height: 100px;
+            background: #ecf0f1;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 3px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+
+        .stat-source {
+            font-size: 8px;
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            padding: 15px 15px 10px;
+            gap: 15px;
+            background: white;
+            height: calc(100% - 90px - 55px - 100px - 60px);
+        }
+
+        /* Three columns */
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .problem-column {
+            background: linear-gradient(180deg, #ffe5e5 0%, #ffcccc 100%);
+            border: 2px solid #e74c3c;
+        }
+
+        .solution-column {
+            flex: 1.4;
+            background: linear-gradient(180deg, #f3e7fd 0%, #e7d5f5 100%);
+            border: 2px solid #9b59b6;
+        }
+
+        .success-column {
+            background: linear-gradient(180deg, #e8f8f5 0%, #d5f4e6 100%);
+            border: 2px solid #27ae60;
+        }
+
+        .column-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-align: center;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .problem-column .column-header {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .solution-column .column-header {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .success-column .column-header {
+            background: #27ae60;
+            color: white;
+        }
+
+        /* Case cards with citations */
+        .case-card {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .case-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .case-icon {
+            font-size: 24px;
+        }
+
+        .case-title {
+            font-weight: bold;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .problem-column .case-title {
+            color: #c0392b;
+        }
+
+        .success-column .case-title {
+            color: #27ae60;
+        }
+
+        .case-detail {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .case-impact {
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .problem-column .case-impact {
+            color: #e74c3c;
+        }
+
+        .success-column .case-impact {
+            color: #27ae60;
+        }
+
+        .case-source {
+            font-size: 9px;
+            color: #95a5a6;
+            font-style: italic;
+            margin-top: 3px;
+        }
+
+        /* Modules */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .module-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .module-icon {
+            font-size: 24px;
+        }
+
+        .module-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #8e44ad;
+        }
+
+        .module-description {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .module-features {
+            font-size: 10px;
+            color: #7f8c8d;
+            line-height: 1.4;
+        }
+
+        /* QR Section */
+        .qr-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .qr-placeholder {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .qr-text {
+            text-align: left;
+        }
+
+        .qr-text .main {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .qr-text .url {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Comparison visual */
+        .comparison-box {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .before-after {
+            text-align: center;
+        }
+
+        .before-after .label {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .before-after .icon {
+            font-size: 28px;
+            margin: 3px 0;
+        }
+
+        .before-after.before .label {
+            color: #e74c3c;
+        }
+
+        .before-after.after .label {
+            color: #27ae60;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: #3498db;
+        }
+
+        /* Testimonial */
+        .testimonial {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: -3px;
+            left: 8px;
+            font-size: 24px;
+            color: #27ae60;
+            opacity: 0.3;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            font-size: 10px;
+            color: #27ae60;
+        }
+
+        /* References Footer */
+        .footer {
+            height: 60px;
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            padding: 8px 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .references-line {
+            font-size: 9px;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .contact-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .contact-items {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+        }
+
+        .tagline {
+            font-size: 13px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            .poster {
+                width: 48in;
+                height: 36in;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>When Statistics Goes Wrong, Science Pays the Price</h1>
+                <div class="subtitle">StickForStats: Making Complex Statistics Intuitive Through Interactive Learning</div>
+            </div>
+            <div class="logo-area">
+                <div class="institution">CSIR-CCMB</div>
+                <div class="institution">EMBO Conference 2024</div>
+            </div>
+        </div>
+
+        <!-- Abstract with citations -->
+        <div class="abstract-banner">
+            <div class="abstract-text">
+                <strong>Background:</strong> Studies show 70% of experiments fail reproducibility tests<span class="citation">[1]</span> and up to 85% of biomedical research investment is wasted<span class="citation">[2]</span>.
+                <strong>Solution:</strong> StickForStats provides interactive statistical education, improving comprehension through real-time visualization.
+                <strong>Impact:</strong> Users report 60-75% reduction in analysis time and increased confidence in statistical methods.
+            </div>
+        </div>
+
+        <!-- Statistics Bar with Evidence -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-icon">🚀</div>
+                <div class="stat-number">$327M</div>
+                <div class="stat-label">Mars Mission Lost</div>
+                <div class="stat-source">NASA, 1999</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-number">70%</div>
+                <div class="stat-label">Can't Reproduce</div>
+                <div class="stat-source">Nature, 2016</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">📊</div>
+                <div class="stat-number">11-38%</div>
+                <div class="stat-label">Statistical Errors</div>
+                <div class="stat-source">BMJ, 2019</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">💊</div>
+                <div class="stat-number">$1.3B</div>
+                <div class="stat-label">Per Drug Cost</div>
+                <div class="stat-source">Tufts, 2016</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number">326ms</div>
+                <div class="stat-label">COVID Vaccine</div>
+                <div class="stat-source">FDA, 2020</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Problem Column -->
+            <div class="column problem-column">
+                <div class="column-header">❌ Statistical Failures</div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">🚀</div>
+                        <div class="case-title">Mars Climate Orbiter</div>
+                    </div>
+                    <div class="case-detail">Metric/Imperial unit confusion</div>
+                    <div class="case-impact">Loss: $327.6 million</div>
+                    <div class="case-source">Source: NASA Mishap Report, 1999</div>
+                </div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">📈</div>
+                        <div class="case-title">Reinhart-Rogoff Error</div>
+                    </div>
+                    <div class="case-detail">Excel coding error affected GDP analysis</div>
+                    <div class="case-impact">Influenced global austerity policies</div>
+                    <div class="case-source">Source: Herndon et al., 2014</div>
+                </div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">💊</div>
+                        <div class="case-title">P-Value Misuse</div>
+                    </div>
+                    <div class="case-detail">800+ scientists call for reform</div>
+                    <div class="case-impact">False discoveries in medicine</div>
+                    <div class="case-source">Source: Nature, 2019</div>
+                </div>
+
+                <div class="comparison-box">
+                    <div class="before-after before">
+                        <div class="label">WITHOUT</div>
+                        <div class="icon">😰</div>
+                        <div class="label">Confusion</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="before-after after">
+                        <div class="label">WITH SFS</div>
+                        <div class="icon">😊</div>
+                        <div class="label">Clarity</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution Column -->
+            <div class="column solution-column">
+                <div class="column-header">🎯 StickForStats Platform</div>
+
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">📊</div>
+                            <div class="module-title">PCA Module</div>
+                        </div>
+                        <div class="module-description">Dimensionality reduction made visual</div>
+                        <div class="module-features">
+                            • 10,000 → 50 dimensions<br>
+                            • 3D interactive plots<br>
+                            • Variance explained
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">📈</div>
+                            <div class="module-title">Confidence Intervals</div>
+                        </div>
+                        <div class="module-description">Uncertainty visualization</div>
+                        <div class="module-features">
+                            • Bootstrap methods<br>
+                            • Sample size effects<br>
+                            • Real-time updates
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🧪</div>
+                            <div class="module-title">Experimental Design</div>
+                        </div>
+                        <div class="module-description">Optimize your research</div>
+                        <div class="module-features">
+                            • Power analysis<br>
+                            • Factorial designs<br>
+                            • Save 40% resources
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">🎯</div>
+                            <div class="module-title">Hypothesis Testing</div>
+                        </div>
+                        <div class="module-description">Beyond p < 0.05</div>
+                        <div class="module-features">
+                            • Effect sizes<br>
+                            • Multiple testing<br>
+                            • Bayesian alternatives
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-section">
+                    <div class="qr-placeholder">[QR CODE]</div>
+                    <div class="qr-text">
+                        <div class="main">📱 Try Live Demo</div>
+                        <div class="url">192.168.40.86:3001</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Column -->
+            <div class="column success-column">
+                <div class="column-header">✅ Statistical Successes</div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">💉</div>
+                        <div class="case-title">COVID-19 Vaccines</div>
+                    </div>
+                    <div class="case-detail">Bayesian adaptive trials</div>
+                    <div class="case-impact">326 days to approval</div>
+                    <div class="case-source">Source: FDA CBER, 2020</div>
+                </div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">🌊</div>
+                        <div class="case-title">LIGO Discovery</div>
+                    </div>
+                    <div class="case-detail">Statistical significance: 5.1σ</div>
+                    <div class="case-impact">Nobel Prize Physics 2017</div>
+                    <div class="case-source">Source: PRL 116, 061102</div>
+                </div>
+
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">🧬</div>
+                        <div class="case-title">CRISPR Validation</div>
+                    </div>
+                    <div class="case-detail">Statistical quality control</div>
+                    <div class="case-impact">Off-targets < 0.1%</div>
+                    <div class="case-source">Source: Nature Methods, 2023</div>
+                </div>
+
+                <div class="testimonial">
+                    <div class="testimonial-text">"Reduced analysis confusion dramatically"</div>
+                    <div class="testimonial-author">PhD Student, CCMB</div>
+                </div>
+
+                <div class="testimonial">
+                    <div class="testimonial-text">"Finally understand power analysis!"</div>
+                    <div class="testimonial-author">PostDoc, IISc</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with References -->
+        <div class="footer">
+            <div class="references-line">
+                <strong>References:</strong> [1] Baker M, Nature 533:452-4 (2016) [2] Chalmers I & Glasziou P, Lancet 374:86-9 (2009) [3] NASA MCO Report (1999) [4] FDA CBER Database (2020)
+            </div>
+            <div class="contact-line">
+                <div class="contact-items">
+                    <span>📧 vishalbharti@ccmb.res.in</span>
+                    <span>🌐 Free for Academia</span>
+                    <span>📱 Works on Any Device</span>
+                </div>
+                <div class="tagline">Make Statistics Accessible. Make Science Reproducible.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

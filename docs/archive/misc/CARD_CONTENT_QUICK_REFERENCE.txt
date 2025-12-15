@@ -1,0 +1,332 @@
+================================================================================
+OPTION 2 VISUAL CARDS - QUICK COPY-PASTE REFERENCE
+All text content for the 9 cards - Just copy and paste into Inkscape!
+================================================================================
+
+====== SECTION TITLE (Top of box) ======
+
+STATISTICAL FAILURES THAT SHOOK SCIENCE
+
+Font: Helvetica Neue Bold, 36pt, #1976D2 (Blue)
+Position: Centered, top of box
+
+
+====== CARD 1: WANSINK ======
+
+Icon: 🔴
+Title: WANSINK
+Number: 17
+Subtitle: Papers Retracted
+Description: P-hacking via emails
+Badge: Cornell
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 2: STAPEL ======
+
+Icon: 🔴
+Title: STAPEL
+Number: 58
+Subtitle: Papers Retracted
+Description: Fabricated data
+             p = 0.049
+Badge: Psychology
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 3: PSYCHOLOGY ======
+
+Icon: 🔴
+Title: PSYCHOLOGY
+Number: 64%
+Subtitle: Failed to Replicate
+Description: Underpowered studies
+Badge: Systemic Crisis
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 4: DUKE GENOMICS ======
+
+Icon: 🏥
+Title: DUKE GENOMICS
+Number: 3
+Subtitle: Trials Terminated
+Description: Invalid models
+             Patients at risk
+Badge: NIH Shutdown
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 5: WAKEFIELD MMR ======
+
+Icon: 💉
+Title: WAKEFIELD MMR
+Number: n=12
+Subtitle: No Control Group
+Description: Vaccine panic
+             Measles outbreak
+Badge: Lancet
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 6: ANVERSA ======
+
+Icon: 🫀
+Title: ANVERSA
+Number: 31
+Subtitle: Papers Retracted
+Description: $10M NIH wasted
+             100+ trials affected
+Badge: Harvard
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 7: STAP CELLS ======
+
+Icon: 🧬
+Title: STAP CELLS
+Number: 2014
+Subtitle: Nature Retraction
+Description: Impossible statistics
+             Field disrupted
+Badge: Tragedy
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 8: REINHART-ROGOFF ======
+
+Icon: 💰
+Title: REINHART-ROGOFF
+Number: Excel
+Subtitle: Statistical Error
+Description: Billions in
+             austerity policies
+Badge: Global Impact
+
+Colors:
+- Card BG: #FFEBEE (light red)
+- Border: #D32F2F (red), 3pt
+- Number: #D32F2F (red), 42pt bold
+- Badge: #D32F2F background, white text
+
+
+====== CARD 9: GUARDIAN (THE SOLUTION!) ⭐ ======
+
+Icon: ✅
+Title: GUARDIAN
+Number: <200ms
+Subtitle: Validation Time
+Description: Prevents
+             ALL of these
+Badge: Solution
+
+Colors: ⚠️ DIFFERENT FROM OTHER CARDS!
+- Card BG: #E8F5E9 (light GREEN, not red!)
+- Border: #388E3C (GREEN, not red!), 3pt
+- Number: #388E3C (GREEN!), 42pt bold
+- Description: #388E3C (GREEN!), semibold
+- Badge: #388E3C background (GREEN!), white text
+
+
+====== FOOTER BOX (Below all cards) ======
+
+✓ Guardian's gold-standard validators catch p-hacking, underpowered studies,
+  assumption violations, and impossible data patterns
+
+Font: Helvetica Neue Semibold, 18pt, #388E3C (Green)
+Box: #E8F5E9 background, 3pt #388E3C border
+Position: Centered, below the 3×3 grid
+
+
+================================================================================
+GRID LAYOUT POSITIONS
+================================================================================
+
+Card Size: 75mm wide × 110mm tall (all cards identical size)
+Gap: 12mm horizontal, 15mm vertical
+
+Grid Positions (from top-left of retraction box):
+
+Row 1:
+  Wansink:    X: 15mm,  Y: 15mm   (top-left)
+  Stapel:     X: 102mm, Y: 15mm   (top-center)
+  Psychology: X: 189mm, Y: 15mm   (top-right)
+
+Row 2:
+  Duke:       X: 15mm,  Y: 140mm  (middle-left)
+  Wakefield:  X: 102mm, Y: 140mm  (middle-center)
+  Anversa:    X: 189mm, Y: 140mm  (middle-right)
+
+Row 3:
+  STAP:       X: 15mm,  Y: 265mm  (bottom-left)
+  Reinhart:   X: 102mm, Y: 265mm  (bottom-center)
+  Guardian:   X: 189mm, Y: 265mm  (bottom-right) ⭐ GREEN CARD!
+
+
+================================================================================
+COLOR PALETTE (Copy these hex codes)
+================================================================================
+
+FAILURE CARDS (1-8):
+  Background:       #FFEBEE  (light red/pink)
+  Border:           #D32F2F  (red)
+  Number:           #D32F2F  (red)
+  Badge background: #D32F2F  (red)
+  Badge text:       #FFFFFF  (white)
+
+GUARDIAN CARD (9):
+  Background:       #E8F5E9  (light green)
+  Border:           #388E3C  (green)
+  Number:           #388E3C  (green)
+  Description:      #388E3C  (green)
+  Badge background: #388E3C  (green)
+  Badge text:       #FFFFFF  (white)
+
+COMMON TO ALL CARDS:
+  Title:       #212121  (black), 20pt bold
+  Subtitle:    #424242  (dark gray), 16pt semibold
+  Description: #616161  (gray), 14pt regular
+               [except Guardian: #388E3C green, semibold]
+
+SECTION TITLE:
+  Color:       #1976D2  (blue), 36pt bold
+
+
+================================================================================
+FONT SPECIFICATIONS
+================================================================================
+
+All fonts: Helvetica Neue (or Arial if Helvetica not available)
+
+Element          | Size  | Weight   | Color
+─────────────────┼───────┼──────────┼─────────────────
+Section Title    | 36pt  | Bold     | #1976D2 (blue)
+Card Icon        | 40pt  | -        | Native emoji
+Card Title       | 20pt  | Bold     | #212121 (black)
+Card Number      | 42pt  | Bold     | #D32F2F (red) or #388E3C (green for Guardian)
+Card Subtitle    | 16pt  | Semibold | #424242 (dark gray)
+Card Description | 14pt  | Regular  | #616161 (gray) or #388E3C (green for Guardian)
+Badge Text       | 12pt  | Bold     | #FFFFFF (white)
+Footer Text      | 18pt  | Semibold | #388E3C (green)
+
+
+================================================================================
+EMOJI ICONS
+================================================================================
+
+If emojis don't render in Inkscape, use these alternatives:
+
+Option 1 - Unicode codes:
+  🔴 Red circle:     U+1F534
+  🏥 Hospital:       U+1F3E5
+  💉 Syringe:        U+1F489
+  🫀 Heart (anatomic): U+1FAC0
+  🧬 DNA:            U+1F9EC
+  💰 Money bag:      U+1F4B0
+  ✅ Check mark:     U+2705
+
+Option 2 - Simple colored circles:
+  Create circle in Inkscape, fill with #D32F2F (red) or #388E3C (green)
+
+Option 3 - Download free SVG icons from:
+  - Flaticon.com
+  - The Noun Project
+  - Font Awesome
+
+
+================================================================================
+CARD ELEMENT STRUCTURE
+================================================================================
+
+Each card contains 7 elements (from top to bottom):
+
+1. Card Background (rounded rectangle, 75×110mm)
+2. Icon (40pt emoji, 5mm from top)
+3. Title (20pt bold, 5mm below icon)
+4. Number (42pt bold, 5mm below title)
+5. Subtitle (16pt semibold, 10mm below number)
+6. Description (14pt, 5mm below subtitle, can be 2 lines)
+7. Badge (rounded rectangle with text, 5mm below description)
+
+
+================================================================================
+QUICK CREATION STEPS
+================================================================================
+
+1. Create Wansink card completely (all 7 elements)
+2. Select all elements → Group (Ctrl+G)
+3. Duplicate 8 times (Ctrl+D repeatedly)
+4. Arrange in 3×3 grid using positions above
+5. Ungroup each card (Ctrl+Shift+G)
+6. Replace text for each card (copy from this file)
+7. Change colors for Guardian card (green instead of red)
+8. Add section title at top
+9. Add footer box at bottom
+10. Align & polish
+
+
+================================================================================
+FINAL CHECKLIST
+================================================================================
+
+Before you're done:
+  □ All cards are 75mm × 110mm (identical size)
+  □ Spacing is exactly 12mm horizontal, 15mm vertical
+  □ Cards 1-8 have red theme (#D32F2F)
+  □ Card 9 (Guardian) has GREEN theme (#388E3C) ⚠️ IMPORTANT!
+  □ All numbers are 42pt bold and highly visible
+  □ All badges are centered and readable
+  □ Section title is blue and centered
+  □ Footer has green border and text
+  □ Icons/emojis render correctly
+  □ Test at 10% zoom - balanced layout?
+  □ Test at 100% zoom - crisp text?
+
+
+================================================================================
+YOU'RE READY TO CREATE!
+================================================================================
+
+Open this file side-by-side with Inkscape
+Copy text → Paste into Inkscape → Apply colors → Done!
+
+Total time: ~90 minutes for perfection
+Result: Stunning 3×3 visual cards that will make your poster stand out! 🚀
+
+Good luck! This will look amazing at EMBO! ✨
+================================================================================
