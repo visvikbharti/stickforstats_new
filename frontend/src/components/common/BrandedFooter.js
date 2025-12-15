@@ -57,8 +57,8 @@ const BrandedFooter = ({
     product: [
       { label: 'Statistical Tools', href: '/statistical-analysis-tools' },
       { label: 'Confidence Intervals', href: '/confidence-intervals' },
-      { label: 'PCA Analysis', href: '/pca' },
-      { label: 'Design of Experiments', href: '/design-of-experiments' },
+      { label: 'PCA Analysis', href: '/pca-analysis' },
+      { label: 'Design of Experiments', href: '/doe-analysis' },
     ],
     resources: [
       { label: 'Documentation', href: 'https://github.com/visvikbharti/stickforstats_new#readme' },

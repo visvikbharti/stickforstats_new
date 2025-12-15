@@ -36,12 +36,12 @@ INSTALLED_APPS = [
     'authentication',
 
     # StickForStats apps - Statistical Modules
-    # Temporarily commented out due to import errors - TODO: Fix imports
-    # 'confidence_intervals.apps.ConfidenceIntervalsConfig',
-    # 'probability_distributions.apps.ProbabilityDistributionsConfig',
-    'sqc_analysis.apps.SQCAnalysisConfig',  # ← ENABLED for backend integration
-    # 'doe_analysis.apps.DOEAnalysisConfig',
-    # 'pca_analysis.apps.PCAAnalysisConfig',
+    # Note: Some apps have import issues - enable carefully and run migrations
+    'confidence_intervals.apps.ConfidenceIntervalsConfig',  # Re-enabled
+    # 'probability_distributions.apps.ProbabilityDistributionsConfig',  # Field name mismatches in views
+    'sqc_analysis.apps.SQCAnalysisConfig',  # ENABLED for backend integration
+    # 'doe_analysis.apps.DOEAnalysisConfig',  # Syntax error + missing model needs fix
+    # 'pca_analysis.apps.PCAAnalysisConfig',  # get_dirty_fields() not defined
 ]
 
 MIDDLEWARE = [

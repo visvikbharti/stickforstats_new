@@ -84,16 +84,61 @@ class MetaAnalysisView(APIView):
 
             # Validate each study
             for i, study in enumerate(studies):
+                study_num = i + 1
+
+                # Check effect_size exists and is numeric
                 if 'effect_size' not in study:
                     return Response({
                         'success': False,
-                        'error': f'Study {i+1} is missing effect_size'
+                        'error': f'Study {study_num} is missing effect_size'
                     }, status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    effect_size = float(study['effect_size'])
+                    if not (-100 <= effect_size <= 100):  # Reasonable bounds
+                        return Response({
+                            'success': False,
+                            'error': f'Study {study_num} has effect_size out of reasonable range (-100 to 100)'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except (TypeError, ValueError):
+                    return Response({
+                        'success': False,
+                        'error': f'Study {study_num} has invalid effect_size (must be a number)'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Check standard_error exists, is numeric, and positive
                 if 'standard_error' not in study:
                     return Response({
                         'success': False,
-                        'error': f'Study {i+1} is missing standard_error'
+                        'error': f'Study {study_num} is missing standard_error'
                     }, status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    standard_error = float(study['standard_error'])
+                    if standard_error <= 0:
+                        return Response({
+                            'success': False,
+                            'error': f'Study {study_num} has invalid standard_error (must be > 0)'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    if standard_error > 100:  # Unreasonably large SE
+                        return Response({
+                            'success': False,
+                            'error': f'Study {study_num} has unreasonably large standard_error (> 100)'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except (TypeError, ValueError):
+                    return Response({
+                        'success': False,
+                        'error': f'Study {study_num} has invalid standard_error (must be a positive number)'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate alpha parameter
+            try:
+                alpha = float(alpha)
+                if not (0.001 <= alpha <= 0.5):
+                    return Response({
+                        'success': False,
+                        'error': 'Alpha must be between 0.001 and 0.5'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except (TypeError, ValueError):
+                alpha = 0.05  # Default to 0.05 if invalid
 
             # Run meta-analysis
             results = run_meta_analysis(

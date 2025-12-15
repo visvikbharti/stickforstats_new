@@ -4,14 +4,35 @@ import './ProfessionalLanding.css';
 
 const ProfessionalLanding = ({ onEnter }) => {
   const [statsVisible, setStatsVisible] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setStatsVisible(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   // Smooth scroll to section
   const scrollToSection = (sectionId) => {
+    setMobileMenuOpen(false);
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -23,18 +44,47 @@ const ProfessionalLanding = ({ onEnter }) => {
       {/* Navigation Bar */}
       <nav className="landing-nav">
         <div className="nav-container">
-          <div className="logo">
+          <div className="logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
             <span className="logo-text">StickForStats</span>
             <span className="logo-tag">Statistical Integrity Platform</span>
           </div>
+
+          {/* Desktop Navigation */}
           <div className="nav-links">
             <a href="#features" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a>
             <a href="#guardian" onClick={(e) => { e.preventDefault(); scrollToSection('guardian'); }}>Guardian System</a>
             <a href="#precision" onClick={(e) => { e.preventDefault(); scrollToSection('precision'); }}>Precision</a>
             <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a>
           </div>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            className={`mobile-menu-toggle ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Navigation Overlay */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-nav-menu" onClick={(e) => e.stopPropagation()}>
+            <a href="#features" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a>
+            <a href="#guardian" onClick={(e) => { e.preventDefault(); scrollToSection('guardian'); }}>Guardian System</a>
+            <a href="#precision" onClick={(e) => { e.preventDefault(); scrollToSection('precision'); }}>Precision</a>
+            <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a>
+            <button className="mobile-cta" onClick={() => { setMobileMenuOpen(false); onEnter(); }}>
+              Start Analysis →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="hero-section">

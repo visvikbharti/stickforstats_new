@@ -30,6 +30,10 @@ Pillow>=9.5.0
 # AI Integration
 anthropic>=0.39.0  # Claude API SDK for AI Statistical Advisor
 
+# Production server
+gunicorn>=21.0.0
+gevent>=23.0.0
+
 # Development and testing
 pytest>=7.3.1
 pytest-django>=4.5.2

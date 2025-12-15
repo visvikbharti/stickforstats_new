@@ -341,8 +341,10 @@ class MetaAnalysisEngine:
         y_pred = X @ beta
         residuals = y - y_pred
         mse = np.sum(residuals ** 2) / (n - 2)
-        var_beta = mse * np.linalg.inv(X.T @ X)
-        se_intercept = np.sqrt(var_beta[0, 0])
+        # Use pseudoinverse instead of inverse to handle near-singular matrices
+        # This can occur when studies have very similar precision values
+        var_beta = mse * np.linalg.pinv(X.T @ X)
+        se_intercept = np.sqrt(max(var_beta[0, 0], 1e-10))  # Ensure non-negative
 
         # t-test for intercept
         t_stat = intercept / se_intercept

@@ -79,6 +79,55 @@ const MetaAnalysisHub = () => {
   // Results tab
   const [resultsTab, setResultsTab] = useState(0);
 
+  // Validate studies - MUST be defined before handleExportResults which uses it
+  const validStudies = useMemo(() => {
+    return studies.filter(s =>
+      s.study_name &&
+      s.effect_size !== '' && !isNaN(parseFloat(s.effect_size)) &&
+      s.standard_error !== '' && !isNaN(parseFloat(s.standard_error)) &&
+      parseFloat(s.standard_error) > 0
+    );
+  }, [studies]);
+
+  const canRunAnalysis = validStudies.length >= 2;
+
+  // Export results
+  const handleExportResults = useCallback(() => {
+    if (!results) return;
+
+    const exportData = {
+      meta_analysis_results: {
+        summary: {
+          overall_effect: results.summary?.overall_effect,
+          confidence_interval: results.summary?.ci,
+          p_value: results.summary?.p_value,
+          model: config.model,
+          method: config.method
+        },
+        heterogeneity: results.heterogeneity || {},
+        publication_bias: results.publication_bias || {},
+        individual_studies: validStudies.map(s => ({
+          study_name: s.study_name,
+          effect_size: parseFloat(s.effect_size),
+          standard_error: parseFloat(s.standard_error),
+          sample_size: s.sample_size ? parseInt(s.sample_size) : null
+        })),
+        export_timestamp: new Date().toISOString(),
+        generated_by: 'StickForStats Meta-Analysis Module'
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `meta_analysis_results_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [results, config, validStudies]);
+
   // Add new study row
   const handleAddStudy = useCallback(() => {
     setStudies(prev => [
@@ -100,18 +149,6 @@ const MetaAnalysisHub = () => {
       return updated;
     });
   }, []);
-
-  // Validate studies
-  const validStudies = useMemo(() => {
-    return studies.filter(s =>
-      s.study_name &&
-      s.effect_size !== '' && !isNaN(parseFloat(s.effect_size)) &&
-      s.standard_error !== '' && !isNaN(parseFloat(s.standard_error)) &&
-      parseFloat(s.standard_error) > 0
-    );
-  }, [studies]);
-
-  const canRunAnalysis = validStudies.length >= 2;
 
   // Run meta-analysis
   const handleRunAnalysis = useCallback(async () => {
@@ -142,6 +179,12 @@ const MetaAnalysisHub = () => {
           alpha: config.alpha
         })
       });
+
+      // Check HTTP status before parsing response
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -503,7 +546,8 @@ const MetaAnalysisHub = () => {
             <Button
               variant="contained"
               startIcon={<DownloadIcon />}
-              onClick={() => {/* TODO: Export results */}}
+              onClick={handleExportResults}
+              disabled={!results}
             >
               Export Results
             </Button>

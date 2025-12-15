@@ -694,3 +694,44 @@ class HighPrecisionANOVAView(APIView):
                 {"error": "Internal server error", "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+# Health Check Endpoint
+from rest_framework.decorators import api_view, permission_classes
+from django.db import connection
+import time
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Health check endpoint for container orchestration and monitoring.
+    
+    Returns system status including:
+    - API status
+    - Database connectivity
+    - Response time
+    """
+    start_time = time.time()
+    health_status = {
+        'status': 'healthy',
+        'api': 'operational',
+        'database': 'unknown',
+        'version': '1.0.0',
+        'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    }
+    
+    # Check database connectivity
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        health_status['database'] = 'connected'
+    except Exception as e:
+        health_status['database'] = 'disconnected'
+        health_status['status'] = 'degraded'
+        logger.warning(f"Database health check failed: {str(e)}")
+    
+    # Calculate response time
+    health_status['response_time_ms'] = round((time.time() - start_time) * 1000, 2)
+    
+    http_status = status.HTTP_200_OK if health_status['status'] == 'healthy' else status.HTTP_503_SERVICE_UNAVAILABLE
+    return Response(health_status, status=http_status)

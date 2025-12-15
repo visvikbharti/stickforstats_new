@@ -8,7 +8,8 @@ from .views import (
     HighPrecisionANOVAView,
     ComparisonView,
     DataImportView,
-    ValidationDashboardView
+    ValidationDashboardView,
+    health_check
 )
 from .ancova_view import HighPrecisionANCOVAView
 from .descriptive_view import DescriptiveStatisticsView
@@ -106,10 +107,19 @@ from .meta_analysis_views import (
     sensitivity_analysis as meta_sensitivity_analysis,
     subgroup_analysis
 )
+from .report_views import (
+    ReportListView,
+    ReportDetailView,
+    generate_report,
+    export_report
+)
 
 app_name = 'api-v1'
 
 urlpatterns = [
+    # Health check endpoint (for container orchestration)
+    path('health/', health_check, name='health-check'),
+
     # High-precision statistical tests
     path('stats/ttest/', HighPrecisionTTestView.as_view(), name='hp-ttest'),
     path('stats/anova/', HighPrecisionANOVAView.as_view(), name='hp-anova'),
@@ -224,4 +234,10 @@ urlpatterns = [
     path('meta-analysis/publication-bias/', publication_bias_test, name='meta-publication-bias'),
     path('meta-analysis/sensitivity/', meta_sensitivity_analysis, name='meta-sensitivity'),
     path('meta-analysis/subgroup/', subgroup_analysis, name='meta-subgroup'),
+
+    # Report Management endpoints
+    path('reports/', ReportListView.as_view(), name='report-list'),
+    path('reports/generate/', generate_report, name='report-generate'),
+    path('reports/<uuid:report_id>/', ReportDetailView.as_view(), name='report-detail'),
+    path('reports/<uuid:report_id>/export/', export_report, name='report-export'),
 ]

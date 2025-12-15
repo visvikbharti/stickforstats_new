@@ -23,30 +23,46 @@ import {
 } from '@mui/material';
 
 const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
+  // Filter studies with valid CI data for calculations
+  const validStudies = useMemo(() => {
+    if (!studies || studies.length === 0) return [];
+    return studies.filter(s =>
+      s &&
+      typeof s.effect_size === 'number' && !isNaN(s.effect_size) &&
+      typeof s.ci_lower === 'number' && !isNaN(s.ci_lower) &&
+      typeof s.ci_upper === 'number' && !isNaN(s.ci_upper) &&
+      typeof s.weight_percent === 'number' && !isNaN(s.weight_percent)
+    );
+  }, [studies]);
+
   // Calculate scale for the plot
   const scale = useMemo(() => {
-    if (!studies || studies.length === 0 || !pooledCI || pooledCI.length < 2) {
+    if (validStudies.length === 0 || !pooledCI || pooledCI.length < 2) {
       return { min: -1, max: 1 };
     }
 
     const allValues = [
-      ...studies.flatMap(s => [s.ci_lower, s.ci_upper]),
+      ...validStudies.flatMap(s => [s.ci_lower, s.ci_upper]),
       pooledCI[0],
       pooledCI[1]
-    ];
+    ].filter(v => typeof v === 'number' && !isNaN(v));
+
+    if (allValues.length === 0) {
+      return { min: -1, max: 1 };
+    }
 
     const min = Math.min(...allValues);
     const max = Math.max(...allValues);
-    const padding = (max - min) * 0.1;
+    const padding = (max - min) * 0.1 || 0.1;
 
     return {
       min: Math.floor((min - padding) * 10) / 10,
       max: Math.ceil((max + padding) * 10) / 10
     };
-  }, [studies, pooledCI]);
+  }, [validStudies, pooledCI]);
 
   // Check for valid data after hooks
-  const hasValidData = studies && studies.length > 0 && pooledCI && pooledCI.length >= 2;
+  const hasValidData = validStudies.length > 0 && pooledCI && pooledCI.length >= 2;
 
   // Convert effect size to pixel position
   const toPixel = (value) => {
@@ -178,7 +194,7 @@ const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {studies.map((study, index) => (
+            {validStudies.map((study, index) => (
               <TableRow key={index} hover>
                 <TableCell>
                   <Typography variant="body2">{study.study_name}</Typography>

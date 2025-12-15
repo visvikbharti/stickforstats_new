@@ -155,19 +155,19 @@ const ReportViewer = () => {
           id: 'v1',
           title: 'Distribution Comparison',
           type: 'histogram',
-          imgSrc: 'https://via.placeholder.com/800x400?text=Distribution+Histogram'
+          description: 'Histogram visualization will be generated from your analysis data'
         },
         {
           id: 'v2',
           title: 'Box Plot Comparison',
           type: 'boxplot',
-          imgSrc: 'https://via.placeholder.com/800x400?text=Box+Plot+Visualization'
+          description: 'Box plot visualization will be generated from your analysis data'
         },
         {
           id: 'v3',
           title: 'Regression Plot',
           type: 'scatter',
-          imgSrc: 'https://via.placeholder.com/800x400?text=Regression+Plot'
+          description: 'Scatter plot visualization will be generated from your analysis data'
         }
       ]
     });
@@ -462,26 +462,51 @@ const ReportViewer = () => {
                 {reportData.visualizations.map((viz) => (
                   <Grid item xs={12} md={6} key={viz.id}>
                     <Card variant="outlined">
-                      <CardMedia
-                        component="img"
-                        image={viz.imgSrc}
-                        alt={viz.title}
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => handleOpenImageDialog(viz.imgSrc, viz.title)}
-                      />
+                      {viz.imgSrc ? (
+                        <CardMedia
+                          component="img"
+                          image={viz.imgSrc}
+                          alt={viz.title}
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => handleOpenImageDialog(viz.imgSrc, viz.title)}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            height: 200,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'grey.100',
+                            border: '2px dashed',
+                            borderColor: 'grey.300',
+                            m: 2,
+                            borderRadius: 1
+                          }}
+                        >
+                          <Box textAlign="center" px={2}>
+                            <ChartIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+                            <Typography variant="body2" color="textSecondary">
+                              {viz.description || 'Visualization will be generated from your analysis'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      )}
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography variant="subtitle1">
                             {viz.title}
                           </Typography>
-                          <Tooltip title="View Full Size">
-                            <IconButton 
-                              size="small"
-                              onClick={() => handleOpenImageDialog(viz.imgSrc, viz.title)}
-                            >
-                              <FullscreenIcon />
-                            </IconButton>
-                          </Tooltip>
+                          {viz.imgSrc && (
+                            <Tooltip title="View Full Size">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenImageDialog(viz.imgSrc, viz.title)}
+                              >
+                                <FullscreenIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Box>
                         <Typography variant="body2" color="textSecondary">
                           Type: {viz.type.charAt(0).toUpperCase() + viz.type.slice(1)}

@@ -44,7 +44,11 @@ const FunnelPlot = ({ data, publicationBias }) => {
   // Calculate domain for x-axis
   const xDomain = useMemo(() => {
     if (!data || !data.points || data.points.length === 0) return [-1, 1];
-    const effects = data.points.map(p => p.effect);
+    // Filter out invalid effect values
+    const effects = data.points
+      .map(p => p.effect)
+      .filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+    if (effects.length === 0) return [-1, 1];
     const min = Math.min(...effects);
     const max = Math.max(...effects);
     const padding = (max - min) * 0.3 || 0.5;
@@ -54,7 +58,11 @@ const FunnelPlot = ({ data, publicationBias }) => {
   // Calculate domain for y-axis
   const yDomain = useMemo(() => {
     if (!data || !data.points || data.points.length === 0) return [0, 0.5];
-    const ses = data.points.map(p => p.se);
+    // Filter out invalid SE values
+    const ses = data.points
+      .map(p => p.se)
+      .filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v) && v > 0);
+    if (ses.length === 0) return [0, 0.5];
     const maxSe = Math.max(...ses);
     return [0, maxSe * 1.2];
   }, [data]);
