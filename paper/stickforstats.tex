@@ -20,19 +20,21 @@
 %% -- Article metainformation --------------------------------------------------
 
 \author{
-  Vishal Bharti\\Affiliation Here
+  Vishal Bharti$^{1,2}$\\CSIR-Institute of Genomics and Integrative Biology
+  \And
+  Debojyoti Chakraborty$^{1,2,*}$\\CSIR-Institute of Genomics and Integrative Biology
 }
 
 \title{\pkg{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation}
 
-\Plainauthor{Vishal Bharti}
+\Plainauthor{Vishal Bharti, Debojyoti Chakraborty}
 
 \Plaintitle{StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation}
 
 \Shorttitle{StickForStats: Automatic Assumption Validation}
 
 \Abstract{
-Statistical assumption violations contribute significantly to the reproducibility crisis in science. While assumption testing tools have been available in statistical software for decades, their optional nature means researchers frequently skip validation, leading to invalid conclusions. We present \pkg{StickForStats}, an open-source statistical analysis platform featuring the Guardian system---an automatic assumption validation layer that checks assumptions before every statistical test without requiring user action. Guardian implements eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity), integrates results directly into statistical output, and recommends alternative tests when violations are detected. The platform also provides optional 50-decimal-place precision for verification and audit purposes, 50 integrated educational lessons, and code export in R and Python. Validation against SciPy demonstrates agreement to 14+ decimal places for standard statistical tests. We argue that automatic assumption validation represents a paradigm shift from ``tools available if you remember'' to ``system prevents incorrect usage by default,'' addressing one systematic source of statistical errors in published research.
+Statistical assumption violations contribute to unreliable results in scientific research. While assumption testing tools have been available in statistical software for decades, their optional nature means researchers may skip validation, potentially leading to invalid conclusions. We present \pkg{StickForStats}, an open-source statistical analysis platform featuring the Guardian system---an automatic assumption validation layer that checks assumptions before every statistical test without requiring user action. Guardian implements eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity), integrates results directly into statistical output, and recommends alternative tests when violations are detected. The platform also provides optional extended precision arithmetic using \pkg{mpmath}, integrated educational content, and \proglang{Python} code export for reproducibility. Validation against \pkg{SciPy} demonstrates agreement to 14+ decimal places for standard statistical tests. We describe the design rationale, implementation details, and validation methodology, positioning automatic assumption validation as a complementary approach to existing statistical practice.
 }
 
 \Keywords{statistical assumptions, reproducibility, automatic validation, Guardian system, \proglang{Python}, open-source}
@@ -41,10 +43,16 @@ Statistical assumption violations contribute significantly to the reproducibilit
 
 \Address{
   Vishal Bharti\\
-  Affiliation\\
-  Address\\
-  E-mail: \email{email@example.com}\\
-  URL: \url{https://github.com/visvikbharti/stickforstats_new}
+  $^1$Division of Chemical and Systems Biology\\
+  CSIR-Institute of Genomics and Integrative Biology (IGIB)\\
+  New Delhi 110025, India\\
+  $^2$Academy of Scientific and Innovative Research (AcSIR)\\
+  Ghaziabad 201002, India\\
+  E-mail: \email{vishalvikashbharti@gmail.com}\\
+  URL: \url{https://github.com/visvikbharti/stickforstats_new}\\[1em]
+  $^*$Corresponding Author:\\
+  Debojyoti Chakraborty\\
+  E-mail: \email{debojyoti.chakraborty@igib.in}
 }
 
 \begin{document}
@@ -92,7 +100,7 @@ The Guardian system operates on a simple principle: \textbf{assumptions are chec
 \item \textbf{Actionable guidance.} When violations are detected, the system suggests appropriate alternatives---for example, recommending the Mann-Whitney U test when normality is violated for a $t$-test.
 \end{enumerate}
 
-This design philosophy represents a paradigm shift from ``tools available if you remember'' to ``system prevents incorrect usage by default.''
+This design philosophy represents a different approach: from ``tools available if you remember'' to ``system alerts users to potential issues by default.''
 
 \subsection{Additional contributions}
 
@@ -104,14 +112,14 @@ Beyond the Guardian system, \pkg{StickForStats} offers several additional featur
 
 \textbf{Reproducibility framework.} Each analysis generates a complete reproducibility bundle including data fingerprints (SHA-256 hashes), processing pipeline records, and environment specifications.
 
-\textbf{Code export.} For every analysis, users can export equivalent \proglang{R} or \proglang{Python} code, facilitating verification and integration with existing workflows.
+\textbf{Code export.} For analyses, users can export equivalent \proglang{Python} code, facilitating verification and integration with existing workflows.
 
 \subsection{Contributions of this paper}
 
 This paper makes the following contributions:
 
 \begin{enumerate}
-\item We introduce the Guardian system, an industry-first implementation of mandatory assumption validation in statistical software. We describe its architecture, the eight validators implemented, and its integration with statistical analysis workflows.
+\item We introduce the Guardian system, which to our knowledge represents the first implementation of mandatory, automatic assumption validation integrated directly into statistical software. We describe its architecture, the eight validators implemented, and its integration with statistical analysis workflows.
 \item We present a validation study comparing \pkg{StickForStats} results against established reference implementations (\pkg{SciPy}, \proglang{R}, G*Power 3.1), demonstrating agreement to 14+ decimal places for standard statistical tests.
 \item We provide case studies demonstrating Guardian's effectiveness in detecting assumption violations that would otherwise go unnoticed.
 \item We describe the high-precision computing architecture and discuss scenarios where 50-decimal precision provides practical benefits.

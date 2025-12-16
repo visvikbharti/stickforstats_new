@@ -1,0 +1,34 @@
+\BOOKMARK [1][-]{Section.0.Introduction.1}{Introduction}{}% 1
+\BOOKMARK [2][-]{Subsection.1.0.The reproducibility crisis in statistical analysis.2}{The reproducibility crisis in statistical analysis}{Section.0.Introduction.1}% 2
+\BOOKMARK [2][-]{Subsection.1.1.The inadequacy of current solutions.2}{The inadequacy of current solutions}{Section.0.Introduction.1}% 3
+\BOOKMARK [2][-]{Subsection.1.2.A different approach: Mandatory validation.2}{A different approach: Mandatory validation}{Section.0.Introduction.1}% 4
+\BOOKMARK [2][-]{Subsection.1.3.Additional contributions.2}{Additional contributions}{Section.0.Introduction.1}% 5
+\BOOKMARK [2][-]{Subsection.1.4.Contributions of this paper.2}{Contributions of this paper}{Section.0.Introduction.1}% 6
+\BOOKMARK [2][-]{Subsection.1.5.Paper organization.2}{Paper organization}{Section.0.Introduction.1}% 7
+\BOOKMARK [1][-]{Section.1.Related work.1}{Related work}{}% 8
+\BOOKMARK [2][-]{Subsection.2.0.Statistical software landscape.2}{Statistical software landscape}{Section.1.Related work.1}% 9
+\BOOKMARK [2][-]{Subsection.2.1.The optional validation problem.2}{The optional validation problem}{Section.1.Related work.1}% 10
+\BOOKMARK [2][-]{Subsection.2.2.The reproducibility crisis.2}{The reproducibility crisis}{Section.1.Related work.1}% 11
+\BOOKMARK [2][-]{Subsection.2.3.Positioning StickForStats.2}{Positioning StickForStats}{Section.1.Related work.1}% 12
+\BOOKMARK [1][-]{Section.2.System architecture.1}{System architecture}{}% 13
+\BOOKMARK [2][-]{Subsection.3.0.Technology stack.2}{Technology stack}{Section.2.System architecture.1}% 14
+\BOOKMARK [2][-]{Subsection.3.1.Design principles.2}{Design principles}{Section.2.System architecture.1}% 15
+\BOOKMARK [1][-]{Section.3.The Guardian system.1}{The Guardian system}{}% 16
+\BOOKMARK [2][-]{Subsection.4.0.Implemented validators.2}{Implemented validators}{Section.3.The Guardian system.1}% 17
+\BOOKMARK [2][-]{Subsection.4.1.Confidence score calculation.2}{Confidence score calculation}{Section.3.The Guardian system.1}% 18
+\BOOKMARK [2][-]{Subsection.4.2.Alternative test recommendation.2}{Alternative test recommendation}{Section.3.The Guardian system.1}% 19
+\BOOKMARK [1][-]{Section.4.High-precision computing.1}{High-precision computing}{}% 20
+\BOOKMARK [2][-]{Subsection.5.0.When high precision matters.2}{When high precision matters}{Section.4.High-precision computing.1}% 21
+\BOOKMARK [2][-]{Subsection.5.1.Performance considerations.2}{Performance considerations}{Section.4.High-precision computing.1}% 22
+\BOOKMARK [1][-]{Section.5.Validation.1}{Validation}{}% 23
+\BOOKMARK [2][-]{Subsection.6.0.Statistical test validation.2}{Statistical test validation}{Section.5.Validation.1}% 24
+\BOOKMARK [2][-]{Subsection.6.1.Guardian validation.2}{Guardian validation}{Section.5.Validation.1}% 25
+\BOOKMARK [1][-]{Section.6.Case studies.1}{Case studies}{}% 26
+\BOOKMARK [2][-]{Subsection.7.0.Case 1: Detecting non-normality before $t$-test.2}{Case 1: Detecting non-normality before t-test}{Section.6.Case studies.1}% 27
+\BOOKMARK [2][-]{Subsection.7.1.Case 2: Correlation with hidden non-linearity.2}{Case 2: Correlation with hidden non-linearity}{Section.6.Case studies.1}% 28
+\BOOKMARK [2][-]{Subsection.7.2.Case 3: Meta-analysis with publication bias.2}{Case 3: Meta-analysis with publication bias}{Section.6.Case studies.1}% 29
+\BOOKMARK [1][-]{Section.7.Discussion.1}{Discussion}{}% 30
+\BOOKMARK [2][-]{Subsection.8.0.Contributions in context.2}{Contributions in context}{Section.7.Discussion.1}% 31
+\BOOKMARK [2][-]{Subsection.8.1.Limitations.2}{Limitations}{Section.7.Discussion.1}% 32
+\BOOKMARK [2][-]{Subsection.8.2.Future work.2}{Future work}{Section.7.Discussion.1}% 33
+\BOOKMARK [1][-]{Section.8.Conclusion.1}{Conclusion}{}% 34
