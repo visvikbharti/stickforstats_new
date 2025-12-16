@@ -66,6 +66,9 @@ import { extractStatisticalContent, getPrimarySampleSize } from './utils/statist
 import { detectErrors, getSeverityColor, getSeverityLabel, SEVERITY, CATEGORY } from './utils/errorRules';
 import { generateReport, generateTextReport, generateSummaryStatement } from './utils/reportGenerator';
 
+// Import SQS component
+import SQSScoreDisplay from './SQSScoreDisplay';
+
 /**
  * Tab Panel Component
  */
@@ -555,6 +558,7 @@ const PaperParserHub = () => {
               <Tab icon={<BugIcon />} label="Issues" iconPosition="start" />
               <Tab icon={<AnalyticsIcon />} label="Statistics" iconPosition="start" />
               <Tab icon={<LightbulbIcon />} label="Recommendations" iconPosition="start" />
+              <Tab icon={<AssessmentIcon />} label="SQS Score" iconPosition="start" />
             </Tabs>
 
             {/* Issues Tab */}
@@ -714,6 +718,16 @@ const PaperParserHub = () => {
                 <Typography variant="caption" color="text.secondary">
                   Based on APA JARS (Journal Article Reporting Standards) for quantitative research.
                 </Typography>
+              </Box>
+            </TabPanel>
+
+            {/* SQS Score Tab */}
+            <TabPanel value={activeTab} index={3}>
+              <Box sx={{ p: 2 }}>
+                <SQSScoreDisplay
+                  extractedText={paperData?.fullText}
+                  paperData={paperData}
+                />
               </Box>
             </TabPanel>
           </Paper>

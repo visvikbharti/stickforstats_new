@@ -113,6 +113,15 @@ from .report_views import (
     generate_report,
     export_report
 )
+from .sqs_views import (
+    SQSAnalyzeView,
+    SQSAnalyzeTextView,
+    SQSRulesView,
+    SQSFieldsView,
+    SQSCategoriesView,
+    SQSQuickCheckView,
+    SQSHealthView
+)
 
 app_name = 'api-v1'
 
@@ -240,4 +249,13 @@ urlpatterns = [
     path('reports/generate/', generate_report, name='report-generate'),
     path('reports/<uuid:report_id>/', ReportDetailView.as_view(), name='report-detail'),
     path('reports/<uuid:report_id>/export/', export_report, name='report-export'),
+
+    # Statistical Quality Score (SQS) endpoints
+    path('sqs/analyze/', SQSAnalyzeView.as_view(), name='sqs-analyze'),
+    path('sqs/analyze-text/', SQSAnalyzeTextView.as_view(), name='sqs-analyze-text'),
+    path('sqs/rules/', SQSRulesView.as_view(), name='sqs-rules'),
+    path('sqs/fields/', SQSFieldsView.as_view(), name='sqs-fields'),
+    path('sqs/categories/', SQSCategoriesView.as_view(), name='sqs-categories'),
+    path('sqs/quick-check/', SQSQuickCheckView.as_view(), name='sqs-quick-check'),
+    path('sqs/health/', SQSHealthView.as_view(), name='sqs-health'),
 ]
