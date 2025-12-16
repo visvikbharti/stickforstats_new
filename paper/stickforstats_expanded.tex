@@ -286,7 +286,7 @@ The Guardian system is the core innovation of \pkg{StickForStats}: an automatic 
 Guardian is designed around four principles:
 
 \begin{enumerate}
-\item \textbf{Comprehensiveness:} Check all relevant assumptions for each test type.
+\item \textbf{Comprehensiveness:} Check the major statistical assumptions for each test type.
 \item \textbf{Transparency:} Report all validation results, not just failures.
 \item \textbf{Actionability:} Provide specific recommendations when violations occur.
 \item \textbf{Non-blocking:} Alert users to issues without preventing analysis.
@@ -1154,25 +1154,22 @@ studies = {
 
 \begin{lstlisting}
 # Meta-analysis results:
-# Pooled effect (random): 0.332, 95% CI [0.251, 0.413]
-# Heterogeneity: I^2 = 42.3%, Q = 19.07, p = 0.06
+# Pooled effect (random): 0.271, 95% CI [0.230, 0.313]
+# Heterogeneity: I^2 = 0.0%, Q = 12.48
 #
 # Guardian Report:
 # Confidence Score: 0.65
 #
 # Violations:
 # - Publication Bias: WARNING
-#   Egger's test: intercept=1.89, p=0.032
+#   Egger's test: intercept=1.72, p=0.024
 #   Funnel plot shows asymmetry
-#   Recommendation: Apply trim-and-fill correction
-#   Estimated missing studies: 3 (left side)
-#
-# Trim-and-fill adjusted effect: 0.278
+#   Recommendation: Consider publication bias in interpretation
 \end{lstlisting}
 
-\textbf{Guardian finding:} Egger's test ($p = 0.032$) indicates significant funnel plot asymmetry, suggesting publication bias. The trim-and-fill method estimates 3 missing studies and adjusts the pooled effect downward from 0.332 to 0.278.
+\textbf{Guardian finding:} Egger's test ($p = 0.024$) indicates significant funnel plot asymmetry, suggesting publication bias. Researchers should interpret the pooled effect with caution and consider sensitivity analyses.
 
-\textbf{Key insight:} Without Guardian's automatic publication bias check, researchers might report the inflated estimate of 0.332 without considering bias.
+\textbf{Key insight:} Without Guardian's automatic publication bias check, researchers might report the pooled effect without considering potential bias in the underlying literature.
 
 \subsection{Summary of case studies}
 
@@ -1188,12 +1185,65 @@ Dataset & Violation & Impact & Recommendation \\
 \midrule
 Iris & Variance heterogeneity & Unreliable $F$-test & Welch's ANOVA \\
 Wine & Non-normality (ordinal) & Inappropriate $r$ & Spearman's $\rho$ \\
-Meta-analysis & Publication bias & Inflated effect & Trim-and-fill \\
+Meta-analysis & Publication bias & Biased estimate & Sensitivity analysis \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 In all three cases, the primary statistical conclusion (significant effect) remained unchanged after addressing violations. However, the \emph{appropriate method} differed from the naive approach. Guardian ensures researchers are informed of these issues automatically.
+
+\subsection{Additional validation with classic datasets}
+
+To demonstrate Guardian's generalizability, we validated against three additional classic datasets from R's standard library.
+
+\subsubsection{Regression: mtcars dataset}
+
+The mtcars dataset contains fuel efficiency data for 32 automobiles. We analyzed the relationship between weight and miles per gallon using linear regression.
+
+\textbf{Results:} $R^2 = 0.753$, slope $= -5.34$, $p < 0.001$.
+
+\textbf{Guardian validation:}
+\begin{itemize}
+\item Residual normality: PASS (Shapiro-Wilk $W = 0.945$, $p = 0.104$)
+\item Homoscedasticity: PASS ($r = -0.018$ between $|$residuals$|$ and fitted)
+\item Linearity: WARNING (runs test suggests potential curvature)
+\item Outliers: WARNING (3 observations with $|z| > 2$)
+\end{itemize}
+
+Guardian alerts the researcher to investigate linearity and outliers before finalizing conclusions.
+
+\subsubsection{Two-sample comparison: ToothGrowth dataset}
+
+The ToothGrowth dataset compares tooth length in guinea pigs receiving vitamin C via orange juice (OJ) vs. ascorbic acid (VC).
+
+\textbf{Results:} $t = 1.92$, $p = 0.060$, Cohen's $d = 0.50$ (medium effect).
+
+\textbf{Guardian validation:}
+\begin{itemize}
+\item Normality (OJ): WARNING (Shapiro-Wilk $W = 0.918$, $p = 0.024$)
+\item Normality (VC): PASS (Shapiro-Wilk $W = 0.966$, $p = 0.429$)
+\item Variance homogeneity: PASS (Levene $F = 1.21$, $p = 0.275$)
+\end{itemize}
+
+Guardian flags the non-normality in the OJ group, prompting consideration of the Mann-Whitney U test as an alternative.
+
+\subsubsection{ANOVA: PlantGrowth dataset}
+
+The PlantGrowth dataset compares plant weight under control and two treatment conditions.
+
+\textbf{Results:} $F = 4.85$, $p = 0.016$, $\eta^2 = 0.264$.
+
+\textbf{Guardian validation:}
+\begin{itemize}
+\item Normality (all groups): PASS
+\item Variance homogeneity: PASS (Levene $F = 1.12$, $p = 0.341$)
+\end{itemize}
+
+This case demonstrates Guardian correctly identifying clean data where all assumptions are satisfied, avoiding false alarms.
+
+\subsection{Summary}
+
+Across six datasets spanning ANOVA, correlation, regression, $t$-tests, and meta-analysis, Guardian consistently identified assumption violations when present and correctly passed clean data. The verification scripts are available in the repository at \texttt{paper/replication/}.
 
 %% =============================================================================
 %% SECTION 9: DISCUSSION
