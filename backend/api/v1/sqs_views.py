@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # PDF text extraction
 try:
@@ -101,6 +102,7 @@ class SQSAnalyzeView(APIView):
         - Full SQS report as JSON
     """
     parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [AllowAny]  # Allow public access for paper analysis
 
     def post(self, request):
         try:
@@ -171,6 +173,7 @@ class SQSAnalyzeTextView(APIView):
         - Full SQS report as JSON
     """
     parser_classes = [JSONParser]
+    permission_classes = [AllowAny]  # Allow public access
 
     def post(self, request):
         try:
@@ -218,6 +221,7 @@ class SQSRulesView(APIView):
     Response:
         - List of rules with metadata
     """
+    permission_classes = [AllowAny]  # Public endpoint
 
     def get(self, request):
         category = request.query_params.get('category')
@@ -261,6 +265,7 @@ class SQSFieldsView(APIView):
     Response:
         - List of fields with weight configurations
     """
+    permission_classes = [AllowAny]  # Public endpoint
 
     def get(self, request):
         fields = []
@@ -298,6 +303,7 @@ class SQSCategoriesView(APIView):
     Response:
         - List of categories with descriptions and max points
     """
+    permission_classes = [AllowAny]  # Public endpoint
 
     def get(self, request):
         categories = []
@@ -329,6 +335,7 @@ class SQSQuickCheckView(APIView):
         - Quick check results for specified elements
     """
     parser_classes = [JSONParser]
+    permission_classes = [AllowAny]  # Allow public access
 
     QUICK_CHECK_PATTERNS = {
         'effect_size': r"Cohen'?s?\s*d|η[²2]|Hedges'?\s*g|[Rr][²2]|(?:OR|odds\s*ratio)",
@@ -373,6 +380,7 @@ class SQSHealthView(APIView):
 
     GET /api/v1/sqs/health/
     """
+    permission_classes = [AllowAny]  # Public endpoint
 
     def get(self, request):
         return Response({
