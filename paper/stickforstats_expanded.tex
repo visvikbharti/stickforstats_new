@@ -1082,19 +1082,19 @@ result = requests.post(url, json={
 #
 # Violations:
 # - Variance Homogeneity: WARNING
-#   Levene's test: F=6.35, p=0.002
-#   Variance ratio (max/min): 1.89
+#   Levene's test: F=6.35, p=0.0023
+#   Variance ratio (max/min): 3.25
 #   Recommendation: Consider Welch's ANOVA
 #
-# - Normality (versicolor): WARNING
-#   Shapiro-Wilk: W=0.978, p=0.465 (PASS)
-#   Shapiro-Wilk (virginica): W=0.971, p=0.258 (PASS)
-#   Shapiro-Wilk (setosa): W=0.978, p=0.460 (PASS)
+# - Normality: All groups PASS
+#   Shapiro-Wilk (setosa): W=0.978, p=0.460
+#   Shapiro-Wilk (versicolor): W=0.978, p=0.465
+#   Shapiro-Wilk (virginica): W=0.971, p=0.258
 \end{lstlisting}
 
 \textbf{Guardian finding:} The Iris data violates the homogeneity of variance assumption (Levene $p = 0.002$). While standard ANOVA reports highly significant results, the violation means the $F$-test may be unreliable.
 
-\textbf{Recommendation followed:} Welch's ANOVA, which does not assume equal variances, yields $F = 138.91$, $p < 0.001$. The conclusion (significant species differences) holds, but with appropriate method.
+\textbf{Recommendation followed:} Welch's ANOVA (Alexander-Govern test), which does not assume equal variances, yields statistic $= 146.36$, $p < 0.001$. The conclusion (significant species differences) holds, but with appropriate method. The effect size is large ($\eta^2 = 0.619$).
 
 \textbf{Key insight:} The highly significant result ($p = 10^{-31}$) might lead researchers to skip assumption checking. Guardian catches the variance issue regardless of result significance.
 
