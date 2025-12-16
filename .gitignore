@@ -111,3 +111,20 @@ frontend/*_PROGRESS.md
 
 # Release preparation files (can be removed after release)
 RELEASE_PREPARATION_COMPLETE.md
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Exception: Include JSS submission package
+!paper/JSS_SUBMISSION/
+!paper/JSS_SUBMISSION/**

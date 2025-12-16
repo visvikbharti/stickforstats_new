@@ -1,0 +1,51 @@
+\documentclass[11pt]{letter}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\signature{Vishal Bharti \\ Debojyoti Chakraborty (Corresponding Author)}
+\address{CSIR-Institute of Genomics and Integrative Biology (IGIB)\\Mathura Road, New Delhi 110025, India\\E-mail: debojyoti.chakraborty@igib.in}
+
+\begin{document}
+
+\begin{letter}{Editorial Board\\Journal of Statistical Software}
+
+\opening{Dear Editors,}
+
+We are pleased to submit our manuscript titled ``\textbf{StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation}'' for consideration as a software paper in the Journal of Statistical Software.
+
+\textbf{Summary of the Work}
+
+Statistical assumption violations remain a persistent problem in published research. While assumption testing tools have been available in statistical software for decades, their optional nature means researchers often skip validation. Our platform addresses this through the Guardian system, which automatically validates assumptions before every statistical test without requiring user action.
+
+The key contributions of this work are:
+
+\begin{itemize}
+    \item \textbf{Guardian System:} An automatic assumption validation layer implementing eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity).
+    \item \textbf{Integrated Reporting:} Assumption validation results appear alongside statistical output, ensuring users cannot obtain results without seeing assumption status.
+    \item \textbf{Validated Implementation:} Computational accuracy verified against SciPy to 14+ decimal places.
+    \item \textbf{Real Data Validation:} Case studies with Fisher's Iris, UCI Wine Quality, and classic R datasets demonstrating practical value.
+\end{itemize}
+
+\textbf{Relevance to JSS}
+
+StickForStats is an open-source platform built with Python (Django backend, React frontend). The software is available at \url{https://github.com/visvikbharti/stickforstats_new} under an open-source license. We believe this work aligns well with JSS's mission of publishing statistical software that advances reproducible research.
+
+\textbf{Replication Materials}
+
+We have included Python scripts that reproduce all numerical results presented in the paper. These scripts validate our computations against SciPy and demonstrate Guardian's assumption checking on real datasets.
+
+\textbf{Confirmations}
+
+\begin{itemize}
+    \item This manuscript has not been published elsewhere and is not under consideration by another journal.
+    \item All authors have approved the manuscript and agree to its submission.
+    \item The software and all results are fully reproducible.
+\end{itemize}
+
+We thank you for considering our submission and look forward to your response.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}
