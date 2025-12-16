@@ -3,9 +3,9 @@
 ## Pre-Submission Checklist
 
 ### Documents Ready
-- [x] Manuscript PDF (33 pages, JSS format)
+- [x] Manuscript PDF (37 pages, JSS format)
 - [x] LaTeX source files
-- [x] Bibliography (.bib file, 29 references)
+- [x] Bibliography (.bib file, 30 references)
 - [x] Figures (2 PDF figures)
 - [x] Cover letter
 - [x] Replication scripts
@@ -63,7 +63,7 @@ Copy from the paper (the abstract in stickforstats_expanded.pdf)
 
 **Keywords:**
 ```
-statistical assumptions, reproducibility, automatic validation, Guardian system, Python, open-source
+statistical assumptions, reproducibility, automatic validation, AI-assisted analysis, statistical reporting, Guardian system, Python, open-source
 ```
 
 ### Step 4: Upload Files

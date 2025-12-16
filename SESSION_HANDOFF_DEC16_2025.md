@@ -49,11 +49,16 @@ StickForStats is a statistical analysis platform with **automatic assumption val
 | Aspect | Status |
 |--------|--------|
 | Title | StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation |
-| Pages | 33 pages (JSS requires 25-40) ✅ |
+| Pages | 37 pages (JSS requires 25-40) ✅ |
 | Figures | 2 (architecture + workflow) |
 | Tables | 6 |
-| References | 29 (all verified in .bib) |
+| References | 30 (all verified in .bib) |
 | Format | JSS LaTeX template |
+
+### New Sections Added (Dec 16 continuation)
+- **Section 5: AI Statistical Advisor** - Natural language interface, test selector, methods section generator
+- **Section 6: Paper Parser** - PDF analysis for statistical reporting quality, JARS-Quant compliance
+- Statistical Debugger included as subsection of Paper Parser
 
 ### Key Files
 ```

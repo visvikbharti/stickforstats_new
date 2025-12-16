@@ -16,11 +16,11 @@ JSS_SUBMISSION/
 ├── cover_letter.tex             # Cover letter source
 │
 ├── manuscript/
-│   └── stickforstats_expanded.pdf    # Main manuscript (33 pages)
+│   └── stickforstats_expanded.pdf    # Main manuscript (37 pages)
 │
 ├── source/
 │   ├── stickforstats_expanded.tex    # LaTeX source
-│   ├── stickforstats.bib             # Bibliography (29 references)
+│   ├── stickforstats.bib             # Bibliography (30 references)
 │   ├── jss.cls                       # JSS document class
 │   ├── jss.bst                       # JSS bibliography style
 │   └── figures/
