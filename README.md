@@ -30,6 +30,35 @@ StickForStats is an open-source statistical analysis platform featuring the **Gu
 - **Reproducibility Bundle**: SHA-256 data fingerprints, complete audit trails
 - **50 Interactive Lessons**: Integrated statistical education
 
+### AI-Powered Features
+- **AI Statistical Advisor**: Claude-powered natural language guidance for test selection
+- **Paper Parser**: Manuscript analysis for JARS-Quant compliance
+- **Statistical Quality Score (SQS)**: Automated scoring of manuscript statistical reporting (0-100)
+
+## Demo
+
+### Screenshots
+
+<!-- TODO: Add screenshots after capturing them -->
+
+| Feature | Screenshot |
+|---------|------------|
+| Guardian Validation | ![Guardian](docs/screenshots/02_guardian_validation.png) |
+| AI Statistical Advisor | ![AI Advisor](docs/screenshots/03_ai_advisor.png) |
+| SQS Score Analysis | ![SQS Score](docs/screenshots/05_sqs_score.png) |
+
+### Quick Demo GIFs
+
+<!-- TODO: Add GIFs after recording them -->
+
+**Guardian in Action:**
+![Guardian Demo](docs/gifs/guardian_demo.gif)
+
+**SQS Manuscript Analysis:**
+![SQS Demo](docs/gifs/sqs_analysis_demo.gif)
+
+> **Note:** See [docs/DEMO_MATERIALS_GUIDE.md](docs/DEMO_MATERIALS_GUIDE.md) for instructions on capturing screenshots and GIFs.
+
 ## Installation
 
 ### Prerequisites
@@ -217,7 +246,7 @@ If you use StickForStats in your research, please cite:
 ```bibtex
 @article{stickforstats2025,
   title = {{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation},
-  author = {Bharti, Vishal},
+  author = {Bharti, Vishal and Chakraborty, Debojyoti},
   journal = {Journal of Statistical Software},
   year = {2025},
   note = {Submitted}
