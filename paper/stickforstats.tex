@@ -217,13 +217,13 @@ Guardian implements eight validators:
 
 \subsection{Confidence score calculation}
 
-Guardian computes a confidence score using golden ratio ($\phi \approx 1.618$) based weights:
+Guardian computes a confidence score using severity-based penalty weights:
 
 \begin{equation}
 \text{Confidence} = \max\left(0, 1 - \frac{\sum_i \text{penalty}(v_i)}{\max\_penalty \times 1.2}\right)
 \end{equation}
 
-where penalty weights are $\phi^2 \approx 2.618$ for critical violations, $\phi \approx 1.618$ for warnings, and $1.0$ for minor issues.
+where penalty weights are $3.0$ for critical violations, $2.0$ for warnings, and $1.0$ for minor issues. These weights reflect the relative impact of each violation type on analysis validity: critical violations that invalidate results receive the highest penalty, warnings requiring attention receive moderate penalty, and minor acceptable concerns receive the lowest penalty.
 
 \begin{figure}[htbp]
 \centering

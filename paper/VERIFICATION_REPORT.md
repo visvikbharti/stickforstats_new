@@ -109,25 +109,24 @@ backend/core/guardian/urls.py:
 
 ---
 
-## 6. Golden Ratio Weighting
+## 6. Confidence Scoring Weights
 
-### Claim: Uses golden ratio (φ ≈ 1.618) for confidence scoring
+### Original: Golden ratio (φ ≈ 1.618) for confidence scoring
+### Updated: Severity-based weights (3.0, 2.0, 1.0)
 
-**Evidence in code:**
+**Updated code (December 16, 2025):**
 ```python
-# guardian_core.py, lines 24, 256-261
-PHI = Decimal(1 + 5**0.5) / 2  # ~1.618
-
-penalties = {
-    'critical': phi ** 2,  # ~2.618
-    'warning': phi,         # ~1.618
-    'minor': 1.0
+# guardian_core.py - UPDATED
+SEVERITY_WEIGHTS = {
+    'critical': 3.0,  # Severe violations that invalidate results
+    'warning': 2.0,   # Moderate issues requiring attention
+    'minor': 1.0      # Small concerns, usually acceptable
 }
 ```
 
-**VERDICT: ✅ VERIFIED - But lacks empirical justification**
+**VERDICT: ✅ FIXED - Now uses intuitive, justifiable weights**
 
-**Concern:** The use of golden ratio is IMPLEMENTED but there's no empirical evidence showing it's optimal. This is a weakness in the paper that should be addressed.
+**Rationale:** Critical violations are penalized 3x, warnings 2x, minor issues 1x. This reflects the relative impact of each violation type on analysis validity and is easier to justify than arbitrary mathematical constants.
 
 ---
 
@@ -138,26 +137,28 @@ penalties = {
 | 8 Guardian validators | ✅ VERIFIED | All 8 implemented |
 | 50 interactive lessons | ✅ VERIFIED | Actually 58 lessons |
 | 50-decimal precision | ✅ VERIFIED | mpmath integration works |
-| Code export (R + Python) | ⚠️ PARTIAL | Python only, R not found |
+| Code export (Python) | ✅ VERIFIED | Python export works |
 | SciPy validation | ✅ VERIFIED | All tests pass |
-| Golden ratio scoring | ✅ EXISTS | Lacks justification |
+| Severity-based scoring | ✅ FIXED | Updated from golden ratio to 3/2/1 weights |
 
 ---
 
 ## Recommendations for Paper
 
-### Must Fix
-1. Change "code export in R and Python" to "Python code export" (or implement R)
+### Already Fixed (December 16, 2025)
+1. ✅ Changed "code export in R and Python" to "Python code export"
+2. ✅ Simplified golden ratio to severity-based weights (3/2/1)
+3. ✅ Removed overclaiming language
 
 ### Should Consider
 1. Update lesson count to "nearly 60" or "50+"
-2. Add justification for golden ratio weighting OR simplify to intuitive weights
-3. Be more conservative about precision claims (keep "14+" which is accurate)
+2. Be more conservative about precision claims (keep "14+" which is accurate)
 
 ### Already Accurate
 1. 8 validators claim
 2. High-precision computing
 3. Validation against SciPy
+4. Severity-based confidence scoring
 
 ---
 

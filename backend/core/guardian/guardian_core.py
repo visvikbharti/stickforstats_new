@@ -1,10 +1,8 @@
 """
 Statistical Guardian Core System
 ================================
-The revolutionary system that makes bad statistics impossible.
-Protects users from statistical malpractice by validating assumptions before analysis.
-
-Golden Ratio (φ) = 1.618033988749... appears throughout our validation thresholds.
+Automatic assumption validation system that helps prevent statistical errors.
+Validates assumptions before analysis and provides actionable recommendations.
 """
 
 import numpy as np
@@ -19,9 +17,17 @@ import json
 from .visualization_generator import VisualizationGenerator
 from .effect_size_calculator import EffectSizeCalculator
 
-# Set precision for the universe's mathematical language
+# Set precision for high-accuracy calculations
 getcontext().prec = 50
-PHI = Decimal(1 + 5**0.5) / 2  # Golden Ratio with 50-decimal precision
+
+# Severity-based penalty weights for confidence scoring
+# Critical violations are penalized 3x, warnings 2x, minor issues 1x
+# This reflects the relative impact of each violation type on analysis validity
+SEVERITY_WEIGHTS = {
+    'critical': 3.0,  # Severe violations that invalidate results
+    'warning': 2.0,   # Moderate issues requiring attention
+    'minor': 1.0      # Small concerns, usually acceptable
+}
 
 
 @dataclass
@@ -241,31 +247,29 @@ class GuardianCore:
 
     def _calculate_confidence(self, violations: List[AssumptionViolation]) -> float:
         """
-        Calculate confidence score using golden ratio weighting
+        Calculate confidence score using severity-based weighting.
 
         Higher penalties for more severe violations:
-        - Critical violations: penalty = φ² ≈ 2.618 (HIGHEST penalty)
-        - Warning violations: penalty = φ ≈ 1.618 (MEDIUM penalty)
-        - Minor violations: penalty = 1.0 (LOWEST penalty)
+        - Critical violations: penalty = 3.0 (severe impact on validity)
+        - Warning violations: penalty = 2.0 (moderate impact)
+        - Minor violations: penalty = 1.0 (minimal impact)
 
-        Confidence decreases as penalties accumulate.
+        This weighting scheme reflects the relative impact of each violation
+        type on the validity of statistical analysis results.
+
+        Returns:
+            float: Confidence score between 0 and 1
         """
         if not violations:
             return 1.0
 
-        phi = float(PHI)
-        # Correct weighting: critical violations have HIGHER penalties
-        penalties = {
-            'critical': phi ** 2,  # ~2.618 (highest penalty)
-            'warning': phi,         # ~1.618 (medium penalty)
-            'minor': 1.0           # 1.0 (lowest penalty)
-        }
-
         # Calculate total penalty from all violations
-        total_penalty = sum(penalties.get(v.severity, 1.0) for v in violations)
+        total_penalty = sum(
+            SEVERITY_WEIGHTS.get(v.severity, 1.0) for v in violations
+        )
 
         # Maximum possible penalty if all were critical
-        max_possible_penalty = len(violations) * penalties['critical']
+        max_possible_penalty = len(violations) * SEVERITY_WEIGHTS['critical']
 
         # Confidence decreases proportionally to penalty accumulation
         # Scale so that all-critical gives ~50%, mixed gives 60-80%, all-minor gives ~85%
