@@ -44,6 +44,7 @@
   "copyToClipboard": "Copier dans le presse-papiers",
   "copied": "Copié !",
   "language": "Langue",
+  "languagesSupported": "{{count}} langues supportées",
   "settings": "Paramètres",
   "help": "Aide",
   "about": "À propos",

@@ -211,15 +211,21 @@ const NavButton = React.memo(({ page, isActive }) => (
     component={ButtonLink}
     to={page.path}
     prefetchStrategy="hover"
-    sx={{ 
-      my: 2, 
-      color: 'white', 
+    sx={(theme) => ({
+      my: 2,
+      color: 'inherit',
       display: 'block',
-      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+      backgroundColor: isActive
+        ? theme.palette.mode === 'dark'
+          ? 'rgba(255, 255, 255, 0.1)'
+          : 'rgba(0, 0, 0, 0.08)'
+        : 'transparent',
       '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: theme.palette.mode === 'dark'
+          ? 'rgba(255, 255, 255, 0.2)'
+          : 'rgba(0, 0, 0, 0.12)',
       }
-    }}
+    })}
   >
     {page.name}
   </Button>
@@ -676,12 +682,16 @@ const Navigation = () => {
                   <IconButton
                     color="inherit"
                     onClick={openSearch}
-                    sx={{
-                      bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    sx={(theme) => ({
+                      bgcolor: theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : 'rgba(0, 0, 0, 0.08)',
                       '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        bgcolor: theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.2)'
+                          : 'rgba(0, 0, 0, 0.12)',
                       }
-                    }}
+                    })}
                   >
                     <SearchIcon />
                   </IconButton>
@@ -696,12 +706,20 @@ const Navigation = () => {
                   <IconButton
                     onClick={handleOpenDevMenu}
                     color="inherit"
-                    sx={{
-                      bgcolor: location.pathname.startsWith('/test') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                    sx={(theme) => ({
+                      bgcolor: location.pathname.startsWith('/test')
+                        ? theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.2)'
+                          : 'rgba(0, 0, 0, 0.12)'
+                        : theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.1)'
+                          : 'rgba(0, 0, 0, 0.08)',
                       '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        bgcolor: theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.2)'
+                          : 'rgba(0, 0, 0, 0.12)',
                       }
-                    }}
+                    })}
                   >
                     <BugReportIcon />
                   </IconButton>
@@ -734,12 +752,20 @@ const Navigation = () => {
                   <IconButton
                     onClick={handleOpenMonitoringMenu}
                     color="inherit"
-                    sx={{
-                      bgcolor: location.pathname.startsWith('/monitoring') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                    sx={(theme) => ({
+                      bgcolor: location.pathname.startsWith('/monitoring')
+                        ? theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.2)'
+                          : 'rgba(0, 0, 0, 0.12)'
+                        : theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.1)'
+                          : 'rgba(0, 0, 0, 0.08)',
                       '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        bgcolor: theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.2)'
+                          : 'rgba(0, 0, 0, 0.12)',
                       }
-                    }}
+                    })}
                   >
                     <MonitorIcon />
                   </IconButton>
@@ -776,12 +802,16 @@ const Navigation = () => {
                 <IconButton
                   color="inherit"
                   onClick={handleOpenRagDialog}
-                  sx={{
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.08)',
                     '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.2)',
+                      bgcolor: theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : 'rgba(0, 0, 0, 0.12)',
                     }
-                  }}
+                  })}
                 >
                   <QuestionAnswerIcon />
                 </IconButton>
@@ -842,7 +872,16 @@ const Navigation = () => {
                     to="/register"
                     variant="contained"
                     size="small"
-                    sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}
+                    sx={(theme) => ({
+                      bgcolor: theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : 'rgba(0, 0, 0, 0.12)',
+                      '&:hover': {
+                        bgcolor: theme.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.3)'
+                          : 'rgba(0, 0, 0, 0.18)',
+                      }
+                    })}
                   >
                     Sign Up
                   </Button>
@@ -870,7 +909,11 @@ const Navigation = () => {
     console.error('Navigation component error:', error);
     // Return a minimal navigation that won't crash
     return (
-      <AppBar position="fixed" sx={{ backgroundColor: 'rgba(18, 18, 18, 0.95)' }}>
+      <AppBar position="fixed" sx={(theme) => ({
+        backgroundColor: theme.palette.mode === 'dark'
+          ? 'rgba(18, 18, 18, 0.95)'
+          : 'rgba(255, 255, 255, 0.95)'
+      })}>
         <Container maxWidth="xl">
           <Toolbar disableGutters>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>

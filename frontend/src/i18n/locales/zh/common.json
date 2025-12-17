@@ -44,6 +44,7 @@
   "copyToClipboard": "复制到剪贴板",
   "copied": "已复制！",
   "language": "语言",
+  "languagesSupported": "支持 {{count}} 种语言",
   "settings": "设置",
   "help": "帮助",
   "about": "关于",

@@ -44,6 +44,7 @@
   "copyToClipboard": "Copiar para área de transferência",
   "copied": "Copiado!",
   "language": "Idioma",
+  "languagesSupported": "{{count}} idiomas suportados",
   "settings": "Configurações",
   "help": "Ajuda",
   "about": "Sobre",

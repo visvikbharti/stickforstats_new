@@ -76,12 +76,21 @@ const SimpleNavigation = () => {
                 key={item.name}
                 component={RouterLink}
                 to={item.path}
-                sx={{ 
-                  my: 2, 
-                  color: 'white', 
+                sx={(theme) => ({
+                  my: 2,
+                  color: 'inherit',
                   display: 'block',
-                  backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
-                }}
+                  backgroundColor: location.pathname === item.path
+                    ? theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.08)'
+                    : 'transparent',
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.2)'
+                      : 'rgba(0, 0, 0, 0.12)',
+                  }
+                })}
               >
                 {item.name}
               </Button>

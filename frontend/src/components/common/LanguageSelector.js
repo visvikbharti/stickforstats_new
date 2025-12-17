@@ -242,7 +242,7 @@ const LanguageSelector = ({
         <Divider />
         <Box sx={{ px: 2, py: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            6 languages supported
+            {t('languagesSupported', { count: SUPPORTED_LANGUAGES.length })}
           </Typography>
         </Box>
       </Menu>

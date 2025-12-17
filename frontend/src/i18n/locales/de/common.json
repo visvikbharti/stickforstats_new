@@ -44,6 +44,7 @@
   "copyToClipboard": "In Zwischenablage kopieren",
   "copied": "Kopiert!",
   "language": "Sprache",
+  "languagesSupported": "{{count}} Sprachen unterstützt",
   "settings": "Einstellungen",
   "help": "Hilfe",
   "about": "Über",
