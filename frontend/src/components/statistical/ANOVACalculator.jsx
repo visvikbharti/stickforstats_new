@@ -16,6 +16,9 @@
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+
+// Import settings context for Expert Mode
+import { useSettings } from '../../context/SettingsContext';
 import {
   Box,
   Card,
@@ -144,6 +147,9 @@ const PRECISION_OPTIONS = [
 
 const ANOVACalculator = () => {
   const { enqueueSnackbar } = useSnackbar();
+
+  // Get Expert Mode setting - allows bypassing Guardian blocking
+  const { shouldBlockTest, expertMode } = useSettings();
 
   // State management
   const [anovaType, setAnovaType] = useState(ANOVA_TYPES.ONE_WAY);
@@ -319,9 +325,10 @@ const ANOVACalculator = () => {
 
         setGuardianResult(result);
 
-        // Block if critical violations
+        // Block if critical violations (respects Expert Mode setting)
+        const hasCritical = result.criticalViolations && result.criticalViolations.length > 0;
         setIsTestBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          shouldBlockTest(result.hasViolations, hasCritical)
         );
 
       } catch (error) {
@@ -1505,6 +1512,16 @@ const ANOVACalculator = () => {
                 <AlertTitle>⛔ Test Execution Blocked</AlertTitle>
                 Critical assumption violations detected. Please address the violations above using
                 the "Fix Data" button, or switch to Kruskal-Wallis test (non-parametric alternative).
+                <Typography variant="caption" display="block" sx={{ mt: 1, fontStyle: 'italic' }}>
+                  Tip: Enable "Expert Mode" in settings to proceed with caution despite violations.
+                </Typography>
+              </Alert>
+            )}
+            {expertMode && guardianResult?.criticalViolations?.length > 0 && !isTestBlocked && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <AlertTitle>⚠️ Expert Mode Active</AlertTitle>
+                Critical violations detected but Expert Mode is enabled. Proceeding with caution.
+                Results may be unreliable due to assumption violations.
               </Alert>
             )}
           </Box>

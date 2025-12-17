@@ -273,7 +273,7 @@ When a user requests a statistical test (e.g., independent samples $t$-test), th
 \item \textbf{Guardian interception:} Before executing the statistical test, the Guardian middleware intercepts the request.
 \item \textbf{Assumption validation:} Guardian runs all relevant validators for the requested test type.
 \item \textbf{Report generation:} Guardian compiles a report with confidence score and any violations.
-\item \textbf{Test execution:} The statistical test is executed (Guardian does not block, only reports).
+\item \textbf{Test execution:} In Protected Mode (default), critical assumption violations block test execution until addressed; in Expert Mode, tests execute with warning annotations.
 \item \textbf{Response augmentation:} The Guardian report is attached to the statistical results.
 \item \textbf{Response delivery:} The combined response is returned to the user.
 \end{enumerate}
@@ -318,10 +318,17 @@ Guardian is designed around four principles:
 \item \textbf{Comprehensiveness:} Check the major statistical assumptions for each test type.
 \item \textbf{Transparency:} Report all validation results, not just failures.
 \item \textbf{Actionability:} Provide specific recommendations when violations occur.
-\item \textbf{Non-blocking:} Alert users to issues without preventing analysis.
+\item \textbf{Configurable protection:} Block by default, with expert override available.
 \end{enumerate}
 
-The fourth principle deserves elaboration. Guardian does not prevent users from conducting analyses with violated assumptions. This design choice reflects the reality that assumption violations exist on a spectrum, that researchers may have domain knowledge justifying violations, and that blocking would create usability barriers. Instead, Guardian ensures that users are \emph{informed} about assumption status.
+The fourth principle deserves elaboration. Guardian operates in two modes:
+
+\begin{itemize}
+\item \textbf{Protected Mode (default):} When critical assumption violations are detected, test execution is blocked until violations are addressed. This protects novice users from inadvertently producing invalid statistical results.
+\item \textbf{Expert Mode:} Experienced statisticians can enable Expert Mode to proceed with analyses despite critical violations. Warnings are prominently displayed, and results are annotated to indicate potential unreliability.
+\end{itemize}
+
+This configurable approach balances protection with researcher autonomy. The default blocking behavior ensures that assumption violations cannot be silently ignored, while the expert override respects domain knowledge and edge cases where proceeding may be justified.
 
 \subsection{Algorithm overview}
 
@@ -1428,11 +1435,11 @@ Guardian's eight validators do not cover all possible assumptions:
 
 \textbf{Mitigation:} Guardian explicitly states which assumptions are checked, making gaps transparent.
 
-\subsubsection{User override}
+\subsubsection{Expert Mode override}
 
-Guardian does not prevent analysis with violated assumptions. Users can ignore warnings. This design choice prioritizes usability but means determined users can still produce invalid analyses.
+By default, Guardian blocks test execution when critical assumption violations are detected (Protected Mode). However, Expert Mode allows experienced users to proceed with analyses despite violations. While warnings remain visible, this override means determined users can still produce potentially invalid analyses.
 
-\textbf{Rationale:} Blocking would create false negatives (preventing valid analyses where domain knowledge justifies violations) and would likely lead users to abandon the platform. Informed choice is preferable to forced compliance.
+\textbf{Rationale:} The default blocking behavior protects novice users, while Expert Mode accommodates researchers with domain knowledge justifying edge cases. This configurable approach balances protection with researcher autonomy, recognizing that strict blocking could prevent valid analyses in specialized contexts.
 
 \subsection{Comparison with alternative approaches}
 

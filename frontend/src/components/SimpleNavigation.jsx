@@ -16,6 +16,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../context/AuthContext';
 import DarkModeToggle from './common/DarkModeToggle';
+import ExpertModeToggle from './common/ExpertModeToggle';
 import LanguageSelector from './common/LanguageSelector';
 
 const SimpleNavigation = () => {
@@ -130,6 +131,9 @@ const SimpleNavigation = () => {
 
           {/* Dark Mode Toggle */}
           <DarkModeToggle />
+
+          {/* Expert Mode Toggle - Guardian blocking behavior */}
+          <ExpertModeToggle variant="chip" />
 
           {/* User section */}
           <Box sx={{ flexGrow: 0, ml: 2 }}>

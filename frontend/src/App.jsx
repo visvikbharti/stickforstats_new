@@ -51,12 +51,15 @@ import GlobalSearch from './components/common/GlobalSearch';
 
 // Import onboarding components
 import { OnboardingProvider } from './context/OnboardingContext';
-import { 
-  TourProvider, 
-  WelcomeModal, 
-  OnboardingChecklist, 
-  HelpButton 
+import {
+  TourProvider,
+  WelcomeModal,
+  OnboardingChecklist,
+  HelpButton
 } from './components/onboarding';
+
+// Import settings context (Expert Mode, etc.)
+import { SettingsProvider } from './context/SettingsContext';
 
 // Performance testing components are lazy loaded below
 
@@ -244,8 +247,9 @@ function App() {
                     <OnboardingProvider>
                       <SearchProvider>
                         <CommandPaletteProvider>
-                          <TourProvider>
-                            <div className="App">
+                          <SettingsProvider>
+                            <TourProvider>
+                              <div className="App">
                               <SimpleNavigation />
                               <CommandPalette />
                               <GlobalSearch />
@@ -862,9 +866,10 @@ function App() {
                     <ServiceWorkerUpdater />
                     {showPrefetchDebug && <PrefetchDebug position={{ bottom: 16, right: 16 }} />}
                     {/* {process.env.NODE_ENV === 'development' && <AuthDebug />} */}
-                  </div>
-                        </TourProvider>
-                      </CommandPaletteProvider>
+                              </div>
+                            </TourProvider>
+                          </SettingsProvider>
+                        </CommandPaletteProvider>
                     </SearchProvider>
                   </OnboardingProvider>
                 </AuthProvider>

@@ -16,6 +16,9 @@
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+
+// Import settings context for Expert Mode
+import { useSettings } from '../../context/SettingsContext';
 import {
   Box,
   Card,
@@ -111,6 +114,9 @@ import GuardianWarning from '../Guardian/GuardianWarning';
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
 
 const RegressionCalculator = () => {
+  // Get Expert Mode setting - allows bypassing Guardian blocking
+  const { shouldBlockTest, expertMode } = useSettings();
+
   // State management
   const [activeTab, setActiveTab] = useState(0);
   const [regressionType, setRegressionType] = useState('linear');
@@ -279,9 +285,10 @@ const RegressionCalculator = () => {
 
         setGuardianResult(result);
 
-        // Block test if critical violations detected
+        // Block test if critical violations detected (respects Expert Mode setting)
+        const hasCritical = result.criticalViolations && result.criticalViolations.length > 0;
         setIsTestBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          shouldBlockTest(result.hasViolations, hasCritical)
         );
 
         console.log('[RegressionCalculator] Guardian validation result:', result);
@@ -926,6 +933,16 @@ const RegressionCalculator = () => {
               Critical assumption violations detected for linear regression. Please address the
               violations above using the "Fix Data" button, or switch to a robust regression method
               (Ridge, Lasso, or Robust Regression).
+              <Typography variant="caption" display="block" sx={{ mt: 1, fontStyle: 'italic' }}>
+                Tip: Enable "Expert Mode" in settings to proceed with caution despite violations.
+              </Typography>
+            </Alert>
+          )}
+          {expertMode && guardianResult?.criticalViolations?.length > 0 && !isTestBlocked && (
+            <Alert severity="warning">
+              <AlertTitle>⚠️ Expert Mode Active</AlertTitle>
+              Critical violations detected but Expert Mode is enabled. Proceeding with caution.
+              Results may be unreliable due to assumption violations.
             </Alert>
           )}
         </Box>
