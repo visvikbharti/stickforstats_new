@@ -21,7 +21,7 @@ Statistical assumption violations remain a persistent problem in published resea
 The key contributions of this work are:
 
 \begin{itemize}
-    \item \textbf{Guardian System:} An automatic assumption validation layer implementing 15+ validators covering normality, variance homogeneity, independence, outliers, linearity, homoscedasticity, sphericity, multicollinearity, and more.
+    \item \textbf{Guardian System:} An automatic assumption validation layer implementing eight validators covering normality, variance homogeneity, independence, outliers, sample size adequacy, modality detection, linearity, and homoscedasticity. The system operates in two modes: Protected Mode (default) blocks tests on critical violations, while Expert Mode allows experienced users to proceed with warnings.
     \item \textbf{AI Statistical Advisor:} A natural language interface providing guidance for test selection, result interpretation, and generating JARS-compliant methods sections automatically.
     \item \textbf{Paper Parser with Statistical Debugger:} A manuscript analysis tool that identifies statistical reporting errors, assesses compliance with JARS-Quant guidelines, and provides a Statistical Quality Score prototype for pre-submission quality assessment.
     \item \textbf{High-Precision Computing:} Optional 50-decimal-place precision using mpmath for exact p-value calculations when standard floating-point arithmetic is insufficient.
