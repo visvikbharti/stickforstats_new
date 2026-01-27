@@ -22,6 +22,11 @@ import {
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
 import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
 
+// Guardian Design Contract compliance
+// "No statistical result may exist without an explicit, traceable assumption context."
+import useGuardianReport from '../hooks/useGuardianReport';
+import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+
 const TTestRealBackend = () => {
   // Data state
   const [sample1, setSample1] = useState('');
@@ -38,6 +43,9 @@ const TTestRealBackend = () => {
     const saved = localStorage.getItem('professionalDarkMode');
     return saved ? JSON.parse(saved) : false;
   });
+
+  // Guardian context for Design Contract compliance
+  const resultsGuardian = useGuardianReport(results);
 
   // Service instance
   const service = new HighPrecisionStatisticalService();
@@ -133,11 +141,20 @@ const TTestRealBackend = () => {
       <Fade in timeout={800}>
         <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <AssessmentIcon sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography variant="h6">
-                Results (50 Decimal Precision)
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AssessmentIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6">
+                  Results (50 Decimal Precision)
+                </Typography>
+              </Box>
+              {resultsGuardian.hasGuardianContext && (
+                <GuardianBadge
+                  confidenceScore={resultsGuardian.confidenceScore}
+                  violations={resultsGuardian.violations}
+                  canProceed={resultsGuardian.canProceed}
+                />
+              )}
             </Box>
             <Divider sx={{ mb: 2 }} />
 
@@ -421,6 +438,13 @@ const TTestRealBackend = () => {
           <Alert severity="error" sx={{ mt: 3 }}>
             {error}
           </Alert>
+        )}
+
+        {/* Guardian Report - Design Contract Compliance */}
+        {results && resultsGuardian.hasGuardianContext && (
+          <Box sx={{ mt: 3 }}>
+            <GuardianReportDisplay {...resultsGuardian.guardianProps} />
+          </Box>
         )}
 
         {/* Results display */}

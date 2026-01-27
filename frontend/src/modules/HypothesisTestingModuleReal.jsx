@@ -24,6 +24,11 @@ import {
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 
+// Guardian Design Contract compliance
+// "No statistical result may exist without an explicit, traceable assumption context."
+import useGuardianReport from '../hooks/useGuardianReport';
+import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+
 // REAL BACKEND INTEGRATION
 import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
@@ -89,6 +94,10 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
   const [error, setError] = useState(null);
   const [backendPrecision, setBackendPrecision] = useState(50);
   const [realDataExample, setRealDataExample] = useState(null);
+  const [testResult, setTestResult] = useState(null);
+
+  // Guardian context for Design Contract compliance
+  const testGuardian = useGuardianReport(testResult);
 
   // Load real example data
   useEffect(() => {
@@ -153,6 +162,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
 
         setPower(observedPower);
         setBackendPrecision(result.precision || 50);
+        setTestResult(result); // Store for Guardian display
 
         // Update visualization based on real results
         await generateErrorData();
@@ -260,8 +270,24 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
             </Button>
           </Paper>
 
+          {/* Guardian Report - Design Contract Compliance */}
+          {testResult && testGuardian.hasGuardianContext && (
+            <Box sx={{ mt: 2 }}>
+              <GuardianReportDisplay {...testGuardian.guardianProps} compact />
+            </Box>
+          )}
+
           <Paper sx={{ p: 2, mt: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>Statistical Power</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1">Statistical Power</Typography>
+              {testGuardian.hasGuardianContext && (
+                <GuardianBadge
+                  confidenceScore={testGuardian.confidenceScore}
+                  violations={testGuardian.violations}
+                  canProceed={testGuardian.canProceed}
+                />
+              )}
+            </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ flex: 1 }}>
                 {loading ? (
@@ -418,6 +444,10 @@ const PValueDistributionExplorer = ({ darkMode }) => {
   const [error, setError] = useState(null);
   const [backendPrecision, setBackendPrecision] = useState(50);
   const [realDataset, setRealDataset] = useState(null);
+  const [simulationResults, setSimulationResults] = useState(null);
+
+  // Guardian context for Design Contract compliance
+  const simulationGuardian = useGuardianReport(simulationResults);
 
   useEffect(() => {
     // Load a real dataset for demonstration
@@ -488,6 +518,7 @@ const PValueDistributionExplorer = ({ darkMode }) => {
       }));
 
       setPValueData(histogramData);
+      setSimulationResults({ pValues, histogram: histogramData, numSimulations });
 
     } catch (err) {
       console.error('Error in p-value simulation:', err);
@@ -602,8 +633,24 @@ const PValueDistributionExplorer = ({ darkMode }) => {
             )}
           </Paper>
 
+          {/* Guardian Report - Design Contract Compliance */}
+          {simulationResults && simulationGuardian.hasGuardianContext && (
+            <Box sx={{ mt: 2 }}>
+              <GuardianReportDisplay {...simulationGuardian.guardianProps} compact />
+            </Box>
+          )}
+
           <Paper sx={{ p: 2, mt: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>Key Insights</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1">Key Insights</Typography>
+              {simulationGuardian.hasGuardianContext && (
+                <GuardianBadge
+                  confidenceScore={simulationGuardian.confidenceScore}
+                  violations={simulationGuardian.violations}
+                  canProceed={simulationGuardian.canProceed}
+                />
+              )}
+            </Box>
             <List dense>
               <ListItem>
                 <ListItemIcon><Lightbulb color="primary" /></ListItemIcon>

@@ -56,6 +56,11 @@ import { NonParametricTestsService } from '../services/NonParametricTestsService
 // Import real datasets
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 
+// Guardian Design Contract compliance
+// "No statistical result may exist without an explicit, traceable assumption context."
+import useGuardianReport from '../hooks/useGuardianReport';
+import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+
 const NonParametricTestsReal = () => {
   // State management
   const [selectedTest, setSelectedTest] = useState('mann-whitney');
@@ -70,6 +75,9 @@ const NonParametricTestsReal = () => {
 
   // Service instance
   const service = new NonParametricTestsService();
+
+  // Guardian context for Design Contract compliance
+  const resultsGuardian = useGuardianReport(results);
 
   // Test configurations (simplified)
   const testConfigs = {
@@ -393,18 +401,35 @@ const NonParametricTestsReal = () => {
     if (!results) return null;
 
     return (
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              Test Results: {results.testName}
-            </Typography>
-            <Chip
-              label={`${backendPrecision}-decimal precision`}
-              color="success"
-              icon={<CheckCircleIcon />}
-            />
+      <Box sx={{ mt: 3 }}>
+        {/* Guardian Report - Design Contract Compliance */}
+        {resultsGuardian.hasGuardianContext && (
+          <Box sx={{ mb: 2 }}>
+            <GuardianReportDisplay {...resultsGuardian.guardianProps} />
           </Box>
+        )}
+
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Test Results: {results.testName}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                {resultsGuardian.hasGuardianContext && (
+                  <GuardianBadge
+                    confidenceScore={resultsGuardian.confidenceScore}
+                    violations={resultsGuardian.violations}
+                    canProceed={resultsGuardian.canProceed}
+                  />
+                )}
+                <Chip
+                  label={`${backendPrecision}-decimal precision`}
+                  color="success"
+                  icon={<CheckCircleIcon />}
+                />
+              </Box>
+            </Box>
 
           <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ mb: 2 }}>
             <Tab label="Main Results" />
@@ -614,6 +639,7 @@ const NonParametricTestsReal = () => {
           )}
         </CardContent>
       </Card>
+      </Box>
     );
   };
 

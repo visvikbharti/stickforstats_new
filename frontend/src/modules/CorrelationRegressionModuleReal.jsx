@@ -29,6 +29,11 @@ import {
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 
+// Guardian Design Contract compliance
+// "No statistical result may exist without an explicit, traceable assumption context."
+import useGuardianReport from '../hooks/useGuardianReport';
+import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+
 // REAL BACKEND INTEGRATION
 import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
@@ -92,6 +97,9 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
   const [backendPrecision, setBackendPrecision] = useState(50);
   const [showTrendLine, setShowTrendLine] = useState(true);
   const [showConfidenceBands, setShowConfidenceBands] = useState(true);
+
+  // Guardian context for Design Contract compliance
+  const correlationGuardian = useGuardianReport(correlationResult);
 
   // Load real dataset
   useEffect(() => {
@@ -210,8 +218,24 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
+          {/* Guardian Report - Design Contract Compliance */}
+          {correlationResult && correlationGuardian.hasGuardianContext && (
+            <Box sx={{ mb: 2 }}>
+              <GuardianReportDisplay {...correlationGuardian.guardianProps} compact />
+            </Box>
+          )}
+
           <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>Correlation Results</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1">Correlation Results</Typography>
+              {correlationGuardian.hasGuardianContext && (
+                <GuardianBadge
+                  confidenceScore={correlationGuardian.confidenceScore}
+                  violations={correlationGuardian.violations}
+                  canProceed={correlationGuardian.canProceed}
+                />
+              )}
+            </Box>
 
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -384,6 +408,9 @@ const MultipleRegressionSimulation = ({ darkMode }) => {
   const [backendPrecision, setBackendPrecision] = useState(50);
   const [realDataset, setRealDataset] = useState(null);
 
+  // Guardian context for Design Contract compliance
+  const regressionGuardian = useGuardianReport(modelMetrics);
+
   // Load real dataset for regression
   useEffect(() => {
     // Use manufacturing process data for regression
@@ -536,8 +563,24 @@ const MultipleRegressionSimulation = ({ darkMode }) => {
             </Button>
           </Paper>
 
+          {/* Guardian Report - Design Contract Compliance */}
+          {modelMetrics.rSquared && regressionGuardian.hasGuardianContext && (
+            <Box sx={{ mt: 2 }}>
+              <GuardianReportDisplay {...regressionGuardian.guardianProps} compact />
+            </Box>
+          )}
+
           <Paper sx={{ p: 2, mt: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>Model Performance</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1">Model Performance</Typography>
+              {regressionGuardian.hasGuardianContext && (
+                <GuardianBadge
+                  confidenceScore={regressionGuardian.confidenceScore}
+                  violations={regressionGuardian.violations}
+                  canProceed={regressionGuardian.canProceed}
+                />
+              )}
+            </Box>
 
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -678,6 +721,9 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
   const [error, setError] = useState(null);
   const [backendPrecision, setBackendPrecision] = useState(50);
 
+  // Guardian context for Design Contract compliance
+  const matrixGuardian = useGuardianReport(correlationMatrix);
+
   // Calculate correlation matrix using real data
   const calculateCorrelationMatrix = async () => {
     setLoading(true);
@@ -807,15 +853,31 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
               </Button>
             </Box>
 
+            {/* Guardian Report - Design Contract Compliance */}
+            {correlationMatrix && matrixGuardian.hasGuardianContext && (
+              <Box sx={{ mb: 2 }}>
+                <GuardianReportDisplay {...matrixGuardian.guardianProps} compact />
+              </Box>
+            )}
+
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
                 <CircularProgress />
               </Box>
             ) : correlationMatrix ? (
               <>
-                <Typography variant="subtitle1" gutterBottom>
-                  Correlation Heatmap (Real Data)
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle1">
+                    Correlation Heatmap (Real Data)
+                  </Typography>
+                  {matrixGuardian.hasGuardianContext && (
+                    <GuardianBadge
+                      confidenceScore={matrixGuardian.confidenceScore}
+                      violations={matrixGuardian.violations}
+                      canProceed={matrixGuardian.canProceed}
+                    />
+                  )}
+                </Box>
                 <Box sx={{ overflowX: 'auto' }}>
                   <Box sx={{ display: 'inline-block', p: 2 }}>
                     {/* Variable labels on top */}

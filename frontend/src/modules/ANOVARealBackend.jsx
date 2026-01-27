@@ -22,6 +22,11 @@ import {
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
 import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
 
+// Guardian Design Contract compliance
+// "No statistical result may exist without an explicit, traceable assumption context."
+import useGuardianReport from '../hooks/useGuardianReport';
+import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+
 const ANOVARealBackend = () => {
   // Get dark mode state from local storage
   const [darkMode] = useState(() => {
@@ -45,6 +50,9 @@ const ANOVARealBackend = () => {
 
   // Service instance
   const service = new HighPrecisionStatisticalService();
+
+  // Guardian context for Design Contract compliance
+  const resultsGuardian = useGuardianReport(results);
 
   // Parse data helper
   const parseData = (dataString) => {
@@ -204,9 +212,18 @@ const ANOVARealBackend = () => {
       <Zoom in timeout={600}>
         <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
           <CardContent>
-          <Typography variant="h6" gutterBottom color="primary">
-            📊 ANOVA Results (50 Decimal Precision)
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="h6" color="primary">
+              📊 ANOVA Results (50 Decimal Precision)
+            </Typography>
+            {resultsGuardian.hasGuardianContext && (
+              <GuardianBadge
+                confidenceScore={resultsGuardian.confidenceScore}
+                violations={resultsGuardian.violations}
+                canProceed={resultsGuardian.canProceed}
+              />
+            )}
+          </Box>
           <Divider sx={{ mb: 2 }} />
 
           <TableContainer>
@@ -492,6 +509,13 @@ const ANOVARealBackend = () => {
           <Alert severity="error" sx={{ mt: 3 }}>
             {error}
           </Alert>
+        )}
+
+        {/* Guardian Report - Design Contract Compliance */}
+        {results && resultsGuardian.hasGuardianContext && (
+          <Box sx={{ mt: 3 }}>
+            <GuardianReportDisplay {...resultsGuardian.guardianProps} />
+          </Box>
         )}
 
         {/* Results */}
