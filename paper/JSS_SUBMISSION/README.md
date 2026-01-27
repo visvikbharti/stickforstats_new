@@ -4,7 +4,7 @@
 **StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation**
 
 ## Authors
-- Vishal Bharti (CSIR-IGIB)
+- Vishal Bharti (CSIR-IGIB) - Corresponding Author
 - Debojyoti Chakraborty (CSIR-IGIB and AcSIR) - Corresponding Author
 
 ## Directory Structure
