@@ -54,5 +54,5 @@ python replicate_all.py
 
 ## Contact
 
-- Vishal Bharti: vishalvikashbharti@gmail.com
+- Vishal Bharti: vishalvikashbharti@gmail.com (Corresponding Author)
 - Debojyoti Chakraborty: debojyoti.chakraborty@igib.in (Corresponding Author)
