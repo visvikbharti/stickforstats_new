@@ -53,7 +53,7 @@ Expected runtime: < 30 seconds
 
 ## Contact
 
-Vishal Bharti
+Vishal Bharti (Corresponding Author)
 CSIR-Institute of Genomics and Integrative Biology (IGIB)
 Email: vishalvikashbharti@gmail.com
 
