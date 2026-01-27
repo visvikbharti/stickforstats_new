@@ -1,141 +1,106 @@
-# JSS Submission Checklist and Step-by-Step Guide
+# StickForStats Paper Submission Checklist
 
-## Pre-Submission Checklist
-
-### Documents Ready
-- [x] Manuscript PDF (37 pages, JSS format)
-- [x] LaTeX source files
-- [x] Bibliography (.bib file, 30 references)
-- [x] Figures (2 PDF figures)
-- [x] Cover letter
-- [x] Replication scripts
-
-### Content Verification
-- [x] All numerical claims verified against actual computations
-- [x] Em-dashes removed (AI detection prevention)
-- [x] ORCID added for first author
-- [x] Affiliations correct (CSIR-IGIB only for Vishal, CSIR-IGIB + AcSIR for Dr. Chakraborty)
-- [x] Corresponding author marked
-
-### Before You Submit
-- [ ] Get Dr. Chakraborty's ORCID (optional but recommended)
-- [ ] Get Dr. Chakraborty's final approval on manuscript
-- [ ] Verify GitHub repository is public and accessible
+**Document Created:** 2026-01-27 13:45 IST
+**Paper Status:** Ready for Submission
+**Git Commit:** b54a953
 
 ---
 
-## Step-by-Step Submission Guide
+## Quick Reference
 
-### Step 1: Create JSS Account
-1. Go to https://www.jstatsoft.org/
-2. Click "Register" to create an author account
-3. Verify your email
-
-### Step 2: Start New Submission
-1. Log in to JSS
-2. Click "Submit an Article" or go to submission portal
-3. Select article type: **"Software Paper"**
-
-### Step 3: Enter Metadata
-Fill in the following:
-
-**Title:**
-```
-StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation
-```
-
-**Authors:**
-```
-Author 1: Vishal Bharti
-  - Email: vishalvikashbharti@gmail.com
-  - Affiliation: CSIR-Institute of Genomics and Integrative Biology (IGIB), New Delhi, India
-  - ORCID: 0009-0003-1431-4457
-
-Author 2: Debojyoti Chakraborty (Corresponding Author)
-  - Email: debojyoti.chakraborty@igib.in
-  - Affiliation: CSIR-Institute of Genomics and Integrative Biology (IGIB), New Delhi, India;
-                 Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India
-  - ORCID: [Add if available]
-```
-
-**Abstract:**
-Copy from the paper (the abstract in stickforstats_expanded.pdf)
-
-**Keywords:**
-```
-statistical assumptions, reproducibility, automatic validation, AI-assisted analysis, statistical reporting, Guardian system, Python, open-source
-```
-
-### Step 4: Upload Files
-
-Upload these three required attachments:
-
-| Attachment | File to Upload |
-|------------|----------------|
-| 1. PDF Manuscript | `manuscript/stickforstats_expanded.pdf` |
-| 2. Source Code | Link to: https://github.com/visvikbharti/stickforstats_new |
-| 3. Replication Materials | `replication/replicate_all.py` (or zip the entire replication folder) |
-
-Optional:
-- Cover letter: `cover_letter.pdf`
-
-### Step 5: Software Information
-
-**Software name:** StickForStats
-
-**Software URL:** https://github.com/visvikbharti/stickforstats_new
-
-**Programming Language:** Python
-
-**License:** Open Source (specify your license - MIT, GPL-3, etc.)
-
-**Platform:** Web-based (works on any platform with a modern browser)
-
-### Step 6: Review and Submit
-1. Review all entered information
-2. Check the preview
-3. Click "Submit"
-4. Note your submission ID
-
-### Step 7: After Submission
-1. You will receive a confirmation email
-2. Review process typically takes 2-6 months
-3. You may receive revision requests
-4. Respond to reviewer comments promptly
+| Item | Status | Notes |
+|------|--------|-------|
+| Paper PDF | ✅ Ready | 41 pages, 614 KB |
+| JSS Cover Letter | ✅ Ready | COVER_LETTER_JSS.pdf |
+| arXiv Info | ✅ Ready | ARXIV_SUBMISSION_INFO.md |
+| Replication Package | ✅ Complete | All scripts pass |
+| Author Info | ✅ Updated | Both corresponding authors |
+| All Claims Verified | ✅ Yes | Scientific integrity audit complete |
 
 ---
 
-## Common Questions
+## Paper Files
 
-**Q: What if I need to update the manuscript after submission?**
-A: Contact the editor through the submission system to upload a revised version.
+### Main Manuscript
+- **Source:** `source/stickforstats_expanded.tex`
+- **PDF:** `source/stickforstats_expanded.pdf` (41 pages)
+- **Backup:** `source/stickforstats_expanded_BACKUP_JAN26_2026.tex`
 
-**Q: Do I need to pay any fees?**
-A: No, JSS is open access with no author fees.
+### Bibliography
+- **File:** `source/stickforstats.bib`
+- **Status:** Complete with all citations
 
-**Q: How long does review take?**
-A: Typically 2-6 months, sometimes longer for complex papers.
-
-**Q: What if reviewers ask for the deployed application?**
-A: Ensure your GitHub repository has clear deployment instructions.
+### Style Files
+- `source/jss.cls` - JSS document class
+- `source/jss.bst` - JSS bibliography style
+- `source/jsslogo.jpg` - JSS logo
 
 ---
 
-## Files Quick Reference
+## Author Information
 
-```
-To submit, you need:
+### Author 1: Vishal Bharti (First Author, Corresponding Author)
+- **Affiliation:** CSIR-Institute of Genomics and Integrative Biology, New Delhi, 110025, India
+- **Email:** vishalvikashbharti@gmail.com
+- **ORCID:** [0009-0003-1431-4457](https://orcid.org/0009-0003-1431-4457)
 
-1. MANUSCRIPT:    JSS_SUBMISSION/manuscript/stickforstats_expanded.pdf
-2. SOURCE CODE:   https://github.com/visvikbharti/stickforstats_new
-3. REPLICATION:   JSS_SUBMISSION/replication/replicate_all.py
-4. COVER LETTER:  JSS_SUBMISSION/cover_letter.pdf (optional)
+### Author 2: Debojyoti Chakraborty (Corresponding Author)
+- **Affiliation 1:** CSIR-Institute of Genomics and Integrative Biology, New Delhi, 110025, India
+- **Affiliation 2:** Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, 201002, India
+- **Email:** debojyoti.chakraborty@igib.in
+- **ORCID:** [0000-0003-1460-7594](https://orcid.org/0000-0003-1460-7594)
+
+---
+
+## Replication Package
+
+### Directory: `../replication/`
+
+| Script | Purpose | Status |
+|--------|---------|--------|
+| `MASTER_VERIFICATION.py` | Run all verifications | ✅ Pass |
+| `run_all_validations.py` | SciPy validation | ✅ Pass |
+| `validate_against_R.R` | R cross-validation | ✅ Pass |
+| `verify_case_studies_FINAL.py` | Case study verification | ✅ Pass |
+| `validate_wine_quality_REAL.py` | Real UCI Wine data | ✅ Pass |
+| `additional_real_data_analysis.py` | Additional datasets | ✅ Pass |
+
+### Quick Verification Command
+```bash
+cd paper/replication
+python MASTER_VERIFICATION.py
 ```
 
 ---
 
-## Contact for Questions
+## JSS Submission Steps
 
-If you encounter issues during submission:
-- JSS Editorial: See contact info on https://www.jstatsoft.org/
-- Technical questions: Vishal Bharti (vishalvikashbharti@gmail.com)
+1. Go to: https://www.jstatsoft.org/
+2. Create account (if needed) and log in
+3. Start new submission (select "Article")
+4. Upload files:
+   - Main manuscript: `stickforstats_expanded.pdf`
+   - LaTeX source: `stickforstats_expanded.tex`
+   - Bibliography: `stickforstats.bib`
+   - Style files: `jss.cls`, `jss.bst`
+   - Replication code: Zip of `replication/` directory
+5. Enter metadata (title, authors, abstract, keywords)
+6. Upload or paste cover letter
+7. Submit
+
+---
+
+## arXiv Submission Steps
+
+1. Go to: https://arxiv.org/submit
+2. Login to arXiv account
+3. Select category: stat.CO (primary), cs.SE (cross-list)
+4. Upload source files (.tar.gz or .zip)
+5. Enter metadata from ARXIV_SUBMISSION_INFO.md
+6. Select license: arXiv perpetual, non-exclusive
+7. Submit
+
+---
+
+*Ready for submission to arXiv and JSS*
+*Checklist prepared: 2026-01-27*

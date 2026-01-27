@@ -1,0 +1,91 @@
+\documentclass[11pt]{letter}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\signature{
+Vishal Bharti\\
+CSIR-Institute of Genomics and Integrative Biology\\
+New Delhi 110025, India\\
+\texttt{vishalvikashbharti@gmail.com}
+}
+
+\address{
+Vishal Bharti\\
+CSIR-Institute of Genomics and Integrative Biology\\
+Mathura Road\\
+New Delhi 110025, India
+}
+
+\begin{document}
+
+\begin{letter}{
+Editorial Office\\
+Journal of Statistical Software\\
+}
+
+\opening{Dear Editors,}
+
+We are pleased to submit our manuscript entitled \textbf{``StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation''} for consideration for publication in the \textit{Journal of Statistical Software}.
+
+\section*{Summary}
+
+StickForStats is an open-source statistical analysis platform that addresses a fundamental problem in research: statistical assumption violations often go unchecked, leading to unreliable results. Our platform introduces the Guardian system---the first implementation of \textit{mandatory, automatic} assumption validation integrated directly into statistical software.
+
+\section*{Key Contributions}
+
+\begin{enumerate}
+\item \textbf{Guardian System}: Automatic assumption validation with eight validators (normality, variance homogeneity, independence, linearity, outliers, sample size, multicollinearity, publication bias) that cannot be bypassed, ensuring researchers always see assumption status before results.
+
+\item \textbf{Design Contract}: A novel software architecture principle where ``no statistical result may exist without an explicit, traceable assumption context.'' This is enforced through 93 automated tests (38 backend, 55 frontend).
+
+\item \textbf{AI-Powered Advisor}: Natural language guidance for test selection and automatic generation of publication-ready methods sections following APA/JARS guidelines.
+
+\item \textbf{Paper Parser}: Manuscript analysis tool that detects statistical reporting errors and assesses reproducibility.
+
+\item \textbf{Comprehensive Validation}: All statistical functions validated against SciPy (14+ digit agreement) and cross-validated against R. Case studies use real datasets (Fisher's Iris, UCI Wine Quality) with reproducible results.
+\end{enumerate}
+
+\section*{Relevance to JSS}
+
+This manuscript is highly relevant to JSS because:
+\begin{itemize}
+\item It presents novel statistical software with a unique approach to assumption checking
+\item The software is open-source and freely available at \url{https://github.com/visvikbharti/stickforstats_new}
+\item The paper includes comprehensive code examples and a complete replication package
+\item All numerical results are reproducible using provided scripts
+\end{itemize}
+
+\section*{Replication Materials}
+
+The complete replication package is included with the submission:
+\begin{itemize}
+\item \texttt{run\_all\_validations.py} -- SciPy validation (all tests pass)
+\item \texttt{validate\_against\_R.R} -- R cross-validation (all tests pass)
+\item \texttt{verify\_case\_studies\_FINAL.py} -- Case study verification
+\item \texttt{data/winequality-red.csv} -- Downloaded UCI Wine Quality dataset
+\end{itemize}
+
+\section*{Declarations}
+
+\begin{itemize}
+\item This manuscript has not been published elsewhere and is not under consideration by another journal.
+\item All authors have approved the manuscript and agree with its submission.
+\item There are no conflicts of interest to declare.
+\item The software is released under an open-source license.
+\end{itemize}
+
+\section*{Corresponding Authors}
+
+Both authors serve as corresponding authors:
+\begin{itemize}
+\item Vishal Bharti: \texttt{vishalvikashbharti@gmail.com}
+\item Debojyoti Chakraborty: \texttt{debojyoti.chakraborty@igib.in}
+\end{itemize}
+
+We believe StickForStats represents a significant contribution to statistical software and will be of great interest to the JSS readership. We look forward to your response.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}
