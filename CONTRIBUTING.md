@@ -20,8 +20,8 @@ This project adheres to a Code of Conduct. By participating, you are expected to
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/stickforstats.git`
-3. Add upstream remote: `git remote add upstream https://github.com/visvikbharti/stickforstats.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/stickforstats_new.git`
+3. Add upstream remote: `git remote add upstream https://github.com/visvikbharti/stickforstats_new.git`
 4. Create a branch: `git checkout -b feature/your-feature-name`
 
 ## How to Contribute

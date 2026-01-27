@@ -37,27 +37,15 @@ StickForStats is an open-source statistical analysis platform featuring the **Gu
 
 ## Demo
 
-### Screenshots
+For a live demonstration of StickForStats features, run the application locally following the installation instructions below, or visit the [GitHub repository](https://github.com/visvikbharti/stickforstats_new) for the latest updates.
 
-<!-- TODO: Add screenshots after capturing them -->
+### Key Features in Action
 
-| Feature | Screenshot |
-|---------|------------|
-| Guardian Validation | ![Guardian](docs/screenshots/02_guardian_validation.png) |
-| AI Statistical Advisor | ![AI Advisor](docs/screenshots/03_ai_advisor.png) |
-| SQS Score Analysis | ![SQS Score](docs/screenshots/05_sqs_score.png) |
+1. **Guardian Validation**: Automatic assumption checking before every statistical test
+2. **AI Statistical Advisor**: Natural language guidance for test selection and interpretation
+3. **SQS Score Analysis**: Manuscript statistical quality assessment with actionable recommendations
 
-### Quick Demo GIFs
-
-<!-- TODO: Add GIFs after recording them -->
-
-**Guardian in Action:**
-![Guardian Demo](docs/gifs/guardian_demo.gif)
-
-**SQS Manuscript Analysis:**
-![SQS Demo](docs/gifs/sqs_analysis_demo.gif)
-
-> **Note:** See [docs/DEMO_MATERIALS_GUIDE.md](docs/DEMO_MATERIALS_GUIDE.md) for instructions on capturing screenshots and GIFs.
+> **Note:** See [docs/DEMO_MATERIALS_GUIDE.md](docs/DEMO_MATERIALS_GUIDE.md) for detailed feature documentation.
 
 ## Installation
 
@@ -70,8 +58,8 @@ StickForStats is an open-source statistical analysis platform featuring the **Gu
 
 ```bash
 # Clone the repository
-git clone https://github.com/visvikbharti/stickforstats.git
-cd stickforstats
+git clone https://github.com/visvikbharti/stickforstats_new.git
+cd stickforstats_new
 
 # Create virtual environment
 cd backend
@@ -282,8 +270,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- **Issues**: [GitHub Issues](https://github.com/visvikbharti/stickforstats/issues)
-- **Email**: [your-email@example.com]
+- **Issues**: [GitHub Issues](https://github.com/visvikbharti/stickforstats_new/issues)
+- **Email**: vishalvikashbharti@gmail.com
 
 ---
 
