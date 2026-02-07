@@ -14,6 +14,7 @@ import {
   LinearProgress,
   Button
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
@@ -42,6 +43,8 @@ import {
 
 const PCAEducationHub = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
 
@@ -199,14 +202,14 @@ const PCAEducationHub = () => {
 
   // Show lesson selection hub
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header */}
-        <Paper elevation={3} sx={{ p: 4, mb: 4, bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <Paper elevation={3} sx={{ p: 4, mb: 4, bgcolor: 'background.paper' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <SchoolIcon sx={{ fontSize: 48, color: '#1976d2', mr: 2 }} />
+            <SchoolIcon sx={{ fontSize: 48, color: 'primary.main', mr: 2 }} />
             <Box>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 Learn PCA Visually
               </Typography>
               <Typography variant="h6" color="text.secondary">
@@ -274,10 +277,10 @@ const PCAEducationHub = () => {
                           size="small"
                         />
                         {isCompleted && (
-                          <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 28 }} />
+                          <CheckCircleIcon sx={{ color: 'success.main', fontSize: 28 }} />
                         )}
                         {isLocked && (
-                          <LockIcon sx={{ color: '#999', fontSize: 28 }} />
+                          <LockIcon sx={{ color: 'text.disabled', fontSize: 28 }} />
                         )}
                       </Box>
 
@@ -332,7 +335,7 @@ const PCAEducationHub = () => {
                           sx={{
                             display: 'block',
                             mt: 2,
-                            color: '#999',
+                            color: 'text.disabled',
                             fontStyle: 'italic'
                           }}
                         >
@@ -348,8 +351,8 @@ const PCAEducationHub = () => {
         </Grid>
 
         {/* Footer info */}
-        <Paper sx={{ p: 3, mt: 4, bgcolor: '#e3f2fd' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+        <Paper sx={{ p: 3, mt: 4, bgcolor: (theme) => alpha(theme.palette.primary.main, isDark ? 0.12 : 0.08) }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
             💡 Learning Tips
           </Typography>
           <Typography variant="body2" paragraph>

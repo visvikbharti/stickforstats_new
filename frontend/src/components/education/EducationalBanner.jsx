@@ -10,6 +10,7 @@ import {
   Chip,
   Alert
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import SchoolIcon from '@mui/icons-material/School';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -29,6 +30,8 @@ const EducationalBanner = ({
   compact = false
 }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [visible, setVisible] = useState(true);
 
   // Module configuration
@@ -139,7 +142,7 @@ const EducationalBanner = ({
         sx={{
           mb: 3,
           p: 3,
-          bgcolor: config.bgColor,
+          bgcolor: isDark ? alpha(config.color, 0.12) : config.bgColor,
           border: `2px solid ${config.color}`,
           position: 'relative'
         }}
@@ -162,7 +165,7 @@ const EducationalBanner = ({
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
           <Box
             sx={{
-              bgcolor: 'white',
+              bgcolor: isDark ? alpha(config.color, 0.15) : 'white',
               color: config.color,
               p: 1.5,
               borderRadius: 2,
@@ -190,7 +193,7 @@ const EducationalBanner = ({
                   label={topic}
                   size="small"
                   sx={{
-                    bgcolor: 'white',
+                    bgcolor: isDark ? alpha(config.color, 0.15) : 'white',
                     fontSize: '0.75rem'
                   }}
                 />
@@ -216,7 +219,7 @@ const EducationalBanner = ({
                 sx={{
                   borderColor: config.color,
                   color: config.color,
-                  '&:hover': { borderColor: config.color, bgcolor: 'rgba(0,0,0,0.04)' }
+                  '&:hover': { borderColor: config.color, bgcolor: alpha(config.color, 0.08) }
                 }}
               >
                 View All Courses
