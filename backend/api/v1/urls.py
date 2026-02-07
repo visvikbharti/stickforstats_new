@@ -137,6 +137,9 @@ urlpatterns = [
     # High-precision statistical tests
     path('stats/ttest/', HighPrecisionTTestView.as_view(), name='hp-ttest'),
     path('stats/anova/', HighPrecisionANOVAView.as_view(), name='hp-anova'),
+    # Alias routes for MANOVA and Repeated Measures ANOVA (use same view with anova_type parameter)
+    path('multivariate/manova/', HighPrecisionANOVAView.as_view(), name='hp-manova'),
+    path('anova/repeated-measures/', HighPrecisionANOVAView.as_view(), name='hp-repeated-measures'),
     path('stats/ancova/', HighPrecisionANCOVAView.as_view(), name='hp-ancova'),
     path('stats/correlation/', HighPrecisionCorrelationView.as_view(), name='hp-correlation'),
     path('stats/regression/', SimpleRegressionView.as_view(), name='hp-regression-stats'),  # Using simple version temporarily
