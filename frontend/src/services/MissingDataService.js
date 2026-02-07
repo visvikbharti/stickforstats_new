@@ -104,7 +104,7 @@ class MissingDataService {
         }
       };
 
-      const response = await api.post('/missing/analyze/', requestData);
+      const response = await api.post('/missing-data/detect/', requestData);
       return this.processAnalysisResponse(response.data);
     } catch (error) {
       console.error('Error analyzing missing data patterns:', error);
@@ -137,7 +137,7 @@ class MissingDataService {
         }
       };
 
-      const response = await api.post('/missing/littles-test/', requestData);
+      const response = await api.post('/missing-data/little-test/', requestData);
       return this.processLittlesTestResponse(response.data);
     } catch (error) {
       console.error('Error performing Little\'s MCAR test:', error);
@@ -170,7 +170,7 @@ class MissingDataService {
         }
       };
 
-      const response = await api.post('/missing/impute/', requestData);
+      const response = await api.post('/missing-data/impute/', requestData);
       return this.processImputationResponse(response.data);
     } catch (error) {
       console.error(`Error imputing data with ${method}:`, error);
@@ -379,7 +379,7 @@ class MissingDataService {
         }
       };
 
-      const response = await api.post('/missing/compare-methods/', requestData);
+      const response = await api.post('/missing-data/compare/', requestData);
       return this.processComparisonResponse(response.data);
     } catch (error) {
       console.error('Error comparing imputation methods:', error);
@@ -408,7 +408,7 @@ class MissingDataService {
         }
       };
 
-      const response = await api.post('/missing/visualize/', requestData);
+      const response = await api.post('/missing-data/visualize/', requestData);
       return this.processVisualizationResponse(response.data);
     } catch (error) {
       console.error('Error visualizing missing patterns:', error);

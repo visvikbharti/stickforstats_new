@@ -51,11 +51,13 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { useSettings } from '../../../context/SettingsContext';
 
 /**
  * Main Two-way ANOVA Component
  */
 const TwoWayANOVA = ({ data }) => {
+  const { expertMode } = useSettings();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [factorA, setFactorA] = useState('');
@@ -404,7 +406,7 @@ const TwoWayANOVA = ({ data }) => {
         );
 
         setGuardianReport(report);
-        setIsTestBlocked(!report.can_proceed);
+        setIsTestBlocked(!expertMode && !report.can_proceed);
         setGuardianLoading(false);
 
       } catch (error) {
@@ -417,7 +419,7 @@ const TwoWayANOVA = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [factorA, factorB, dependentVar, organizedData, alpha, data]);
+  }, [factorA, factorB, dependentVar, organizedData, alpha, data, expertMode]);
 
   /**
    * Render data requirement message
@@ -562,7 +564,22 @@ const TwoWayANOVA = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && <GuardianWarning guardianReport={guardianReport} />}
+      {guardianReport && (
+        <GuardianWarning
+          guardianReport={guardianReport}
+          onProceed={() => {
+            console.log('[TwoWayANOVA] User chose to proceed despite warnings');
+            setIsTestBlocked(false);
+          }}
+          onSelectAlternative={(alt) => {
+            console.log('[TwoWayANOVA] Alternative test selected:', alt);
+            alert(`Alternative Test Selected: ${alt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}\n\nPlease navigate to the appropriate test module to use this alternative.`);
+          }}
+          onViewEvidence={(evidence) => {
+            console.log('[TwoWayANOVA] View evidence requested:', evidence);
+          }}
+        />
+      )}
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (

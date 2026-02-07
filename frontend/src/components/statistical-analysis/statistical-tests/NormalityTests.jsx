@@ -37,6 +37,7 @@ import {
   LineChart,
   Line,
   BarChart,
+  ComposedChart,
   Bar,
   XAxis,
   YAxis,
@@ -113,6 +114,30 @@ const NormalityTests = ({ data }) => {
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState(null);
   const [isTestBlocked, setIsTestBlocked] = useState(false);
+
+  /**
+   * Handle proceeding despite Guardian warnings
+   */
+  const handleGuardianProceed = () => {
+    console.log('[NormalityTests] User chose to proceed despite warnings');
+    setIsTestBlocked(false);
+  };
+
+  /**
+   * Handle alternative test selection from Guardian
+   */
+  const handleSelectAlternative = (alternativeTest) => {
+    console.log('[NormalityTests] Alternative test selected:', alternativeTest);
+    const displayName = alternativeTest.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    alert(`Alternative Test Selected: ${displayName}\n\nPlease navigate to the appropriate test module to use this alternative.`);
+  };
+
+  /**
+   * Handle visual evidence viewing from Guardian
+   */
+  const handleViewEvidence = (evidence) => {
+    console.log('[NormalityTests] View evidence requested:', evidence);
+  };
 
   /**
    * Detect numeric columns
@@ -411,6 +436,9 @@ const NormalityTests = ({ data }) => {
             guardianReport={guardianReport}
             data={columnData}
             alpha={alpha}
+            onProceed={handleGuardianProceed}
+            onSelectAlternative={handleSelectAlternative}
+            onViewEvidence={handleViewEvidence}
           />
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="caption">
@@ -682,7 +710,7 @@ const NormalityTests = ({ data }) => {
                 </Typography>
                 <Box sx={{ width: '100%', height: 400 }}>
                   <ResponsiveContainer>
-                    <BarChart data={histogramData}>
+                    <ComposedChart data={histogramData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="binCenter" label={{ value: selectedColumn, position: 'insideBottom', offset: -5 }} />
                       <YAxis label={{ value: 'Density', angle: -90, position: 'insideLeft' }} />
@@ -690,7 +718,7 @@ const NormalityTests = ({ data }) => {
                       <Legend />
                       <Bar dataKey="observed" fill="#8884d8" name="Observed" />
                       <Line type="monotone" dataKey="expected" stroke="#f44336" strokeWidth={2} name="Normal Distribution" dot={false} />
-                    </BarChart>
+                    </ComposedChart>
                   </ResponsiveContainer>
                 </Box>
               </Paper>

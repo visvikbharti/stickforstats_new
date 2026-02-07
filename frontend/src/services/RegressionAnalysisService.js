@@ -107,7 +107,7 @@ class RegressionAnalysisService {
         }
       };
 
-      const response = await api.post('/regression/analyze/', requestData);
+      const response = await api.post('/regression/', requestData);
       return this.processRegressionResponse(response.data);
     } catch (error) {
       console.error('Error performing regression:', error);
@@ -292,35 +292,38 @@ class RegressionAnalysisService {
     });
   }
 
-  /**
-   * Compare multiple regression models
-   * @param {Array<Object>} models - Array of model configurations
-   * @returns {Promise<Object>} Model comparison results
-   */
-  async compareModels(models) {
-    try {
-      const response = await api.post('/regression/compare/', { models });
-      return this.processComparisonResponse(response.data);
-    } catch (error) {
-      console.error('Error comparing models:', error);
-      throw this.handleError(error);
-    }
-  }
+  // TODO: Backend endpoints for /regression/compare/ and /regression/diagnostics/
+  // need to be created. These methods are commented out until the backend supports them.
 
-  /**
-   * Get regression diagnostics
-   * @param {Object} model - Fitted model from regression
-   * @returns {Promise<Object>} Comprehensive diagnostics
-   */
-  async getDiagnostics(model) {
-    try {
-      const response = await api.post('/regression/diagnostics/', { model });
-      return this.processDiagnosticsResponse(response.data);
-    } catch (error) {
-      console.error('Error getting diagnostics:', error);
-      throw this.handleError(error);
-    }
-  }
+  // /**
+  //  * Compare multiple regression models
+  //  * @param {Array<Object>} models - Array of model configurations
+  //  * @returns {Promise<Object>} Model comparison results
+  //  */
+  // async compareModels(models) {
+  //   try {
+  //     const response = await api.post('/regression/compare/', { models });
+  //     return this.processComparisonResponse(response.data);
+  //   } catch (error) {
+  //     console.error('Error comparing models:', error);
+  //     throw this.handleError(error);
+  //   }
+  // }
+
+  // /**
+  //  * Get regression diagnostics
+  //  * @param {Object} model - Fitted model from regression
+  //  * @returns {Promise<Object>} Comprehensive diagnostics
+  //  */
+  // async getDiagnostics(model) {
+  //   try {
+  //     const response = await api.post('/regression/diagnostics/', { model });
+  //     return this.processDiagnosticsResponse(response.data);
+  //   } catch (error) {
+  //     console.error('Error getting diagnostics:', error);
+  //     throw this.handleError(error);
+  //   }
+  // }
 
   /**
    * Process regression response with high precision

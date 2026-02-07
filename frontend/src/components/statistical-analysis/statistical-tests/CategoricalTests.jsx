@@ -59,6 +59,7 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+import { useSettings } from '../../../context/SettingsContext';
 
 /**
  * Main Categorical Tests Component
@@ -66,6 +67,7 @@ import { DebuggerPanel } from '../../statistical-debugger';
 const CategoricalTests = ({ data }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const { expertMode } = useSettings();
 
   const [variable1, setVariable1] = useState('');
   const [variable2, setVariable2] = useState('');
@@ -369,7 +371,7 @@ const CategoricalTests = ({ data }) => {
         );
 
         setGuardianReport(report);
-        setIsTestBlocked(!report.can_proceed);
+        setIsTestBlocked(!expertMode && !report.can_proceed);
         setGuardianLoading(false);
 
       } catch (error) {

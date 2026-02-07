@@ -62,6 +62,7 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+import { useSettings } from '../../../context/SettingsContext';
 
 /**
  * Main Correlation Tests Component
@@ -69,6 +70,7 @@ import { DebuggerPanel } from '../../statistical-debugger';
 const CorrelationTests = ({ data }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const { expertMode } = useSettings();
 
   const [analysisMode, setAnalysisMode] = useState('pairwise');
   const [xColumn, setXColumn] = useState('');
@@ -112,18 +114,6 @@ const CorrelationTests = ({ data }) => {
   };
 
   /**
-   * Prepare data for VisualEvidence component
-   */
-  const visualEvidenceData = useMemo(() => {
-    if (!data || data.length === 0) return null;
-
-    return {
-      data: data,
-      columns: numericColumns
-    };
-  }, [data, numericColumns]);
-
-  /**
    * Detect numeric columns
    */
   const numericColumns = useMemo(() => {
@@ -141,6 +131,18 @@ const CorrelationTests = ({ data }) => {
 
     return columns;
   }, [data]);
+
+  /**
+   * Prepare data for VisualEvidence component
+   */
+  const visualEvidenceData = useMemo(() => {
+    if (!data || data.length === 0) return null;
+
+    return {
+      data: data,
+      columns: numericColumns
+    };
+  }, [data, numericColumns]);
 
   /**
    * Get pairwise data
@@ -276,7 +278,7 @@ const CorrelationTests = ({ data }) => {
         );
 
         setGuardianReport(report);
-        setIsTestBlocked(!report.can_proceed);
+        setIsTestBlocked(!expertMode && !report.can_proceed);
         setGuardianLoading(false);
 
       } catch (error) {

@@ -55,8 +55,8 @@ const LearningHub = () => {
       category: 'Multivariate Analysis',
       difficulty: 'Intermediate',
       duration: '60-90 min',
-      lessonsTotal: 11,
-      lessonsAvailable: 11,
+      lessonsTotal: 10,
+      lessonsAvailable: 10,
       description: 'Master dimensionality reduction, data visualization, and feature extraction through interactive lessons',
       topics: [
         'Variance maximization',

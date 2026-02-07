@@ -280,7 +280,7 @@ class NonParametricTestsService {
         }
       };
 
-      const response = await api.post('/nonparametric/moods-median/', requestData);
+      const response = await api.post('/nonparametric/mood/', requestData);
       return this.processTestResponse(response.data);
     } catch (error) {
       console.error('Error performing Mood\'s Median test:', error);
@@ -346,7 +346,7 @@ class NonParametricTestsService {
         }
       };
 
-      const response = await api.post('/nonparametric/pages/', requestData);
+      const response = await api.post('/nonparametric/page/', requestData);
       return this.processTestResponse(response.data);
     } catch (error) {
       console.error('Error performing Page\'s Trend test:', error);
@@ -378,7 +378,7 @@ class NonParametricTestsService {
         }
       };
 
-      const response = await api.post('/nonparametric/dunns/', requestData);
+      const response = await api.post('/nonparametric/post-hoc/', requestData);
       return this.processPostHocResponse(response.data);
     } catch (error) {
       console.error('Error performing Dunn\'s test:', error);

@@ -241,11 +241,11 @@ const Clustering = ({ data }) => {
   /**
    * Run Hierarchical clustering
    */
-  const runHierarchical = useCallback((dataPoints, k) => {
+  const runHierarchical = useCallback((dataPoints, k, method = 'single') => {
     const n = dataPoints.length;
     const features = selectedFeatures;
 
-    // Calculate distance matrix
+    // Calculate distance matrix (point-to-point Euclidean distances)
     const distances = [];
     for (let i = 0; i < n; i++) {
       distances[i] = [];
@@ -262,7 +262,83 @@ const Clustering = ({ data }) => {
       }
     }
 
-    // Agglomerative clustering (simplified single-linkage)
+    // Helper: calculate cluster centroid
+    const clusterCentroid = (cluster) => {
+      const center = {};
+      features.forEach(f => {
+        center[f] = cluster.reduce((sum, i) => sum + dataPoints[i][f], 0) / cluster.length;
+      });
+      return center;
+    };
+
+    // Helper: calculate within-cluster sum of squares for a set of point indices
+    const withinClusterSS = (cluster) => {
+      const center = clusterCentroid(cluster);
+      let ss = 0;
+      cluster.forEach(i => {
+        features.forEach(f => {
+          ss += Math.pow(dataPoints[i][f] - center[f], 2);
+        });
+      });
+      return ss;
+    };
+
+    // Calculate inter-cluster distance based on selected linkage method
+    const calcClusterDistance = (clusterA, clusterB) => {
+      switch (method) {
+        case 'complete': {
+          // Complete linkage: maximum distance between any two points in different clusters
+          let maxDist = -Infinity;
+          for (const pi of clusterA) {
+            for (const pj of clusterB) {
+              if (distances[pi][pj] > maxDist) {
+                maxDist = distances[pi][pj];
+              }
+            }
+          }
+          return maxDist;
+        }
+
+        case 'average': {
+          // Average linkage: average distance between all pairs of points in different clusters
+          let totalDist = 0;
+          let count = 0;
+          for (const pi of clusterA) {
+            for (const pj of clusterB) {
+              totalDist += distances[pi][pj];
+              count++;
+            }
+          }
+          return count > 0 ? totalDist / count : Infinity;
+        }
+
+        case 'ward': {
+          // Ward's method: merge clusters that result in minimum increase of total within-cluster variance
+          const merged = [...clusterA, ...clusterB];
+          const ssA = withinClusterSS(clusterA);
+          const ssB = withinClusterSS(clusterB);
+          const ssMerged = withinClusterSS(merged);
+          // The "distance" is the increase in total within-cluster SS
+          return ssMerged - ssA - ssB;
+        }
+
+        case 'single':
+        default: {
+          // Single linkage: minimum distance between any two points in different clusters
+          let minDist = Infinity;
+          for (const pi of clusterA) {
+            for (const pj of clusterB) {
+              if (distances[pi][pj] < minDist) {
+                minDist = distances[pi][pj];
+              }
+            }
+          }
+          return minDist;
+        }
+      }
+    };
+
+    // Agglomerative clustering
     let clusters = dataPoints.map((_, i) => [i]);
     const linkageHistory = [];
 
@@ -273,16 +349,7 @@ const Clustering = ({ data }) => {
 
       for (let i = 0; i < clusters.length; i++) {
         for (let j = i + 1; j < clusters.length; j++) {
-          // Single linkage: minimum distance between clusters
-          let clusterDist = Infinity;
-
-          for (const pi of clusters[i]) {
-            for (const pj of clusters[j]) {
-              if (distances[pi][pj] < clusterDist) {
-                clusterDist = distances[pi][pj];
-              }
-            }
-          }
+          const clusterDist = calcClusterDistance(clusters[i], clusters[j]);
 
           if (clusterDist < minDist) {
             minDist = clusterDist;
@@ -313,13 +380,7 @@ const Clustering = ({ data }) => {
     });
 
     // Calculate cluster centers
-    const centroids = clusters.map(cluster => {
-      const center = {};
-      features.forEach(f => {
-        center[f] = cluster.reduce((sum, i) => sum + dataPoints[i][f], 0) / cluster.length;
-      });
-      return center;
-    });
+    const centroids = clusters.map(cluster => clusterCentroid(cluster));
 
     return { assignments, centroids, linkageHistory };
   }, [selectedFeatures]);
@@ -581,7 +642,7 @@ const Clustering = ({ data }) => {
       if (algorithm === 'kmeans') {
         clusterResult = runKMeans(preparedData.standardized, nClusters, maxIter);
       } else if (algorithm === 'hierarchical') {
-        clusterResult = runHierarchical(preparedData.standardized, nClusters);
+        clusterResult = runHierarchical(preparedData.standardized, nClusters, linkageMethod);
       } else if (algorithm === 'dbscan') {
         clusterResult = runDBSCAN(preparedData.standardized);
       }
@@ -626,7 +687,7 @@ const Clustering = ({ data }) => {
     } finally {
       setLoading(false);
     }
-  }, [preparedData, algorithm, nClusters, maxIter, runKMeans, runHierarchical, runDBSCAN, calculateMetrics, selectedFeatures]);
+  }, [preparedData, algorithm, nClusters, maxIter, linkageMethod, runKMeans, runHierarchical, runDBSCAN, calculateMetrics, selectedFeatures]);
 
   // Render
   return (

@@ -10,6 +10,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
+import { useSettings } from '../../../context/SettingsContext';
 import {
   Box,
   Typography,
@@ -75,6 +76,7 @@ import { DebuggerPanel } from '../../statistical-debugger';
 const NonParametricTests = ({ data }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const { expertMode } = useSettings();
 
   const [testType, setTestType] = useState('');
   const [selectedColumn, setSelectedColumn] = useState('');
@@ -118,18 +120,6 @@ const NonParametricTests = ({ data }) => {
   };
 
   /**
-   * Prepare data for VisualEvidence component
-   */
-  const visualEvidenceData = useMemo(() => {
-    if (!data || data.length === 0) return null;
-
-    return {
-      data: data,
-      columns: columnInfo.numeric
-    };
-  }, [data, columnInfo]);
-
-  /**
    * Detect column types
    */
   const columnInfo = useMemo(() => {
@@ -152,6 +142,18 @@ const NonParametricTests = ({ data }) => {
 
     return { numeric, categorical };
   }, [data]);
+
+  /**
+   * Prepare data for VisualEvidence component
+   */
+  const visualEvidenceData = useMemo(() => {
+    if (!data || data.length === 0) return null;
+
+    return {
+      data: data,
+      columns: columnInfo.numeric
+    };
+  }, [data, columnInfo]);
 
   /**
    * Extract column data for Guardian and export
@@ -274,7 +276,7 @@ const NonParametricTests = ({ data }) => {
         );
 
         setGuardianReport(report);
-        setIsTestBlocked(!report.can_proceed);
+        setIsTestBlocked(!expertMode && !report.can_proceed);
         setGuardianLoading(false);
 
       } catch (error) {

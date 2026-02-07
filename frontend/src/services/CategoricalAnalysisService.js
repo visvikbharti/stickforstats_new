@@ -109,7 +109,7 @@ class CategoricalAnalysisService {
         }
       };
 
-      const response = await api.post('/categorical/chi-square/', requestData);
+      const response = await api.post('/categorical/chi-square/independence/', requestData);
       return this.processChiSquareResponse(response.data);
     } catch (error) {
       console.error('Error performing chi-square independence test:', error);
@@ -177,7 +177,7 @@ class CategoricalAnalysisService {
         }
       };
 
-      const response = await api.post('/categorical/fishers-exact/', requestData);
+      const response = await api.post('/categorical/fishers/', requestData);
       return this.processFishersResponse(response.data);
     } catch (error) {
       console.error('Error performing Fisher\'s exact test:', error);
@@ -209,7 +209,7 @@ class CategoricalAnalysisService {
         }
       };
 
-      const response = await api.post('/categorical/mcnemars/', requestData);
+      const response = await api.post('/categorical/mcnemar/', requestData);
       return this.processMcNemarResponse(response.data);
     } catch (error) {
       console.error('Error performing McNemar\'s test:', error);
@@ -241,7 +241,7 @@ class CategoricalAnalysisService {
         }
       };
 
-      const response = await api.post('/categorical/cochrans-q/', requestData);
+      const response = await api.post('/categorical/cochran-q/', requestData);
       return this.processCochransResponse(response.data);
     } catch (error) {
       console.error('Error performing Cochran\'s Q test:', error);

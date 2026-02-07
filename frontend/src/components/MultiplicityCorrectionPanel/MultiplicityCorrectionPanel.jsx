@@ -81,14 +81,14 @@ const CorrectionMethods = {
 // Alpha spending strategies for sequential testing
 const AlphaSpendingFunctions = {
   pocock: {
-    name: "O'Brien-Fleming",
-    description: 'Conservative early, liberal late',
-    formula: 'α(t) = 2 - 2Φ(z_α/2 / √t)'
-  },
-  obrien_fleming: {
     name: 'Pocock',
     description: 'Equal spending at each look',
     formula: 'α(t) = α * log(1 + (e-1)t)'
+  },
+  obrien_fleming: {
+    name: "O'Brien-Fleming",
+    description: 'Conservative early, liberal late',
+    formula: 'α(t) = 2 - 2Φ(z_α/2 / √t)'
   },
   lan_demets: {
     name: 'Lan-DeMets',
@@ -142,7 +142,120 @@ const MultiplicityCorrectionPanel = () => {
           adjustedP: Math.min(h.pValue * m / (i + 1), 1),
           significant: h.pValue * m / (i + 1) < alphaLevel
         }));
-        
+
+      case 'hochberg': {
+        // Step-up procedure (reverse of Holm)
+        // Work from largest p-value to smallest
+        const hochbergAdj = new Array(m);
+        // Start with the largest p-value (last in sorted ascending array)
+        hochbergAdj[m - 1] = Math.min(sorted[m - 1].pValue, 1);
+        // Step backward: adjusted_p[i] = min(adjusted_p[i+1], (m - i) * p[i])
+        for (let i = m - 2; i >= 0; i--) {
+          hochbergAdj[i] = Math.min(hochbergAdj[i + 1], (m - i) * sorted[i].pValue, 1);
+        }
+        return sorted.map((h, i) => ({
+          ...h,
+          adjustedP: hochbergAdj[i],
+          significant: hochbergAdj[i] < alphaLevel
+        }));
+      }
+
+      case 'hommel': {
+        // Hommel's procedure using Simes-based approach
+        // Start with Bonferroni-adjusted p-values as initial upper bounds
+        const hommelAdj = sorted.map(h => Math.min(h.pValue * m, 1));
+
+        // For each j from m down to 2, test the Simes condition
+        for (let j = m; j >= 2; j--) {
+          // Simes critical values for this j
+          const simesThresholds = [];
+          let simesHolds = true;
+
+          for (let i = 0; i < j; i++) {
+            const threshold = (alphaLevel * (i + 1)) / j;
+            if (sorted[i].pValue <= threshold) {
+              simesHolds = false;
+            }
+            simesThresholds.push(threshold);
+          }
+
+          if (!simesHolds) {
+            // Simes test rejects for this j: refine adjusted p-values
+            const cj = Math.min(...sorted.slice(0, j).map((h, i) => (j * h.pValue) / (i + 1)));
+            for (let i = 0; i < m; i++) {
+              if (i < j) {
+                // For hypotheses within the Simes set
+                hommelAdj[i] = Math.min(hommelAdj[i], Math.max(cj, sorted[i].pValue * j / (i + 1)), 1);
+              } else {
+                hommelAdj[i] = Math.min(hommelAdj[i], Math.max(cj, sorted[i].pValue), 1);
+              }
+            }
+          }
+        }
+
+        // Ensure monotonicity (non-decreasing in the sorted order)
+        for (let i = 1; i < m; i++) {
+          hommelAdj[i] = Math.max(hommelAdj[i], hommelAdj[i - 1]);
+        }
+
+        // Cap at 1
+        for (let i = 0; i < m; i++) {
+          hommelAdj[i] = Math.min(hommelAdj[i], 1);
+        }
+
+        return sorted.map((h, i) => ({
+          ...h,
+          adjustedP: hommelAdj[i],
+          significant: hommelAdj[i] < alphaLevel
+        }));
+      }
+
+      case 'benjamini_yekutieli': {
+        // BH with additional correction factor c(m) = sum(1/i for i=1..m)
+        let cm = 0;
+        for (let i = 1; i <= m; i++) {
+          cm += 1 / i;
+        }
+        // Compute adjusted p-values: p_adj[i] = p[i] * m * c(m) / rank
+        const byAdj = sorted.map((h, i) =>
+          Math.min(h.pValue * m * cm / (i + 1), 1)
+        );
+        // Enforce monotonicity: working from second-largest to smallest
+        for (let i = m - 2; i >= 0; i--) {
+          byAdj[i] = Math.min(byAdj[i], byAdj[i + 1]);
+        }
+        return sorted.map((h, i) => ({
+          ...h,
+          adjustedP: byAdj[i],
+          significant: byAdj[i] < alphaLevel
+        }));
+      }
+
+      case 'storey': {
+        // Storey's q-value method
+        const lambda = 0.5;
+        const countAboveLambda = sorted.filter(h => h.pValue > lambda).length;
+        let pi0Hat = countAboveLambda / (m * (1 - lambda));
+        pi0Hat = Math.min(Math.max(pi0Hat, 1 / m), 1); // Bound between 1/m and 1
+
+        // Compute q-values: q[i] = pi0 * m * p[i] / rank[i]
+        const qValues = sorted.map((h, i) =>
+          Math.min(pi0Hat * m * h.pValue / (i + 1), 1)
+        );
+
+        // Enforce monotonicity: working from second-largest to smallest,
+        // q[i] = min(q[i], q[i+1])
+        for (let i = m - 2; i >= 0; i--) {
+          qValues[i] = Math.min(qValues[i], qValues[i + 1]);
+        }
+
+        return sorted.map((h, i) => ({
+          ...h,
+          adjustedP: qValues[i],
+          significant: qValues[i] < alphaLevel
+        }));
+      }
+
       default:
         return sorted;
     }

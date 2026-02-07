@@ -53,13 +53,15 @@ import {
 import CalculateIcon from '@mui/icons-material/Calculate';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import GuardianService from '../../../services/GuardianService';
+import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import { useSettings } from '../../../context/SettingsContext';
 
 /**
  * Main Post-hoc Tests Component
  */
 const PostHocTests = ({ data }) => {
+  const { expertMode } = useSettings();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [groupVariable, setGroupVariable] = useState('');
@@ -68,7 +70,7 @@ const PostHocTests = ({ data }) => {
   const [alpha, setAlpha] = useState(0.05);
 
   // Guardian Integration - Statistical Assumption Validation
-  const [guardianResult, setGuardianResult] = useState(null);
+  const [guardianReport, setGuardianReport] = useState(null);
   const [isCheckingAssumptions, setIsCheckingAssumptions] = useState(false);
   const [isTestBlocked, setIsTestBlocked] = useState(false);
 
@@ -148,14 +150,14 @@ const PostHocTests = ({ data }) => {
     const validateAssumptions = async () => {
       // Only validate if we have both variables selected and grouped data
       if (!groupVariable || !dependentVar || !groupedData) {
-        setGuardianResult(null);
+        setGuardianReport(null);
         setIsTestBlocked(false);
         return;
       }
 
       // Need at least 3 groups for post-hoc tests
       if (groupedData.groups.length < 3) {
-        setGuardianResult(null);
+        setGuardianReport(null);
         setIsTestBlocked(false);
         return;
       }
@@ -169,16 +171,16 @@ const PostHocTests = ({ data }) => {
         );
 
         // Call Guardian API with ANOVA test type (post-hoc inherits ANOVA assumptions)
-        const result = await GuardianService.checkAssumptions(formattedData, 'anova');
+        const result = await guardianService.checkAssumptions(formattedData, 'anova', alpha);
 
-        setGuardianResult(result);
+        setGuardianReport(result);
 
-        // Block test if critical violations detected
-        setIsTestBlocked(result.hasViolations && result.criticalViolations.length > 0);
+        // Block test if critical violations detected; Expert Mode bypasses blocking
+        setIsTestBlocked(!expertMode && !result.can_proceed);
       } catch (error) {
         console.error('Guardian assumption check failed:', error);
         // Fail open - don't block on Guardian errors
-        setGuardianResult(null);
+        setGuardianReport(null);
         setIsTestBlocked(false);
       } finally {
         setIsCheckingAssumptions(false);
@@ -186,7 +188,7 @@ const PostHocTests = ({ data }) => {
     };
 
     validateAssumptions();
-  }, [groupVariable, dependentVar, groupedData]);
+  }, [groupVariable, dependentVar, groupedData, alpha, expertMode]);
 
   /**
    * Calculate pooled error term (MSE from ANOVA)
@@ -532,12 +534,21 @@ const PostHocTests = ({ data }) => {
         </Paper>
       )}
 
-      {guardianResult && (
+      {guardianReport && (
         <Box sx={{ mb: 3 }}>
           <GuardianWarning
-            result={guardianResult}
-            testName={`Post-hoc Tests (${testMethod.charAt(0).toUpperCase() + testMethod.slice(1)})`}
-            testType="anova"
+            guardianReport={guardianReport}
+            onProceed={() => {
+              console.log('[PostHocTests] User chose to proceed despite warnings');
+              setIsTestBlocked(false);
+            }}
+            onSelectAlternative={(alt) => {
+              console.log('[PostHocTests] Alternative test selected:', alt);
+              alert(`Alternative Test Selected: ${alt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}\n\nPlease navigate to the appropriate test module to use this alternative.`);
+            }}
+            onViewEvidence={(evidence) => {
+              console.log('[PostHocTests] View evidence requested:', evidence);
+            }}
           />
         </Box>
       )}

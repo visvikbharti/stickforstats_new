@@ -61,6 +61,10 @@ import {
 // Import settings context (Expert Mode, etc.)
 import { SettingsProvider } from './context/SettingsContext';
 
+// Import Redux store
+import { Provider as ReduxProvider } from 'react-redux';
+import { store } from './store';
+
 // Performance testing components are lazy loaded below
 
 // Import main home page
@@ -250,6 +254,7 @@ function App() {
               }}
               autoHideDuration={5000}
             >
+              <ReduxProvider store={store}>
               <PrefetchProvider options={prefetchOptions}>
                 <Router>
                   <AuthProvider>
@@ -354,7 +359,12 @@ function App() {
                           path="/guardian-demo"
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Guardian System..." />}>
-                              <GuardianWarning educationalMode={true} />
+                              <GuardianWarning
+                                educationalMode={true}
+                                onProceed={() => {}}
+                                onSelectAlternative={() => {}}
+                                onViewEvidence={() => {}}
+                              />
                             </Suspense>
                           }
                         />
@@ -914,6 +924,7 @@ function App() {
                 </AuthProvider>
               </Router>
             </PrefetchProvider>
+            </ReduxProvider>
           </SnackbarProvider>
         </BrandingProvider>
       </AppThemeProvider>
