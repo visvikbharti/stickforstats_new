@@ -13,7 +13,6 @@ from sklearn.impute import SimpleImputer
 import itertools
 import logging
 from django.db import transaction
-from celery import shared_task
 
 from pca_analysis.models import (
     PCAProject,
@@ -280,7 +279,6 @@ class PCAService:
         return pca_result
 
     @staticmethod
-    # @shared_task - Commented out because we're running directly without Celery
     def run_pca_analysis_task(project_id, n_components=5):
         """
         Celery task for running PCA analysis asynchronously.

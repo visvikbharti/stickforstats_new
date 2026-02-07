@@ -1,1277 +1,776 @@
 """
 Distribution Service - Core mathematical implementations for probability distributions.
 
-This module contains services for calculating and analyzing probability distributions,
-preserving the exact mathematical implementations from the original Streamlit application.
+This module contains services for calculating and analyzing probability distributions
+using scipy.stats for all statistical computations.
 """
 
 import numpy as np
 import scipy.stats as stats
-from math import factorial, exp, sqrt, pi, gamma, lgamma
-import pandas as pd
+from math import gamma as math_gamma
 import logging
-from typing import Dict, List, Tuple, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union
 
 logger = logging.getLogger(__name__)
+
+
+# Mapping from our distribution type names to scipy.stats distribution objects
+# and their parameter extraction functions
+DISCRETE_DISTRIBUTIONS = {'BINOMIAL', 'POISSON'}
+CONTINUOUS_DISTRIBUTIONS = {
+    'NORMAL', 'EXPONENTIAL', 'UNIFORM', 'GAMMA', 'BETA',
+    'CHI_SQUARED', 'T', 'F', 'LOG_NORMAL', 'WEIBULL'
+}
+
+
+def _get_scipy_dist(distribution_type: str, parameters: Dict[str, Any]):
+    """
+    Return (scipy_dist_object, args, kwargs) for the given distribution type and parameters.
+    """
+    if distribution_type == 'BINOMIAL':
+        n = int(parameters.get('n', 10))
+        p = float(parameters.get('p', 0.5))
+        return stats.binom, (n, p), {}
+
+    elif distribution_type == 'POISSON':
+        mu = float(parameters.get('lambda', parameters.get('mu', 1.0)))
+        return stats.poisson, (mu,), {}
+
+    elif distribution_type == 'NORMAL':
+        mu = float(parameters.get('mu', parameters.get('loc', 0.0)))
+        sigma = float(parameters.get('sigma', parameters.get('scale', 1.0)))
+        if sigma <= 0:
+            raise ValueError("Parameter 'sigma' must be positive")
+        return stats.norm, (), {'loc': mu, 'scale': sigma}
+
+    elif distribution_type == 'EXPONENTIAL':
+        rate = float(parameters.get('rate', parameters.get('lambda', 1.0)))
+        if rate <= 0:
+            raise ValueError("Parameter 'rate' must be positive")
+        return stats.expon, (), {'scale': 1.0 / rate}
+
+    elif distribution_type == 'UNIFORM':
+        a = float(parameters.get('a', parameters.get('loc', 0.0)))
+        b = float(parameters.get('b', 1.0))
+        if b <= a:
+            raise ValueError("Parameter 'b' must be greater than 'a'")
+        return stats.uniform, (), {'loc': a, 'scale': b - a}
+
+    elif distribution_type == 'GAMMA':
+        shape = float(parameters.get('shape', parameters.get('alpha', 1.0)))
+        scale = float(parameters.get('scale', parameters.get('beta', 1.0)))
+        if shape <= 0 or scale <= 0:
+            raise ValueError("Parameters 'shape' and 'scale' must be positive")
+        return stats.gamma, (shape,), {'scale': scale}
+
+    elif distribution_type == 'BETA':
+        alpha = float(parameters.get('alpha', parameters.get('a', 1.0)))
+        beta_val = float(parameters.get('beta', parameters.get('b', 1.0)))
+        if alpha <= 0 or beta_val <= 0:
+            raise ValueError("Parameters 'alpha' and 'beta' must be positive")
+        return stats.beta, (alpha, beta_val), {}
+
+    elif distribution_type == 'CHI_SQUARED':
+        df = float(parameters.get('df', 1))
+        if df <= 0:
+            raise ValueError("Parameter 'df' must be positive")
+        return stats.chi2, (df,), {}
+
+    elif distribution_type == 'T':
+        df = float(parameters.get('df', 1))
+        if df <= 0:
+            raise ValueError("Parameter 'df' must be positive")
+        return stats.t, (df,), {}
+
+    elif distribution_type == 'F':
+        dfn = float(parameters.get('dfn', 1))
+        dfd = float(parameters.get('dfd', 1))
+        if dfn <= 0 or dfd <= 0:
+            raise ValueError("Parameters 'dfn' and 'dfd' must be positive")
+        return stats.f, (dfn, dfd), {}
+
+    elif distribution_type == 'LOG_NORMAL':
+        mu = float(parameters.get('mu', 0.0))
+        sigma = float(parameters.get('sigma', 1.0))
+        if sigma <= 0:
+            raise ValueError("Parameter 'sigma' must be positive")
+        return stats.lognorm, (sigma,), {'scale': np.exp(mu)}
+
+    elif distribution_type == 'WEIBULL':
+        shape = float(parameters.get('shape', parameters.get('c', 1.0)))
+        scale = float(parameters.get('scale', 1.0))
+        if shape <= 0 or scale <= 0:
+            raise ValueError("Parameters 'shape' and 'scale' must be positive")
+        return stats.weibull_min, (shape,), {'scale': scale}
+
+    else:
+        raise ValueError(f"Unsupported distribution type: {distribution_type}")
+
+
+def _safe_float(val):
+    """Convert numpy values to Python floats, handling inf/nan."""
+    if isinstance(val, (np.floating, np.integer)):
+        val = float(val)
+    if isinstance(val, float):
+        if np.isnan(val):
+            return None
+        if np.isinf(val):
+            return None
+    return val
+
 
 class DistributionService:
     """
     Service for performing probability distribution calculations and analysis.
+    All methods are static and stateless.
     """
-    
+
+    # ------------------------------------------------------------------
+    # create_distribution: return distribution properties and statistics
+    # ------------------------------------------------------------------
     @staticmethod
     def create_distribution(distribution_type: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a distribution with the specified type and parameters.
-        
-        Args:
-            distribution_type: Type of distribution (e.g., 'BINOMIAL', 'POISSON', 'NORMAL')
-            parameters: Distribution-specific parameters
-            
-        Returns:
-            Distribution properties including parameters and basic statistics
+        Returns distribution properties including parameters and basic statistics.
         """
         try:
-            distribution_data = {
+            dist, args, kwargs = _get_scipy_dist(distribution_type, parameters)
+            rv = dist(*args, **kwargs)
+
+            mean_val, var_val, skew_val, kurt_val = rv.stats(moments='mvsk')
+
+            result = {
                 'type': distribution_type,
                 'parameters': parameters,
-                'statistics': {}
+                'statistics': {
+                    'mean': _safe_float(mean_val),
+                    'variance': _safe_float(var_val),
+                    'standard_deviation': _safe_float(np.sqrt(float(var_val))) if var_val is not None and float(var_val) >= 0 else None,
+                    'skewness': _safe_float(skew_val),
+                    'kurtosis': _safe_float(kurt_val),
+                }
             }
-            
-            # Calculate basic statistics based on distribution type
-            if distribution_type == 'BINOMIAL':
-                n = parameters.get('n', 10)
-                p = parameters.get('p', 0.5)
-                
-                # Validate parameters
-                if n <= 0 or not isinstance(n, int):
-                    raise ValueError("Parameter 'n' must be a positive integer")
-                if p < 0 or p > 1:
-                    raise ValueError("Parameter 'p' must be between 0 and 1")
-                
-                distribution_data['statistics'] = {
-                    'mean': n * p,
-                    'variance': n * p * (1 - p),
-                    'standard_deviation': np.sqrt(n * p * (1 - p)),
-                    'skewness': (1 - 2 * p) / np.sqrt(n * p * (1 - p)),
-                    'kurtosis': (1 - 6 * p * (1 - p)) / (n * p * (1 - p))  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'POISSON':
-                lambda_val = parameters.get('lambda', 1.0)
-                
-                # Validate parameters
-                if lambda_val <= 0:
-                    raise ValueError("Parameter 'lambda' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': lambda_val,
-                    'variance': lambda_val,
-                    'standard_deviation': np.sqrt(lambda_val),
-                    'skewness': 1 / np.sqrt(lambda_val),
-                    'kurtosis': 1 / lambda_val  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Validate parameters
-                if sigma <= 0:
-                    raise ValueError("Parameter 'sigma' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': mu,
-                    'variance': sigma**2,
-                    'standard_deviation': sigma,
-                    'skewness': 0,
-                    'kurtosis': 0  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'EXPONENTIAL':
-                rate = parameters.get('rate', 1.0)
-                
-                # Validate parameters
-                if rate <= 0:
-                    raise ValueError("Parameter 'rate' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': 1 / rate,
-                    'variance': 1 / (rate**2),
-                    'standard_deviation': 1 / rate,
-                    'skewness': 2,
-                    'kurtosis': 6  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'UNIFORM':
-                a = parameters.get('a', 0.0)
-                b = parameters.get('b', 1.0)
-                
-                # Validate parameters
-                if b <= a:
-                    raise ValueError("Parameter 'b' must be greater than 'a'")
-                
-                distribution_data['statistics'] = {
-                    'mean': (a + b) / 2,
-                    'variance': (b - a)**2 / 12,
-                    'standard_deviation': (b - a) / np.sqrt(12),
-                    'skewness': 0,
-                    'kurtosis': -6/5  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'GAMMA':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Validate parameters
-                if shape <= 0 or scale <= 0:
-                    raise ValueError("Parameters 'shape' and 'scale' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': shape * scale,
-                    'variance': shape * scale**2,
-                    'standard_deviation': np.sqrt(shape) * scale,
-                    'skewness': 2 / np.sqrt(shape),
-                    'kurtosis': 6 / shape  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'BETA':
-                alpha = parameters.get('alpha', 1.0)
-                beta = parameters.get('beta', 1.0)
-                
-                # Validate parameters
-                if alpha <= 0 or beta <= 0:
-                    raise ValueError("Parameters 'alpha' and 'beta' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': alpha / (alpha + beta),
-                    'variance': (alpha * beta) / ((alpha + beta)**2 * (alpha + beta + 1)),
-                    'standard_deviation': np.sqrt((alpha * beta) / ((alpha + beta)**2 * (alpha + beta + 1))),
-                    'skewness': 2 * (beta - alpha) * np.sqrt(alpha + beta + 1) / ((alpha + beta) * np.sqrt(alpha * beta)),
-                    'kurtosis': 6 * ((alpha - beta)**2 * (alpha + beta + 1) - alpha * beta * (alpha + beta + 2)) / (alpha * beta * (alpha + beta + 2) * (alpha + beta + 3))
-                }
-                
-            elif distribution_type == 'CHI_SQUARED':
-                df = parameters.get('df', 1)
-                
-                # Validate parameters
-                if df <= 0 or not isinstance(df, int):
-                    raise ValueError("Parameter 'df' must be a positive integer")
-                
-                distribution_data['statistics'] = {
-                    'mean': df,
-                    'variance': 2 * df,
-                    'standard_deviation': np.sqrt(2 * df),
-                    'skewness': np.sqrt(8 / df),
-                    'kurtosis': 12 / df  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'T':
-                df = parameters.get('df', 1)
-                
-                # Validate parameters
-                if df <= 0:
-                    raise ValueError("Parameter 'df' must be positive")
-                
-                if df > 2:
-                    variance = df / (df - 2)
-                else:
-                    variance = float('inf')
-                    
-                if df > 3:
-                    skewness = 0
-                else:
-                    skewness = float('nan')
-                    
-                if df > 4:
-                    kurtosis = 6 / (df - 4)
-                else:
-                    kurtosis = float('inf')
-                
-                distribution_data['statistics'] = {
-                    'mean': 0 if df > 1 else float('nan'),
-                    'variance': variance,
-                    'standard_deviation': np.sqrt(variance) if not np.isinf(variance) else float('inf'),
-                    'skewness': skewness,
-                    'kurtosis': kurtosis  # Excess kurtosis
-                }
-                
-            elif distribution_type == 'F':
-                dfn = parameters.get('dfn', 1)
-                dfd = parameters.get('dfd', 1)
-                
-                # Validate parameters
-                if dfn <= 0 or dfd <= 0:
-                    raise ValueError("Parameters 'dfn' and 'dfd' must be positive")
-                
-                if dfd > 2:
-                    mean = dfd / (dfd - 2)
-                else:
-                    mean = float('inf')
-                    
-                if dfd > 4:
-                    variance = (2 * dfd**2 * (dfn + dfd - 2)) / (dfn * (dfd - 2)**2 * (dfd - 4))
-                else:
-                    variance = float('inf')
-                
-                distribution_data['statistics'] = {
-                    'mean': mean,
-                    'variance': variance,
-                    'standard_deviation': np.sqrt(variance) if not np.isinf(variance) else float('inf'),
-                    'skewness': float('nan'),  # Complex formula, omitted for simplicity
-                    'kurtosis': float('nan')  # Complex formula, omitted for simplicity
-                }
-                
-            elif distribution_type == 'LOG_NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Validate parameters
-                if sigma <= 0:
-                    raise ValueError("Parameter 'sigma' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': np.exp(mu + sigma**2 / 2),
-                    'variance': (np.exp(sigma**2) - 1) * np.exp(2 * mu + sigma**2),
-                    'standard_deviation': np.sqrt((np.exp(sigma**2) - 1) * np.exp(2 * mu + sigma**2)),
-                    'skewness': (np.exp(sigma**2) + 2) * np.sqrt(np.exp(sigma**2) - 1),
-                    'kurtosis': np.exp(4 * sigma**2) + 2 * np.exp(3 * sigma**2) + 3 * np.exp(2 * sigma**2) - 6
-                }
-                
-            elif distribution_type == 'WEIBULL':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Validate parameters
-                if shape <= 0 or scale <= 0:
-                    raise ValueError("Parameters 'shape' and 'scale' must be positive")
-                
-                distribution_data['statistics'] = {
-                    'mean': scale * gamma(1 + 1/shape),
-                    'variance': scale**2 * (gamma(1 + 2/shape) - (gamma(1 + 1/shape))**2),
-                    'standard_deviation': np.sqrt(scale**2 * (gamma(1 + 2/shape) - (gamma(1 + 1/shape))**2)),
-                    'skewness': (gamma(1 + 3/shape) * scale**3 - 3 * scale * scale**2 * gamma(1 + 1/shape) * gamma(1 + 2/shape) + 2 * (scale * gamma(1 + 1/shape))**3) / (scale**2 * (gamma(1 + 2/shape) - (gamma(1 + 1/shape))**2))**(3/2),
-                    'kurtosis': float('nan')  # Complex formula, omitted for simplicity
-                }
-                
-            else:
-                raise ValueError(f"Unsupported distribution type: {distribution_type}")
-                
-            return distribution_data
-            
+            return result
         except Exception as e:
             logger.error(f"Error creating distribution: {str(e)}")
             raise
-            
+
+    # ------------------------------------------------------------------
+    # calculate_pmf_pdf: unified method for PMF (discrete) or PDF (continuous)
+    # ------------------------------------------------------------------
     @staticmethod
-    def calculate_pmf(distribution_type: str, parameters: Dict[str, Any], x_values: List[Union[int, float]]) -> Dict[str, Any]:
+    def calculate_pmf_pdf(distribution_type: str, parameters: Dict[str, Any],
+                          x_values: List[Union[int, float]]) -> Dict[str, Any]:
         """
-        Calculate the Probability Mass Function (PMF) for discrete distributions.
-        
-        Args:
-            distribution_type: Type of distribution
-            parameters: Distribution-specific parameters
-            x_values: List of x values to calculate PMF for
-            
-        Returns:
-            Dictionary containing x values and corresponding PMF values
+        Calculate the PMF (for discrete) or PDF (for continuous) distributions.
         """
         try:
-            pmf_values = []
-            
-            if distribution_type == 'BINOMIAL':
-                n = parameters.get('n', 10)
-                p = parameters.get('p', 0.5)
-                
-                # Using scipy.stats for accurate calculations
-                pmf_values = stats.binom.pmf(x_values, n, p)
-                
-            elif distribution_type == 'POISSON':
-                lambda_val = parameters.get('lambda', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pmf_values = stats.poisson.pmf(x_values, lambda_val)
-                
-            elif distribution_type in ['NORMAL', 'EXPONENTIAL', 'UNIFORM', 'GAMMA', 'BETA', 'CHI_SQUARED', 'T', 'F', 'LOG_NORMAL', 'WEIBULL']:
-                raise ValueError(f"{distribution_type} is a continuous distribution and does not have a PMF")
-                
+            dist, args, kwargs = _get_scipy_dist(distribution_type, parameters)
+            x_arr = np.asarray(x_values, dtype=float)
+
+            if distribution_type in DISCRETE_DISTRIBUTIONS:
+                values = dist.pmf(x_arr, *args, **kwargs)
+                key = 'pmf_values'
             else:
-                raise ValueError(f"Unsupported distribution type: {distribution_type}")
-                
-            # Convert numpy array to list for JSON serialization
-            pmf_values = pmf_values.tolist() if isinstance(pmf_values, np.ndarray) else pmf_values
-            
+                values = dist.pdf(x_arr, *args, **kwargs)
+                key = 'pdf_values'
+
+            values_list = np.nan_to_num(values, nan=0.0).tolist()
+
             return {
                 'x_values': x_values,
-                'pmf_values': pmf_values
+                key: values_list,
+                'distribution_type': distribution_type,
             }
-            
         except Exception as e:
-            logger.error(f"Error calculating PMF: {str(e)}")
+            logger.error(f"Error calculating PMF/PDF: {str(e)}")
             raise
-            
+
+    # ------------------------------------------------------------------
+    # calculate_cdf
+    # ------------------------------------------------------------------
     @staticmethod
-    def calculate_pdf(distribution_type: str, parameters: Dict[str, Any], x_values: List[Union[int, float]]) -> Dict[str, Any]:
+    def calculate_cdf(distribution_type: str, parameters: Dict[str, Any],
+                      x_values: List[Union[int, float]]) -> Dict[str, Any]:
         """
-        Calculate the Probability Density Function (PDF) for continuous distributions.
-        
-        Args:
-            distribution_type: Type of distribution
-            parameters: Distribution-specific parameters
-            x_values: List of x values to calculate PDF for
-            
-        Returns:
-            Dictionary containing x values and corresponding PDF values
+        Calculate the CDF for any distribution.
         """
         try:
-            pdf_values = []
-            
-            if distribution_type == 'NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.norm.pdf(x_values, loc=mu, scale=sigma)
-                
-            elif distribution_type == 'EXPONENTIAL':
-                rate = parameters.get('rate', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                # Note: scipy uses scale = 1/rate
-                pdf_values = stats.expon.pdf(x_values, scale=1/rate)
-                
-            elif distribution_type == 'UNIFORM':
-                a = parameters.get('a', 0.0)
-                b = parameters.get('b', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.uniform.pdf(x_values, loc=a, scale=b-a)
-                
-            elif distribution_type == 'GAMMA':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.gamma.pdf(x_values, a=shape, scale=scale)
-                
-            elif distribution_type == 'BETA':
-                alpha = parameters.get('alpha', 1.0)
-                beta = parameters.get('beta', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.beta.pdf(x_values, a=alpha, b=beta)
-                
-            elif distribution_type == 'CHI_SQUARED':
-                df = parameters.get('df', 1)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.chi2.pdf(x_values, df=df)
-                
-            elif distribution_type == 'T':
-                df = parameters.get('df', 1)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.t.pdf(x_values, df=df)
-                
-            elif distribution_type == 'F':
-                dfn = parameters.get('dfn', 1)
-                dfd = parameters.get('dfd', 1)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.f.pdf(x_values, dfn=dfn, dfd=dfd)
-                
-            elif distribution_type == 'LOG_NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.lognorm.pdf(x_values, s=sigma, scale=np.exp(mu))
-                
-            elif distribution_type == 'WEIBULL':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                pdf_values = stats.weibull_min.pdf(x_values, c=shape, scale=scale)
-                
-            elif distribution_type in ['BINOMIAL', 'POISSON']:
-                raise ValueError(f"{distribution_type} is a discrete distribution and does not have a PDF")
-                
-            else:
-                raise ValueError(f"Unsupported distribution type: {distribution_type}")
-                
-            # Convert numpy array to list for JSON serialization
-            pdf_values = pdf_values.tolist() if isinstance(pdf_values, np.ndarray) else pdf_values
-            
+            dist, args, kwargs = _get_scipy_dist(distribution_type, parameters)
+            x_arr = np.asarray(x_values, dtype=float)
+
+            cdf_values = dist.cdf(x_arr, *args, **kwargs)
+            cdf_list = np.nan_to_num(cdf_values, nan=0.0).tolist()
+
             return {
                 'x_values': x_values,
-                'pdf_values': pdf_values
+                'cdf_values': cdf_list,
+                'distribution_type': distribution_type,
             }
-            
-        except Exception as e:
-            logger.error(f"Error calculating PDF: {str(e)}")
-            raise
-            
-    @staticmethod
-    def calculate_cdf(distribution_type: str, parameters: Dict[str, Any], x_values: List[Union[int, float]]) -> Dict[str, Any]:
-        """
-        Calculate the Cumulative Distribution Function (CDF) for any distribution.
-        
-        Args:
-            distribution_type: Type of distribution
-            parameters: Distribution-specific parameters
-            x_values: List of x values to calculate CDF for
-            
-        Returns:
-            Dictionary containing x values and corresponding CDF values
-        """
-        try:
-            cdf_values = []
-            
-            if distribution_type == 'BINOMIAL':
-                n = parameters.get('n', 10)
-                p = parameters.get('p', 0.5)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.binom.cdf(x_values, n, p)
-                
-            elif distribution_type == 'POISSON':
-                lambda_val = parameters.get('lambda', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.poisson.cdf(x_values, lambda_val)
-                
-            elif distribution_type == 'NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.norm.cdf(x_values, loc=mu, scale=sigma)
-                
-            elif distribution_type == 'EXPONENTIAL':
-                rate = parameters.get('rate', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.expon.cdf(x_values, scale=1/rate)
-                
-            elif distribution_type == 'UNIFORM':
-                a = parameters.get('a', 0.0)
-                b = parameters.get('b', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.uniform.cdf(x_values, loc=a, scale=b-a)
-                
-            elif distribution_type == 'GAMMA':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.gamma.cdf(x_values, a=shape, scale=scale)
-                
-            elif distribution_type == 'BETA':
-                alpha = parameters.get('alpha', 1.0)
-                beta = parameters.get('beta', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.beta.cdf(x_values, a=alpha, b=beta)
-                
-            elif distribution_type == 'CHI_SQUARED':
-                df = parameters.get('df', 1)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.chi2.cdf(x_values, df=df)
-                
-            elif distribution_type == 'T':
-                df = parameters.get('df', 1)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.t.cdf(x_values, df=df)
-                
-            elif distribution_type == 'F':
-                dfn = parameters.get('dfn', 1)
-                dfd = parameters.get('dfd', 1)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.f.cdf(x_values, dfn=dfn, dfd=dfd)
-                
-            elif distribution_type == 'LOG_NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.lognorm.cdf(x_values, s=sigma, scale=np.exp(mu))
-                
-            elif distribution_type == 'WEIBULL':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                # Using scipy.stats for accurate calculations
-                cdf_values = stats.weibull_min.cdf(x_values, c=shape, scale=scale)
-                
-            else:
-                raise ValueError(f"Unsupported distribution type: {distribution_type}")
-                
-            # Convert numpy array to list for JSON serialization
-            cdf_values = cdf_values.tolist() if isinstance(cdf_values, np.ndarray) else cdf_values
-            
-            return {
-                'x_values': x_values,
-                'cdf_values': cdf_values
-            }
-            
         except Exception as e:
             logger.error(f"Error calculating CDF: {str(e)}")
             raise
-            
+
+    # ------------------------------------------------------------------
+    # calculate_probability: flexible probability queries
+    # Called by both stateless views and model-based views
+    # Supports keyword args: probability_type, x_value, lower_bound, upper_bound
+    # Also supports legacy positional 'values' dict
+    # ------------------------------------------------------------------
     @staticmethod
-    def calculate_probability(distribution_type: str, parameters: Dict[str, Any], 
-                             probability_type: str, values: Dict[str, float]) -> Dict[str, Any]:
+    def calculate_probability(distribution_type: str, parameters: Dict[str, Any],
+                              probability_type: str = 'less_than',
+                              values: Optional[Dict[str, float]] = None,
+                              lower_bound: Optional[float] = None,
+                              upper_bound: Optional[float] = None,
+                              x_value: Optional[float] = None) -> Dict[str, Any]:
         """
         Calculate various probability queries for a distribution.
-        
-        Args:
-            distribution_type: Type of distribution
-            parameters: Distribution-specific parameters
-            probability_type: Type of probability query (e.g., 'LESS_THAN', 'GREATER_THAN', 'BETWEEN')
-            values: Dictionary of values needed for the probability query
-            
-        Returns:
-            Dictionary containing the calculated probability and related information
+
+        probability_type: 'less_than', 'greater_than', 'between', 'exactly',
+                          'LESS_THAN_OR_EQUAL', 'GREATER_THAN', 'BETWEEN', 'EQUAL_TO', 'WITHIN_K_STD'
         """
         try:
+            dist, args, kwargs = _get_scipy_dist(distribution_type, parameters)
+
+            # Normalise probability_type to lowercase
+            ptype = probability_type.lower()
+
+            # If legacy 'values' dict was provided, extract bounds from it
+            if values:
+                if x_value is None:
+                    x_value = values.get('x', values.get('k', values.get('x_value')))
+                if lower_bound is None:
+                    lower_bound = values.get('x1', values.get('k1', values.get('lower_bound')))
+                if upper_bound is None:
+                    upper_bound = values.get('x2', values.get('k2', values.get('upper_bound')))
+                # For WITHIN_K_STD
+                if 'k' in values and ptype == 'within_k_std':
+                    k_std = float(values['k'])
+
             probability = None
-            
-            if distribution_type == 'BINOMIAL':
-                n = parameters.get('n', 10)
-                p = parameters.get('p', 0.5)
-                
-                if probability_type == 'EQUAL_TO':
-                    k = values.get('k', 0)
-                    probability = stats.binom.pmf(k, n, p)
-                    
-                elif probability_type == 'LESS_THAN_OR_EQUAL':
-                    k = values.get('k', 0)
-                    probability = stats.binom.cdf(k, n, p)
-                    
-                elif probability_type == 'GREATER_THAN':
-                    k = values.get('k', 0)
-                    probability = 1 - stats.binom.cdf(k, n, p)
-                    
-                elif probability_type == 'BETWEEN':
-                    k1 = values.get('k1', 0)
-                    k2 = values.get('k2', n)
-                    probability = stats.binom.cdf(k2, n, p) - stats.binom.cdf(k1 - 1, n, p)
-                    
+
+            if ptype in ('less_than', 'less_than_or_equal'):
+                if x_value is None:
+                    raise ValueError("x_value is required for less_than probability")
+                probability = float(dist.cdf(float(x_value), *args, **kwargs))
+
+            elif ptype in ('greater_than',):
+                if x_value is None:
+                    raise ValueError("x_value is required for greater_than probability")
+                probability = float(1.0 - dist.cdf(float(x_value), *args, **kwargs))
+
+            elif ptype in ('between',):
+                if lower_bound is None or upper_bound is None:
+                    raise ValueError("lower_bound and upper_bound are required for between probability")
+                probability = float(
+                    dist.cdf(float(upper_bound), *args, **kwargs) -
+                    dist.cdf(float(lower_bound), *args, **kwargs)
+                )
+
+            elif ptype in ('exactly', 'equal_to'):
+                if x_value is None:
+                    raise ValueError("x_value is required for exactly probability")
+                if distribution_type in DISCRETE_DISTRIBUTIONS:
+                    probability = float(dist.pmf(float(x_value), *args, **kwargs))
                 else:
-                    raise ValueError(f"Unsupported probability type: {probability_type}")
-                    
-            elif distribution_type == 'POISSON':
-                lambda_val = parameters.get('lambda', 1.0)
-                
-                if probability_type == 'EQUAL_TO':
-                    k = values.get('k', 0)
-                    probability = stats.poisson.pmf(k, lambda_val)
-                    
-                elif probability_type == 'LESS_THAN_OR_EQUAL':
-                    k = values.get('k', 0)
-                    probability = stats.poisson.cdf(k, lambda_val)
-                    
-                elif probability_type == 'GREATER_THAN':
-                    k = values.get('k', 0)
-                    probability = 1 - stats.poisson.cdf(k, lambda_val)
-                    
-                elif probability_type == 'BETWEEN':
-                    k1 = values.get('k1', 0)
-                    k2 = values.get('k2', int(lambda_val * 3))
-                    probability = stats.poisson.cdf(k2, lambda_val) - stats.poisson.cdf(k1 - 1, lambda_val)
-                    
+                    # For continuous distributions, P(X = x) = 0
+                    probability = 0.0
+
+            elif ptype == 'within_k_std':
+                # P(mu - k*sigma < X < mu + k*sigma)
+                if values and 'k' in values:
+                    k_std = float(values['k'])
+                elif x_value is not None:
+                    k_std = float(x_value)
                 else:
-                    raise ValueError(f"Unsupported probability type: {probability_type}")
-                    
-            elif distribution_type == 'NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                if probability_type == 'LESS_THAN_OR_EQUAL':
-                    x = values.get('x', 0)
-                    probability = stats.norm.cdf(x, loc=mu, scale=sigma)
-                    
-                elif probability_type == 'GREATER_THAN':
-                    x = values.get('x', 0)
-                    probability = 1 - stats.norm.cdf(x, loc=mu, scale=sigma)
-                    
-                elif probability_type == 'BETWEEN':
-                    x1 = values.get('x1', mu - sigma)
-                    x2 = values.get('x2', mu + sigma)
-                    probability = stats.norm.cdf(x2, loc=mu, scale=sigma) - stats.norm.cdf(x1, loc=mu, scale=sigma)
-                    
-                elif probability_type == 'WITHIN_K_STD':
-                    k = values.get('k', 1.0)
-                    probability = stats.norm.cdf(mu + k * sigma, loc=mu, scale=sigma) - stats.norm.cdf(mu - k * sigma, loc=mu, scale=sigma)
-                    
-                else:
-                    raise ValueError(f"Unsupported probability type: {probability_type}")
-                    
+                    k_std = 1.0
+                mean_val = float(dist.mean(*args, **kwargs) if callable(getattr(dist, 'mean', None)) else dist.stats(*args, moments='m', **kwargs))
+                std_val = float(np.sqrt(dist.stats(*args, moments='v', **kwargs)))
+                probability = float(
+                    dist.cdf(mean_val + k_std * std_val, *args, **kwargs) -
+                    dist.cdf(mean_val - k_std * std_val, *args, **kwargs)
+                )
+
             else:
-                # For other distributions, implement similar probability calculations
-                # based on their respective scipy.stats functions
-                raise ValueError(f"Probability calculations for {distribution_type} not yet implemented")
-                
+                raise ValueError(f"Unsupported probability type: {probability_type}")
+
             return {
                 'probability': probability,
                 'distribution_type': distribution_type,
                 'parameters': parameters,
                 'probability_type': probability_type,
-                'values': values
             }
-            
         except Exception as e:
             logger.error(f"Error calculating probability: {str(e)}")
             raise
-            
+
+    # ------------------------------------------------------------------
+    # generate_random_sample: generate random variates
+    # ------------------------------------------------------------------
     @staticmethod
-    def generate_random_samples(distribution_type: str, parameters: Dict[str, Any], sample_size: int) -> Dict[str, Any]:
+    def generate_random_sample(distribution_type: str, parameters: Dict[str, Any],
+                               sample_size: int = 100,
+                               seed: Optional[int] = None) -> Dict[str, Any]:
         """
         Generate random samples from a specified distribution.
-        
-        Args:
-            distribution_type: Type of distribution
-            parameters: Distribution-specific parameters
-            sample_size: Number of samples to generate
-            
-        Returns:
-            Dictionary containing the generated samples and summary statistics
         """
         try:
-            samples = []
-            
-            if distribution_type == 'BINOMIAL':
-                n = parameters.get('n', 10)
-                p = parameters.get('p', 0.5)
-                
-                samples = stats.binom.rvs(n, p, size=sample_size)
-                
-            elif distribution_type == 'POISSON':
-                lambda_val = parameters.get('lambda', 1.0)
-                
-                samples = stats.poisson.rvs(lambda_val, size=sample_size)
-                
-            elif distribution_type == 'NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                samples = stats.norm.rvs(loc=mu, scale=sigma, size=sample_size)
-                
-            elif distribution_type == 'EXPONENTIAL':
-                rate = parameters.get('rate', 1.0)
-                
-                samples = stats.expon.rvs(scale=1/rate, size=sample_size)
-                
-            elif distribution_type == 'UNIFORM':
-                a = parameters.get('a', 0.0)
-                b = parameters.get('b', 1.0)
-                
-                samples = stats.uniform.rvs(loc=a, scale=b-a, size=sample_size)
-                
-            elif distribution_type == 'GAMMA':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                samples = stats.gamma.rvs(a=shape, scale=scale, size=sample_size)
-                
-            elif distribution_type == 'BETA':
-                alpha = parameters.get('alpha', 1.0)
-                beta = parameters.get('beta', 1.0)
-                
-                samples = stats.beta.rvs(a=alpha, b=beta, size=sample_size)
-                
-            elif distribution_type == 'CHI_SQUARED':
-                df = parameters.get('df', 1)
-                
-                samples = stats.chi2.rvs(df=df, size=sample_size)
-                
-            elif distribution_type == 'T':
-                df = parameters.get('df', 1)
-                
-                samples = stats.t.rvs(df=df, size=sample_size)
-                
-            elif distribution_type == 'F':
-                dfn = parameters.get('dfn', 1)
-                dfd = parameters.get('dfd', 1)
-                
-                samples = stats.f.rvs(dfn=dfn, dfd=dfd, size=sample_size)
-                
-            elif distribution_type == 'LOG_NORMAL':
-                mu = parameters.get('mu', 0.0)
-                sigma = parameters.get('sigma', 1.0)
-                
-                samples = stats.lognorm.rvs(s=sigma, scale=np.exp(mu), size=sample_size)
-                
-            elif distribution_type == 'WEIBULL':
-                shape = parameters.get('shape', 1.0)
-                scale = parameters.get('scale', 1.0)
-                
-                samples = stats.weibull_min.rvs(c=shape, scale=scale, size=sample_size)
-                
-            else:
-                raise ValueError(f"Unsupported distribution type: {distribution_type}")
-                
-            # Calculate summary statistics
-            samples_list = samples.tolist() if isinstance(samples, np.ndarray) else samples
+            if seed is not None:
+                np.random.seed(int(seed))
+
+            dist, args, kwargs = _get_scipy_dist(distribution_type, parameters)
+            samples = dist.rvs(*args, size=int(sample_size), **kwargs)
+
+            samples_list = samples.tolist() if isinstance(samples, np.ndarray) else list(samples)
+
             summary = {
                 'mean': float(np.mean(samples)),
                 'median': float(np.median(samples)),
-                'std_dev': float(np.std(samples, ddof=1)),
+                'std_dev': float(np.std(samples, ddof=1)) if len(samples) > 1 else 0.0,
                 'min': float(np.min(samples)),
                 'max': float(np.max(samples)),
                 'q1': float(np.percentile(samples, 25)),
-                'q3': float(np.percentile(samples, 75))
+                'q3': float(np.percentile(samples, 75)),
             }
-            
+
             return {
                 'samples': samples_list,
-                'summary': summary
+                'summary': summary,
+                'distribution_type': distribution_type,
+                'sample_size': sample_size,
             }
-            
         except Exception as e:
             logger.error(f"Error generating random samples: {str(e)}")
             raise
-            
+
+    # Keep legacy alias
+    generate_random_samples = generate_random_sample
+
+    # ------------------------------------------------------------------
+    # fit_distribution: fit one or more distributions to data
+    # ------------------------------------------------------------------
     @staticmethod
-    def fit_distribution(data: List[Union[int, float]], distribution_type: str) -> Dict[str, Any]:
+    def fit_distribution(data: List[Union[int, float]],
+                         distribution_types: Optional[Union[str, List[str]]] = None) -> Dict[str, Any]:
         """
-        Fit a distribution to given data.
-        
-        Args:
-            data: List of data points
-            distribution_type: Type of distribution to fit
-            
-        Returns:
-            Dictionary containing fitted parameters and goodness-of-fit statistics
+        Fit distribution(s) to given data.
+        Accepts a single distribution_type string or a list.
         """
         try:
-            fitted_params = {}
-            goodness_of_fit = {}
-            
-            # Convert data to numpy array
-            data_array = np.array(data)
-            
-            if distribution_type == 'BINOMIAL':
-                # For binomial, estimate n and p
-                # This is a simplification; proper binomial fitting is more complex
-                n = int(np.ceil(np.max(data_array)))
-                p = np.mean(data_array) / n
-                
-                fitted_params = {'n': n, 'p': p}
-                
-                # Calculate expected frequencies
-                expected = stats.binom.pmf(np.arange(n + 1), n, p) * len(data_array)
-                
-                # Calculate chi-square statistic
-                observed = np.bincount(data_array.astype(int), minlength=n + 1)
-                valid_indices = expected > 5  # Only use bins with expected frequency > 5
-                
-                if np.sum(valid_indices) > 1:
-                    chi_square = np.sum(((observed[valid_indices] - expected[valid_indices]) ** 2) / expected[valid_indices])
-                    dof = np.sum(valid_indices) - 2  # Subtract 2 for estimated parameters (n and p)
-                    p_value = 1 - stats.chi2.cdf(chi_square, dof) if dof > 0 else np.nan
-                    
-                    goodness_of_fit = {
-                        'chi_square': float(chi_square),
-                        'dof': int(dof),
-                        'p_value': float(p_value)
+            data_array = np.asarray(data, dtype=float)
+
+            # Normalise to list
+            if distribution_types is None:
+                distribution_types = ['NORMAL']
+            if isinstance(distribution_types, str):
+                distribution_types = [distribution_types]
+
+            results = {}
+
+            for dtype in distribution_types:
+                try:
+                    fit_result = DistributionService._fit_single_distribution(data_array, dtype)
+                    results[dtype] = fit_result
+                except Exception as exc:
+                    results[dtype] = {
+                        'error': str(exc),
+                        'fitted_parameters': {},
+                        'goodness_of_fit': {},
                     }
-                else:
-                    goodness_of_fit = {
-                        'chi_square': np.nan,
-                        'dof': 0,
-                        'p_value': np.nan,
-                        'error': 'Insufficient data for chi-square test'
-                    }
-                
-            elif distribution_type == 'POISSON':
-                # For Poisson, estimate lambda
-                lambda_est = np.mean(data_array)
-                
-                fitted_params = {'lambda': float(lambda_est)}
-                
-                # Calculate expected frequencies
-                max_k = max(int(np.max(data_array)), int(lambda_est * 3))
-                expected = stats.poisson.pmf(np.arange(max_k + 1), lambda_est) * len(data_array)
-                
-                # Calculate chi-square statistic
-                observed = np.bincount(data_array.astype(int), minlength=max_k + 1)
-                valid_indices = expected > 5  # Only use bins with expected frequency > 5
-                
-                if np.sum(valid_indices) > 1:
-                    chi_square = np.sum(((observed[valid_indices] - expected[valid_indices]) ** 2) / expected[valid_indices])
-                    dof = np.sum(valid_indices) - 1  # Subtract 1 for estimated parameter (lambda)
-                    p_value = 1 - stats.chi2.cdf(chi_square, dof) if dof > 0 else np.nan
-                    
-                    goodness_of_fit = {
-                        'chi_square': float(chi_square),
-                        'dof': int(dof),
-                        'p_value': float(p_value)
-                    }
-                else:
-                    goodness_of_fit = {
-                        'chi_square': np.nan,
-                        'dof': 0,
-                        'p_value': np.nan,
-                        'error': 'Insufficient data for chi-square test'
-                    }
-                
-            elif distribution_type == 'NORMAL':
-                # For normal, estimate mu and sigma
-                mu_est = np.mean(data_array)
-                sigma_est = np.std(data_array, ddof=1)
-                
-                fitted_params = {'mu': float(mu_est), 'sigma': float(sigma_est)}
-                
-                # Perform Kolmogorov-Smirnov test
-                ks_statistic, ks_p_value = stats.kstest(data_array, 'norm', args=(mu_est, sigma_est))
-                
-                # Perform Shapiro-Wilk test for normality
-                if len(data_array) <= 5000:  # Shapiro-Wilk is reliable for n <= 5000
-                    sw_statistic, sw_p_value = stats.shapiro(data_array)
-                else:
-                    sw_statistic, sw_p_value = np.nan, np.nan
-                
-                # Calculate Anderson-Darling test
-                ad_result = stats.anderson(data_array, 'norm')
-                ad_statistic = ad_result.statistic
-                ad_critical_values = ad_result.critical_values.tolist()
-                ad_significance_levels = [15.0, 10.0, 5.0, 2.5, 1.0]  # Default significance levels for 'norm'
-                
-                goodness_of_fit = {
-                    'ks_statistic': float(ks_statistic),
-                    'ks_p_value': float(ks_p_value),
-                    'sw_statistic': float(sw_statistic) if not np.isnan(sw_statistic) else None,
-                    'sw_p_value': float(sw_p_value) if not np.isnan(sw_p_value) else None,
-                    'ad_statistic': float(ad_statistic),
-                    'ad_critical_values': ad_critical_values,
-                    'ad_significance_levels': ad_significance_levels
-                }
-                
-            elif distribution_type == 'EXPONENTIAL':
-                # For exponential, estimate rate
-                rate_est = 1 / np.mean(data_array)
-                
-                fitted_params = {'rate': float(rate_est)}
-                
-                # Perform Kolmogorov-Smirnov test
-                ks_statistic, ks_p_value = stats.kstest(data_array, 'expon', args=(0, 1/rate_est))
-                
-                goodness_of_fit = {
-                    'ks_statistic': float(ks_statistic),
-                    'ks_p_value': float(ks_p_value)
-                }
-                
-            elif distribution_type == 'UNIFORM':
-                # For uniform, estimate a and b
-                a_est = np.min(data_array)
-                b_est = np.max(data_array)
-                
-                fitted_params = {'a': float(a_est), 'b': float(b_est)}
-                
-                # Perform Kolmogorov-Smirnov test
-                ks_statistic, ks_p_value = stats.kstest(data_array, 'uniform', args=(a_est, b_est - a_est))
-                
-                goodness_of_fit = {
-                    'ks_statistic': float(ks_statistic),
-                    'ks_p_value': float(ks_p_value)
-                }
-                
-            elif distribution_type == 'GAMMA':
-                # For gamma, estimate shape and scale using method of moments
-                mean = np.mean(data_array)
-                variance = np.var(data_array, ddof=1)
-                shape_est = mean**2 / variance
-                scale_est = variance / mean
-                
-                fitted_params = {'shape': float(shape_est), 'scale': float(scale_est)}
-                
-                # Perform Kolmogorov-Smirnov test
-                ks_statistic, ks_p_value = stats.kstest(data_array, 'gamma', args=(shape_est, 0, scale_est))
-                
-                goodness_of_fit = {
-                    'ks_statistic': float(ks_statistic),
-                    'ks_p_value': float(ks_p_value)
-                }
-                
-            elif distribution_type == 'BETA':
-                # For beta, data must be in [0, 1]
-                if np.min(data_array) < 0 or np.max(data_array) > 1:
-                    raise ValueError("Beta distribution can only be fit to data in the range [0, 1]")
-                
-                # Estimate alpha and beta using method of moments
-                mean = np.mean(data_array)
-                variance = np.var(data_array, ddof=1)
-                
-                if variance == 0:
-                    raise ValueError("Cannot fit beta distribution to constant data")
-                
-                alpha_est = mean * (mean * (1 - mean) / variance - 1)
-                beta_est = (1 - mean) * (mean * (1 - mean) / variance - 1)
-                
-                fitted_params = {'alpha': float(alpha_est), 'beta': float(beta_est)}
-                
-                # Perform Kolmogorov-Smirnov test
-                ks_statistic, ks_p_value = stats.kstest(data_array, 'beta', args=(alpha_est, beta_est))
-                
-                goodness_of_fit = {
-                    'ks_statistic': float(ks_statistic),
-                    'ks_p_value': float(ks_p_value)
-                }
-                
-            else:
-                # For other distributions, implement fitting logic
-                # based on their respective scipy.stats functions
-                raise ValueError(f"Distribution fitting for {distribution_type} not yet implemented")
-                
+
             return {
-                'fitted_parameters': fitted_params,
-                'goodness_of_fit': goodness_of_fit
+                'results': results,
+                'n_observations': len(data_array),
+                'data_summary': {
+                    'mean': float(np.mean(data_array)),
+                    'std': float(np.std(data_array, ddof=1)) if len(data_array) > 1 else 0.0,
+                    'min': float(np.min(data_array)),
+                    'max': float(np.max(data_array)),
+                }
             }
-            
         except Exception as e:
             logger.error(f"Error fitting distribution: {str(e)}")
             raise
-    
+
     @staticmethod
-    def compare_binomial_approximations(n: int, p: float, 
-                                     approximation_types: List[str] = ['POISSON', 'NORMAL']) -> Dict[str, Any]:
+    def _fit_single_distribution(data_array: np.ndarray, distribution_type: str) -> Dict[str, Any]:
+        """Fit a single distribution to data and return parameters + goodness-of-fit."""
+
+        fitted_params = {}
+        goodness_of_fit = {}
+
+        if distribution_type == 'NORMAL':
+            mu_est = float(np.mean(data_array))
+            sigma_est = float(np.std(data_array, ddof=1))
+            fitted_params = {'mu': mu_est, 'sigma': sigma_est}
+
+            ks_stat, ks_p = stats.kstest(data_array, 'norm', args=(mu_est, sigma_est))
+            goodness_of_fit['ks_statistic'] = float(ks_stat)
+            goodness_of_fit['ks_p_value'] = float(ks_p)
+
+            if len(data_array) <= 5000:
+                sw_stat, sw_p = stats.shapiro(data_array)
+                goodness_of_fit['sw_statistic'] = float(sw_stat)
+                goodness_of_fit['sw_p_value'] = float(sw_p)
+
+        elif distribution_type == 'EXPONENTIAL':
+            rate_est = 1.0 / float(np.mean(data_array)) if np.mean(data_array) > 0 else 1.0
+            fitted_params = {'rate': rate_est}
+            ks_stat, ks_p = stats.kstest(data_array, 'expon', args=(0, 1.0 / rate_est))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type == 'GAMMA':
+            # Use scipy MLE fitting
+            fit_a, fit_loc, fit_scale = stats.gamma.fit(data_array, floc=0)
+            fitted_params = {'shape': float(fit_a), 'scale': float(fit_scale)}
+            ks_stat, ks_p = stats.kstest(data_array, 'gamma', args=(fit_a, fit_loc, fit_scale))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type == 'BETA':
+            if np.min(data_array) < 0 or np.max(data_array) > 1:
+                raise ValueError("Beta distribution requires data in [0, 1]")
+            fit_a, fit_b, fit_loc, fit_scale = stats.beta.fit(data_array, floc=0, fscale=1)
+            fitted_params = {'alpha': float(fit_a), 'beta': float(fit_b)}
+            ks_stat, ks_p = stats.kstest(data_array, 'beta', args=(fit_a, fit_b, fit_loc, fit_scale))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type == 'UNIFORM':
+            a_est = float(np.min(data_array))
+            b_est = float(np.max(data_array))
+            fitted_params = {'a': a_est, 'b': b_est}
+            ks_stat, ks_p = stats.kstest(data_array, 'uniform', args=(a_est, b_est - a_est))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type in ('LOG_NORMAL', 'LOGNORMAL'):
+            fit_s, fit_loc, fit_scale = stats.lognorm.fit(data_array, floc=0)
+            fitted_params = {'sigma': float(fit_s), 'mu': float(np.log(fit_scale))}
+            ks_stat, ks_p = stats.kstest(data_array, 'lognorm', args=(fit_s, fit_loc, fit_scale))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type == 'WEIBULL':
+            fit_c, fit_loc, fit_scale = stats.weibull_min.fit(data_array, floc=0)
+            fitted_params = {'shape': float(fit_c), 'scale': float(fit_scale)}
+            ks_stat, ks_p = stats.kstest(data_array, 'weibull_min', args=(fit_c, fit_loc, fit_scale))
+            goodness_of_fit = {'ks_statistic': float(ks_stat), 'ks_p_value': float(ks_p)}
+
+        elif distribution_type == 'POISSON':
+            lambda_est = float(np.mean(data_array))
+            fitted_params = {'lambda': lambda_est}
+            # Chi-square goodness of fit
+            max_k = max(int(np.max(data_array)), int(lambda_est * 3))
+            expected = stats.poisson.pmf(np.arange(max_k + 1), lambda_est) * len(data_array)
+            observed = np.bincount(data_array.astype(int), minlength=max_k + 1)
+            valid = expected > 5
+            if np.sum(valid) > 1:
+                chi2_stat = float(np.sum(((observed[valid] - expected[valid]) ** 2) / expected[valid]))
+                dof = int(np.sum(valid)) - 1
+                p_val = float(1 - stats.chi2.cdf(chi2_stat, dof)) if dof > 0 else None
+                goodness_of_fit = {'chi_square': chi2_stat, 'dof': dof, 'p_value': p_val}
+            else:
+                goodness_of_fit = {'error': 'Insufficient data for chi-square test'}
+
+        elif distribution_type == 'BINOMIAL':
+            n_est = int(np.ceil(np.max(data_array)))
+            p_est = float(np.mean(data_array)) / n_est if n_est > 0 else 0.5
+            fitted_params = {'n': n_est, 'p': p_est}
+            goodness_of_fit = {'method': 'moment_estimation'}
+
+        else:
+            raise ValueError(f"Distribution fitting for {distribution_type} not supported")
+
+        return {
+            'fitted_parameters': fitted_params,
+            'goodness_of_fit': goodness_of_fit,
+        }
+
+    # ------------------------------------------------------------------
+    # compare_binomial_approximations
+    # ------------------------------------------------------------------
+    @staticmethod
+    def compare_binomial_approximations(n: int, p: float,
+                                        approximation_types: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Compare binomial distribution with its Poisson and Normal approximations.
-        
-        Args:
-            n: Number of trials for the binomial distribution
-            p: Probability of success for the binomial distribution
-            approximation_types: List of approximation types to compare
-            
-        Returns:
-            Dictionary containing comparison data and error metrics
         """
         try:
-            # Calculate derived parameters
+            if approximation_types is None:
+                approximation_types = ['POISSON', 'NORMAL']
+
+            n = int(n)
+            p = float(p)
             np_val = n * p
             npq = n * p * (1 - p)
-            
-            # Determine appropriate range for k values
+
             mean = np_val
-            std_dev = np.sqrt(npq)
-            
-            if np_val < 10:
-                # For small np values, include more of the left tail
-                k_min = max(0, int(mean - 3 * std_dev))
-                k_max = min(n, int(mean + 4 * std_dev))
-            else:
-                # For larger np values, use a more symmetric range
-                k_min = max(0, int(mean - 4 * std_dev))
-                k_max = min(n, int(mean + 4 * std_dev))
-            
+            std_dev = np.sqrt(npq) if npq > 0 else 1.0
+
+            k_min = max(0, int(mean - 4 * std_dev))
+            k_max = min(n, int(mean + 4 * std_dev))
             k_values = np.arange(k_min, k_max + 1)
-            
-            # Calculate exact binomial probabilities
+
             binom_pmf = stats.binom.pmf(k_values, n, p)
-            
-            # Calculate approximations and errors
+
             approximations = {}
             errors = {}
-            
+
             if 'POISSON' in approximation_types:
-                # Poisson approximation
                 poisson_pmf = stats.poisson.pmf(k_values, np_val)
                 poisson_errors = np.abs(binom_pmf - poisson_pmf)
-                
-                # Calculate total variation distance (TVD)
                 tvd_poisson = 0.5 * np.sum(poisson_errors)
-                
-                # Calculate Kullback-Leibler divergence
-                epsilon = 1e-10  # Small value to avoid division by zero
-                kl_poisson = np.sum(binom_pmf * np.log((binom_pmf + epsilon) / (poisson_pmf + epsilon)))
-                
+
                 approximations['POISSON'] = {
                     'pmf': poisson_pmf.tolist(),
-                    'suitability': n >= 20 and p <= 0.05 and np_val < 10
+                    'suitability': bool(n >= 20 and p <= 0.05 and np_val < 10),
                 }
-                
                 errors['POISSON'] = {
                     'absolute_errors': poisson_errors.tolist(),
                     'max_error': float(np.max(poisson_errors)),
-                    'max_error_k': int(k_values[np.argmax(poisson_errors)]),
                     'tvd': float(tvd_poisson),
-                    'kl_divergence': float(kl_poisson)
                 }
-            
+
             if 'NORMAL' in approximation_types:
-                # Normal approximation (with continuity correction)
-                normal_approx = stats.norm.cdf(k_values + 0.5, loc=np_val, scale=np.sqrt(npq)) - \
-                               stats.norm.cdf(k_values - 0.5, loc=np_val, scale=np.sqrt(npq))
+                if npq > 0:
+                    normal_approx = (
+                        stats.norm.cdf(k_values + 0.5, loc=np_val, scale=np.sqrt(npq)) -
+                        stats.norm.cdf(k_values - 0.5, loc=np_val, scale=np.sqrt(npq))
+                    )
+                else:
+                    normal_approx = np.zeros_like(k_values, dtype=float)
                 normal_errors = np.abs(binom_pmf - normal_approx)
-                
-                # Calculate total variation distance (TVD)
                 tvd_normal = 0.5 * np.sum(normal_errors)
-                
-                # Calculate Kullback-Leibler divergence
-                epsilon = 1e-10  # Small value to avoid division by zero
-                kl_normal = np.sum(binom_pmf * np.log((binom_pmf + epsilon) / (normal_approx + epsilon)))
-                
+
                 approximations['NORMAL'] = {
                     'pmf': normal_approx.tolist(),
-                    'suitability': np_val >= 5 and n * (1 - p) >= 5
+                    'suitability': bool(np_val >= 5 and n * (1 - p) >= 5),
                 }
-                
                 errors['NORMAL'] = {
                     'absolute_errors': normal_errors.tolist(),
                     'max_error': float(np.max(normal_errors)),
-                    'max_error_k': int(k_values[np.argmax(normal_errors)]),
                     'tvd': float(tvd_normal),
-                    'kl_divergence': float(kl_normal)
                 }
-            
-            # Determine which approximation is better
+
             better_approximation = None
-            if 'POISSON' in approximation_types and 'NORMAL' in approximation_types:
+            if 'POISSON' in errors and 'NORMAL' in errors:
                 if errors['POISSON']['tvd'] < errors['NORMAL']['tvd']:
                     better_approximation = 'POISSON'
-                    difference = errors['NORMAL']['tvd'] - errors['POISSON']['tvd']
                 elif errors['NORMAL']['tvd'] < errors['POISSON']['tvd']:
                     better_approximation = 'NORMAL'
-                    difference = errors['POISSON']['tvd'] - errors['NORMAL']['tvd']
                 else:
                     better_approximation = 'BOTH_EQUAL'
-                    difference = 0
-            
+
             return {
-                'parameters': {
-                    'n': n,
-                    'p': p,
-                    'np': np_val,
-                    'npq': npq
-                },
+                'parameters': {'n': n, 'p': p, 'np': np_val, 'npq': npq},
                 'k_values': k_values.tolist(),
                 'binomial_pmf': binom_pmf.tolist(),
                 'approximations': approximations,
                 'errors': errors,
                 'better_approximation': better_approximation,
-                'difference': float(difference) if better_approximation and better_approximation != 'BOTH_EQUAL' else 0
             }
-            
         except Exception as e:
             logger.error(f"Error comparing binomial approximations: {str(e)}")
             raise
-    
+
+    # ------------------------------------------------------------------
+    # calculate_process_capability
+    # Accepts either (data, lsl, usl, target) or (mean, std_dev, lsl, usl)
+    # ------------------------------------------------------------------
     @staticmethod
-    def simulate_poisson_process(rate: float, duration: float, num_simulations: int = 1) -> Dict[str, Any]:
-        """
-        Simulate a Poisson process (e.g., arrivals in a time period).
-        
-        Args:
-            rate: Average rate of events per unit time
-            duration: Duration of the simulation
-            num_simulations: Number of separate simulations to run
-            
-        Returns:
-            Dictionary containing simulation results
-        """
-        try:
-            # Expected number of events
-            expected_events = rate * duration
-            
-            # Simulate multiple Poisson processes
-            simulations = []
-            event_counts = []
-            
-            for _ in range(num_simulations):
-                # Simulate interarrival times (exponential distribution)
-                interarrival_times = np.random.exponential(1/rate, size=int(expected_events*2))
-                arrival_times = np.cumsum(interarrival_times)
-                arrival_times = arrival_times[arrival_times <= duration]
-                
-                event_counts.append(len(arrival_times))
-                
-                # For the first simulation, store detailed results
-                if len(simulations) == 0:
-                    simulations.append({
-                        'arrival_times': arrival_times.tolist(),
-                        'interarrival_times': interarrival_times[:len(arrival_times)].tolist() if len(arrival_times) > 0 else [],
-                        'total_events': len(arrival_times)
-                    })
-            
-            # Calculate theoretical probabilities
-            k_values = np.arange(0, max(int(expected_events*2), max(event_counts) + 1))
-            poisson_pmf = stats.poisson.pmf(k_values, expected_events)
-            
-            # Calculate histogram of event counts
-            bin_edges = np.arange(min(min(event_counts), 0) - 0.5, max(max(event_counts), len(k_values) - 1) + 1.5)
-            hist, _ = np.histogram(event_counts, bins=bin_edges)
-            hist = hist / num_simulations  # Convert to proportions
-            
-            return {
-                'parameters': {
-                    'rate': rate,
-                    'duration': duration,
-                    'expected_events': expected_events
-                },
-                'simulations': simulations,
-                'event_counts': event_counts,
-                'k_values': k_values.tolist(),
-                'theoretical_pmf': poisson_pmf.tolist(),
-                'observed_pmf': hist.tolist(),
-                'bin_edges': bin_edges.tolist(),
-                'total_simulations': num_simulations
-            }
-            
-        except Exception as e:
-            logger.error(f"Error simulating Poisson process: {str(e)}")
-            raise
-    
-    @staticmethod
-    def calculate_process_capability(mean: float, std_dev: float, lsl: float, usl: float) -> Dict[str, Any]:
+    def calculate_process_capability(data_or_mean, lsl: float, usl: float,
+                                     target: Optional[float] = None) -> Dict[str, Any]:
         """
         Calculate process capability indices for quality control.
-        
-        Args:
-            mean: Process mean
-            std_dev: Process standard deviation
-            lsl: Lower specification limit
-            usl: Upper specification limit
-            
-        Returns:
-            Dictionary containing process capability indices and defect rates
+        First argument can be a list/array of data or a pre-computed mean.
         """
         try:
-            # Calculate process capability indices
+            lsl = float(lsl)
+            usl = float(usl)
+
+            if isinstance(data_or_mean, (list, np.ndarray)):
+                data_array = np.asarray(data_or_mean, dtype=float)
+                mean = float(np.mean(data_array))
+                std_dev = float(np.std(data_array, ddof=1))
+            else:
+                mean = float(data_or_mean)
+                std_dev = float(lsl)  # fallback: won't happen from views
+                # This branch only matters for legacy (mean, std_dev, lsl, usl) calls
+                # but our views always pass data as list, so the list branch above runs.
+
+            if target is None:
+                target = (lsl + usl) / 2.0
+            else:
+                target = float(target)
+
             cp = (usl - lsl) / (6 * std_dev) if std_dev > 0 else float('inf')
-            
-            # Process capability index accounting for centering
             cpu = (usl - mean) / (3 * std_dev) if std_dev > 0 else float('inf')
             cpl = (mean - lsl) / (3 * std_dev) if std_dev > 0 else float('inf')
             cpk = min(cpu, cpl)
-            
-            # Calculate defect rates
-            lower_defect_rate = stats.norm.cdf(lsl, loc=mean, scale=std_dev)
-            upper_defect_rate = 1 - stats.norm.cdf(usl, loc=mean, scale=std_dev)
-            total_defect_rate = lower_defect_rate + upper_defect_rate
-            
-            # Calculate in PPM (parts per million)
-            defect_ppm = total_defect_rate * 1_000_000
-            
+
+            # Cpm (Taguchi capability index)
+            cpm_denom = np.sqrt(std_dev**2 + (mean - target)**2)
+            cpm = (usl - lsl) / (6 * cpm_denom) if cpm_denom > 0 else float('inf')
+
+            lower_defect = float(stats.norm.cdf(lsl, loc=mean, scale=std_dev))
+            upper_defect = float(1 - stats.norm.cdf(usl, loc=mean, scale=std_dev))
+            total_defect = lower_defect + upper_defect
+
             return {
                 'parameters': {
                     'mean': mean,
                     'std_dev': std_dev,
                     'lsl': lsl,
-                    'usl': usl
+                    'usl': usl,
+                    'target': target,
                 },
                 'capability_indices': {
-                    'cp': float(cp),
-                    'cpu': float(cpu),
-                    'cpl': float(cpl),
-                    'cpk': float(cpk)
+                    'cp': _safe_float(cp),
+                    'cpu': _safe_float(cpu),
+                    'cpl': _safe_float(cpl),
+                    'cpk': _safe_float(cpk),
+                    'cpm': _safe_float(cpm),
                 },
                 'defect_rates': {
-                    'lower': float(lower_defect_rate),
-                    'upper': float(upper_defect_rate),
-                    'total': float(total_defect_rate),
-                    'ppm': float(defect_ppm)
-                }
+                    'lower': lower_defect,
+                    'upper': upper_defect,
+                    'total': total_defect,
+                    'ppm': total_defect * 1_000_000,
+                },
             }
-            
         except Exception as e:
             logger.error(f"Error calculating process capability: {str(e)}")
             raise
-    
+
+    # ------------------------------------------------------------------
+    # simulate_poisson_process
+    # ------------------------------------------------------------------
     @staticmethod
-    def simulate_clinical_trial(control_rate: float, treatment_effect: float, 
-                              sample_size: int, num_simulations: int = 1) -> Dict[str, Any]:
+    def simulate_poisson_process(rate: float, time_period: float,
+                                 num_simulations: int = 1,
+                                 seed: Optional[int] = None) -> Dict[str, Any]:
         """
-        Simulate a clinical trial with binomial outcomes and normal approximation.
-        
-        Args:
-            control_rate: Response rate in the control group
-            treatment_effect: Additional response rate in the treatment group
-            sample_size: Number of patients in each group
-            num_simulations: Number of separate simulations to run
-            
-        Returns:
-            Dictionary containing simulation results
+        Simulate a Poisson process (arrivals in a time period).
         """
         try:
-            treatment_rate = min(control_rate + treatment_effect, 1.0)
-            
+            rate = float(rate)
+            time_period = float(time_period)
+            num_simulations = int(num_simulations)
+
+            if seed is not None:
+                np.random.seed(int(seed))
+
+            expected_events = rate * time_period
+
             simulations = []
-            p_values_exact = []
-            p_values_normal = []
-            
-            for _ in range(num_simulations):
-                # Simulate trial
-                control_responses = np.random.binomial(1, control_rate, sample_size)
-                treatment_responses = np.random.binomial(1, treatment_rate, sample_size)
-                
-                control_successes = np.sum(control_responses)
-                treatment_successes = np.sum(treatment_responses)
-                
-                # Calculate statistics
-                control_rate_obs = control_successes / sample_size
-                treatment_rate_obs = treatment_successes / sample_size
-                observed_diff = treatment_rate_obs - control_rate_obs
-                
-                # Exact test (Fisher's exact test)
-                contingency_table = np.array([
-                    [treatment_successes, sample_size - treatment_successes],
-                    [control_successes, sample_size - control_successes]
-                ])
-                
-                odd_ratio, p_value_exact = stats.fisher_exact(contingency_table)
-                
-                # Normal approximation (Z-test for proportions)
-                pooled_prop = (treatment_successes + control_successes) / (2 * sample_size)
-                se = np.sqrt(pooled_prop * (1 - pooled_prop) * (2 / sample_size))
-                z_stat = (treatment_rate_obs - control_rate_obs) / se
-                p_value_normal = 2 * (1 - stats.norm.cdf(abs(z_stat)))
-                
-                p_values_exact.append(p_value_exact)
-                p_values_normal.append(p_value_normal)
-                
-                # For the first simulation, store detailed results
-                if len(simulations) == 0:
+            event_counts = []
+
+            for i in range(num_simulations):
+                # Generate enough interarrival times
+                n_gen = max(int(expected_events * 3), 10)
+                interarrival_times = np.random.exponential(1.0 / rate, size=n_gen)
+                arrival_times = np.cumsum(interarrival_times)
+                arrival_times = arrival_times[arrival_times <= time_period]
+
+                event_counts.append(len(arrival_times))
+
+                if i == 0:
                     simulations.append({
-                        'control_successes': int(control_successes),
-                        'treatment_successes': int(treatment_successes),
-                        'control_rate': float(control_rate_obs),
-                        'treatment_rate': float(treatment_rate_obs),
-                        'observed_diff': float(observed_diff),
-                        'p_value_exact': float(p_value_exact),
-                        'p_value_normal': float(p_value_normal)
+                        'arrival_times': arrival_times.tolist(),
+                        'interarrival_times': interarrival_times[:len(arrival_times)].tolist(),
+                        'total_events': len(arrival_times),
                     })
-            
-            # Calculate power (proportion of significant results)
-            alpha = 0.05
-            power_exact = np.mean([p <= alpha for p in p_values_exact])
-            power_normal = np.mean([p <= alpha for p in p_values_normal])
-            
+
+            # Theoretical PMF
+            max_k = max(int(expected_events * 2), max(event_counts) + 1) if event_counts else int(expected_events * 2)
+            k_values = np.arange(0, max_k + 1)
+            poisson_pmf = stats.poisson.pmf(k_values, expected_events)
+
             return {
                 'parameters': {
-                    'control_rate': control_rate,
-                    'treatment_rate': treatment_rate,
-                    'treatment_effect': treatment_effect,
-                    'sample_size': sample_size
+                    'rate': rate,
+                    'duration': time_period,
+                    'expected_events': expected_events,
                 },
                 'simulations': simulations,
-                'p_values': {
-                    'exact': p_values_exact,
-                    'normal': p_values_normal
-                },
-                'power': {
-                    'exact': float(power_exact),
-                    'normal': float(power_normal),
-                    'alpha': alpha
-                },
-                'total_simulations': num_simulations
+                'event_counts': event_counts,
+                'k_values': k_values.tolist(),
+                'theoretical_pmf': poisson_pmf.tolist(),
+                'total_simulations': num_simulations,
             }
-            
+        except Exception as e:
+            logger.error(f"Error simulating Poisson process: {str(e)}")
+            raise
+
+    # ------------------------------------------------------------------
+    # simulate_clinical_trial
+    # Supports both the old signature (control_rate, treatment_effect, sample_size, num_simulations)
+    # and the new signature from api/views.py (treatment_effect, control_mean, control_sd, ...)
+    # ------------------------------------------------------------------
+    @staticmethod
+    def simulate_clinical_trial(treatment_effect: float,
+                                control_mean: float = 0.5,
+                                control_sd: float = 1.0,
+                                treatment_sd: Optional[float] = None,
+                                n_control: int = 100,
+                                n_treatment: int = 100,
+                                n_simulations: int = 1000,
+                                seed: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Simulate a clinical trial. Supports both proportion-based and continuous outcomes.
+        """
+        try:
+            if seed is not None:
+                np.random.seed(int(seed))
+
+            if treatment_sd is None:
+                treatment_sd = control_sd
+
+            treatment_mean = control_mean + treatment_effect
+
+            p_values = []
+            effect_sizes = []
+            simulations_detail = []
+
+            for i in range(int(n_simulations)):
+                control_data = np.random.normal(control_mean, control_sd, int(n_control))
+                treatment_data = np.random.normal(treatment_mean, treatment_sd, int(n_treatment))
+
+                t_stat, p_val = stats.ttest_ind(treatment_data, control_data, equal_var=False)
+                obs_effect = float(np.mean(treatment_data) - np.mean(control_data))
+
+                p_values.append(float(p_val))
+                effect_sizes.append(obs_effect)
+
+                if i == 0:
+                    simulations_detail.append({
+                        'control_mean_obs': float(np.mean(control_data)),
+                        'treatment_mean_obs': float(np.mean(treatment_data)),
+                        'observed_effect': obs_effect,
+                        't_statistic': float(t_stat),
+                        'p_value': float(p_val),
+                    })
+
+            alpha = 0.05
+            power = float(np.mean([p <= alpha for p in p_values]))
+
+            return {
+                'parameters': {
+                    'treatment_effect': treatment_effect,
+                    'control_mean': control_mean,
+                    'control_sd': control_sd,
+                    'treatment_sd': treatment_sd,
+                    'n_control': n_control,
+                    'n_treatment': n_treatment,
+                },
+                'simulations': simulations_detail,
+                'p_values': p_values,
+                'effect_sizes': effect_sizes,
+                'power': {
+                    'estimated': power,
+                    'alpha': alpha,
+                },
+                'total_simulations': int(n_simulations),
+            }
         except Exception as e:
             logger.error(f"Error simulating clinical trial: {str(e)}")
             raise

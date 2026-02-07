@@ -143,7 +143,7 @@ class PCAProjectSerializer(serializers.ModelSerializer):
 class PCAProjectDetailSerializer(PCAProjectSerializer):
     """Detailed serializer for PCA projects."""
     
-    sample_groups = SampleGroupSerializer(many=True, read_only=True, source='samplegroup_set')
+    sample_groups = SampleGroupSerializer(many=True, read_only=True, source='sample_groups')
     results = serializers.SerializerMethodField()
     
     class Meta(PCAProjectSerializer.Meta):

@@ -161,6 +161,13 @@ class PCAResult(models.Model):
     def __str__(self):
         return f"PCA Result for {self.project.name} ({self.created_at.strftime('%Y-%m-%d')})"
 
+    def get_pca_data(self):
+        """Return scores and loadings as a dictionary for visualization."""
+        return {
+            'samples': self.scores or [],
+            'loadings': self.loadings or [],
+        }
+
 
 class PCAVisualization(models.Model):
     """

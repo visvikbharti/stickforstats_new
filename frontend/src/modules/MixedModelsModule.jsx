@@ -31,6 +31,7 @@ import {
   Chip,
   Stack,
   Alert,
+  AlertTitle,
   CircularProgress,
   Table,
   TableBody,
@@ -54,7 +55,8 @@ import {
   Timeline as TimelineIcon,
   Help as HelpIcon,
   Upload as UploadIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Construction as ConstructionIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 
@@ -174,6 +176,14 @@ const MixedModelsModule = () => {
     }
   };
 
+  // Helper to format API errors (gracefully handles 404 when backend is not yet available)
+  const formatApiError = (err) => {
+    if (err.response?.status === 404) {
+      return 'This feature is not yet available — the backend API is under development.';
+    }
+    return err.response?.data?.error || err.message;
+  };
+
   // Calculate ICC
   const handleCalculateICC = async () => {
     if (!parsedData) {
@@ -188,7 +198,7 @@ const MixedModelsModule = () => {
       const result = await mixedModelsService.calculateICC(parsedData, iccType);
       setIccResults(result);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -231,7 +241,7 @@ const MixedModelsModule = () => {
 
       setRandomEffects(mixedModelsService.processCaterpillarData(reResult));
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -256,6 +266,13 @@ const MixedModelsModule = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Coming Soon Notice */}
+      <Alert severity="info" icon={<ConstructionIcon />} sx={{ mb: 3 }}>
+        <AlertTitle>Coming Soon</AlertTitle>
+        This analysis module is under active development and will be available in a future release.
+        The frontend interface is ready — backend integration is in progress.
+      </Alert>
+
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>

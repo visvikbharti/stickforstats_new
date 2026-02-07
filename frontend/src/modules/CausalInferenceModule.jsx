@@ -31,6 +31,7 @@ import {
   Chip,
   Stack,
   Alert,
+  AlertTitle,
   CircularProgress,
   Table,
   TableBody,
@@ -60,7 +61,8 @@ import {
   Upload as UploadIcon,
   Clear as ClearIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  Construction as ConstructionIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 
@@ -188,6 +190,14 @@ const CausalInferenceModule = () => {
     }
   };
 
+  // Helper to format API errors (gracefully handles 404 when backend is not yet available)
+  const formatApiError = (err) => {
+    if (err.response?.status === 404) {
+      return 'This feature is not yet available — the backend API is under development.';
+    }
+    return err.response?.data?.error || err.message;
+  };
+
   // DAG Analysis
   const handleDAGAnalysis = useCallback(async (edges, treatment, outcome) => {
     setLoading(true);
@@ -198,7 +208,7 @@ const CausalInferenceModule = () => {
       setDagAnalysis(result);
       return result;
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
       throw err;
     } finally {
       setLoading(false);
@@ -232,7 +242,7 @@ const CausalInferenceModule = () => {
       setPropensityResults(result);
       setActiveStep(1);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -258,7 +268,7 @@ const CausalInferenceModule = () => {
       setMatchingResults(result);
       setActiveStep(2);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -285,7 +295,7 @@ const CausalInferenceModule = () => {
       setTreatmentEffects(result);
       setActiveStep(3);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -312,7 +322,7 @@ const CausalInferenceModule = () => {
       );
       setMediationResults(result);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -338,7 +348,7 @@ const CausalInferenceModule = () => {
       );
       setDidResults(result);
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -365,7 +375,7 @@ const CausalInferenceModule = () => {
       );
       setEventStudyResults(causalInferenceService.processEventStudyData(result));
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      setError(formatApiError(err));
     } finally {
       setLoading(false);
     }
@@ -395,6 +405,13 @@ const CausalInferenceModule = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Coming Soon Notice */}
+      <Alert severity="info" icon={<ConstructionIcon />} sx={{ mb: 3 }}>
+        <AlertTitle>Coming Soon</AlertTitle>
+        This analysis module is under active development and will be available in a future release.
+        The frontend interface is ready — backend integration is in progress.
+      </Alert>
+
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>

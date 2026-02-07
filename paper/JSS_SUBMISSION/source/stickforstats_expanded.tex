@@ -249,7 +249,7 @@ Several initiatives have attempted to address statistical quality:
 
 \section{System architecture} \label{sec:architecture}
 
-\pkg{StickForStats} follows a three-tier architecture comprising a user interface layer (\proglang{React}), an application layer (\proglang{Django} REST Framework with Guardian integration), and a data layer (PostgreSQL with Redis caching).
+\pkg{StickForStats} follows a three-tier architecture comprising a user interface layer (\proglang{React}), an application layer (\proglang{Django} REST Framework with Guardian integration), and a data layer (database with optional caching).
 
 \subsection{Technology stack}
 
@@ -257,9 +257,9 @@ The technology choices reflect priorities of correctness, maintainability, and a
 
 \begin{itemize}
 \item \textbf{Frontend:} React 18 with Material-UI for consistent design, Plotly.js for interactive visualizations, and MathJax for mathematical notation rendering.
-\item \textbf{Backend:} Django 4.2 with Django REST Framework for API design, Celery for asynchronous task processing, and comprehensive logging.
+\item \textbf{Backend:} Django 4.2 with Django REST Framework for API design, optional Celery integration for asynchronous task processing in production deployments, and comprehensive logging.
 \item \textbf{Statistical Engine:} NumPy 1.24 for array operations, SciPy 1.11 for statistical functions, statsmodels 0.14 for regression diagnostics, and mpmath for arbitrary precision.
-\item \textbf{Data Layer:} PostgreSQL 15 for relational data, Redis for caching and session management, and file storage for uploaded datasets.
+\item \textbf{Data Layer:} PostgreSQL for production deployments (SQLite for development and single-user installations), optional Redis caching with automatic fallback to in-memory cache, and file storage for uploaded datasets.
 \end{itemize}
 
 \subsection{Guardian integration architecture}
@@ -269,7 +269,7 @@ The Guardian system is implemented as middleware that intercepts all statistical
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/figure1.pdf}
-\caption{StickForStats system architecture showing the three-tier design: user interface (React), application layer (Django REST with Guardian integration), and data layer (PostgreSQL, Redis, file storage). The Guardian layer intercepts all statistical test requests.}
+\caption{StickForStats system architecture showing the three-tier design: user interface (React), application layer (Django REST with Guardian integration), and data layer (database, optional cache, file storage). The Guardian layer intercepts all statistical test requests.}
 \label{fig:architecture}
 \end{figure}
 

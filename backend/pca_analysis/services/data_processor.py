@@ -254,18 +254,112 @@ class DataProcessorService:
         return file_path
     
     @staticmethod
-    def create_demo_data(project_id):
+    @transaction.atomic
+    def process_uploaded_file(project, uploaded_file):
         """
-        Demo data creation has been removed for authenticity.
-        All data must be real experimental data uploaded by users.
-        
+        Process an uploaded file and import data into the project.
+
         Args:
-            project_id: UUID of the PCA project
-            
-        Returns:
-            dict: Error message
+            project: PCAProject instance
+            uploaded_file: Django UploadedFile object
         """
-        raise NotImplementedError(
-            "Demo data creation is not allowed. "
-            "Please upload real experimental data through the interface."
-        )
+        # Save the file temporarily
+        file_path = DataProcessorService.save_uploaded_file(uploaded_file)
+
+        try:
+            # Read the data
+            df = DataProcessorService.read_data_file(file_path)
+
+            # Validate
+            is_valid, messages = DataProcessorService.validate_data(df)
+            if not is_valid:
+                raise ValueError('; '.join(messages))
+
+            # Import into database
+            DataProcessorService.import_data(project.id, df)
+        finally:
+            # Clean up temp file
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+    @staticmethod
+    def detect_and_assign_sample_groups(project):
+        """
+        Detect sample groups from sample names already stored in the database
+        and assign groups accordingly.
+
+        Args:
+            project: PCAProject instance
+        """
+        samples = Sample.objects.filter(project=project)
+        column_names = [s.name for s in samples]
+
+        col_info = DataProcessorService.detect_sample_groups(column_names)
+
+        # Create groups and assign samples
+        for sample in samples:
+            info = col_info.get(sample.name, {})
+            group_name = info.get('group', sample.name)
+            group, _ = SampleGroup.objects.get_or_create(
+                project=project,
+                name=group_name
+            )
+            if sample.group != group:
+                sample.group = group
+                sample.save(update_fields=['group'])
+
+    @staticmethod
+    @transaction.atomic
+    def create_demo_data(project):
+        """
+        Create demo data for a PCA project with simulated gene expression.
+
+        Args:
+            project: PCAProject instance
+        """
+        np.random.seed(42)
+
+        n_genes = 100
+        n_samples_per_group = 5
+        group_names = ['Control', 'Treatment_A', 'Treatment_B']
+
+        # Create sample groups and samples
+        sample_objects = []
+        for group_name in group_names:
+            group = SampleGroup.objects.create(project=project, name=group_name)
+            for rep in range(1, n_samples_per_group + 1):
+                sample = Sample.objects.create(
+                    project=project,
+                    name=f'{group_name}_R{rep}',
+                    group=group,
+                    replicate_id=f'R{rep}'
+                )
+                sample_objects.append((sample, group_name))
+
+        # Create genes
+        gene_objects = []
+        for i in range(n_genes):
+            gene = Gene.objects.create(project=project, name=f'Gene_{i+1}')
+            gene_objects.append(gene)
+
+        # Generate expression values with group-specific patterns
+        expression_values = []
+        for sample, group_name in sample_objects:
+            base = np.random.normal(5, 1, n_genes)
+            if group_name == 'Treatment_A':
+                base[:20] += 3  # First 20 genes upregulated
+            elif group_name == 'Treatment_B':
+                base[20:40] += 3  # Next 20 genes upregulated
+            base = np.maximum(base, 0)
+
+            for gene, val in zip(gene_objects, base):
+                expression_values.append(
+                    ExpressionValue(
+                        project=project,
+                        sample=sample,
+                        gene=gene,
+                        value=float(val)
+                    )
+                )
+
+        ExpressionValue.objects.bulk_create(expression_values)

@@ -10,7 +10,6 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
-from django.http import FileResponse
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
@@ -56,8 +55,6 @@ from .visualizations import (
     create_contribution_sunburst,
     create_pca_explained_animation
 )
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
@@ -111,9 +108,9 @@ class PCAProjectViewSet(viewsets.ModelViewSet):
         try:
             data_processor = DataProcessorService()
             data_processor.process_uploaded_file(project, file)
-            
-            # Detect sample groups
-            data_processor.detect_sample_groups(project)
+
+            # Re-detect sample groups from imported sample names
+            data_processor.detect_and_assign_sample_groups(project)
             
             return Response({
                 'project_id': str(project.id),
@@ -179,10 +176,11 @@ class PCAProjectViewSet(viewsets.ModelViewSet):
         # Run PCA analysis synchronously for now
         try:
             pca_service = PCAService()
-            result = pca_service.run_pca_analysis(project, n_components)
-            
+            results = pca_service.run_pca_analysis(project.id, n_components)
+            saved_result = pca_service.save_pca_results(project.id, results)
+
             return Response({
-                'result_id': str(result.id),
+                'result_id': str(saved_result.id),
                 'message': 'PCA analysis completed successfully',
                 'status': 'completed'
             })
@@ -346,19 +344,20 @@ class PCAResultViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'])
     def download_report(self, request, pk=None):
-        """Download a PDF report of the PCA results."""
+        """Download a JSON report of the PCA results."""
         result = self.get_object()
-        
-        # Generate report
-        report_generator = ReportGeneratorService()
-        pdf_buffer = report_generator.generate_pca_report(result)
-        
-        # Return as file response
-        return FileResponse(
-            pdf_buffer,
-            as_attachment=True,
-            filename=f'pca_report_{result.project.name}_{result.created_at.strftime("%Y%m%d")}.pdf'
-        )
+
+        report_data = {
+            'project': result.project.name,
+            'created_at': result.created_at.isoformat(),
+            'n_components': result.n_components,
+            'scaling_method': result.scaling_method,
+            'explained_variance': result.explained_variance,
+            'cumulative_variance': result.cumulative_variance,
+            'status': result.status,
+        }
+
+        return Response(report_data)
 
 
 class PCAVisualizationViewSet(viewsets.ModelViewSet):
@@ -430,21 +429,27 @@ class PCAVisualizationViewSet(viewsets.ModelViewSet):
 # ======================= SIMPLIFIED API VIEWS =======================
 
 
+class _QuickPCAResult:
+    """Lightweight object to pass to visualization functions that expect a PCA result."""
+    def __init__(self, scores, loadings, explained_variance_ratio):
+        self.scores = scores
+        self.loadings = loadings
+        self.explained_variance_ratio = explained_variance_ratio
+
+
 class QuickPCAView(APIView):
     """Quick PCA analysis without project setup"""
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         """Perform quick PCA analysis on uploaded data"""
         try:
             data = request.data
-            
+
             # Extract data matrix
             if 'data_matrix' in data:
                 df = pd.DataFrame(data['data_matrix'])
             elif 'csv_data' in data:
-                # Parse CSV string
-                import io
                 df = pd.read_csv(io.StringIO(data['csv_data']))
             else:
                 return Response({
@@ -454,13 +459,13 @@ class QuickPCAView(APIView):
                         'message': 'No data provided. Use data_matrix or csv_data'
                     }
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             # Extract parameters
             n_components = data.get('n_components', min(3, len(df.columns)))
             scaling_method = data.get('scaling_method', 'standard')
             sample_names = data.get('sample_names', [f'Sample_{i+1}' for i in range(len(df))])
             feature_names = data.get('feature_names', [f'Feature_{i+1}' for i in range(len(df.columns))])
-            
+
             # Preprocess data
             imputer = SimpleImputer(strategy='mean')
             df_imputed = pd.DataFrame(
@@ -468,7 +473,7 @@ class QuickPCAView(APIView):
                 columns=df.columns,
                 index=df.index
             )
-            
+
             # Scale data
             if scaling_method == 'standard':
                 scaler = StandardScaler()
@@ -476,49 +481,40 @@ class QuickPCAView(APIView):
                 scaler = MinMaxScaler()
             else:
                 scaler = None
-            
+
             if scaler:
                 data_scaled = scaler.fit_transform(df_imputed)
             else:
                 data_scaled = df_imputed.values
-            
+
             # Perform PCA
             pca = PCA(n_components=n_components)
-            pca_result = pca.fit_transform(data_scaled)
-            
+            pca_scores = pca.fit_transform(data_scaled)
+
             # Calculate additional metrics
             loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-            
+
             # Generate creative visualizations
             visualizations = {}
-            
+
             if data.get('generate_visualizations', True):
-                # Interactive biplot with animations
-                visualizations['biplot'] = create_interactive_biplot(
-                    pca_result, loadings, sample_names, feature_names,
-                    pca.explained_variance_ratio_
+                viz_result = _QuickPCAResult(
+                    scores=pca_scores.tolist(),
+                    loadings=loadings.tolist(),
+                    explained_variance_ratio=pca.explained_variance_ratio_.tolist()
                 )
-                
-                # 3D rotation animation
+
+                visualizations['biplot'] = create_interactive_biplot(viz_result)
+
                 if n_components >= 3:
-                    visualizations['3d_animation'] = create_3d_rotation_animation(
-                        pca_result[:, :3], sample_names,
-                        pca.explained_variance_ratio_[:3]
-                    )
-                
-                # Variance waterfall chart
-                visualizations['variance_waterfall'] = create_variance_waterfall(
-                    pca.explained_variance_ratio_
-                )
-                
-                # Gene constellation map
-                visualizations['gene_constellation'] = create_gene_constellation(
-                    loadings, feature_names
-                )
-            
+                    visualizations['3d_animation'] = create_3d_rotation_animation(viz_result)
+
+                visualizations['variance_waterfall'] = create_variance_waterfall(viz_result)
+                visualizations['gene_constellation'] = create_gene_constellation(viz_result)
+
             # Prepare results
             results = {
-                'pca_scores': pca_result.tolist(),
+                'pca_scores': pca_scores.tolist(),
                 'loadings': loadings.tolist(),
                 'explained_variance': pca.explained_variance_.tolist(),
                 'explained_variance_ratio': pca.explained_variance_ratio_.tolist(),
@@ -529,7 +525,7 @@ class QuickPCAView(APIView):
                 'sample_names': sample_names,
                 'feature_names': feature_names
             }
-            
+
             return Response({
                 'status': 'success',
                 'data': {
@@ -543,7 +539,7 @@ class QuickPCAView(APIView):
                 },
                 'message': 'PCA analysis completed successfully'
             })
-            
+
         except Exception as e:
             logger.error(f"Error in quick PCA: {str(e)}")
             return Response({
@@ -558,54 +554,38 @@ class QuickPCAView(APIView):
 class InteractivePCAView(APIView):
     """Interactive PCA with real-time parameter updates"""
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         """Update PCA visualization with new parameters"""
         try:
             data = request.data
-            
-            # Get existing PCA results
-            pca_scores = np.array(data.get('pca_scores', []))
-            loadings = np.array(data.get('loadings', []))
-            
+
+            # Build a lightweight result object for the visualization functions
+            viz_result = _QuickPCAResult(
+                scores=data.get('pca_scores', []),
+                loadings=data.get('loadings', []),
+                explained_variance_ratio=data.get('explained_variance_ratio', [])
+            )
+
             # Visualization parameters
             viz_type = data.get('visualization_type', 'biplot')
             color_scheme = data.get('color_scheme', 'viridis')
             show_labels = data.get('show_labels', True)
             show_loadings = data.get('show_loadings', True)
             point_size = data.get('point_size', 50)
-            
-            # Group information
-            groups = data.get('groups', {})
-            
+
             # Generate updated visualization
             if viz_type == 'biplot':
-                visualization = create_interactive_biplot(
-                    pca_scores, loadings,
-                    data.get('sample_names', []),
-                    data.get('feature_names', []),
-                    data.get('explained_variance_ratio', []),
-                    groups=groups,
-                    color_scheme=color_scheme,
-                    show_labels=show_labels,
-                    show_loadings=show_loadings,
-                    point_size=point_size
-                )
+                visualization = create_interactive_biplot(viz_result)
             elif viz_type == 'heatmap':
-                visualization = create_loading_heatmap(
-                    loadings,
-                    data.get('feature_names', []),
-                    data.get('sample_names', [])
-                )
+                visualization = create_loading_heatmap(viz_result)
             elif viz_type == 'trajectory':
                 visualization = create_sample_trajectory(
-                    pca_scores,
-                    data.get('sample_names', []),
-                    data.get('time_points', None)
+                    viz_result, sample_order=data.get('time_points', None)
                 )
             else:
                 visualization = None
-            
+
             return Response({
                 'status': 'success',
                 'data': {
@@ -619,7 +599,7 @@ class InteractivePCAView(APIView):
                     }
                 }
             })
-            
+
         except Exception as e:
             logger.error(f"Error updating PCA visualization: {str(e)}")
             return Response({
@@ -654,16 +634,20 @@ class GeneContributionView(APIView):
             
             # Create visualizations
             visualizations = {}
-            
+
+            viz_result = _QuickPCAResult(
+                scores=None,
+                loadings=loadings.tolist(),
+                explained_variance_ratio=[]
+            )
+
             # Sunburst chart showing hierarchical contributions
             visualizations['sunburst'] = create_contribution_sunburst(
-                loadings, feature_names, n_components=min(3, loadings.shape[1])
+                viz_result, n_components=min(3, loadings.shape[1])
             )
-            
+
             # Gene constellation showing relationships
-            visualizations['constellation'] = create_gene_constellation(
-                loadings, feature_names, highlight_genes=top_genes
-            )
+            visualizations['constellation'] = create_gene_constellation(viz_result)
             
             results = {
                 'top_genes': top_genes,
@@ -805,8 +789,17 @@ class PCASimulationView(APIView):
             outliers = np.random.multivariate_normal([3, 3], [[0.5, 0], [0, 0.5]], 5)
             data = np.vstack([data, outliers])
             
+            # Run PCA on simulation data to get explained variance
+            sim_pca = PCA(n_components=2)
+            sim_pca.fit(data)
+            sim_result = _QuickPCAResult(
+                scores=sim_pca.transform(data).tolist(),
+                loadings=sim_pca.components_.T.tolist(),
+                explained_variance_ratio=sim_pca.explained_variance_ratio_.tolist()
+            )
+
             # Create step-by-step animation
-            animation = create_pca_explained_animation(data)
+            animation = create_pca_explained_animation(sim_result)
             
             # Educational content
             explanation = {

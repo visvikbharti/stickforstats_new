@@ -41,32 +41,32 @@ class DistributionProjectViewSet(viewsets.ModelViewSet):
         Create a copy of an existing distribution project with all its associated data.
         """
         original_project = self.get_object()
-        
+
         # Create new project
         new_project = DistributionProject.objects.create(
             user=request.user,
             name=f"Copy of {original_project.name}",
             description=original_project.description
         )
-        
+
         # Copy distributions and related data
         for dist in original_project.distributions.all():
             new_dist = Distribution.objects.create(
                 project=new_project,
                 distribution_type=dist.distribution_type,
+                category=dist.category,
                 parameters=dist.parameters,
                 name=dist.name,
-                description=dist.description
             )
-            
+
             # Copy visualizations
             for viz in dist.visualizations.all():
                 DistributionVisualization.objects.create(
                     distribution=new_dist,
-                    plot_type=viz.plot_type,
+                    visualization_type=viz.visualization_type,
                     settings=viz.settings
                 )
-        
+
         # Copy datasets
         for dataset in original_project.datasets.all():
             DataSet.objects.create(
@@ -74,9 +74,8 @@ class DistributionProjectViewSet(viewsets.ModelViewSet):
                 name=dataset.name,
                 description=dataset.description,
                 data=dataset.data,
-                metadata=dataset.metadata
             )
-            
+
         return Response(DistributionProjectSerializer(new_project).data)
 
 
@@ -205,6 +204,7 @@ class DistributionUtilityViewSet(viewsets.ViewSet):
                     project = get_object_or_404(DistributionProject, id=project_id, user=request.user)
                     BinomialApproximation.objects.create(
                         project=project,
+                        name=f"Binomial Approximation (n={n}, p={p})",
                         n=n,
                         p=p,
                         approximation_types=approximation_types,
@@ -231,20 +231,13 @@ class DistributionUtilityViewSet(viewsets.ViewSet):
                 project_id = request.data.get('project_id')
                 if project_id:
                     project = get_object_or_404(DistributionProject, id=project_id, user=request.user)
-                    
+
                     # Create dataset
                     dataset = DataSet.objects.create(
                         project=project,
                         name=request.data.get('name', 'Fitted Dataset'),
                         description=request.data.get('description', ''),
                         data=data
-                    )
-                    
-                    # Create fitting result
-                    DistributionFitting.objects.create(
-                        dataset=dataset,
-                        tested_distributions=distribution_types,
-                        results=result
                     )
                     
             return Response(result)
@@ -295,7 +288,8 @@ class DistributionUtilityViewSet(viewsets.ViewSet):
                     
                     ApplicationSimulation.objects.create(
                         project=project,
-                        simulation_type='CLINICAL_TRIAL',
+                        name=f"Clinical Trial Simulation",
+                        application_type='CLINICAL_TRIALS',
                         parameters={
                             'treatment_effect': treatment_effect,
                             'control_mean': control_mean,
@@ -340,7 +334,8 @@ class DistributionUtilityViewSet(viewsets.ViewSet):
                 
                 ApplicationSimulation.objects.create(
                     project=project,
-                    simulation_type='POISSON_PROCESS',
+                    name=f"Poisson Process Simulation",
+                    application_type='NETWORK_TRAFFIC',
                     parameters={
                         'rate': rate,
                         'time_period': time_period,
