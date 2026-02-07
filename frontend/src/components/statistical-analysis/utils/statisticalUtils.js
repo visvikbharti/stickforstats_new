@@ -116,7 +116,23 @@ export const andersonDarlingTest = (data) => {
   }
   A2 = -n - A2 / n;
 
-  // Critical values for different significance levels
+  // D'Agostino & Stephens (1986) p-value with sample-size correction
+  // A* = A2 * (1 + 0.75/n + 2.25/n²)
+  const Astar = A2 * (1 + 0.75 / n + 2.25 / (n * n));
+
+  let pValue;
+  if (Astar >= 0.6) {
+    pValue = Math.exp(1.2937 - 5.709 * Astar + 0.0186 * Astar * Astar);
+  } else if (Astar >= 0.34) {
+    pValue = Math.exp(0.9177 - 4.279 * Astar - 1.38 * Astar * Astar);
+  } else if (Astar >= 0.2) {
+    pValue = 1 - Math.exp(-8.318 + 42.796 * Astar - 59.938 * Astar * Astar);
+  } else {
+    pValue = 1 - Math.exp(-13.436 + 101.14 * Astar - 223.73 * Astar * Astar);
+  }
+  pValue = Math.max(0.0001, Math.min(1, pValue));
+
+  // Critical values kept for reference display
   const criticalValues = {
     '15%': 1.610,
     '10%': 1.933,
@@ -125,31 +141,12 @@ export const andersonDarlingTest = (data) => {
     '1%': 3.857
   };
 
-  // Determine if normal at 5% significance level
-  const isNormal = A2 < criticalValues['5%'];
-
-  // Approximate p-value based on critical value comparison
-  let pValue;
-  if (A2 < criticalValues['15%']) {
-    pValue = 0.15 + (criticalValues['15%'] - A2) / criticalValues['15%'] * 0.85;  // > 0.15
-  } else if (A2 < criticalValues['10%']) {
-    pValue = 0.10 + (criticalValues['10%'] - A2) / (criticalValues['10%'] - criticalValues['15%']) * 0.05;
-  } else if (A2 < criticalValues['5%']) {
-    pValue = 0.05 + (criticalValues['5%'] - A2) / (criticalValues['5%'] - criticalValues['10%']) * 0.05;
-  } else if (A2 < criticalValues['2.5%']) {
-    pValue = 0.025 + (criticalValues['2.5%'] - A2) / (criticalValues['2.5%'] - criticalValues['5%']) * 0.025;
-  } else if (A2 < criticalValues['1%']) {
-    pValue = 0.01 + (criticalValues['1%'] - A2) / (criticalValues['1%'] - criticalValues['2.5%']) * 0.015;
-  } else {
-    pValue = 0.001;  // Less than 1%
-  }
-
   return {
     statistic: A2,
-    pValue: Math.max(0.001, Math.min(1, pValue)),
+    pValue,
     criticalValues,
     significanceLevel: Object.entries(criticalValues).find(([_, val]) => A2 < val)?.[0] || '>1%',
-    isNormal: isNormal
+    isNormal: pValue > 0.05
   };
 };
 

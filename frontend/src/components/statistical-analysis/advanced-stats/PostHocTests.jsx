@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { tTestPValue, tCriticalValue, fCriticalValue, tukeyPValue, scheffePValue } from '../../../utils/statisticalDistributions';
 import {
   Box,
   Typography,
@@ -258,41 +259,46 @@ const PostHocTests = ({ data }) => {
         let criticalValue, pValue, significant;
 
         switch (testMethod) {
-          case 'tukey':
+          case 'tukey': {
             // Tukey HSD uses Studentized range distribution
-            // Approximation: q-critical ≈ √2 * t-critical for k groups
-            const qCritical = getStudentizedRangeCritical(groups.length, dfWithin, alpha);
-            criticalValue = qCritical * Math.sqrt(mse * (1/n1 + 1/n2) / 2);
+            const qStat = Math.abs(tStat) * Math.sqrt(2);
+            // Critical value from t-distribution as approximation for threshold
+            const tCritTukey = tCriticalValue(dfWithin, alpha / (2 * groups.length));
+            criticalValue = tCritTukey * seDiff;
             significant = meanDiff > criticalValue;
-            pValue = getTukeyPValue(tStat * Math.sqrt(2), groups.length, dfWithin);
+            // Proper p-value from studentized range distribution
+            pValue = tukeyPValue(qStat, groups.length, dfWithin);
             break;
+          }
 
-          case 'bonferroni':
+          case 'bonferroni': {
             // Bonferroni: adjust alpha by number of comparisons
             const numComparisons = (groups.length * (groups.length - 1)) / 2;
             const bonferroniAlpha = alpha / numComparisons;
-            const tCriticalBonf = getTCritical(dfWithin, bonferroniAlpha / 2);
+            const tCriticalBonf = tCriticalValue(dfWithin, bonferroniAlpha / 2);
             criticalValue = tCriticalBonf * seDiff;
             significant = meanDiff > criticalValue;
-            pValue = getTDistributionPValue(tStat, dfWithin) * numComparisons;
-            if (pValue > 1) pValue = 1; // Cap at 1
+            pValue = Math.min(1, tTestPValue(tStat, dfWithin) * numComparisons);
             break;
+          }
 
-          case 'scheffe':
+          case 'scheffe': {
             // Scheffé: most conservative, controls for all contrasts
-            const fCritical = getFCritical(groups.length - 1, dfWithin, alpha);
-            criticalValue = Math.sqrt((groups.length - 1) * fCritical) * seDiff;
+            const fCrit = fCriticalValue(groups.length - 1, dfWithin, alpha);
+            criticalValue = Math.sqrt((groups.length - 1) * fCrit) * seDiff;
             significant = meanDiff > criticalValue;
-            pValue = getScheffePValue(tStat, groups.length, dfWithin);
+            pValue = scheffePValue(tStat, groups.length, dfWithin);
             break;
+          }
 
-          case 'fisher':
+          case 'fisher': {
             // Fisher LSD: least conservative, no adjustment
-            const tCriticalFisher = getTCritical(dfWithin, alpha / 2);
+            const tCriticalFisher = tCriticalValue(dfWithin, alpha / 2);
             criticalValue = tCriticalFisher * seDiff;
             significant = meanDiff > criticalValue;
-            pValue = getTDistributionPValue(tStat, dfWithin);
+            pValue = tTestPValue(tStat, dfWithin);
             break;
+          }
 
           default:
             criticalValue = 0;
@@ -318,70 +324,8 @@ const PostHocTests = ({ data }) => {
     return comparisons;
   }, [groupedData, pooledError, testMethod, alpha]);
 
-  /**
-   * Statistical distribution functions (approximations)
-   */
-  const getStudentizedRangeCritical = (k, df, alpha) => {
-    // Approximation for Studentized range critical value
-    // More accurate values would come from tables or libraries
-    if (alpha === 0.05) {
-      if (k === 3) return df > 60 ? 3.31 : 3.77;
-      if (k === 4) return df > 60 ? 3.63 : 4.20;
-      if (k === 5) return df > 60 ? 3.86 : 4.51;
-      return 3.5 + 0.3 * k; // Rough approximation
-    }
-    return 3.0 + 0.3 * k;
-  };
-
-  const getTCritical = (df, alpha) => {
-    // Approximation for t-critical value
-    if (df > 30) {
-      if (alpha <= 0.001) return 3.291;
-      if (alpha <= 0.01) return 2.576;
-      if (alpha <= 0.025) return 2.326;
-      if (alpha <= 0.05) return 1.960;
-      return 1.645;
-    }
-    // Simplified for small df
-    if (alpha <= 0.025) return 2.5 + 10/df;
-    return 2.0 + 5/df;
-  };
-
-  const getFCritical = (df1, df2, alpha) => {
-    // Approximation for F-critical value
-    if (alpha === 0.05) {
-      if (df1 <= 5 && df2 > 30) return 2.4 + df1 * 0.2;
-      return 3.0;
-    }
-    return 4.0;
-  };
-
-  const getTDistributionPValue = (t, df) => {
-    // Rough approximation of t-distribution p-value (two-tailed)
-    const absT = Math.abs(t);
-    if (absT > 5) return 0.0001;
-    if (absT > 3.5) return 0.001;
-    if (absT > 2.8) return 0.01;
-    if (absT > 2.0) return 0.05;
-    if (absT > 1.7) return 0.10;
-    return 0.20;
-  };
-
-  const getTukeyPValue = (q, k, df) => {
-    // Approximation for Tukey HSD p-value
-    if (q > 5) return 0.001;
-    if (q > 4) return 0.01;
-    if (q > 3.5) return 0.05;
-    return 0.10;
-  };
-
-  const getScheffePValue = (t, k, df) => {
-    // Scheffé p-value approximation
-    const f = t * t / (k - 1);
-    if (f > 5) return 0.01;
-    if (f > 3) return 0.05;
-    return 0.10;
-  };
+  // Distribution functions imported from statisticalDistributions:
+  // tTestPValue, tCriticalValue, fCriticalValue, tukeyPValue, scheffePValue
 
   /**
    * Prepare visualization data

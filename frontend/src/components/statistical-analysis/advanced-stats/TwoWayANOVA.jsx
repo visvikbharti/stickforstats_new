@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { fTestPValue } from '../../../utils/statisticalDistributions';
 import {
   Box,
   Typography,
@@ -233,9 +234,9 @@ const TwoWayANOVA = ({ data }) => {
     const FInteraction = MSInteraction / MSWithin;
 
     // p-values (approximation using F-distribution)
-    const pValueA = fDistributionCDF(FA, dfA, dfWithin);
-    const pValueB = fDistributionCDF(FB, dfB, dfWithin);
-    const pValueInteraction = fDistributionCDF(FInteraction, dfInteraction, dfWithin);
+    const pValueA = fTestPValue(FA, dfA, dfWithin);
+    const pValueB = fTestPValue(FB, dfB, dfWithin);
+    const pValueInteraction = fTestPValue(FInteraction, dfInteraction, dfWithin);
 
     // Effect sizes (Eta-squared)
     const etaSquaredA = SSA / SSTotal;
@@ -288,27 +289,7 @@ const TwoWayANOVA = ({ data }) => {
     };
   }, [organizedData, alpha]);
 
-  /**
-   * F-distribution CDF approximation
-   */
-  const fDistributionCDF = (f, df1, df2) => {
-    if (f <= 0) return 1;
-
-    // Simplified approximation - returns upper tail probability (p-value)
-    // For large F values, p-value is small
-    const x = df2 / (df2 + df1 * f);
-
-    // Beta function approximation
-    const a = df2 / 2;
-    const b = df1 / 2;
-
-    // Very rough approximation
-    if (f > 10) return 0.001;
-    if (f > 5) return 0.01;
-    if (f > 3) return 0.05;
-    if (f > 2) return 0.10;
-    return 0.20;
-  };
+  // fTestPValue imported from statisticalDistributions (uses jStat F-distribution CDF)
 
   /**
    * Get effect size interpretation

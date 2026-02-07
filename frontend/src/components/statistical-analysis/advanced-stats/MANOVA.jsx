@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { chiSquarePValue, fTestPValue } from '../../../utils/statisticalDistributions';
 import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
 import {
   Box,
@@ -296,10 +297,10 @@ const MANOVA = ({ data }) => {
     const df2 = totalN - k - p + 1;
     const fStat = ((1 - Math.pow(wilksLambda, 1/p)) / Math.pow(wilksLambda, 1/p)) * (df2 / df1);
 
-    // Approximate p-value using chi-square approximation
+    // Bartlett's chi-square approximation to Wilks' Lambda
     const chiSquare = -(totalN - 1 - (p + k) / 2) * Math.log(wilksLambda);
-    // p-value approximation (simplified)
-    const pValue = chiSquare > 15 ? 0.001 : chiSquare > 10 ? 0.01 : chiSquare > 5 ? 0.05 : 0.1;
+    const chiDf = p * (k - 1);
+    const pValue = chiSquarePValue(chiSquare, chiDf);
 
     // Follow-up univariate ANOVAs
     const univariateResults = [];
@@ -325,13 +326,15 @@ const MANOVA = ({ data }) => {
       const f = msBetween / msWithin;
       const etaSq = ssBetween / (ssBetween + ssWithin);
 
+      const univariatePValue = fTestPValue(f, dfBetween, dfWithin);
       univariateResults.push({
         variable: dv,
         f_statistic: f,
         df_between: dfBetween,
         df_within: dfWithin,
+        p_value: univariatePValue,
         eta_squared: etaSq,
-        significant: f > 4 // Approximate critical value
+        significant: univariatePValue < 0.05
       });
     });
 
@@ -679,6 +682,7 @@ const MANOVA = ({ data }) => {
                       <TableCell align="right"><strong>F</strong></TableCell>
                       <TableCell align="right"><strong>df (between)</strong></TableCell>
                       <TableCell align="right"><strong>df (within)</strong></TableCell>
+                      <TableCell align="right"><strong>p-value</strong></TableCell>
                       <TableCell align="right"><strong>η²</strong></TableCell>
                       <TableCell align="center"><strong>Significant</strong></TableCell>
                     </TableRow>
@@ -692,6 +696,7 @@ const MANOVA = ({ data }) => {
                         <TableCell align="right">{row.f_statistic?.toFixed(3)}</TableCell>
                         <TableCell align="right">{row.df_between}</TableCell>
                         <TableCell align="right">{row.df_within}</TableCell>
+                        <TableCell align="right">{row.p_value?.toFixed(4)}</TableCell>
                         <TableCell align="right">{row.eta_squared?.toFixed(4)}</TableCell>
                         <TableCell align="center">
                           <Chip
