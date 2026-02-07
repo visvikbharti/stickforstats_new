@@ -9,7 +9,7 @@
   --landing-bg-alt: #0a0a0a;
   --landing-text: #ffffff;
   --landing-text-muted: rgba(255, 255, 255, 0.7);
-  --landing-text-subtle: rgba(255, 255, 255, 0.5);
+  --landing-text-subtle: rgba(255, 255, 255, 0.65);
   --landing-border: rgba(255, 255, 255, 0.08);
   --landing-border-hover: rgba(255, 255, 255, 0.15);
   --landing-surface: rgba(255, 255, 255, 0.03);
@@ -26,16 +26,40 @@ body:not(.dark-mode) .professional-landing,
   --landing-bg: #ffffff;
   --landing-bg-alt: #f5f5f5;
   --landing-text: #1a1a2e;
-  --landing-text-muted: rgba(26, 26, 46, 0.7);
-  --landing-text-subtle: rgba(26, 26, 46, 0.5);
-  --landing-border: rgba(0, 0, 0, 0.08);
-  --landing-border-hover: rgba(0, 0, 0, 0.15);
+  --landing-text-muted: rgba(26, 26, 46, 0.75);
+  --landing-text-subtle: rgba(26, 26, 46, 0.6);
+  --landing-border: rgba(0, 0, 0, 0.1);
+  --landing-border-hover: rgba(0, 0, 0, 0.2);
   --landing-surface: rgba(0, 0, 0, 0.03);
   --landing-surface-hover: rgba(0, 0, 0, 0.06);
   --landing-accent: #d4a700;
   --landing-success: #2e7d32;
   --landing-error: #c62828;
   --landing-info: #1565c0;
+}
+
+/* Light mode: demo list colors need to be darker for white bg */
+body:not(.dark-mode) .professional-landing .demo-list.negative li,
+[data-theme="light"] .professional-landing .demo-list.negative li {
+  color: #c62828;
+}
+
+body:not(.dark-mode) .professional-landing .demo-list.positive li,
+[data-theme="light"] .professional-landing .demo-list.positive li {
+  color: #2e7d32;
+}
+
+/* Light mode: CTA buttons */
+body:not(.dark-mode) .professional-landing .primary-cta,
+[data-theme="light"] .professional-landing .primary-cta {
+  background: #1a1a2e;
+  color: #ffffff;
+}
+
+body:not(.dark-mode) .professional-landing .primary-cta:hover,
+[data-theme="light"] .professional-landing .primary-cta:hover {
+  background: #2a2a4e;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .professional-landing {
@@ -114,7 +138,7 @@ body:not(.dark-mode) .professional-landing,
   left: 0;
   width: 0;
   height: 1px;
-  background: #ffffff;
+  background: var(--landing-text);
   transition: width 0.3s;
 }
 
@@ -128,7 +152,7 @@ body:not(.dark-mode) .professional-landing,
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+  background: linear-gradient(180deg, var(--landing-bg) 0%, var(--landing-bg-alt) 100%);
 }
 
 .hero-container {
@@ -164,7 +188,7 @@ body:not(.dark-mode) .professional-landing,
 
 .alert-text {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--landing-text);
 }
 
 /* Main Headline */
@@ -225,8 +249,9 @@ body:not(.dark-mode) .professional-landing,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--landing-surface);
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .guardian-icon {
@@ -300,7 +325,7 @@ body:not(.dark-mode) .professional-landing,
   padding: 1rem 2rem;
   background: transparent;
   color: var(--landing-text);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--landing-border-hover);
   border-radius: 4px;
   font-size: 1rem;
   font-weight: 600;
@@ -309,7 +334,7 @@ body:not(.dark-mode) .professional-landing,
 }
 
 .secondary-cta:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--landing-surface);
   border-color: var(--landing-text-subtle);
 }
 
@@ -344,7 +369,7 @@ body:not(.dark-mode) .professional-landing,
 .guardian-section {
   padding: 6rem 0;
   background: var(--landing-bg-alt);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--landing-border);
 }
 
 .section-container {
@@ -360,6 +385,7 @@ body:not(.dark-mode) .professional-landing,
   margin-bottom: 4rem;
   line-height: 1.2;
   letter-spacing: -1px;
+  color: var(--landing-text);
 }
 
 .emphasis {
@@ -379,7 +405,7 @@ body:not(.dark-mode) .professional-landing,
 
 .demo-card {
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--landing-surface);
   border: 1px solid var(--landing-border);
   border-radius: 8px;
 }
@@ -397,11 +423,12 @@ body:not(.dark-mode) .professional-landing,
 
 .demo-list li {
   padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--landing-border);
   font-size: 0.875rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  color: var(--landing-text-muted);
 }
 
 .demo-list li:last-child {
@@ -409,11 +436,11 @@ body:not(.dark-mode) .professional-landing,
 }
 
 .demo-list.negative li {
-  color: rgba(255, 82, 82, 0.9);
+  color: #ff6b6b;
 }
 
 .demo-list.positive li {
-  color: rgba(76, 175, 80, 0.9);
+  color: #69f0ae;
 }
 
 /* Guardian Features Grid */
@@ -425,8 +452,8 @@ body:not(.dark-mode) .professional-landing,
 
 .guardian-feature {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 215, 0, 0.1);
+  background: var(--landing-surface);
+  border: 1px solid rgba(255, 215, 0, 0.15);
   border-radius: 8px;
   transition: all 0.3s;
 }
@@ -453,7 +480,7 @@ body:not(.dark-mode) .professional-landing,
 /* Credibility Section */
 .credibility-section {
   padding: 4rem 0;
-  background: #000000;
+  background: var(--landing-bg);
 }
 
 .credibility-content {
@@ -466,9 +493,9 @@ body:not(.dark-mode) .professional-landing,
   font-size: 1.5rem;
   line-height: 1.8;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--landing-text-muted);
   margin-bottom: 1rem;
-  border-left: 4px solid #FFD700;
+  border-left: 4px solid var(--landing-accent);
   padding-left: 2rem;
   text-align: left;
 }
@@ -479,11 +506,50 @@ body:not(.dark-mode) .professional-landing,
   font-size: 0.875rem;
 }
 
+/* Commitment Text (inside Credibility Section) */
+.commitment-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+.commitment-text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1rem;
+}
+
+.commitment-subtext {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+/* Light mode overrides for commitment text */
+body:not(.dark-mode) .professional-landing .commitment-title,
+[data-theme="light"] .professional-landing .commitment-title {
+  color: #1a1a2e;
+}
+
+body:not(.dark-mode) .professional-landing .commitment-text,
+[data-theme="light"] .professional-landing .commitment-text {
+  color: rgba(26, 26, 46, 0.85);
+}
+
+body:not(.dark-mode) .professional-landing .commitment-subtext,
+[data-theme="light"] .professional-landing .commitment-subtext {
+  color: rgba(26, 26, 46, 0.7);
+}
+
 /* Technical Specifications */
 .specs-section {
   padding: 4rem 0;
   background: var(--landing-bg-alt);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--landing-border);
 }
 
 .specs-grid {
@@ -495,8 +561,8 @@ body:not(.dark-mode) .professional-landing,
 
 .spec-item {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-left: 3px solid #2196F3;
+  background: var(--landing-surface);
+  border-left: 3px solid var(--landing-info);
   border-radius: 4px;
 }
 
@@ -516,7 +582,7 @@ body:not(.dark-mode) .professional-landing,
 /* Final CTA Section */
 .final-cta-section {
   padding: 6rem 0;
-  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  background: linear-gradient(180deg, var(--landing-bg-alt) 0%, var(--landing-bg) 100%);
   text-align: center;
 }
 
@@ -525,6 +591,7 @@ body:not(.dark-mode) .professional-landing,
   font-weight: 700;
   margin-bottom: 1rem;
   letter-spacing: -1px;
+  color: var(--landing-text);
 }
 
 .cta-subtext {
@@ -557,7 +624,7 @@ body:not(.dark-mode) .professional-landing,
   display: block;
   width: 100%;
   height: 2px;
-  background: #ffffff;
+  background: var(--landing-text);
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -701,7 +768,7 @@ body:not(.dark-mode) .professional-landing,
 /* Documentation Section */
 .documentation-section {
   padding: 6rem 0;
-  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  background: linear-gradient(180deg, var(--landing-bg-alt) 0%, var(--landing-bg) 100%);
 }
 
 .section-subtitle {
@@ -730,7 +797,7 @@ body:not(.dark-mode) .professional-landing,
 }
 
 .doc-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--landing-surface-hover);
   border-color: var(--landing-border-hover);
   transform: translateY(-4px);
 }
@@ -808,7 +875,7 @@ body:not(.dark-mode) .professional-landing,
 
 .ref-item {
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--landing-surface);
   border: 1px solid var(--landing-border);
   border-radius: 8px;
 }

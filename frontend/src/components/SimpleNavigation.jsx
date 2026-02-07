@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -11,49 +11,175 @@ import {
   Menu,
   MenuItem,
   Chip,
-  Divider
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  Collapse,
+  ListItemIcon,
+  useTheme,
+  alpha
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import HomeIcon from '@mui/icons-material/Home';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import ScienceIcon from '@mui/icons-material/Science';
+import BuildIcon from '@mui/icons-material/Build';
+import SchoolIcon from '@mui/icons-material/School';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import TuneIcon from '@mui/icons-material/Tune';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
+import BiotechIcon from '@mui/icons-material/Biotech';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
+import ArticleIcon from '@mui/icons-material/Article';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import CasinoIcon from '@mui/icons-material/Casino';
 import { useAuth } from '../context/AuthContext';
 import DarkModeToggle from './common/DarkModeToggle';
 import ExpertModeToggle from './common/ExpertModeToggle';
 import LanguageSelector from './common/LanguageSelector';
 
+// Navigation structure with dropdown categories
+const NAV_CATEGORIES = [
+  {
+    label: 'Analysis',
+    icon: <BarChartIcon fontSize="small" />,
+    items: [
+      { name: 'Statistical Analysis', path: '/statistical-analysis-tools', icon: <QueryStatsIcon fontSize="small" /> },
+      { name: 'Meta-Analysis', path: '/meta-analysis', icon: <AccountTreeIcon fontSize="small" /> },
+      { name: 'Survival Analysis', path: '/survival-analysis', icon: <TimelineIcon fontSize="small" /> },
+      { name: 'Factor Analysis', path: '/factor-analysis', icon: <ScatterPlotIcon fontSize="small" /> },
+      { name: 'PCA Analysis', path: '/pca-analysis', icon: <BiotechIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Advanced Methods',
+    icon: <ScienceIcon fontSize="small" />,
+    items: [
+      { name: 'Mixed Models', path: '/modules/mixed-models', icon: <PsychologyIcon fontSize="small" /> },
+      { name: 'Causal Inference', path: '/modules/causal-inference', icon: <AccountTreeIcon fontSize="small" /> },
+      { name: 'Multiple Testing', path: '/modules/multiplicity', icon: <FactCheckIcon fontSize="small" /> },
+      { name: 'DOE Analysis', path: '/doe-analysis', icon: <PrecisionManufacturingIcon fontSize="small" /> },
+      { name: 'SQC Analysis', path: '/sqc-analysis', icon: <TuneIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Tools',
+    icon: <BuildIcon fontSize="small" />,
+    items: [
+      { name: 'Paper Parser', path: '/paper-parser', icon: <ArticleIcon fontSize="small" /> },
+      { name: 'Confidence Intervals', path: '/confidence-intervals', icon: <ConfirmationNumberIcon fontSize="small" /> },
+      { name: 'Probability Distributions', path: '/probability-distributions', icon: <CasinoIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Learn',
+    icon: <SchoolIcon fontSize="small" />,
+    items: [
+      { name: 'Learning Hub', path: '/learn', icon: <SchoolIcon fontSize="small" /> },
+    ],
+  },
+];
+
+// Collect all paths per category for active-route highlighting
+const getCategoryPaths = (category) => category.items.map((item) => item.path);
+
 const SimpleNavigation = () => {
   const location = useLocation();
-  const { user, isAuthenticated, logout, isDemoMode } = useAuth();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const { isAuthenticated, logout, isDemoMode } = useAuth();
 
-  const menuItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Learning Hub 🎓', path: '/learn' },
-    { name: 'Statistical Analysis', path: '/statistical-analysis-tools' },
-    { name: 'Mixed Models', path: '/modules/mixed-models' },
-    { name: 'Causal Inference', path: '/modules/causal-inference' },
-    { name: 'Multiple Testing', path: '/modules/multiplicity' },
-    { name: 'Meta-Analysis', path: '/meta-analysis' },
-    { name: 'Paper Parser', path: '/paper-parser' },
-    { name: 'Confidence Intervals', path: '/confidence-intervals' },
-    { name: 'PCA Analysis', path: '/pca-analysis' },
-    { name: 'Factor Analysis', path: '/factor-analysis' },
-    { name: 'Survival Analysis', path: '/survival-analysis' },
-    { name: 'DOE Analysis', path: '/doe-analysis' },
-    { name: 'SQC Analysis', path: '/sqc-analysis' },
-    { name: 'Probability Distributions', path: '/probability-distributions' }
-  ];
+  // Desktop dropdown anchors - one per category
+  const [anchorEls, setAnchorEls] = useState({});
+  // Mobile drawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Mobile accordion open sections
+  const [mobileOpen, setMobileOpen] = useState({});
+  // Hover timeout ref for delayed close
+  const closeTimeouts = useRef({});
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
+  const isDark = theme.palette.mode === 'dark';
+
+  // --- Desktop dropdown handlers ---
+  const handleDropdownOpen = (key, event) => {
+    if (closeTimeouts.current[key]) {
+      clearTimeout(closeTimeouts.current[key]);
+      closeTimeouts.current[key] = null;
+    }
+    setAnchorEls((prev) => ({ ...prev, [key]: event.currentTarget }));
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleDropdownClose = (key) => {
+    setAnchorEls((prev) => ({ ...prev, [key]: null }));
   };
+
+  const handleDropdownDelayedClose = (key) => {
+    closeTimeouts.current[key] = setTimeout(() => {
+      handleDropdownClose(key);
+    }, 150);
+  };
+
+  const handleDropdownCancelClose = (key) => {
+    if (closeTimeouts.current[key]) {
+      clearTimeout(closeTimeouts.current[key]);
+      closeTimeouts.current[key] = null;
+    }
+  };
+
+  const handleNavigate = (path, key) => {
+    navigate(path);
+    handleDropdownClose(key);
+  };
+
+  // --- Mobile handlers ---
+  const toggleMobileSection = (key) => {
+    setMobileOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleMobileNavigate = (path) => {
+    navigate(path);
+    setDrawerOpen(false);
+  };
+
+  // Check if current route is in a category
+  const isCategoryActive = (category) => {
+    return getCategoryPaths(category).some(
+      (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+    );
+  };
+
+  // Active button styling
+  const getButtonSx = (isActive) => ({
+    color: 'inherit',
+    textTransform: 'none',
+    fontWeight: isActive ? 700 : 500,
+    fontSize: '0.875rem',
+    px: 1.5,
+    py: 0.75,
+    borderRadius: 1,
+    backgroundColor: isActive
+      ? alpha(theme.palette.common.white, isDark ? 0.12 : 0.15)
+      : 'transparent',
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.common.white, isDark ? 0.18 : 0.22),
+    },
+    transition: 'background-color 0.2s ease',
+  });
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" elevation={1}>
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ minHeight: { xs: 56, md: 64 } }}>
+          {/* Logo */}
           <Typography
             variant="h6"
             noWrap
@@ -66,108 +192,289 @@ const SimpleNavigation = () => {
               letterSpacing: '.1rem',
               color: 'inherit',
               textDecoration: 'none',
-              flexGrow: { xs: 1, md: 0 }
+              flexShrink: 0,
             }}
           >
             StickForStats
           </Typography>
 
-          {/* Desktop menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {menuItems.map((item) => (
-              <Button
-                key={item.name}
-                component={RouterLink}
-                to={item.path}
-                sx={(theme) => ({
-                  my: 2,
-                  color: 'inherit',
-                  display: 'block',
-                  backgroundColor: location.pathname === item.path
-                    ? theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.08)'
-                    : 'transparent',
-                  '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.2)'
-                      : 'rgba(0, 0, 0, 0.12)',
-                  }
-                })}
-              >
-                {item.name}
-              </Button>
-            ))}
-          </Box>
+          {/* === Desktop Navigation === */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
+            {/* Home button */}
+            <Button
+              component={RouterLink}
+              to="/"
+              startIcon={<HomeIcon fontSize="small" />}
+              sx={getButtonSx(location.pathname === '/')}
+            >
+              Home
+            </Button>
 
-          {/* Mobile menu */}
-          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="menu"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              {menuItems.map((item) => (
-                <MenuItem 
-                  key={item.name} 
-                  onClick={handleClose}
-                  component={RouterLink}
-                  to={item.path}
+            {/* Category dropdowns */}
+            {NAV_CATEGORIES.map((category) => {
+              const key = category.label;
+              const isActive = isCategoryActive(category);
+              const isOpen = Boolean(anchorEls[key]);
+
+              return (
+                <Box
+                  key={key}
+                  onMouseEnter={(e) => handleDropdownOpen(key, e)}
+                  onMouseLeave={() => handleDropdownDelayedClose(key)}
+                  sx={{ display: 'inline-flex' }}
                 >
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Menu>
+                  <Button
+                    onClick={(e) => {
+                      if (isOpen) {
+                        handleDropdownClose(key);
+                      } else {
+                        handleDropdownOpen(key, e);
+                      }
+                    }}
+                    endIcon={<ArrowDropDownIcon sx={{
+                      transition: 'transform 0.2s',
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }} />}
+                    sx={getButtonSx(isActive)}
+                  >
+                    {category.label}
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEls[key]}
+                    open={isOpen}
+                    onClose={() => handleDropdownClose(key)}
+                    MenuListProps={{
+                      onMouseEnter: () => handleDropdownCancelClose(key),
+                      onMouseLeave: () => handleDropdownDelayedClose(key),
+                    }}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    slotProps={{
+                      paper: {
+                        elevation: 4,
+                        sx: {
+                          mt: 0.5,
+                          minWidth: 220,
+                          borderRadius: 1.5,
+                          overflow: 'visible',
+                          '&::before': {
+                            content: '""',
+                            display: 'block',
+                            position: 'absolute',
+                            top: 0,
+                            left: 20,
+                            width: 10,
+                            height: 10,
+                            bgcolor: 'background.paper',
+                            transform: 'translateY(-50%) rotate(45deg)',
+                            zIndex: 0,
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    {category.items.map((item) => {
+                      const itemActive = location.pathname === item.path;
+                      return (
+                        <MenuItem
+                          key={item.path}
+                          onClick={() => handleNavigate(item.path, key)}
+                          selected={itemActive}
+                          sx={{
+                            py: 1,
+                            px: 2,
+                            gap: 1.5,
+                            borderRadius: 0.5,
+                            mx: 0.5,
+                            my: 0.25,
+                            '&.Mui-selected': {
+                              backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.18),
+                              },
+                            },
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 28, color: itemActive ? 'primary.main' : 'text.secondary' }}>
+                            {item.icon}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={item.name}
+                            primaryTypographyProps={{
+                              variant: 'body2',
+                              fontWeight: itemActive ? 600 : 400,
+                            }}
+                          />
+                        </MenuItem>
+                      );
+                    })}
+                  </Menu>
+                </Box>
+              );
+            })}
           </Box>
 
-          {/* Language Selector */}
-          <LanguageSelector variant="icon" size="small" />
+          {/* Spacer to push right section to edge */}
+          <Box sx={{ flexGrow: 1 }} />
 
-          {/* Dark Mode Toggle */}
-          <DarkModeToggle />
+          {/* === Right section (always visible) === */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 0.5 }, flexShrink: 0 }}>
+            {/* Language Selector */}
+            <LanguageSelector variant="icon" size="small" />
 
-          {/* Expert Mode Toggle - Guardian blocking behavior */}
-          <ExpertModeToggle variant="chip" />
+            {/* Dark Mode Toggle */}
+            <DarkModeToggle />
 
-          {/* User section */}
-          <Box sx={{ flexGrow: 0, ml: 2 }}>
-            {isDemoMode ? (
-              <Chip 
-                label="Demo Mode" 
-                color="secondary" 
-                size="small"
-                sx={{ color: 'white' }}
-              />
-            ) : isAuthenticated ? (
-              <Button color="inherit" onClick={logout}>
-                Logout
-              </Button>
-            ) : (
-              <Button color="inherit" component={RouterLink} to="/login">
-                Login
-              </Button>
-            )}
+            {/* Expert Mode Toggle */}
+            <Box sx={{ display: { xs: 'none', sm: 'flex' } }}>
+              <ExpertModeToggle variant="chip" />
+            </Box>
+
+            {/* User section */}
+            <Box sx={{ ml: 0.5 }}>
+              {isDemoMode ? (
+                <Chip
+                  label="Demo"
+                  color="secondary"
+                  size="small"
+                  sx={{ color: 'white' }}
+                />
+              ) : isAuthenticated ? (
+                <Button color="inherit" onClick={logout} size="small">
+                  Logout
+                </Button>
+              ) : (
+                <Button color="inherit" component={RouterLink} to="/login" size="small">
+                  Login
+                </Button>
+              )}
+            </Box>
+
+            {/* Mobile hamburger */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, ml: 0.5 }}>
+              <IconButton
+                size="large"
+                aria-label="open navigation menu"
+                onClick={() => setDrawerOpen(true)}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
           </Box>
         </Toolbar>
       </Container>
+
+      {/* === Mobile Drawer === */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: 'background.paper',
+          },
+        }}
+      >
+        {/* Drawer header */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 2,
+          py: 1.5,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }}>
+          <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
+            StickForStats
+          </Typography>
+          <IconButton onClick={() => setDrawerOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <List component="nav" sx={{ px: 1, py: 1 }}>
+          {/* Home */}
+          <ListItemButton
+            onClick={() => handleMobileNavigate('/')}
+            selected={location.pathname === '/'}
+            sx={{ borderRadius: 1, mb: 0.5 }}
+          >
+            <ListItemIcon sx={{ minWidth: 36 }}>
+              <HomeIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Home" primaryTypographyProps={{ fontWeight: location.pathname === '/' ? 600 : 400 }} />
+          </ListItemButton>
+
+          {/* Category sections */}
+          {NAV_CATEGORIES.map((category) => {
+            const key = category.label;
+            const isOpen = mobileOpen[key] || false;
+            const isActive = isCategoryActive(category);
+
+            return (
+              <React.Fragment key={key}>
+                <ListItemButton
+                  onClick={() => toggleMobileSection(key)}
+                  sx={{
+                    borderRadius: 1,
+                    mb: 0.25,
+                    backgroundColor: isActive ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36, color: isActive ? 'primary.main' : 'text.secondary' }}>
+                    {category.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={category.label}
+                    primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }}
+                  />
+                  {isOpen ? <ExpandLess /> : <ExpandMore />}
+                </ListItemButton>
+                <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {category.items.map((item) => {
+                      const itemActive = location.pathname === item.path;
+                      return (
+                        <ListItemButton
+                          key={item.path}
+                          onClick={() => handleMobileNavigate(item.path)}
+                          selected={itemActive}
+                          sx={{ pl: 4, borderRadius: 1, mx: 1, mb: 0.25 }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 28, color: itemActive ? 'primary.main' : 'text.secondary' }}>
+                            {item.icon}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={item.name}
+                            primaryTypographyProps={{
+                              variant: 'body2',
+                              fontWeight: itemActive ? 600 : 400,
+                            }}
+                          />
+                        </ListItemButton>
+                      );
+                    })}
+                  </List>
+                </Collapse>
+              </React.Fragment>
+            );
+          })}
+        </List>
+
+        {/* Mobile Expert Mode (shown at bottom of drawer) */}
+        <Box sx={{
+          mt: 'auto',
+          px: 2,
+          py: 1.5,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <ExpertModeToggle variant="chip" />
+        </Box>
+      </Drawer>
     </AppBar>
   );
 };
