@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -495,7 +496,7 @@ const Lesson6_BindingEquilibria = () => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" gutterBottom>
                 The Binding Equilibrium
               </Typography>
@@ -529,7 +530,7 @@ const Lesson6_BindingEquilibria = () => {
 
             <Grid container spacing={3} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: '#ffebee', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f' }}>
                     Dissociation Constant (K<sub>d</sub>)
                   </Typography>
@@ -545,7 +546,7 @@ const Lesson6_BindingEquilibria = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
                     Association Constant (K<sub>a</sub>)
                   </Typography>
@@ -565,7 +566,7 @@ const Lesson6_BindingEquilibria = () => {
               Kinetic Definition
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 P + L → PL (association: rate = k<sub>on</sub>[P][L])<br/>
                 PL → P + L (dissociation: rate = k<sub>off</sub>[PL])<br/><br/>
@@ -607,7 +608,7 @@ const Lesson6_BindingEquilibria = () => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="body1">
                 <strong>Calculated K<sub>d</sub>:</strong> {(kdCalculator.koff / kdCalculator.kon).toExponential(2)} M
                 ({((kdCalculator.koff / kdCalculator.kon) * 1e9).toFixed(2)} nM)
@@ -638,7 +639,7 @@ const Lesson6_BindingEquilibria = () => {
               of the binding reaction.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 ΔG° = -RT ln(K<sub>a</sub>) = RT ln(K<sub>d</sub>)
               </Typography>
@@ -695,7 +696,7 @@ const Lesson6_BindingEquilibria = () => {
               ΔG Decomposition
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 ΔG = ΔH - TΔS
               </Typography>
@@ -742,7 +743,7 @@ const Lesson6_BindingEquilibria = () => {
               as ligand concentration increases. The resulting curve is hyperbolic.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 B = B<sub>max</sub> × [L] / (K<sub>d</sub> + [L])
               </Typography>
@@ -818,7 +819,7 @@ const Lesson6_BindingEquilibria = () => {
 
             <canvas ref={bindingCanvasRef} width={500} height={350} style={{ border: '1px solid #ddd', display: 'block', margin: '0 auto' }} />
 
-            <Paper sx={{ p: 2, mt: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, mt: 2, bgcolor: 'background.default' }}>
               <Typography variant="body2">
                 <strong>Current binding:</strong> At [L] = {bindingParams.ligandConc}, B = {calculateBound(bindingParams.ligandConc, bindingParams.Bmax, bindingParams.Kd).toFixed(1)}
                 ({(calculateBound(bindingParams.ligandConc, bindingParams.Bmax, bindingParams.Kd) / bindingParams.Bmax * 100).toFixed(1)}% of B<sub>max</sub>)
@@ -840,7 +841,7 @@ const Lesson6_BindingEquilibria = () => {
               became standard.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 Starting from: B = B<sub>max</sub> × [L] / (K<sub>d</sub> + [L])<br/><br/>
                 Rearrange: B(K<sub>d</sub> + [L]) = B<sub>max</sub> × [L]<br/>
@@ -1018,7 +1019,7 @@ const Lesson6_BindingEquilibria = () => {
               </TableBody>
             </Table>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle2" gutterBottom>
                 Key Equations Summary
               </Typography>
@@ -1040,9 +1041,9 @@ const Lesson6_BindingEquilibria = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <ChartIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <ChartIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
           <Box>
             <Typography variant="h4">
               Lesson 6: Binding Equilibria Fundamentals
@@ -1096,7 +1097,7 @@ const Lesson6_BindingEquilibria = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

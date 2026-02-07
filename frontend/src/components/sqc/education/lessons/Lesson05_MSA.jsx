@@ -21,6 +21,7 @@ import {
   Chip,
   CircularProgress
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { getApiUrl } from '../../../../config/apiConfig';
 
@@ -165,7 +166,7 @@ const Lesson05_MSA = ({ onComplete }) => {
   };
 
   const getAcceptability = (percent) => {
-    if (percent < 10) return { rating: 'Acceptable', color: '#2e7d32' };
+    if (percent < 10) return { rating: 'Acceptable', color: 'success.dark' };
     if (percent < 30) return { rating: 'Marginal', color: '#ed6c02' };
     return { rating: 'Unacceptable', color: '#d32f2f' };
   };
@@ -177,7 +178,7 @@ const Lesson05_MSA = ({ onComplete }) => {
       label: 'Introduction: Why Measurement System Analysis?',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Garbage In, Garbage Out
           </Typography>
 
@@ -202,8 +203,8 @@ const Lesson05_MSA = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
                   Repeatability (Equipment Variation)
                 </Typography>
                 <Typography variant="body2">
@@ -216,8 +217,8 @@ const Lesson05_MSA = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e8f5e9', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark', mb: 2 }}>
                   Reproducibility (Operator Variation)
                 </Typography>
                 <Typography variant="body2">
@@ -235,7 +236,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             It decomposes total observed variation into:
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fff3e0', my: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
             <Typography variant="body2" align="center" sx={{ fontWeight: 600 }}>
               Total Variation = Part Variation + Gage R&R (Repeatability + Reproducibility)
             </Typography>
@@ -253,7 +254,7 @@ const Lesson05_MSA = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               Crossed Gage R&R Study
             </Typography>
 
@@ -261,7 +262,7 @@ const Lesson05_MSA = ({ onComplete }) => {
               The most common Gage R&R design is a <strong>crossed study</strong>:
             </Typography>
 
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
                 Study Design Parameters:
               </Typography>
@@ -318,17 +319,17 @@ const Lesson05_MSA = ({ onComplete }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>{'<'} 10%</TableCell>
                   <TableCell>Acceptable</TableCell>
                   <TableCell>Measurement system is adequate</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#fff3e0' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>10% - 30%</TableCell>
                   <TableCell>Marginal</TableCell>
                   <TableCell>May be acceptable depending on application, cost, etc.</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#ffebee' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>{'>'} 30%</TableCell>
                   <TableCell>Unacceptable</TableCell>
                   <TableCell>Improve measurement system before using for decisions</TableCell>
@@ -366,7 +367,7 @@ const Lesson05_MSA = ({ onComplete }) => {
       label: 'Interactive: Simulated Gage R&R Study',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Example Gage R&R Study Results
           </Typography>
 
@@ -374,7 +375,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             Below is a simulated Gage R&R study with 10 parts, 3 operators, and 2 trials each.
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             {/* Results Summary */}
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -422,42 +423,42 @@ const Lesson05_MSA = ({ onComplete }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>Part-to-Part</TableCell>
                   <TableCell>{gageRRData.partVariation}</TableCell>
                   <TableCell>{gageRRData.partPercent}%</TableCell>
                   <TableCell>
-                    <Box sx={{ width: '100%', bgcolor: '#c8e6c9', height: 20, borderRadius: 1 }}>
-                      <Box sx={{ width: `${gageRRData.partPercent}%`, bgcolor: '#2e7d32', height: '100%', borderRadius: 1 }} />
+                    <Box sx={{ width: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.18 : 0.15), height: 20, borderRadius: 1 }}>
+                      <Box sx={{ width: `${gageRRData.partPercent}%`, bgcolor: 'success.dark', height: '100%', borderRadius: 1 }} />
                     </Box>
                   </TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#fff3e0' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>Gage R&R</TableCell>
                   <TableCell>{gageRRData.rrVariation}</TableCell>
                   <TableCell>{gageRRData.rrPercent}%</TableCell>
                   <TableCell>
-                    <Box sx={{ width: '100%', bgcolor: '#ffe0b2', height: 20, borderRadius: 1 }}>
+                    <Box sx={{ width: '100%', bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.18 : 0.15), height: 20, borderRadius: 1 }}>
                       <Box sx={{ width: `${gageRRData.rrPercent}%`, bgcolor: '#ed6c02', height: '100%', borderRadius: 1 }} />
                     </Box>
                   </TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell sx={{ pl: 4 }}>• Repeatability</TableCell>
                   <TableCell>{gageRRData.repeatability}</TableCell>
                   <TableCell>{gageRRData.repeatPercent}%</TableCell>
                   <TableCell>
-                    <Box sx={{ width: '100%', bgcolor: '#bbdefb', height: 20, borderRadius: 1 }}>
-                      <Box sx={{ width: `${gageRRData.repeatPercent}%`, bgcolor: '#1976d2', height: '100%', borderRadius: 1 }} />
+                    <Box sx={{ width: '100%', bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.15), height: 20, borderRadius: 1 }}>
+                      <Box sx={{ width: `${gageRRData.repeatPercent}%`, bgcolor: 'primary.main', height: '100%', borderRadius: 1 }} />
                     </Box>
                   </TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#f3e5f5' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell sx={{ pl: 4 }}>• Reproducibility</TableCell>
                   <TableCell>{gageRRData.reproducibility}</TableCell>
                   <TableCell>{gageRRData.reproducPercent}%</TableCell>
                   <TableCell>
-                    <Box sx={{ width: '100%', bgcolor: '#e1bee7', height: 20, borderRadius: 1 }}>
+                    <Box sx={{ width: '100%', bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.18 : 0.15), height: 20, borderRadius: 1 }}>
                       <Box sx={{ width: `${gageRRData.reproducPercent}%`, bgcolor: '#9c27b0', height: '100%', borderRadius: 1 }} />
                     </Box>
                   </TableCell>
@@ -606,7 +607,7 @@ const Lesson05_MSA = ({ onComplete }) => {
                       </Box>
                     )}
 
-                    <Typography variant="caption" display="block" sx={{ mt: 2, color: '#666' }}>
+                    <Typography variant="caption" display="block" sx={{ mt: 2, color: 'text.secondary' }}>
                       📊 Calculations performed by Django backend using Python SciPy/NumPy libraries
                     </Typography>
                   </>
@@ -621,7 +622,7 @@ const Lesson05_MSA = ({ onComplete }) => {
       label: 'Practice: Improving Measurement Systems',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             What to Do When %R&R is Too High
           </Typography>
 
@@ -638,7 +639,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Upgrade Equipment
                   </Typography>
                   <Typography variant="body2">
@@ -653,7 +654,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Control Environment
                   </Typography>
                   <Typography variant="body2">
@@ -668,7 +669,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Improve Fixturing
                   </Typography>
                   <Typography variant="body2">
@@ -683,7 +684,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Maintenance & Calibration
                   </Typography>
                   <Typography variant="body2">
@@ -704,7 +705,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                     Training & Standardization
                   </Typography>
                   <Typography variant="body2">
@@ -719,7 +720,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                     Reduce Operator Influence
                   </Typography>
                   <Typography variant="body2">
@@ -734,7 +735,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                     Visual Aids
                   </Typography>
                   <Typography variant="body2">
@@ -749,7 +750,7 @@ const Lesson05_MSA = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                     Attribute Agreement
                   </Typography>
                   <Typography variant="body2">
@@ -774,11 +775,11 @@ const Lesson05_MSA = ({ onComplete }) => {
       label: 'Summary: Measurement System Analysis',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               1. MSA is Critical for Quality
             </Typography>
@@ -850,7 +851,7 @@ const Lesson05_MSA = ({ onComplete }) => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 5: Measurement System Analysis
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -885,8 +886,8 @@ const Lesson05_MSA = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 5 Complete! 🎉
             </Typography>
             <Typography paragraph>

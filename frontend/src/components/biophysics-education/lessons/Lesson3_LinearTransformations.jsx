@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -590,7 +591,7 @@ const Lesson3_LinearTransformations = () => {
               The Michaelis-Menten equation is <strong>non-linear</strong>:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', textAlign: 'center', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', textAlign: 'center', mb: 3 }}>
               <Typography variant="h6" sx={{ fontFamily: 'serif', fontStyle: 'italic' }}>
                 v = V<sub>max</sub> × [S] / (K<sub>m</sub> + [S])
               </Typography>
@@ -600,7 +601,7 @@ const Lesson3_LinearTransformations = () => {
               Scientists developed algebraic tricks to transform this equation into linear form:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', textAlign: 'center', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center', mb: 3 }}>
               <Typography variant="body1">
                 <strong>Non-linear:</strong> y = f(x, parameters) → Difficult to fit<br/>
                 <strong>Linear:</strong> Y = mX + b → Easy to fit with a straight line!
@@ -613,7 +614,7 @@ const Lesson3_LinearTransformations = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#e3f2fd' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" color="primary" gutterBottom>
                       Lineweaver-Burk (1934)
@@ -626,7 +627,7 @@ const Lesson3_LinearTransformations = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#f3e5f5' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" sx={{ color: '#9c27b0' }} gutterBottom>
                       Eadie-Hofstee (1942)
@@ -639,7 +640,7 @@ const Lesson3_LinearTransformations = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#e0f2f1' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" sx={{ color: '#009688' }} gutterBottom>
                       Hanes-Woolf (1932)
@@ -705,7 +706,7 @@ const Lesson3_LinearTransformations = () => {
               by taking the reciprocal of both sides of the Michaelis-Menten equation:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 Starting from: v = V<sub>max</sub>[S] / (K<sub>m</sub> + [S])<br/><br/>
                 Take reciprocal: 1/v = (K<sub>m</sub> + [S]) / (V<sub>max</sub>[S])<br/><br/>
@@ -793,7 +794,7 @@ const Lesson3_LinearTransformations = () => {
               an alternative linearization that avoids plotting reciprocals directly:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 Starting from: v = V<sub>max</sub>[S] / (K<sub>m</sub> + [S])<br/><br/>
                 Multiply both sides by (K<sub>m</sub> + [S]):<br/>
@@ -868,7 +869,7 @@ const Lesson3_LinearTransformations = () => {
               what is statistically the best of the three linearizations:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e0f2f1', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 Starting from Lineweaver-Burk:<br/>
                 1/v = (K<sub>m</sub>/V<sub>max</sub>)(1/[S]) + 1/V<sub>max</sub><br/><br/>
@@ -951,7 +952,7 @@ const Lesson3_LinearTransformations = () => {
               When we transform v → 1/v, small errors at low v values become enormous:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 If v = 10 ± 1 (10% error):<br/>
                 1/v = 0.100 ± 0.01 (10% relative error)<br/><br/>
@@ -1039,7 +1040,7 @@ const Lesson3_LinearTransformations = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                    <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                       <TableCell>True Value</TableCell>
                       <TableCell align="right">{params.Vmax}</TableCell>
                       <TableCell align="right">-</TableCell>
@@ -1156,7 +1157,7 @@ const Lesson3_LinearTransformations = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#e3f2fd', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="subtitle2" gutterBottom>
                     <TimelineIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Diagnosis
@@ -1168,7 +1169,7 @@ const Lesson3_LinearTransformations = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="subtitle2" gutterBottom>
                     <ScienceIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Inhibitor Analysis
@@ -1180,7 +1181,7 @@ const Lesson3_LinearTransformations = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="subtitle2" gutterBottom>
                     <InfoIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Teaching
@@ -1233,7 +1234,7 @@ const Lesson3_LinearTransformations = () => {
                   </TableCell>
                   <TableCell>Best linear estimate</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell><strong>Non-linear (LM)</strong></TableCell>
                   <TableCell>v vs [S]</TableCell>
                   <TableCell>
@@ -1253,7 +1254,7 @@ const Lesson3_LinearTransformations = () => {
               </Typography>
             </Alert>
 
-            <Paper sx={{ p: 2, mt: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, mt: 3, bgcolor: 'background.default' }}>
               <Typography variant="subtitle1" gutterBottom>
                 Key References
               </Typography>
@@ -1276,9 +1277,9 @@ const Lesson3_LinearTransformations = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <TimelineIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <TimelineIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
           <Box>
             <Typography variant="h4">
               Lesson 3: Linear Transformation Methods
@@ -1332,7 +1333,7 @@ const Lesson3_LinearTransformations = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

@@ -21,6 +21,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 /**
@@ -113,7 +114,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
             <Typography variant="h6">The Normality Assumption</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 The standard t-based confidence interval formula assumes the data come from a
                 <strong> normal distribution</strong>. But what happens when this assumption fails?
@@ -201,7 +202,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   The Central Limit Theorem to the Rescue!
                 </Typography>
@@ -227,12 +228,12 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
             <Typography variant="h6">Impact on Coverage Probability</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 Explore how non-normality affects the actual coverage rate of "95%" confidence intervals.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography gutterBottom>Population Distribution:</Typography>
                 <ToggleButtonGroup
                   value={distribution}
@@ -263,7 +264,9 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 />
               </Paper>
 
-              <Paper sx={{ p: 3, bgcolor: coverageData >= 0.945 ? '#e8f5e9' : '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => coverageData >= 0.945
+                  ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
+                  : alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h4" align="center" sx={{ mb: 1 }}>
                   {(coverageData * 100).toFixed(1)}%
                 </Typography>
@@ -331,13 +334,13 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
             <Typography variant="h6">Data Transformations</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 One solution to non-normality: <strong>transform</strong> the data to make it more symmetric,
                 then compute the CI on the transformed scale.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography gutterBottom>Common Transformation:</Typography>
                 <ToggleButtonGroup
                   value={transformation}
@@ -354,8 +357,8 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
               </Paper>
 
               {/* Interactive Visualization: Before & After */}
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   🎨 Transformation Effect Visualization
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -496,7 +499,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 </ol>
               </Alert>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   ⚠️ Important Note on Interpretation
                 </Typography>
@@ -524,7 +527,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
             <Typography variant="h6">Robust Alternatives</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 When transformations aren't appropriate or you're unsure about the distribution,
                 use <strong>robust methods</strong> that work regardless of the shape.
@@ -532,7 +535,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         1. Bootstrap CI (Covered in Lesson 3)
@@ -557,7 +560,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         2. Rank-Based Methods
@@ -587,7 +590,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         3. Trimmed Mean CI
@@ -631,7 +634,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🛡️ Robustness Mastered!
               </Typography>
@@ -640,7 +643,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: 'success.main', fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Takeaways
                       </Typography>
@@ -655,7 +658,7 @@ const Lesson06_NonNormalData = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         Practical Workflow

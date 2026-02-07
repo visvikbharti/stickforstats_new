@@ -42,6 +42,7 @@ import {
   Block,
   Lightbulb,
 } from '@mui/icons-material';
+import { alpha as alphaFn } from '@mui/material/styles';
 
 const steps = [
   'A Priori: The Right Way',
@@ -126,7 +127,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 When to Conduct
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Timeline sx={{ mr: 2, color: '#4caf50' }} />
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -232,7 +233,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 The Fundamental Flaw
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontWeight: 600, textAlign: 'center' }}>
                   Post hoc power is just a monotonic transformation of the p-value
                 </Typography>
@@ -293,7 +294,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#f5f5f5' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: 'background.default' }}>
         <Typography variant="h6" gutterBottom>
           Expert Consensus Against Post Hoc Power
         </Typography>
@@ -338,7 +339,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: pValue < 0.05 ? '#e8f5e9' : '#ffebee', textAlign: 'center' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(pValue < 0.05 ? theme.palette.success.main : theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">Post Hoc "Power"</Typography>
               <Typography variant="h4" sx={{ color: pValue < 0.05 ? '#4caf50' : '#f44336' }}>
                 {(observedPower() * 100).toFixed(1)}%
@@ -358,7 +359,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
       <TableContainer component={Paper} sx={{ mb: 3 }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow sx={{ bgcolor: 'background.default' }}>
               <TableCell sx={{ fontWeight: 600 }}>p-value</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Post Hoc "Power"</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>What This Tells You</TableCell>
@@ -433,7 +434,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 of plausible true effects.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Example:</strong> "The observed effect was d = 0.30 (95% CI: -0.10 to 0.70)"
                 </Typography>
@@ -458,7 +459,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 Report what effect sizes you <em>could</em> have detected with your sample size.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Example:</strong> "With n = 50 per group and α = 0.05, we had 80% power
                   to detect effects of d ≥ 0.57"
@@ -485,7 +486,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 (TOST procedure).
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2">
                   Define equivalence bounds (e.g., ±0.3 SD) and test whether the effect
                   falls within them.
@@ -507,7 +508,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 frequentist testing.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2">
                   BF₀₁ = 5 means the data are 5× more likely under H₀ than H₁
                 </Typography>
@@ -557,7 +558,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+              <TableRow sx={{ bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Effect Size (d)</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>Power (n=40/group)</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Interpretation</TableCell>
@@ -579,7 +580,7 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
                 <TableCell align="center">64%</TableCell>
                 <TableCell>Marginal detection</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+              <TableRow sx={{ bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <TableCell>0.63</TableCell>
                 <TableCell align="center">80%</TableCell>
                 <TableCell>Minimum detectable (target)</TableCell>

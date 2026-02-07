@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -70,8 +71,8 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           Continuous Probability Distributions
         </Typography>
 
@@ -96,14 +97,14 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
       {/* PDF and CDF Explanation */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📊 PDF and CDF for Continuous Distributions
         </Typography>
 
         <MathJax>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
                     Probability Density Function (PDF)
@@ -128,7 +129,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#f5f5f5', height: '100%' }}>
+              <Card sx={{ bgcolor: 'background.default', height: '100%' }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Cumulative Distribution Function (CDF)
@@ -168,7 +169,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
       {/* Distribution Selector */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🎯 Explore Continuous Distributions
         </Typography>
 
@@ -185,7 +186,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
       {/* Distribution Overview */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           {currentDist.name} Distribution
         </Typography>
 
@@ -195,7 +196,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   When to Use
@@ -208,7 +209,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Parameters
@@ -223,7 +224,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Mean & Variance
@@ -268,7 +269,7 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
       {/* Deep Dives */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📚 Deep Dive: {currentDist.name} Distribution
         </Typography>
 
@@ -541,13 +542,13 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
 
       {/* Comparison Table */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📋 Quick Reference: Normal vs Exponential
         </Typography>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e3f2fd' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom color="primary">
                   Normal (Gaussian)
@@ -572,9 +573,9 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e8f5e9' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
                   Exponential
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -599,8 +600,8 @@ const Lesson02_ContinuousDistributions = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
           ✅ Key Takeaways
         </Typography>
 

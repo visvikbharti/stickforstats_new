@@ -20,6 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 // Import existing simulation
 import CoverageSimulation from '../../simulations/CoverageSimulation';
@@ -45,8 +46,8 @@ const Lesson02_Coverage = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           Coverage Probability Visualized
         </Typography>
 
@@ -81,7 +82,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
       {activeStep === 0 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               📚 What is Coverage Probability?
             </Typography>
 
@@ -92,7 +93,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
                 identical conditions.
               </Typography>
 
-              <Box sx={{ p: 3, bgcolor: '#e3f2fd', borderRadius: 2, mb: 3 }}>
+              <Box sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   Formal Definition
                 </Typography>
@@ -134,7 +135,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#f5f5f5' }}>
+                <Card sx={{ height: '100%', bgcolor: 'background.default' }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Step 1: Set the True Parameter
@@ -148,7 +149,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#f5f5f5' }}>
+                <Card sx={{ height: '100%', bgcolor: 'background.default' }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Step 2: Sample and Calculate
@@ -162,7 +163,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#f5f5f5' }}>
+                <Card sx={{ height: '100%', bgcolor: 'background.default' }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Step 3: Check Coverage
@@ -175,7 +176,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#f5f5f5' }}>
+                <Card sx={{ height: '100%', bgcolor: 'background.default' }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Step 4: Repeat Many Times
@@ -214,7 +215,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
       {activeStep === 1 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               🎬 Animated Coverage Demonstration
             </Typography>
 
@@ -235,9 +236,9 @@ const Lesson02_Coverage = ({ onComplete }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#e8f5e9' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ color: '#388e3c' }}>
+                    <Typography variant="h6" sx={{ color: 'success.main' }}>
                       Green Intervals
                     </Typography>
                     <Typography variant="body2">
@@ -249,9 +250,9 @@ const Lesson02_Coverage = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#ffebee' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ color: '#d32f2f' }}>
+                    <Typography variant="h6" sx={{ color: 'error.main' }}>
                       Red Intervals
                     </Typography>
                     <Typography variant="body2">
@@ -263,9 +264,9 @@ const Lesson02_Coverage = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#e3f2fd' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ color: '#1976d2' }}>
+                    <Typography variant="h6" sx={{ color: 'primary.main' }}>
                       Key Observation
                     </Typography>
                     <Typography variant="body2">
@@ -301,7 +302,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
       {activeStep === 2 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               🔬 Interactive Coverage Simulation
             </Typography>
 
@@ -382,7 +383,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
       {activeStep === 3 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               ⚠️ When Coverage Breaks Down
             </Typography>
 
@@ -394,7 +395,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
             <Grid container spacing={3}>
               {/* Edge Case 1: Small Sample + Non-normality */}
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#fff3e0' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Chip label="Common Pitfall" color="warning" sx={{ mb: 2 }} />
                     <Typography variant="h6" gutterBottom>
@@ -415,7 +416,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
 
               {/* Edge Case 2: Wald vs Wilson for proportions */}
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#fff3e0' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Chip label="Method Matters" color="warning" sx={{ mb: 2 }} />
                     <Typography variant="h6" gutterBottom>
@@ -435,7 +436,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
 
               {/* Edge Case 3: Sample size matters */}
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Chip label="Good News" color="success" sx={{ mb: 2 }} />
                     <Typography variant="h6" gutterBottom>
@@ -455,7 +456,7 @@ const Lesson02_Coverage = ({ onComplete }) => {
 
               {/* Edge Case 4: Bootstrap to the rescue */}
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Chip label="Advanced Technique" color="success" sx={{ mb: 2 }} />
                     <Typography variant="h6" gutterBottom>
@@ -483,8 +484,8 @@ const Lesson02_Coverage = ({ onComplete }) => {
       )}
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
           ✅ Key Takeaways
         </Typography>
 

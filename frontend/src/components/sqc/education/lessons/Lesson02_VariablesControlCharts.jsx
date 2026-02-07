@@ -22,6 +22,7 @@ import {
   CircularProgress,
   Chip
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
 
@@ -191,7 +192,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
       label: 'Introduction: Variables Control Charts',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Monitoring Continuous Measurements
           </Typography>
 
@@ -214,7 +215,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     X̄-R Chart
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -234,7 +235,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     X̄-S Chart
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -254,7 +255,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     I-MR Chart
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -284,7 +285,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               X̄-R Chart: Mean and Range
             </Typography>
 
@@ -292,7 +293,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               The X̄-R chart uses two separate charts to monitor process location (mean) and spread (range).
             </Typography>
 
-            <Paper sx={{ p: 3, bgcolor: '#e3f2fd', my: 2 }}>
+            <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
                 Step 1: Collect Subgroups
               </Typography>
@@ -433,7 +434,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
       label: 'Interactive: Build Your Own Control Chart',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Interactive X̄-R Chart Builder
           </Typography>
 
@@ -442,7 +443,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             Watch what happens when the process shifts after subgroup 15!
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
@@ -482,7 +483,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             </Grid>
 
             {/* X̄ Chart */}
-            <Paper sx={{ p: 2, bgcolor: 'white', mt: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper', mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom align="center" sx={{ fontWeight: 600 }}>
                 X̄ Chart (Subgroup Means)
               </Typography>
@@ -564,7 +565,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             </Paper>
 
             {/* R Chart */}
-            <Paper sx={{ p: 2, bgcolor: 'white', mt: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper', mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom align="center" sx={{ fontWeight: 600 }}>
                 R Chart (Subgroup Ranges)
               </Typography>
@@ -674,7 +675,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
 
               {backendResults && (
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'success.dark' }}>
                     Backend Analysis Results
                   </Typography>
 
@@ -731,7 +732,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
                   </Grid>
 
                   {backendResults.visualizations?.control_chart && (
-                    <Paper sx={{ mt: 3, p: 2, bgcolor: 'white' }}>
+                    <Paper sx={{ mt: 3, p: 2, bgcolor: 'background.paper' }}>
                       <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                         Backend-Generated I-MR Control Chart (matplotlib SVG)
                       </Typography>
@@ -765,7 +766,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
       label: 'Practice: Western Electric Rules',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Detecting Special Causes: Beyond the Control Limits
           </Typography>
 
@@ -779,12 +780,12 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
             The 8 Western Electric Rules
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 1: Single Point Beyond 3σ
                     </Typography>
                     <Typography variant="body2">
@@ -798,7 +799,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 2: 9 Points in a Row on Same Side
                     </Typography>
                     <Typography variant="body2">
@@ -812,7 +813,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 3: 6 Points Trending
                     </Typography>
                     <Typography variant="body2">
@@ -826,7 +827,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 4: 14 Points Alternating
                     </Typography>
                     <Typography variant="body2">
@@ -840,7 +841,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 5: 2 of 3 Beyond 2σ
                     </Typography>
                     <Typography variant="body2">
@@ -854,7 +855,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 6: 4 of 5 Beyond 1σ
                     </Typography>
                     <Typography variant="body2">
@@ -868,7 +869,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 7: 15 Points Within 1σ
                     </Typography>
                     <Typography variant="body2">
@@ -882,7 +883,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
               <Grid item xs={12} md={6}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600 }}>
                       Rule 8: 8 Points Beyond 1σ
                     </Typography>
                     <Typography variant="body2">
@@ -911,11 +912,11 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
       label: 'Summary: Variables Control Charts',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               1. Variables Charts Monitor Continuous Data
             </Typography>
@@ -1004,7 +1005,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 2: Variables Control Charts
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -1039,8 +1040,8 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 2 Complete! 🎉
             </Typography>
             <Typography paragraph>

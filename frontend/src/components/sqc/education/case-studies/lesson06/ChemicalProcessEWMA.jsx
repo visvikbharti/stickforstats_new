@@ -1231,7 +1231,7 @@ const ChemicalProcessEWMA = () => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                                 Batch {data.batch}
                               </Typography>
@@ -1387,7 +1387,7 @@ const ChemicalProcessEWMA = () => {
                           const shewhartLCL = 7.20 - 3 * 0.08;
                           const shewhartOOC = data.pH > shewhartUCL || data.pH < shewhartLCL;
                           return (
-                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'white', border: '1px solid #666' }}>
+                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid #666' }}>
                               <Typography variant="caption" sx={{ fontWeight: 600 }}>Batch {data.batch}</Typography>
                               <Typography variant="caption" sx={{ display: 'block' }}>pH: {data.pH}</Typography>
                               <Typography variant="caption" sx={{ display: 'block', color: shewhartOOC ? 'error.main' : 'success.main' }}>
@@ -1435,7 +1435,7 @@ const ChemicalProcessEWMA = () => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'white', border: '1px solid #666' }}>
+                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid #666' }}>
                               <Typography variant="caption" sx={{ fontWeight: 600 }}>Batch {data.batch}</Typography>
                               <Typography variant="caption" sx={{ display: 'block' }}>C⁻: {data.cusumLower.toFixed(3)}</Typography>
                               <Typography variant="caption" sx={{ display: 'block', color: data.cusumOOC ? 'error.main' : 'success.main' }}>
@@ -1472,7 +1472,7 @@ const ChemicalProcessEWMA = () => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'white', border: '1px solid #666' }}>
+                            <Paper elevation={4} sx={{ p: 1.5, bgcolor: 'background.paper', border: '1px solid #666' }}>
                               <Typography variant="caption" sx={{ fontWeight: 600 }}>Batch {data.batch}</Typography>
                               <Typography variant="caption" sx={{ display: 'block' }}>EWMA: {data.EWMA}</Typography>
                               <Typography variant="caption" sx={{ display: 'block', color: data.outOfControl ? 'error.main' : 'success.main' }}>
@@ -1641,7 +1641,7 @@ const ChemicalProcessEWMA = () => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid ' + data.color }}>
+                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid ' + data.color }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.color }}>
                                 {data.method.replace('\n', ' ')}
                               </Typography>
@@ -1739,18 +1739,18 @@ const ChemicalProcessEWMA = () => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                            <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                                 Batch {data.batch}
                               </Typography>
                               <Divider sx={{ my: 0.5 }} />
-                              <Typography variant="body2" sx={{ fontSize: 11, color: '#4caf50' }}>
+                              <Typography variant="body2" sx={{ fontSize: 11, color: 'success.main' }}>
                                 <strong>With EWMA:</strong> ${data.ewmaLoss}K loss
                               </Typography>
-                              <Typography variant="body2" sx={{ fontSize: 11, color: '#f44336' }}>
+                              <Typography variant="body2" sx={{ fontSize: 11, color: 'error.main' }}>
                                 <strong>Without EWMA (Shewhart):</strong> ${data.shewhartLoss}K loss
                               </Typography>
-                              <Typography variant="body2" sx={{ fontSize: 11, fontWeight: 600, color: '#ff9800', mt: 0.5 }}>
+                              <Typography variant="body2" sx={{ fontSize: 11, fontWeight: 600, color: 'warning.main', mt: 0.5 }}>
                                 💰 Savings: ${data.savings}K
                               </Typography>
                             </Paper>

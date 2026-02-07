@@ -270,7 +270,7 @@ const PowerCurveSimulation = ({ embedded = false }) => {
   }, [powerCurveData, testType, alpha, showSmall, showMedium, showLarge, showCustomEffect, customEffectSize]);
 
   return (
-    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: '#fff' }}>
+    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: 'background.paper' }}>
       {!embedded && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -516,7 +516,7 @@ const PowerCurveSimulation = ({ embedded = false }) => {
           </Box>
 
           {/* Sample Size Requirements Card */}
-          <Card variant="outlined" sx={{ mt: 2, bgcolor: '#f5f5f5' }}>
+          <Card variant="outlined" sx={{ mt: 2, bgcolor: 'background.default' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <CalculateIcon color="error" />
@@ -546,7 +546,7 @@ const PowerCurveSimulation = ({ embedded = false }) => {
                       sx={{
                         p: 2,
                         textAlign: 'center',
-                        bgcolor: '#fff',
+                        bgcolor: 'background.paper',
                         borderLeft: `4px solid ${EFFECT_SIZE_CONFIG[key].color}`
                       }}
                     >

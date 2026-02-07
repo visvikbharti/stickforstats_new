@@ -403,7 +403,7 @@ const PriorPosteriorPlot = ({ embedded = false }) => {
       <Grid container spacing={3}>
         {/* Controls */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Prior Settings
             </Typography>
@@ -552,7 +552,7 @@ const PriorPosteriorPlot = ({ embedded = false }) => {
 
         {/* Results */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Grid container spacing={3}>
               <Grid item xs={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>

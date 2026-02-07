@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -615,7 +616,7 @@ const Lesson4_EnzymeInhibition = () => {
 
             <canvas ref={schemeCanvasRef} width={400} height={150} style={{ border: '1px solid #ddd', display: 'block', margin: '0 auto 20px' }} />
 
-            <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 E + I ⇌ EI (dead-end complex, no product formed)<br/>
                 E + S ⇌ ES → E + P (normal catalysis)<br/><br/>
@@ -627,7 +628,7 @@ const Lesson4_EnzymeInhibition = () => {
               Mathematical Effect
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 v = V<sub>max</sub>[S] / (K<sub>m</sub>(1 + [I]/K<sub>i</sub>) + [S])<br/><br/>
                 Define α = 1 + [I]/K<sub>i</sub><br/><br/>
@@ -677,7 +678,7 @@ const Lesson4_EnzymeInhibition = () => {
       case 2:
         return (
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
               Non-Competitive Inhibition
             </Typography>
 
@@ -697,7 +698,7 @@ const Lesson4_EnzymeInhibition = () => {
               );
             })()}
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 E + I ⇌ EI (can still bind S, but inactive)<br/>
                 ES + I ⇌ ESI (inactive complex)<br/>
@@ -709,7 +710,7 @@ const Lesson4_EnzymeInhibition = () => {
               Mathematical Effect
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 v = V<sub>max</sub>[S] / (K<sub>m</sub> + [S])(1 + [I]/K<sub>i</sub>)<br/><br/>
                 Define α = 1 + [I]/K<sub>i</sub><br/><br/>
@@ -770,7 +771,7 @@ const Lesson4_EnzymeInhibition = () => {
               not to the free enzyme. This is relatively rare but important in multi-substrate enzymes.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 E + S ⇌ ES (must form first)<br/>
                 ES + I ⇌ ESI (then inhibitor binds)<br/><br/>
@@ -782,7 +783,7 @@ const Lesson4_EnzymeInhibition = () => {
               Mathematical Effect
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 v = V<sub>max</sub>[S] / (K<sub>m</sub> + [S](1 + [I]/K<sub>i</sub>))<br/><br/>
                 Define α' = 1 + [I]/K<sub>i</sub><br/><br/>
@@ -845,7 +846,7 @@ const Lesson4_EnzymeInhibition = () => {
               affinities</strong> (K<sub>i</sub> ≠ K<sub>i</sub>').
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 E + I ⇌ EI (with K<sub>i</sub>)<br/>
                 ES + I ⇌ ESI (with K<sub>i</sub>')<br/><br/>
@@ -858,7 +859,7 @@ const Lesson4_EnzymeInhibition = () => {
               Mathematical Effect
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 v = V<sub>max</sub>[S] / (αK<sub>m</sub> + α'[S])<br/><br/>
                 α = 1 + [I]/K<sub>i</sub><br/>
@@ -950,7 +951,7 @@ const Lesson4_EnzymeInhibition = () => {
 
             <canvas ref={lwbCanvasRef} width={500} height={400} style={{ border: '1px solid #ddd', display: 'block', margin: '0 auto' }} />
 
-            <Paper sx={{ p: 2, mt: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, mt: 3, bgcolor: 'background.default' }}>
               <Typography variant="subtitle1" gutterBottom>
                 Quick Reference: Lineweaver-Burk Patterns
               </Typography>
@@ -998,7 +999,7 @@ const Lesson4_EnzymeInhibition = () => {
               apparent parameters:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 <strong>Competitive:</strong> K<sub>m,app</sub> = K<sub>m</sub>(1 + [I]/K<sub>i</sub>)<br/>
                 → K<sub>i</sub> = [I] / (K<sub>m,app</sub>/K<sub>m</sub> - 1)<br/><br/>
@@ -1018,7 +1019,7 @@ const Lesson4_EnzymeInhibition = () => {
               Practice Problems
             </Typography>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" gutterBottom>
                 Problem 1: Identify the Inhibition Type
               </Typography>
@@ -1053,7 +1054,7 @@ const Lesson4_EnzymeInhibition = () => {
               )}
             </Paper>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" gutterBottom>
                 Problem 2: Calculate K<sub>i</sub>
               </Typography>
@@ -1069,7 +1070,7 @@ const Lesson4_EnzymeInhibition = () => {
               </Typography>
             </Paper>
 
-            <Paper sx={{ p: 3, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" gutterBottom>
                 Problem 3: Interpret This Result
               </Typography>
@@ -1105,7 +1106,7 @@ const Lesson4_EnzymeInhibition = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <BlockIcon sx={{ fontSize: 40, color: '#d32f2f', mr: 2 }} />
           <Box>
@@ -1161,7 +1162,7 @@ const Lesson4_EnzymeInhibition = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

@@ -22,6 +22,7 @@ import {
   CircularProgress,
   Chip
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
 
@@ -172,7 +173,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       label: 'Introduction: Count Data and Proportions',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Monitoring Defects and Nonconformances
           </Typography>
 
@@ -194,8 +195,8 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                   p-Chart
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -210,8 +211,8 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                   np-Chart
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -226,7 +227,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#ed6c02', mb: 1 }}>
                   c-Chart
                 </Typography>
@@ -242,8 +243,8 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#9c27b0', mb: 1 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'secondary.main', mb: 1 }}>
                   u-Chart
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -273,7 +274,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               Charts for Defective Items
             </Typography>
 
@@ -376,7 +377,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       label: 'Interactive: Build p-Chart and np-Chart',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Interactive p-Chart Builder
           </Typography>
 
@@ -384,7 +385,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             Adjust the parameters to see how sample size and defect rate affect the control chart.
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
@@ -424,7 +425,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             </Grid>
 
             {/* p-Chart Visualization */}
-            <Paper sx={{ p: 2, bgcolor: 'white', mt: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper', mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom align="center" sx={{ fontWeight: 600 }}>
                 p-Chart: Proportion Defective
               </Typography>
@@ -536,7 +537,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
 
               {backendResults && (
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'success.dark' }}>
                     Backend Analysis Results (I-MR Chart for Proportions)
                   </Typography>
 
@@ -593,7 +594,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
                   </Grid>
 
                   {backendResults.visualizations?.control_chart && (
-                    <Paper sx={{ mt: 3, p: 2, bgcolor: 'white' }}>
+                    <Paper sx={{ mt: 3, p: 2, bgcolor: 'background.paper' }}>
                       <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                         Backend-Generated I-MR Chart for Proportions (matplotlib SVG)
                       </Typography>
@@ -629,7 +630,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               Charts for Defects (Not Defectives)
             </Typography>
 
@@ -742,7 +743,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       label: 'Practice: Choosing the Right Chart',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Decision Tree: Which Attribute Chart?
           </Typography>
 
@@ -750,15 +751,15 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
             Follow this decision tree to choose the appropriate attributes control chart:
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#e3f2fd', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               Step 1: Defectives or Defects?
             </Typography>
 
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: 'white' }}>
-                  <Typography variant="subtitle2" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                  <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 600 }}>
                     Counting Defective Items
                   </Typography>
                   <Typography variant="body2" paragraph sx={{ mt: 1 }}>
@@ -772,7 +773,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: 'white' }}>
+                <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
                   <Typography variant="subtitle2" sx={{ color: '#ed6c02', fontWeight: 600 }}>
                     Counting Defects
                   </Typography>
@@ -898,11 +899,11 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
       label: 'Summary: Attributes Control Charts',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               1. Four Types for Different Data
             </Typography>
@@ -1001,7 +1002,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 3: Attributes Control Charts
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -1036,8 +1037,8 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 3 Complete! 🎉
             </Typography>
             <Typography paragraph>

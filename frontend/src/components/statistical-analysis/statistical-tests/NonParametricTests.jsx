@@ -626,7 +626,7 @@ const NonParametricTests = ({ data }) => {
 
               {/* Sample Size Information */}
               {sampleSizeInfo && testType === 'mann-whitney' && (
-                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
                   <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                     Current Sample Sizes:
                   </Typography>
@@ -1558,7 +1558,7 @@ const NonParametricTests = ({ data }) => {
             </Alert>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2, bgcolor: 'grey.100' }}>
+        <DialogActions sx={{ p: 2, bgcolor: (t) => t.palette.mode === 'dark' ? t.palette.grey[800] : t.palette.grey[100] }}>
           <Button onClick={handleCloseVisualEvidence} variant="contained">
             Close
           </Button>

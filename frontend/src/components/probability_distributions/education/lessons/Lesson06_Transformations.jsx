@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -191,7 +192,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
 
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-        <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'white' }}>
+        <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'background.paper' }}>
           <svg width={width} height={height}>
             {/* Axes */}
             <line x1={margin} y1={height - margin} x2={width - 20} y2={height - margin}
@@ -282,7 +283,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             The Challenge
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2">
               Knowing the distribution of X doesn't automatically give us the distribution of Y = g(X).
               We need techniques to <strong>derive f<sub>Y</sub> from f<sub>X</sub></strong>.
@@ -293,7 +294,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Method 1: CDF Technique
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>General approach (works for any transformation):</strong>
             </Typography>
@@ -309,7 +310,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Method 2: Change of Variables (Jacobian)
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>For strictly monotonic g (more direct):</strong>
             </Typography>
@@ -331,7 +332,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Example: Linear Transformation
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
             <Typography variant="body2" gutterBottom>
               <strong>If X ~ N(0, 1) and Y = aX + b, then Y ~ N(b, a²)</strong>
             </Typography>
@@ -440,7 +441,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#e3f2fd' }}>
+              <Card variant="outlined" sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="primary" gutterBottom>
                     Transformed: Y = {distributionData.formula}
@@ -467,7 +468,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Derivation: Y = X²
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="body2" gutterBottom>
               For Y = X² where X ~ N(0,1):
             </Typography>
@@ -503,7 +504,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Definition
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               The MGF of random variable X is defined as:
             </Typography>
@@ -531,7 +532,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Why "Moment Generating"?
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Key Property:</strong> The MGF generates moments via derivatives at t=0:
             </Typography>
@@ -559,7 +560,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Example: Exponential Distribution
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               Let X ~ Exp(λ), so f(x) = λe<sup>-λx</sup> for x ≥ 0:
             </Typography>
@@ -671,7 +672,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Application: Sum of Independent Normals
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Theorem:</strong> If X ~ N(μ<sub>1</sub>, σ<sub>1</sub>²) and Y ~ N(μ<sub>2</sub>, σ<sub>2</sub>²)
               are independent, then X + Y ~ N(μ<sub>1</sub> + μ<sub>2</sub>, σ<sub>1</sub>² + σ<sub>2</sub>²).
@@ -732,7 +733,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Example: Sum of Poissons
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="body2" gutterBottom>
               If X ~ Poisson(λ<sub>1</sub>) and Y ~ Poisson(λ<sub>2</sub>) are independent, what is X + Y?
             </Typography>
@@ -824,7 +825,7 @@ const Lesson06_Transformations = ({ onComplete }) => {
             Complete Module Summary
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
             <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
               Lessons 1-6: Your Probability Journey
             </Typography>
@@ -955,9 +956,9 @@ const Lesson06_Transformations = ({ onComplete }) => {
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <TransformIcon sx={{ fontSize: 40, color: '#9c27b0', mr: 2 }} />
+          <TransformIcon sx={{ fontSize: 40, color: 'secondary.main', mr: 2 }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#9c27b0' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
               Transformations & MGFs
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

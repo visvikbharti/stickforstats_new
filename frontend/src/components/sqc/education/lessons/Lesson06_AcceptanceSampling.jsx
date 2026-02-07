@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Container,
@@ -163,7 +164,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
       label: 'Introduction: Why Acceptance Sampling?',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Making Accept/Reject Decisions on Lots
           </Typography>
 
@@ -174,9 +175,9 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ my: 2 }}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     When to Use
                   </Typography>
                   <Typography variant="body2" component="div">
@@ -191,9 +192,9 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#f57c00', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'warning.dark', mb: 1 }}>
                     Key Question
                   </Typography>
                   <Typography variant="body2">
@@ -211,14 +212,14 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             of accepting bad lots or rejecting good lots.
           </Alert>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600, mt: 3 }}>
             Types of Sampling Plans
           </Typography>
 
           <TableContainer component={Paper} sx={{ my: 2 }}>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow sx={{ bgcolor: 'background.default' }}>
                   <TableCell sx={{ fontWeight: 600 }}>Plan Type</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Advantage</TableCell>
@@ -255,7 +256,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
       label: 'Operating Characteristic (OC) Curves',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Understanding the OC Curve
           </Typography>
 
@@ -265,7 +266,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
           </Typography>
 
           <MathJax>
-            <Box sx={{ my: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+            <Box sx={{ my: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
               <Typography variant="body2" gutterBottom>
                 <strong>OC Curve Definition:</strong>
               </Typography>
@@ -287,7 +288,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             a plan that keeps these risks acceptably low.
           </Alert>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600, mt: 3 }}>
             Ideal vs. Real OC Curves
           </Typography>
 
@@ -295,7 +296,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32', mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark', mb: 2 }}>
                     Ideal OC Curve (Perfect Discrimination)
                   </Typography>
                   <svg width="100%" height="200" viewBox="0 0 300 200">
@@ -324,7 +325,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
                     Real OC Curve (Gradual Transition)
                   </Typography>
                   <svg width="100%" height="200" viewBox="0 0 300 200">
@@ -359,7 +360,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
       label: 'Interactive: Build Your Sampling Plan',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Design and Analyze a Sampling Plan
           </Typography>
 
@@ -367,7 +368,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             Adjust the parameters below to see how they affect the Operating Characteristic curve and risks:
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#fafafa', mb: 3 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', mb: 3 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography gutterBottom sx={{ fontWeight: 600 }}>
@@ -465,7 +466,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
 
           {/* OC Curve Visualization */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
               Operating Characteristic (OC) Curve
             </Typography>
 
@@ -580,12 +581,12 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
           {/* Risk Metrics */}
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="h6" sx={{ color: '#f57c00', fontWeight: 600, mb: 2 }}>
+                  <Typography variant="h6" sx={{ color: 'warning.dark', fontWeight: 600, mb: 2 }}>
                     Producer's Risk (α)
                   </Typography>
-                  <Typography variant="h3" sx={{ color: '#f57c00', mb: 1 }}>
+                  <Typography variant="h3" sx={{ color: 'warning.dark', mb: 1 }}>
                     {riskMetrics.producerRisk}%
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -607,12 +608,12 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#ffebee', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="h6" sx={{ color: '#d32f2f', fontWeight: 600, mb: 2 }}>
+                  <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 600, mb: 2 }}>
                     Consumer's Risk (β)
                   </Typography>
-                  <Typography variant="h3" sx={{ color: '#d32f2f', mb: 1 }}>
+                  <Typography variant="h3" sx={{ color: 'error.main', mb: 1 }}>
                     {riskMetrics.consumerRisk}%
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -640,8 +641,8 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
           </Alert>
 
           {/* Backend API Integration */}
-          <Paper sx={{ p: 3, mt: 3, bgcolor: '#f0f7ff', border: '2px solid #1976d2' }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+          <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.10 : 0.06), border: '2px solid #1976d2' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
               🔬 Generate Optimal Plan with Backend API
             </Typography>
 
@@ -659,7 +660,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             >
               {backendLoading ? (
                 <>
-                  <CircularProgress size={20} sx={{ mr: 1, color: '#fff' }} />
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'primary.contrastText' }} />
                   Optimizing Sampling Plan...
                 </>
               ) : (
@@ -745,7 +746,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
                       sx={{
                         mt: 2,
                         p: 2,
-                        bgcolor: '#fff',
+                        bgcolor: 'background.paper',
                         borderRadius: 1,
                         border: '1px solid #e0e0e0'
                       }}
@@ -769,7 +770,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
       label: 'Standard Sampling Plans (MIL-STD-105E)',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Industry-Standard Sampling Plans
           </Typography>
 
@@ -789,23 +790,23 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </ul>
           </Alert>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600, mt: 3 }}>
             Sample Plans by Lot Size (AQL = 1.0%)
           </Typography>
 
           <TableContainer component={Paper} sx={{ my: 2 }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#1976d2' }}>
-                  <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Lot Size</TableCell>
-                  <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Normal Inspection</TableCell>
-                  <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Tightened Inspection</TableCell>
-                  <TableCell sx={{ color: '#fff', fontWeight: 600 }}>Reduced Inspection</TableCell>
+                <TableRow sx={{ bgcolor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>Lot Size</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>Normal Inspection</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>Tightened Inspection</TableCell>
+                  <TableCell sx={{ color: 'primary.contrastText', fontWeight: 600 }}>Reduced Inspection</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {standardPlans.map((plan, idx) => (
-                  <TableRow key={idx} sx={{ '&:nth-of-type(even)': { bgcolor: '#f5f5f5' } }}>
+                  <TableRow key={idx} sx={{ '&:nth-of-type(even)': { bgcolor: 'background.default' } }}>
                     <TableCell sx={{ fontWeight: 600 }}>{plan.lotSize}</TableCell>
                     <TableCell>{plan.normalInspection}</TableCell>
                     <TableCell>{plan.tightenedInspection}</TableCell>
@@ -820,15 +821,15 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             <em>n</em> = sample size, <em>c</em> = acceptance number (accept if defects ≤ c, reject otherwise)
           </Typography>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600, mt: 3 }}>
             Switching Rules
           </Typography>
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark', mb: 1 }}>
                     Normal → Reduced
                   </Typography>
                   <Typography variant="body2">
@@ -840,9 +841,9 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <Card sx={{ bgcolor: '#ffebee', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#d32f2f', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'error.main', mb: 1 }}>
                     Normal → Tightened
                   </Typography>
                   <Typography variant="body2">
@@ -854,9 +855,9 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#f57c00', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'warning.dark', mb: 1 }}>
                     Discontinue Inspection
                   </Typography>
                   <Typography variant="body2">
@@ -879,15 +880,15 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
       label: 'Summary & Real-World Applications',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
           <Grid container spacing={2} sx={{ my: 2 }}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
                     When to Use Acceptance Sampling
                   </Typography>
                   <Typography variant="body2" component="div">
@@ -906,9 +907,9 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#f3e5f5', height: '100%' }}>
+              <Card sx={{ bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#7b1fa2', mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'secondary.dark', mb: 2 }}>
                     Design Considerations
                   </Typography>
                   <Typography variant="body2" component="div">
@@ -925,14 +926,14 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             </Grid>
           </Grid>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600, mt: 3 }}>
             Real-World Examples
           </Typography>
 
           <TableContainer component={Paper} sx={{ my: 2 }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow sx={{ bgcolor: 'background.default' }}>
                   <TableCell sx={{ fontWeight: 600 }}>Industry</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Application</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Typical Plan</TableCell>
@@ -969,7 +970,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
           </TableContainer>
 
           <MathJax>
-            <Box sx={{ my: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+            <Box sx={{ my: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
               <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
                 <strong>Formula Summary:</strong>
               </Typography>
@@ -991,7 +992,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
             producer and consumer risks.
           </Alert>
 
-          <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'success.dark', fontWeight: 600, mt: 3 }}>
             Next Steps
           </Typography>
 
@@ -1022,7 +1023,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 6: Acceptance Sampling
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -1057,8 +1058,8 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 6 Complete! 🎉
             </Typography>
             <Typography paragraph>

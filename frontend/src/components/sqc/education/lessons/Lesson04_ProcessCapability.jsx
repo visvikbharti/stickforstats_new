@@ -22,6 +22,7 @@ import {
   Chip,
   CircularProgress
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { getApiUrl } from '../../../../config/apiConfig';
 
@@ -180,7 +181,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
 
   // Get capability interpretation
   const getCapabilityInterpretation = (cpk) => {
-    if (cpk >= 2.0) return { level: 'Excellent', color: '#2e7d32', desc: 'World-class performance' };
+    if (cpk >= 2.0) return { level: 'Excellent', color: 'success.dark', desc: 'World-class performance' };
     if (cpk >= 1.67) return { level: 'Very Good', color: '#388e3c', desc: 'Six Sigma quality' };
     if (cpk >= 1.33) return { level: 'Good', color: '#689f38', desc: 'Capable process' };
     if (cpk >= 1.0) return { level: 'Adequate', color: '#fbc02d', desc: 'Minimally capable' };
@@ -195,7 +196,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       label: 'Introduction: What is Process Capability?',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Can Your Process Meet Customer Requirements?
           </Typography>
 
@@ -216,8 +217,8 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
                   Voice of the Process (VoP)
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -233,8 +234,8 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e8f5e9', height: '100%' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark', mb: 2 }}>
                   Voice of the Customer (VoC)
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -255,7 +256,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             fits comfortably within VoC (spec limits), the process is <strong>capable</strong>.
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fff3e0', mt: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mt: 2 }}>
             <Typography variant="body2">
               <strong>Critical Requirement:</strong> The process must be <strong>in statistical control</strong>
               before assessing capability! Out-of-control processes have unpredictable variation,
@@ -270,7 +271,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               Four Key Indices: Cp, Cpk, Pp, Ppk
             </Typography>
 
@@ -361,42 +362,42 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>≥ 2.0</TableCell>
                   <TableCell>6σ</TableCell>
                   <TableCell>3.4</TableCell>
                   <TableCell>99.9997%</TableCell>
                   <TableCell>Excellent (World-class)</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#f1f8e9' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.10 : 0.06) }}>
                   <TableCell>≥ 1.67</TableCell>
                   <TableCell>5σ</TableCell>
                   <TableCell>233</TableCell>
                   <TableCell>99.98%</TableCell>
                   <TableCell>Very Good (Six Sigma)</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#f9fbe7' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.08 : 0.05) }}>
                   <TableCell>≥ 1.33</TableCell>
                   <TableCell>4σ</TableCell>
                   <TableCell>6,210</TableCell>
                   <TableCell>99.38%</TableCell>
                   <TableCell>Good (Capable)</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#fffde7' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.08 : 0.05) }}>
                   <TableCell>≥ 1.0</TableCell>
                   <TableCell>3σ</TableCell>
                   <TableCell>66,807</TableCell>
                   <TableCell>93.32%</TableCell>
                   <TableCell>Adequate (Minimum)</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#fff3e0' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>≥ 0.67</TableCell>
                   <TableCell>2σ</TableCell>
                   <TableCell>308,537</TableCell>
                   <TableCell>69.15%</TableCell>
                   <TableCell>Poor</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#ffebee' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell>{'<'} 0.67</TableCell>
                   <TableCell>{'<'} 2σ</TableCell>
                   <TableCell>{'>'} 308,537</TableCell>
@@ -418,7 +419,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       label: 'Interactive: Capability Calculator',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Interactive Process Capability Calculator
           </Typography>
 
@@ -427,7 +428,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             Watch what happens to defect rates as you move the process mean or increase variation!
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="body2" gutterBottom sx={{ fontWeight: 600 }}>
@@ -497,7 +498,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             </Grid>
 
             {/* Visual Distribution */}
-            <Paper sx={{ p: 2, bgcolor: 'white', mt: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper', mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom align="center" sx={{ fontWeight: 600 }}>
                 Process Distribution vs Specification Limits
               </Typography>
@@ -651,8 +652,8 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
               </Button>
 
               {backendResults && !backendResults.error && (
-                <Paper sx={{ p: 3, mt: 3, bgcolor: 'white', border: '2px solid #1976d2' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+                <Paper sx={{ p: 3, mt: 3, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
                     ✅ Backend Results (Python/SciPy Calculated)
                   </Typography>
 
@@ -726,7 +727,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       label: 'Practice: Six Sigma and Real Applications',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Six Sigma: The Quest for Near-Perfect Quality
           </Typography>
 
@@ -735,7 +736,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             to only <strong>3.4 defects per million opportunities (DPMO)</strong> — near perfection!
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#e3f2fd', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               The Six Sigma Scale
             </Typography>
@@ -803,7 +804,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Automotive Manufacturing
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -820,7 +821,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Pharmaceutical
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -837,7 +838,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Semiconductor Fab
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -854,7 +855,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
                     Medical Device
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -911,11 +912,11 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       label: 'Summary: Process Capability',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               1. Capability Measures Process vs Specs
             </Typography>
@@ -988,7 +989,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 4: Process Capability Analysis
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -1023,8 +1024,8 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 4 Complete! 🎉
             </Typography>
             <Typography paragraph>

@@ -1,4 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -84,8 +85,8 @@ const Lesson04_Applications = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           Real-World Applications
         </Typography>
 
@@ -123,7 +124,7 @@ const Lesson04_Applications = ({ onComplete }) => {
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
                   Distribution Used
@@ -136,7 +137,7 @@ const Lesson04_Applications = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={8}>
-            <Card sx={{ bgcolor: '#f5f5f5', height: '100%' }}>
+            <Card sx={{ bgcolor: 'background.default', height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
                   Real-World Context
@@ -169,7 +170,7 @@ const Lesson04_Applications = ({ onComplete }) => {
 
       {/* Distribution-Application Matching Guide */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📋 Distribution Selection Guide
         </Typography>
 
@@ -249,8 +250,8 @@ const Lesson04_Applications = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
           ✅ Key Takeaways
         </Typography>
 

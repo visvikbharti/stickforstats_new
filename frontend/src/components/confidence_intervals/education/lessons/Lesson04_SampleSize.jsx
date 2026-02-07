@@ -17,6 +17,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 // Import existing simulation
 import SampleSizeSimulation from '../../simulations/SampleSizeSimulation';
@@ -34,8 +35,8 @@ const Lesson04_SampleSize = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           Sample Size Effects
         </Typography>
 
@@ -56,7 +57,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
       {/* Section 1: The 1/√n Law */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📏 The 1/√n Law
         </Typography>
 
@@ -66,7 +67,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
             for the mean is:
           </Typography>
 
-          <Box sx={{ p: 3, bgcolor: '#e3f2fd', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 3 }}>
             <Typography align="center" paragraph sx={{ fontSize: '1.3rem' }}>
               {"\\[ SE = \\frac{s}{\\sqrt{n}} \\]"}
             </Typography>
@@ -114,14 +115,14 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
       {/* Section 2: Practical Implications */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           💡 Practical Implications
         </Typography>
 
         <Grid container spacing={3}>
           {/* Implication 1 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#fff3e0' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Chip label="The Bad News" color="warning" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -141,7 +142,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
           {/* Implication 2 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Chip label="The Good News" color="success" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -161,7 +162,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
           {/* Implication 3 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#e3f2fd' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Chip label="Planning" color="info" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -184,7 +185,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
           {/* Implication 4 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#fce4ec' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Chip label="Warning" color="error" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -206,7 +207,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
       {/* Section 3: The Width Formula */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📐 Confidence Interval Width Formula
         </Typography>
 
@@ -215,7 +216,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
             For a 95% t-interval for the mean:
           </Typography>
 
-          <Box sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: 'background.default', borderRadius: 2, mb: 3 }}>
             <Typography align="center" paragraph sx={{ fontSize: '1.2rem' }}>
               {"\\[ \\text{Width} = 2 \\times t_{0.025, n-1} \\times \\frac{s}{\\sqrt{n}} \\]"}
             </Typography>
@@ -272,7 +273,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
                 Suppose s = 10 and we want 95% confidence. How does width change with n?
               </Typography>
 
-              <Box component="table" sx={{ width: '100%', '& td, & th': { p: 1, border: '1px solid #ddd' } }}>
+              <Box component="table" sx={{ width: '100%', '& td, & th': { p: 1, border: (theme) => `1px solid ${theme.palette.divider}` } }}>
                 <thead>
                   <tr>
                     <th>Sample Size (n)</th>
@@ -319,7 +320,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
       {/* Section 4: Interactive Simulation */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🔬 Interactive Sample Size Simulation
         </Typography>
 
@@ -366,7 +367,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
 
       {/* Section 5: Practical Guidelines */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📋 Practical Sample Size Guidelines
         </Typography>
 
@@ -378,7 +379,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   For Means (t-intervals)
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -395,7 +396,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   For Proportions
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -412,7 +413,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   Pre-Specified Margin of Error
                 </Typography>
                 <MathJax>
@@ -433,7 +434,7 @@ const Lesson04_SampleSize = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   Cost-Benefit Considerations
                 </Typography>
                 <Typography variant="body2">
@@ -452,8 +453,8 @@ const Lesson04_SampleSize = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
           ✅ Key Takeaways
         </Typography>
 

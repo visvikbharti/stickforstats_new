@@ -29,6 +29,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import BalanceIcon from '@mui/icons-material/Balance';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { alpha as alphaFn } from '@mui/material/styles';
 
 /**
  * Lesson 1: The Fundamental Problem
@@ -165,7 +166,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
           sx={{
             p: 4,
             mb: 4,
-            bgcolor: '#ffebee',
+            bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
             borderLeft: '4px solid #f44336'
           }}
         >
@@ -191,7 +192,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
 
         {/* The Stakes: Why This Matters */}
         <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
             <BalanceIcon /> The Stakes: Why This Matters
           </Typography>
 
@@ -273,7 +274,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
 
         {/* Interactive Demo: Sample Size and Power */}
         <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
             🔬 Interactive Demo: Sample Size and Detection
           </Typography>
 
@@ -359,7 +360,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
           </Grid>
 
           {/* Power Interpretation */}
-          <Box sx={{ mt: 3, p: 2, bgcolor: power > 0.8 ? '#e8f5e9' : power > 0.5 ? '#fff3e0' : '#ffebee', borderRadius: 2 }}>
+          <Box sx={{ mt: 3, p: 2, bgcolor: (theme) => power > 0.8 ? alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) : power > 0.5 ? alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) : alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2 }}>
             <Typography variant="body1">
               With <strong>n = {sampleSize}</strong> per group and a medium effect size (d = 0.5):
             </Typography>
@@ -375,7 +376,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
 
         {/* The Deeper Question */}
         <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
             <LightbulbIcon /> The Deeper Question
           </Typography>
 
@@ -383,7 +384,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             When a researcher asks "How many mice do I need?", they're really asking a deeper question:
           </Typography>
 
-          <Paper elevation={0} sx={{ p: 3, bgcolor: '#e3f2fd', borderRadius: 2, mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 3 }}>
             <Typography variant="h6" align="center" sx={{ fontStyle: 'italic' }}>
               "What is the <strong>minimum sample size</strong> that gives me a <strong>reasonable chance</strong> of
               detecting a real effect, <strong>if one exists</strong>?"
@@ -398,7 +399,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     "Minimum sample size"
                   </Typography>
                   <Typography variant="body2">
@@ -410,7 +411,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     "Reasonable chance"
                   </Typography>
                   <Typography variant="body2">
@@ -422,7 +423,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     "If one exists"
                   </Typography>
                   <Typography variant="body2">
@@ -436,7 +437,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
 
         {/* Real-World Consequences */}
         <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
             📊 Real-World Consequences of Underpowered Studies
           </Typography>
 
@@ -447,7 +448,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow sx={{ bgcolor: 'background.default' }}>
                   <TableCell><strong>Sample Size (per group)</strong></TableCell>
                   <TableCell><strong>Power (d = 0.5)</strong></TableCell>
                   <TableCell><strong>Probability of Missing Effect</strong></TableCell>
@@ -491,7 +492,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
 
         {/* Power Analysis as the Solution */}
         <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleIcon /> Power Analysis: The Principled Solution
           </Typography>
 
@@ -508,7 +509,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             ].map((item, idx) => (
               <Grid item xs={12} sm={6} md={3} key={idx}>
                 <Card variant="outlined" sx={{ height: '100%', textAlign: 'center', p: 2 }}>
-                  <Typography variant="h4" sx={{ color: '#1976d2', fontFamily: 'serif', mb: 1 }}>
+                  <Typography variant="h4" sx={{ color: 'primary.main', fontFamily: 'serif', mb: 1 }}>
                     {item.symbol}
                   </Typography>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -522,7 +523,7 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
             ))}
           </Grid>
 
-          <Paper elevation={0} sx={{ p: 3, bgcolor: '#e8f5e9', borderRadius: 2 }}>
+          <Paper elevation={0} sx={{ p: 3, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2 }}>
             <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
               The Fundamental Relationship
             </Typography>
@@ -541,8 +542,8 @@ const Lesson01_FundamentalProblem = ({ onComplete }) => {
         </Paper>
 
         {/* Summary */}
-        <Paper elevation={2} sx={{ p: 4, mb: 4, bgcolor: '#f5f5f5' }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Paper elevation={2} sx={{ p: 4, mb: 4, bgcolor: 'background.default' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
             📝 Key Takeaways
           </Typography>
 

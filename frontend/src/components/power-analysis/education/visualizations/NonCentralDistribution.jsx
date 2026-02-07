@@ -30,6 +30,7 @@ import {
   Switch,
   FormControlLabel
 } from '@mui/material';
+import { alpha as alphaFn } from '@mui/material/styles';
 import { normalPDF, normalCDF, tPDF, tCDF, normalQuantile } from '../utils/distributionFunctions';
 
 // Approximation for non-central t PDF
@@ -348,7 +349,7 @@ const NonCentralDistribution = ({ embedded = false }) => {
       <Grid container spacing={3}>
         {/* Controls */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Parameters
             </Typography>
@@ -456,7 +457,7 @@ const NonCentralDistribution = ({ embedded = false }) => {
 
         {/* Results */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Grid container spacing={3}>
               <Grid item xs={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
@@ -497,7 +498,7 @@ const NonCentralDistribution = ({ embedded = false }) => {
         {/* Formula display */}
         {showFormulas && (
           <Grid item xs={12}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle2" gutterBottom fontWeight="bold">
                 Key Formulas
               </Typography>

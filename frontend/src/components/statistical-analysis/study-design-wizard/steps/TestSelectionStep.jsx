@@ -40,6 +40,7 @@ import {
   TextField,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
@@ -458,7 +459,7 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
         <Alert
           severity="info"
           icon={<AIIcon />}
-          sx={{ mb: 3, bgcolor: '#e3f2fd' }}
+          sx={{ mb: 3, bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.12 : 0.08) }}
         >
           <Typography variant="subtitle2" fontWeight={600} gutterBottom>
             Recommended Test: {primaryRecommendation.name}
@@ -476,7 +477,7 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
                 key={idx}
                 label={reason}
                 size="small"
-                sx={{ fontSize: '0.7rem', bgcolor: 'white' }}
+                sx={{ fontSize: '0.7rem', bgcolor: 'background.paper' }}
               />
             ))}
           </Box>
@@ -567,7 +568,7 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
                       position: 'absolute',
                       top: 8,
                       right: 8,
-                      bgcolor: '#4caf50',
+                      bgcolor: 'success.main',
                       color: 'white',
                       borderRadius: '50%',
                       width: 28,
@@ -594,7 +595,7 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
                         sx={{ fontSize: '0.65rem', height: 20 }}
                       />
                       {isSelected && (
-                        <CheckIcon sx={{ color: '#1976d2', fontSize: 20, ml: 'auto' }} />
+                        <CheckIcon sx={{ color: 'primary.main', fontSize: 20, ml: 'auto' }} />
                       )}
                     </Box>
 
@@ -619,8 +620,8 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
 
       {/* Selected Test Details */}
       {testSelection.selectedTest && STATISTICAL_TESTS[testSelection.selectedTest] && (
-        <Paper elevation={2} sx={{ mt: 3, p: 2, bgcolor: '#f8f9fa' }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+        <Paper elevation={2} sx={{ mt: 3, p: 2, bgcolor: 'background.default' }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
             Selected: {STATISTICAL_TESTS[testSelection.selectedTest].name}
           </Typography>
 

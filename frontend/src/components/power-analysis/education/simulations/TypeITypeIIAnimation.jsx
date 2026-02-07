@@ -543,7 +543,7 @@ const TypeITypeIIAnimation = ({ embedded = false, onPowerChange = null }) => {
   return (
     <Paper
       elevation={embedded ? 0 : 3}
-      sx={{ p: 3, bgcolor: '#fff' }}
+      sx={{ p: 3, bgcolor: 'background.paper' }}
       ref={containerRef}
     >
       {!embedded && (
@@ -647,7 +647,7 @@ const TypeITypeIIAnimation = ({ embedded = false, onPowerChange = null }) => {
           </Card>
 
           {/* Results Card */}
-          <Card variant="outlined" sx={{ bgcolor: '#f5f5f5' }}>
+          <Card variant="outlined" sx={{ bgcolor: 'background.default' }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ mb: 2 }}>
                 Calculated Values
@@ -799,7 +799,7 @@ const TypeITypeIIAnimation = ({ embedded = false, onPowerChange = null }) => {
 
       {/* Formulas */}
       {showFormulas && (
-        <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+        <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
           <Typography variant="subtitle2" gutterBottom>Mathematical Relationships</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>

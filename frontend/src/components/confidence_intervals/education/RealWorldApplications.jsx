@@ -694,7 +694,7 @@ const RealWorldApplications = () => {
                             Visualization of Results
                           </Typography>
                           
-                          <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', mb: 2 }}>
+                          <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', mb: 2 }}>
                             {/* Placeholder for forest plot or confidence interval visualization */}
                             <Typography variant="body2" color="text.secondary">
                               [Forest plot visualization of trial results]
@@ -1004,7 +1004,7 @@ const RealWorldApplications = () => {
                         </Typography>
                         
                         {/* Placeholder for a forest plot example */}
-                        <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5' }}>
+                        <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
                           <Typography variant="body2" color="text.secondary">
                             [Example forest plot showing confidence intervals across multiple studies or groups]
                           </Typography>
@@ -1126,7 +1126,7 @@ const RealWorldApplications = () => {
                   <Accordion defaultExpanded>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="subtitle1">
-                        <WarningIcon sx={{ mr: 1, color: '#f44336' }} />
+                        <WarningIcon sx={{ mr: 1, color: 'error.main' }} />
                         Misinterpreting the Confidence Level
                       </Typography>
                     </AccordionSummary>
@@ -1169,7 +1169,7 @@ const RealWorldApplications = () => {
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="subtitle1">
-                        <WarningIcon sx={{ mr: 1, color: '#f44336' }} />
+                        <WarningIcon sx={{ mr: 1, color: 'error.main' }} />
                         Confusing Confidence and Prediction Intervals
                       </Typography>
                     </AccordionSummary>
@@ -1219,7 +1219,7 @@ const RealWorldApplications = () => {
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="subtitle1">
-                        <WarningIcon sx={{ mr: 1, color: '#f44336' }} />
+                        <WarningIcon sx={{ mr: 1, color: 'error.main' }} />
                         Over-Reliance on Statistical Significance
                       </Typography>
                     </AccordionSummary>
@@ -1265,7 +1265,7 @@ const RealWorldApplications = () => {
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="subtitle1">
-                        <WarningIcon sx={{ mr: 1, color: '#f44336' }} />
+                        <WarningIcon sx={{ mr: 1, color: 'error.main' }} />
                         Inappropriate Methods and Violated Assumptions
                       </Typography>
                     </AccordionSummary>
@@ -1385,7 +1385,7 @@ const RealWorldApplications = () => {
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="subtitle1">
-                        <WarningIcon sx={{ mr: 1, color: '#f44336' }} />
+                        <WarningIcon sx={{ mr: 1, color: 'error.main' }} />
                         Cherry-Picking and Publication Bias
                       </Typography>
                     </AccordionSummary>

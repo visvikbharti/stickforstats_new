@@ -57,6 +57,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
 // Import functions
+import { alpha as alphaFn } from '@mui/material/styles';
 import { normalPDF, normalCDF } from '../utils/distributionFunctions';
 import { dToR, rToD, etaSquaredToF, fToEtaSquared } from '../utils/powerCalculations';
 
@@ -384,7 +385,7 @@ const EffectSizeExplorer = ({ embedded = false }) => {
   }, [calculations.d]);
 
   return (
-    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: '#fff' }}>
+    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: 'background.paper' }}>
       {!embedded && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -439,10 +440,14 @@ const EffectSizeExplorer = ({ embedded = false }) => {
               {/* Interpretation */}
               <Box sx={{
                 p: 2,
-                bgcolor: calculations.interpretation === 'Negligible' ? '#f5f5f5'
-                  : calculations.interpretation === 'Small' ? '#e3f2fd'
-                    : calculations.interpretation === 'Medium' ? '#fff3e0'
-                      : '#ffebee',
+                bgcolor: (theme) => {
+                  const isDark = theme.palette.mode === 'dark';
+                  const a = isDark ? 0.12 : 0.08;
+                  if (calculations.interpretation === 'Negligible') return theme.palette.background.default;
+                  if (calculations.interpretation === 'Small') return alphaFn(theme.palette.primary.main, a);
+                  if (calculations.interpretation === 'Medium') return alphaFn(theme.palette.warning.main, a);
+                  return alphaFn(theme.palette.error.main, a);
+                },
                 borderRadius: 2,
                 textAlign: 'center'
               }}>
@@ -558,7 +563,7 @@ const EffectSizeExplorer = ({ embedded = false }) => {
       </Grid>
 
       {/* Effect Size Reference Table */}
-      <Card variant="outlined" sx={{ mt: 3, bgcolor: '#f5f5f5' }}>
+      <Card variant="outlined" sx={{ mt: 3, bgcolor: 'background.default' }}>
         <CardContent>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <SchoolIcon /> Effect Size Interpretation Guide
@@ -617,7 +622,7 @@ const EffectSizeExplorer = ({ embedded = false }) => {
       </Card>
 
       {/* Formulas */}
-      <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+      <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
         <Typography variant="subtitle2" gutterBottom>Conversion Formulas</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>

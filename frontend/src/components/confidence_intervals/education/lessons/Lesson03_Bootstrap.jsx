@@ -20,6 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 // Import existing simulation
 import BootstrapSimulation from '../../simulations/BootstrapSimulation';
@@ -44,8 +45,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           Bootstrap Methods Interactive
         </Typography>
 
@@ -88,7 +89,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
       {activeSection === 0 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               💡 The Bootstrap Idea
             </Typography>
 
@@ -98,8 +99,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
                 The t-interval formula doesn't work for medians. What do you do?
               </Typography>
 
-              <Box sx={{ p: 3, bgcolor: '#fff3e0', borderRadius: 2, mb: 3 }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#e65100' }}>
+              <Box sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'warning.dark' }}>
                   The Problem
                 </Typography>
 
@@ -120,8 +121,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
                 </Typography>
               </Box>
 
-              <Box sx={{ p: 3, bgcolor: '#e8f5e9', borderRadius: 2 }}>
-                <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+              <Box sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
                   The Bootstrap Solution
                 </Typography>
 
@@ -164,7 +165,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#e3f2fd' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       With Replacement
@@ -179,7 +180,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#ffebee' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Without Replacement
@@ -219,7 +220,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
       {activeSection === 1 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               ⚙️ How Bootstrap Works: Step-by-Step
             </Typography>
 
@@ -228,7 +229,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
                 Let's walk through a concrete example with a small dataset to see exactly what happens.
               </Typography>
 
-              <Box sx={{ p: 3, bgcolor: '#fafafa', borderRadius: 2, mb: 3 }}>
+              <Box sx={{ p: 3, bgcolor: 'background.default', borderRadius: 2, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   Example: Bootstrap for the Median
                 </Typography>
@@ -303,7 +304,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                       Percentile Method
                     </Typography>
                     <Typography variant="body2">
@@ -316,7 +317,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                       Basic Method
                     </Typography>
                     <Typography variant="body2">
@@ -329,7 +330,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                       BCa Method
                     </Typography>
                     <Typography variant="body2">
@@ -356,7 +357,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
       {activeSection === 2 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               📐 Three Bootstrap Confidence Interval Methods
             </Typography>
 
@@ -369,7 +370,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               {/* Percentile Method */}
               <Accordion defaultExpanded>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
                     1. Percentile Method (Simplest)
                   </Typography>
                 </AccordionSummary>
@@ -401,8 +402,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
 
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#e8f5e9', borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                        <Box sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.dark' }}>
                             ✓ Pros
                           </Typography>
                           <Typography variant="body2">
@@ -413,8 +414,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
                         </Box>
                       </Grid>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#ffebee', borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#c62828' }}>
+                        <Box sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'error.dark' }}>
                             ✗ Cons
                           </Typography>
                           <Typography variant="body2">
@@ -431,7 +432,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               {/* Basic Method */}
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
                     2. Basic (Reverse Percentile) Method
                   </Typography>
                 </AccordionSummary>
@@ -473,7 +474,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
               {/* BCa Method */}
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
                     3. BCa Method (Most Advanced)
                   </Typography>
                 </AccordionSummary>
@@ -540,7 +541,7 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
       {activeSection === 3 && (
         <>
           <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
               🧪 Interactive Bootstrap Simulation
             </Typography>
 
@@ -646,8 +647,8 @@ const Lesson03_Bootstrap = ({ onComplete }) => {
       )}
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
           ✅ Key Takeaways
         </Typography>
 

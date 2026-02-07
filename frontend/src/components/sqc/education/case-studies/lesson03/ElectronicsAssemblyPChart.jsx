@@ -1037,7 +1037,7 @@ const ElectronicsAssemblyPChart = ({ onComplete }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: data.outOfControl ? '2px solid #f44336' : '2px solid #1976d2' }}>
+                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: data.outOfControl ? '2px solid #f44336' : '2px solid #1976d2' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.outOfControl ? 'error.main' : 'primary.main' }}>
                         Day {data.day}
                       </Typography>
@@ -1632,7 +1632,7 @@ const ElectronicsAssemblyPChart = ({ onComplete }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: `2px solid ${data.color}` }}>
+                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: `2px solid ${data.color}` }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.color }}>
                         {data.type.replace('\n', ' ')}
                       </Typography>
@@ -2228,7 +2228,7 @@ const ElectronicsAssemblyPChart = ({ onComplete }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: `2px solid ${data.color}` }}>
+                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: `2px solid ${data.color}` }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.color }}>
                         {data.category.replace('\n', ' ')}
                       </Typography>
@@ -2646,7 +2646,7 @@ const ElectronicsAssemblyPChart = ({ onComplete }) => {
               </Typography>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Detective Function
                     </Typography>
@@ -2658,7 +2658,7 @@ const ElectronicsAssemblyPChart = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                       Preventive Function
                     </Typography>

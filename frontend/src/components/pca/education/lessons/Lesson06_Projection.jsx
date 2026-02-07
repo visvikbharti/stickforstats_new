@@ -659,7 +659,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 Projection Formula
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   Given a data point <MathJax inline>{"\\(\\mathbf{x}\\)"}</MathJax> and principal components
                   <MathJax inline>{"\\(\\mathbf{v}_1, \\mathbf{v}_2, \\ldots, \\mathbf{v}_k\\)"}</MathJax>:
@@ -683,7 +683,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 Reconstruction Formula
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   To reconstruct the approximate original point from k components:
                 </Typography>
@@ -702,7 +702,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 Reconstruction Error
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   The error for a single point is the Euclidean distance:
                 </Typography>

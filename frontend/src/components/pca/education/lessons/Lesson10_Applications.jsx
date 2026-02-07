@@ -226,7 +226,7 @@ const Lesson10_Applications = ({ onComplete }) => {
               </Tabs>
 
               {/* Domain content */}
-              <Paper sx={{ p: 3, bgcolor: 'white', borderTop: `4px solid ${domains[selectedDomain].color}` }}>
+              <Paper sx={{ p: 3, bgcolor: 'background.paper', borderTop: `4px solid ${domains[selectedDomain].color}` }}>
                 <Typography variant="h5" gutterBottom sx={{ color: domains[selectedDomain].color }}>
                   {domains[selectedDomain].application}
                 </Typography>

@@ -37,6 +37,7 @@ import {
   Divider,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -154,7 +155,7 @@ const VariableEditor = ({ variable, onSave, onCancel, title }) => {
   const showLevels = type === 'categorical' || type === 'ordinal' || type === 'binary';
 
   return (
-    <Card elevation={3} sx={{ p: 2, mb: 2, bgcolor: '#f8f9fa' }}>
+    <Card elevation={3} sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}>
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
         {title}
       </Typography>
@@ -482,7 +483,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
           <Grid item xs={12} md={6}>
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight={600} color="#2196f3">
+                <Typography variant="subtitle1" fontWeight={600} color="primary">
                   Independent Variables (IV)
                 </Typography>
                 <Button
@@ -524,7 +525,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
                 variables={variables.independentVariables}
                 onEdit={(v) => setEditingIV(v)}
                 onDelete={(id) => handleDeleteVariable('iv', id)}
-                color="#2196f3"
+                color="primary.main"
               />
             </Box>
           </Grid>
@@ -534,7 +535,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
         <Grid item xs={12} md={isCorrelational ? 12 : 6}>
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="subtitle1" fontWeight={600} color="#4caf50">
+              <Typography variant="subtitle1" fontWeight={600} color="success.main">
                 {isCorrelational ? 'Variables to Correlate' : 'Dependent Variables (DV)'}
               </Typography>
               <Button
@@ -579,7 +580,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
               variables={variables.dependentVariables}
               onEdit={(v) => setEditingDV(v)}
               onDelete={(id) => handleDeleteVariable('dv', id)}
-              color="#4caf50"
+              color="success.main"
             />
           </Box>
         </Grid>
@@ -590,7 +591,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle1" fontWeight={600} color="#ff9800">
+                <Typography variant="subtitle1" fontWeight={600} color="warning.main">
                   Covariates (Optional)
                 </Typography>
                 <Tooltip title="Variables you want to control for in the analysis">
@@ -632,7 +633,7 @@ const VariablesStep = ({ data, updateData, errors }) => {
                 variables={variables.covariates}
                 onEdit={(v) => setEditingCovariate(v)}
                 onDelete={(id) => handleDeleteVariable('covariate', id)}
-                color="#ff9800"
+                color="warning.main"
               />
             ) : (
               <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>

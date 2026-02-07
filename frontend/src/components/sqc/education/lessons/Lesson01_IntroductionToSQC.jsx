@@ -22,6 +22,7 @@ import {
   CardContent,
   Grid
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
 /**
@@ -95,7 +96,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
       label: 'Introduction: Why Quality Control Matters',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             The Journey to World-Class Quality
           </Typography>
 
@@ -118,7 +119,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     1920s: Shewhart
                   </Typography>
                   <Typography variant="body2">
@@ -131,7 +132,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     1950s: Deming
                   </Typography>
                   <Typography variant="body2">
@@ -144,7 +145,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     1980s: Six Sigma
                   </Typography>
                   <Typography variant="body2">
@@ -157,7 +158,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             <Grid item xs={12} md={6}>
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     1990s: Lean + SPC
                   </Typography>
                   <Typography variant="body2">
@@ -180,7 +181,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
       content: (
         <MathJaxContext>
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
               The Two Types of Variation
             </Typography>
 
@@ -188,8 +189,8 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
               Shewhart's fundamental insight: All processes exhibit variation from two distinct sources:
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', my: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2e7d32' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.dark' }}>
                 1. Common Cause Variation (Random Variation)
               </Typography>
               <Typography variant="body2" paragraph>
@@ -201,7 +202,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
               </Typography>
             </Paper>
 
-            <Paper sx={{ p: 2, bgcolor: '#ffebee', my: 2 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), my: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#d32f2f' }}>
                 2. Special Cause Variation (Assignable Variation)
               </Typography>
@@ -281,7 +282,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
       label: 'Interactive: Visualize Variation Types',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Explore Different Types of Variation
           </Typography>
 
@@ -290,7 +291,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             run chart. Understanding these patterns is critical for interpreting control charts.
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
               Select Variation Pattern:
             </Typography>
@@ -333,7 +334,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             )}
 
             {/* Run Chart Visualization */}
-            <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
               <Typography variant="subtitle2" gutterBottom align="center" sx={{ fontWeight: 600 }}>
                 Process Run Chart
               </Typography>
@@ -419,7 +420,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
       label: 'Practice: Control vs Capability',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Understanding Control vs Capability
           </Typography>
 
@@ -429,8 +430,8 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
 
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e8f5e9', height: '100%' }}>
-                <Typography variant="h6" sx={{ color: '#2e7d32', fontWeight: 600, mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="h6" sx={{ color: 'success.dark', fontWeight: 600, mb: 2 }}>
                   Statistical Control
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -455,8 +456,8 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', height: '100%' }}>
-                <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 600, mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600, mb: 2 }}>
                   Process Capability
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -495,25 +496,25 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+              <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <TableCell>✓ Yes</TableCell>
                 <TableCell>✓ Yes</TableCell>
                 <TableCell>Ideal — stable and meeting specs</TableCell>
                 <TableCell>Monitor and maintain</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#fff3e0' }}>
+              <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <TableCell>✓ Yes</TableCell>
                 <TableCell>✗ No</TableCell>
                 <TableCell>Stable but too much variation</TableCell>
                 <TableCell>Reduce common cause variation (improve system)</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#ffebee' }}>
+              <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <TableCell>✗ No</TableCell>
                 <TableCell>✓ Yes</TableCell>
                 <TableCell>Capable but unstable</TableCell>
                 <TableCell>Eliminate special causes first!</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#ffcdd2' }}>
+              <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.15 : 0.12) }}>
                 <TableCell>✗ No</TableCell>
                 <TableCell>✗ No</TableCell>
                 <TableCell>Worst case — unstable and incapable</TableCell>
@@ -533,11 +534,11 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
       label: 'Summary: The SPC Philosophy',
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'error.main', fontWeight: 600 }}>
             Key Takeaways
           </Typography>
 
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', my: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', my: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
               1. All Variation Is Not Created Equal
             </Typography>
@@ -614,7 +615,7 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#d32f2f', fontWeight: 700 }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'error.main', fontWeight: 700 }}>
           Lesson 1: Introduction to Statistical Quality Control
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
@@ -649,8 +650,8 @@ const Lesson01_IntroductionToSQC = ({ onComplete }) => {
         </Stepper>
 
         {activeStep === steps.length && (
-          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+          <Paper square elevation={0} sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
               Lesson 1 Complete! 🎉
             </Typography>
             <Typography paragraph>

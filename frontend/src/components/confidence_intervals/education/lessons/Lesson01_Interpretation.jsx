@@ -19,6 +19,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import InfoIcon from '@mui/icons-material/Info';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 // Import existing visualization
 import IntervalConstructionAnimation from '../../visualizations/IntervalConstructionAnimation';
@@ -41,8 +42,8 @@ const Lesson01_Interpretation = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           What is a Confidence Interval?
         </Typography>
 
@@ -66,7 +67,7 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
       {/* Section 1: The Frequentist Interpretation */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📊 The Correct Frequentist Interpretation
         </Typography>
 
@@ -93,7 +94,7 @@ const Lesson01_Interpretation = ({ onComplete }) => {
           </Typography>
         </Alert>
 
-        <Box sx={{ mt: 3, p: 3, bgcolor: '#e3f2fd', borderRadius: 2 }}>
+        <Box sx={{ mt: 3, p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2 }}>
           <Typography variant="h6" gutterBottom>
             The Key Insight
           </Typography>
@@ -118,7 +119,7 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
       {/* Section 2: Interactive Construction */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🔧 Interactive: Build Your Own Confidence Intervals
         </Typography>
 
@@ -146,18 +147,18 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
       {/* Section 3: Common Misconceptions */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           ⚠️ Common Misconceptions
         </Typography>
 
         <Grid container spacing={2}>
           {/* Misconception 1 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#ffebee' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ErrorIcon sx={{ color: '#d32f2f', mr: 1 }} />
-                  <Typography variant="h6" sx={{ color: '#d32f2f' }}>
+                  <ErrorIcon sx={{ color: 'error.main', mr: 1 }} />
+                  <Typography variant="h6" sx={{ color: 'error.main' }}>
                     Misconception #1
                   </Typography>
                 </Box>
@@ -176,11 +177,11 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
           {/* Misconception 2 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#ffebee' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ErrorIcon sx={{ color: '#d32f2f', mr: 1 }} />
-                  <Typography variant="h6" sx={{ color: '#d32f2f' }}>
+                  <ErrorIcon sx={{ color: 'error.main', mr: 1 }} />
+                  <Typography variant="h6" sx={{ color: 'error.main' }}>
                     Misconception #2
                   </Typography>
                 </Box>
@@ -200,11 +201,11 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
           {/* Misconception 3 */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#ffebee' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ErrorIcon sx={{ color: '#d32f2f', mr: 1 }} />
-                  <Typography variant="h6" sx={{ color: '#d32f2f' }}>
+                  <ErrorIcon sx={{ color: 'error.main', mr: 1 }} />
+                  <Typography variant="h6" sx={{ color: 'error.main' }}>
                     Misconception #3
                   </Typography>
                 </Box>
@@ -223,11 +224,11 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
           {/* Correct Statement */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+            <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <CheckCircleIcon sx={{ color: '#388e3c', mr: 1 }} />
-                  <Typography variant="h6" sx={{ color: '#388e3c' }}>
+                  <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
+                  <Typography variant="h6" sx={{ color: 'success.main' }}>
                     Correct Statement
                   </Typography>
                 </Box>
@@ -249,12 +250,12 @@ const Lesson01_Interpretation = ({ onComplete }) => {
 
       {/* Section 4: The Formula Explained */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📐 The Standard Formula
         </Typography>
 
         <MathJax>
-          <Box sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: 'background.default', borderRadius: 2, mb: 3 }}>
             <Typography variant="h6" align="center" gutterBottom>
               {"\\[ \\text{Confidence Interval} = \\bar{x} \\pm t_{\\alpha/2, n-1} \\times \\frac{s}{\\sqrt{n}} \\]"}
             </Typography>
@@ -360,8 +361,8 @@ const Lesson01_Interpretation = ({ onComplete }) => {
       </Accordion>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
           ✅ Key Takeaways
         </Typography>
 

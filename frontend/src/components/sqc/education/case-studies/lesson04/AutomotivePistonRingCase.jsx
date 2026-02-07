@@ -448,7 +448,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
           centered on the target. It compares the tolerance width to the natural process spread (6σ).
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               C_p = \\frac{\\text{USL} - \\text{LSL}}{6\\sigma}
@@ -515,7 +515,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
           is from the nearest specification limit.
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               C_{pk} = \\min\\left(\\frac{\\text{USL} - \\mu}{3\\sigma}, \\frac{\\mu - \\text{LSL}}{3\\sigma}\\right)
@@ -600,7 +600,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
           over time.
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               P_p = \\frac{\\text{USL} - \\text{LSL}}{6\\sigma_{overall}}
@@ -662,7 +662,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
           It's the most realistic measure of what customers actually experience.
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               P_{pk} = \\min\\left(\\frac{\\text{USL} - \\mu}{3\\sigma_{overall}}, \\frac{\\mu - \\text{LSL}}{3\\sigma_{overall}}\\right)
@@ -963,7 +963,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
 
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Process Statistics
               </Typography>
@@ -999,7 +999,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Specification Limits
               </Typography>
@@ -1224,7 +1224,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                           Measurement {data.measurement}
                         </Typography>
@@ -1344,7 +1344,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                    <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                         Bin: {data.binCenter}mm
                       </Typography>
@@ -2037,7 +2037,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: `2px solid ${data.color}` }}>
+                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: `2px solid ${data.color}` }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.color }}>
                             {data.category.replace('\n', ' ')}
                           </Typography>

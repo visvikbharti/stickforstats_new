@@ -62,6 +62,7 @@ import {
   BoltOutlined,
   Warning,
 } from '@mui/icons-material';
+import { alpha as alphaFn } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -493,7 +494,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, bgcolor: '#fafafa', mb: 3 }}>
+      <Paper sx={{ p: 3, bgcolor: 'background.default', mb: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
           The Fundamental Principle
         </Typography>
@@ -560,7 +561,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
                 This reduces the overlap between H₀ and H₁ distributions, making effects easier to detect.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontFamily: 'serif', textAlign: 'center' }}>
                   Standard Error = σ / √n
                 </Typography>
@@ -629,7 +630,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="subtitle2">z<sub>α/2</sub></Typography>
               <Typography variant="body2">
                 Critical value for significance level<br/>
@@ -639,7 +640,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="subtitle2">z<sub>β</sub></Typography>
               <Typography variant="body2">
                 Critical value for power<br/>
@@ -649,7 +650,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="subtitle2">d</Typography>
               <Typography variant="body2">
                 Cohen's d effect size<br/>
@@ -669,7 +670,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fff3e0' }}>
+          <Paper sx={{ p: 3, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
             <Typography variant="body1" paragraph>
               <strong>Scenario:</strong> You want to detect a medium effect (d = 0.5) with
               80% power at α = 0.05 (two-tailed).
@@ -720,7 +721,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
                 independent of sample size.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', textAlign: 'center' }}>
                   Cohen's d = (μ₁ - μ₂) / σ<sub>pooled</sub>
                 </Typography>
@@ -792,7 +793,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#4caf50' }}>
                 1. Prior Literature
               </Typography>
@@ -803,7 +804,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#2196f3' }}>
                 2. Pilot Data
               </Typography>
@@ -814,7 +815,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#ff9800' }}>
                 3. MCID
               </Typography>
@@ -825,7 +826,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#ffebee', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#f44336' }}>
                 4. Cohen's Conventions
               </Typography>
@@ -920,7 +921,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
                 What Does α Mean?
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', textAlign: 'center' }}>
                   α = P(Reject H₀ | H₀ is true)
                 </Typography>
@@ -961,7 +962,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
                       <TableCell>Exploratory, hypothesis-generating</TableCell>
                       <TableCell>1.645</TableCell>
                     </TableRow>
-                    <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                    <TableRow sx={{ bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                       <TableCell><strong>0.05</strong></TableCell>
                       <TableCell>Standard scientific research</TableCell>
                       <TableCell>1.960</TableCell>
@@ -1000,7 +1001,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#f44336' }}>
                 Stricter α (e.g., 0.01)
               </Typography>
@@ -1018,7 +1019,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#2196f3' }}>
                 Lenient α (e.g., 0.10)
               </Typography>
@@ -1215,7 +1216,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
         <Grid item xs={12} md={7}>
           {/* Result display */}
-          <Paper sx={{ p: 3, mb: 3, bgcolor: calculatedValue ? '#e8f5e9' : '#f5f5f5' }}>
+          <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => calculatedValue ? alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) : theme.palette.background.default }}>
             <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
               <Calculate sx={{ mr: 1, verticalAlign: 'middle' }} />
               Result

@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -565,7 +566,7 @@ const Lesson9_ThermalStability = () => {
               only native (N) and denatured (D) states are significantly populated.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h5" align="center" sx={{ fontFamily: 'serif' }}>
                 N ⇌ D
               </Typography>
@@ -579,7 +580,7 @@ const Lesson9_ThermalStability = () => {
               Key Equations
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 <strong>Equilibrium constant:</strong><br/>
                 K = f<sub>U</sub> / (1 - f<sub>U</sub>) = [D]/[N]<br/><br/>
@@ -619,7 +620,7 @@ const Lesson9_ThermalStability = () => {
                   <TableCell>~0%</TableCell>
                   <TableCell>Mostly native</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                <TableRow sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <TableCell><strong>T = Tm</strong></TableCell>
                   <TableCell><strong>1</strong></TableCell>
                   <TableCell><strong>50%</strong></TableCell>
@@ -692,7 +693,7 @@ const Lesson9_ThermalStability = () => {
               Analysis Equation
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 Signal(T) = y<sub>N</sub> + (y<sub>D</sub> - y<sub>N</sub>) × f<sub>U</sub>(T)<br/><br/>
                 Where:<br/>
@@ -725,9 +726,9 @@ const Lesson9_ThermalStability = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#e3f2fd' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                       ΔH (Enthalpy)
                     </Typography>
                     <Typography variant="body2">
@@ -739,7 +740,7 @@ const Lesson9_ThermalStability = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#fce4ec' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ color: '#e91e63' }}>
                       ΔS (Entropy)
@@ -753,7 +754,7 @@ const Lesson9_ThermalStability = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
                       ΔG (Free Energy)
@@ -826,7 +827,7 @@ const Lesson9_ThermalStability = () => {
               to temperature, allowing extraction of ΔH from thermal data.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 ln(K) = -ΔH/RT + ΔS/R
               </Typography>
@@ -984,7 +985,7 @@ const Lesson9_ThermalStability = () => {
               </TableBody>
             </Table>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="subtitle2" gutterBottom>
                 Summary: Key Equations
               </Typography>
@@ -1007,7 +1008,7 @@ const Lesson9_ThermalStability = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <ThermostatIcon sx={{ fontSize: 40, color: '#d32f2f', mr: 2 }} />
           <Box>
@@ -1063,7 +1064,7 @@ const Lesson9_ThermalStability = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

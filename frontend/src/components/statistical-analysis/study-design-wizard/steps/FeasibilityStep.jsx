@@ -215,7 +215,7 @@ const FeasibilityStep = ({ data, updateData, errors }) => {
       </Alert>
 
       {/* Sample Size Summary */}
-      <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
+      <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
           Required Sample Size Summary
         </Typography>
@@ -253,7 +253,7 @@ const FeasibilityStep = ({ data, updateData, errors }) => {
           {/* Available Participants */}
           <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              <PeopleIcon sx={{ mr: 1, verticalAlign: 'middle', color: '#1976d2' }} />
+              <PeopleIcon sx={{ mr: 1, verticalAlign: 'middle', color: 'primary.main' }} />
               Available Participants
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -409,7 +409,7 @@ const FeasibilityStep = ({ data, updateData, errors }) => {
                     sx={{
                       height: 10,
                       borderRadius: 5,
-                      bgcolor: '#e0e0e0',
+                      bgcolor: (t) => t.palette.mode === 'dark' ? t.palette.grey[700] : t.palette.grey[300],
                       '& .MuiLinearProgress-bar': {
                         bgcolor: feasibilityResult.color,
                       },
@@ -434,7 +434,7 @@ const FeasibilityStep = ({ data, updateData, errors }) => {
                 <ListItem
                   key={constraint.id}
                   sx={{
-                    bgcolor: feasibility.constraints?.includes(constraint.id) ? '#fff3e0' : 'transparent',
+                    bgcolor: (t) => feasibility.constraints?.includes(constraint.id) ? (t.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.12)' : '#fff3e0') : 'transparent',
                     borderRadius: 1,
                     mb: 0.5,
                   }}

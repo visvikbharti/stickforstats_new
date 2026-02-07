@@ -425,7 +425,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 The Big Idea
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   <strong>1. Map to high dimensions:</strong>
                 </Typography>
@@ -656,7 +656,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 Algorithm Overview
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   <strong>Input:</strong> Data points <MathJax inline>{"\\(\\mathbf{x}_1, \\ldots, \\mathbf{x}_n\\)"}</MathJax>,
                   kernel function <MathJax inline>{"\\(k(\\cdot, \\cdot)\\)"}</MathJax>

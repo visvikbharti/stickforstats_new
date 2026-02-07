@@ -23,6 +23,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 /**
  * Lesson 5: Hypothesis Testing Connection
@@ -79,7 +80,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
             <Typography variant="h6">The Fundamental Duality</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Alert severity="info" icon={<CompareArrowsIcon />} sx={{ mb: 2 }}>
                 <AlertTitle>Key Insight</AlertTitle>
                 A (1-α)×100% confidence interval contains exactly those parameter values
@@ -91,7 +92,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 They provide equivalent information, just presented differently.
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   The Duality Theorem
                 </Typography>
@@ -115,7 +116,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Confidence Interval View
@@ -131,7 +132,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Hypothesis Test View
@@ -160,13 +161,13 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
             <Typography variant="h6">Interactive Demonstration</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 Below, adjust the sample mean and observe how the 95% CI corresponds
                 exactly to the set of μ₀ values that wouldn't be rejected.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   <strong>Setup:</strong>
                 </Typography>
@@ -195,7 +196,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 />
               </Paper>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   95% Confidence Interval
                 </Typography>
@@ -215,8 +216,10 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                     <Grid item xs={12} sm={6} md={4} key={idx}>
                       <Card
                         sx={{
-                          bgcolor: test.inCI ? '#e8f5e9' : '#ffebee',
-                          border: test.inCI ? '2px solid #4caf50' : '1px solid #ddd'
+                          bgcolor: (theme) => test.inCI
+                            ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
+                            : alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
+                          border: (theme) => test.inCI ? `2px solid ${theme.palette.success.main}` : `1px solid ${theme.palette.divider}`
                         }}
                       >
                         <CardContent sx={{ py: 1 }}>
@@ -258,7 +261,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
             <Typography variant="h6">When to Use Which?</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 Since they're mathematically equivalent, when should you use a CI vs a hypothesis test?
               </Typography>
@@ -349,7 +352,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🔗 Connection Established!
               </Typography>
@@ -358,7 +361,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: 'success.main', fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Takeaways
                       </Typography>
@@ -372,7 +375,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         The Duality Formula

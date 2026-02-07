@@ -19,6 +19,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 /**
  * Lesson 8: Bayesian Credible Intervals
@@ -67,7 +68,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
             <Typography variant="h6">Two Philosophical Approaches</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Alert severity="info" icon={<CompareArrowsIcon />} sx={{ mb: 2 }}>
                 <AlertTitle>Fundamental Difference</AlertTitle>
                 Frequentist CIs and Bayesian credible intervals answer <strong>different questions</strong>
@@ -76,7 +77,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                     <CardContent>
                       <Chip label="Frequentist" color="primary" sx={{ mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
@@ -106,7 +107,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#f3e5f5', height: '100%' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                     <CardContent>
                       <Chip label="Bayesian" color="secondary" sx={{ mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
@@ -136,7 +137,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Why This Matters
                 </Typography>
@@ -162,12 +163,12 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
             <Typography variant="h6">Bayes' Theorem</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h6" gutterBottom>
                 The Foundation: Bayes' Theorem
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <MathJax>
                   {"\\[ P(\\theta \\mid \\text{data}) = \\frac{P(\\text{data} \\mid \\theta) \\cdot P(\\theta)}{P(\\text{data})} \\]"}
                 </MathJax>
@@ -235,7 +236,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 The Bayesian Learning Process
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
                 <ol>
                   <li>
                     <Typography paragraph>
@@ -285,12 +286,12 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
             <Typography variant="h6">Interactive Bayesian Updating</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 Adjust your prior belief and observed data to see how the posterior (and credible interval) updates.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   Scenario: Estimating Mean IQ
                 </Typography>
@@ -301,7 +302,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <Typography variant="h6" gutterBottom>
                       Prior Belief
                     </Typography>
@@ -337,7 +338,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <Typography variant="h6" gutterBottom>
                       Observed Data
                     </Typography>
@@ -359,7 +360,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 3, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Posterior Distribution
                 </Typography>
@@ -426,14 +427,14 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
             <Typography variant="h6">Bayesian vs Frequentist</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 Both approaches have merits. The choice depends on your philosophical stance and practical needs.
               </Typography>
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         ✅ Bayesian Advantages
@@ -450,7 +451,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#ffebee' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         ❌ Bayesian Challenges
@@ -471,7 +472,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 When to Use Each
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Use Bayesian When:
                 </Typography>
@@ -483,7 +484,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </ul>
               </Paper>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Use Frequentist When:
                 </Typography>
@@ -516,7 +517,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🎓 CI Curriculum Complete!
               </Typography>
@@ -530,7 +531,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: 'success.main', fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         What You've Mastered
                       </Typography>
@@ -549,7 +550,7 @@ const Lesson08_BayesianCredible = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         Your Interval Toolkit

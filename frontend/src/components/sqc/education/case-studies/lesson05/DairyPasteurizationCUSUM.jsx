@@ -1551,7 +1551,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: data.outOfControl ? '2px solid #f44336' : '2px solid #1976d2' }}>
+                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: data.outOfControl ? '2px solid #f44336' : '2px solid #1976d2' }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.outOfControl ? 'error.main' : 'primary.main' }}>
                             Reading {data.reading}
                           </Typography>
@@ -1678,7 +1678,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #1976d2' }}>
+                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #1976d2' }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                             Reading {data.reading}
                           </Typography>
@@ -2812,7 +2812,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
               </Typography>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                       Shewhart (Memoryless)
                     </Typography>
@@ -2823,7 +2823,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                       CUSUM (With Memory)
                     </Typography>
@@ -3076,7 +3076,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
               </Typography>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                       Shewhart's Strength
                     </Typography>
@@ -3087,7 +3087,7 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper elevation={1} sx={{ p: 2, bgcolor: 'background.paper' }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                       CUSUM's Strength
                     </Typography>

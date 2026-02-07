@@ -374,7 +374,7 @@ const BayesFactorSimulation = ({ embedded = false }) => {
   };
 
   return (
-    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: '#fff' }}>
+    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: 'background.paper' }}>
       {!embedded && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f', display: 'flex', alignItems: 'center', gap: 1 }}>

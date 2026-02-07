@@ -38,6 +38,7 @@ import {
   Calculate,
   Warning,
 } from '@mui/icons-material';
+import { alpha as alphaFn } from '@mui/material/styles';
 
 const steps = [
   'Protocol: Step-by-Step',
@@ -95,7 +96,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
         ))}
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#f5f5f5' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: 'background.default' }}>
         <Typography variant="h6" gutterBottom>
           Documentation Checklist
         </Typography>
@@ -148,7 +149,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
             <strong>Primary Question:</strong> Does 12 weeks of cognitive training improve
             memory performance more than active control?
           </Typography>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="body2">
               H₀: μ<sub>training</sub> = μ<sub>control</sub><br/>
               H₁: μ<sub>training</sub> {'>'} μ<sub>control</sub> (one-tailed)
@@ -177,7 +178,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Step 3: Sample Size Calculation</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
             <Typography sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
               Test: Independent t-test (one-tailed)<br/>
               α = 0.05, Power = 0.80<br/>
@@ -198,7 +199,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
           <Typography variant="body1" paragraph>
             With n = 100 per group, we have 80% power to detect d = 0.40, but also:
           </Typography>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="body2">
               • d = 0.30: 54% power (might miss)<br/>
               • d = 0.35: 67% power (marginal)<br/>
@@ -233,7 +234,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Ethical Imperative
                 </Typography>
@@ -244,7 +245,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Effect Size Source
                 </Typography>
@@ -263,7 +264,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Sample Size Calculation</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
             <Typography sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
               Test: Two-sample t-test (two-tailed)<br/>
               α = 0.05, Power = 0.80<br/>
@@ -324,7 +325,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Calculation with Adjustments</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
             <Typography sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
               Test: Two-sample t-test<br/>
               α = 0.05, Power = 0.80<br/>
@@ -366,7 +367,7 @@ const Lesson10_RealWorld = ({ onComplete }) => {
                   {i + 1}. {mistake.title}
                 </Typography>
                 <Typography variant="body2" paragraph>{mistake.desc}</Typography>
-                <Paper sx={{ p: 1.5, bgcolor: '#e8f5e9' }}>
+                <Paper sx={{ p: 1.5, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <Typography variant="body2" sx={{ color: '#2e7d32' }}>
                     <strong>Solution:</strong> {mistake.solution}
                   </Typography>

@@ -25,6 +25,7 @@ import {
   CardContent,
   Grid
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
@@ -127,7 +128,7 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
     <Box>
       {/* Header */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <ScienceIcon /> Statistical Tests
         </Typography>
 
@@ -181,7 +182,7 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
                   >
                     <CardContent>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <IconComponent sx={{ fontSize: 32, color: '#1976d2', mr: 1 }} />
+                        <IconComponent sx={{ fontSize: 32, color: 'primary.main', mr: 1 }} />
                         <Typography variant="h6" component="div">
                           {category.name}
                         </Typography>
@@ -240,8 +241,8 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
 
       {/* Statistical Testing Guidelines */}
       {!testCategory && (
-        <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: '#e3f2fd' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+        <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
             Guidelines for Statistical Testing
           </Typography>
           <Typography variant="body2" paragraph>

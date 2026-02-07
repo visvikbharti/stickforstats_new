@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Paper,
@@ -195,7 +196,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
       case 0:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               What Are Enzymes?
             </Typography>
 
@@ -273,7 +274,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 2, mt: 3, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, mt: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle2" gutterBottom>
                 The Enzyme-Substrate Reaction:
               </Typography>
@@ -283,7 +284,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
                   fontSize: '1.1rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -299,7 +300,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
       case 1:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Reaction Rates
             </Typography>
 
@@ -320,7 +321,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
                       sx={{
                         fontFamily: 'monospace',
                         fontSize: '1.1rem',
-                        bgcolor: '#f5f5f5',
+                        bgcolor: 'background.default',
                         p: 2,
                         borderRadius: 1,
                         textAlign: 'center'
@@ -375,14 +376,14 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
               the kinetics become more complex and the simple Michaelis-Menten model may not apply.
             </Alert>
 
-            <Paper sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom>
                 Rate Constants
               </Typography>
               <Typography paragraph>
                 For the simple enzyme reaction E + S ⇌ ES → E + P:
               </Typography>
-              <Box sx={{ fontFamily: 'monospace', bgcolor: 'white', p: 2, borderRadius: 1 }}>
+              <Box sx={{ fontFamily: 'monospace', bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
                 <Typography>• k₁ = rate constant for E + S → ES (association)</Typography>
                 <Typography>• k₋₁ = rate constant for ES → E + S (dissociation)</Typography>
                 <Typography>• k₂ (or kcat) = rate constant for ES → E + P (catalysis)</Typography>
@@ -394,7 +395,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
       case 2:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               The Enzyme-Substrate Complex
             </Typography>
 
@@ -482,7 +483,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
       case 3:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               The Steady-State Assumption
             </Typography>
 
@@ -492,7 +493,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
               remains essentially constant—it is formed as fast as it breaks down.
             </Typography>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="success.dark">
                 Mathematical Statement
               </Typography>
@@ -502,7 +503,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
                   fontSize: '1.2rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -517,7 +518,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
                   textAlign: 'center',
                   mt: 2,
                   p: 1,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -562,7 +563,7 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
                         fontSize: '1.1rem',
                         textAlign: 'center',
                         p: 2,
-                        bgcolor: '#f5f5f5',
+                        bgcolor: 'background.default',
                         borderRadius: 1
                       }}
                     >
@@ -592,13 +593,13 @@ const Lesson1_EnzymeKineticsIntro = ({ onComplete }) => {
       case 4:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Key Takeaways
             </Typography>
 
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Paper sx={{ p: 3, bgcolor: '#e3f2fd' }}>
+                <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <Typography variant="h6" gutterBottom>
                     Summary of Lesson 1
                   </Typography>

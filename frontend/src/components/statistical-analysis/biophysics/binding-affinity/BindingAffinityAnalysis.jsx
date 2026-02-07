@@ -732,7 +732,7 @@ plt.show()
 
                     {/* Derived Parameters */}
                     {results.derivedParameters?.Ka && (
-                      <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Box sx={{ mt: 2, p: 1, bgcolor: (t) => t.palette.mode === 'dark' ? t.palette.grey[800] : t.palette.grey[50], borderRadius: 1 }}>
                         <Typography variant="body2">
                           <strong>Ka</strong> (Association constant) = {results.derivedParameters.Ka.value.toExponential(3)} {results.derivedParameters.Ka.unit}
                         </Typography>

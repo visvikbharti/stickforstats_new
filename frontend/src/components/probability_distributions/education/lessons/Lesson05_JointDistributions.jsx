@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -122,7 +123,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
     const margin = 40;
 
     return (
-      <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'white' }}>
+      <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'background.paper' }}>
         <svg width={width} height={height}>
           {/* Axes */}
           <line x1={margin} y1={height - margin} x2={width - 20} y2={height - margin}
@@ -322,7 +323,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="subtitle2" gutterBottom>
                   <strong>Discrete Case</strong>
                 </Typography>
@@ -336,7 +337,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="subtitle2" gutterBottom>
                   <strong>Continuous Case</strong>
                 </Typography>
@@ -433,7 +434,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
                   <TableCell></TableCell>
                   <TableCell align="center"><strong>B</strong></TableCell>
                   <TableCell align="center"><strong>~B</strong></TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#e3f2fd' }}>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>P(A)</strong>
                   </TableCell>
                 </TableRow>
@@ -443,7 +444,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
                   <TableCell><strong>A</strong></TableCell>
                   <TableCell align="center">{jointPMF.table[0][0].toFixed(3)}</TableCell>
                   <TableCell align="center">{jointPMF.table[0][1].toFixed(3)}</TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#e3f2fd' }}>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>{jointPMF.marginalA[0].toFixed(3)}</strong>
                   </TableCell>
                 </TableRow>
@@ -451,19 +452,19 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
                   <TableCell><strong>~A</strong></TableCell>
                   <TableCell align="center">{jointPMF.table[1][0].toFixed(3)}</TableCell>
                   <TableCell align="center">{jointPMF.table[1][1].toFixed(3)}</TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#e3f2fd' }}>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>{jointPMF.marginalA[1].toFixed(3)}</strong>
                   </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ bgcolor: '#e8f5e9' }}><strong>P(B)</strong></TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#e8f5e9' }}>
+                  <TableCell sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}><strong>P(B)</strong></TableCell>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>{jointPMF.marginalB[0].toFixed(3)}</strong>
                   </TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#e8f5e9' }}>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>{jointPMF.marginalB[1].toFixed(3)}</strong>
                   </TableCell>
-                  <TableCell align="center" sx={{ bgcolor: '#fff3e0' }}>
+                  <TableCell align="center" sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <strong>1.000</strong>
                   </TableCell>
                 </TableRow>
@@ -504,7 +505,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="subtitle2" gutterBottom>
                   <strong>Discrete Case</strong>
                 </Typography>
@@ -518,7 +519,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="subtitle2" gutterBottom>
                   <strong>Continuous Case</strong>
                 </Typography>
@@ -536,7 +537,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Key Properties
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               The conditional distribution is a <strong>proper probability distribution</strong>:
             </Typography>
@@ -569,7 +570,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Law of Total Probability
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               The marginal P(B) can be recovered from conditionals:
             </Typography>
@@ -590,7 +591,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Bayes' Theorem
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="body2" gutterBottom>
               <strong>Bayes' theorem</strong> lets us reverse conditioning:
             </Typography>
@@ -631,7 +632,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Definition
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               X and Y are independent if and only if:
             </Typography>
@@ -669,7 +670,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Covariance
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Covariance</strong> measures the degree of linear association:
             </Typography>
@@ -691,7 +692,7 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
             Correlation Coefficient
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Pearson correlation</strong> standardizes covariance to [-1, 1]:
             </Typography>
@@ -923,9 +924,9 @@ const Lesson05_JointDistributions = ({ onComplete }) => {
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <GroupWorkIcon sx={{ fontSize: 40, color: '#9c27b0', mr: 2 }} />
+          <GroupWorkIcon sx={{ fontSize: 40, color: 'secondary.main', mr: 2 }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#9c27b0' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
               Joint & Conditional Distributions
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

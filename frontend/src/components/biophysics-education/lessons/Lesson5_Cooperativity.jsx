@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -511,7 +512,7 @@ const Lesson5_Cooperativity = () => {
 
             <Grid container spacing={3} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#e8f5e9' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ color: '#4caf50', display: 'flex', alignItems: 'center' }}>
                       <TrendingUpIcon sx={{ mr: 1 }} />
@@ -529,7 +530,7 @@ const Lesson5_Cooperativity = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', bgcolor: '#fce4ec' }}>
+                <Card sx={{ height: '100%', bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ color: '#e91e63', display: 'flex', alignItems: 'center' }}>
                       <TrendingDownIcon sx={{ mr: 1 }} />
@@ -615,7 +616,7 @@ const Lesson5_Cooperativity = () => {
               oxygen binding to hemoglobin.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif', mb: 2 }}>
                 v = V<sub>max</sub> × [S]<sup>n</sup> / (K<sub>0.5</sub><sup>n</sup> + [S]<sup>n</sup>)
               </Typography>
@@ -677,7 +678,7 @@ const Lesson5_Cooperativity = () => {
               Relationship to Michaelis-Menten
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 3 }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 When n = 1, the Hill equation reduces to Michaelis-Menten:<br/><br/>
                 v = V<sub>max</sub> × [S]<sup>1</sup> / (K<sub>0.5</sub><sup>1</sup> + [S]<sup>1</sup>)<br/>
@@ -702,7 +703,7 @@ const Lesson5_Cooperativity = () => {
               determination of n from experimental data.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
                 Starting from: Y = [S]ⁿ / (K<sub>0.5</sub>ⁿ + [S]ⁿ)<br/>
                 where Y = v/V<sub>max</sub> (fractional saturation)<br/><br/>
@@ -734,8 +735,8 @@ const Lesson5_Cooperativity = () => {
                   <TableCell>log[S]</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ color: '#1976d2', fontWeight: 'bold' }}>Slope</TableCell>
-                  <TableCell sx={{ color: '#1976d2', fontWeight: 'bold' }}>n (Hill coefficient)</TableCell>
+                  <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Slope</TableCell>
+                  <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>n (Hill coefficient)</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>X-intercept (when Y/(1-Y) = 1)</TableCell>
@@ -859,7 +860,7 @@ const Lesson5_Cooperativity = () => {
 
             <canvas ref={oxygenCanvasRef} width={500} height={350} style={{ border: '1px solid #ddd', display: 'block', margin: '0 auto' }} />
 
-            <Paper sx={{ p: 2, mt: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, mt: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle2" gutterBottom>
                 Why Cooperativity Matters: O₂ Delivery
               </Typography>
@@ -900,7 +901,7 @@ const Lesson5_Cooperativity = () => {
               The MWC (Monod-Wyman-Changeux) Model
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body2">
                 Key assumptions of the MWC "concerted" model:
               </Typography>
@@ -914,7 +915,7 @@ const Lesson5_Cooperativity = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#ffebee' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
                       T State (Tense)
@@ -945,7 +946,7 @@ const Lesson5_Cooperativity = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#e8f5e9' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
                       R State (Relaxed)
@@ -1087,7 +1088,7 @@ const Lesson5_Cooperativity = () => {
               Summary: Key Equations
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Table size="small">
                 <TableBody>
                   <TableRow>
@@ -1106,7 +1107,7 @@ const Lesson5_Cooperativity = () => {
               </Table>
             </Paper>
 
-            <Paper sx={{ p: 2, mt: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, mt: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle2" gutterBottom>
                 Key References
               </Typography>
@@ -1128,7 +1129,7 @@ const Lesson5_Cooperativity = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <ScienceIcon sx={{ fontSize: 40, color: '#4caf50', mr: 2 }} />
           <Box>
@@ -1184,7 +1185,7 @@ const Lesson5_Cooperativity = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

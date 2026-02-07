@@ -38,6 +38,7 @@ import {
   AccordionDetails,
   Snackbar,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   ExpandMore as ExpandIcon,
   Download as DownloadIcon,
@@ -573,7 +574,7 @@ const ProtocolSummaryStep = ({ data, updateData, errors }) => {
                 variant="outlined"
                 sx={{
                   p: 2,
-                  bgcolor: '#f8f9fa',
+                  bgcolor: 'background.default',
                   fontFamily: 'serif',
                   fontSize: '0.95rem',
                   lineHeight: 1.8,
@@ -597,7 +598,7 @@ const ProtocolSummaryStep = ({ data, updateData, errors }) => {
 
         {/* Export Options */}
         <Grid item xs={12}>
-          <Paper elevation={2} sx={{ p: 3, bgcolor: '#e3f2fd' }}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.12 : 0.08) }}>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
               <DownloadIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
               Export Protocol

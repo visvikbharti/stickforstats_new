@@ -1,4 +1,5 @@
 import React from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -28,8 +29,8 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: 'background.default' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
           The Central Limit Theorem
         </Typography>
 
@@ -54,12 +55,12 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
 
       {/* The Theorem */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           📜 The Central Limit Theorem (CLT)
         </Typography>
 
         <MathJax>
-          <Box sx={{ p: 3, bgcolor: '#e3f2fd', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Formal Statement
             </Typography>
@@ -160,7 +161,7 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
 
       {/* Interactive CLT Simulator */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🎮 Interactive CLT Demonstration
         </Typography>
 
@@ -190,7 +191,7 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
 
       {/* Why It Works */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🤔 Why Does the CLT Work?
         </Typography>
 
@@ -251,15 +252,15 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
 
       {/* Applications */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main' }}>
           🚀 Why the CLT is So Important
         </Typography>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
                   Confidence Intervals
                 </Typography>
                 <Typography variant="body2">
@@ -271,9 +272,9 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
                   Hypothesis Tests
                 </Typography>
                 <Typography variant="body2">
@@ -285,9 +286,9 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   Quality Control
                 </Typography>
                 <Typography variant="body2">
@@ -299,9 +300,9 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+            <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                   Survey Sampling
                 </Typography>
                 <Typography variant="body2">
@@ -315,8 +316,8 @@ const Lesson03_CentralLimitTheorem = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
           ✅ Key Takeaways
         </Typography>
 

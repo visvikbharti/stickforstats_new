@@ -37,6 +37,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   NavigateNext as NextIcon,
   NavigateBefore as BackIcon,
@@ -377,7 +378,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', py: 3 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 3 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
@@ -388,7 +389,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                   width: 56,
                   height: 56,
                   borderRadius: 2,
-                  bgcolor: '#1976d2',
+                  bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -397,7 +398,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                 <ScienceIcon sx={{ color: 'white', fontSize: 32 }} />
               </Box>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
                   Study Design Wizard
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -494,11 +495,11 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                               alignItems: 'center',
                               justifyContent: 'center',
                               bgcolor: status === 'complete'
-                                ? '#4caf50'
+                                ? 'success.main'
                                 : status === 'active'
-                                  ? '#1976d2'
-                                  : '#e0e0e0',
-                              color: status === 'pending' ? '#666' : 'white',
+                                  ? 'primary.main'
+                                  : (t) => t.palette.mode === 'dark' ? t.palette.grey[700] : t.palette.grey[300],
+                              color: status === 'pending' ? 'text.secondary' : 'white',
                               transition: 'all 0.3s',
                             }}
                           >
@@ -514,7 +515,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                         sx={{
                           '& .MuiStepLabel-label': {
                             fontWeight: status === 'active' ? 600 : 400,
-                            color: status === 'active' ? '#1976d2' : 'inherit',
+                            color: status === 'active' ? 'primary.main' : 'inherit',
                           },
                         }}
                       >
@@ -542,7 +543,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Box
                     sx={{
-                      color: '#1976d2',
+                      color: 'primary.main',
                       display: 'flex',
                       alignItems: 'center',
                     }}
@@ -615,7 +616,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
         </Paper>
 
         {/* Footer Info */}
-        <Paper sx={{ p: 2, mt: 3, bgcolor: '#e3f2fd' }}>
+        <Paper sx={{ p: 2, mt: 3, bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="body2" color="text.secondary">
             <strong>Tip:</strong> The Study Design Wizard uses validated power analysis calculations
             based on Cohen (1988) and G*Power methodology. All sample size estimates follow

@@ -62,6 +62,7 @@ import {
   TrendingDown,
   Help,
 } from '@mui/icons-material';
+import { alpha as alphaFn } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -418,7 +419,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 if our evidence is strong enough to support a conclusion?
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
                   <strong>Example:</strong> "Does this new drug reduce blood pressure more than the current treatment?"
                 </Typography>
@@ -445,7 +446,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 populations based on sample data.
               </Typography>
 
-              <Box sx={{ bgcolor: '#e3f2fd', p: 2, borderRadius: 1 }}>
+              <Box sx={{ bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), p: 2, borderRadius: 1 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   <strong>Key Components:</strong>
                 </Typography>
@@ -474,14 +475,14 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
           The Logic of Hypothesis Testing
         </Typography>
 
-        <Paper sx={{ p: 3, bgcolor: '#fafafa' }}>
+        <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
           <Typography variant="body1" paragraph>
             Hypothesis testing follows an approach similar to <strong>proof by contradiction</strong> in mathematics:
           </Typography>
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#fff', textAlign: 'center', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', textAlign: 'center', height: '100%' }}>
                 <Typography variant="subtitle2" color="primary" gutterBottom>Step 1</Typography>
                 <Typography variant="body2">
                   Assume the null hypothesis (H₀) is true
@@ -489,7 +490,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#fff', textAlign: 'center', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', textAlign: 'center', height: '100%' }}>
                 <Typography variant="subtitle2" color="primary" gutterBottom>Step 2</Typography>
                 <Typography variant="body2">
                   Calculate probability of observing our data under H₀
@@ -497,7 +498,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#fff', textAlign: 'center', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', textAlign: 'center', height: '100%' }}>
                 <Typography variant="subtitle2" color="primary" gutterBottom>Step 3</Typography>
                 <Typography variant="body2">
                   If probability is very small, reject H₀
@@ -505,7 +506,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#fff', textAlign: 'center', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', textAlign: 'center', height: '100%' }}>
                 <Typography variant="subtitle2" color="primary" gutterBottom>Step 4</Typography>
                 <Typography variant="body2">
                   Conclude in favor of alternative hypothesis (H₁)
@@ -549,7 +550,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 nothing special is happening, no treatment effect exists, or groups don't differ.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                   H₀: μ₁ = μ₂ (means are equal)<br/>
                   H₀: μ = μ₀ (mean equals specified value)<br/>
@@ -582,7 +583,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 show—that there <strong>is</strong> an effect, a difference, or a relationship.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                   H₁: μ₁ ≠ μ₂ (two-tailed: means differ)<br/>
                   H₁: μ₁ {'>'} μ₂ (one-tailed: group 1 higher)<br/>
@@ -605,7 +606,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#fff8e1' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Two-Tailed Test
               </Typography>
@@ -619,7 +620,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 One-Tailed Test
               </Typography>
@@ -642,7 +643,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
             <Typography variant="body1" paragraph>
               For a two-sample comparison of means:
             </Typography>
@@ -698,14 +699,14 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
           <Table sx={{ minWidth: 500 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: '#fafafa' }}></TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, bgcolor: '#e8f5e9', width: '35%' }}>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.default' }}></TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), width: '35%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <TrendingDown sx={{ mr: 1 }} />
                     Fail to Reject H₀
                   </Box>
                 </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, bgcolor: '#ffebee', width: '35%' }}>
+                <TableCell align="center" sx={{ fontWeight: 600, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), width: '35%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <TrendingUp sx={{ mr: 1 }} />
                     Reject H₀
@@ -715,7 +716,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: '#fafafa' }}>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.default' }}>
                   H₀ is True<br/>
                   <Typography variant="caption" color="text.secondary">
                     (No real effect)
@@ -726,10 +727,10 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   onClick={() => setSelectedCell('tn')}
                   sx={{
                     cursor: 'pointer',
-                    bgcolor: selectedCell === 'tn' ? '#c8e6c9' : '#f5f5f5',
+                    bgcolor: (theme) => selectedCell === 'tn' ? alphaFn(theme.palette.success.main, 0.2) : theme.palette.action.hover,
                     border: selectedCell === 'tn' ? '3px solid #4caf50' : '1px solid #ddd',
                     transition: 'all 0.3s',
-                    '&:hover': { bgcolor: '#e8f5e9' },
+                    '&:hover': { bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) },
                     p: 2,
                   }}
                 >
@@ -744,10 +745,10 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   onClick={() => setSelectedCell('fp')}
                   sx={{
                     cursor: 'pointer',
-                    bgcolor: selectedCell === 'fp' ? '#ffcdd2' : '#f5f5f5',
+                    bgcolor: (theme) => selectedCell === 'fp' ? alphaFn(theme.palette.error.main, 0.2) : theme.palette.action.hover,
                     border: selectedCell === 'fp' ? '3px solid #f44336' : '1px solid #ddd',
                     transition: 'all 0.3s',
-                    '&:hover': { bgcolor: '#ffebee' },
+                    '&:hover': { bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) },
                     p: 2,
                   }}
                 >
@@ -759,7 +760,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: '#fafafa' }}>
+                <TableCell sx={{ fontWeight: 600, bgcolor: 'background.default' }}>
                   H₁ is True<br/>
                   <Typography variant="caption" color="text.secondary">
                     (Real effect exists)
@@ -770,10 +771,10 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   onClick={() => setSelectedCell('fn')}
                   sx={{
                     cursor: 'pointer',
-                    bgcolor: selectedCell === 'fn' ? '#ffe0b2' : '#f5f5f5',
+                    bgcolor: (theme) => selectedCell === 'fn' ? alphaFn(theme.palette.warning.main, 0.2) : theme.palette.action.hover,
                     border: selectedCell === 'fn' ? '3px solid #ff9800' : '1px solid #ddd',
                     transition: 'all 0.3s',
-                    '&:hover': { bgcolor: '#fff3e0' },
+                    '&:hover': { bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) },
                     p: 2,
                   }}
                 >
@@ -788,10 +789,10 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   onClick={() => setSelectedCell('tp')}
                   sx={{
                     cursor: 'pointer',
-                    bgcolor: selectedCell === 'tp' ? '#bbdefb' : '#f5f5f5',
+                    bgcolor: (theme) => selectedCell === 'tp' ? alphaFn(theme.palette.primary.main, 0.2) : theme.palette.action.hover,
                     border: selectedCell === 'tp' ? '3px solid #2196f3' : '1px solid #ddd',
                     transition: 'all 0.3s',
-                    '&:hover': { bgcolor: '#e3f2fd' },
+                    '&:hover': { bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) },
                     p: 2,
                   }}
                 >
@@ -808,7 +809,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
         {/* Selected cell details */}
         {selectedCell && (
-          <Paper sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ mt: 3, p: 2, bgcolor: 'background.default' }}>
             <Typography variant="h6" gutterBottom>
               {decisionMatrix.cells.find(c => c.id === selectedCell)?.outcome}
             </Typography>
@@ -842,13 +843,13 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                 <Typography variant="subtitle2" color="text.secondary">Null Hypothesis (H₀)</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].h0}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="subtitle2" color="primary">Alternative Hypothesis (H₁)</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].h1}</Typography>
               </Paper>
@@ -857,25 +858,25 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <Typography variant="subtitle2" sx={{ color: '#4caf50' }}>True Negative</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].trueNegative}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <Typography variant="subtitle2" sx={{ color: '#f44336' }}>False Positive</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].falsePositive}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <Typography variant="subtitle2" sx={{ color: '#ff9800' }}>False Negative</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].falseNegative}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', height: '100%' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                 <Typography variant="subtitle2" sx={{ color: '#2196f3' }}>True Positive</Typography>
                 <Typography variant="body2">{realWorldExamples[exampleDomain].truePositive}</Typography>
               </Paper>
@@ -926,7 +927,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 </Typography>
               </Alert>
 
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   α = P(Reject H₀ | H₀ is true)
                 </Typography>
@@ -992,7 +993,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 🔬 In Research
               </Typography>
@@ -1003,7 +1004,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fce4ec', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 💊 In Medicine
               </Typography>
@@ -1014,7 +1015,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8eaf6', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 🏭 In Industry
               </Typography>
@@ -1038,7 +1039,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             When you perform multiple tests, the probability of at least one Type I error increases:
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default', mb: 2 }}>
             <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
               P(at least one Type I error) = 1 - (1 - α)^k
             </Typography>
@@ -1096,7 +1097,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 </Typography>
               </Alert>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   β = P(Fail to reject H₀ | H₁ is true)
                 </Typography>
@@ -1134,7 +1135,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                 rejecting H₀ when H₁ is true—the probability of detecting a real effect.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                 <Typography variant="body2">
                   If β = 0.20 (20% chance of missing an effect),<br/>
                   then Power = 1 - 0.20 = 0.80 (80% chance of detecting it)
@@ -1157,7 +1158,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 🔬 In Research
               </Typography>
@@ -1168,7 +1169,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fce4ec', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 💊 In Medicine
               </Typography>
@@ -1179,7 +1180,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8eaf6', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 🐁 In Animal Research
               </Typography>
@@ -1193,7 +1194,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
       </Paper>
 
       {/* Error Rate Simulator */}
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: 'background.default' }}>
         <Typography variant="h6" gutterBottom>
           Interactive Error Rate Simulator
         </Typography>
@@ -1258,7 +1259,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
             {simulationResults.totalTrials > 0 && (
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#e8f5e9', textAlign: 'center' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
                     <Typography variant="h4" sx={{ color: '#4caf50' }}>
                       {simulationResults.trueNegatives}
                     </Typography>
@@ -1269,7 +1270,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#ffebee', textAlign: 'center' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
                     <Typography variant="h4" sx={{ color: '#f44336' }}>
                       {simulationResults.falsePositives}
                     </Typography>
@@ -1280,7 +1281,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#fff3e0', textAlign: 'center' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
                     <Typography variant="h4" sx={{ color: '#ff9800' }}>
                       {simulationResults.falseNegatives}
                     </Typography>
@@ -1291,7 +1292,7 @@ const Lesson02_HypothesisTesting = ({ onComplete }) => {
                   </Paper>
                 </Grid>
                 <Grid item xs={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#e3f2fd', textAlign: 'center' }}>
+                  <Paper sx={{ p: 2, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
                     <Typography variant="h4" sx={{ color: '#2196f3' }}>
                       {simulationResults.truePositives}
                     </Typography>

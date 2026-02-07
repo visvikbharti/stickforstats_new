@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Container,
@@ -150,14 +151,14 @@ const ProbabilityEducationHub = () => {
 
   // Show lesson selection hub
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <SchoolIcon sx={{ fontSize: 48, color: '#1976d2', mr: 2 }} />
+            <SchoolIcon sx={{ fontSize: 48, color: 'primary.main', mr: 2 }} />
             <Box>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 Learn Probability Distributions
               </Typography>
               <Typography variant="h6" color="text.secondary">
@@ -225,10 +226,10 @@ const ProbabilityEducationHub = () => {
                           size="small"
                         />
                         {isCompleted && (
-                          <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 28 }} />
+                          <CheckCircleIcon sx={{ color: 'success.main', fontSize: 28 }} />
                         )}
                         {isLocked && (
-                          <LockIcon sx={{ color: '#999', fontSize: 28 }} />
+                          <LockIcon sx={{ color: 'text.disabled', fontSize: 28 }} />
                         )}
                       </Box>
 
@@ -283,7 +284,7 @@ const ProbabilityEducationHub = () => {
                           sx={{
                             display: 'block',
                             mt: 2,
-                            color: '#999',
+                            color: 'text.disabled',
                             fontStyle: 'italic'
                           }}
                         >
@@ -299,8 +300,8 @@ const ProbabilityEducationHub = () => {
         </Grid>
 
         {/* Footer info */}
-        <Paper sx={{ p: 3, mt: 4, bgcolor: '#e3f2fd' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+        <Paper sx={{ p: 3, mt: 4, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
             Why Learn Probability Distributions?
           </Typography>
           <Typography variant="body2" paragraph>

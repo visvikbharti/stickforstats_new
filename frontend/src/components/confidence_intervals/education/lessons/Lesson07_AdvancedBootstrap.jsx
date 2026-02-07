@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { MathJax } from 'better-react-mathjax';
+import { alpha } from '@mui/material/styles';
 
 /**
  * Lesson 7: Advanced Bootstrap Methods
@@ -45,13 +46,13 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
             <Typography variant="h6">Beyond the Percentile Method</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography paragraph>
                 In Lesson 3, we covered the <strong>percentile bootstrap</strong>. While simple and intuitive,
                 it has limitations. Advanced methods can provide better coverage in challenging situations.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Recap: Percentile Bootstrap
                 </Typography>
@@ -134,7 +135,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
             <Typography variant="h6">BCa Bootstrap</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h6" gutterBottom>
                 Bias-Corrected and Accelerated (BCa) Bootstrap
               </Typography>
@@ -145,7 +146,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Bias Correction
@@ -162,7 +163,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Acceleration
@@ -178,7 +179,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   BCa Algorithm
                 </Typography>
@@ -259,7 +260,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
             <Typography variant="h6">Bootstrap-t Method</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h6" gutterBottom>
                 Studentized Bootstrap (Bootstrap-t)
               </Typography>
@@ -269,7 +270,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 This can provide even better coverage than BCa.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Algorithm
                 </Typography>
@@ -353,7 +354,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 </TableBody>
               </Table>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mt: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Practical Recommendation
                 </Typography>
@@ -379,7 +380,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🔬 Advanced Bootstrap Mastered!
               </Typography>
@@ -388,7 +389,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: 'success.main', fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Concepts
                       </Typography>
@@ -403,7 +404,7 @@ const Lesson07_AdvancedBootstrap = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         Decision Tree

@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Paper,
@@ -207,7 +208,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
       case 0:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Setting Up the Derivation
             </Typography>
 
@@ -217,7 +218,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               concentration [S].
             </Typography>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="success.dark">
                 The Reaction Scheme
               </Typography>
@@ -227,7 +228,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   fontSize: '1.3rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -309,7 +310,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
       case 1:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Applying the Steady-State Assumption
             </Typography>
 
@@ -318,7 +319,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               of ES formation equals the rate of ES breakdown.
             </Typography>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="warning.dark">
                 Rate of ES Formation
               </Typography>
@@ -328,7 +329,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   fontSize: '1.1rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -339,7 +340,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               </Typography>
             </Paper>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#fce4ec' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="error.dark">
                 Rate of ES Breakdown
               </Typography>
@@ -349,7 +350,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   fontSize: '1.1rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -360,7 +361,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               </Typography>
             </Paper>
 
-            <Paper sx={{ p: 3, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="success.dark">
                 Setting Up the Equation
               </Typography>
@@ -373,7 +374,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   fontSize: '1.1rem',
                   textAlign: 'center',
                   p: 2,
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   borderRadius: 1
                 }}
               >
@@ -393,7 +394,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
       case 2:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Step-by-Step Derivation
             </Typography>
 
@@ -406,7 +407,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               <Typography variant="subtitle1" color="primary" gutterBottom>
                 <strong>Step 1:</strong> Start with steady-state condition
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1 }}>
                 k₁[E][S] = (k₋₁ + k₂)[ES]
               </Typography>
             </Paper>
@@ -416,7 +417,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               <Typography variant="subtitle1" color="success.main" gutterBottom>
                 <strong>Step 2:</strong> Substitute [E] = [E]ₜₒₜₐₗ - [ES]
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1 }}>
                 k₁([E]ₜₒₜₐₗ - [ES])[S] = (k₋₁ + k₂)[ES]
               </Typography>
             </Paper>
@@ -426,13 +427,13 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               <Typography variant="subtitle1" color="warning.main" gutterBottom>
                 <strong>Step 3:</strong> Expand and rearrange
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1 }}>
                 k₁[E]ₜₒₜₐₗ[S] - k₁[ES][S] = (k₋₁ + k₂)[ES]
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1, mt: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1, mt: 1 }}>
                 k₁[E]ₜₒₜₐₗ[S] = (k₋₁ + k₂)[ES] + k₁[ES][S]
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1, mt: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1, mt: 1 }}>
                 k₁[E]ₜₒₜₐₗ[S] = [ES](k₋₁ + k₂ + k₁[S])
               </Typography>
             </Paper>
@@ -442,10 +443,10 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               <Typography variant="subtitle1" color="secondary" gutterBottom>
                 <strong>Step 4:</strong> Solve for [ES]
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1 }}>
                 [ES] = k₁[E]ₜₒₜₐₗ[S] / (k₋₁ + k₂ + k₁[S])
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1, mt: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1, mt: 1 }}>
                 [ES] = [E]ₜₒₜₐₗ[S] / ((k₋₁ + k₂)/k₁ + [S])
               </Typography>
             </Paper>
@@ -455,17 +456,17 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               <Typography variant="subtitle1" sx={{ color: '#E91E63' }} gutterBottom>
                 <strong>Step 5:</strong> Define Km = (k₋₁ + k₂)/k₁
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.default', p: 1, borderRadius: 1 }}>
                 [ES] = [E]ₜₒₜₐₗ[S] / (Km + [S])
               </Typography>
             </Paper>
 
             {/* Step 6 */}
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', borderLeft: '4px solid #4CAF50' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderLeft: '4px solid #4CAF50' }}>
               <Typography variant="subtitle1" color="success.dark" gutterBottom>
                 <strong>Step 6:</strong> Calculate velocity v = k₂[ES]
               </Typography>
-              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'white', p: 1, borderRadius: 1 }}>
+              <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
                 v = k₂[ES] = k₂[E]ₜₒₜₐₗ[S] / (Km + [S])
               </Typography>
               <Typography sx={{ mt: 1 }}>
@@ -476,7 +477,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   fontFamily: 'monospace',
                   fontSize: '1.2rem',
                   fontWeight: 'bold',
-                  bgcolor: 'white',
+                  bgcolor: 'background.paper',
                   p: 2,
                   borderRadius: 1,
                   textAlign: 'center',
@@ -492,12 +493,12 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
       case 3:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               The Michaelis-Menten Equation
             </Typography>
 
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#e3f2fd', textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontFamily: 'monospace', color: '#1976d2', fontWeight: 'bold' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontFamily: 'monospace', color: 'primary.main', fontWeight: 'bold' }}>
                 v = V<sub>max</sub>[S] / (K<sub>m</sub> + [S])
               </Typography>
             </Paper>
@@ -571,7 +572,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6" gutterBottom color="warning.dark">
                 Limiting Cases
               </Typography>
@@ -580,7 +581,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   <Typography variant="subtitle2">
                     When [S] {"<<"} K<sub>m</sub>:
                   </Typography>
-                  <Typography sx={{ fontFamily: 'monospace', bgcolor: 'white', p: 1, borderRadius: 1 }}>
+                  <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
                     v ≈ (V<sub>max</sub>/K<sub>m</sub>)[S]
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1 }}>
@@ -591,7 +592,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
                   <Typography variant="subtitle2">
                     When [S] {">>"} K<sub>m</sub>:
                   </Typography>
-                  <Typography sx={{ fontFamily: 'monospace', bgcolor: 'white', p: 1, borderRadius: 1 }}>
+                  <Typography sx={{ fontFamily: 'monospace', bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
                     v ≈ V<sub>max</sub>
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1 }}>
@@ -606,7 +607,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
       case 4:
         return (
           <Box>
-            <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
               Practice Problems
             </Typography>
 
@@ -668,7 +669,7 @@ const Lesson2_MichaelisMentenDerivation = ({ onComplete }) => {
               </CardContent>
             </Card>
 
-            <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mt: 4 }}>
+            <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mt: 4 }}>
               <Typography variant="h6" gutterBottom>
                 Summary of Lesson 2
               </Typography>

@@ -29,6 +29,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import BoltIcon from '@mui/icons-material/Bolt';
 import BiotechIcon from '@mui/icons-material/Biotech';
+import { alpha, useTheme } from '@mui/material/styles';
 
 /**
  * Unified Learning Hub
@@ -39,6 +40,8 @@ import BiotechIcon from '@mui/icons-material/Biotech';
 
 const LearningHub = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeCategory, setActiveCategory] = useState(0);
   const [completedModules, setCompletedModules] = useState(new Set());
 
@@ -396,7 +399,7 @@ const LearningHub = () => {
                       transform: 'translateY(-8px)',
                       boxShadow: 6
                     },
-                    border: isCompleted ? '2px solid #4caf50' : 'none'
+                    border: isCompleted ? `2px solid ${theme.palette.success.main}` : 'none'
                   }}
                 >
                   <CardActionArea onClick={() => handleModuleClick(module.route)} sx={{ height: '100%' }}>
@@ -404,7 +407,7 @@ const LearningHub = () => {
                       {/* Header Section */}
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
                         <Box sx={{
-                          bgcolor: module.bgColor,
+                          bgcolor: (t) => alpha(module.color === 'primary.main' ? t.palette.primary.main : module.color, isDarkMode ? 0.15 : 0.08),
                           color: module.color,
                           p: 1.5,
                           borderRadius: 2,
@@ -435,7 +438,7 @@ const LearningHub = () => {
                           </Box>
                         </Box>
                         {isCompleted && (
-                          <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 32 }} />
+                          <CheckCircleIcon sx={{ color: 'success.main', fontSize: 32 }} />
                         )}
                       </Box>
 
@@ -517,7 +520,7 @@ const LearningHub = () => {
         </Grid>
 
         {/* Learning Path Recommendation */}
-        <Paper elevation={3} sx={{ p: 4, mt: 5, bgcolor: '#e3f2fd' }}>
+        <Paper elevation={3} sx={{ p: 4, mt: 5, bgcolor: (t) => alpha(t.palette.primary.main, isDarkMode ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
             📚 Recommended Learning Path
           </Typography>
@@ -544,7 +547,7 @@ const LearningHub = () => {
             <Grid item xs={12} md={6}>
               <Card sx={{ height: '100%' }}>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#ed6c02' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'warning.main' }}>
                     Experienced: Skill Refresh
                   </Typography>
                   <Typography variant="body2" paragraph>
@@ -582,7 +585,7 @@ const LearningHub = () => {
 
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <ScienceIcon sx={{ fontSize: 48, color: '#2e7d32', mb: 1 }} />
+                <ScienceIcon sx={{ fontSize: 48, color: 'success.dark', mb: 1 }} />
                 <Typography variant="h6" gutterBottom>
                   Hands-On Simulations
                 </Typography>
@@ -594,7 +597,7 @@ const LearningHub = () => {
 
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <SchoolIcon sx={{ fontSize: 48, color: '#ed6c02', mb: 1 }} />
+                <SchoolIcon sx={{ fontSize: 48, color: 'warning.main', mb: 1 }} />
                 <Typography variant="h6" gutterBottom>
                   Progressive Learning
                 </Typography>
@@ -606,7 +609,7 @@ const LearningHub = () => {
 
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <CheckCircleIcon sx={{ fontSize: 48, color: '#9c27b0', mb: 1 }} />
+                <CheckCircleIcon sx={{ fontSize: 48, color: 'secondary.main', mb: 1 }} />
                 <Typography variant="h6" gutterBottom>
                   Real-World Applications
                 </Typography>

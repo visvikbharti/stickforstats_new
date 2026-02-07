@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -367,7 +368,7 @@ const Lesson7_DoseResponse = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#ffebee' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ color: '#d32f2f', display: 'flex', alignItems: 'center' }}>
                       <InhibitionIcon sx={{ mr: 1 }} />
@@ -382,7 +383,7 @@ const Lesson7_DoseResponse = () => {
                 </Card>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#e8f5e9' }}>
+                <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <CardContent>
                     <Typography variant="subtitle1" gutterBottom sx={{ color: '#4caf50', display: 'flex', alignItems: 'center' }}>
                       <StimulationIcon sx={{ mr: 1 }} />
@@ -450,7 +451,7 @@ const Lesson7_DoseResponse = () => {
               It describes the sigmoidal relationship between concentration and response.
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 Y = Bottom + (Top - Bottom) / (1 + 10<sup>(LogIC50 - X) × HillSlope</sup>)
               </Typography>
@@ -566,7 +567,7 @@ const Lesson7_DoseResponse = () => {
 
             <Grid container spacing={3} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: '#ffebee', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#d32f2f' }}>
                     IC50 (Inhibitory Concentration 50%)
                   </Typography>
@@ -585,7 +586,7 @@ const Lesson7_DoseResponse = () => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
+                <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), height: '100%' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
                     EC50 (Effective Concentration 50%)
                   </Typography>
@@ -657,7 +658,7 @@ const Lesson7_DoseResponse = () => {
               </TableBody>
             </Table>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="subtitle2" gutterBottom>
                 Calculating ICx from IC50 and Hill Slope
               </Typography>
@@ -740,7 +741,7 @@ const Lesson7_DoseResponse = () => {
               Impact on IC90/IC10 Ratio
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="body2" paragraph>
                 The Hill slope dramatically affects how wide the dose range is from minimal
                 to maximal effect:
@@ -768,7 +769,7 @@ const Lesson7_DoseResponse = () => {
               conditions) to K<sub>i</sub> (an intrinsic property of the inhibitor).
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="h6" align="center" sx={{ fontFamily: 'serif' }}>
                 K<sub>i</sub> = IC50 / (1 + [L]/K<sub>d</sub>)
               </Typography>
@@ -833,7 +834,7 @@ const Lesson7_DoseResponse = () => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
               <Typography variant="h6">
                 Calculated K<sub>i</sub> = {calculateKi().toFixed(2)} nM
               </Typography>
@@ -951,7 +952,7 @@ const Lesson7_DoseResponse = () => {
               Therapeutic Index
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 3 }}>
+            <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 3 }}>
               <Typography variant="body1" sx={{ fontFamily: 'serif', textAlign: 'center', mb: 2 }}>
                 Therapeutic Index (TI) = TD50 / ED50
               </Typography>
@@ -973,7 +974,7 @@ const Lesson7_DoseResponse = () => {
               Summary: Key Equations
             </Typography>
 
-            <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                 <strong>4PL Model:</strong><br/>
                 Y = Bottom + (Top - Bottom) / (1 + 10<sup>(LogIC50-X)×n</sup>)<br/><br/>
@@ -995,7 +996,7 @@ const Lesson7_DoseResponse = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <PharmacyIcon sx={{ fontSize: 40, color: '#d32f2f', mr: 2 }} />
           <Box>
@@ -1051,7 +1052,7 @@ const Lesson7_DoseResponse = () => {
       </Stepper>
 
       {activeStep === STEPS.length && (
-        <Paper sx={{ p: 3, mt: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mt: 3, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="h5" gutterBottom color="success.main">
             <CheckIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Lesson Complete!

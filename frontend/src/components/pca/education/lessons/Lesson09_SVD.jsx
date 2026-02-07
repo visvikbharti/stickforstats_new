@@ -180,7 +180,7 @@ const Lesson09_SVD = ({ onComplete }) => {
                 The Singular Values
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <MathJax>
                   {"\\[ \\mathbf{\\Sigma} = \\begin{bmatrix} \\sigma_1 & 0 & 0 & \\cdots \\\\ 0 & \\sigma_2 & 0 & \\cdots \\\\ 0 & 0 & \\sigma_3 & \\cdots \\\\ \\vdots & \\vdots & \\vdots & \\ddots \\end{bmatrix} \\]"}
                 </MathJax>

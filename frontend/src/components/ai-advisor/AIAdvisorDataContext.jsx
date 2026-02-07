@@ -172,7 +172,7 @@ const AIAdvisorDataContext = ({
                   label={variable.name}
                   size="small"
                   sx={{
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     fontSize: '0.7rem',
                   }}
                 />
@@ -205,7 +205,7 @@ const AIAdvisorDataContext = ({
                     alignItems: 'center',
                     gap: 1,
                     p: 0.5,
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     borderRadius: 1,
                     fontSize: '0.75rem',
                   }}
@@ -233,7 +233,7 @@ const AIAdvisorDataContext = ({
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               Quick Summary:
             </Typography>
-            <Box sx={{ bgcolor: 'white', p: 1, borderRadius: 1 }}>
+            <Box sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
               <Typography variant="caption" component="pre" sx={{ margin: 0, fontSize: '0.7rem' }}>
                 {JSON.stringify(summary, null, 2).slice(0, 200)}
                 {JSON.stringify(summary).length > 200 ? '...' : ''}

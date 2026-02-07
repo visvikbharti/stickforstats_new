@@ -376,7 +376,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
           For each subgroup <MathJax inline>{"\\(i\\)"}</MathJax> of size <MathJax inline>{"\\(n\\)"}</MathJax>:
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <Typography variant="body1" gutterBottom>
             <strong>Subgroup Mean (X̄):</strong>
           </Typography>
@@ -412,7 +412,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
           Using <MathJax inline>{"\\(m\\)"}</MathJax> subgroups to establish baseline:
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <Typography variant="body1" gutterBottom>
             <strong>Grand Mean (X̿):</strong>
           </Typography>
@@ -448,7 +448,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
           The X̄ chart monitors the process mean. Control limits are set at ±3σ from the grand mean:
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               \\begin{aligned}
@@ -529,7 +529,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
           The R chart monitors process variability:
         </Typography>
 
-        <Box sx={{ my: 2, p: 2, bgcolor: 'white', borderLeft: '4px solid', borderColor: 'primary.main' }}>
+        <Box sx={{ my: 2, p: 2, bgcolor: 'background.paper', borderLeft: '4px solid', borderColor: 'primary.main' }}>
           <MathJax>
             {`\\[
               \\begin{aligned}
@@ -824,7 +824,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
                     const data = payload[0].payload;
                     const isOOC = data.xbar > controlChartData.xbarUCL || data.xbar < controlChartData.xbarLCL;
                     return (
-                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: isOOC ? '2px solid #f44336' : '2px solid #1976d2' }}>
+                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: isOOC ? '2px solid #f44336' : '2px solid #1976d2' }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: isOOC ? 'error.main' : 'primary.main' }}>
                           Subgroup {data.subgroup}
                         </Typography>
@@ -926,7 +926,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
                     const data = payload[0].payload;
                     const isOOC = data.range > controlChartData.rUCL;
                     return (
-                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid #9c27b0' }}>
+                      <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #9c27b0' }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'secondary.main' }}>
                           Subgroup {data.subgroup}
                         </Typography>
@@ -1012,7 +1012,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Baseline Statistics
               </Typography>
@@ -1036,7 +1036,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: 'white' }}>
+            <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 X̄ Chart Control Limits
               </Typography>
@@ -1471,7 +1471,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: '2px solid' + data.phaseColor }}>
+                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid' + data.phaseColor }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.phaseColor }}>
                             {data.phase}
                           </Typography>
@@ -1890,7 +1890,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'white', border: `2px solid ${data.color}` }}>
+                        <Paper elevation={4} sx={{ p: 2, bgcolor: 'background.paper', border: `2px solid ${data.color}` }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: data.color }}>
                             {data.category.replace('\n', ' ')}
                           </Typography>

@@ -86,7 +86,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Let's formalize this problem mathematically.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Given:
                 </Typography>
@@ -223,7 +223,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Applying to PCA
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   Our objective: <MathJax inline>{"\\(f(\\mathbf{v}) = \\mathbf{v}^T \\mathbf{C} \\mathbf{v}\\)"}</MathJax>
                 </Typography>
@@ -267,7 +267,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Step 1: Compute ∇<sub>v</sub> ℒ
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   We need to find where the gradient equals zero:
                 </Typography>
@@ -397,7 +397,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Which Eigenvector Maximizes Variance?
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                 <Typography paragraph>
                   Let's compute the variance when <MathJax inline>{"\\(\\mathbf{v}\\)"}</MathJax> is an eigenvector:
                 </Typography>
@@ -492,7 +492,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                     eigenvectors with distinct eigenvalues <MathJax inline>{"\\(\\lambda_i \\neq \\lambda_j\\)"}</MathJax>.
                   </Typography>
 
-                  <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+                  <Paper sx={{ p: 2, bgcolor: 'background.paper', mb: 2 }}>
                     <Typography paragraph>
                       Start with:
                     </Typography>

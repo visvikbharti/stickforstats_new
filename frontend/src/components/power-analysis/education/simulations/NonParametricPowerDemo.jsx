@@ -281,7 +281,7 @@ const NonParametricPowerDemo = ({ embedded = false }) => {
   };
 
   return (
-    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: '#fff' }}>
+    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: 'background.paper' }}>
       {!embedded && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -396,7 +396,7 @@ const NonParametricPowerDemo = ({ embedded = false }) => {
           </Card>
 
           {/* Sample Size Comparison Card */}
-          <Card variant="outlined" sx={{ bgcolor: '#f5f5f5' }}>
+          <Card variant="outlined" sx={{ bgcolor: 'background.default' }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
                 Sample Size for {(targetPower * 100).toFixed(0)}% Power

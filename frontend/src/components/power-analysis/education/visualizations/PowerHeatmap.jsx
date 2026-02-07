@@ -26,6 +26,7 @@ import {
   Chip,
   Alert
 } from '@mui/material';
+import { alpha as alphaFn } from '@mui/material/styles';
 import { powerTwoSampleTTest, powerOneSampleTTest, powerOneWayANOVA } from '../utils/powerCalculations';
 
 // Color scale for power values (red -> yellow -> green)
@@ -382,7 +383,7 @@ const PowerHeatmap = ({ embedded = false }) => {
       <Grid container spacing={3}>
         {/* Controls */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Settings
             </Typography>
@@ -439,7 +440,7 @@ const PowerHeatmap = ({ embedded = false }) => {
 
             {/* Cell info */}
             {cellInfo && (
-              <Paper sx={{ p: 2, bgcolor: '#fff', border: '2px solid #d32f2f' }}>
+              <Paper sx={{ p: 2, bgcolor: 'background.paper', border: '2px solid #d32f2f' }}>
                 <Typography variant="subtitle2" gutterBottom fontWeight="bold" color="#d32f2f">
                   Selected Point
                 </Typography>
@@ -507,25 +508,25 @@ const PowerHeatmap = ({ embedded = false }) => {
 
         {/* Effect size benchmarks */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Cohen's d Effect Size Benchmarks
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <Box sx={{ textAlign: 'center', p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+                <Box sx={{ textAlign: 'center', p: 1, bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 1 }}>
                   <Typography variant="h6" color="#1976d2">d = 0.2</Typography>
                   <Typography variant="caption">Small Effect</Typography>
                 </Box>
               </Grid>
               <Grid item xs={4}>
-                <Box sx={{ textAlign: 'center', p: 1, bgcolor: '#fff3e0', borderRadius: 1 }}>
+                <Box sx={{ textAlign: 'center', p: 1, bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 1 }}>
                   <Typography variant="h6" color="#e65100">d = 0.5</Typography>
                   <Typography variant="caption">Medium Effect</Typography>
                 </Box>
               </Grid>
               <Grid item xs={4}>
-                <Box sx={{ textAlign: 'center', p: 1, bgcolor: '#e8f5e9', borderRadius: 1 }}>
+                <Box sx={{ textAlign: 'center', p: 1, bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 1 }}>
                   <Typography variant="h6" color="#2e7d32">d = 0.8</Typography>
                   <Typography variant="caption">Large Effect</Typography>
                 </Box>

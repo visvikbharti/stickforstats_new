@@ -15,6 +15,7 @@
  */
 
 import React, { useState } from 'react';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Container,
@@ -221,7 +222,7 @@ const BiophysicsLearningHub = () => {
 
   // Render hub
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Paper
@@ -292,7 +293,7 @@ const BiophysicsLearningHub = () => {
         </Alert>
 
         {/* Lesson Grid */}
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: '#1976d2', mb: 3 }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'primary.main', mb: 3 }}>
           Available Lessons
         </Typography>
 
@@ -325,7 +326,7 @@ const BiophysicsLearningHub = () => {
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <IconComponent sx={{ fontSize: 32, color: '#1976d2' }} />
+                          <IconComponent sx={{ fontSize: 32, color: 'primary.main' }} />
                           <Chip label={`Lesson ${lesson.id}`} color="primary" size="small" />
                         </Box>
                         {isCompleted && <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 28 }} />}
@@ -384,8 +385,8 @@ const BiophysicsLearningHub = () => {
         </Grid>
 
         {/* Reference Section */}
-        <Paper sx={{ p: 3, mt: 4, bgcolor: '#e8f5e9' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+        <Paper sx={{ p: 3, mt: 4, bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+          <Typography variant="h6" gutterBottom sx={{ color: 'success.dark' }}>
             Key References
           </Typography>
           <Typography variant="body2" paragraph>

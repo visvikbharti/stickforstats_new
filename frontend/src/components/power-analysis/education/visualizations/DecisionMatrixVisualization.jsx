@@ -26,6 +26,7 @@ import {
   Chip,
   useTheme
 } from '@mui/material';
+import { alpha as alphaFn } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -38,7 +39,7 @@ const CELL_DATA = {
     subtitle: 'Correct Rejection',
     probability: 'Power = 1 - β',
     color: '#4caf50',
-    bgColor: '#e8f5e9',
+    bgColor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
     icon: <CheckCircleIcon />,
     description: 'Correctly detecting a real effect',
     examples: [
@@ -52,7 +53,7 @@ const CELL_DATA = {
     subtitle: 'Correct Non-Rejection',
     probability: '1 - α',
     color: '#2196f3',
-    bgColor: '#e3f2fd',
+    bgColor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
     icon: <CheckCircleIcon />,
     description: 'Correctly not detecting when no effect exists',
     examples: [
@@ -66,7 +67,7 @@ const CELL_DATA = {
     subtitle: 'False Positive',
     probability: 'α (Alpha)',
     color: '#f44336',
-    bgColor: '#ffebee',
+    bgColor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
     icon: <ErrorIcon />,
     description: 'Detecting an effect that does not exist',
     examples: [
@@ -80,7 +81,7 @@ const CELL_DATA = {
     subtitle: 'False Negative',
     probability: 'β (Beta)',
     color: '#ff9800',
-    bgColor: '#fff3e0',
+    bgColor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
     icon: <WarningIcon />,
     description: 'Missing a real effect that exists',
     examples: [
@@ -224,7 +225,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
       <Grid container spacing={3}>
         {/* Controls */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Adjust Error Rates
             </Typography>
@@ -294,7 +295,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
                 {/* Empty corner */}
               </Grid>
               <Grid item xs={4}>
-                <Paper sx={{ p: 1, textAlign: 'center', bgcolor: '#e8f5e9' }}>
+                <Paper sx={{ p: 1, textAlign: 'center', bgcolor: (theme) => alphaFn(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <Typography variant="subtitle2" fontWeight="bold" color="#2e7d32">
                     H₀ True
                   </Typography>
@@ -304,7 +305,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
                 </Paper>
               </Grid>
               <Grid item xs={4}>
-                <Paper sx={{ p: 1, textAlign: 'center', bgcolor: '#fff3e0' }}>
+                <Paper sx={{ p: 1, textAlign: 'center', bgcolor: (theme) => alphaFn(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                   <Typography variant="subtitle2" fontWeight="bold" color="#e65100">
                     H₁ True
                   </Typography>
@@ -325,7 +326,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
                   flexDirection: 'column',
                   justifyContent: 'center',
                   textAlign: 'center',
-                  bgcolor: '#ffebee'
+                  bgcolor: (theme) => alphaFn(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
                 }}>
                   <Typography variant="subtitle2" fontWeight="bold" color="#c62828">
                     Reject H₀
@@ -365,7 +366,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
                   flexDirection: 'column',
                   justifyContent: 'center',
                   textAlign: 'center',
-                  bgcolor: '#e3f2fd'
+                  bgcolor: (theme) => alphaFn(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
                 }}>
                   <Typography variant="subtitle2" fontWeight="bold" color="#1565c0">
                     Fail to Reject H₀
@@ -422,7 +423,7 @@ const DecisionMatrixVisualization = ({ embedded = false }) => {
 
         {/* Summary statistics */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" gutterBottom fontWeight="bold">
               Probability Summary (When Testing)
             </Typography>

@@ -452,7 +452,7 @@ const PowerAnalysisStep = ({ data, updateData, errors }) => {
             </Box>
 
             {/* Test Info */}
-            <Box sx={{ bgcolor: '#f5f5f5', p: 1.5, borderRadius: 1 }}>
+            <Box sx={{ bgcolor: 'background.default', p: 1.5, borderRadius: 1 }}>
               <Typography variant="caption" color="text.secondary">
                 <strong>Test:</strong> {testSelection.selectedTest?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Not selected'}
               </Typography>
@@ -483,14 +483,14 @@ const PowerAnalysisStep = ({ data, updateData, errors }) => {
         {/* Results Section */}
         {powerAnalysis.calculatedSampleSize && (
           <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3, bgcolor: '#e8f5e9' }}>
+            <Paper elevation={3} sx={{ p: 3, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.12)' : '#e8f5e9' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Box
                   sx={{
                     width: 64,
                     height: 64,
                     borderRadius: '50%',
-                    bgcolor: '#4caf50',
+                    bgcolor: 'success.main',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -499,7 +499,7 @@ const PowerAnalysisStep = ({ data, updateData, errors }) => {
                   <SampleIcon sx={{ color: 'white', fontSize: 32 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h4" fontWeight={700} color="#2e7d32">
+                  <Typography variant="h4" fontWeight={700} color="success.dark">
                     n = {powerAnalysis.sampleSizePerGroup}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -554,7 +554,7 @@ const PowerAnalysisStep = ({ data, updateData, errors }) => {
         <Grid item xs={12}>
           <Paper elevation={1} sx={{ p: 2 }}>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-              <PowerIcon sx={{ mr: 1, verticalAlign: 'middle', color: '#1976d2' }} />
+              <PowerIcon sx={{ mr: 1, verticalAlign: 'middle', color: 'primary.main' }} />
               Power Curve
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
