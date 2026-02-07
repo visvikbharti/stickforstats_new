@@ -191,8 +191,8 @@ const BiophysicsLearningHub = () => {
     const LessonComponent = lesson.component;
 
     return (
-      <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
-        <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e0e0e0', py: 2 }}>
+      <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[50], minHeight: '100vh' }}>
+        <Box sx={{ bgcolor: 'background.paper', borderBottom: (theme) => `1px solid ${theme.palette.divider}`, py: 2 }}>
           <Container>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -201,7 +201,7 @@ const BiophysicsLearningHub = () => {
             >
               Back to Learning Hub
             </Button>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.main' }}>
               Lesson {lesson.id}: {lesson.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
