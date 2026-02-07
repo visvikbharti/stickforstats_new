@@ -347,7 +347,6 @@ const ParametricTests = ({ data }) => {
    * Handle alternative test selection from Guardian
    */
   const handleSelectAlternative = (alternativeTest) => {
-    console.log('[ParametricTests] Alternative test selected:', alternativeTest);
     setSelectedAlternative(alternativeTest);
 
     // Map alternative test names to user-friendly display
@@ -371,7 +370,6 @@ const ParametricTests = ({ data }) => {
    * Opens a modal with diagnostic plots
    */
   const handleViewEvidence = (evidence) => {
-    console.log('[ParametricTests] View evidence requested:', evidence);
     setShowVisualEvidence(true);
   };
 
@@ -634,7 +632,6 @@ const ParametricTests = ({ data }) => {
           data={columnData}
           alpha={alpha}
           onProceed={() => {
-            console.log('[ParametricTests] User chose to proceed despite warnings');
             setIsTestBlocked(false);
           }}
           onSelectAlternative={handleSelectAlternative}

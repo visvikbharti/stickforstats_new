@@ -89,13 +89,10 @@ const CorrelationTests = ({ data }) => {
    * Guardian Action Handlers
    */
   const handleGuardianProceed = () => {
-    console.log('Guardian: User chose to proceed despite warnings');
     setIsTestBlocked(false);
   };
 
   const handleSelectAlternative = (alternativeTest) => {
-    console.log('Guardian: User selected alternative test:', alternativeTest);
-    // Could auto-switch to the alternative test here
     if (alternativeTest === 'spearman') {
       setCorrelationType('spearman');
       alert('Switched to Spearman correlation (non-parametric alternative)');
@@ -105,7 +102,6 @@ const CorrelationTests = ({ data }) => {
   };
 
   const handleViewEvidence = () => {
-    console.log('[CorrelationTests] View evidence requested');
     setShowVisualEvidence(true);
   };
 

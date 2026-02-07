@@ -12,7 +12,10 @@
  * 6. Real-world use, not demos
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+
+// v1 prefix for versioned endpoints
+const API_V1_URL = `${API_BASE_URL}/v1`;
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
@@ -46,7 +49,7 @@ const apiCall = async (endpoint, method = 'GET', body = null) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    const response = await fetch(`${API_V1_URL}${endpoint}`, options);
     return await handleResponse(response);
   } catch (error) {
     console.error(`API call failed: ${endpoint}`, error);

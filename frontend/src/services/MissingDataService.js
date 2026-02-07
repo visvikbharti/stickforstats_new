@@ -36,11 +36,11 @@ import Decimal from 'decimal.js';
 Decimal.set({ precision: 50 });
 
 // Get the API base URL from environment or use default
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 // Create axios instance with authentication
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: `${API_BASE_URL}/v1`,
   headers: {
     'Content-Type': 'application/json',
   },

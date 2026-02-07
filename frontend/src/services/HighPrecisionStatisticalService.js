@@ -14,6 +14,7 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
 class HighPrecisionStatisticalService {
   constructor() {
     this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+    // Note: endpoints in this service already include /v1/ prefix
     this.token = localStorage.getItem('authToken');
     this.setupAxios();
   }

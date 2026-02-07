@@ -1,13 +1,12 @@
 /**
  * Classification Component
  *
- * Implements binary and multiclass classification using logistic regression.
+ * Implements binary classification using logistic regression.
  * Features:
  * - Train/test split with configurable test size
  * - Logistic regression with gradient descent optimization
  * - Confusion matrix with heatmap visualization
  * - Performance metrics: Accuracy, Precision, Recall, F1-score
- * - Classification report by class
  * - Predictions vs Actuals table
  */
 

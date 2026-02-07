@@ -11,7 +11,7 @@
 import axios from 'axios';
 import apiConfig from '../config/apiConfig';
 
-const API_BASE = apiConfig.baseURL || 'http://localhost:8000';
+const API_BASE = apiConfig.baseURL;
 
 class TransformationService {
   /**
@@ -24,7 +24,7 @@ class TransformationService {
   static async suggestTransformation(data, violationType = 'normality') {
     try {
       const response = await axios.post(
-        `${API_BASE}/api/guardian/transformation/suggest/`,
+        `${API_BASE}/guardian/transformation/suggest/`,
         {
           data: data,
           violation_type: violationType
@@ -60,7 +60,7 @@ class TransformationService {
   static async applyTransformation(data, transformationType, parameters = {}) {
     try {
       const response = await axios.post(
-        `${API_BASE}/api/guardian/transformation/apply/`,
+        `${API_BASE}/guardian/transformation/apply/`,
         {
           data: data,
           transformation: transformationType,
@@ -96,7 +96,7 @@ class TransformationService {
   static async validateTransformation(originalData, transformedData) {
     try {
       const response = await axios.post(
-        `${API_BASE}/api/guardian/transformation/validate/`,
+        `${API_BASE}/guardian/transformation/validate/`,
         {
           original_data: originalData,
           transformed_data: transformedData
@@ -132,7 +132,7 @@ class TransformationService {
   static async exportCode(transformationType, parameters, language = 'python') {
     try {
       const response = await axios.post(
-        `${API_BASE}/api/guardian/transformation/export-code/`,
+        `${API_BASE}/guardian/transformation/export-code/`,
         {
           transformation: transformationType,
           parameters: parameters,

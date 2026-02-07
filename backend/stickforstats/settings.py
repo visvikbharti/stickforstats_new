@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     # StickForStats apps - Statistical Modules
     # Note: Some apps have import issues - enable carefully and run migrations
     'confidence_intervals.apps.ConfidenceIntervalsConfig',  # Re-enabled
-    # 'probability_distributions.apps.ProbabilityDistributionsConfig',  # Field name mismatches in views
+    'probability_distributions.apps.ProbabilityDistributionsConfig',
     'sqc_analysis.apps.SQCAnalysisConfig',  # ENABLED for backend integration
-    # 'doe_analysis.apps.DOEAnalysisConfig',  # Syntax error + missing model needs fix
-    # 'pca_analysis.apps.PCAAnalysisConfig',  # get_dirty_fields() not defined
+    # 'doe_analysis.apps.DOEAnalysisConfig',  # Needs core.AnalysisSession/AnalysisResult models (not yet created)
+    'pca_analysis.apps.PCAAnalysisConfig',
 ]
 
 MIDDLEWARE = [

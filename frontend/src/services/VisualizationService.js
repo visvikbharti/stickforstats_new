@@ -10,7 +10,7 @@ import * as Plotly from 'plotly.js-dist';
 
 class VisualizationService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+    this.baseURL = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1';
     this.token = localStorage.getItem('authToken');
     this.headers = {
       'Authorization': `Bearer ${this.token}`,

@@ -14,7 +14,7 @@ from django.conf import settings
 import os
 import uuid
 
-from stickforstats.pca_analysis.models import (
+from pca_analysis.models import (
     PCAProject,
     Sample,
     SampleGroup,

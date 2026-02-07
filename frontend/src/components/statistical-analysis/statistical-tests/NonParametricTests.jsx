@@ -100,18 +100,14 @@ const NonParametricTests = ({ data }) => {
    * Guardian Action Handlers
    */
   const handleGuardianProceed = () => {
-    console.log('Guardian: User chose to proceed despite warnings');
     setIsTestBlocked(false);
   };
 
   const handleSelectAlternative = (alternativeTest) => {
-    console.log('Guardian: User selected alternative test:', alternativeTest);
-    // Could auto-switch to the alternative test here
     alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the Test Type dropdown.`);
   };
 
   const handleViewEvidence = () => {
-    console.log('[NonParametricTests] View evidence requested');
     setShowVisualEvidence(true);
   };
 

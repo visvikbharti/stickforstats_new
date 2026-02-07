@@ -362,26 +362,185 @@ export const durbinWatsonTest = (residuals) => {
 };
 
 /**
- * Check for multicollinearity using VIF
- * @param {Array<Array<number>>} predictors - Matrix of predictor variables
+ * Compute Pearson correlation matrix for a set of columns.
+ * @param {Array<Array<number>>} data - n x k matrix (rows = observations, cols = variables)
+ * @returns {Array<Array<number>>} k x k correlation matrix
+ */
+const correlationMatrix = (data) => {
+  const n = data.length;
+  const k = data[0].length;
+
+  // Compute means
+  const means = new Array(k).fill(0);
+  for (let j = 0; j < k; j++) {
+    for (let i = 0; i < n; i++) {
+      means[j] += data[i][j];
+    }
+    means[j] /= n;
+  }
+
+  // Compute standard deviations
+  const stds = new Array(k).fill(0);
+  for (let j = 0; j < k; j++) {
+    for (let i = 0; i < n; i++) {
+      stds[j] += Math.pow(data[i][j] - means[j], 2);
+    }
+    stds[j] = Math.sqrt(stds[j] / (n - 1));
+  }
+
+  // Build correlation matrix
+  const R = Array.from({ length: k }, () => new Array(k).fill(0));
+  for (let a = 0; a < k; a++) {
+    R[a][a] = 1.0;
+    for (let b = a + 1; b < k; b++) {
+      if (stds[a] === 0 || stds[b] === 0) {
+        // Zero-variance column: correlation undefined, treat as 0
+        R[a][b] = 0;
+        R[b][a] = 0;
+      } else {
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+          sum += (data[i][a] - means[a]) * (data[i][b] - means[b]);
+        }
+        const r = sum / ((n - 1) * stds[a] * stds[b]);
+        R[a][b] = r;
+        R[b][a] = r;
+      }
+    }
+  }
+
+  return R;
+};
+
+/**
+ * Invert a square matrix using Gauss-Jordan elimination with partial pivoting.
+ * Returns null if the matrix is singular (or nearly singular).
+ * @param {Array<Array<number>>} matrix - k x k matrix
+ * @returns {Array<Array<number>>|null} Inverse matrix, or null if singular
+ */
+const invertMatrix = (matrix) => {
+  const k = matrix.length;
+  const EPSILON = 1e-12;
+
+  // Build augmented matrix [A | I]
+  const aug = Array.from({ length: k }, (_, i) => {
+    const row = new Array(2 * k).fill(0);
+    for (let j = 0; j < k; j++) {
+      row[j] = matrix[i][j];
+    }
+    row[k + i] = 1;
+    return row;
+  });
+
+  for (let col = 0; col < k; col++) {
+    // Partial pivoting: find the row with the largest absolute value in this column
+    let maxVal = Math.abs(aug[col][col]);
+    let maxRow = col;
+    for (let row = col + 1; row < k; row++) {
+      if (Math.abs(aug[row][col]) > maxVal) {
+        maxVal = Math.abs(aug[row][col]);
+        maxRow = row;
+      }
+    }
+
+    if (maxVal < EPSILON) {
+      return null; // Singular matrix
+    }
+
+    // Swap rows
+    if (maxRow !== col) {
+      [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+    }
+
+    // Scale pivot row
+    const pivot = aug[col][col];
+    for (let j = 0; j < 2 * k; j++) {
+      aug[col][j] /= pivot;
+    }
+
+    // Eliminate column in all other rows
+    for (let row = 0; row < k; row++) {
+      if (row === col) continue;
+      const factor = aug[row][col];
+      for (let j = 0; j < 2 * k; j++) {
+        aug[row][j] -= factor * aug[col][j];
+      }
+    }
+  }
+
+  // Extract inverse from augmented matrix
+  return aug.map(row => row.slice(k));
+};
+
+/**
+ * Check for multicollinearity using VIF via correlation matrix inversion.
+ * VIF_j = diagonal element j of R^{-1}, where R is the predictor correlation matrix.
+ * Reference: Belsley, Kuh & Welsch (1980), Regression Diagnostics.
+ * @param {Array<Array<number>>} predictors - n x k matrix (rows = observations, cols = predictors)
  * @returns {Object} VIF results
  */
 export const calculateVIF = (predictors) => {
-  const k = predictors[0].length; // Number of predictors
+  const n = predictors.length;
+  const k = predictors[0].length;
   const vifValues = [];
 
-  for (let i = 0; i < k; i++) {
-    // Use predictor i as dependent, others as independent
-    const y = predictors.map(row => row[i]);
-    const X = predictors.map(row => row.filter((_, j) => j !== i));
-
-    // Calculate R-squared from regression
-    // Simplified - actual implementation would use proper regression
-    const rSquared = 0.5; // Placeholder - implement actual regression
-
-    const vif = 1 / (1 - rSquared);
+  // Single predictor: VIF is always 1 (no collinearity possible)
+  if (k === 1) {
     vifValues.push({
-      predictor: `Variable ${i + 1}`,
+      predictor: 'Variable 1',
+      vif: 1.0,
+      concern: 'none'
+    });
+    return {
+      vifValues,
+      maxVIF: 1.0,
+      hasMulticollinearity: false,
+      interpretation: 'Single predictor - multicollinearity not applicable',
+      recommendation: 'Multicollinearity not a concern'
+    };
+  }
+
+  // Need more observations than predictors for a valid correlation matrix
+  if (n <= k) {
+    return {
+      vifValues: Array.from({ length: k }, (_, i) => ({
+        predictor: `Variable ${i + 1}`,
+        vif: Infinity,
+        concern: 'severe'
+      })),
+      maxVIF: Infinity,
+      hasMulticollinearity: true,
+      interpretation: 'Too few observations relative to predictors (n <= k) - VIF undefined',
+      recommendation: 'Reduce the number of predictors or collect more data'
+    };
+  }
+
+  // Compute correlation matrix of predictors
+  const R = correlationMatrix(predictors);
+
+  // Invert the correlation matrix
+  const Rinv = invertMatrix(R);
+
+  if (Rinv === null) {
+    // Singular matrix means perfect multicollinearity
+    return {
+      vifValues: Array.from({ length: k }, (_, i) => ({
+        predictor: `Variable ${i + 1}`,
+        vif: Infinity,
+        concern: 'severe'
+      })),
+      maxVIF: Infinity,
+      hasMulticollinearity: true,
+      interpretation: 'Perfect multicollinearity detected - correlation matrix is singular',
+      recommendation: 'One or more predictors are exact linear combinations of others. Remove redundant predictors.'
+    };
+  }
+
+  // Diagonal elements of R^{-1} are the VIF values
+  for (let j = 0; j < k; j++) {
+    const vif = Rinv[j][j];
+    vifValues.push({
+      predictor: `Variable ${j + 1}`,
       vif,
       concern: vif > 10 ? 'severe' : vif > 5 ? 'moderate' : 'none'
     });
@@ -400,7 +559,8 @@ export const calculateVIF = (predictors) => {
       'No concerning multicollinearity',
     recommendation: maxVIF > 5 ?
       'Consider removing correlated predictors or using ridge regression' :
-      'Multicollinearity not a concern'
+      'Multicollinearity not a concern',
+    citations: ['Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). Regression Diagnostics. Wiley.']
   };
 };
 
@@ -457,6 +617,24 @@ const runAssumptionCheck = (assumptionType, data) => {
         recommendation: !adequate ?
           'Small sample size - ensure normality or use non-parametric test' : null,
         alternative: adequate ? null : 'BOOTSTRAP'
+      };
+    },
+
+    'no_multicollinearity': () => {
+      if (!data.predictors || data.predictors.length === 0 || data.predictors[0].length < 2) {
+        return {
+          passed: true,
+          details: { method: 'skipped', reason: 'Fewer than 2 predictors' },
+          recommendation: null
+        };
+      }
+      const result = calculateVIF(data.predictors);
+      return {
+        passed: !result.hasMulticollinearity,
+        details: result,
+        recommendation: result.hasMulticollinearity ?
+          result.recommendation : null,
+        alternative: result.hasMulticollinearity ? 'RIDGE_REGRESSION' : null
       };
     }
   };

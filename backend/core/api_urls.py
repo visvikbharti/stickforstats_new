@@ -116,4 +116,7 @@ urlpatterns = [
     path('causal/did/event-study/', EventStudyView.as_view(), name='causal-event-study'),
     path('causal/did/parallel-trends/', ParallelTrendsTestView.as_view(), name='causal-parallel-trends'),
     path('causal/did/staggered/', StaggeredDiDView.as_view(), name='causal-staggered-did'),
+
+    # Workflow Navigation endpoints
+    path('', include('core.api.workflow_navigation_urls')),
 ]

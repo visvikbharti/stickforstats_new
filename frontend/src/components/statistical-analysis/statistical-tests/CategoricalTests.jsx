@@ -84,17 +84,14 @@ const CategoricalTests = ({ data }) => {
    * Guardian Action Handlers
    */
   const handleGuardianProceed = () => {
-    console.log('Guardian: User chose to proceed despite warnings');
     setIsTestBlocked(false);
   };
 
   const handleSelectAlternative = (alternativeTest) => {
-    console.log('Guardian: User selected alternative test:', alternativeTest);
     alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the available tests.`);
   };
 
   const handleViewEvidence = () => {
-    console.log('[CategoricalTests] View evidence requested');
     setShowVisualEvidence(true);
   };
 

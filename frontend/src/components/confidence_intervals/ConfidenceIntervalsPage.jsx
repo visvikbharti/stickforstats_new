@@ -49,7 +49,6 @@ const ConfidenceIntervalsPage = () => {
     { label: 'Interactive Simulations', path: 'simulations' },
     { label: 'Advanced Methods', path: 'advanced' },
     { label: 'Real-World Applications', path: 'applications' },
-    { label: 'Mathematical Proofs', path: 'proofs' },
     { label: 'References', path: 'references' },
   ], []);
 

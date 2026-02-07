@@ -112,7 +112,14 @@ const MultiplicityCorrectionPanel = () => {
   const [sortAscending, setSortAscending] = useState(true);
   const [showAlphaSpending, setShowAlphaSpending] = useState(false);
   const [exportFormat, setExportFormat] = useState('pdf');
-  
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newHypothesis, setNewHypothesis] = useState({
+    description: '',
+    testName: '',
+    pValue: '',
+    effectSize: ''
+  });
+
   // Calculate corrected p-values
   const correctedResults = useMemo(() => {
     if (!hypotheses.length) return [];
@@ -445,9 +452,9 @@ const MultiplicityCorrectionPanel = () => {
                 onChange={(e) => setFilterText(e.target.value)}
                 className="filter-input"
               />
-              <button 
+              <button
                 className="add-hypothesis-btn"
-                onClick={() => {/* Open add hypothesis modal */}}
+                onClick={() => setShowAddModal(true)}
               >
                 + Add Hypothesis
               </button>
@@ -841,6 +848,79 @@ const MultiplicityCorrectionPanel = () => {
           </div>
         )}
       </div>
+
+      {/* Add Hypothesis Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Add Hypothesis</h4>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Description *</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Treatment group has higher mean than control"
+                  value={newHypothesis.description}
+                  onChange={(e) => setNewHypothesis({ ...newHypothesis, description: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Test Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Independent t-test"
+                  value={newHypothesis.testName}
+                  onChange={(e) => setNewHypothesis({ ...newHypothesis, testName: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>P-value *</label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  max="1"
+                  placeholder="e.g., 0.0312"
+                  value={newHypothesis.pValue}
+                  onChange={(e) => setNewHypothesis({ ...newHypothesis, pValue: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Effect Size (optional)</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  placeholder="e.g., 0.45"
+                  value={newHypothesis.effectSize}
+                  onChange={(e) => setNewHypothesis({ ...newHypothesis, effectSize: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button
+                className="submit-btn"
+                disabled={!newHypothesis.description || !newHypothesis.testName || !newHypothesis.pValue}
+                onClick={() => {
+                  handleAddHypothesis({
+                    description: newHypothesis.description,
+                    testName: newHypothesis.testName,
+                    pValue: parseFloat(newHypothesis.pValue),
+                    effectSize: newHypothesis.effectSize ? parseFloat(newHypothesis.effectSize) : null
+                  });
+                  setNewHypothesis({ description: '', testName: '', pValue: '', effectSize: '' });
+                  setShowAddModal(false);
+                }}
+              >
+                Add Hypothesis
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

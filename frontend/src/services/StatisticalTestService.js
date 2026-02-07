@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 class StatisticalTestService {
   constructor() {
@@ -21,7 +21,7 @@ class StatisticalTestService {
           tTest: {
             name: 'T-Test',
             variants: ['one_sample', 'two_sample', 'paired'],
-            endpoint: '/api/v1/stats/ttest/',
+            endpoint: '/v1/stats/ttest/',
             guardianRequired: true,
             assumptions: ['normality', 'independence', 'equal_variance'],
             minSampleSize: { one_sample: 3, two_sample: 3, paired: 3 }
@@ -29,14 +29,14 @@ class StatisticalTestService {
           anova: {
             name: 'ANOVA',
             variants: ['one_way', 'two_way', 'repeated_measures'],
-            endpoint: '/api/v1/stats/anova/',
+            endpoint: '/v1/stats/anova/',
             guardianRequired: true,
             assumptions: ['normality', 'homogeneity', 'independence'],
             minSampleSize: 6
           },
           ancova: {
             name: 'ANCOVA',
-            endpoint: '/api/v1/stats/ancova/',
+            endpoint: '/v1/stats/ancova/',
             guardianRequired: true,
             assumptions: ['normality', 'homogeneity', 'linearity', 'homogeneity_regression'],
             minSampleSize: 10
@@ -50,56 +50,56 @@ class StatisticalTestService {
         tests: {
           mannWhitney: {
             name: 'Mann-Whitney U Test',
-            endpoint: '/api/v1/nonparametric/mann-whitney/',
+            endpoint: '/v1/nonparametric/mann-whitney/',
             guardianRequired: false,
             assumptions: ['independence', 'ordinal_data'],
             minSampleSize: 5
           },
           wilcoxon: {
             name: 'Wilcoxon Signed-Rank Test',
-            endpoint: '/api/v1/nonparametric/wilcoxon/',
+            endpoint: '/v1/nonparametric/wilcoxon/',
             guardianRequired: false,
             assumptions: ['paired_data', 'symmetry'],
             minSampleSize: 6
           },
           kruskalWallis: {
             name: 'Kruskal-Wallis Test',
-            endpoint: '/api/v1/nonparametric/kruskal-wallis/',
+            endpoint: '/v1/nonparametric/kruskal-wallis/',
             guardianRequired: false,
             assumptions: ['independence', 'ordinal_data'],
             minSampleSize: 6
           },
           friedman: {
             name: 'Friedman Test',
-            endpoint: '/api/v1/nonparametric/friedman/',
+            endpoint: '/v1/nonparametric/friedman/',
             guardianRequired: false,
             assumptions: ['repeated_measures', 'ordinal_data'],
             minSampleSize: 6
           },
           signTest: {
             name: 'Sign Test',
-            endpoint: '/api/v1/nonparametric/sign/',
+            endpoint: '/v1/nonparametric/sign/',
             guardianRequired: false,
             assumptions: ['paired_data'],
             minSampleSize: 5
           },
           moodMedian: {
             name: "Mood's Median Test",
-            endpoint: '/api/v1/nonparametric/mood/',
+            endpoint: '/v1/nonparametric/mood/',
             guardianRequired: false,
             assumptions: ['independence'],
             minSampleSize: 6
           },
           jonckheere: {
             name: 'Jonckheere-Terpstra Test',
-            endpoint: '/api/v1/nonparametric/jonckheere/',
+            endpoint: '/v1/nonparametric/jonckheere/',
             guardianRequired: false,
             assumptions: ['ordered_alternatives', 'independence'],
             minSampleSize: 6
           },
           page: {
             name: "Page's Trend Test",
-            endpoint: '/api/v1/nonparametric/page/',
+            endpoint: '/v1/nonparametric/page/',
             guardianRequired: false,
             assumptions: ['repeated_measures', 'ordered_alternatives'],
             minSampleSize: 6
@@ -113,7 +113,7 @@ class StatisticalTestService {
         tests: {
           pearson: {
             name: 'Pearson Correlation',
-            endpoint: '/api/v1/stats/correlation/',
+            endpoint: '/v1/stats/correlation/',
             method: 'pearson',
             guardianRequired: true,
             assumptions: ['normality', 'linearity', 'homoscedasticity'],
@@ -121,7 +121,7 @@ class StatisticalTestService {
           },
           spearman: {
             name: 'Spearman Correlation',
-            endpoint: '/api/v1/stats/correlation/',
+            endpoint: '/v1/stats/correlation/',
             method: 'spearman',
             guardianRequired: false,
             assumptions: ['monotonic_relationship'],
@@ -129,7 +129,7 @@ class StatisticalTestService {
           },
           kendall: {
             name: 'Kendall Tau',
-            endpoint: '/api/v1/stats/correlation/',
+            endpoint: '/v1/stats/correlation/',
             method: 'kendall',
             guardianRequired: false,
             assumptions: ['ordinal_data'],
@@ -137,42 +137,42 @@ class StatisticalTestService {
           },
           linearRegression: {
             name: 'Linear Regression',
-            endpoint: '/api/v1/regression/linear/',
+            endpoint: '/v1/regression/linear/',
             guardianRequired: true,
             assumptions: ['linearity', 'independence', 'homoscedasticity', 'normality_residuals'],
             minSampleSize: 20
           },
           multipleRegression: {
             name: 'Multiple Regression',
-            endpoint: '/api/v1/regression/multiple/',
+            endpoint: '/v1/regression/multiple/',
             guardianRequired: true,
             assumptions: ['linearity', 'independence', 'multicollinearity', 'normality_residuals'],
             minSampleSize: 30
           },
           polynomialRegression: {
             name: 'Polynomial Regression',
-            endpoint: '/api/v1/regression/polynomial/',
+            endpoint: '/v1/regression/polynomial/',
             guardianRequired: true,
             assumptions: ['polynomial_relationship', 'independence'],
             minSampleSize: 20
           },
           logisticRegression: {
             name: 'Logistic Regression',
-            endpoint: '/api/v1/regression/logistic/',
+            endpoint: '/v1/regression/logistic/',
             guardianRequired: true,
             assumptions: ['binary_outcome', 'independence', 'linearity_logit'],
             minSampleSize: 50
           },
           ridgeRegression: {
             name: 'Ridge Regression',
-            endpoint: '/api/v1/regression/ridge/',
+            endpoint: '/v1/regression/ridge/',
             guardianRequired: false,
             assumptions: ['multicollinearity_present'],
             minSampleSize: 20
           },
           lassoRegression: {
             name: 'Lasso Regression',
-            endpoint: '/api/v1/regression/lasso/',
+            endpoint: '/v1/regression/lasso/',
             guardianRequired: false,
             assumptions: ['feature_selection_needed'],
             minSampleSize: 20
@@ -186,56 +186,56 @@ class StatisticalTestService {
         tests: {
           chiSquareIndependence: {
             name: 'Chi-Square Independence',
-            endpoint: '/api/v1/categorical/chi-square/independence/',
+            endpoint: '/v1/categorical/chi-square/independence/',
             guardianRequired: false,
             assumptions: ['expected_frequency_5', 'independence'],
             minSampleSize: 20
           },
           chiSquareGoodness: {
             name: 'Chi-Square Goodness of Fit',
-            endpoint: '/api/v1/categorical/chi-square/goodness/',
+            endpoint: '/v1/categorical/chi-square/goodness/',
             guardianRequired: false,
             assumptions: ['expected_frequency_5'],
             minSampleSize: 20
           },
           fishersExact: {
             name: "Fisher's Exact Test",
-            endpoint: '/api/v1/categorical/fishers/',
+            endpoint: '/v1/categorical/fishers/',
             guardianRequired: false,
             assumptions: ['2x2_table', 'small_sample'],
             minSampleSize: 1
           },
           mcnemar: {
             name: "McNemar's Test",
-            endpoint: '/api/v1/categorical/mcnemar/',
+            endpoint: '/v1/categorical/mcnemar/',
             guardianRequired: false,
             assumptions: ['paired_binary', 'dichotomous'],
             minSampleSize: 10
           },
           cochranQ: {
             name: "Cochran's Q Test",
-            endpoint: '/api/v1/categorical/cochran-q/',
+            endpoint: '/v1/categorical/cochran-q/',
             guardianRequired: false,
             assumptions: ['repeated_binary', 'dichotomous'],
             minSampleSize: 10
           },
           gTest: {
             name: 'G-Test',
-            endpoint: '/api/v1/categorical/g-test/',
+            endpoint: '/v1/categorical/g-test/',
             guardianRequired: false,
             assumptions: ['likelihood_ratio', 'independence'],
             minSampleSize: 20
           },
           binomial: {
             name: 'Binomial Test',
-            endpoint: '/api/v1/categorical/binomial/',
+            endpoint: '/v1/categorical/binomial/',
             guardianRequired: false,
             assumptions: ['binary_outcome', 'fixed_probability'],
             minSampleSize: 1
           },
           multinomial: {
             name: 'Multinomial Test',
-            endpoint: '/api/v1/categorical/multinomial/',
+            endpoint: '/v1/categorical/multinomial/',
             guardianRequired: false,
             assumptions: ['multiple_categories', 'fixed_probabilities'],
             minSampleSize: 20
@@ -249,42 +249,42 @@ class StatisticalTestService {
         tests: {
           tTestPower: {
             name: 'T-Test Power',
-            endpoint: '/api/v1/power/t-test/',
+            endpoint: '/v1/power/t-test/',
             parameters: ['effect_size', 'alpha', 'sample_size']
           },
           anovaPower: {
             name: 'ANOVA Power',
-            endpoint: '/api/v1/power/anova/',
+            endpoint: '/v1/power/anova/',
             parameters: ['effect_size', 'alpha', 'groups', 'sample_size']
           },
           correlationPower: {
             name: 'Correlation Power',
-            endpoint: '/api/v1/power/correlation/',
+            endpoint: '/v1/power/correlation/',
             parameters: ['effect_size', 'alpha', 'sample_size']
           },
           chiSquarePower: {
             name: 'Chi-Square Power',
-            endpoint: '/api/v1/power/chi-square/',
+            endpoint: '/v1/power/chi-square/',
             parameters: ['effect_size', 'alpha', 'df', 'sample_size']
           },
           sampleSize: {
             name: 'Sample Size Calculator',
-            endpoint: '/api/v1/power/sample-size/t-test/',
+            endpoint: '/v1/power/sample-size/t-test/',
             parameters: ['effect_size', 'alpha', 'power']
           },
           effectSize: {
             name: 'Effect Size Calculator',
-            endpoint: '/api/v1/power/effect-size/t-test/',
+            endpoint: '/v1/power/effect-size/t-test/',
             parameters: ['mean1', 'mean2', 'pooled_sd']
           },
           powerCurves: {
             name: 'Power Curves',
-            endpoint: '/api/v1/power/curves/',
+            endpoint: '/v1/power/curves/',
             parameters: ['test_type', 'effect_sizes', 'sample_sizes']
           },
           optimalAllocation: {
             name: 'Optimal Allocation',
-            endpoint: '/api/v1/power/allocation/',
+            endpoint: '/v1/power/allocation/',
             parameters: ['total_sample', 'groups', 'variances']
           }
         }
@@ -296,37 +296,37 @@ class StatisticalTestService {
         tests: {
           detectPatterns: {
             name: 'Detect Missing Patterns',
-            endpoint: '/api/v1/missing-data/detect/',
+            endpoint: '/v1/missing-data/detect/',
             parameters: ['data']
           },
           littlesMCAR: {
             name: "Little's MCAR Test",
-            endpoint: '/api/v1/missing-data/little-test/',
+            endpoint: '/v1/missing-data/little-test/',
             parameters: ['data']
           },
           imputeMissing: {
             name: 'Impute Missing Data',
-            endpoint: '/api/v1/missing-data/impute/',
+            endpoint: '/v1/missing-data/impute/',
             parameters: ['data', 'method']
           },
           multipleImputation: {
             name: 'Multiple Imputation',
-            endpoint: '/api/v1/missing-data/multiple-imputation/',
+            endpoint: '/v1/missing-data/multiple-imputation/',
             parameters: ['data', 'n_imputations']
           },
           knnImputation: {
             name: 'KNN Imputation',
-            endpoint: '/api/v1/missing-data/knn/',
+            endpoint: '/v1/missing-data/knn/',
             parameters: ['data', 'k_neighbors']
           },
           emImputation: {
             name: 'EM Algorithm',
-            endpoint: '/api/v1/missing-data/em/',
+            endpoint: '/v1/missing-data/em/',
             parameters: ['data', 'max_iterations']
           },
           compareImputations: {
             name: 'Compare Methods',
-            endpoint: '/api/v1/missing-data/compare/',
+            endpoint: '/v1/missing-data/compare/',
             parameters: ['data', 'methods']
           }
         }
@@ -346,7 +346,7 @@ class StatisticalTestService {
 
   async checkGuardianHealth() {
     try {
-      const response = await this.apiClient.get('/api/guardian/health/');
+      const response = await this.apiClient.get('/guardian/health/');
       return {
         status: response.data.status,
         version: response.data.version,
@@ -365,7 +365,7 @@ class StatisticalTestService {
 
   async performGuardianCheck(data, testType) {
     try {
-      const response = await this.apiClient.post('/api/guardian/check/', {
+      const response = await this.apiClient.post('/guardian/check/', {
         data: data,
         test_type: testType,
         precision_required: 50
@@ -609,7 +609,7 @@ class StatisticalTestService {
     try {
       const response = await this.apiClient.post(
         this.testCategories.powerAnalysis.tests[testName]?.endpoint ||
-        `/api/v1/power/${analysisType}/`,
+        `/v1/power/${analysisType}/`,
         parameters
       );
 
@@ -660,7 +660,7 @@ class StatisticalTestService {
 
   async getTestRecommendation(data, researchQuestion) {
     try {
-      const response = await this.apiClient.post('/api/v1/stats/recommend/', {
+      const response = await this.apiClient.post('/v1/stats/recommend/', {
         data: data,
         research_question: researchQuestion,
         include_assumptions: true,
@@ -688,7 +688,7 @@ class StatisticalTestService {
     formData.append('file', file);
 
     try {
-      const response = await this.apiClient.post('/api/v1/data/import/', formData, {
+      const response = await this.apiClient.post('/v1/data/import/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

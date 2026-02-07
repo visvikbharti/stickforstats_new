@@ -119,7 +119,6 @@ const NormalityTests = ({ data }) => {
    * Handle proceeding despite Guardian warnings
    */
   const handleGuardianProceed = () => {
-    console.log('[NormalityTests] User chose to proceed despite warnings');
     setIsTestBlocked(false);
   };
 
@@ -127,7 +126,6 @@ const NormalityTests = ({ data }) => {
    * Handle alternative test selection from Guardian
    */
   const handleSelectAlternative = (alternativeTest) => {
-    console.log('[NormalityTests] Alternative test selected:', alternativeTest);
     const displayName = alternativeTest.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     alert(`Alternative Test Selected: ${displayName}\n\nPlease navigate to the appropriate test module to use this alternative.`);
   };
@@ -136,7 +134,7 @@ const NormalityTests = ({ data }) => {
    * Handle visual evidence viewing from Guardian
    */
   const handleViewEvidence = (evidence) => {
-    console.log('[NormalityTests] View evidence requested:', evidence);
+    // Evidence data available for diagnostic visualization
   };
 
   /**

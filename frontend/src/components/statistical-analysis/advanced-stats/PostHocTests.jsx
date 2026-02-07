@@ -483,16 +483,12 @@ const PostHocTests = ({ data }) => {
           <GuardianWarning
             guardianReport={guardianReport}
             onProceed={() => {
-              console.log('[PostHocTests] User chose to proceed despite warnings');
               setIsTestBlocked(false);
             }}
             onSelectAlternative={(alt) => {
-              console.log('[PostHocTests] Alternative test selected:', alt);
               alert(`Alternative Test Selected: ${alt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}\n\nPlease navigate to the appropriate test module to use this alternative.`);
             }}
-            onViewEvidence={(evidence) => {
-              console.log('[PostHocTests] View evidence requested:', evidence);
-            }}
+            onViewEvidence={() => {}}
           />
         </Box>
       )}
