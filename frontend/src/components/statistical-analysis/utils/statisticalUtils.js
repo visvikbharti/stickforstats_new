@@ -504,3 +504,264 @@ export const chiSquareTest = (observed) => {
     significant: pValue < 0.05
   };
 };
+
+/**
+ * Kruskal-Wallis H Test
+ * Non-parametric alternative to one-way ANOVA for 3+ independent groups
+ * Tests if samples originate from the same distribution
+ *
+ * @param {Object} groups - Object with group names as keys and arrays of values
+ * @returns {Object} Test results including H statistic, p-value, and effect size
+ */
+export const kruskalWallisTest = (groups) => {
+  const groupNames = Object.keys(groups);
+  const groupArrays = Object.values(groups);
+
+  if (groupNames.length < 2) return null;
+  if (groupArrays.some(g => !g || g.length < 1)) return null;
+
+  const k = groupNames.length; // Number of groups
+  const N = groupArrays.reduce((sum, g) => sum + g.length, 0); // Total sample size
+
+  // Combine all data with group labels
+  const combined = [];
+  groupArrays.forEach((values, groupIndex) => {
+    values.forEach(val => {
+      combined.push({ val, group: groupIndex });
+    });
+  });
+
+  // Sort and assign ranks
+  combined.sort((a, b) => a.val - b.val);
+
+  // Handle ties by averaging ranks
+  let i = 0;
+  while (i < combined.length) {
+    let j = i;
+    while (j < combined.length && combined[j].val === combined[i].val) {
+      j++;
+    }
+    const avgRank = (i + j + 1) / 2; // Average rank for tied values
+    for (let t = i; t < j; t++) {
+      combined[t].rank = avgRank;
+    }
+    i = j;
+  }
+
+  // Calculate sum of ranks for each group
+  const rankSums = new Array(k).fill(0);
+  const groupSizes = groupArrays.map(g => g.length);
+
+  combined.forEach(item => {
+    rankSums[item.group] += item.rank;
+  });
+
+  // Calculate H statistic
+  let sumTerm = 0;
+  for (let g = 0; g < k; g++) {
+    sumTerm += (rankSums[g] * rankSums[g]) / groupSizes[g];
+  }
+
+  const H = (12 / (N * (N + 1))) * sumTerm - 3 * (N + 1);
+
+  // Degrees of freedom
+  const df = k - 1;
+
+  // P-value from chi-square distribution
+  const pValue = 1 - jStat.chisquare.cdf(H, df);
+
+  // Effect size: Epsilon-squared (η²H)
+  const etaSquared = (H - k + 1) / (N - k);
+
+  return {
+    statistic: H,
+    pValue,
+    df,
+    etaSquared: Math.max(0, etaSquared), // Ensure non-negative
+    groupRankSums: Object.fromEntries(groupNames.map((name, i) => [name, rankSums[i]])),
+    groupSizes: Object.fromEntries(groupNames.map((name, i) => [name, groupSizes[i]])),
+    significant: pValue < 0.05
+  };
+};
+
+/**
+ * Wilcoxon Signed-Rank Test
+ * Non-parametric alternative to paired t-test
+ * Tests if the median difference between paired observations is zero
+ *
+ * @param {Array} sample1 - First set of measurements
+ * @param {Array} sample2 - Second set of measurements (paired with sample1)
+ * @returns {Object} Test results including W statistic, p-value, and effect size
+ */
+export const wilcoxonSignedRankTest = (sample1, sample2) => {
+  if (!sample1 || !sample2) return null;
+  if (sample1.length !== sample2.length) return null;
+  if (sample1.length < 2) return null;
+
+  const n = sample1.length;
+
+  // Calculate differences
+  const differences = sample1.map((val, i) => ({
+    diff: val - sample2[i],
+    absDiff: Math.abs(val - sample2[i]),
+    sign: Math.sign(val - sample2[i])
+  })).filter(d => d.diff !== 0); // Exclude zero differences
+
+  if (differences.length === 0) {
+    return {
+      statistic: 0,
+      pValue: 1,
+      zScore: 0,
+      effectSize: 0,
+      nPairs: n,
+      nNonZero: 0,
+      significant: false
+    };
+  }
+
+  const nNonZero = differences.length;
+
+  // Rank absolute differences
+  differences.sort((a, b) => a.absDiff - b.absDiff);
+
+  // Handle ties by averaging ranks
+  let i = 0;
+  while (i < differences.length) {
+    let j = i;
+    while (j < differences.length && differences[j].absDiff === differences[i].absDiff) {
+      j++;
+    }
+    const avgRank = (i + j + 1) / 2;
+    for (let t = i; t < j; t++) {
+      differences[t].rank = avgRank;
+    }
+    i = j;
+  }
+
+  // Calculate W+ (sum of ranks for positive differences) and W- (sum of ranks for negative differences)
+  let wPlus = 0;
+  let wMinus = 0;
+
+  differences.forEach(d => {
+    if (d.sign > 0) {
+      wPlus += d.rank;
+    } else {
+      wMinus += d.rank;
+    }
+  });
+
+  // Test statistic is the smaller of W+ and W-
+  const W = Math.min(wPlus, wMinus);
+
+  // For larger samples, use normal approximation
+  const meanW = nNonZero * (nNonZero + 1) / 4;
+  const stdW = Math.sqrt(nNonZero * (nNonZero + 1) * (2 * nNonZero + 1) / 24);
+  const z = (W - meanW) / stdW;
+
+  // Two-tailed p-value
+  const pValue = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+
+  // Effect size: r = z / sqrt(n)
+  const effectSize = Math.abs(z) / Math.sqrt(nNonZero);
+
+  return {
+    statistic: W,
+    wPlus,
+    wMinus,
+    zScore: z,
+    pValue,
+    effectSize,
+    nPairs: n,
+    nNonZero,
+    significant: pValue < 0.05
+  };
+};
+
+/**
+ * Friedman Test
+ * Non-parametric alternative to repeated measures ANOVA
+ * Tests if there are differences among multiple repeated measurements
+ *
+ * @param {Array<Array>} measurements - Array of arrays, each inner array is measurements for one condition
+ *                                      All arrays must have the same length (number of subjects)
+ * @param {Array<string>} conditionNames - Names of the conditions/treatments
+ * @returns {Object} Test results including chi-square statistic, p-value, and effect size
+ */
+export const friedmanTest = (measurements, conditionNames = null) => {
+  if (!measurements || measurements.length < 2) return null;
+
+  const k = measurements.length; // Number of conditions
+  const n = measurements[0].length; // Number of subjects
+
+  // Verify all conditions have same number of subjects
+  if (measurements.some(m => m.length !== n)) return null;
+  if (n < 2) return null;
+
+  // Create condition names if not provided
+  const names = conditionNames || measurements.map((_, i) => `Condition ${i + 1}`);
+
+  // Rank within each subject (row)
+  const ranks = [];
+  for (let subject = 0; subject < n; subject++) {
+    // Get values for this subject across all conditions
+    const subjectValues = measurements.map((condition, condIdx) => ({
+      value: condition[subject],
+      conditionIndex: condIdx
+    }));
+
+    // Sort by value
+    subjectValues.sort((a, b) => a.value - b.value);
+
+    // Assign ranks (handle ties)
+    const subjectRanks = new Array(k);
+    let i = 0;
+    while (i < k) {
+      let j = i;
+      while (j < k && subjectValues[j].value === subjectValues[i].value) {
+        j++;
+      }
+      const avgRank = (i + j + 1) / 2;
+      for (let t = i; t < j; t++) {
+        subjectRanks[subjectValues[t].conditionIndex] = avgRank;
+      }
+      i = j;
+    }
+    ranks.push(subjectRanks);
+  }
+
+  // Calculate sum of ranks for each condition
+  const rankSums = new Array(k).fill(0);
+  for (let subject = 0; subject < n; subject++) {
+    for (let condition = 0; condition < k; condition++) {
+      rankSums[condition] += ranks[subject][condition];
+    }
+  }
+
+  // Calculate mean ranks for each condition
+  const meanRanks = rankSums.map(sum => sum / n);
+
+  // Calculate Friedman chi-square statistic
+  const sumRankSquared = rankSums.reduce((sum, R) => sum + R * R, 0);
+  const chiSquare = (12 / (n * k * (k + 1))) * sumRankSquared - 3 * n * (k + 1);
+
+  // Degrees of freedom
+  const df = k - 1;
+
+  // P-value from chi-square distribution
+  const pValue = 1 - jStat.chisquare.cdf(chiSquare, df);
+
+  // Effect size: Kendall's W (coefficient of concordance)
+  const kendallW = chiSquare / (n * (k - 1));
+
+  return {
+    statistic: chiSquare,
+    pValue,
+    df,
+    kendallW: Math.min(1, Math.max(0, kendallW)), // Ensure 0-1 range
+    nSubjects: n,
+    nConditions: k,
+    conditionRankSums: Object.fromEntries(names.map((name, i) => [name, rankSums[i]])),
+    conditionMeanRanks: Object.fromEntries(names.map((name, i) => [name, meanRanks[i]])),
+    significant: pValue < 0.05
+  };
+};
