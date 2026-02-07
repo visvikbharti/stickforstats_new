@@ -279,62 +279,156 @@ const PowerCalculator = ({
     correlation: {
       power: (params) => {
         const { alpha, correlation, sampleSize, tails } = params;
-        const z = 0.5 * Math.log((1 + correlation) / (1 - correlation));
-        const se = 1 / Math.sqrt(sampleSize - 3);
+        // Clamp correlation to valid range to prevent NaN
+        const r = Math.max(-0.9999, Math.min(0.9999, correlation));
+        const z = 0.5 * Math.log((1 + r) / (1 - r)); // Fisher z-transformation
+        const se = 1 / Math.sqrt(Math.max(1, sampleSize - 3)); // Prevent sqrt of negative
         const zcrit = Statistics.normalQuantile(1 - alpha / tails);
-        
+
         const power = Statistics.normalCDF((Math.abs(z) - zcrit * se) / se);
-        
-        return power;
+
+        return Math.max(0, Math.min(1, power)); // Clamp to [0, 1]
       },
-      
+
       sampleSize: (params) => {
         const { alpha, power, correlation, tails } = params;
         const zalpha = Statistics.normalQuantile(1 - alpha / tails);
         const zbeta = Statistics.normalQuantile(power);
-        const z = 0.5 * Math.log((1 + Math.abs(correlation)) / (1 - Math.abs(correlation)));
-        
+        // Clamp correlation to valid range
+        const r = Math.max(-0.9999, Math.min(0.9999, Math.abs(correlation)));
+        const z = 0.5 * Math.log((1 + r) / (1 - r));
+
+        // Guard against division by zero
+        if (Math.abs(z) < 0.0001) return Infinity;
+
         const n = Math.pow((zalpha + zbeta) / z, 2) + 3;
-        
-        return Math.ceil(n);
+
+        return Math.ceil(Math.max(4, n)); // Minimum sample size of 4
       }
     },
 
     proportion: {
       power: (params) => {
-        const { alpha, p1, p2, sampleSize, tails, allocationRatio } = params;
-        const n1 = sampleSize;
-        const n2 = sampleSize * allocationRatio;
-        const pbar = (p1 + p2) / 2;
+        const { alpha, tails, allocationRatio } = params;
+        // Get proportions from either direct params or nested object
+        const p1 = params.p1 ?? params.proportions?.p1 ?? 0.5;
+        const p2 = params.p2 ?? params.proportions?.p2 ?? 0.5;
+        const sampleSize = params.sampleSize ?? 30;
+
+        // Clamp proportions to valid range
+        const p1c = Math.max(0.0001, Math.min(0.9999, p1));
+        const p2c = Math.max(0.0001, Math.min(0.9999, p2));
+
+        // Guard against equal proportions
+        if (Math.abs(p1c - p2c) < 0.0001) return 0.05; // No power if no effect
+
+        const n1 = Math.max(2, sampleSize);
+        const n2 = Math.max(2, n1 * (allocationRatio || 1));
+        const pbar = (p1c + p2c) / 2;
         const se0 = Math.sqrt(pbar * (1 - pbar) * (1 / n1 + 1 / n2));
-        const se1 = Math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2);
-        const z = Math.abs(p1 - p2) / se1;
+        const se1 = Math.sqrt(p1c * (1 - p1c) / n1 + p2c * (1 - p2c) / n2);
+
+        // Guard against zero standard error
+        if (se1 < 0.0001) return 1.0;
+
+        const z = Math.abs(p1c - p2c) / se1;
         const zcrit = Statistics.normalQuantile(1 - alpha / tails);
-        
+
         const power = Statistics.normalCDF(z - zcrit * se0 / se1);
-        
-        return power;
+
+        return Math.max(0, Math.min(1, power));
       },
-      
+
       sampleSize: (params) => {
-        const { alpha, power, p1, p2, tails, allocationRatio } = params;
+        const { alpha, power, tails, allocationRatio } = params;
+        // Get proportions from either direct params or nested object
+        const p1 = params.p1 ?? params.proportions?.p1 ?? 0.5;
+        const p2 = params.p2 ?? params.proportions?.p2 ?? 0.5;
+
+        // Guard against equal proportions
+        if (Math.abs(p1 - p2) < 0.0001) return Infinity;
+
         const zalpha = Statistics.normalQuantile(1 - alpha / tails);
         const zbeta = Statistics.normalQuantile(power);
-        const k = allocationRatio;
-        
-        const n1 = Math.pow(zalpha + zbeta, 2) * 
-                  (p1 * (1 - p1) / k + p2 * (1 - p2)) / 
-                  Math.pow(p1 - p2, 2);
-        
-        return Math.ceil(n1);
+        const k = allocationRatio || 1;
+
+        // Clamp proportions to valid range
+        const p1c = Math.max(0.0001, Math.min(0.9999, p1));
+        const p2c = Math.max(0.0001, Math.min(0.9999, p2));
+
+        const n1 = Math.pow(zalpha + zbeta, 2) *
+                  (p1c * (1 - p1c) / k + p2c * (1 - p2c)) /
+                  Math.pow(p1c - p2c, 2);
+
+        return Math.ceil(Math.max(4, n1)); // Minimum sample size of 4
       }
     }
+  };
+
+  // Input validation helper
+  const validateInputs = () => {
+    const errors = [];
+
+    // Validate correlation bounds
+    if (testType === 'correlation') {
+      if (parameters.correlation < -1 || parameters.correlation > 1) {
+        errors.push('Correlation must be between -1 and 1');
+      }
+      if (Math.abs(parameters.correlation) === 1) {
+        errors.push('Correlation cannot be exactly ±1 (causes division by zero)');
+      }
+    }
+
+    // Validate proportion bounds
+    if (testType === 'proportion') {
+      if (parameters.proportions?.p1 < 0 || parameters.proportions?.p1 > 1) {
+        errors.push('Proportion p1 must be between 0 and 1');
+      }
+      if (parameters.proportions?.p2 < 0 || parameters.proportions?.p2 > 1) {
+        errors.push('Proportion p2 must be between 0 and 1');
+      }
+      // Check for equal proportions (division by zero risk)
+      if (parameters.proportions?.p1 === parameters.proportions?.p2) {
+        errors.push('Proportions p1 and p2 cannot be equal (no effect to detect)');
+      }
+    }
+
+    // Validate effect size
+    if (parameters.effectSize !== undefined && parameters.effectSize <= 0) {
+      errors.push('Effect size must be greater than 0');
+    }
+
+    // Validate sample size
+    if (parameters.sampleSize !== undefined && parameters.sampleSize < 2) {
+      errors.push('Sample size must be at least 2');
+    }
+
+    // Validate alpha level
+    if (parameters.alpha <= 0 || parameters.alpha >= 1) {
+      errors.push('Alpha level must be between 0 and 1 (exclusive)');
+    }
+
+    // Validate power
+    if (parameters.power !== undefined && (parameters.power <= 0 || parameters.power >= 1)) {
+      errors.push('Power must be between 0 and 1 (exclusive)');
+    }
+
+    return errors;
   };
 
   // Perform calculation
   const calculate = () => {
     const calc = PowerCalculations[testType];
     if (!calc) return;
+
+    // Validate inputs before calculation
+    const validationErrors = validateInputs();
+    if (validationErrors.length > 0) {
+      console.error('Validation errors:', validationErrors);
+      setResult(null);
+      setValidationResults({ passed: false, errors: validationErrors });
+      return;
+    }
 
     try {
       let calculatedValue;

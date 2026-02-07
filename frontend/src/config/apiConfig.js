@@ -18,45 +18,90 @@ export const endpoints = {
     recommend: '/test-recommender/recommend/',
     runTest: '/test-recommender/run-test/',
   },
-  
+
+  // Guardian System
+  guardian: {
+    health: '/guardian/health/',
+    preflight: '/guardian/preflight/',
+    checkAssumptions: '/guardian/check-assumptions/',
+  },
+
+  // Assumptions
+  assumptions: {
+    checkAll: '/assumptions/check-all/',
+  },
+
+  // Statistical Tests
+  stats: {
+    ttest: '/v1/stats/ttest/',
+    anova: '/v1/stats/anova/',
+  },
+
+  // Non-parametric Tests
+  nonparametric: {
+    mannWhitney: '/v1/nonparametric/mann-whitney/',
+    kruskalWallis: '/v1/nonparametric/kruskal-wallis/',
+    wilcoxon: '/v1/nonparametric/wilcoxon/',
+    friedman: '/v1/nonparametric/friedman/',
+  },
+
+  // ANOVA variants
+  anova: {
+    repeatedMeasures: '/v1/anova/repeated-measures/',
+    twoWay: '/v1/stats/anova/',
+  },
+
+  // Multivariate
+  multivariate: {
+    manova: '/v1/multivariate/manova/',
+  },
+
   // Multiplicity Correction
   multiplicity: {
     correct: '/multiplicity/correct/',
   },
-  
+
   // Power Analysis
   power: {
     calculate: '/power/calculate/',
+    ttest: '/v1/power/t-test/',
+    anova: '/v1/power/anova/',
+    sampleSize: '/v1/power/sample-size/',
   },
-  
+
   // Effect Sizes
   effectSizes: {
     calculate: '/effect-sizes/calculate/',
   },
-  
+
   // Confidence Intervals
   confidenceIntervals: {
     calculate: '/confidence-intervals/calculate/',
     bootstrap: '/confidence-intervals/bootstrap/',
   },
-  
+
   // PCA
   pca: {
     analyze: '/pca/analyze/',
     visualize: '/pca/visualize/',
   },
-  
+
   // DOE
   doe: {
     design: '/doe/design/',
     analyze: '/doe/analyze/',
   },
-  
+
   // Probability Distributions
   probability: {
     calculate: '/probability/calculate/',
     simulate: '/probability/simulate/',
   },
+};
+
+// Helper to get full API URL
+export const getApiUrl = (endpoint) => {
+  return `${API_BASE_URL}${endpoint}`;
 };
 
 // WebSocket endpoints configuration

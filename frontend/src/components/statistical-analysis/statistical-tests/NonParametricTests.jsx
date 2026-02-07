@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
 import {
   Box,
   Typography,
@@ -292,7 +293,7 @@ const NonParametricTests = ({ data }) => {
       setIsLoading(true);
       setBackendError(null);
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/nonparametric/mann-whitney/', {
+      const response = await fetch(getApiUrl(endpoints.nonparametric.mannWhitney), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -330,7 +331,7 @@ const NonParametricTests = ({ data }) => {
       setIsLoading(true);
       setBackendError(null);
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/nonparametric/kruskal-wallis/', {
+      const response = await fetch(getApiUrl(endpoints.nonparametric.kruskalWallis), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -365,7 +366,7 @@ const NonParametricTests = ({ data }) => {
       setIsLoading(true);
       setBackendError(null);
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/nonparametric/wilcoxon/', {
+      const response = await fetch(getApiUrl(endpoints.nonparametric.wilcoxon), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -402,7 +403,7 @@ const NonParametricTests = ({ data }) => {
       setIsLoading(true);
       setBackendError(null);
 
-      const response = await fetch('http://127.0.0.1:8000/api/v1/nonparametric/friedman/', {
+      const response = await fetch(getApiUrl(endpoints.nonparametric.friedman), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

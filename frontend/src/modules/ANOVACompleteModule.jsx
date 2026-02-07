@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl } from '../config/apiConfig';
 
 // Import shared components
 import {
@@ -66,7 +67,7 @@ const ANOVACompleteModule = () => {
       setLoading(true);
 
       // API call to backend for ANOVA calculation
-      const response = await axios.post('http://localhost:8000/api/statistical-tests/anova/', {
+      const response = await axios.post(getApiUrl('/statistical-tests/anova/'), {
         groups: data,
         alpha: 0.05
       });

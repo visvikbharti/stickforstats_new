@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
 import AssumptionFirstSelector from './AssumptionFirstSelector';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 
 const DataPipeline = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -122,7 +123,7 @@ const DataPipeline = () => {
     addLogEntry('Checking statistical assumptions...', 'info');
 
     try {
-      const response = await fetch('http://localhost:8000/api/assumptions/check-all/', {
+      const response = await fetch(getApiUrl(endpoints.assumptions.checkAll), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +183,7 @@ const DataPipeline = () => {
           break;
 
         case 'Mann-Whitney U':
-          response = await fetch('http://localhost:8000/api/v1/nonparametric/mann-whitney/', {
+          response = await fetch(getApiUrl(endpoints.nonparametric.mannWhitney), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

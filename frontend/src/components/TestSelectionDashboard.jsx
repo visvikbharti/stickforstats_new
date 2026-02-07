@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 
 // Golden Ratio for animations
 const PHI = 1.618;
@@ -183,7 +184,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
 
   const checkGuardianStatus = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/guardian/health/');
+      const response = await axios.get(getApiUrl(endpoints.guardian.health));
       if (response.data.status === 'operational') {
         setGuardianStatus('active');
       } else {

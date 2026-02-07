@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { apiConfig, getApiUrl } from '../config/apiConfig';
 import TestSelectionDashboard from './TestSelectionDashboard';
 import GuardianWarning from './Guardian/GuardianWarning';
 
@@ -96,7 +97,7 @@ const MasterTestRunner = () => {
         test_type: test.id
       };
 
-      const response = await axios.post('http://localhost:8000/api/guardian/check/', mockData);
+      const response = await axios.post(getApiUrl('/guardian/check/'), mockData);
       setGuardianReport(response.data);
 
       if (response.data.all_assumptions_met) {
@@ -140,7 +141,7 @@ const MasterTestRunner = () => {
       const requestData = prepareTestRequest(selectedTest, data || testData);
 
       const response = await axios.post(
-        `http://localhost:8000${selectedTest.endpoint}`,
+        getApiUrl(selectedTest.endpoint),
         requestData
       );
 

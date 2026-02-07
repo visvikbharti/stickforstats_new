@@ -46,6 +46,7 @@ import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import Papa from 'papaparse';
 import { useDarkMode } from '../context/DarkModeContext';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 
 const DataInput = ({ onDataLoaded }) => {
   const { darkMode } = useDarkMode();
@@ -175,7 +176,7 @@ const DataInput = ({ onDataLoaded }) => {
       });
 
       try {
-        const response = await axios.post('http://localhost:8000/api/guardian/preflight/', {
+        const response = await axios.post(getApiUrl(endpoints.guardian.preflight), {
           data: data.slice(0, 100),
           columns: columns,
           dataTypes: dataTypes

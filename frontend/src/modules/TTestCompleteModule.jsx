@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 import {
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
@@ -247,7 +248,7 @@ const TTestCompleteModule = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:8000${endpoint}`, payload);
+      const response = await axios.post(getApiUrl(endpoint), payload);
       setResults(response.data);
 
       // Check assumptions

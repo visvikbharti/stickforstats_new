@@ -68,6 +68,9 @@ import ProfessionalContainer, { glassMorphism, gradients } from '../components/c
 // Import axios for backend calls
 import axios from 'axios';
 
+// Import API configuration
+import { apiConfig, getApiUrl } from '../config/apiConfig';
+
 // Import real example scenarios
 const POWER_SCENARIOS = {
   clinical: {
@@ -159,8 +162,8 @@ const PowerAnalysisReal = () => {
   const [error, setError] = useState(null);
   const [backendPrecision, setBackendPrecision] = useState(50);
 
-  // API configuration
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  // API configuration - use centralized config
+  const API_BASE = apiConfig.baseURL.replace('/api', '');
 
   // Load scenario data
   const loadScenario = useCallback(() => {

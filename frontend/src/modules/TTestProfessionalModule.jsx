@@ -71,6 +71,9 @@ import {
 // Import theme context
 import { useAppTheme } from '../context/AppThemeContext';
 
+// Import API configuration
+import { getApiUrl } from '../config/apiConfig';
+
 // Import shared components
 import {
   DataInput,
@@ -307,7 +310,7 @@ const TTestProfessionalModule = () => {
     setLoading(true);
     try {
       // API call for t-test
-      const response = await axios.post('http://localhost:8000/api/statistical-tests/t-test/', {
+      const response = await axios.post(getApiUrl('/statistical-tests/t-test/'), {
         sample1: data.sample1,
         sample2: data.sample2,
         test_type: testConfig.type,

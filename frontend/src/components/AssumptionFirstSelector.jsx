@@ -16,6 +16,7 @@ import {
   CheckCircle, Warning, Error as ErrorIcon, ExpandMore,
   Science, TrendingUp, School, Lightbulb, PlayArrow
 } from '@mui/icons-material';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 
 const AssumptionFirstSelector = ({ data1, data2 = null, dataType = 'continuous' }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -36,7 +37,7 @@ const AssumptionFirstSelector = ({ data1, data2 = null, dataType = 'continuous' 
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/assumptions/check-all/', {
+      const response = await fetch(getApiUrl(endpoints.assumptions.checkAll), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

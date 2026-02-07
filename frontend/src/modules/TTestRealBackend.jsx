@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
 import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 
 // Guardian Design Contract compliance
 // "No statistical result may exist without an explicit, traceable assumption context."
@@ -116,7 +117,7 @@ const TTestRealBackend = () => {
     if (!results) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/assumptions/check-all/', {
+      const response = await fetch(getApiUrl(endpoints.assumptions.checkAll), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

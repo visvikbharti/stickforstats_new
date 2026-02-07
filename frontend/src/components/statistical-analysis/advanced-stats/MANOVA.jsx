@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
 import {
   Box,
   Typography,
@@ -212,7 +213,7 @@ const MANOVA = ({ data }) => {
 
     try {
       // Call backend API
-      const response = await fetch('http://127.0.0.1:8000/api/v1/multivariate/manova/', {
+      const response = await fetch(getApiUrl(endpoints.multivariate.manova), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
