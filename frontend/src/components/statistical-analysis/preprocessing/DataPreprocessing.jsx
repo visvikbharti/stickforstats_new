@@ -244,7 +244,7 @@ const DataPreprocessing = ({ data, setData, onComplete }) => {
     <Box>
       {/* Header */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <CleaningServicesIcon /> Data Preprocessing
         </Typography>
 

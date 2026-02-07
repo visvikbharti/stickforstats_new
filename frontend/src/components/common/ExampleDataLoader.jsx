@@ -213,7 +213,7 @@ const ExampleDataLoader = ({
 
                     <Box
                       sx={{
-                        bgcolor: 'grey.50',
+                        bgcolor: 'background.default',
                         p: 1.5,
                         borderRadius: 1,
                         maxHeight: 150,
@@ -273,7 +273,7 @@ const ExampleDataLoader = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: 'grey.50',
+                    bgcolor: 'background.default',
                     borderRadius: 1,
                     p: 3
                   }}

@@ -26,7 +26,8 @@ import {
   Chip,
   Divider,
   ToggleButtonGroup,
-  ToggleButton
+  ToggleButton,
+  useTheme
 } from '@mui/material';
 import {
   PieChart,
@@ -49,6 +50,8 @@ import DonutLargeIcon from '@mui/icons-material/DonutLarge';
  * Main Composition Analysis Component
  */
 const CompositionAnalysis = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [categoryColumn, setCategoryColumn] = useState('');
   const [valueColumn, setValueColumn] = useState('');
   const [plotType, setPlotType] = useState('pie');
@@ -612,30 +615,30 @@ const CompositionAnalysis = ({ data }) => {
             <Box sx={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f5f5f5' }}>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Category</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Value</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Percentage</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Count</th>
-                    <th style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Visual</th>
+                  <tr style={{ backgroundColor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100] }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Category</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Value</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Percentage</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Count</th>
+                    <th style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Visual</th>
                   </tr>
                 </thead>
                 <tbody>
                   {compositionData.map((item, index) => (
-                    <tr key={item.name} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                    <tr key={item.name} style={{ backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]) }}>
+                      <td style={{ padding: '8px', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         <strong>{item.name}</strong>
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {item.value.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {item.percentage.toFixed(1)}%
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {item.count}
                       </td>
-                      <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', borderBottom: `1px solid ${theme.palette.divider}` }}>
                         <Box
                           sx={{
                             width: `${item.percentage}%`,

@@ -34,7 +34,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Tooltip
+  Tooltip,
+  useTheme,
 } from '@mui/material';
 import {
   Assessment as AssessmentIcon,
@@ -58,13 +59,13 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api
 /**
  * Grade color mapping
  */
-const GRADE_COLORS = {
-  'A': '#28a745',
-  'B': '#5cb85c',
-  'C': '#ffc107',
-  'D': '#fd7e14',
-  'F': '#dc3545'
-};
+const getGradeColors = (theme) => ({
+  'A': theme.palette.success.main,
+  'B': theme.palette.success.light,
+  'C': theme.palette.warning.main,
+  'D': theme.palette.warning.dark,
+  'F': theme.palette.error.main,
+});
 
 /**
  * Field icons mapping
@@ -82,7 +83,9 @@ const FIELD_ICONS = {
  * Circular Score Display Component
  */
 const ScoreCircle = ({ score, grade, size = 140 }) => {
-  const gradeColor = GRADE_COLORS[grade] || '#6c757d';
+  const theme = useTheme();
+  const gradeColors = getGradeColors(theme);
+  const gradeColor = gradeColors[grade] || theme.palette.grey[600];
 
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -130,11 +133,12 @@ const ScoreCircle = ({ score, grade, size = 140 }) => {
  * Category Score Bar Component
  */
 const CategoryScoreBar = ({ name, score, maxScore, percentage, status }) => {
+  const theme = useTheme();
   const statusColors = {
-    'excellent': '#28a745',
-    'good': '#5cb85c',
-    'needs_improvement': '#ffc107',
-    'poor': '#dc3545'
+    'excellent': theme.palette.success.main,
+    'good': theme.palette.success.light,
+    'needs_improvement': theme.palette.warning.main,
+    'poor': theme.palette.error.main,
   };
 
   return (
@@ -156,7 +160,7 @@ const CategoryScoreBar = ({ name, score, maxScore, percentage, status }) => {
           bgcolor: 'grey.200',
           '& .MuiLinearProgress-bar': {
             borderRadius: 4,
-            bgcolor: statusColors[status] || '#1976d2'
+            bgcolor: statusColors[status] || theme.palette.primary.main
           }
         }}
       />
@@ -168,6 +172,8 @@ const CategoryScoreBar = ({ name, score, maxScore, percentage, status }) => {
  * Main SQS Score Display Component
  */
 const SQSScoreDisplay = ({ extractedText, paperData, onAnalysisComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   // State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -251,11 +257,11 @@ const SQSScoreDisplay = ({ extractedText, paperData, onAnalysisComplete }) => {
   const getSeverityIcon = (severity) => {
     switch (severity) {
       case 'critical':
-        return <ErrorIcon sx={{ color: '#dc3545' }} />;
+        return <ErrorIcon sx={{ color: theme.palette.error.main }} />;
       case 'important':
-        return <WarningIcon sx={{ color: '#ffc107' }} />;
+        return <WarningIcon sx={{ color: theme.palette.warning.main }} />;
       case 'suggested':
-        return <InfoIcon sx={{ color: '#17a2b8' }} />;
+        return <InfoIcon sx={{ color: theme.palette.info.main }} />;
       default:
         return <InfoIcon color="disabled" />;
     }
@@ -267,7 +273,7 @@ const SQSScoreDisplay = ({ extractedText, paperData, onAnalysisComplete }) => {
       {!analysisResult && (
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <AssessmentIcon sx={{ fontSize: 40, color: '#1976d2' }} />
+            <AssessmentIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Statistical Quality Score (SQS)
@@ -437,7 +443,7 @@ const SQSScoreDisplay = ({ extractedText, paperData, onAnalysisComplete }) => {
                 elevation={0}
                 sx={{
                   p: 2,
-                  bgcolor: '#f5f5f5',
+                  bgcolor: theme.palette.grey[isDarkMode ? 800 : 100],
                   fontFamily: 'monospace',
                   whiteSpace: 'pre-wrap',
                   fontSize: '0.875rem'

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
   Grid,
   Stepper,
   Step,
@@ -26,7 +26,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import { 
   PlayArrow as RunIcon,
@@ -55,6 +56,7 @@ const statusColors = {
 };
 
 const WorkflowExecution = () => {
+  const theme = useTheme();
   const { workflowId } = useParams();
   const navigate = useNavigate();
   const { 
@@ -714,11 +716,11 @@ const WorkflowExecution = () => {
           >
             {logs.map((log, index) => (
               <Box key={index} sx={{ mb: 1 }}>
-                <span style={{ color: '#8bc34a' }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
-                <span style={{ 
-                  color: log.level === 'ERROR' ? '#f44336' : 
-                         log.level === 'WARNING' ? '#ff9800' : 
-                         log.level === 'INFO' ? '#2196f3' : '#ffffff' 
+                <span style={{ color: theme.palette.success.light }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span style={{
+                  color: log.level === 'ERROR' ? theme.palette.error.light :
+                         log.level === 'WARNING' ? theme.palette.warning.light :
+                         log.level === 'INFO' ? theme.palette.info.light : theme.palette.common.white
                 }}>
                   {` [${log.level}] `}
                 </span>
@@ -780,19 +782,19 @@ const WorkflowExecution = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Box sx={{ overflowX: 'auto' }}>
-                  <table style={{ 
-                    width: '100%', 
-                    borderCollapse: 'collapse', 
-                    border: '1px solid rgba(224, 224, 224, 1)' 
+                  <table style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    border: `1px solid ${theme.palette.divider}`
                   }}>
                     <thead>
                       <tr>
                         {results.sample.headers.map((header, index) => (
-                          <th key={index} style={{ 
-                            padding: '8px', 
-                            borderBottom: '2px solid rgba(224, 224, 224, 1)',
+                          <th key={index} style={{
+                            padding: '8px',
+                            borderBottom: `2px solid ${theme.palette.divider}`,
                             textAlign: 'left',
-                            backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                            backgroundColor: theme.palette.action.hover
                           }}>
                             {header}
                           </th>
@@ -803,9 +805,9 @@ const WorkflowExecution = () => {
                       {results.sample.data.map((row, rowIndex) => (
                         <tr key={rowIndex}>
                           {row.map((cell, cellIndex) => (
-                            <td key={cellIndex} style={{ 
-                              padding: '8px', 
-                              borderBottom: '1px solid rgba(224, 224, 224, 1)'
+                            <td key={cellIndex} style={{
+                              padding: '8px',
+                              borderBottom: `1px solid ${theme.palette.divider}`
                             }}>
                               {cell}
                             </td>

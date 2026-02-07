@@ -462,9 +462,9 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
             <Box
               sx={{
                 width: isMobile ? '100%' : 280,
-                bgcolor: '#f5f5f5',
-                borderRight: isMobile ? 'none' : '1px solid #e0e0e0',
-                borderBottom: isMobile ? '1px solid #e0e0e0' : 'none',
+                bgcolor: theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100],
+                borderRight: isMobile ? 'none' : `1px solid ${theme.palette.divider}`,
+                borderBottom: isMobile ? `1px solid ${theme.palette.divider}` : 'none',
                 p: 2,
               }}
             >
@@ -570,7 +570,7 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
                   justifyContent: 'space-between',
                   mt: 4,
                   pt: 3,
-                  borderTop: '1px solid #e0e0e0',
+                  borderTop: `1px solid ${theme.palette.divider}`,
                 }}
               >
                 <Button

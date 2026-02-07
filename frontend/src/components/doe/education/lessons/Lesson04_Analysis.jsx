@@ -19,6 +19,8 @@ import {
   Step,
   StepLabel
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
@@ -32,6 +34,8 @@ import { MathJax } from 'better-react-mathjax';
  */
 
 const Lesson04_Analysis = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
@@ -81,8 +85,8 @@ const Lesson04_Analysis = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
+        <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
           Analysis & Interpretation
         </Typography>
 
@@ -121,7 +125,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
       {/* Step 1: Design Matrix */}
       {activeStep === 0 && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             📋 Step 1: Organize Your Design Matrix
           </Typography>
 
@@ -171,7 +175,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
       {/* Step 2: Calculate Effects */}
       {activeStep === 1 && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             🧮 Step 2: Calculate Main Effects & Interactions
           </Typography>
 
@@ -185,7 +189,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
               Main Effect of Factor A
             </Typography>
 
-            <Box sx={{ p: 2, bgcolor: '#e3f2fd', borderRadius: 1, mb: 3 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), borderRadius: 1, mb: 3 }}>
               <Typography paragraph>
                 {"\\[ \\text{Effect}_A = \\bar{Y}_{A=+1} - \\bar{Y}_{A=-1} \\]"}
               </Typography>
@@ -203,7 +207,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
               Main Effect of Factor B
             </Typography>
 
-            <Box sx={{ p: 2, bgcolor: '#e3f2fd', borderRadius: 1, mb: 3 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), borderRadius: 1, mb: 3 }}>
               <Typography paragraph>
                 {"\\[ \\text{Effect}_B = \\bar{Y}_{B=+1} - \\bar{Y}_{B=-1} \\]"}
               </Typography>
@@ -221,7 +225,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
               Interaction Effect AB
             </Typography>
 
-            <Box sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 1, mb: 3 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), borderRadius: 1, mb: 3 }}>
               <Typography paragraph>
                 {"\\[ \\text{AB} = \\frac{[(Y_{++} - Y_{+-}) - (Y_{-+} - Y_{--})]}{2} \\]"}
               </Typography>
@@ -301,7 +305,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
       {/* Step 3: ANOVA Table */}
       {activeStep === 2 && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             📊 Step 3: Analysis of Variance (ANOVA)
           </Typography>
 
@@ -327,7 +331,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
                   {anovaTable.map((row) => (
                     <TableRow
                       key={row.source}
-                      sx={{ bgcolor: row.source === 'Total' ? '#f5f5f5' : 'white' }}
+                      sx={{ bgcolor: row.source === 'Total' ? theme.palette.grey[isDarkMode ? 800 : 100] : theme.palette.background.paper }}
                     >
                       <TableCell><strong>{row.source}</strong></TableCell>
                       <TableCell align="center">{row.df}</TableCell>
@@ -406,7 +410,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
       {/* Step 4: Residual Diagnostics */}
       {activeStep === 3 && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             🔬 Step 4: Residual Diagnostics (Model Validation)
           </Typography>
 
@@ -437,7 +441,7 @@ const Lesson04_Analysis = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%', bgcolor: '#ffebee' }}>
+              <Card sx={{ height: '100%', bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="error">
                     ✗ Bad Residual Patterns
@@ -501,8 +505,8 @@ const Lesson04_Analysis = ({ onComplete }) => {
       )}
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.dark }}>
           ✅ Key Takeaways
         </Typography>
 

@@ -41,7 +41,7 @@ export const RAGLoadingComponent = () => (
     alignItems: 'center', 
     height: '100vh',
     fontSize: '1.2rem',
-    color: '#666'
+    color: 'var(--text-secondary, #666)'
   }}>
     Loading RAG components...
   </div>

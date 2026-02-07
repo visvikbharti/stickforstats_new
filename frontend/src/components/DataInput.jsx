@@ -447,8 +447,8 @@ const DataInput = ({ onDataLoaded }) => {
       sx={{
         p: 3,
         background: darkMode
-          ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)'
-          : 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
+          ? `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`
+          : `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.grey[100]} 100%)`,
         borderRadius: 2
       }}
     >
@@ -645,8 +645,10 @@ const DataInput = ({ onDataLoaded }) => {
               severity="warning"
               icon={<ShieldIcon />}
               sx={{
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                color: '#000'
+                background: darkMode
+                  ? `linear-gradient(135deg, ${theme.palette.warning.dark} 0%, ${theme.palette.warning.main} 100%)`
+                  : `linear-gradient(135deg, ${theme.palette.warning.light} 0%, ${theme.palette.warning.main} 100%)`,
+                color: theme.palette.warning.contrastText
               }}
             >
               <Typography variant="subtitle2" fontWeight="bold" gutterBottom>

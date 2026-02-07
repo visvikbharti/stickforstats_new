@@ -55,6 +55,8 @@ import {
   Info,
   Lightbulb,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -66,6 +68,8 @@ const steps = [
 ];
 
 const Lesson07_DifferentDesigns = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
@@ -104,7 +108,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
   // Render Step 1: t-Test Variants
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Power Analysis for t-Test Variants
       </Typography>
 
@@ -118,9 +122,9 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
       <Grid container spacing={3}>
         {/* One-sample t-test */}
         <Grid item xs={12} md={4}>
-          <Card elevation={3} sx={{ height: '100%', borderTop: '4px solid #2196f3' }}>
+          <Card elevation={3} sx={{ height: '100%', borderTop: `4px solid ${theme.palette.info.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2196f3' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 One-Sample t-Test
               </Typography>
 
@@ -128,7 +132,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests whether a sample mean differs from a hypothesized value μ₀.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d · √n
                 </Typography>
@@ -139,7 +143,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Sample Size Formula:
               </Typography>
-              <Paper sx={{ p: 1, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 1, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   n = ((z<sub>α/2</sub> + z<sub>β</sub>) / d)²
                 </Typography>
@@ -154,9 +158,9 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         {/* Two-sample t-test */}
         <Grid item xs={12} md={4}>
-          <Card elevation={3} sx={{ height: '100%', borderTop: '4px solid #4caf50' }}>
+          <Card elevation={3} sx={{ height: '100%', borderTop: `4px solid ${theme.palette.success.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 Two-Sample t-Test
               </Typography>
 
@@ -164,7 +168,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Compares means of two independent groups.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d · √(n/2) (equal n)
                 </Typography>
@@ -175,7 +179,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Sample Size Formula (per group):
               </Typography>
-              <Paper sx={{ p: 1, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 1, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   n = 2 × ((z<sub>α/2</sub> + z<sub>β</sub>) / d)²
                 </Typography>
@@ -190,9 +194,9 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         {/* Paired t-test */}
         <Grid item xs={12} md={4}>
-          <Card elevation={3} sx={{ height: '100%', borderTop: '4px solid #ff9800' }}>
+          <Card elevation={3} sx={{ height: '100%', borderTop: `4px solid ${theme.palette.warning.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Paired t-Test
               </Typography>
 
@@ -200,7 +204,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Compares means within subjects (repeated measures).
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d<sub>z</sub> · √n
                 </Typography>
@@ -211,7 +215,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Sample Size Formula (pairs):
               </Typography>
-              <Paper sx={{ p: 1, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 1, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   n = ((z<sub>α/2</sub> + z<sub>β</sub>) / d<sub>z</sub>)²
                 </Typography>
@@ -237,7 +241,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Independent Groups
               </Typography>
@@ -248,7 +252,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Paired Design
               </Typography>
@@ -279,7 +283,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             For unequal n₁ and n₂, the noncentrality parameter becomes:
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography sx={{ fontFamily: 'serif', textAlign: 'center' }}>
               λ = d / √(1/n₁ + 1/n₂)
             </Typography>
@@ -300,7 +304,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
   // Render Step 2: ANOVA Designs
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Power Analysis for ANOVA Designs
       </Typography>
 
@@ -316,11 +320,11 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 One-Way ANOVA
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center', mb: 1 }}>
                   λ = n · k · f²
                 </Typography>
@@ -352,7 +356,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#673ab7' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.dark }}>
                 Factorial ANOVA
               </Typography>
 
@@ -360,7 +364,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 For 2×2 design with factors A and B:
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ede7f6', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                   Main effect A: λ<sub>A</sub> = n·b·Σα²/σ²<br/>
                   Main effect B: λ<sub>B</sub> = n·a·Σβ²/σ²<br/>
@@ -389,7 +393,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           individual differences. The key parameter is the correlation between repeated measures.
         </Typography>
 
-        <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
           <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
             Effective n = n / (1 - ρ)
           </Typography>
@@ -442,7 +446,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Sphericity in Repeated Measures
                 </Typography>
@@ -453,7 +457,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Post-Hoc Comparisons
                 </Typography>
@@ -472,7 +476,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
   // Render Step 3: Chi-Square & Proportions
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Power Analysis for Chi-Square & Proportions
       </Typography>
 
@@ -487,7 +491,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff5722' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.error.main }}>
                 Chi-Square Goodness-of-Fit
               </Typography>
 
@@ -495,7 +499,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests whether observed proportions differ from expected.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fbe9e7', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   λ = N · w²
                 </Typography>
@@ -507,7 +511,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Cohen's w:
               </Typography>
-              <Paper sx={{ p: 1, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 1, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   w = √[Σ(p₀ - p₁)² / p₀]
                 </Typography>
@@ -524,7 +528,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#e91e63' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.error.main }}>
                 Chi-Square Test of Independence
               </Typography>
 
@@ -532,7 +536,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests association between two categorical variables.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fce4ec', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.15), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   λ = N · w²
                 </Typography>
@@ -544,7 +548,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Sample Size:
               </Typography>
-              <Paper sx={{ p: 1, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 1, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   N = (χ²<sub>α,df</sub> + χ²<sub>1-β,df</sub>) / w²
                 </Typography>
@@ -561,7 +565,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Cohen's h Effect Size
               </Typography>
@@ -582,7 +586,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Sample Size per Group
               </Typography>
@@ -661,7 +665,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
   // Render Step 4: Correlation & Regression
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Power Analysis for Correlation & Regression
       </Typography>
 
@@ -677,11 +681,11 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#00bcd4' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 Pearson Correlation
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e0f7fa', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.info.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   z<sub>r</sub> = 0.5 · ln((1+r)/(1-r))
                 </Typography>
@@ -693,7 +697,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Sample Size Formula:
               </Typography>
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   n = ((z<sub>α/2</sub> + z<sub>β</sub>) / z<sub>r</sub>)² + 3
                 </Typography>
@@ -717,11 +721,11 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#009688' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.dark }}>
                 Multiple Regression
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e0f2f1', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.15), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   f² = R² / (1 - R²)
                 </Typography>
@@ -733,7 +737,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Incremental f² (for added predictors):
               </Typography>
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '0.9rem', textAlign: 'center' }}>
                   f² = (R²<sub>full</sub> - R²<sub>reduced</sub>) / (1 - R²<sub>full</sub>)
                 </Typography>
@@ -763,7 +767,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Tabachnick & Fidell
               </Typography>
@@ -774,7 +778,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Green's Rule
               </Typography>
@@ -786,7 +790,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Power-Based
               </Typography>
@@ -804,7 +808,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
   // Render Step 5: Non-Parametric Tests
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Power Analysis for Non-Parametric Tests
       </Typography>
 
@@ -815,7 +819,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         </Typography>
       </Alert>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#fff3e0' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Asymptotic Relative Efficiency (ARE)
         </Typography>
@@ -825,7 +829,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           parametric counterpart to achieve the same power, assuming the parametric assumptions hold.
         </Typography>
 
-        <Paper sx={{ p: 2, bgcolor: '#fff', mb: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper, mb: 2 }}>
           <Typography sx={{ fontFamily: 'serif', fontSize: '1.2rem', textAlign: 'center' }}>
             ARE = n<sub>parametric</sub> / n<sub>non-parametric</sub>
           </Typography>
@@ -844,7 +848,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#7b1fa2' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 Mann-Whitney U Test
               </Typography>
 
@@ -852,7 +856,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to independent samples t-test.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs t-test (normal data):
                 </Typography>
@@ -877,7 +881,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#512da8' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.dark }}>
                 Wilcoxon Signed-Rank Test
               </Typography>
 
@@ -885,7 +889,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to paired t-test.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ede7f6', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs paired t-test (normal data):
                 </Typography>
@@ -910,7 +914,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#303f9f' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.dark }}>
                 Kruskal-Wallis Test
               </Typography>
 
@@ -918,7 +922,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to one-way ANOVA (k {'>'} 2 groups).
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8eaf6', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs one-way ANOVA:
                 </Typography>
@@ -938,7 +942,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#1a237e' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.dark }}>
                 Friedman Test
               </Typography>
 
@@ -946,7 +950,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to repeated measures ANOVA.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs RM-ANOVA:
                 </Typography>
@@ -971,50 +975,50 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: '#4caf50' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                 Use Non-Parametric When:
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Data are clearly non-normal" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Ordinal (ranked) data only" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Heavy outliers present" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Very small samples (n < 10)" />
                 </ListItem>
               </List>
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: '#2196f3' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.info.main }}>
                 Use Parametric When:
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#2196f3', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.info.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Data approximately normal" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#2196f3', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.info.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Large samples (CLT applies)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#2196f3', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.info.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Want confidence intervals" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#2196f3', fontSize: 18 }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.info.main, fontSize: 18 }} /></ListItemIcon>
                   <ListItemText primary="Complex designs (ANCOVA, etc.)" />
                 </ListItem>
               </List>
@@ -1116,8 +1120,8 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 width: 12,
                 height: 12,
                 borderRadius: '50%',
-                bgcolor: index === activeStep ? '#d32f2f' :
-                         completedSteps.has(index) ? '#4caf50' : '#e0e0e0',
+                bgcolor: index === activeStep ? theme.palette.error.dark :
+                         completedSteps.has(index) ? theme.palette.success.main : theme.palette.divider,
                 cursor: 'pointer',
                 transition: 'all 0.3s',
               }}
@@ -1136,7 +1140,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+          sx={{ bgcolor: theme.palette.error.dark, '&:hover': { bgcolor: theme.palette.error.dark } }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>
@@ -1150,19 +1154,19 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           </Typography>
           <List dense>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Power formulas for t-test variants (one-sample, two-sample, paired)" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="ANOVA power including repeated measures and factorial designs" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Chi-square, proportion, correlation, and regression power" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Non-parametric tests and the ARE = 3/π concept" />
             </ListItem>
           </List>

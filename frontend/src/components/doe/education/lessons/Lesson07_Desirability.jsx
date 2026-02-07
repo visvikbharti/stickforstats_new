@@ -23,6 +23,8 @@ import {
   ToggleButtonGroup,
   Chip
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax } from 'better-react-mathjax';
 import BalanceIcon from '@mui/icons-material/Balance';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -39,6 +41,8 @@ import TuneIcon from '@mui/icons-material/Tune';
  */
 
 const Lesson07_Desirability = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [temp, setTemp] = useState(160);
   const [catalyst, setCatalyst] = useState(2.0);
@@ -218,7 +222,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
     }
 
     return (
-      <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'white' }}>
+      <Box sx={{ position: 'relative', width, height, border: `1px solid ${theme.palette.divider}`, bgcolor: theme.palette.background.paper }}>
         <svg width={width} height={height}>
           {/* Axes */}
           <line x1={margin} y1={height - margin} x2={width - 20} y2={height - margin}
@@ -319,8 +323,8 @@ const Lesson07_Desirability = ({ onComplete }) => {
           />
         </svg>
 
-        <Box sx={{ position: 'absolute', top: 5, right: 5, bgcolor: 'rgba(255,255,255,0.95)',
-                   p: 1, border: '1px solid #ddd', borderRadius: 1, fontSize: '0.75rem' }}>
+        <Box sx={{ position: 'absolute', top: 5, right: 5, bgcolor: alpha(theme.palette.background.paper, 0.95),
+                   p: 1, border: `1px solid ${theme.palette.divider}`, borderRadius: 1, fontSize: '0.75rem' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
             <Box sx={{ width: 12, height: 12, bgcolor: 'green', borderRadius: '50%' }} />
             <Typography variant="caption">Max Yield</Typography>
@@ -364,7 +368,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                   <TableCell>Maximize Yield</TableCell>
                   <TableCell>
                     T={optima.yield.temp.toFixed(1)}°C, Cat={optima.yield.catalyst.toFixed(2)}%
@@ -373,7 +377,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
                   <TableCell sx={{ color: 'error.main' }}>{optima.yield.responses.purity.toFixed(1)}</TableCell>
                   <TableCell sx={{ color: 'error.main' }}>{optima.yield.responses.cost.toFixed(1)}</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                   <TableCell>Maximize Purity</TableCell>
                   <TableCell>
                     T={optima.purity.temp.toFixed(1)}°C, Cat={optima.purity.catalyst.toFixed(2)}%
@@ -382,7 +386,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
                   <TableCell><strong>{optima.purity.responses.purity.toFixed(1)}</strong></TableCell>
                   <TableCell sx={{ color: 'error.main' }}>{optima.purity.responses.cost.toFixed(1)}</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#ffebee' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                   <TableCell>Minimize Cost</TableCell>
                   <TableCell>
                     T={optima.cost.temp.toFixed(1)}°C, Cat={optima.cost.catalyst.toFixed(2)}%
@@ -414,9 +418,9 @@ const Lesson07_Desirability = ({ onComplete }) => {
           </Box>
 
           <Typography variant="body2" paragraph>
-            • <span style={{ color: 'green', fontWeight: 'bold' }}>Green:</span> Maximum yield (but high cost)<br/>
-            • <span style={{ color: 'red', fontWeight: 'bold' }}>Red:</span> Minimum cost (but low yield)<br/>
-            • <span style={{ color: 'gold', fontWeight: 'bold' }}>Gold:</span> Balanced trade-off
+            • <span style={{ color: theme.palette.success.main, fontWeight: 'bold' }}>Green:</span> Maximum yield (but high cost)<br/>
+            • <span style={{ color: theme.palette.error.main, fontWeight: 'bold' }}>Red:</span> Minimum cost (but low yield)<br/>
+            • <span style={{ color: theme.palette.warning.main, fontWeight: 'bold' }}>Gold:</span> Balanced trade-off
           </Typography>
 
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -439,7 +443,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#e8f5e9' }}>
+              <Card variant="outlined" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="success.main" gutterBottom>
                     2. Desirability Functions ✓
@@ -525,7 +529,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             The Weight Parameter r
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               The exponent <em>r</em> controls the shape of the desirability curve:
             </Typography>
@@ -543,7 +547,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             Overall Desirability
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body2" gutterBottom>
               Combine individual desirabilities using the <strong>weighted geometric mean</strong>:
             </Typography>
@@ -661,7 +665,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             </Grid>
           </Grid>
 
-          <Paper sx={{ p: 2, mb: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, mb: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="h6" gutterBottom>
               Current Results
             </Typography>
@@ -815,7 +819,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             </Button>
           </Box>
 
-          <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
             <Typography variant="subtitle2" color="success.main" gutterBottom>
               <strong>Optimal Settings (Balanced)</strong>
             </Typography>
@@ -917,7 +921,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             Software Implementation
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               Most statistical software packages support desirability optimization:
             </Typography>
@@ -1051,7 +1055,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             Key Formulas
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 3 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Overall Desirability:</strong>
             </Typography>
@@ -1107,7 +1111,7 @@ const Lesson07_Desirability = ({ onComplete }) => {
             Real-World Success Story
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 3 }}>
             <Typography variant="body2">
               <strong>Pharmaceutical Tablet Manufacturing:</strong> A company needed to optimize
               hardness (maximize), dissolution time (minimize), and coating uniformity (target).
@@ -1140,9 +1144,9 @@ const Lesson07_Desirability = ({ onComplete }) => {
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <BalanceIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <BalanceIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 2 }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1976d2' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
               Optimization & Desirability Functions
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

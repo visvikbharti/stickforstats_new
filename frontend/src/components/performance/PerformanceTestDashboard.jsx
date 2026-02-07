@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Card, 
-  CardContent, 
-  Grid, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  TextField, 
-  Accordion, 
-  AccordionSummary, 
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Accordion,
+  AccordionSummary,
   AccordionDetails,
   Table,
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Paper,
   CircularProgress,
   Chip,
@@ -27,7 +27,8 @@ import {
   Divider,
   Tooltip,
   IconButton,
-  LinearProgress
+  LinearProgress,
+  useTheme
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -57,10 +58,11 @@ import {
  * Performance score indicator component
  */
 const ScoreIndicator = ({ score }) => {
-  let color = '#4CAF50'; // Green
-  if (score < 90) color = '#FFC107'; // Yellow
-  if (score < 70) color = '#FF9800'; // Orange
-  if (score < 50) color = '#F44336'; // Red
+  const theme = useTheme();
+  let color = theme.palette.success.main; // Green
+  if (score < 90) color = theme.palette.warning.light; // Yellow
+  if (score < 70) color = theme.palette.warning.main; // Orange
+  if (score < 50) color = theme.palette.error.main; // Red
 
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex' }}>

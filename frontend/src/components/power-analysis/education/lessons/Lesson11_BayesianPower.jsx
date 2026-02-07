@@ -46,6 +46,8 @@ import {
   Functions,
   Warning,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 const steps = [
   'Why Bayesian?',
@@ -56,6 +58,8 @@ const steps = [
 ];
 
 const Lesson11_BayesianPower = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [priorWidth, setPriorWidth] = useState(0.707);
@@ -72,7 +76,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Why Consider Bayesian Approaches?
       </Typography>
 
@@ -85,35 +89,35 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ borderTop: '4px solid #ff9800' }}>
+          <Card elevation={3} sx={{ borderTop: `4px solid ${theme.palette.warning.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Frequentist Limitations
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Can't quantify evidence FOR H₀"
                     secondary="Only reject or fail to reject"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Requires point effect size"
                     secondary="Uncertainty in effect ignored"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Power depends on true unknown effect"
                     secondary="Which we don't know!"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Binary decision framework"
                     secondary="p < 0.05 vs p ≥ 0.05"
@@ -125,35 +129,35 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ borderTop: '4px solid #4caf50' }}>
+          <Card elevation={3} sx={{ borderTop: `4px solid ${theme.palette.success.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 Bayesian Advantages
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Evidence for either hypothesis"
                     secondary="BF₀₁ or BF₁₀"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Incorporates prior uncertainty"
                     secondary="Distribution over effect sizes"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Assurance integrates over uncertainty"
                     secondary="More realistic planning"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Continuous evidence scale"
                     secondary="Strength of evidence quantified"
@@ -171,7 +175,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Consider Bayesian When:
               </Typography>
@@ -185,7 +189,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Stick with Frequentist When:
               </Typography>
@@ -205,7 +209,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Bayes Factors: Quantifying Evidence
       </Typography>
 
@@ -216,7 +220,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         </Typography>
       </Alert>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#f3e5f5' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.secondary.light, 0.2) }}>
         <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
           The Bayes Factor
         </Typography>
@@ -236,7 +240,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
       <TableContainer component={Paper} sx={{ mb: 3 }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <TableCell sx={{ fontWeight: 600 }}>BF₁₀</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Evidence for H₁</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>BF₀₁</TableCell>
@@ -262,13 +266,13 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
               <TableCell>0.033 - 0.1</TableCell>
               <TableCell>-</TableCell>
             </TableRow>
-            <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <TableCell>3 - 10</TableCell>
               <TableCell>Moderate</TableCell>
               <TableCell>0.1 - 0.33</TableCell>
               <TableCell>-</TableCell>
             </TableRow>
-            <TableRow sx={{ bgcolor: '#fff3e0' }}>
+            <TableRow sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <TableCell>1 - 3</TableCell>
               <TableCell>Anecdotal</TableCell>
               <TableCell>0.33 - 1</TableCell>
@@ -301,7 +305,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Bayes Factor Design Analysis (BFDA)
       </Typography>
 
@@ -316,7 +320,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 The BFDA Framework
               </Typography>
 
@@ -326,21 +330,21 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
               <List dense>
                 <ListItem>
-                  <ListItemIcon><Chip label="1" size="small" sx={{ bgcolor: '#9c27b0', color: 'white' }} /></ListItemIcon>
+                  <ListItemIcon><Chip label="1" size="small" sx={{ bgcolor: theme.palette.secondary.main, color: 'white' }} /></ListItemIcon>
                   <ListItemText
                     primary="Target evidence threshold"
                     secondary="e.g., BF₁₀ > 10 (strong evidence)"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Chip label="2" size="small" sx={{ bgcolor: '#9c27b0', color: 'white' }} /></ListItemIcon>
+                  <ListItemIcon><Chip label="2" size="small" sx={{ bgcolor: theme.palette.secondary.main, color: 'white' }} /></ListItemIcon>
                   <ListItemText
                     primary="Probability of achieving it"
                     secondary="e.g., 80% chance of BF > 10"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Chip label="3" size="small" sx={{ bgcolor: '#9c27b0', color: 'white' }} /></ListItemIcon>
+                  <ListItemIcon><Chip label="3" size="small" sx={{ bgcolor: theme.palette.secondary.main, color: 'white' }} /></ListItemIcon>
                   <ListItemText
                     primary="Prior distribution on effect"
                     secondary="Reflects prior knowledge/uncertainty"
@@ -358,7 +362,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
                 The JZS Prior
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   δ ~ Cauchy(0, r)
                 </Typography>
@@ -394,7 +398,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         <TableContainer>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>True Effect (d)</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>BFDA n/group</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>Frequentist n/group (80% power)</TableCell>
@@ -432,7 +436,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Assurance: Bayesian "Power"
       </Typography>
 
@@ -443,7 +447,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         </Typography>
       </Alert>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#e8f5e9' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
         <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
           The Assurance Formula
         </Typography>
@@ -459,7 +463,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2196f3' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 Why Assurance?
               </Typography>
 
@@ -538,7 +542,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Frequentist Power
               </Typography>
@@ -549,7 +553,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Assurance (prior: d ~ N(0.5, 0.15²))
               </Typography>
@@ -573,7 +577,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Precision-Based Planning
       </Typography>
 
@@ -586,9 +590,9 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ borderTop: '4px solid #00bcd4' }}>
+          <Card elevation={3} sx={{ borderTop: `4px solid ${theme.palette.info.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#00bcd4' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 The Precision Approach
               </Typography>
 
@@ -596,7 +600,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
                 Rather than asking "Can I detect an effect?", ask:
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e0f7fa', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.info.light, 0.2), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontStyle: 'italic', textAlign: 'center' }}>
                   "How precisely can I estimate the effect?"
                 </Typography>
@@ -616,7 +620,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
                 Sample Size for Precision
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   n = (z<sub>α/2</sub> × σ / MOE)²
                 </Typography>
@@ -643,8 +647,8 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: '#4caf50' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                 Good For:
               </Typography>
               <Typography variant="body2">
@@ -656,8 +660,8 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: '#2196f3' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.info.main }}>
                 Advantages:
               </Typography>
               <Typography variant="body2">
@@ -669,8 +673,8 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: '#ff9800' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.warning.main }}>
                 Limitations:
               </Typography>
               <Typography variant="body2">
@@ -758,7 +762,7 @@ const Lesson11_BayesianPower = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+          sx={{ bgcolor: theme.palette.error.dark, '&:hover': { bgcolor: theme.palette.error.dark } }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>

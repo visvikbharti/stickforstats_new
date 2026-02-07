@@ -495,14 +495,15 @@ const DataFitting = ({ projectId }) => {
             
             <Box {...getRootProps()} sx={{ 
               p: 2, 
-              border: '2px dashed #ccc', 
+              border: '2px dashed',
+              borderColor: 'divider',
               borderRadius: 1, 
               textAlign: 'center',
               mb: 2,
               cursor: 'pointer',
-              bgcolor: isDragActive ? 'rgba(0, 0, 0, 0.05)' : 'inherit',
+              bgcolor: isDragActive ? 'action.hover' : 'inherit',
               '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.05)'
+                bgcolor: 'action.hover'
               }
             }}>
               <input {...getInputProps()} />

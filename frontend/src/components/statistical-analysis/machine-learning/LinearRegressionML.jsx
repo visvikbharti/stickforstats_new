@@ -33,7 +33,8 @@ import {
   Slider,
   Button,
   Divider,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -57,6 +58,8 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
  * Main Linear Regression Component
  */
 const LinearRegressionML = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [targetVariable, setTargetVariable] = useState('');
   const [features, setFeatures] = useState([]);
   const [testSize, setTestSize] = useState(0.2);
@@ -410,7 +413,7 @@ const LinearRegressionML = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <TrendingUpIcon /> Model Configuration
         </Typography>
 
@@ -533,8 +536,8 @@ const LinearRegressionML = ({ data }) => {
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : '#fff3e0', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark, display: 'flex', alignItems: 'center', gap: 1 }}>
             🚫 Model Training Blocked
           </Typography>
           <Typography variant="body2" paragraph>
@@ -554,7 +557,7 @@ const LinearRegressionML = ({ data }) => {
             <Grid item xs={12} md={6}>
               <Card>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                     Training Set Performance
                   </Typography>
                   <Grid container spacing={1}>
@@ -580,9 +583,9 @@ const LinearRegressionML = ({ data }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#e3f2fd' }}>
+              <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                     Test Set Performance
                   </Typography>
                   <Grid container spacing={1}>
@@ -616,7 +619,7 @@ const LinearRegressionML = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Feature</strong></TableCell>
                     <TableCell align="right"><strong>Coefficient</strong></TableCell>
                     <TableCell align="right"><strong>Importance</strong></TableCell>
@@ -676,13 +679,13 @@ const LinearRegressionML = ({ data }) => {
                       { x: Math.min(...modelResults.testPredictions.map(p => p.actual)), y: Math.min(...modelResults.testPredictions.map(p => p.actual)) },
                       { x: Math.max(...modelResults.testPredictions.map(p => p.actual)), y: Math.max(...modelResults.testPredictions.map(p => p.actual)) }
                     ]}
-                    stroke="#ff7300"
+                    stroke={theme.palette.warning.main}
                     strokeDasharray="3 3"
                     label="Perfect Fit"
                   />
                   <Scatter
                     data={modelResults.testPredictions}
-                    fill="#8884d8"
+                    fill={theme.palette.primary.main}
                     name="Predictions"
                   />
                 </ScatterChart>
@@ -714,10 +717,10 @@ const LinearRegressionML = ({ data }) => {
                   />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                   <Legend />
-                  <ReferenceLine y={0} stroke="#ff7300" strokeDasharray="3 3" />
+                  <ReferenceLine y={0} stroke={theme.palette.warning.main} strokeDasharray="3 3" />
                   <Scatter
                     data={modelResults.residuals}
-                    fill="#82ca9d"
+                    fill={theme.palette.success.main}
                     name="Residuals"
                   />
                 </ScatterChart>

@@ -734,11 +734,11 @@ const CorrelationTests = ({ data }) => {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd', position: 'sticky', left: 0, backgroundColor: '#f5f5f5' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, position: 'sticky', left: 0, backgroundColor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100], color: theme.palette.text.primary }}>
                       Variable
                     </th>
                     {numericColumns.map((col) => (
-                      <th key={col} style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd', minWidth: '80px' }}>
+                      <th key={col} style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, minWidth: '80px', color: theme.palette.text.primary }}>
                         {col}
                       </th>
                     ))}
@@ -750,10 +750,11 @@ const CorrelationTests = ({ data }) => {
                       <td style={{
                         padding: '8px',
                         fontWeight: 'bold',
-                        borderRight: '2px solid #ddd',
+                        borderRight: `2px solid ${theme.palette.divider}`,
                         position: 'sticky',
                         left: 0,
-                        backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa',
+                        backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]),
+                        color: theme.palette.text.primary,
                         zIndex: 1
                       }}>
                         {row}
@@ -770,7 +771,7 @@ const CorrelationTests = ({ data }) => {
                               padding: '8px',
                               textAlign: 'center',
                               backgroundColor: getCorrelationColor(r),
-                              border: '1px solid #ddd',
+                              border: `1px solid ${theme.palette.divider}`,
                               fontWeight: row === col ? 'bold' : 'normal'
                             }}
                           >
@@ -796,23 +797,23 @@ const CorrelationTests = ({ data }) => {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(55, 55, 255)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(55, 55, 255)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Strong Positive</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(155, 155, 255)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(155, 155, 255)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Weak Positive</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(240, 240, 240)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(240, 240, 240)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">No Correlation</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 155, 155)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 155, 155)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Weak Negative</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 55, 55)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 55, 55)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Strong Negative</Typography>
                 </Box>
                 <Typography variant="caption" sx={{ fontWeight: 'bold' }}>

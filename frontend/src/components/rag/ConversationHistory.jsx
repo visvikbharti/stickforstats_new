@@ -242,7 +242,7 @@ const ConversationHistory = ({ moduleContext = null }) => {
             overflow: 'auto',
             p: 2,
             borderRadius: 1,
-            bgcolor: viewConversation ? 'white' : '#f5f5f5'
+            bgcolor: (theme) => viewConversation ? theme.palette.background.paper : (theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100])
           }}
         >
           {viewConversation ? (
@@ -250,7 +250,7 @@ const ConversationHistory = ({ moduleContext = null }) => {
               <Box sx={{ 
                 mb: 2, 
                 pb: 1, 
-                borderBottom: '1px solid #e0e0e0',
+                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
@@ -295,9 +295,9 @@ const ConversationHistory = ({ moduleContext = null }) => {
                         sx={{ 
                           p: 2, 
                           maxWidth: '80%',
-                          bgcolor: message.message_type === 'user' ? 'primary.light' : 'white',
+                          bgcolor: (theme) => message.message_type === 'user' ? theme.palette.primary.light : theme.palette.background.paper,
                           color: message.message_type === 'user' ? 'white' : 'text.primary',
-                          border: '1px solid #e0e0e0'
+                          border: (theme) => `1px solid ${theme.palette.divider}`
                         }}
                       >
                         <Typography variant="body2">

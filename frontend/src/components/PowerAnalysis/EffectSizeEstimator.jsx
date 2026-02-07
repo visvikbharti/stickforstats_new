@@ -1067,10 +1067,10 @@ const EffectSizeEstimator = ({
           <div style={{
             marginTop: '10px',
             padding: '12px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
+            backgroundColor: 'var(--error-bg, #fee)',
+            border: '1px solid var(--error-border, #fcc)',
             borderRadius: '4px',
-            color: '#c33'
+            color: 'var(--error-text, #c33)'
           }}>
             <strong>⛔ Estimation Blocked</strong>
             <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>

@@ -17,6 +17,8 @@ import {
   TableRow,
   Slider
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -31,6 +33,8 @@ import { MathJax } from 'better-react-mathjax';
  */
 
 const Lesson01_FactorialDesign = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [temperature, setTemperature] = useState(30);
   const [pH, setPH] = useState(6.5);
   const [showOFAT, setShowOFAT] = useState(false);
@@ -129,8 +133,8 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
+        <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
           Factorial Design Fundamentals
         </Typography>
 
@@ -155,7 +159,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
 
       {/* The Problem with OFAT */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🔴 The OFAT Approach (One-Factor-At-A-Time)
         </Typography>
 
@@ -165,7 +169,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Step 1: Optimize Temperature
@@ -180,7 +184,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Step 2: Optimize pH
@@ -254,7 +258,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
               </Grid>
             </Grid>
 
-            <Paper sx={{ p: 2, bgcolor: '#ffe0b2' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.3) }}>
               <Typography variant="h6">OFAT Result</Typography>
               <Typography>
                 <strong>Best Conditions:</strong> Temperature = {ofatExperiment.bestConditions.temp}°C,
@@ -281,7 +285,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
 
       {/* The Factorial Approach */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           ✅ The Factorial Approach (Test All Combinations)
         </Typography>
 
@@ -291,7 +295,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
             For temperature (low=28°C, high=34°C) and pH (low=6.0, high=7.5):
           </Typography>
 
-          <Box sx={{ p: 3, bgcolor: '#e8f5e9', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: alpha(theme.palette.success.light, 0.2), borderRadius: 2, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Factorial Design Matrix
             </Typography>
@@ -336,7 +340,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
 
         {showFactorial && (
           <Box sx={{ mb: 3 }}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
               <Typography variant="h6">Factorial Result</Typography>
               <Typography>
                 <strong>Best Conditions:</strong> Temperature = {factorialExperiment.bestConditions.temp}°C,
@@ -390,7 +394,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#fff3e0' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                   <CardContent>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       Interaction Effect
@@ -420,7 +424,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
 
       {/* Key Concepts */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           📚 Key Factorial Design Concepts
         </Typography>
 
@@ -483,7 +487,7 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 3, p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+          <Box sx={{ mt: 3, p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderRadius: 2 }}>
             <Typography variant="h6" gutterBottom>
               Factorial Design Notation
             </Typography>
@@ -512,8 +516,8 @@ const Lesson01_FactorialDesign = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.dark }}>
           ✅ Key Takeaways
         </Typography>
 

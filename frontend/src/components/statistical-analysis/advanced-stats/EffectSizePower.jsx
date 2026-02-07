@@ -42,7 +42,8 @@ import {
   Tab,
   Slider,
   Tooltip,
-  IconButton
+  IconButton,
+  useTheme
 } from '@mui/material';
 import {
   LineChart,
@@ -73,6 +74,9 @@ const EFFECT_SIZE_BENCHMARKS = {
 };
 
 const EffectSizePower = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
 
@@ -756,7 +760,7 @@ const EffectSizePower = ({ data }) => {
                 {effectResults.type === 't-test' && (
                   <>
                     <Grid item xs={6} md={3}>
-                      <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                      <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Cohen's d</Typography>
                           <Typography variant="h4">{effectResults.cohens_d?.toFixed(3)}</Typography>
@@ -810,7 +814,7 @@ const EffectSizePower = ({ data }) => {
                 {effectResults.type === 'anova' && (
                   <>
                     <Grid item xs={6} md={3}>
-                      <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                      <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">η² (Eta Squared)</Typography>
                           <Typography variant="h4">{effectResults.eta_squared?.toFixed(4)}</Typography>
@@ -850,7 +854,7 @@ const EffectSizePower = ({ data }) => {
                 {effectResults.type === 'correlation' && (
                   <>
                     <Grid item xs={6} md={3}>
-                      <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                      <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">r (Correlation)</Typography>
                           <Typography variant="h4">{effectResults.r?.toFixed(3)}</Typography>
@@ -890,7 +894,7 @@ const EffectSizePower = ({ data }) => {
                 {effectResults.type === 'chi-square' && (
                   <>
                     <Grid item xs={6} md={4}>
-                      <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                      <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Cramér's V</Typography>
                           <Typography variant="h4">{effectResults.cramers_v?.toFixed(3)}</Typography>
@@ -1130,13 +1134,15 @@ const EffectSizePower = ({ data }) => {
                   <>
                     <Grid item xs={6} md={4}>
                       <Card sx={{
-                        bgcolor: powerResults.power >= 0.8 ? '#e8f5e9' : '#fff3e0',
+                        bgcolor: powerResults.power >= 0.8
+                          ? (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30')
+                          : (isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30'),
                         height: '100%'
                       }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Statistical Power</Typography>
                           <Typography variant="h3" sx={{
-                            color: powerResults.power >= 0.8 ? '#2e7d32' : '#f57c00'
+                            color: powerResults.power >= 0.8 ? theme.palette.success.main : theme.palette.warning.main
                           }}>
                             {(powerResults.power * 100).toFixed(1)}%
                           </Typography>
@@ -1172,10 +1178,10 @@ const EffectSizePower = ({ data }) => {
                 ) : (
                   <>
                     <Grid item xs={6} md={4}>
-                      <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                      <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Required N per Group</Typography>
-                          <Typography variant="h3" sx={{ color: '#1976d2' }}>
+                          <Typography variant="h3" sx={{ color: theme.palette.primary.main }}>
                             {powerResults.required_n}
                           </Typography>
                           <Typography variant="body2">Total N: {powerResults.total_n}</Typography>
@@ -1230,18 +1236,18 @@ const EffectSizePower = ({ data }) => {
                           labelFormatter={(label) => `N = ${label} per group`}
                         />
                         <Legend />
-                        <ReferenceLine y={0.8} stroke="#ff9800" strokeDasharray="5 5" label={{ value: '80%', position: 'right' }} />
+                        <ReferenceLine y={0.8} stroke={theme.palette.warning.main} strokeDasharray="5 5" label={{ value: '80%', position: 'right' }} />
                         <Area
                           type="monotone"
                           dataKey="power"
-                          fill="#1976d2"
+                          fill={theme.palette.primary.main}
                           fillOpacity={0.3}
-                          stroke="#1976d2"
+                          stroke={theme.palette.primary.main}
                           strokeWidth={2}
                           name="Power"
                         />
                         {powerMode === 'calculate-power' && (
-                          <ReferenceLine x={powerN} stroke="#2e7d32" strokeWidth={2} label={{ value: `N=${powerN}`, position: 'top' }} />
+                          <ReferenceLine x={powerN} stroke={theme.palette.success.main} strokeWidth={2} label={{ value: `N=${powerN}`, position: 'top' }} />
                         )}
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1269,7 +1275,7 @@ const EffectSizePower = ({ data }) => {
           )}
 
           {/* Guidelines */}
-          <Paper elevation={2} sx={{ p: 3, bgcolor: '#fafafa' }}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
             <Typography variant="h6" gutterBottom>
               Power Analysis Guidelines
             </Typography>

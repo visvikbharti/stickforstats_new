@@ -47,6 +47,8 @@ import {
   BugReport,
   Build,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 const steps = [
   'Core Assumptions',
@@ -57,6 +59,8 @@ const steps = [
 ];
 
 const Lesson08_Assumptions = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
@@ -71,7 +75,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
 
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Core Assumptions of Power Analysis
       </Typography>
 
@@ -84,33 +88,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2196f3' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 Statistical Assumptions
               </Typography>
               <List>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Normality"
                     secondary="Data follows normal distribution (or CLT applies)"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Homogeneity of Variance"
                     secondary="Equal variances across groups"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Independence"
                     secondary="Observations are independent of each other"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Random Sampling"
                     secondary="Sample is representative of population"
@@ -124,33 +128,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Planning Assumptions
               </Typography>
               <List>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Effect Size Accuracy"
                     secondary="Assumed effect size reflects true population value"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Variance Estimate"
                     secondary="σ² is correctly specified"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="No Attrition"
                     secondary="All enrolled subjects complete the study"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Warning sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><Warning sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Correct Test Selection"
                     secondary="Planned analysis matches actual analysis"
@@ -162,7 +166,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Severity of Violations
         </Typography>
@@ -205,7 +209,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
 
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Normality Violations
       </Typography>
 
@@ -225,19 +229,19 @@ const Lesson08_Assumptions = ({ onComplete }) => {
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Sample size ≥ 30 per group (CLT)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Symmetric distributions (even if not normal)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Equal group sizes" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Two-tailed tests (more robust)" />
                 </ListItem>
               </List>
@@ -248,24 +252,24 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#f44336' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.error.main }}>
                 When Normality Matters More
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><ErrorIcon sx={{ color: '#f44336' }} /></ListItemIcon>
+                  <ListItemIcon><ErrorIcon sx={{ color: theme.palette.error.main }} /></ListItemIcon>
                   <ListItemText primary="Small samples (n < 15)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><ErrorIcon sx={{ color: '#f44336' }} /></ListItemIcon>
+                  <ListItemIcon><ErrorIcon sx={{ color: theme.palette.error.main }} /></ListItemIcon>
                   <ListItemText primary="Heavily skewed distributions" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><ErrorIcon sx={{ color: '#f44336' }} /></ListItemIcon>
+                  <ListItemIcon><ErrorIcon sx={{ color: theme.palette.error.main }} /></ListItemIcon>
                   <ListItemText primary="Heavy-tailed (high kurtosis) data" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><ErrorIcon sx={{ color: '#f44336' }} /></ListItemIcon>
+                  <ListItemIcon><ErrorIcon sx={{ color: theme.palette.error.main }} /></ListItemIcon>
                   <ListItemText primary="One-tailed tests at extreme α levels" />
                 </ListItem>
               </List>
@@ -280,7 +284,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Data Transformation
               </Typography>
@@ -291,7 +295,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Non-Parametric Tests
               </Typography>
@@ -302,7 +306,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Bootstrap Methods
               </Typography>
@@ -318,7 +322,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
 
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Variance Heterogeneity (Heteroscedasticity)
       </Typography>
 
@@ -354,7 +358,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
                 <TableCell>Larger n in group with larger σ²</TableCell>
                 <TableCell>{'<'} 0.05 (conservative)</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#ffebee' }}>
+              <TableRow sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                 <TableCell>Larger n in group with smaller σ²</TableCell>
                 <TableCell>{'>'} 0.05 (liberal/inflated)</TableCell>
               </TableRow>
@@ -367,33 +371,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 Solutions
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Welch's t-test"
                     secondary="Adjusts df for unequal variances"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Welch's ANOVA"
                     secondary="Or Brown-Forsythe for multiple groups"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Equal sample sizes"
                     secondary="Makes test robust to variance inequality"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Variance-stabilizing transformations"
                     secondary="Log, sqrt for positive skewed data"
@@ -439,7 +443,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
 
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Independence Violations: The Most Serious Problem
       </Typography>
 
@@ -457,7 +461,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Clustering
               </Typography>
@@ -467,7 +471,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Repeated Measures
               </Typography>
@@ -477,7 +481,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Spatial/Temporal
               </Typography>
@@ -487,7 +491,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Family/Genetic
               </Typography>
@@ -505,7 +509,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             The Design Effect
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
             <Typography sx={{ fontFamily: 'serif', fontSize: '1.2rem', textAlign: 'center', mb: 1 }}>
               Design Effect (DEFF) = 1 + (m - 1)ρ
             </Typography>
@@ -530,33 +534,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
       </Card>
 
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
           Solutions for Clustered Data
         </Typography>
         <List>
           <ListItem>
-            <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+            <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
             <ListItemText
               primary="Mixed Effects Models"
               secondary="Account for clustering through random effects"
             />
           </ListItem>
           <ListItem>
-            <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+            <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
             <ListItemText
               primary="GEE (Generalized Estimating Equations)"
               secondary="Robust standard errors for clustered data"
             />
           </ListItem>
           <ListItem>
-            <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+            <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
             <ListItemText
               primary="Cluster-Level Analysis"
               secondary="Analyze cluster means (loses power but maintains validity)"
             />
           </ListItem>
           <ListItem>
-            <ListItemIcon><Build sx={{ color: '#4caf50' }} /></ListItemIcon>
+            <ListItemIcon><Build sx={{ color: theme.palette.success.main }} /></ListItemIcon>
             <ListItemText
               primary="Specialized Power Software"
               secondary="Use tools that account for clustering (e.g., PowerUp!, PASS)"
@@ -569,7 +573,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
 
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Effect Size Uncertainty: The Winner's Curse
       </Typography>
 
@@ -585,33 +589,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Sources of Effect Size Inflation
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><BugReport sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><BugReport sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Publication Bias"
                     secondary="Only significant results get published"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><BugReport sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><BugReport sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Small Sample Bias"
                     secondary="Significant small studies have inflated effects"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><BugReport sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><BugReport sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Questionable Practices"
                     secondary="p-hacking, selective reporting"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><BugReport sx={{ color: '#ff9800' }} /></ListItemIcon>
+                  <ListItemIcon><BugReport sx={{ color: theme.palette.warning.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Regression to Mean"
                     secondary="Follow-up studies typically find smaller effects"
@@ -625,33 +629,33 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 Recommended Approaches
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemIcon><Security sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Security sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Use Conservative Estimates"
                     secondary="Use 50-80% of published effect sizes"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Security sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Security sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Sensitivity Analysis"
                     secondary="Calculate power for range of plausible effects"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Security sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Security sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Minimum Effect of Interest"
                     secondary="Power for smallest meaningful effect"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><Security sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><Security sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Meta-Analytic Estimates"
                     secondary="Use pooled effect sizes when available"
@@ -675,7 +679,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
         <TableContainer component={Paper} sx={{ maxWidth: 500, mx: 'auto' }}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>Effect Size (d)</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>Power (n=50/group)</TableCell>
               </TableRow>
@@ -683,7 +687,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             <TableBody>
               <TableRow><TableCell>0.30</TableCell><TableCell align="center">39%</TableCell></TableRow>
               <TableRow><TableCell>0.40</TableCell><TableCell align="center">60%</TableCell></TableRow>
-              <TableRow sx={{ bgcolor: '#e8f5e9' }}><TableCell>0.50</TableCell><TableCell align="center">78%</TableCell></TableRow>
+              <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}><TableCell>0.50</TableCell><TableCell align="center">78%</TableCell></TableRow>
               <TableRow><TableCell>0.60</TableCell><TableCell align="center">89%</TableCell></TableRow>
               <TableRow><TableCell>0.70</TableCell><TableCell align="center">96%</TableCell></TableRow>
             </TableBody>
@@ -764,7 +768,7 @@ const Lesson08_Assumptions = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f' }}
+          sx={{ bgcolor: theme.palette.error.dark }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>

@@ -47,6 +47,19 @@ body.dark-mode,
   --surface-100: #ffffff;
   --surface-200: #fafafa;
   --surface-300: #f5f5f5;
+  --error-bg: #ffebee;
+  --error-border: #ef9a9a;
+  --error-text: #c62828;
+  --warning-bg: #fff3e0;
+  --warning-border: #ffb74d;
+  --warning-text: #e65100;
+  --success-bg: #e8f5e9;
+  --success-border: #a5d6a7;
+  --success-text: #2e7d32;
+  --info-bg: #e3f2fd;
+  --info-border: #90caf9;
+  --info-text: #0277bd;
+  --code-bg: #f5f5f5;
 }
 
 /* Professional color scheme - Dark Mode */
@@ -68,6 +81,19 @@ body.dark-mode {
   --surface-100: #1a1a35;
   --surface-200: #252545;
   --surface-300: #303055;
+  --error-bg: #3d1f1f;
+  --error-border: #7f3333;
+  --error-text: #ef9a9a;
+  --warning-bg: #3d2f1f;
+  --warning-border: #7f5f33;
+  --warning-text: #ffb74d;
+  --success-bg: #1f3d1f;
+  --success-border: #337f33;
+  --success-text: #a5d6a7;
+  --info-bg: #1f2f3d;
+  --info-border: #33667f;
+  --info-text: #90caf9;
+  --code-bg: #252545;
 }
 
 /* Dense table styling */
@@ -94,7 +120,8 @@ input, select, textarea {
   font-size: 12px;
   padding: 2px 4px;
   border: 1px solid var(--border-color);
-  background-color: white;
+  background-color: var(--background-white);
+  color: var(--text-primary);
 }
 
 button {
@@ -136,18 +163,19 @@ button:active {
 
 /* Panel styling */
 .panel {
-  background: white;
+  background: var(--background-white);
   border: 1px solid var(--border-color);
   margin: 2px;
   padding: 4px;
 }
 
 .panel-header {
-  background: linear-gradient(to bottom, #ecf0f1, #d5dbdd);
+  background: var(--surface-300);
   border-bottom: 1px solid var(--border-color);
   padding: 4px;
   font-size: 13px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* Status indicators */
@@ -195,3 +223,57 @@ button:active {
 .text-normal { font-size: 13px; }
 .text-bold { font-weight: 600; }
 .text-muted { color: var(--text-secondary); }
+
+/* Text overflow prevention */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-wrap-break {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Prevent content overflow in grid items */
+.MuiGrid-item {
+  min-width: 0;
+}
+
+/* Ensure long text in cards doesn't overflow */
+.MuiCardContent-root {
+  overflow: hidden;
+}
+
+/* Code blocks in dark mode */
+pre, code {
+  color: var(--text-primary);
+  background-color: var(--code-bg);
+  border-radius: 4px;
+}
+
+pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Form field focus states for dark mode */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 73, 94, 0.2);
+}
+
+/* Smooth transitions for theme switching */
+*, *::before, *::after {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}

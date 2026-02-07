@@ -181,7 +181,7 @@ const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
       <TableContainer component={Paper} variant="outlined">
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
               <TableCell width={150}>Study</TableCell>
               <TableCell width={80} align="right">Effect</TableCell>
               <TableCell width={120} align="right">95% CI</TableCell>
@@ -221,7 +221,7 @@ const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
             ))}
 
             {/* Pooled effect row */}
-            <TableRow sx={{ bgcolor: '#f3e5f5' }}>
+            <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(156, 39, 176, 0.15)' : '#f3e5f5' }}>
               <TableCell>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
                   Pooled ({model === 'random' ? 'RE' : 'FE'})

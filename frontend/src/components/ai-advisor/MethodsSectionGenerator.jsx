@@ -34,6 +34,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  useTheme,
 } from '@mui/material';
 import {
   NavigateNext,
@@ -104,6 +105,8 @@ const CORRECTIONS = [
 const steps = ['Study Design', 'Participants', 'Variables', 'Statistical Tests', 'Generate'];
 
 const MethodsSectionGenerator = ({ onGenerate, onClose }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   // Stepper state
   const [activeStep, setActiveStep] = useState(0);
 
@@ -586,7 +589,7 @@ ${additionalNotes ? `### Additional Notes\n${additionalNotes}` : ''}
                   size="large"
                   onClick={handleGenerate}
                   startIcon={<Description />}
-                  sx={{ bgcolor: '#1976d2' }}
+                  sx={{ bgcolor: theme.palette.primary.main }}
                 >
                   Generate Methods Section
                 </Button>
@@ -643,8 +646,8 @@ ${additionalNotes ? `### Additional Notes\n${additionalNotes}` : ''}
                 <Paper
                   sx={{
                     p: 3,
-                    bgcolor: '#fafafa',
-                    border: '1px solid #e0e0e0',
+                    bgcolor: theme.palette.grey[isDarkMode ? 900 : 50],
+                    border: `1px solid ${theme.palette.divider}`,
                     maxHeight: 400,
                     overflow: 'auto',
                     fontFamily: 'Georgia, serif',
@@ -675,7 +678,7 @@ ${additionalNotes ? `### Additional Notes\n${additionalNotes}` : ''}
         ))}
       </Stepper>
 
-      <Paper elevation={0} sx={{ border: '1px solid #e0e0e0', minHeight: 300 }}>
+      <Paper elevation={0} sx={{ border: `1px solid ${theme.palette.divider}`, minHeight: 300 }}>
         {renderStepContent(activeStep)}
       </Paper>
 

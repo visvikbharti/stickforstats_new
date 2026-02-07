@@ -40,7 +40,8 @@ import {
   ListItemIcon,
   ListItemText,
   Tab,
-  Tabs
+  Tabs,
+  useTheme,
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -207,6 +208,8 @@ function IssueCard({ issue }) {
  * Main Paper Parser Hub Component
  */
 const PaperParserHub = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   // State
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -329,11 +332,11 @@ const PaperParserHub = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
       {/* Header */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: '#f8f9fa' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <AssessmentIcon sx={{ fontSize: 40, color: '#1976d2' }} />
+          <AssessmentIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
               Paper Parser
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -593,7 +596,7 @@ const PaperParserHub = () => {
                       P-Values Found
                     </Typography>
                     {report.extractedStatistics.pValues.length > 0 ? (
-                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], p: 1, borderRadius: 1 }}>
                         {report.extractedStatistics.pValues.map((p, i) => (
                           <Chip key={i} label={p} size="small" sx={{ m: 0.5 }} />
                         ))}
@@ -610,7 +613,7 @@ const PaperParserHub = () => {
                       Test Statistics
                     </Typography>
                     {report.extractedStatistics.testStatistics.length > 0 ? (
-                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], p: 1, borderRadius: 1 }}>
                         {report.extractedStatistics.testStatistics.map((stat, i) => (
                           <Chip key={i} label={stat.value} size="small" sx={{ m: 0.5 }} />
                         ))}
@@ -627,7 +630,7 @@ const PaperParserHub = () => {
                       Effect Sizes
                     </Typography>
                     {report.extractedStatistics.effectSizes.length > 0 ? (
-                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], p: 1, borderRadius: 1 }}>
                         {report.extractedStatistics.effectSizes.map((es, i) => (
                           <Chip key={i} label={es} size="small" color="success" sx={{ m: 0.5 }} />
                         ))}
@@ -644,7 +647,7 @@ const PaperParserHub = () => {
                       Sample Sizes
                     </Typography>
                     {report.extractedStatistics.sampleSizes.length > 0 ? (
-                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: '#f5f5f5', p: 1, borderRadius: 1 }}>
+                      <Box sx={{ maxHeight: 200, overflow: 'auto', bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], p: 1, borderRadius: 1 }}>
                         {report.extractedStatistics.sampleSizes.map((ss, i) => (
                           <Chip key={i} label={`n = ${ss.value}`} size="small" color="info" sx={{ m: 0.5 }} />
                         ))}
@@ -683,7 +686,7 @@ const PaperParserHub = () => {
                   </Alert>
                 ) : (
                   report.recommendations.map((rec, index) => (
-                    <Paper key={index} elevation={1} sx={{ p: 2, mb: 2, borderLeft: `4px solid ${rec.priority === 1 ? '#d32f2f' : rec.priority === 2 ? '#f57c00' : '#1976d2'}` }}>
+                    <Paper key={index} elevation={1} sx={{ p: 2, mb: 2, borderLeft: `4px solid ${rec.priority === 1 ? theme.palette.error.main : rec.priority === 2 ? theme.palette.warning.main : theme.palette.primary.main}` }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip label={`Priority ${rec.priority}`} size="small" color={rec.priority === 1 ? 'error' : rec.priority === 2 ? 'warning' : 'primary'} />
                         {rec.title}
@@ -735,7 +738,7 @@ const PaperParserHub = () => {
       )}
 
       {/* Footer */}
-      <Paper elevation={1} sx={{ p: 2, bgcolor: '#f8f9fa', textAlign: 'center' }}>
+      <Paper elevation={1} sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50], textAlign: 'center' }}>
         <Typography variant="caption" color="text.secondary">
           Paper Parser uses pattern matching to identify statistical content. Results should be verified manually.
           Based on JARS (Journal Article Reporting Standards) and best practices in statistical reporting.

@@ -30,7 +30,9 @@ import {
   Card,
   CardContent,
   CardActions,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Send as SendIcon,
   ContentCopy as CopyIcon,
@@ -58,6 +60,8 @@ const ChatMessage = ({
   onTestRecommendation,
   onMethodsGenerate,
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [copied, setCopied] = useState(false);
   const [expandedCode, setExpandedCode] = useState(false);
 
@@ -99,18 +103,18 @@ const ChatMessage = ({
                   alignItems: 'center',
                   px: 2,
                   py: 0.5,
-                  bgcolor: '#2d2d2d',
-                  borderBottom: '1px solid #404040',
+                  bgcolor: isDarkMode ? theme.palette.grey[900] : '#2d2d2d',
+                  borderBottom: `1px solid ${isDarkMode ? theme.palette.divider : '#404040'}`,
                 }}
               >
-                <Typography variant="caption" sx={{ color: '#888' }}>
+                <Typography variant="caption" sx={{ color: theme.palette.grey[500] }}>
                   {language.toUpperCase()}
                 </Typography>
                 <Tooltip title="Copy code">
                   <IconButton
                     size="small"
                     onClick={() => navigator.clipboard.writeText(code)}
-                    sx={{ color: '#888' }}
+                    sx={{ color: theme.palette.grey[500] }}
                   >
                     <CopyIcon fontSize="small" />
                   </IconButton>
@@ -135,7 +139,7 @@ const ChatMessage = ({
                 <Button
                   size="small"
                   onClick={() => setExpandedCode(!expandedCode)}
-                  sx={{ width: '100%', color: '#888' }}
+                  sx={{ width: '100%', color: theme.palette.grey[500] }}
                 >
                   {expandedCode ? <CollapseIcon /> : <ExpandIcon />}
                   {expandedCode ? 'Collapse' : 'Expand'}
@@ -195,7 +199,7 @@ const ChatMessage = ({
           sx={{
             width: 32,
             height: 32,
-            bgcolor: '#2196f3',
+            bgcolor: theme.palette.primary.main,
           }}
         >
           <AIIcon sx={{ fontSize: 18 }} />
@@ -204,7 +208,7 @@ const ChatMessage = ({
           sx={{
             p: 2,
             maxWidth: '85%',
-            bgcolor: '#f5f5f5',
+            bgcolor: theme.palette.grey[isDarkMode ? 800 : 100],
             borderRadius: '4px 16px 16px 16px',
           }}
         >
@@ -217,7 +221,7 @@ const ChatMessage = ({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: '#bdbdbd',
+                    bgcolor: theme.palette.grey[400],
                     animation: 'typing 1.4s infinite',
                     animationDelay: `${i * 0.2}s`,
                   }}
@@ -257,7 +261,7 @@ const ChatMessage = ({
         sx={{
           width: 32,
           height: 32,
-          bgcolor: isUser ? '#9c27b0' : '#2196f3',
+          bgcolor: isUser ? theme.palette.secondary.main : theme.palette.primary.main,
         }}
       >
         {isUser ? <PersonIcon sx={{ fontSize: 18 }} /> : <AIIcon sx={{ fontSize: 18 }} />}
@@ -268,8 +272,8 @@ const ChatMessage = ({
         <Paper
           sx={{
             p: 2,
-            bgcolor: isUser ? '#9c27b0' : '#f5f5f5',
-            color: isUser ? 'white' : 'text.primary',
+            bgcolor: isUser ? theme.palette.secondary.main : theme.palette.grey[isDarkMode ? 800 : 100],
+            color: isUser ? theme.palette.secondary.contrastText : theme.palette.text.primary,
             borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
           }}
         >
@@ -288,13 +292,13 @@ const ChatMessage = ({
                 variant="outlined"
                 sx={{
                   mt: 1,
-                  borderColor: '#2196f3',
-                  borderLeft: '4px solid #2196f3',
+                  borderColor: theme.palette.primary.main,
+                  borderLeft: `4px solid ${theme.palette.primary.main}`,
                 }}
               >
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ScienceIcon sx={{ color: '#2196f3', fontSize: 20 }} />
+                    <ScienceIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />
                     <Typography variant="subtitle2">{test.name}</Typography>
                     {test.confidence && (
                       <Chip
@@ -331,7 +335,7 @@ const ChatMessage = ({
             <Tooltip title={copied ? 'Copied!' : 'Copy'}>
               <IconButton size="small" onClick={handleCopy}>
                 {copied ? (
-                  <CheckIcon sx={{ fontSize: 16, color: '#4caf50' }} />
+                  <CheckIcon sx={{ fontSize: 16, color: theme.palette.success.main }} />
                 ) : (
                   <CopyIcon sx={{ fontSize: 16 }} />
                 )}
@@ -371,6 +375,8 @@ const AIAdvisorChat = ({
   onTestRecommendation,
   onMethodsGenerate,
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -442,8 +448,8 @@ const AIAdvisorChat = ({
       <Box
         sx={{
           p: 2,
-          bgcolor: '#f5f5f5',
-          borderTop: '1px solid #e0e0e0',
+          bgcolor: theme.palette.grey[isDarkMode ? 800 : 100],
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Box
@@ -465,16 +471,16 @@ const AIAdvisorChat = ({
             disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
-                bgcolor: 'white',
+                bgcolor: theme.palette.background.paper,
                 borderRadius: 3,
                 '& fieldset': {
-                  borderColor: '#e0e0e0',
+                  borderColor: theme.palette.divider,
                 },
                 '&:hover fieldset': {
-                  borderColor: '#2196f3',
+                  borderColor: theme.palette.primary.main,
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#2196f3',
+                  borderColor: theme.palette.primary.main,
                 },
               },
             }}
@@ -484,16 +490,16 @@ const AIAdvisorChat = ({
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             sx={{
-              bgcolor: '#2196f3',
-              color: 'white',
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
               width: 48,
               height: 48,
               '&:hover': {
-                bgcolor: '#1976d2',
+                bgcolor: theme.palette.primary.dark,
               },
               '&.Mui-disabled': {
-                bgcolor: '#e0e0e0',
-                color: '#9e9e9e',
+                bgcolor: theme.palette.action.disabledBackground,
+                color: theme.palette.action.disabled,
               },
             }}
           >

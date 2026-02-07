@@ -83,7 +83,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                   height: 10,
                   borderRadius: 5,
                   mb: 2,
-                  bgcolor: '#e0e0e0',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300],
                   '& .MuiLinearProgress-bar': {
                     bgcolor: i2Interp.color === 'success' ? '#4caf50' :
                              i2Interp.color === 'info' ? '#2196f3' :
@@ -178,7 +178,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                      <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
                         <TableCell>Subgroup</TableCell>
                         <TableCell align="right">k</TableCell>
                         <TableCell align="right">Effect</TableCell>

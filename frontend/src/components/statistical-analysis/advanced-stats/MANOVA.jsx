@@ -44,7 +44,8 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -71,6 +72,9 @@ const GROUP_COLORS = [
 ];
 
 const MANOVA = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Get Expert Mode from context
   const { expertMode } = useSettings();
 
@@ -554,9 +558,9 @@ const MANOVA = ({ data }) => {
 
       {/* Test Blocked */}
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100' }}>
-            🚫 Test Execution Blocked
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark }}>
+            Test Execution Blocked
           </Typography>
           <Typography variant="body2">
             MANOVA cannot proceed due to critical assumption violations. The data may not meet
@@ -581,14 +585,16 @@ const MANOVA = ({ data }) => {
             {/* Main Result Card */}
             <Grid item xs={12} md={4}>
               <Card elevation={3} sx={{
-                bgcolor: results.significant ? '#e8f5e9' : '#fff3e0',
+                bgcolor: results.significant
+                  ? (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30')
+                  : (isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30'),
                 height: '100%'
               }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Wilks' Lambda (Λ)
                   </Typography>
-                  <Typography variant="h4" sx={{ color: results.significant ? '#2e7d32' : '#f57c00' }}>
+                  <Typography variant="h4" sx={{ color: results.significant ? theme.palette.success.main : theme.palette.warning.main }}>
                     {results.test_statistics?.wilks_lambda?.toFixed(4) || 'N/A'}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
@@ -615,7 +621,7 @@ const MANOVA = ({ data }) => {
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Multivariate Effect Size
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h4" sx={{ color: theme.palette.primary.main }}>
                     η² = {results.effect_size?.eta_squared?.toFixed(4) || 'N/A'}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
@@ -668,7 +674,7 @@ const MANOVA = ({ data }) => {
               <TableContainer>
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                       <TableCell><strong>Dependent Variable</strong></TableCell>
                       <TableCell align="right"><strong>F</strong></TableCell>
                       <TableCell align="right"><strong>df (between)</strong></TableCell>
@@ -680,7 +686,7 @@ const MANOVA = ({ data }) => {
                   <TableBody>
                     {results.univariate_results.map((row, idx) => (
                       <TableRow key={idx} sx={{
-                        bgcolor: row.significant ? 'rgba(46, 125, 50, 0.08)' : 'transparent'
+                        bgcolor: row.significant ? (isDarkMode ? theme.palette.success.dark + '15' : theme.palette.success.light + '20') : 'transparent'
                       }}>
                         <TableCell>{row.variable}</TableCell>
                         <TableCell align="right">{row.f_statistic?.toFixed(3)}</TableCell>
@@ -771,13 +777,13 @@ const MANOVA = ({ data }) => {
                       name="Centroids"
                       data={centroidsPlotData.centroids}
                       shape="diamond"
-                      fill="#000"
+                      fill={theme.palette.text.primary}
                     >
                       {centroidsPlotData.centroids.map((entry, index) => (
                         <Cell
                           key={`centroid-${index}`}
                           fill={GROUP_COLORS[entry.colorIdx % GROUP_COLORS.length]}
-                          stroke="#000"
+                          stroke={theme.palette.text.primary}
                           strokeWidth={2}
                         />
                       ))}
@@ -789,8 +795,8 @@ const MANOVA = ({ data }) => {
           )}
 
           {/* Interpretation */}
-          <Paper elevation={2} sx={{ p: 3, bgcolor: '#e3f2fd' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
               Interpretation
             </Typography>
             {results.significant ? (
@@ -820,7 +826,7 @@ const MANOVA = ({ data }) => {
 
       {/* Selection Prompts */}
       {(!dependentVars || dependentVars.length < 2) && !guardianLoading && (
-        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: '#fafafa' }}>
+        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
           <Typography variant="body1" color="text.secondary">
             Select at least <strong>2 numeric dependent variables</strong> and a <strong>grouping factor</strong> to begin MANOVA analysis.
           </Typography>

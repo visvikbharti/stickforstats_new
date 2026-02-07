@@ -38,6 +38,7 @@ import {
   TableRow,
   Divider
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import AssessmentIcon from '@mui/icons-material/Assessment';
@@ -50,6 +51,7 @@ import { calculateDescriptiveStats, createHistogramBins } from '../utils/statist
  * Main Data Profiling Component
  */
 const DataProfiling = ({ data, setData, onComplete }) => {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -219,7 +221,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
     return (
       <Box>
         <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-          <UploadFileIcon sx={{ fontSize: 64, color: '#1976d2', mb: 2 }} />
+          <UploadFileIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
           <Typography variant="h5" gutterBottom>
             Upload Your Dataset
           </Typography>
@@ -282,7 +284,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
     <Box>
       {/* Dataset Overview */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <AssessmentIcon /> Dataset Overview
         </Typography>
 
@@ -300,7 +302,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                 <Typography color="text.secondary" gutterBottom variant="body2">
                   Rows
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ color: 'primary.main' }}>
                   {datasetStats.rows.toLocaleString()}
                 </Typography>
               </CardContent>
@@ -313,7 +315,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                 <Typography color="text.secondary" gutterBottom variant="body2">
                   Columns
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ color: 'primary.main' }}>
                   {datasetStats.columns}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -329,7 +331,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                 <Typography color="text.secondary" gutterBottom variant="body2">
                   Memory Usage
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ color: 'primary.main' }}>
                   {datasetStats.memoryUsage}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -345,7 +347,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                 <Typography color="text.secondary" gutterBottom variant="body2">
                   Data Points
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                <Typography variant="h4" sx={{ color: 'primary.main' }}>
                   {(datasetStats.rows * datasetStats.columns).toLocaleString()}
                 </Typography>
               </CardContent>
@@ -386,7 +388,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
 
       {/* Column-by-Column Analysis */}
       <Paper elevation={2} sx={{ p: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <StorageIcon /> Column Information
         </Typography>
 
@@ -525,7 +527,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                         <XAxis dataKey="range" angle={-45} textAnchor="end" height={80} />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#1976d2" />
+                        <Bar dataKey="count" fill={theme.palette.primary.main} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -537,7 +539,7 @@ const DataProfiling = ({ data, setData, onComplete }) => {
                         <XAxis dataKey="value" angle={-45} textAnchor="end" height={80} />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#9c27b0" />
+                        <Bar dataKey="count" fill={theme.palette.secondary.main} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}

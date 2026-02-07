@@ -48,7 +48,8 @@ import {
   Switch,
   FormControlLabel,
   LinearProgress,
-  Divider
+  Divider,
+  useTheme
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -95,6 +96,9 @@ const calculateZStatistic = (sampleMean, n, nullMean = 0, sigma = 1) => {
  * Main Sampling Distribution Demo Component
  */
 const SamplingDistributionDemo = ({ embedded = false }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Canvas reference
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -392,10 +396,10 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
   };
 
   return (
-    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: '#fff' }}>
+    <Paper elevation={embedded ? 0 : 3} sx={{ p: 3, bgcolor: theme.palette.background.paper }}>
       {!embedded && (
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.error.dark, display: 'flex', alignItems: 'center', gap: 1 }}>
             <ScienceIcon /> Sampling Distribution Simulation
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -448,7 +452,7 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
                   max={200}
                   step={10}
                   size="small"
-                  sx={{ color: '#d32f2f' }}
+                  sx={{ color: theme.palette.error.dark }}
                 />
               </Box>
 
@@ -479,7 +483,7 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
                   step={0.1}
                   disabled={hypothesis === 'H0'}
                   size="small"
-                  sx={{ color: '#d32f2f' }}
+                  sx={{ color: theme.palette.error.dark }}
                 />
               </Box>
 
@@ -494,7 +498,7 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
                   max={100}
                   step={5}
                   size="small"
-                  sx={{ color: '#d32f2f' }}
+                  sx={{ color: theme.palette.error.dark }}
                 />
               </Box>
 
@@ -509,7 +513,7 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
                   max={0.10}
                   step={0.01}
                   size="small"
-                  sx={{ color: '#d32f2f' }}
+                  sx={{ color: theme.palette.error.dark }}
                 />
               </Box>
             </CardContent>
@@ -527,15 +531,15 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
               </Card>
             </Grid>
             <Grid item xs={6} sm={3}>
-              <Card variant="outlined" sx={{ textAlign: 'center', p: 1, bgcolor: '#e8f5e9' }}>
+              <Card variant="outlined" sx={{ textAlign: 'center', p: 1, bgcolor: isDarkMode ? theme.palette.success.dark + '20' : '#e8f5e9' }}>
                 <Typography variant="caption" color="text.secondary">Rejections</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#4caf50' }}>{stats.rejections}</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.success.main }}>{stats.rejections}</Typography>
               </Card>
             </Grid>
             <Grid item xs={6} sm={3}>
               <Card variant="outlined" sx={{ textAlign: 'center', p: 1 }}>
                 <Typography variant="caption" color="text.secondary">Empirical {hypothesis === 'H1' ? 'Power' : 'α'}</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#d32f2f' }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.error.dark }}>
                   {(stats.empiricalPower * 100).toFixed(1)}%
                 </Typography>
               </Card>
@@ -543,7 +547,7 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
             <Grid item xs={6} sm={3}>
               <Card variant="outlined" sx={{ textAlign: 'center', p: 1 }}>
                 <Typography variant="caption" color="text.secondary">Theoretical {hypothesis === 'H1' ? 'Power' : 'α'}</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                   {(theoreticalPower * 100).toFixed(1)}%
                 </Typography>
               </Card>
@@ -566,9 +570,9 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
               sx={{
                 height: 8,
                 borderRadius: 4,
-                bgcolor: '#e0e0e0',
+                bgcolor: isDarkMode ? theme.palette.grey[700] : '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
-                  bgcolor: Math.abs(stats.empiricalPower - theoreticalPower) < 0.02 ? '#4caf50' : '#ff9800'
+                  bgcolor: Math.abs(stats.empiricalPower - theoreticalPower) < 0.02 ? theme.palette.success.main : theme.palette.warning.main
                 }
               }}
             />
@@ -580,26 +584,26 @@ const SamplingDistributionDemo = ({ embedded = false }) => {
               ref={canvasRef}
               width={dimensions.width}
               height={dimensions.height}
-              style={{ border: '1px solid #e0e0e0', borderRadius: 8, width: '100%', height: 'auto' }}
+              style={{ border: `1px solid ${isDarkMode ? theme.palette.divider : '#e0e0e0'}`, borderRadius: 8, width: '100%', height: 'auto' }}
             />
           </Box>
 
           {/* Legend */}
           <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 16, height: 16, bgcolor: 'rgba(76, 175, 80, 0.3)', border: '1px solid #4caf50' }} />
+              <Box sx={{ width: 16, height: 16, bgcolor: theme.palette.success.main + '4D', border: `1px solid ${theme.palette.success.main}` }} />
               <Typography variant="caption">Rejection Region</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 16, height: 16, bgcolor: 'rgba(76, 175, 80, 0.7)' }} />
+              <Box sx={{ width: 16, height: 16, bgcolor: theme.palette.success.main + 'B3' }} />
               <Typography variant="caption">Rejected (Correct if H₁)</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 16, height: 16, bgcolor: 'rgba(255, 152, 0, 0.7)' }} />
+              <Box sx={{ width: 16, height: 16, bgcolor: theme.palette.warning.main + 'B3' }} />
               <Typography variant="caption">Not Rejected</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 24, height: 3, bgcolor: hypothesis === 'H1' ? '#d32f2f' : '#1976d2' }} />
+              <Box sx={{ width: 24, height: 3, bgcolor: hypothesis === 'H1' ? theme.palette.error.dark : theme.palette.primary.main }} />
               <Typography variant="caption">Theoretical Distribution</Typography>
             </Box>
           </Box>

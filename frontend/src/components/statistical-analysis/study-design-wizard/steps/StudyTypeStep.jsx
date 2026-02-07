@@ -25,6 +25,7 @@ import {
   Alert,
   Chip,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import {
   CompareArrows as BetweenIcon,
@@ -142,6 +143,7 @@ const PARTICIPANT_TYPES = [
  * Study Type Step Component
  */
 const StudyTypeStep = ({ data, updateData, errors }) => {
+  const theme = useTheme();
   const { studyType } = data;
 
   /**
@@ -198,7 +200,7 @@ const StudyTypeStep = ({ data, updateData, errors }) => {
                   height: '100%',
                   border: studyType.design === design.id
                     ? `3px solid ${design.color}`
-                    : '1px solid #e0e0e0',
+                    : `1px solid ${theme.palette.divider}`,
                   transition: 'all 0.3s',
                   '&:hover': {
                     transform: 'translateY(-4px)',

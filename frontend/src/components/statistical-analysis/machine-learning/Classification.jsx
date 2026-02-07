@@ -34,7 +34,8 @@ import {
   Alert,
   Chip,
   Slider,
-  Divider
+  Divider,
+  useTheme
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
@@ -131,6 +132,8 @@ const calculateMetrics = (confusionMatrix) => {
  * Main Classification Component
  */
 const Classification = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [targetColumn, setTargetColumn] = useState('');
   const [featureColumns, setFeatureColumns] = useState([]);
   const [testSize, setTestSize] = useState(0.2);
@@ -339,7 +342,7 @@ const Classification = ({ data }) => {
                   <TableCell
                     align="center"
                     sx={{
-                      bgcolor: '#4caf50',
+                      bgcolor: theme.palette.success.main,
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '1.1rem'
@@ -350,7 +353,7 @@ const Classification = ({ data }) => {
                   <TableCell
                     align="center"
                     sx={{
-                      bgcolor: '#f44336',
+                      bgcolor: theme.palette.error.main,
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '1.1rem'
@@ -364,7 +367,7 @@ const Classification = ({ data }) => {
                   <TableCell
                     align="center"
                     sx={{
-                      bgcolor: '#f44336',
+                      bgcolor: theme.palette.error.main,
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '1.1rem'
@@ -375,7 +378,7 @@ const Classification = ({ data }) => {
                   <TableCell
                     align="center"
                     sx={{
-                      bgcolor: '#4caf50',
+                      bgcolor: theme.palette.success.main,
                       color: 'white',
                       fontWeight: 600,
                       fontSize: '1.1rem'
@@ -400,9 +403,9 @@ const Classification = ({ data }) => {
    */
   const renderMetrics = (metrics, title) => {
     const getMetricColor = (value) => {
-      if (value >= 0.9) return '#4caf50';
-      if (value >= 0.7) return '#ff9800';
-      return '#f44336';
+      if (value >= 0.9) return theme.palette.success.main;
+      if (value >= 0.7) return theme.palette.warning.main;
+      return theme.palette.error.main;
     };
 
     return (
@@ -413,7 +416,7 @@ const Classification = ({ data }) => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={6} md={3}>
-              <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Box sx={{ textAlign: 'center', p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderRadius: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Accuracy
                 </Typography>
@@ -429,7 +432,7 @@ const Classification = ({ data }) => {
               </Box>
             </Grid>
             <Grid item xs={6} md={3}>
-              <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Box sx={{ textAlign: 'center', p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderRadius: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Precision
                 </Typography>
@@ -445,7 +448,7 @@ const Classification = ({ data }) => {
               </Box>
             </Grid>
             <Grid item xs={6} md={3}>
-              <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Box sx={{ textAlign: 'center', p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderRadius: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Recall
                 </Typography>
@@ -461,7 +464,7 @@ const Classification = ({ data }) => {
               </Box>
             </Grid>
             <Grid item xs={6} md={3}>
-              <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Box sx={{ textAlign: 'center', p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderRadius: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   F1-Score
                 </Typography>
@@ -513,7 +516,7 @@ const Classification = ({ data }) => {
     <Box>
       {/* Configuration Section */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
           1. Configure Classification Model
         </Typography>
 
@@ -635,23 +638,23 @@ const Classification = ({ data }) => {
           </Alert>
 
           {/* Training Set Performance */}
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600, mt: 3 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600, mt: 3 }}>
             2. Training Set Performance
           </Typography>
           {renderConfusionMatrix(results.trainConfusion, 'Training Confusion Matrix')}
           {renderMetrics(results.trainMetrics, 'Training Metrics')}
 
           {/* Test Set Performance */}
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600, mt: 4 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600, mt: 4 }}>
             3. Test Set Performance (Unseen Data)
           </Typography>
           {renderConfusionMatrix(results.testConfusion, 'Test Confusion Matrix')}
           {renderMetrics(results.testMetrics, 'Test Metrics')}
 
           {/* Model Interpretation */}
-          <Card elevation={2} sx={{ mb: 3, bgcolor: '#e3f2fd' }}>
+          <Card elevation={2} sx={{ mb: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 Model Interpretation
               </Typography>
               <Typography variant="body2" paragraph>
@@ -693,7 +696,7 @@ const Classification = ({ data }) => {
                   </TableHead>
                   <TableBody>
                     {results.predictions.slice(0, 10).map((pred, idx) => (
-                      <TableRow key={idx} sx={{ bgcolor: pred.correct ? 'transparent' : '#ffebee' }}>
+                      <TableRow key={idx} sx={{ bgcolor: pred.correct ? 'transparent' : (isDarkMode ? theme.palette.error.dark + '20' : '#ffebee') }}>
                         <TableCell>{idx + 1}</TableCell>
                         <TableCell>{pred.actual}</TableCell>
                         <TableCell>{pred.predicted}</TableCell>
@@ -719,8 +722,8 @@ const Classification = ({ data }) => {
       )}
 
       {/* Help Section */}
-      <Paper sx={{ p: 3, mt: 4, bgcolor: '#f5f5f5' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Paper sx={{ p: 3, mt: 4, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
           How to Use Classification
         </Typography>
         <Typography variant="body2" paragraph>

@@ -20,6 +20,8 @@ import {
   TableHead,
   Chip
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { MathJax } from 'better-react-mathjax';
 
@@ -31,6 +33,8 @@ import { MathJax } from 'better-react-mathjax';
  */
 
 const Lesson05_Blocking = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
 
   const handleNext = () => setActiveStep(prev => Math.min(prev + 1, 4));
@@ -68,7 +72,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
             <Typography variant="h6">The Power of Randomization</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Randomization: The Foundation of Valid Experiments
               </Typography>
@@ -86,7 +90,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         ✓ What Randomization Achieves
@@ -102,7 +106,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#ffebee' }}>
+                  <Card sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         ✗ Without Randomization
@@ -118,7 +122,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Example: Testing a New Fertilizer
                 </Typography>
@@ -152,7 +156,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
             <Typography variant="h6">The Blocking Principle</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 "Block What You Can, Randomize What You Cannot"
               </Typography>
@@ -162,7 +166,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 then randomizing treatments <em>within</em> each block.
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: alpha(theme.palette.warning.light, 0.2), mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Why Block?
                 </Typography>
@@ -241,7 +245,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper, mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Example: Agricultural Field Trial
                 </Typography>
@@ -276,7 +280,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
             <Typography variant="h6">How Blocking Reduces Error</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 Here's the same data analyzed two ways: as a Completely Randomized Design (CRD)
                 and as a Randomized Block Design (RBD).
@@ -284,7 +288,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Paper sx={{ p: 2, bgcolor: 'white' }}>
+                  <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper }}>
                     <Typography variant="h6" gutterBottom>
                       Completely Randomized Design
                     </Typography>
@@ -318,7 +322,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+                  <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                     <Typography variant="h6" gutterBottom>
                       Randomized Block Design
                     </Typography>
@@ -363,7 +367,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 This makes it much easier to detect treatment differences.
               </Alert>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Statistical Model
                 </Typography>
@@ -402,7 +406,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
             <Typography variant="h6">Blocking Strategies</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Common Blocking Factors
               </Typography>
@@ -485,7 +489,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 Design Principles
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: 'white', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper, mb: 2 }}>
                 <ul>
                   <li>
                     <Typography paragraph>
@@ -536,7 +540,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🎯 Blocking & Randomization Mastered!
               </Typography>
@@ -545,7 +549,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Principles
                       </Typography>
@@ -560,7 +564,7 @@ const Lesson05_Blocking = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         Design Checklist

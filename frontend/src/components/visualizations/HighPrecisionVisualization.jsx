@@ -25,7 +25,8 @@ import {
   FormControlLabel,
   Tooltip,
   IconButton,
-  Divider
+  Divider,
+  useTheme
 } from '@mui/material';
 import {
   BarChart,
@@ -115,6 +116,8 @@ const HighPrecisionTooltip = ({ active, payload, label, precision = 10 }) => {
  * T-Test Result Visualization with 50-decimal precision
  */
 export const TTestVisualization = ({ results, displayPrecision = 10 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [chartType, setChartType] = useState('bar');
   const [showConfidence, setShowConfidence] = useState(true);
   const [precisionLevel, setPrecisionLevel] = useState(displayPrecision);
@@ -256,7 +259,7 @@ export const TTestVisualization = ({ results, displayPrecision = 10 }) => {
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, height: '100%', background: pValueData?.significant
               ? `linear-gradient(135deg, ${PRECISION_COLORS.gradient.start} 0%, ${PRECISION_COLORS.gradient.end} 100%)`
-              : '#f5f5f5' }}>
+              : (isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100]) }}>
               <Typography variant="h6" gutterBottom color={pValueData?.significant ? 'white' : 'textPrimary'}>
                 P-Value Analysis
               </Typography>
@@ -308,7 +311,7 @@ export const TTestVisualization = ({ results, displayPrecision = 10 }) => {
         </Grid>
 
         {/* Precision Indicator */}
-        <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+        <Box sx={{ mt: 3, p: 2, bgcolor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100], borderRadius: 1 }}>
           <Typography variant="caption" color="textSecondary">
             Displaying {precisionLevel} of 50 available decimal places.
             Adjust slider to see more precision.
@@ -550,6 +553,8 @@ const HighPrecisionVisualization = ({
   yData,
   displayPrecision = 10
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const renderVisualization = () => {
     switch(testType) {
       case 'ttest':
@@ -581,7 +586,7 @@ const HighPrecisionVisualization = ({
       {renderVisualization()}
 
       {/* Footer with precision info */}
-      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+      <Box sx={{ mt: 2, p: 2, bgcolor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100], borderRadius: 1 }}>
         <Typography variant="caption" color="textSecondary">
           🔬 StickForStats v1.0 - Visualizing statistical results with up to 50 decimal places of precision
         </Typography>

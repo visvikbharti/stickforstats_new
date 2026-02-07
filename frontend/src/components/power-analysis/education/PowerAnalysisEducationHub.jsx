@@ -25,6 +25,7 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import WarningIcon from '@mui/icons-material/Warning';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import { useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 // Import all lessons directly (avoid circular dependency with index.js)
@@ -60,6 +61,8 @@ import Lesson11_BayesianPower from './lessons/Lesson11_BayesianPower';
  */
 
 const PowerAnalysisEducationHub = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
@@ -243,7 +246,7 @@ const PowerAnalysisEducationHub = () => {
     const LessonComponent = lesson.component;
 
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: theme.palette.background.default }}>
         <Container maxWidth="xl" sx={{ py: 3 }}>
           {/* Navigation Header */}
           <Paper elevation={2} sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -255,7 +258,7 @@ const PowerAnalysisEducationHub = () => {
               >
                 Back to Hub
               </Button>
-              <Typography variant="h6" sx={{ color: '#f44336' }}>
+              <Typography variant="h6" sx={{ color: theme.palette.error.main }}>
                 Lesson {lesson.id}: {lesson.title}
               </Typography>
             </Box>
@@ -271,7 +274,7 @@ const PowerAnalysisEducationHub = () => {
                 size="small"
               />
               {completedLessons.has(lesson.id) && (
-                <CheckCircleIcon sx={{ color: '#4caf50' }} />
+                <CheckCircleIcon sx={{ color: theme.palette.success.main }} />
               )}
             </Box>
           </Paper>
@@ -288,7 +291,7 @@ const PowerAnalysisEducationHub = () => {
 
   // Render hub (lesson selection grid)
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: theme.palette.background.default }}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Hero Header */}
         <Paper
@@ -296,7 +299,7 @@ const PowerAnalysisEducationHub = () => {
           sx={{
             p: 5,
             mb: 4,
-            background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 50%, #b71c1c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 50%, ${isDarkMode ? theme.palette.error.dark : '#b71c1c'} 100%)`,
             color: 'white'
           }}
         >
@@ -330,7 +333,7 @@ const PowerAnalysisEducationHub = () => {
                 borderRadius: 5,
                 bgcolor: 'rgba(255, 255, 255, 0.3)',
                 '& .MuiLinearProgress-bar': {
-                  bgcolor: '#ffd700'
+                  bgcolor: isDarkMode ? theme.palette.warning.light : '#ffd700'
                 }
               }}
             />
@@ -348,14 +351,14 @@ const PowerAnalysisEducationHub = () => {
         </Alert>
 
         {/* Learning Path */}
-        <Paper elevation={2} sx={{ p: 3, mb: 4, bgcolor: '#fff3e0' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', fontWeight: 600 }}>
+        <Paper elevation={2} sx={{ p: 3, mb: 4, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark, fontWeight: 600 }}>
             Recommended Learning Path
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#4caf50' }}>
+              <Box sx={{ p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                   Foundations (Lessons 1-3)
                 </Typography>
                 <Typography variant="body2">
@@ -364,8 +367,8 @@ const PowerAnalysisEducationHub = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#ff9800' }}>
+              <Box sx={{ p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.warning.main }}>
                   Core Concepts (Lessons 4-8)
                 </Typography>
                 <Typography variant="body2">
@@ -374,8 +377,8 @@ const PowerAnalysisEducationHub = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#f44336' }}>
+              <Box sx={{ p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.error.main }}>
                   Advanced Topics (Lessons 9-11)
                 </Typography>
                 <Typography variant="body2">
@@ -407,7 +410,7 @@ const PowerAnalysisEducationHub = () => {
                       transform: 'translateY(-8px)',
                       boxShadow: 6
                     } : {},
-                    border: isCompleted ? '2px solid #4caf50' : 'none'
+                    border: isCompleted ? `2px solid ${theme.palette.success.main}` : 'none'
                   }}
                 >
                   <CardActionArea
@@ -419,8 +422,8 @@ const PowerAnalysisEducationHub = () => {
                       {/* Lesson Header */}
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
                         <Box sx={{
-                          bgcolor: '#ffebee',
-                          color: '#f44336',
+                          bgcolor: isDarkMode ? theme.palette.error.dark + '30' : theme.palette.error.light + '30',
+                          color: theme.palette.error.main,
                           p: 1.5,
                           borderRadius: 2,
                           mr: 2
@@ -428,15 +431,15 @@ const PowerAnalysisEducationHub = () => {
                           {lesson.icon}
                         </Box>
                         <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="caption" sx={{ color: '#666' }}>
+                          <Typography variant="caption" color="text.secondary">
                             Lesson {lesson.id}
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                             {lesson.title}
                           </Typography>
                         </Box>
-                        {!lesson.available && <LockIcon sx={{ color: '#999' }} />}
-                        {isCompleted && <CheckCircleIcon sx={{ color: '#4caf50' }} />}
+                        {!lesson.available && <LockIcon sx={{ color: theme.palette.text.disabled }} />}
+                        {isCompleted && <CheckCircleIcon sx={{ color: theme.palette.success.main }} />}
                       </Box>
 
                       {/* Description */}
@@ -465,7 +468,7 @@ const PowerAnalysisEducationHub = () => {
                             key={idx}
                             label={concept}
                             size="small"
-                            sx={{ fontSize: '0.7rem', height: 20, bgcolor: '#fafafa' }}
+                            sx={{ fontSize: '0.7rem', height: 20, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}
                           />
                         ))}
                         {lesson.concepts.length > 3 && (
@@ -497,7 +500,7 @@ const PowerAnalysisEducationHub = () => {
         </Box>
 
         {/* Scientific References */}
-        <Paper elevation={1} sx={{ p: 3, mt: 4, bgcolor: '#fafafa' }}>
+        <Paper elevation={1} sx={{ p: 3, mt: 4, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
             Scientific Foundation
           </Typography>

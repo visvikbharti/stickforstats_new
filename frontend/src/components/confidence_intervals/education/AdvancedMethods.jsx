@@ -1187,7 +1187,7 @@ const AdvancedMethods = () => {
                             <Typography variant="body2" paragraph>
                               <strong>Bootstrap:</strong>
                             </Typography>
-                            <pre style={{ backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4, overflowX: 'auto' }}>
+                            <pre style={{ backgroundColor: 'var(--code-bg, #f5f5f5)', padding: 8, borderRadius: 4, overflowX: 'auto', color: 'var(--text-primary, #212121)' }}>
                               {`library(boot)
 # Define statistic function
 theta <- function(data, indices) {
@@ -1212,7 +1212,7 @@ boot.ci(results, type="bca")`}
                             <Typography variant="body2" paragraph>
                               <strong>MCMC with PyMC:</strong>
                             </Typography>
-                            <pre style={{ backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4, overflowX: 'auto' }}>
+                            <pre style={{ backgroundColor: 'var(--code-bg, #f5f5f5)', padding: 8, borderRadius: 4, overflowX: 'auto', color: 'var(--text-primary, #212121)' }}>
                               {`import pymc as pm
 import numpy as np
 
@@ -1245,7 +1245,7 @@ pm.stats.hpd(trace['mu'], credible_interval=0.95)`}
                             <Typography variant="body2" paragraph>
                               <strong>Profile Likelihood for GLM:</strong>
                             </Typography>
-                            <pre style={{ backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4, overflowX: 'auto' }}>
+                            <pre style={{ backgroundColor: 'var(--code-bg, #f5f5f5)', padding: 8, borderRadius: 4, overflowX: 'auto', color: 'var(--text-primary, #212121)' }}>
                               {`proc genmod data=mydata;
   model y = x1 x2 / dist=poisson
                       link=log;

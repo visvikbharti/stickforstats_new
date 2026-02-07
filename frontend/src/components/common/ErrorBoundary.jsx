@@ -71,7 +71,7 @@ class ErrorBoundary extends Component {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#fff',
+            backgroundColor: 'background.paper',
             borderRadius: 2,
             maxWidth: 600,
             mx: 'auto'
@@ -89,16 +89,16 @@ class ErrorBoundary extends Component {
           </Alert>
           
           {process.env.NODE_ENV !== 'production' && this.state.errorInfo && (
-            <Box 
-              sx={{ 
-                mt: 2, 
-                p: 2, 
-                bgcolor: '#f5f5f5', 
+            <Box
+              sx={(theme) => ({
+                mt: 2,
+                p: 2,
+                bgcolor: theme.palette.grey[theme.palette.mode === 'dark' ? 800 : 100],
                 borderRadius: 1,
                 width: '100%',
                 overflow: 'auto',
                 maxHeight: '200px',
-              }}
+              })}
             >
               <Typography variant="subtitle2" gutterBottom>
                 Component Stack:

@@ -28,7 +28,8 @@ import {
   Card,
   CardContent,
   Chip,
-  Alert
+  Alert,
+  useTheme
 } from '@mui/material';
 import {
   BarChart,
@@ -56,6 +57,7 @@ import jStat from 'jstat';
  * Distribution Analysis Component
  */
 const DistributionAnalysis = ({ data }) => {
+  const theme = useTheme();
   const [selectedColumn, setSelectedColumn] = useState('');
   const [plotType, setPlotType] = useState('histogram');
   const [numBins, setNumBins] = useState(20);
@@ -338,7 +340,7 @@ const DistributionAnalysis = ({ data }) => {
           const boxRight = boxCenterX + boxWidth / 2;
 
           return (
-            <svg width={width} height={height} style={{ border: '1px solid #e0e0e0' }}>
+            <svg width={width} height={height} style={{ border: `1px solid ${theme.palette.divider}` }}>
               {/* Grid lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((fraction, i) => {
                 const y = margin.top + plotHeight * fraction;
@@ -554,7 +556,7 @@ const DistributionAnalysis = ({ data }) => {
           };
 
           return (
-            <svg width={width} height={height} style={{ border: '1px solid #e0e0e0' }}>
+            <svg width={width} height={height} style={{ border: `1px solid ${theme.palette.divider}` }}>
               {/* Grid lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((fraction, i) => {
                 const y = margin.top + plotHeight * fraction;

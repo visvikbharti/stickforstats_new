@@ -680,15 +680,15 @@ const CategoricalTests = ({ data }) => {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd', fontWeight: 'bold' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, fontWeight: 'bold', color: theme.palette.text.primary }}>
                       {variable1} \ {variable2}
                     </th>
                     {contingencyTable.categories2.map((cat) => (
-                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>
+                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {cat}
                       </th>
                     ))}
-                    <th style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd', fontWeight: 'bold' }}>
+                    <th style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, fontWeight: 'bold', color: theme.palette.text.primary }}>
                       Total
                     </th>
                   </tr>
@@ -696,7 +696,7 @@ const CategoricalTests = ({ data }) => {
                 <tbody>
                   {contingencyTable.categories1.map((row, rowIndex) => (
                     <tr key={row}>
-                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]), color: theme.palette.text.primary }}>
                         {row}
                       </td>
                       {contingencyTable.categories2.map((col) => (
@@ -705,28 +705,29 @@ const CategoricalTests = ({ data }) => {
                           style={{
                             padding: '8px',
                             textAlign: 'center',
-                            border: '1px solid #ddd',
-                            backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa'
+                            border: `1px solid ${theme.palette.divider}`,
+                            backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]),
+                            color: theme.palette.text.primary
                           }}
                         >
                           {contingencyTable.table[row][col]}
                         </td>
                       ))}
-                      <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? '#f5f5f5' : '#e0e0e0' }}>
+                      <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100], color: theme.palette.text.primary }}>
                         {contingencyTable.rowTotals[row]}
                       </td>
                     </tr>
                   ))}
                   <tr>
-                    <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                    <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100], color: theme.palette.text.primary }}>
                       Total
                     </td>
                     {contingencyTable.categories2.map((col) => (
-                      <td key={col} style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: '#e0e0e0' }}>
+                      <td key={col} style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: isDarkMode ? theme.palette.grey[700] : theme.palette.grey[200], color: theme.palette.text.primary }}>
                         {contingencyTable.colTotals[col]}
                       </td>
                     ))}
-                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: '#d0d0d0' }}>
+                    <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold', backgroundColor: isDarkMode ? theme.palette.grey[600] : theme.palette.grey[300], color: theme.palette.text.primary }}>
                       {contingencyTable.grandTotal}
                     </td>
                   </tr>
@@ -744,11 +745,11 @@ const CategoricalTests = ({ data }) => {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd', fontWeight: 'bold' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, fontWeight: 'bold', color: theme.palette.text.primary }}>
                       {variable1} \ {variable2}
                     </th>
                     {contingencyTable.categories2.map((cat) => (
-                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>
+                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {cat}
                       </th>
                     ))}
@@ -757,7 +758,7 @@ const CategoricalTests = ({ data }) => {
                 <tbody>
                   {contingencyTable.categories1.map((row, rowIndex) => (
                     <tr key={row}>
-                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]), color: theme.palette.text.primary }}>
                         {row}
                       </td>
                       {contingencyTable.categories2.map((col) => (
@@ -766,8 +767,9 @@ const CategoricalTests = ({ data }) => {
                           style={{
                             padding: '8px',
                             textAlign: 'center',
-                            border: '1px solid #ddd',
-                            backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa'
+                            border: `1px solid ${theme.palette.divider}`,
+                            backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]),
+                            color: theme.palette.text.primary
                           }}
                         >
                           {chiSquareResult.expected[row][col].toFixed(2)}
@@ -792,11 +794,11 @@ const CategoricalTests = ({ data }) => {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd', fontWeight: 'bold' }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, fontWeight: 'bold', color: theme.palette.text.primary }}>
                       {variable1} \ {variable2}
                     </th>
                     {contingencyTable.categories2.map((cat) => (
-                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>
+                      <th key={cat} style={{ padding: '8px', textAlign: 'center', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {cat}
                       </th>
                     ))}
@@ -805,7 +807,7 @@ const CategoricalTests = ({ data }) => {
                 <tbody>
                   {contingencyTable.categories1.map((row, rowIndex) => (
                     <tr key={row}>
-                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '8px', fontWeight: 'bold', backgroundColor: rowIndex % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]), color: theme.palette.text.primary }}>
                         {row}
                       </td>
                       {contingencyTable.categories2.map((col) => {
@@ -817,7 +819,7 @@ const CategoricalTests = ({ data }) => {
                             style={{
                               padding: '8px',
                               textAlign: 'center',
-                              border: '1px solid #ddd',
+                              border: `1px solid ${theme.palette.divider}`,
                               backgroundColor: getResidualColor(residual),
                               fontWeight: isSignificant ? 'bold' : 'normal'
                             }}
@@ -840,15 +842,15 @@ const CategoricalTests = ({ data }) => {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(55, 55, 255)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(55, 55, 255)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Much more than expected</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(240, 240, 240)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(240, 240, 240)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">As expected</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 55, 55)', border: '1px solid #ccc' }} />
+                  <Box sx={{ width: 20, height: 20, bgcolor: 'rgb(255, 55, 55)', border: `1px solid ${theme.palette.divider}` }} />
                   <Typography variant="caption">Much less than expected</Typography>
                 </Box>
                 <Typography variant="caption" sx={{ fontWeight: 'bold' }}>

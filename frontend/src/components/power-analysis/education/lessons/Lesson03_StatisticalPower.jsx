@@ -58,6 +58,8 @@ import {
   School,
   BarChart,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -69,6 +71,8 @@ const steps = [
 ];
 
 const Lesson03_StatisticalPower = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
@@ -353,7 +357,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   // Render Step 1: What is Statistical Power?
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         What is Statistical Power?
       </Typography>
 
@@ -366,14 +370,14 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ height: '100%', borderTop: '4px solid #2196f3' }}>
+          <Card elevation={3} sx={{ height: '100%', borderTop: `4px solid ${theme.palette.info.main}` }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <BoltOutlined sx={{ color: '#2196f3', mr: 1, fontSize: 32 }} />
+                <BoltOutlined sx={{ color: theme.palette.info.main, mr: 1, fontSize: 32 }} />
                 <Typography variant="h6">The Definition</Typography>
               </Box>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   <strong>Power = P(Reject H₀ | H₁ is true)</strong>
                 </Typography>
@@ -388,7 +392,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 Equivalently, since β is the probability of a Type II error:
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   <strong>Power = 1 - β</strong>
                 </Typography>
@@ -401,7 +405,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Lightbulb sx={{ color: '#ff9800', mr: 1, fontSize: 32 }} />
+                <Lightbulb sx={{ color: theme.palette.warning.main, mr: 1, fontSize: 32 }} />
                 <Typography variant="h6">The Intuition</Typography>
               </Box>
 
@@ -412,7 +416,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
               <List>
                 <ListItem>
                   <ListItemIcon>
-                    <TrendingUp sx={{ color: '#4caf50' }} />
+                    <TrendingUp sx={{ color: theme.palette.success.main }} />
                   </ListItemIcon>
                   <ListItemText
                     primary="High Power (e.g., 90%)"
@@ -421,7 +425,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <Warning sx={{ color: '#ff9800' }} />
+                    <Warning sx={{ color: theme.palette.warning.main }} />
                   </ListItemIcon>
                   <ListItemText
                     primary="Low Power (e.g., 40%)"
@@ -441,7 +445,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
         <Typography variant="h6" gutterBottom>
           The Coin Flip Analogy
         </Typography>
@@ -465,7 +469,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', textAlign: 'center' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), textAlign: 'center' }}>
               <Typography variant="h2">🪙</Typography>
               <Typography variant="body2" color="text.secondary">
                 Is this coin biased?<br/>
@@ -481,7 +485,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   // Render Step 2: Power as Probability
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Visualizing Power: The Two Distributions
       </Typography>
 
@@ -504,7 +508,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             ref={canvasRef}
             width={700}
             height={350}
-            style={{ maxWidth: '100%', border: '1px solid #ddd', borderRadius: 4 }}
+            style={{ maxWidth: '100%', border: `1px solid ${theme.palette.divider}`, borderRadius: 4 }}
           />
         </Box>
 
@@ -524,7 +528,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 { value: 0.5, label: 'Medium' },
                 { value: 0.8, label: 'Large' },
               ]}
-              sx={{ color: '#1976d2' }}
+              sx={{ color: theme.palette.primary.main }}
             />
           </Grid>
           <Grid item xs={12} md={4}>
@@ -543,7 +547,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 { value: 100, label: '100' },
                 { value: 200, label: '200' },
               ]}
-              sx={{ color: '#4caf50' }}
+              sx={{ color: theme.palette.success.main }}
             />
           </Grid>
           <Grid item xs={12} md={4}>
@@ -561,13 +565,13 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 { value: 0.05, label: '0.05' },
                 { value: 0.10, label: '0.10' },
               ]}
-              sx={{ color: '#f44336' }}
+              sx={{ color: theme.palette.error.main }}
             />
           </Grid>
         </Grid>
 
         {/* Power meter */}
-        <Paper sx={{ p: 2, mt: 3, bgcolor: '#f5f5f5' }}>
+        <Paper sx={{ p: 2, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={3}>
               <Typography variant="h6">Calculated Power:</Typography>
@@ -580,10 +584,10 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                   sx={{
                     height: 30,
                     borderRadius: 2,
-                    bgcolor: '#e0e0e0',
+                    bgcolor: theme.palette.divider,
                     '& .MuiLinearProgress-bar': {
-                      bgcolor: calculatedPower >= 0.8 ? '#4caf50' :
-                               calculatedPower >= 0.6 ? '#ff9800' : '#f44336',
+                      bgcolor: calculatedPower >= 0.8 ? theme.palette.success.main :
+                               calculatedPower >= 0.6 ? theme.palette.warning.main : theme.palette.error.main,
                     },
                   }}
                 />
@@ -619,7 +623,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body1" paragraph>
               For a two-sample t-test with equal group sizes, power is calculated as:
             </Typography>
@@ -655,7 +659,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   // Render Step 3: The 80% Convention
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         The 80% Convention: Why We Target 0.80 Power
       </Typography>
 
@@ -668,7 +672,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 Historical Origin
               </Typography>
 
@@ -677,7 +681,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 work on statistical power (1960s-1980s). But why 80%?
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body1" sx={{ textAlign: 'center' }}>
                   <strong>The 4:1 Ratio Logic</strong>
                 </Typography>
@@ -687,7 +691,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 With α = 0.05 (5% Type I error) and Power = 0.80 (β = 20% Type II error):
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', textAlign: 'center' }}>
                   β / α = 0.20 / 0.05 = <strong>4:1</strong>
                 </Typography>
@@ -704,7 +708,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Is 80% Always Appropriate?
               </Typography>
 
@@ -760,8 +764,8 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#ffebee', height: '100%' }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ color: '#f44336', fontWeight: 600 }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), height: '100%' }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.error.main, fontWeight: 600 }}>
                 Cost of Type I Error (α)
               </Typography>
               <Typography variant="body2">
@@ -781,8 +785,8 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ color: '#ff9800', fontWeight: 600 }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.warning.main, fontWeight: 600 }}>
                 Cost of Type II Error (β)
               </Typography>
               <Typography variant="body2">
@@ -802,8 +806,8 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#e8f5e9', height: '100%' }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ color: '#4caf50', fontWeight: 600 }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), height: '100%' }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.success.main, fontWeight: 600 }}>
                 The Balance (80% Power)
               </Typography>
               <Typography variant="body2">
@@ -840,7 +844,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   // Render Step 4: Factors Affecting Power
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         The Four Factors That Determine Power
       </Typography>
 
@@ -853,7 +857,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 1. Sample Size (n) — Increases Power ↑
               </Typography>
 
@@ -861,7 +865,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 Larger samples give more precise estimates and make it easier to detect effects.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Rule of thumb:</strong> To double power from 50% to ~84%, you need
                   roughly 4× the sample size.
@@ -879,7 +883,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 2. Effect Size (d) — Increases Power ↑
               </Typography>
 
@@ -888,7 +892,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 trying to find in the "noise."
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Cohen's benchmarks:</strong><br/>
                   Small: d = 0.2 | Medium: d = 0.5 | Large: d = 0.8
@@ -906,7 +910,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#f44336' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.error.main }}>
                 3. Significance Level (α) — Increases Power ↑
               </Typography>
 
@@ -915,7 +919,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 of more false positives.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Trade-off:</strong> Using α = 0.10 instead of 0.05 increases power
                   but doubles your false positive rate.
@@ -933,7 +937,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 4. Variability (σ) — Decreases Power ↓
               </Typography>
 
@@ -942,7 +946,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 why controlled experiments have more power.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Ways to reduce variability:</strong><br/>
                   • Better measurement instruments<br/>
@@ -961,7 +965,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
       </Grid>
 
       {/* Summary relationship */}
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
         <Typography variant="h6" gutterBottom>
           The Fundamental Relationship
         </Typography>
@@ -979,7 +983,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: '#e0e0e0' }}>
+              <TableRow sx={{ bgcolor: theme.palette.divider }}>
                 <TableCell sx={{ fontWeight: 600 }}>Solve For</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Given</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Use Case</TableCell>
@@ -987,22 +991,22 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: '#4caf50' }}>Sample Size (n)</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: theme.palette.success.main }}>Sample Size (n)</TableCell>
                 <TableCell>Power, d, α</TableCell>
                 <TableCell>Planning a new study (most common)</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: '#2196f3' }}>Power</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: theme.palette.info.main }}>Power</TableCell>
                 <TableCell>n, d, α</TableCell>
                 <TableCell>Evaluating a planned or completed study</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: '#ff9800' }}>Effect Size (d)</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: theme.palette.warning.main }}>Effect Size (d)</TableCell>
                 <TableCell>n, Power, α</TableCell>
                 <TableCell>Sensitivity analysis (what can you detect?)</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: '#f44336' }}>Alpha (α)</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: theme.palette.error.main }}>Alpha (α)</TableCell>
                 <TableCell>n, d, Power</TableCell>
                 <TableCell>Rarely done (α usually fixed at 0.05)</TableCell>
               </TableRow>
@@ -1016,7 +1020,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   // Render Step 5: Choosing Your Target Power
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Choosing Your Target Power Level
       </Typography>
 
@@ -1036,7 +1040,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                       <TableCell sx={{ fontWeight: 600 }}>Power Level</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>β (Miss Rate)</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>When to Use</TableCell>
@@ -1058,7 +1062,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                         High risk of false negatives; results should be interpreted cautiously
                       </TableCell>
                     </TableRow>
-                    <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                       <TableCell>
                         <Chip label="80%" color="success" size="small" />
                       </TableCell>
@@ -1115,7 +1119,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#fff3e0', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 <Warning sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }} />
                 Favor Higher Power (90%+) When:
@@ -1140,7 +1144,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd', height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 <Info sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }} />
                 80% May Be Sufficient When:
@@ -1168,7 +1172,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
       </Paper>
 
       {/* Sample size comparison */}
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
         <Typography variant="h6" gutterBottom>
           Sample Size Requirements by Power Level
         </Typography>
@@ -1179,7 +1183,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
         <TableContainer component={Paper}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#e0e0e0' }}>
+              <TableRow sx={{ bgcolor: theme.palette.divider }}>
                 <TableCell sx={{ fontWeight: 600 }}>Effect Size (d)</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>Power = 70%</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>Power = 80%</TableCell>
@@ -1191,21 +1195,21 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
               <TableRow>
                 <TableCell>Small (d = 0.2)</TableCell>
                 <TableCell align="center">310</TableCell>
-                <TableCell align="center" sx={{ bgcolor: '#e8f5e9', fontWeight: 600 }}>394</TableCell>
+                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>394</TableCell>
                 <TableCell align="center">527</TableCell>
                 <TableCell align="center">651</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Medium (d = 0.5)</TableCell>
                 <TableCell align="center">51</TableCell>
-                <TableCell align="center" sx={{ bgcolor: '#e8f5e9', fontWeight: 600 }}>64</TableCell>
+                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>64</TableCell>
                 <TableCell align="center">86</TableCell>
                 <TableCell align="center">105</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Large (d = 0.8)</TableCell>
                 <TableCell align="center">21</TableCell>
-                <TableCell align="center" sx={{ bgcolor: '#e8f5e9', fontWeight: 600 }}>26</TableCell>
+                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>26</TableCell>
                 <TableCell align="center">34</TableCell>
                 <TableCell align="center">42</TableCell>
               </TableRow>
@@ -1313,8 +1317,8 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 width: 12,
                 height: 12,
                 borderRadius: '50%',
-                bgcolor: index === activeStep ? '#d32f2f' :
-                         completedSteps.has(index) ? '#4caf50' : '#e0e0e0',
+                bgcolor: index === activeStep ? theme.palette.error.dark :
+                         completedSteps.has(index) ? theme.palette.success.main : theme.palette.divider,
                 cursor: 'pointer',
                 transition: 'all 0.3s',
               }}
@@ -1333,7 +1337,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+          sx={{ bgcolor: theme.palette.error.dark, '&:hover': { bgcolor: theme.palette.error.dark } }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>
@@ -1347,19 +1351,19 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
           </Typography>
           <List dense>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Statistical power definition: P(Reject H₀ | H₁ is true) = 1 - β" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Visual understanding of power as area under the H₁ distribution" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="The 80% convention and the 4:1 α/β ratio logic" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Four factors affecting power: n, d, α, σ" />
             </ListItem>
           </List>

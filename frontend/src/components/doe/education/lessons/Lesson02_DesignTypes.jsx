@@ -19,6 +19,8 @@ import {
   TableHead,
   TableRow
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoIcon from '@mui/icons-material/Info';
@@ -32,6 +34,8 @@ import { MathJax } from 'better-react-mathjax';
  */
 
 const Lesson02_DesignTypes = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [selectedDesign, setSelectedDesign] = useState('full');
 
   // Example: 2^3 design
@@ -69,8 +73,8 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
+        <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
           Design Types & Applications
         </Typography>
 
@@ -88,7 +92,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
 
       {/* Design Type Overview */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🎯 The DOE Design Spectrum
         </Typography>
 
@@ -97,7 +101,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
             <Card
               sx={{
                 height: '100%',
-                border: selectedDesign === 'full' ? '2px solid #1976d2' : 'none',
+                border: selectedDesign === 'full' ? `2px solid ${theme.palette.primary.main}` : 'none',
                 cursor: 'pointer'
               }}
               onClick={() => setSelectedDesign('full')}
@@ -121,7 +125,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
             <Card
               sx={{
                 height: '100%',
-                border: selectedDesign === 'fractional' ? '2px solid #1976d2' : 'none',
+                border: selectedDesign === 'fractional' ? `2px solid ${theme.palette.primary.main}` : 'none',
                 cursor: 'pointer'
               }}
               onClick={() => setSelectedDesign('fractional')}
@@ -145,7 +149,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
             <Card
               sx={{
                 height: '100%',
-                border: selectedDesign === 'screening' ? '2px solid #1976d2' : 'none',
+                border: selectedDesign === 'screening' ? `2px solid ${theme.palette.primary.main}` : 'none',
                 cursor: 'pointer'
               }}
               onClick={() => setSelectedDesign('screening')}
@@ -170,7 +174,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
       {/* Full Factorial Design */}
       {selectedDesign === 'full' && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             📊 Full Factorial Design
           </Typography>
 
@@ -221,7 +225,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Table>
             </TableContainer>
 
-            <Box sx={{ p: 2, bgcolor: '#e3f2fd', borderRadius: 1 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), borderRadius: 1 }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Effects You Can Estimate:
               </Typography>
@@ -249,7 +253,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
       {/* Fractional Factorial Design */}
       {selectedDesign === 'fractional' && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             ⚡ Fractional Factorial Design
           </Typography>
 
@@ -301,7 +305,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Typography>
             </Alert>
 
-            <Box sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 1, mb: 3 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), borderRadius: 1, mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Resolution Concept
               </Typography>
@@ -323,9 +327,9 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#e8f5e9' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                   <CardContent>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: theme.palette.success.dark }}>
                       ✓ Good Situations
                     </Typography>
                     <Typography variant="body2">
@@ -342,9 +346,9 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ bgcolor: '#ffebee' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                   <CardContent>
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#c62828' }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: theme.palette.error.dark }}>
                       ✗ Bad Situations
                     </Typography>
                     <Typography variant="body2">
@@ -367,7 +371,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
       {/* Screening Designs */}
       {selectedDesign === 'screening' && (
         <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+          <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
             🔍 Screening Designs (Plackett-Burman)
           </Typography>
 
@@ -419,7 +423,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Table>
             </TableContainer>
 
-            <Box sx={{ p: 2, bgcolor: '#e8f5e9', borderRadius: 1, mb: 3 }}>
+            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), borderRadius: 1, mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 What You Get:
               </Typography>
@@ -440,7 +444,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#e3f2fd' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                   <CardContent>
                     <Chip label="Stage 1" color="primary" size="small" sx={{ mb: 1 }} />
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -454,7 +458,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#fff3e0' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                   <CardContent>
                     <Chip label="Stage 2" color="warning" size="small" sx={{ mb: 1 }} />
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -468,7 +472,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ bgcolor: '#e8f5e9' }}>
+                <Card sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                   <CardContent>
                     <Chip label="Stage 3" color="success" size="small" sx={{ mb: 1 }} />
                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -487,7 +491,7 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
 
       {/* Decision Guide */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🎓 Design Selection Guide
         </Typography>
 
@@ -532,8 +536,8 @@ const Lesson02_DesignTypes = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.dark }}>
           ✅ Key Takeaways
         </Typography>
 

@@ -35,6 +35,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Divider,
+  useTheme,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -276,6 +277,7 @@ const VariableEditor = ({ variable, onSave, onCancel, title }) => {
  * Variable List Component
  */
 const VariableList = ({ title, variables, onEdit, onDelete, color }) => {
+  const theme = useTheme();
   if (variables.length === 0) {
     return (
       <Paper
@@ -283,7 +285,7 @@ const VariableList = ({ title, variables, onEdit, onDelete, color }) => {
         sx={{
           p: 2,
           textAlign: 'center',
-          bgcolor: '#fafafa',
+          bgcolor: theme.palette.grey[theme.palette.mode === 'dark' ? 900 : 50],
           borderStyle: 'dashed',
         }}
       >
@@ -295,7 +297,7 @@ const VariableList = ({ title, variables, onEdit, onDelete, color }) => {
   }
 
   return (
-    <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+    <List dense sx={{ bgcolor: 'background.paper', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
       {variables.map((variable, idx) => (
         <React.Fragment key={variable.id}>
           {idx > 0 && <Divider />}
@@ -353,6 +355,7 @@ const VariableList = ({ title, variables, onEdit, onDelete, color }) => {
  * Variables Step Component
  */
 const VariablesStep = ({ data, updateData, errors }) => {
+  const theme = useTheme();
   const { variables, studyType } = data;
 
   // Editor state

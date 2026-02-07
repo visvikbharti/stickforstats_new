@@ -156,7 +156,7 @@ const SensitivityAnalysis = ({ sensitivityResults, pooledEffect }) => {
 
       {/* Most Influential Study */}
       {mostInfluential && (
-        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: '#fff3e0' }}>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.1)' : '#fff3e0' }}>
           <Typography variant="subtitle2" gutterBottom>
             Most Influential Study
           </Typography>
@@ -175,7 +175,7 @@ const SensitivityAnalysis = ({ sensitivityResults, pooledEffect }) => {
       <TableContainer component={Paper} variant="outlined">
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
               <TableCell>Excluded Study</TableCell>
               <TableCell align="right">Pooled Effect</TableCell>
               <TableCell align="right">95% CI</TableCell>

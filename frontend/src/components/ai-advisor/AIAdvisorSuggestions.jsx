@@ -13,7 +13,9 @@ import {
   Typography,
   Chip,
   Paper,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Lightbulb as LightbulbIcon,
 } from '@mui/icons-material';
@@ -59,6 +61,8 @@ const AIAdvisorSuggestions = ({
   onSuggestionClick,
   customSuggestions = [],
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const suggestions = customSuggestions.length > 0
     ? customSuggestions
     : CONTEXTUAL_SUGGESTIONS[context] || CONTEXTUAL_SUGGESTIONS.dataUpload;
@@ -68,12 +72,12 @@ const AIAdvisorSuggestions = ({
       elevation={0}
       sx={{
         p: 2,
-        bgcolor: '#f8f9fa',
+        bgcolor: theme.palette.grey[isDarkMode ? 800 : 50],
         borderRadius: 2,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-        <LightbulbIcon sx={{ fontSize: 18, color: '#ff9800' }} />
+        <LightbulbIcon sx={{ fontSize: 18, color: theme.palette.warning.main }} />
         <Typography variant="subtitle2" color="text.secondary">
           Suggested Questions
         </Typography>
@@ -86,11 +90,11 @@ const AIAdvisorSuggestions = ({
             label={suggestion}
             onClick={() => onSuggestionClick?.(suggestion)}
             sx={{
-              bgcolor: 'white',
-              border: '1px solid #e0e0e0',
+              bgcolor: theme.palette.background.paper,
+              border: `1px solid ${theme.palette.divider}`,
               '&:hover': {
-                bgcolor: '#e3f2fd',
-                borderColor: '#2196f3',
+                bgcolor: alpha(theme.palette.primary.light, 0.2),
+                borderColor: theme.palette.primary.main,
               },
               transition: 'all 0.2s',
             }}

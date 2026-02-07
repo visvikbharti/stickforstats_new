@@ -47,7 +47,8 @@ import {
   IconButton,
   Tooltip,
   FormControlLabel,
-  Switch
+  Switch,
+  useTheme
 } from '@mui/material';
 import {
   LineChart,
@@ -69,6 +70,9 @@ import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
 
 const RepeatedMeasuresANOVA = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Get Expert Mode from context
   const { expertMode } = useSettings();
 
@@ -724,9 +728,9 @@ const RepeatedMeasuresANOVA = ({ data }) => {
       )}
 
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100' }}>
-            🚫 Test Execution Blocked
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark }}>
+            Test Execution Blocked
           </Typography>
           <Typography variant="body2">
             Repeated Measures ANOVA cannot proceed due to assumption violations.
@@ -749,14 +753,16 @@ const RepeatedMeasuresANOVA = ({ data }) => {
             {/* Main Result */}
             <Grid item xs={12} md={4}>
               <Card elevation={3} sx={{
-                bgcolor: results.significant ? '#e8f5e9' : '#fff3e0',
+                bgcolor: results.significant
+                  ? (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30')
+                  : (isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30'),
                 height: '100%'
               }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Within-Subjects Effect
                   </Typography>
-                  <Typography variant="h4" sx={{ color: results.significant ? '#2e7d32' : '#f57c00' }}>
+                  <Typography variant="h4" sx={{ color: results.significant ? theme.palette.success.main : theme.palette.warning.main }}>
                     F = {results.f_statistic?.toFixed(3)}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
@@ -783,7 +789,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Effect Size
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h4" sx={{ color: theme.palette.primary.main }}>
                     η²p = {results.effect_size?.toFixed(4)}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
@@ -801,7 +807,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
             <Grid item xs={12} md={4}>
               <Card elevation={3} sx={{
                 height: '100%',
-                bgcolor: results.sphericity?.sphericity_assumed ? 'transparent' : '#fff8e1'
+                bgcolor: results.sphericity?.sphericity_assumed ? 'transparent' : (isDarkMode ? theme.palette.warning.dark + '15' : theme.palette.warning.light + '20')
               }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -875,9 +881,9 @@ const RepeatedMeasuresANOVA = ({ data }) => {
                     <Line
                       type="monotone"
                       dataKey="mean"
-                      stroke="#1976d2"
+                      stroke={theme.palette.primary.main}
                       strokeWidth={2}
-                      dot={{ fill: '#1976d2', r: 6 }}
+                      dot={{ fill: theme.palette.primary.main, r: 6 }}
                       name="Mean"
                     />
                   </LineChart>
@@ -896,7 +902,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
               <TableContainer>
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                       <TableCell><strong>Comparison</strong></TableCell>
                       <TableCell align="right"><strong>Mean Diff</strong></TableCell>
                       <TableCell align="right"><strong>SE</strong></TableCell>
@@ -909,7 +915,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
                   <TableBody>
                     {results.post_hoc.map((row, idx) => (
                       <TableRow key={idx} sx={{
-                        bgcolor: row.significant ? 'rgba(46, 125, 50, 0.08)' : 'transparent'
+                        bgcolor: row.significant ? (isDarkMode ? theme.palette.success.dark + '15' : theme.palette.success.light + '20') : 'transparent'
                       }}>
                         <TableCell>{row.condition1} vs {row.condition2}</TableCell>
                         <TableCell align="right">{row.mean_diff?.toFixed(3)}</TableCell>
@@ -933,8 +939,8 @@ const RepeatedMeasuresANOVA = ({ data }) => {
           )}
 
           {/* Interpretation */}
-          <Paper elevation={2} sx={{ p: 3, bgcolor: '#e3f2fd' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
               Interpretation
             </Typography>
             {results.significant ? (
@@ -960,7 +966,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
 
       {/* Selection Prompt */}
       {conditionColumns.length < 2 && !guardianLoading && (
-        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: '#fafafa' }}>
+        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
           <Typography variant="body1" color="text.secondary">
             Select at least <strong>2 condition/time-point columns</strong> to begin Repeated Measures ANOVA.
             Each column should contain measurements from the same subjects under different conditions.

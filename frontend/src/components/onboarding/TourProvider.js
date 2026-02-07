@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
 import Joyride, { STATUS } from 'react-joyride';
+import { useTheme } from '@mui/material';
 
 const TourContext = createContext();
 
@@ -12,6 +13,7 @@ export const useTour = () => {
 };
 
 const TourProvider = ({ children }) => {
+  const theme = useTheme();
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [tourSteps, setTourSteps] = useState([
@@ -79,8 +81,10 @@ const TourProvider = ({ children }) => {
         callback={handleJoyrideCallback}
         styles={{
           options: {
-            primaryColor: '#1976d2',
-            textColor: '#333',
+            primaryColor: theme.palette.primary.main,
+            textColor: theme.palette.text.primary,
+            backgroundColor: theme.palette.background.paper,
+            arrowColor: theme.palette.background.paper,
             width: 300,
             zIndex: 10000,
           },

@@ -51,6 +51,8 @@ import {
   Lightbulb,
   Info,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -62,6 +64,8 @@ const steps = [
 ];
 
 const Lesson06_Mathematics = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
@@ -279,7 +283,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
   // Render Step 1: Test Statistics
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Test Statistics: Distribution Under H₀ vs H₁
       </Typography>
 
@@ -292,13 +296,13 @@ const Lesson06_Mathematics = ({ onComplete }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ borderTop: '4px solid #424242' }}>
+          <Card elevation={3} sx={{ borderTop: `4px solid ${theme.palette.grey[800]}` }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Under H₀ (No Effect)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   t = (X̄₁ - X̄₂) / SE ~ t<sub>df</sub>
                 </Typography>
@@ -318,13 +322,13 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card elevation={3} sx={{ borderTop: '4px solid #1976d2' }}>
+          <Card elevation={3} sx={{ borderTop: `4px solid ${theme.palette.primary.main}` }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                 Under H₁ (Effect Exists)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   t ~ t<sub>df</sub>(λ)
                 </Typography>
@@ -378,7 +382,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
             (the null hypothesis value), in standard error units:
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography sx={{ fontFamily: 'serif', textAlign: 'center' }}>
               t = (X̄₁ - X̄₂ - 0) / SE = (X̄₁ - X̄₂) / SE
             </Typography>
@@ -402,7 +406,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
   // Render Step 2: Noncentrality Parameter
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         The Noncentrality Parameter (λ)
       </Typography>
 
@@ -417,11 +421,11 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 Definition for Two-Sample t-Test
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.3rem', textAlign: 'center', mb: 2 }}>
                   λ = (μ₁ - μ₂) / SE
                 </Typography>
@@ -455,21 +459,21 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 and the more of it falls beyond the critical value.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   λ increases when:
                 </Typography>
                 <List dense>
                   <ListItem sx={{ py: 0 }}>
-                    <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                    <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                     <ListItemText primary="Effect size (d) increases" />
                   </ListItem>
                   <ListItem sx={{ py: 0 }}>
-                    <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                    <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                     <ListItemText primary="Sample size (n) increases" />
                   </ListItem>
                   <ListItem sx={{ py: 0 }}>
-                    <ListItemIcon><CheckCircle sx={{ color: '#4caf50', fontSize: 18 }} /></ListItemIcon>
+                    <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main, fontSize: 18 }} /></ListItemIcon>
                     <ListItemText primary="Variability (σ) decreases" />
                   </ListItem>
                 </List>
@@ -493,7 +497,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>Test</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Noncentrality Parameter (λ)</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Distribution</TableCell>
@@ -542,7 +546,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body1" paragraph>
               Starting from the test statistic:
             </Typography>
@@ -581,7 +585,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
   // Render Step 3: Non-central t
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         The Non-Central t-Distribution
       </Typography>
 
@@ -600,7 +604,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 Definition
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   If Z ~ N(λ, 1) and V ~ χ²<sub>ν</sub> are independent,<br/>
                   then T = Z / √(V/ν) ~ t<sub>ν</sub>(λ)
@@ -636,19 +640,19 @@ const Lesson06_Mathematics = ({ onComplete }) => {
 
               <List dense>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Mean ≈ λ (for large df)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Variance > 1 (always larger than central t)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Skewed (not symmetric unless λ = 0)" />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText primary="Approaches N(λ, 1 + λ²/2ν) as ν → ∞" />
                 </ListItem>
               </List>
@@ -677,7 +681,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                   { value: 2, label: '2' },
                   { value: 4, label: '4' },
                 ]}
-                sx={{ color: '#1976d2' }}
+                sx={{ color: theme.palette.primary.main }}
               />
             </Box>
 
@@ -697,7 +701,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                   { value: 60, label: '60' },
                   { value: 100, label: '100' },
                 ]}
-                sx={{ color: '#4caf50' }}
+                sx={{ color: theme.palette.success.main }}
               />
             </Box>
 
@@ -706,7 +710,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 ref={tDistCanvasRef}
                 width={500}
                 height={320}
-                style={{ maxWidth: '100%', border: '1px solid #ddd', borderRadius: 4 }}
+                style={{ maxWidth: '100%', border: `1px solid ${theme.palette.divider}`, borderRadius: 4 }}
               />
             </Box>
 
@@ -743,7 +747,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
   // Render Step 4: Non-central F
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         The Non-Central F-Distribution
       </Typography>
 
@@ -762,7 +766,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 Definition
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   If χ₁² ~ χ²<sub>df₁</sub>(λ) and χ₂² ~ χ²<sub>df₂</sub>(0),<br/>
                   then F = (χ₁²/df₁) / (χ₂²/df₂) ~ F<sub>df₁,df₂</sub>(λ)
@@ -804,7 +808,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 Noncentrality for ANOVA
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center', mb: 2 }}>
                   λ = n · Σⱼ(μⱼ - μ)² / σ²
                 </Typography>
@@ -867,7 +871,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fff3e0' }}>
+          <Paper sx={{ p: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
             <Typography variant="body1" paragraph>
               <strong>Scenario:</strong> 3 groups, n = 20 per group, f = 0.25 (medium), α = 0.05
             </Typography>
@@ -902,7 +906,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
   // Render Step 5: Sample Size Formula Derivation
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Sample Size Formula: Complete Derivation
       </Typography>
 
@@ -913,7 +917,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Typography>
       </Alert>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#fafafa' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
         <Typography variant="h6" gutterBottom>
           Step 1: Set Up the Problem
         </Typography>
@@ -933,7 +937,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Typography>
       </Paper>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#e3f2fd' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Step 2: Use Normal Approximation
         </Typography>
@@ -956,7 +960,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Typography>
       </Paper>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#e8f5e9' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Step 3: Derive the Power Equation
         </Typography>
@@ -982,7 +986,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Typography>
       </Paper>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#fff3e0' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Step 4: Solve for Sample Size
         </Typography>
@@ -1014,7 +1018,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         </Box>
       </Paper>
 
-      <Paper sx={{ p: 3, bgcolor: '#d32f2f', color: 'white' }}>
+      <Paper sx={{ p: 3, bgcolor: theme.palette.error.dark, color: 'white' }}>
         <Typography variant="h6" gutterBottom>
           Final Formula (Two-Sample t-Test)
         </Typography>
@@ -1044,7 +1048,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
         <TableContainer>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>Effect Size (d)</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>80% Power</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>90% Power</TableCell>
@@ -1173,8 +1177,8 @@ const Lesson06_Mathematics = ({ onComplete }) => {
                 width: 12,
                 height: 12,
                 borderRadius: '50%',
-                bgcolor: index === activeStep ? '#d32f2f' :
-                         completedSteps.has(index) ? '#4caf50' : '#e0e0e0',
+                bgcolor: index === activeStep ? theme.palette.error.dark :
+                         completedSteps.has(index) ? theme.palette.success.main : theme.palette.divider,
                 cursor: 'pointer',
                 transition: 'all 0.3s',
               }}
@@ -1193,7 +1197,7 @@ const Lesson06_Mathematics = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+          sx={{ bgcolor: theme.palette.error.dark, '&:hover': { bgcolor: theme.palette.error.dark } }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>
@@ -1207,19 +1211,19 @@ const Lesson06_Mathematics = ({ onComplete }) => {
           </Typography>
           <List dense>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Central vs non-central distributions under H₀ and H₁" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Noncentrality parameter λ and its role in power" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Non-central t and F distributions" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Complete derivation of the sample size formula" />
             </ListItem>
           </List>

@@ -572,8 +572,8 @@ const ResultsDisplay = ({ results, testName = 'Statistical Analysis' }) => {
       sx={{
         p: 3,
         background: darkMode
-          ? 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)'
-          : 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
+          ? `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.grey[900]} 100%)`
+          : `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.grey[100]} 100%)`,
         borderRadius: 2
       }}
     >
@@ -695,7 +695,7 @@ const ResultsDisplay = ({ results, testName = 'Statistical Analysis' }) => {
                 <CopyIcon />
               </IconButton>
             </Box>
-            <Paper sx={{ p: 2, backgroundColor: '#f5f5f5', overflow: 'auto', maxHeight: 500 }}>
+            <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100], overflow: 'auto', maxHeight: 500 }}>
               <pre style={{ margin: 0, fontSize: '0.85rem' }}>
                 {JSON.stringify(results, null, 2)}
               </pre>

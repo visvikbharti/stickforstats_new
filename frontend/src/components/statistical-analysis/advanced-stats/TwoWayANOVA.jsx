@@ -31,7 +31,8 @@ import {
   TableHead,
   TableRow,
   Divider,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import {
   LineChart,
@@ -55,6 +56,8 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
  * Main Two-way ANOVA Component
  */
 const TwoWayANOVA = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [factorA, setFactorA] = useState('');
   const [factorB, setFactorB] = useState('');
   const [dependentVar, setDependentVar] = useState('');
@@ -459,7 +462,7 @@ const TwoWayANOVA = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <GridOnIcon /> Two-way ANOVA Configuration
         </Typography>
 
@@ -563,9 +566,9 @@ const TwoWayANOVA = ({ data }) => {
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
-            🚫 Test Execution Blocked
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark, display: 'flex', alignItems: 'center', gap: 1 }}>
+            Test Execution Blocked
           </Typography>
           <Typography variant="body2" paragraph>
             This test cannot proceed due to critical assumption violations detected by the Guardian system.
@@ -582,7 +585,9 @@ const TwoWayANOVA = ({ data }) => {
           {/* Summary Cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={4}>
-              <Card sx={{ bgcolor: anovaResults.anova.factorA.significant ? '#ffebee' : '#e8f5e9' }}>
+              <Card sx={{ bgcolor: anovaResults.anova.factorA.significant
+                ? (isDarkMode ? theme.palette.error.dark + '20' : theme.palette.error.light + '30')
+                : (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30') }}>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">{factorA} Main Effect</Typography>
                   <Typography variant="h6">
@@ -603,7 +608,9 @@ const TwoWayANOVA = ({ data }) => {
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Card sx={{ bgcolor: anovaResults.anova.factorB.significant ? '#ffebee' : '#e8f5e9' }}>
+              <Card sx={{ bgcolor: anovaResults.anova.factorB.significant
+                ? (isDarkMode ? theme.palette.error.dark + '20' : theme.palette.error.light + '30')
+                : (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30') }}>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">{factorB} Main Effect</Typography>
                   <Typography variant="h6">
@@ -624,7 +631,9 @@ const TwoWayANOVA = ({ data }) => {
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Card sx={{ bgcolor: anovaResults.anova.interaction.significant ? '#ffebee' : '#e8f5e9' }}>
+              <Card sx={{ bgcolor: anovaResults.anova.interaction.significant
+                ? (isDarkMode ? theme.palette.error.dark + '20' : theme.palette.error.light + '30')
+                : (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30') }}>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">Interaction Effect (A × B)</Typography>
                   <Typography variant="h6">
@@ -653,7 +662,7 @@ const TwoWayANOVA = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Source</strong></TableCell>
                     <TableCell align="right"><strong>SS</strong></TableCell>
                     <TableCell align="right"><strong>df</strong></TableCell>
@@ -700,7 +709,7 @@ const TwoWayANOVA = ({ data }) => {
                     <TableCell align="right">-</TableCell>
                     <TableCell align="right">-</TableCell>
                   </TableRow>
-                  <TableRow sx={{ bgcolor: '#fafafa' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
                     <TableCell><strong>Total</strong></TableCell>
                     <TableCell align="right"><strong>{anovaResults.anova.total.SS.toFixed(2)}</strong></TableCell>
                     <TableCell align="right"><strong>{anovaResults.anova.total.df}</strong></TableCell>
@@ -799,7 +808,7 @@ const TwoWayANOVA = ({ data }) => {
                       <XAxis dataKey="level" />
                       <YAxis label={{ value: dependentVar, angle: -90, position: 'insideLeft' }} />
                       <Tooltip />
-                      <Bar dataKey="mean" fill="#8884d8" name="Mean" />
+                      <Bar dataKey="mean" fill={theme.palette.primary.main} name="Mean" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
@@ -818,7 +827,7 @@ const TwoWayANOVA = ({ data }) => {
                       <XAxis dataKey="level" />
                       <YAxis label={{ value: dependentVar, angle: -90, position: 'insideLeft' }} />
                       <Tooltip />
-                      <Bar dataKey="mean" fill="#82ca9d" name="Mean" />
+                      <Bar dataKey="mean" fill={theme.palette.success.main} name="Mean" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>

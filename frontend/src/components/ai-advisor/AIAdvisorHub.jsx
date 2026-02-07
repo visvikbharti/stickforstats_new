@@ -35,6 +35,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   SmartToy as AIIcon,
   Close as CloseIcon,
@@ -66,7 +67,7 @@ const QUICK_SUGGESTIONS = [
   {
     category: 'Test Selection',
     icon: <ScienceIcon />,
-    color: '#2196f3',
+    colorKey: 'primary',
     suggestions: [
       'What statistical test should I use for my data?',
       'How do I compare means between two groups?',
@@ -77,7 +78,7 @@ const QUICK_SUGGESTIONS = [
   {
     category: 'Assumptions',
     icon: <AssessmentIcon />,
-    color: '#ff9800',
+    colorKey: 'warning',
     suggestions: [
       'How do I check normality assumptions?',
       'What if my data violates homogeneity of variance?',
@@ -88,7 +89,7 @@ const QUICK_SUGGESTIONS = [
   {
     category: 'Interpretation',
     icon: <LightbulbIcon />,
-    color: '#4caf50',
+    colorKey: 'success',
     suggestions: [
       'How do I interpret my p-value?',
       'What does effect size mean?',
@@ -99,7 +100,7 @@ const QUICK_SUGGESTIONS = [
   {
     category: 'Study Design',
     icon: <SchoolIcon />,
-    color: '#9c27b0',
+    colorKey: 'secondary',
     suggestions: [
       'How many participants do I need?',
       'What is statistical power?',
@@ -131,6 +132,7 @@ const AIAdvisorHub = ({
   onGuardianAsk = null,
 }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // State
@@ -218,10 +220,10 @@ const AIAdvisorHub = ({
             position: 'fixed',
             bottom: 24,
             right: 24,
-            background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-            boxShadow: '0 4px 20px rgba(33, 150, 243, 0.4)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
             '&:hover': {
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.dark} 100%)`,
               transform: 'scale(1.05)',
             },
             transition: 'all 0.3s ease',
@@ -251,8 +253,8 @@ const AIAdvisorHub = ({
         sx={{
           p: 2,
           pb: 1,
-          background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 50%, #1565c0 100%)',
-          color: 'white',
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.dark} 100%)`,
+          color: theme.palette.primary.contrastText,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -310,7 +312,7 @@ const AIAdvisorHub = ({
         onChange={handleViewChange}
         variant="fullWidth"
         sx={{
-          bgcolor: '#1565c0',
+          bgcolor: theme.palette.primary.dark,
           '& .MuiTab-root': {
             color: 'rgba(255,255,255,0.7)',
             textTransform: 'none',
@@ -344,7 +346,7 @@ const AIAdvisorHub = ({
 
   // Render quick suggestions
   const renderQuickSuggestions = () => (
-    <Box sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+    <Box sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
       <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'text.secondary' }}>
         <SparkleIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'middle' }} />
         Quick Questions
@@ -360,12 +362,16 @@ const AIAdvisorHub = ({
               activeCategory === category.category ? null : category.category
             )}
             sx={{
-              bgcolor: activeCategory === category.category ? category.color : 'white',
-              color: activeCategory === category.category ? 'white' : 'text.primary',
+              bgcolor: activeCategory === category.category
+                ? theme.palette[category.colorKey].main
+                : theme.palette.background.paper,
+              color: activeCategory === category.category
+                ? theme.palette[category.colorKey].contrastText
+                : theme.palette.text.primary,
               '&:hover': {
                 bgcolor: activeCategory === category.category
-                  ? category.color
-                  : `${category.color}20`,
+                  ? theme.palette[category.colorKey].main
+                  : alpha(theme.palette[category.colorKey].main, 0.12),
               },
               transition: 'all 0.2s',
             }}
@@ -383,9 +389,9 @@ const AIAdvisorHub = ({
                 onClick={() => handleSuggestionClick(suggestion)}
                 sx={{
                   m: 0.5,
-                  bgcolor: 'white',
+                  bgcolor: theme.palette.background.paper,
                   '&:hover': {
-                    bgcolor: '#e3f2fd',
+                    bgcolor: alpha(theme.palette.primary.light, 0.2),
                   },
                 }}
                 size="small"
@@ -405,7 +411,7 @@ const AIAdvisorHub = ({
           width: 80,
           height: 80,
           borderRadius: '50%',
-          bgcolor: '#e3f2fd',
+          bgcolor: alpha(theme.palette.primary.light, 0.2),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -413,7 +419,7 @@ const AIAdvisorHub = ({
           mb: 2,
         }}
       >
-        <PsychologyIcon sx={{ fontSize: 40, color: '#1976d2' }} />
+        <PsychologyIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
       </Box>
 
       <Typography variant="h6" gutterBottom>
@@ -442,7 +448,7 @@ const AIAdvisorHub = ({
               color: 'text.secondary',
             }}
           >
-            <Box sx={{ color: '#1976d2' }}>{item.icon}</Box>
+            <Box sx={{ color: theme.palette.primary.main }}>{item.icon}</Box>
             <Typography variant="body2">{item.text}</Typography>
           </Box>
         ))}
@@ -471,8 +477,10 @@ const AIAdvisorHub = ({
 
     const hasViolations = guardianWarningStatus.violations > 0;
     const severity = hasViolations ? 'error' : 'warning';
-    const bgColor = hasViolations ? '#ffebee' : '#fff3e0';
-    const borderColor = hasViolations ? '#f44336' : '#ff9800';
+    const bgColor = hasViolations
+      ? alpha(theme.palette.error.light, isDarkMode ? 0.15 : 0.2)
+      : alpha(theme.palette.warning.light, isDarkMode ? 0.15 : 0.2);
+    const borderColor = hasViolations ? theme.palette.error.main : theme.palette.warning.main;
     const IconComponent = hasViolations ? ErrorIcon : WarningIcon;
 
     return (
@@ -502,7 +510,7 @@ const AIAdvisorHub = ({
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: hasViolations ? '#c62828' : '#e65100' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: hasViolations ? theme.palette.error.dark : theme.palette.warning.dark }}>
             Guardian Alert
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
@@ -522,7 +530,7 @@ const AIAdvisorHub = ({
             color: 'white',
             fontWeight: 600,
             '&:hover': {
-              bgcolor: hasViolations ? '#d32f2f' : '#f57c00',
+              bgcolor: hasViolations ? theme.palette.error.dark : theme.palette.warning.dark,
             },
             '& .MuiChip-icon': {
               color: 'white',

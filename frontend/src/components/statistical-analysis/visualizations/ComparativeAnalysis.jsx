@@ -26,7 +26,8 @@ import {
   Chip,
   Divider,
   ToggleButtonGroup,
-  ToggleButton
+  ToggleButton,
+  useTheme
 } from '@mui/material';
 import {
   BarChart,
@@ -49,6 +50,8 @@ import { calculateDescriptiveStats } from '../utils/statisticalUtils';
  * Main Comparative Analysis Component
  */
 const ComparativeAnalysis = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [categoryColumn, setCategoryColumn] = useState('');
   const [valueColumn, setValueColumn] = useState('');
   const [plotType, setPlotType] = useState('bar');
@@ -616,42 +619,42 @@ const ComparativeAnalysis = ({ data }) => {
             <Box sx={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f5f5f5' }}>
-                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Group</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Count</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Mean</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Median</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Min</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Max</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Q1</th>
-                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Q3</th>
+                  <tr style={{ backgroundColor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[100] }}>
+                    <th style={{ padding: '8px', textAlign: 'left', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Group</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Count</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Mean</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Median</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Min</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Max</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Q1</th>
+                    <th style={{ padding: '8px', textAlign: 'right', borderBottom: `2px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>Q3</th>
                   </tr>
                 </thead>
                 <tbody>
                   {plotData.map((group, index) => (
-                    <tr key={group.category} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>
+                    <tr key={group.category} style={{ backgroundColor: index % 2 === 0 ? theme.palette.background.paper : (isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50]) }}>
+                      <td style={{ padding: '8px', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         <strong>{group.category}</strong>
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.count}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.mean.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.median.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.min.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.max.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.q1.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: `1px solid ${theme.palette.divider}`, color: theme.palette.text.primary }}>
                         {group.q3.toFixed(2)}
                       </td>
                     </tr>

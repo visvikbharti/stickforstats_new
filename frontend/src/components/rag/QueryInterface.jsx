@@ -225,7 +225,7 @@ const QueryInterface = ({ moduleContext = null, initialConversationId = null }) 
       
       {/* Performance monitoring */}
       {showPerformanceMonitor && (
-        <Box sx={{ px: 2, py: 1, bgcolor: '#f9f9f9' }}>
+        <Box sx={{ px: 2, py: 1, bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50] }}>
           <RAGWebSocketStatus />
         </Box>
       )}
@@ -237,7 +237,7 @@ const QueryInterface = ({ moduleContext = null, initialConversationId = null }) 
           flexGrow: 1, 
           overflow: 'auto', 
           p: 2,
-          bgcolor: '#f5f5f5'
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100]
         }}
       >
         {messages.length === 0 ? (
@@ -411,8 +411,8 @@ const QueryInterface = ({ moduleContext = null, initialConversationId = null }) 
           data-testid="sources-panel"
           sx={{ 
             p: 2, 
-            bgcolor: '#f0f0f0', 
-            borderTop: '1px solid #ddd',
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
             maxHeight: '200px',
             overflow: 'auto'
           }}
@@ -444,7 +444,7 @@ const QueryInterface = ({ moduleContext = null, initialConversationId = null }) 
         sx={{ 
           p: 2, 
           bgcolor: 'background.paper',
-          borderTop: '1px solid #e0e0e0',
+          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
           display: 'flex'
         }}
       >

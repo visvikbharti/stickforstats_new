@@ -51,7 +51,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Snackbar
+  Snackbar,
+  useTheme
 } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import CalculateIcon from '@mui/icons-material/Calculate';
@@ -202,6 +203,9 @@ const CALC_MODES = {
  * Main Power Analysis Tool Component
  */
 const PowerAnalysisTool = ({ data, setData, onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // State management
   const [calculationMode, setCalculationMode] = useState('sampleSize');
   const [testType, setTestType] = useState('two-sample-t');
@@ -445,11 +449,11 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
    * Get interpretation of power level
    */
   const getPowerInterpretation = (powerValue) => {
-    if (powerValue >= 0.95) return { level: 'Excellent', color: '#2e7d32', description: 'Very high probability of detecting effect' };
-    if (powerValue >= 0.80) return { level: 'Adequate', color: '#4caf50', description: 'Standard convention for most research' };
-    if (powerValue >= 0.60) return { level: 'Moderate', color: '#ff9800', description: 'Acceptable for exploratory research' };
-    if (powerValue >= 0.40) return { level: 'Low', color: '#f44336', description: 'High risk of Type II error' };
-    return { level: 'Very Low', color: '#d32f2f', description: 'Likely underpowered study' };
+    if (powerValue >= 0.95) return { level: 'Excellent', color: theme.palette.success.dark, description: 'Very high probability of detecting effect' };
+    if (powerValue >= 0.80) return { level: 'Adequate', color: theme.palette.success.main, description: 'Standard convention for most research' };
+    if (powerValue >= 0.60) return { level: 'Moderate', color: theme.palette.warning.main, description: 'Acceptable for exploratory research' };
+    if (powerValue >= 0.40) return { level: 'Low', color: theme.palette.error.main, description: 'High risk of Type II error' };
+    return { level: 'Very Low', color: theme.palette.error.dark, description: 'Likely underpowered study' };
   };
 
   /**
@@ -507,7 +511,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   return (
     <Box sx={{ py: 2 }}>
       {/* Header */}
-      <Paper elevation={2} sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', color: 'white' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 3, background: `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`, color: 'white' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <BoltIcon sx={{ fontSize: 40 }} />
           <Box>
@@ -793,11 +797,11 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                 </Box>
 
                 {/* Primary Result */}
-                <Card sx={{ bgcolor: '#e3f2fd', mb: 2 }}>
+                <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                   <CardContent>
                     {calculationMode === 'power' && (
                       <>
-                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                           {(results.power * 100).toFixed(1)}%
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
@@ -817,7 +821,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
 
                     {calculationMode === 'sampleSize' && (
                       <>
-                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                           {results.totalN || results.n || results.nPerGroup * numGroups}
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
@@ -838,7 +842,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
 
                     {calculationMode === 'effectSize' && (
                       <>
-                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                           {results.effectSize.toFixed(3)}
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
@@ -945,11 +949,11 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                         labelFormatter={(n) => `n = ${n}`}
                       />
                       <Legend />
-                      <ReferenceLine y={0.8} stroke="#666" strokeDasharray="5 5" label="80%" />
+                      <ReferenceLine y={0.8} stroke={theme.palette.text.secondary} strokeDasharray="5 5" label="80%" />
                       <Line
                         type="monotone"
                         dataKey="d_0.2"
-                        stroke="#90caf9"
+                        stroke={theme.palette.primary.light}
                         strokeWidth={2}
                         name="Small (d=0.2)"
                         dot={false}
@@ -957,7 +961,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                       <Line
                         type="monotone"
                         dataKey="d_0.5"
-                        stroke="#42a5f5"
+                        stroke={theme.palette.primary.main}
                         strokeWidth={2}
                         name="Medium (d=0.5)"
                         dot={false}
@@ -965,7 +969,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                       <Line
                         type="monotone"
                         dataKey="d_0.8"
-                        stroke="#1565c0"
+                        stroke={theme.palette.primary.dark}
                         strokeWidth={2}
                         name="Large (d=0.8)"
                         dot={false}
@@ -976,7 +980,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
               )}
 
               {/* Interpretation Guide */}
-              <Paper elevation={1} sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+              <Paper elevation={1} sx={{ p: 3, mt: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
                   <ScienceIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                   Interpretation Guide
@@ -1029,8 +1033,8 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
 
           {/* Initial state - no results */}
           {!results && !error && (
-            <Paper elevation={1} sx={{ p: 4, textAlign: 'center', bgcolor: '#fafafa' }}>
-              <BoltIcon sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+            <Paper elevation={1} sx={{ p: 4, textAlign: 'center', bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
+              <BoltIcon sx={{ fontSize: 64, color: theme.palette.text.disabled, mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Configure Your Analysis
               </Typography>
@@ -1087,7 +1091,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       </Grid>
 
       {/* Scientific References */}
-      <Paper elevation={1} sx={{ p: 2, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper elevation={1} sx={{ p: 2, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
         <Typography variant="caption" color="text.secondary">
           <strong>Scientific Foundation:</strong> Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.).
           Lawrence Erlbaum Associates. | Faul, F., Erdfelder, E., Lang, A.-G., & Buchner, A. (2007). G*Power 3:
@@ -1123,7 +1127,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
             <Tab
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#276DC3' }}>R</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>R</Typography>
                   <Chip label="pwr" size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
                 </Box>
               }
@@ -1131,7 +1135,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
             <Tab
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#3776AB' }}>Python</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>Python</Typography>
                   <Chip label="statsmodels" size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
                 </Box>
               }
@@ -1141,7 +1145,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           <Paper
             elevation={0}
             sx={{
-              bgcolor: '#1e1e1e',
+              bgcolor: isDarkMode ? theme.palette.grey[900] : '#1e1e1e',
               color: '#d4d4d4',
               p: 2,
               borderRadius: 1,

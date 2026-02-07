@@ -38,6 +38,7 @@ import {
   Radio,
   FormLabel,
   TextField,
+  useTheme,
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
@@ -400,6 +401,7 @@ function getTestRecommendations(data) {
  * Test Selection Step Component
  */
 const TestSelectionStep = ({ data, updateData, errors }) => {
+  const theme = useTheme();
   const { testSelection, studyType, variables } = data;
 
   /**
@@ -547,10 +549,10 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
                 sx={{
                   height: '100%',
                   border: isSelected
-                    ? '3px solid #1976d2'
+                    ? `3px solid ${theme.palette.primary.main}`
                     : isRecommended
-                      ? '2px solid #4caf50'
-                      : '1px solid #e0e0e0',
+                      ? `2px solid ${theme.palette.success.main}`
+                      : `1px solid ${theme.palette.divider}`,
                   position: 'relative',
                   transition: 'all 0.3s',
                   '&:hover': {

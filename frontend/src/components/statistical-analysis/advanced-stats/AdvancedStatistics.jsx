@@ -21,7 +21,8 @@ import {
   CardActionArea,
   Chip,
   Button,
-  Alert
+  Alert,
+  useTheme
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -43,6 +44,8 @@ import EffectSizePower from './EffectSizePower';
  * Hub for selecting and running advanced statistical analyses
  */
 const AdvancedStatistics = ({ data, setData, onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [currentTest, setCurrentTest] = useState(null);
 
   /**
@@ -127,7 +130,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
     return (
       <Box>
         {/* Test Header */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: '#f5f5f5' }}>
+        <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={handleBackToSelection}
@@ -136,9 +139,9 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
             Back to Test Selection
           </Button>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <test.icon sx={{ fontSize: 40, color: '#1976d2' }} />
+            <test.icon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                 {test.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -170,9 +173,9 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
       {/* Introduction */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <TimelineIcon sx={{ fontSize: 40, color: '#1976d2' }} />
+          <TimelineIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
               Advanced Statistical Analysis
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -217,7 +220,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
                   <CardContent>
                     {/* Test Icon and Difficulty */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <IconComponent sx={{ fontSize: 36, color: '#1976d2' }} />
+                      <IconComponent sx={{ fontSize: 36, color: theme.palette.primary.main }} />
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <Chip
                           label={test.difficulty}
@@ -266,7 +269,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
                         sx={{
                           display: 'block',
                           mt: 2,
-                          color: '#666',
+                          color: theme.palette.text.secondary,
                           fontStyle: 'italic'
                         }}
                       >
@@ -282,8 +285,8 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
       </Grid>
 
       {/* Help Section */}
-      <Paper sx={{ p: 3, mt: 4, bgcolor: '#e3f2fd' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Paper sx={{ p: 3, mt: 4, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
           When to Use Advanced Statistics?
         </Typography>
         <Typography variant="body2" paragraph>

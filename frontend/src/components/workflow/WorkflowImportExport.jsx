@@ -31,7 +31,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  LinearProgress
+  LinearProgress,
+  useTheme
 } from '@mui/material';
 import { 
   FileUpload as UploadIcon,
@@ -52,6 +53,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkflowAPI } from '../../hooks/useWorkflowAPI';
 
 const WorkflowImportExport = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const { 
@@ -384,14 +386,14 @@ const WorkflowImportExport = () => {
               
               <Box 
                 sx={{ 
-                  border: '2px dashed #ccc', 
-                  borderRadius: 2, 
-                  p: 3, 
+                  border: `2px dashed ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  p: 3,
                   textAlign: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                  backgroundColor: theme.palette.action.hover,
                   cursor: 'pointer',
                   '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    backgroundColor: theme.palette.action.selected,
                   }
                 }}
                 onClick={() => fileInputRef.current?.click()}
@@ -408,7 +410,7 @@ const WorkflowImportExport = () => {
                   </Box>
                 ) : (
                   <Box>
-                    <UploadIcon sx={{ fontSize: 48, mb: 1, color: '#aaa' }} />
+                    <UploadIcon sx={{ fontSize: 48, mb: 1, color: theme.palette.text.disabled }} />
                     <Typography variant="subtitle1" gutterBottom>
                       Click to select a workflow file
                     </Typography>
@@ -523,7 +525,7 @@ const WorkflowImportExport = () => {
                               p: 2, 
                               border: '1px solid',
                               borderColor: selectedWorkflow === workflow.id ? 'primary.main' : 'divider',
-                              backgroundColor: selectedWorkflow === workflow.id ? 'rgba(25, 118, 210, 0.04)' : 'transparent',
+                              backgroundColor: selectedWorkflow === workflow.id ? theme.palette.action.selected : 'transparent',
                               cursor: 'pointer'
                             }}
                             onClick={() => setSelectedWorkflow(workflow.id)}

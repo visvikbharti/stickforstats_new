@@ -10,7 +10,9 @@ import {
   CardActionArea,
   Chip,
   LinearProgress,
-  Button
+  Button,
+  useTheme,
+  alpha
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -35,6 +37,8 @@ import Lesson08_Taguchi from './lessons/Lesson08_Taguchi';
  */
 
 const DOEEducationHub = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [currentLesson, setCurrentLesson] = useState(null);
   const [completedLessons, setCompletedLessons] = useState(new Set());
 
@@ -144,8 +148,8 @@ const DOEEducationHub = () => {
     const LessonComponent = lesson.component;
 
     return (
-      <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh' }}>
-        <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e0e0e0', py: 2 }}>
+      <Box sx={{ bgcolor: isDarkMode ? theme.palette.grey[900] : theme.palette.grey[50], minHeight: '100vh' }}>
+        <Box sx={{ bgcolor: theme.palette.background.paper, borderBottom: `1px solid ${theme.palette.divider}`, py: 2 }}>
           <Container>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -154,7 +158,7 @@ const DOEEducationHub = () => {
             >
               Back to Lessons
             </Button>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
               Lesson {lesson.id}: {lesson.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -172,14 +176,14 @@ const DOEEducationHub = () => {
 
   // Show lesson selection hub
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: isDarkMode ? theme.palette.grey[900] : theme.palette.grey[100], minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header */}
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <SchoolIcon sx={{ fontSize: 48, color: '#1976d2', mr: 2 }} />
+            <SchoolIcon sx={{ fontSize: 48, color: theme.palette.primary.main, mr: 2 }} />
             <Box>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: '#1976d2' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                 Learn Design of Experiments
               </Typography>
               <Typography variant="h6" color="text.secondary">
@@ -247,10 +251,10 @@ const DOEEducationHub = () => {
                           size="small"
                         />
                         {isCompleted && (
-                          <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 28 }} />
+                          <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 28 }} />
                         )}
                         {isLocked && (
-                          <LockIcon sx={{ color: '#999', fontSize: 28 }} />
+                          <LockIcon sx={{ color: theme.palette.text.disabled, fontSize: 28 }} />
                         )}
                       </Box>
 
@@ -305,7 +309,7 @@ const DOEEducationHub = () => {
                           sx={{
                             display: 'block',
                             mt: 2,
-                            color: '#999',
+                            color: theme.palette.text.disabled,
                             fontStyle: 'italic'
                           }}
                         >
@@ -321,8 +325,8 @@ const DOEEducationHub = () => {
         </Grid>
 
         {/* Footer info */}
-        <Paper sx={{ p: 3, mt: 4, bgcolor: '#e3f2fd' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+        <Paper sx={{ p: 3, mt: 4, bgcolor: isDarkMode ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.primary.light, 0.2) }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
             Why Learn DOE?
           </Typography>
           <Typography variant="body2" paragraph>

@@ -75,11 +75,11 @@ const ComparisonCriteria = {
 
 // Scoring system for comparison
 const ScoringLevels = {
-  excellent: { value: 5, color: '#2e7d32', label: 'Excellent' },
-  good: { value: 4, color: '#388e3c', label: 'Good' },
-  moderate: { value: 3, color: '#f57c00', label: 'Moderate' },
-  poor: { value: 2, color: '#d32f2f', label: 'Poor' },
-  na: { value: 0, color: '#9e9e9e', label: 'N/A' }
+  excellent: { value: 5, color: 'var(--success-text, #2e7d32)', label: 'Excellent' },
+  good: { value: 4, color: 'var(--success-color, #388e3c)', label: 'Good' },
+  moderate: { value: 3, color: 'var(--warning-text, #f57c00)', label: 'Moderate' },
+  poor: { value: 2, color: 'var(--error-text, #d32f2f)', label: 'Poor' },
+  na: { value: 0, color: 'var(--text-secondary, #9e9e9e)', label: 'N/A' }
 };
 
 const ComparisonView = () => {

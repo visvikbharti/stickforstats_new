@@ -393,7 +393,7 @@ const MetaAnalysisHub = () => {
         </Grid>
 
         <Grid item xs={12}>
-          <Card variant="outlined" sx={{ bgcolor: '#f5f5f5' }}>
+          <Card variant="outlined" sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Summary
@@ -445,7 +445,7 @@ const MetaAnalysisHub = () => {
     return (
       <Box>
         {/* Summary Card */}
-        <Paper sx={{ p: 3, mb: 3, bgcolor: '#e8f5e9' }}>
+        <Paper sx={{ p: 3, mb: 3, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : '#e8f5e9' }}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
               <Typography variant="body2" color="text.secondary">Pooled Effect Size</Typography>

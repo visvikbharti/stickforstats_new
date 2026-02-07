@@ -23,6 +23,8 @@ import {
   ToggleButtonGroup,
   Chip
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax } from 'better-react-mathjax';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -39,6 +41,8 @@ import TimelineIcon from '@mui/icons-material/Timeline';
  */
 
 const Lesson06_RSM = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [temp, setTemp] = useState(150);
   const [time, setTime] = useState(30);
@@ -145,7 +149,7 @@ const Lesson06_RSM = ({ onComplete }) => {
     const yieldLevels = [58, 60, 62, 64, 65, 66, 66.5];
 
     return (
-      <Box sx={{ position: 'relative', width, height, border: '1px solid #ddd', bgcolor: 'white' }}>
+      <Box sx={{ position: 'relative', width, height, border: `1px solid ${theme.palette.divider}`, bgcolor: theme.palette.background.paper }}>
         <svg width={width} height={height}>
           {/* Axes */}
           <line x1={margin} y1={height - margin} x2={width - 20} y2={height - margin}
@@ -277,20 +281,20 @@ const Lesson06_RSM = ({ onComplete }) => {
         </svg>
 
         {/* Legend */}
-        <Box sx={{ position: 'absolute', top: 5, right: 5, bgcolor: 'rgba(255,255,255,0.9)',
-                   p: 1, border: '1px solid #ddd', borderRadius: 1, fontSize: '0.75rem' }}>
+        <Box sx={{ position: 'absolute', top: 5, right: 5, bgcolor: alpha(theme.palette.background.paper, 0.9),
+                   p: 1, border: `1px solid ${theme.palette.divider}`, borderRadius: 1, fontSize: '0.75rem' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-            <Box sx={{ width: 12, height: 12, bgcolor: '#2196f3', border: '1px solid white' }} />
+            <Box sx={{ width: 12, height: 12, bgcolor: theme.palette.info.main, border: `1px solid ${theme.palette.background.paper}` }} />
             <Typography variant="caption">Factorial</Typography>
           </Box>
           {designType === 'ccd' && (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-                <Box sx={{ width: 12, height: 12, bgcolor: '#f44336', border: '1px solid white' }} />
+                <Box sx={{ width: 12, height: 12, bgcolor: theme.palette.error.main, border: `1px solid ${theme.palette.background.paper}` }} />
                 <Typography variant="caption">Axial</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
-                <Box sx={{ width: 12, height: 12, bgcolor: '#4caf50', border: '1px solid white' }} />
+                <Box sx={{ width: 12, height: 12, bgcolor: theme.palette.success.main, border: `1px solid ${theme.palette.background.paper}` }} />
                 <Typography variant="caption">Center</Typography>
               </Box>
             </>
@@ -300,7 +304,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             <Typography variant="caption">Current</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 12, height: 12, bgcolor: 'transparent', border: '2px solid #e91e63' }} />
+            <Box sx={{ width: 12, height: 12, bgcolor: 'transparent', border: `2px solid ${theme.palette.error.light}` }} />
             <Typography variant="caption">Optimum</Typography>
           </Box>
         </Box>
@@ -341,7 +345,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#e8f5e9' }}>
+              <Card variant="outlined" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="success.main" gutterBottom>
                     RSM Advantages
@@ -361,7 +365,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             The Second-Order Model
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body2" gutterBottom>
               For <em>k</em> factors, the general second-order polynomial is:
             </Typography>
@@ -417,7 +421,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             CCD Structure
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               A CCD consists of <strong>three types of points</strong>:
             </Typography>
@@ -597,7 +601,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             </Grid>
           </Grid>
 
-          <Paper sx={{ p: 2, mt: 2, bgcolor: '#e3f2fd' }}>
+          <Paper sx={{ p: 2, mt: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
             <Typography variant="h6" gutterBottom>
               Current Settings
             </Typography>
@@ -643,7 +647,7 @@ const Lesson06_RSM = ({ onComplete }) => {
                     Identifying Optimum
                   </Typography>
                   <Typography variant="body2">
-                    • The <span style={{ color: '#e91e63', fontWeight: 'bold' }}>OPT</span> marker
+                    • The <span style={{ color: theme.palette.error.light, fontWeight: 'bold' }}>OPT</span> marker
                     shows maximum yield<br/>
                     • Optimal temperature: <strong>{optimum.temp.toFixed(1)}°C</strong><br/>
                     • Optimal time: <strong>{optimum.time.toFixed(1)} min</strong><br/>
@@ -694,7 +698,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             Method 1: Canonical Analysis
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               Transform the model to <strong>canonical form</strong> to identify the nature of
               the stationary point:
@@ -716,7 +720,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             Method 2: Steepest Ascent/Descent
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               When far from the optimum, move in the direction of <strong>steepest ascent</strong>
               (for maximization):
@@ -740,7 +744,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             Method 3: Ridge Analysis
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2">
               When the stationary point is far outside the experimental region or is a saddle point,
               <strong> ridge analysis</strong> finds the best settings within a constrained region:
@@ -927,7 +931,7 @@ const Lesson06_RSM = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <Typography variant="subtitle2" color="success.main" gutterBottom>
                   <strong>✓ Good Applications</strong>
                 </Typography>
@@ -942,7 +946,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                 <Typography variant="subtitle2" color="error.main" gutterBottom>
                   <strong>✗ Poor Applications</strong>
                 </Typography>
@@ -961,7 +965,7 @@ const Lesson06_RSM = ({ onComplete }) => {
             Real-World Impact
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 3 }}>
             <Typography variant="body2">
               <strong>Case Study:</strong> A semiconductor manufacturer used RSM to optimize
               chemical vapor deposition. By modeling temperature, pressure, and gas flow rate,
@@ -994,9 +998,9 @@ const Lesson06_RSM = ({ onComplete }) => {
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <TrendingUpIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <TrendingUpIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 2 }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1976d2' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
               Response Surface Methodology
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

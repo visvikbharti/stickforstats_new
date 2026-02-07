@@ -5,9 +5,11 @@ import {
   FormControlLabel, Checkbox, Grid
 } from '@mui/material';
 import { CloudUpload as UploadIcon } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 import { uploadDataset } from '../../api/datasetApi';
 
 const DatasetUploadDialog = ({ open, onClose }) => {
+  const theme = useTheme();
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [name, setName] = useState('');
@@ -156,13 +158,18 @@ const DatasetUploadDialog = ({ open, onClose }) => {
             {/* File Upload Area */}
             <Box
               sx={{
-                border: '2px dashed #ccc',
+                border: `2px dashed ${theme.palette.divider}`,
                 borderRadius: 2,
                 p: 3,
                 mb: 3,
                 textAlign: 'center',
-                bgcolor: '#f8f9fa',
-                cursor: 'pointer'
+                bgcolor: theme.palette.background.default,
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  borderColor: theme.palette.primary.main,
+                  bgcolor: theme.palette.action.hover,
+                }
               }}
               onClick={() => document.getElementById('file-upload').click()}
               onDrop={handleDrop}

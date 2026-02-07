@@ -921,7 +921,7 @@ const RobustMethodsTab = React.memo(() => (
 
 // Computational Approaches Components
 const CodeExample = React.memo(({ language, code }) => (
-  <pre style={{ backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4, overflowX: 'auto' }}>
+  <pre style={{ backgroundColor: 'var(--code-bg, #f5f5f5)', padding: 8, borderRadius: 4, overflowX: 'auto', color: 'var(--text-primary, #212121)' }}>
     {code}
   </pre>
 ));

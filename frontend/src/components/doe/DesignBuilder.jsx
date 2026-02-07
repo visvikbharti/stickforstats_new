@@ -24,7 +24,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  useTheme
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -64,6 +65,7 @@ import { generateDesign, uploadExperimentData, runModelAnalysis, optimizeRespons
  * The component preserves all the functionality from the original Streamlit interactive builder.
  */
 function DesignBuilder() {
+  const theme = useTheme();
   // Stepper state
   const [activeStep, setActiveStep] = useState(0);
   const steps = ['Define Study', 'Generate Design', 'Enter Data', 'Analyze Results', 'Optimize'];
@@ -1052,7 +1054,7 @@ function DesignBuilder() {
               elevation={1} 
               sx={{ 
                 p: 3, 
-                border: '2px dashed #ccc', 
+                border: `2px dashed ${theme.palette.divider}`,
                 bgcolor: 'background.default',
                 height: '100%',
                 display: 'flex',

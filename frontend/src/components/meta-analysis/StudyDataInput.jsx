@@ -43,7 +43,7 @@ const StudyDataInput = ({ studies, onUpdateStudy, onRemoveStudy }) => {
     <TableContainer component={Paper} variant="outlined">
       <Table size="small">
         <TableHead>
-          <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+          <TableRow sx={{ bgcolor: 'background.default' }}>
             <TableCell width={30}>#</TableCell>
             <TableCell>
               <Tooltip title="Name or reference for the study">
@@ -81,8 +81,8 @@ const StudyDataInput = ({ studies, onUpdateStudy, onRemoveStudy }) => {
               <TableRow
                 key={index}
                 sx={{
-                  '&:hover': { bgcolor: '#fafafa' },
-                  bgcolor: valid ? 'inherit' : '#fff8f8'
+                  '&:hover': { bgcolor: 'action.hover' },
+                  bgcolor: valid ? 'inherit' : 'error.light'
                 }}
               >
                 <TableCell>

@@ -318,7 +318,7 @@ const FunnelPlot = ({ data, publicationBias }) => {
           )}
 
           {/* Interpretation */}
-          <Card variant="outlined" sx={{ mt: 2, bgcolor: '#f5f5f5' }}>
+          <Card variant="outlined" sx={{ mt: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>
                 Interpretation Guide

@@ -21,7 +21,8 @@ import {
   Chip,
   Button,
   Alert,
-  Divider
+  Divider,
+  useTheme
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PsychologyIcon from '@mui/icons-material/Psychology';
@@ -40,6 +41,8 @@ import Clustering from './Clustering';
  * Hub for selecting and running machine learning models
  */
 const MachineLearning = ({ data, setData, onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [currentModel, setCurrentModel] = useState(null);
 
   /**
@@ -104,7 +107,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
     return (
       <Box>
         {/* Model Header */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: '#f5f5f5' }}>
+        <Paper elevation={2} sx={{ p: 3, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={handleBackToSelection}
@@ -113,9 +116,9 @@ const MachineLearning = ({ data, setData, onComplete }) => {
             Back to Model Selection
           </Button>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <model.icon sx={{ fontSize: 40, color: '#1976d2' }} />
+            <model.icon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                 {model.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -147,9 +150,9 @@ const MachineLearning = ({ data, setData, onComplete }) => {
       {/* Introduction */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <PsychologyIcon sx={{ fontSize: 40, color: '#1976d2' }} />
+          <PsychologyIcon sx={{ fontSize: 40, color: theme.palette.primary.main }} />
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
               Machine Learning
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -201,7 +204,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
                   <CardContent>
                     {/* Model Icon and Difficulty */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <IconComponent sx={{ fontSize: 36, color: '#1976d2' }} />
+                      <IconComponent sx={{ fontSize: 36, color: theme.palette.primary.main }} />
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <Chip
                           label={model.difficulty}
@@ -250,7 +253,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
                         sx={{
                           display: 'block',
                           mt: 2,
-                          color: '#666',
+                          color: theme.palette.text.secondary,
                           fontStyle: 'italic'
                         }}
                       >
@@ -266,8 +269,8 @@ const MachineLearning = ({ data, setData, onComplete }) => {
       </Grid>
 
       {/* Help Section */}
-      <Paper sx={{ p: 3, mt: 4, bgcolor: '#e3f2fd' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Paper sx={{ p: 3, mt: 4, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
           When to Use Machine Learning?
         </Typography>
         <Typography variant="body2" paragraph>

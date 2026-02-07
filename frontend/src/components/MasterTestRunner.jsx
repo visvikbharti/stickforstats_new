@@ -3,7 +3,7 @@ import {
   Box, Stepper, Step, StepLabel, StepContent, Button, Card, CardContent,
   Typography, Alert, CircularProgress, LinearProgress, Chip, Paper,
   Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider,
-  IconButton, Tooltip, Badge, Fade, Zoom, Collapse
+  IconButton, Tooltip, Badge, Fade, Zoom, Collapse, useTheme
 } from '@mui/material';
 import {
   Shield as ShieldIcon,
@@ -28,6 +28,8 @@ import GuardianWarning from './Guardian/GuardianWarning';
 const PHI = 1.618;
 
 const MasterTestRunner = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [selectedTest, setSelectedTest] = useState(null);
   const [testData, setTestData] = useState(null);
@@ -252,7 +254,7 @@ const MasterTestRunner = () => {
               </Typography>
               {loading ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
-                  <CircularProgress size={60} sx={{ color: '#FFD700' }} />
+                  <CircularProgress size={60} sx={{ color: theme.palette.warning.main }} />
                   <Typography sx={{ mt: 2 }}>Checking statistical assumptions...</Typography>
                 </Box>
               ) : guardianReport ? (
@@ -392,7 +394,7 @@ const MasterTestRunner = () => {
                       </Paper>
                     </Grid>
                     <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: testResults.p_value < 0.05 ? '#e8f5e9' : '#fff3e0' }}>
+                      <Paper sx={{ p: 2, bgcolor: testResults.p_value < 0.05 ? (isDarkMode ? theme.palette.success.dark + '20' : '#e8f5e9') : (isDarkMode ? theme.palette.warning.dark + '20' : '#fff3e0') }}>
                         <Typography variant="subtitle1" fontWeight="bold">
                           Statistical Significance
                         </Typography>
@@ -434,7 +436,7 @@ const MasterTestRunner = () => {
                   </Box>
 
                   <Collapse in={showResultDetails}>
-                    <Paper sx={{ p: 2, mt: 2, bgcolor: 'grey.50' }}>
+                    <Paper sx={{ p: 2, mt: 2, bgcolor: isDarkMode ? theme.palette.grey[800] : theme.palette.grey[50] }}>
                       <Typography variant="subtitle2" sx={{ fontFamily: 'monospace' }}>
                         {JSON.stringify(testResults, null, 2)}
                       </Typography>
@@ -468,7 +470,9 @@ const MasterTestRunner = () => {
           sx={{
             textAlign: 'center',
             mb: 2,
-            background: 'linear-gradient(90deg, #FFD700, #FFA500)',
+            background: isDarkMode
+              ? `linear-gradient(90deg, ${theme.palette.warning.light}, ${theme.palette.warning.main})`
+              : `linear-gradient(90deg, #FFD700, #FFA500)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             fontWeight: 'bold'

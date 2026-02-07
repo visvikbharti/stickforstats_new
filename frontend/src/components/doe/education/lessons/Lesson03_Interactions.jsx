@@ -15,6 +15,8 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -31,6 +33,8 @@ import InteractionPlot from '../../visualizations/InteractionPlot';
  */
 
 const Lesson03_Interactions = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [interactionStrength, setInteractionStrength] = useState(0);
   const [factorAEffect, setFactorAEffect] = useState(5);
   const [factorBEffect, setFactorBEffect] = useState(3);
@@ -89,8 +93,8 @@ const Lesson03_Interactions = ({ onComplete }) => {
   return (
     <Box>
       {/* Introduction */}
-      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: '#f8f9fa' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+      <Paper elevation={2} sx={{ p: 4, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
+        <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
           Interaction Effects Visualized
         </Typography>
 
@@ -116,7 +120,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
       {/* What is an Interaction? */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🔗 What is an Interaction?
         </Typography>
 
@@ -126,7 +130,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
             across levels of Factor B.
           </Typography>
 
-          <Box sx={{ p: 3, bgcolor: '#e3f2fd', borderRadius: 2, mb: 3 }}>
+          <Box sx={{ p: 3, bgcolor: alpha(theme.palette.primary.light, 0.2), borderRadius: 2, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Main Effect (No Interaction)
             </Typography>
@@ -141,7 +145,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 3, bgcolor: '#fff3e0', borderRadius: 2 }}>
+          <Box sx={{ p: 3, bgcolor: alpha(theme.palette.warning.light, 0.2), borderRadius: 2 }}>
             <Typography variant="h6" gutterBottom>
               Interaction (Factors Combine)
             </Typography>
@@ -160,7 +164,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
       {/* Interactive Visualization */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🎮 Interactive: Build Your Own Interaction
         </Typography>
 
@@ -271,7 +275,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
       {/* Types of Interactions */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           📊 Types of Interactions
         </Typography>
 
@@ -297,7 +301,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
           {/* Synergistic Interaction */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#e8f5e9' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
               <CardContent>
                 <Chip label="Lines Diverge" color="success" size="small" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -317,7 +321,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
           {/* Antagonistic Interaction */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#ffebee' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
               <CardContent>
                 <Chip label="Lines Converge" color="error" size="small" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -337,7 +341,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
           {/* Crossover Interaction */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ bgcolor: '#fff3e0' }}>
+            <Card sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
               <CardContent>
                 <Chip label="Lines Cross" color="warning" size="small" sx={{ mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
@@ -359,7 +363,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
       {/* Real Example with Existing Visualization */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🧪 Real DOE Example: Temperature × pH Interaction
         </Typography>
 
@@ -373,7 +377,7 @@ const Lesson03_Interactions = ({ onComplete }) => {
 
       {/* Detecting Interactions */}
       <Paper elevation={2} sx={{ p: 4, mb: 3 }}>
-        <Typography variant="h5" gutterBottom sx={{ color: '#1976d2' }}>
+        <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main }}>
           🔍 How to Detect Interactions in Your Data
         </Typography>
 
@@ -421,8 +425,8 @@ const Lesson03_Interactions = ({ onComplete }) => {
       </Paper>
 
       {/* Summary and Completion */}
-      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: '#e8f5e9' }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#388e3c' }}>
+      <Paper elevation={3} sx={{ p: 4, mt: 4, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.dark }}>
           ✅ Key Takeaways
         </Typography>
 

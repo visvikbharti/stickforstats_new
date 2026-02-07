@@ -58,6 +58,8 @@ import {
   Info,
   Lightbulb,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -69,6 +71,8 @@ const steps = [
 ];
 
 const Lesson05_EffectSize = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
 
@@ -283,7 +287,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
   // Render Step 1: What is Effect Size?
   const renderStep1 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         What is Effect Size?
       </Typography>
 
@@ -299,7 +303,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
           <Card elevation={3}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TrendingUp sx={{ color: '#2196f3', mr: 1, fontSize: 28 }} />
+                <TrendingUp sx={{ color: theme.palette.info.main, mr: 1, fontSize: 28 }} />
                 <Typography variant="h6">The Core Idea</Typography>
               </Box>
 
@@ -307,7 +311,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                 Effect size separates <strong>magnitude</strong> from <strong>statistical significance</strong>.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ textAlign: 'center' }}>
                   <strong>Statistical Significance:</strong> "Is there an effect?"<br/>
                   <strong>Effect Size:</strong> "How big is the effect?"
@@ -327,7 +331,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
           <Card elevation={3}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Functions sx={{ color: '#f44336', mr: 1, fontSize: 28 }} />
+                <Functions sx={{ color: theme.palette.error.main, mr: 1, fontSize: 28 }} />
                 <Typography variant="h6">Why Standardize?</Typography>
               </Box>
 
@@ -337,21 +341,21 @@ const Lesson05_EffectSize = ({ onComplete }) => {
 
               <List>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Comparable across studies"
                     secondary="Different scales, different populations"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Independent of sample size"
                     secondary="Same effect → same d, regardless of n"
                   />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+                  <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
                   <ListItemText
                     primary="Meta-analyzable"
                     secondary="Can combine results across studies"
@@ -371,7 +375,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>Measure</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Test Type</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Formula</TableCell>
@@ -425,7 +429,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
   // Render Step 2: Cohen's d
   const renderStep2 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Cohen's d: The Gold Standard for Mean Differences
       </Typography>
 
@@ -438,11 +442,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2196f3' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
                 Mathematical Definition
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mb: 3 }}>
+              <Paper sx={{ p: 3, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 3 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.3rem', textAlign: 'center', mb: 2 }}>
                   d = (μ₁ - μ₂) / σ<sub>pooled</sub>
                 </Typography>
@@ -487,7 +491,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                       <TableCell align="center">14.7%</TableCell>
                       <TableCell>Height difference: 0.5 cm</TableCell>
                     </TableRow>
-                    <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                       <TableCell>Medium</TableCell>
                       <TableCell align="center"><strong>0.50</strong></TableCell>
                       <TableCell align="center">33.0%</TableCell>
@@ -551,7 +555,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                   { value: 0.8, label: '0.8' },
                   { value: 1.2, label: '1.2' },
                 ]}
-                sx={{ color: '#2196f3' }}
+                sx={{ color: theme.palette.info.main }}
               />
             </Box>
 
@@ -560,7 +564,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                 ref={canvasRef}
                 width={500}
                 height={300}
-                style={{ maxWidth: '100%', border: '1px solid #ddd', borderRadius: 4 }}
+                style={{ maxWidth: '100%', border: `1px solid ${theme.palette.divider}`, borderRadius: 4 }}
               />
             </Box>
 
@@ -585,7 +589,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   Hedges' g
                 </Typography>
@@ -598,7 +602,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   Glass's Δ
                 </Typography>
@@ -611,7 +615,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   Cohen's d<sub>z</sub>
                 </Typography>
@@ -632,7 +636,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
   // Render Step 3: Cohen's f and η²
   const renderStep3 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Cohen's f and η²: Effect Sizes for ANOVA
       </Typography>
 
@@ -645,11 +649,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
                 Eta-Squared (η²)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#f3e5f5', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.2rem', textAlign: 'center' }}>
                   η² = SS<sub>between</sub> / SS<sub>total</sub>
                 </Typography>
@@ -677,11 +681,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={6}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#673ab7' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.dark }}>
                 Cohen's f
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ede7f6', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.2rem', textAlign: 'center', mb: 2 }}>
                   f = √(η² / (1 - η²))
                 </Typography>
@@ -713,7 +717,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+              <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                 <TableCell sx={{ fontWeight: 600 }}>Size</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>f</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 600 }}>η²</TableCell>
@@ -729,7 +733,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                 <TableCell align="center">0.01</TableCell>
                 <TableCell>1% variance explained</TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+              <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <TableCell>Medium</TableCell>
                 <TableCell align="center"><strong>0.25</strong></TableCell>
                 <TableCell align="center">0.06</TableCell>
@@ -755,7 +759,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Paper sx={{ p: 3, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body1" paragraph>
               For k groups with means μ₁, μ₂, ..., μₖ and grand mean μ:
             </Typography>
@@ -791,7 +795,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   η² (Eta-squared)
                 </Typography>
@@ -806,7 +810,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                   Partial η² (η²<sub>p</sub>)
                 </Typography>
@@ -829,7 +833,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
   // Render Step 4: Other Effect Size Measures
   const renderStep4 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Other Effect Size Measures: r, w, h
       </Typography>
 
@@ -843,11 +847,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={4}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
                 Correlation Coefficient (r)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   r = Σ(x-x̄)(y-ȳ) / √[Σ(x-x̄)²·Σ(y-ȳ)²]
                 </Typography>
@@ -888,11 +892,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={4}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
                 Cohen's w (Chi-Square)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   w = √(χ²/N) = √[Σ(O-E)²/(E·N)]
                 </Typography>
@@ -932,11 +936,11 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         <Grid item xs={12} md={4}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#f44336' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.error.main }}>
                 Cohen's h (Proportions)
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#ffebee', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   h = 2·arcsin(√p₁) - 2·arcsin(√p₂)
                 </Typography>
@@ -981,7 +985,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
               <Typography sx={{ fontFamily: 'serif', fontSize: '1.2rem', textAlign: 'center', mb: 2 }}>
                 f² = R² / (1 - R²)
               </Typography>
@@ -1044,7 +1048,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
             For 2×2 contingency tables, the <strong>Odds Ratio (OR)</strong> is often used:
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
               OR = (a·d) / (b·c)
             </Typography>
@@ -1068,7 +1072,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
   // Render Step 5: Conversions and Determination
   const renderStep5 = () => (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ color: '#d32f2f', fontWeight: 600 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: theme.palette.error.dark, fontWeight: 600 }}>
         Effect Size Conversions & Determination
       </Typography>
 
@@ -1121,7 +1125,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                     endAdornment: <InputAdornment position="end">→ d = {rToD(inputR).toFixed(3)}</InputAdornment>
                   }}
                 />
-                <Paper sx={{ p: 2, mt: 2, bgcolor: '#f5f5f5' }}>
+                <Paper sx={{ p: 2, mt: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                   <Typography variant="caption">
                     <strong>Formulas:</strong><br/>
                     d = 2r / √(1 - r²)<br/>
@@ -1156,7 +1160,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                     endAdornment: <InputAdornment position="end">→ d = {eta2ToD(inputEta2).toFixed(3)}</InputAdornment>
                   }}
                 />
-                <Paper sx={{ p: 2, mt: 2, bgcolor: '#f5f5f5' }}>
+                <Paper sx={{ p: 2, mt: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                   <Typography variant="caption">
                     <strong>Formulas:</strong><br/>
                     d = 2√(η² / (1 - η²))<br/>
@@ -1200,7 +1204,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
             <List>
               <ListItem>
                 <ListItemIcon>
-                  <Chip label="1" size="small" sx={{ bgcolor: '#4caf50', color: 'white' }} />
+                  <Chip label="1" size="small" sx={{ bgcolor: theme.palette.success.main, color: 'white' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Prior Literature (Gold Standard)"
@@ -1209,7 +1213,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <Chip label="2" size="small" sx={{ bgcolor: '#2196f3', color: 'white' }} />
+                  <Chip label="2" size="small" sx={{ bgcolor: theme.palette.info.main, color: 'white' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Pilot Data"
@@ -1218,7 +1222,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <Chip label="3" size="small" sx={{ bgcolor: '#ff9800', color: 'white' }} />
+                  <Chip label="3" size="small" sx={{ bgcolor: theme.palette.warning.main, color: 'white' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="MCID / Smallest Effect of Interest"
@@ -1227,7 +1231,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <Chip label="4" size="small" sx={{ bgcolor: '#f44336', color: 'white' }} />
+                  <Chip label="4" size="small" sx={{ bgcolor: theme.palette.error.main, color: 'white' }} />
                 </ListItemIcon>
                 <ListItemText
                   primary="Cohen's Conventions (Last Resort)"
@@ -1239,9 +1243,9 @@ const Lesson05_EffectSize = ({ onComplete }) => {
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 3, bgcolor: '#fff3e0' }}>
+      <Paper sx={{ p: 3, mt: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
-          <Warning sx={{ mr: 1, verticalAlign: 'middle', color: '#ff9800' }} />
+          <Warning sx={{ mr: 1, verticalAlign: 'middle', color: theme.palette.warning.main }} />
           The Winner's Curse: Why Published Effect Sizes are Inflated
         </Typography>
 
@@ -1251,7 +1255,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff' }}>
+            <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Publication Bias
               </Typography>
@@ -1262,7 +1266,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff' }}>
+            <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Low-Powered Studies
               </Typography>
@@ -1273,7 +1277,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: '#fff' }}>
+            <Paper sx={{ p: 2, bgcolor: theme.palette.background.paper }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 p-Hacking
               </Typography>
@@ -1390,8 +1394,8 @@ const Lesson05_EffectSize = ({ onComplete }) => {
                 width: 12,
                 height: 12,
                 borderRadius: '50%',
-                bgcolor: index === activeStep ? '#d32f2f' :
-                         completedSteps.has(index) ? '#4caf50' : '#e0e0e0',
+                bgcolor: index === activeStep ? theme.palette.error.dark :
+                         completedSteps.has(index) ? theme.palette.success.main : theme.palette.divider,
                 cursor: 'pointer',
                 transition: 'all 0.3s',
               }}
@@ -1410,7 +1414,7 @@ const Lesson05_EffectSize = ({ onComplete }) => {
             }
           }}
           endIcon={activeStep === steps.length - 1 ? <CheckCircle /> : <NavigateNext />}
-          sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#b71c1c' } }}
+          sx={{ bgcolor: theme.palette.error.dark, '&:hover': { bgcolor: theme.palette.error.dark } }}
         >
           {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>
@@ -1424,19 +1428,19 @@ const Lesson05_EffectSize = ({ onComplete }) => {
           </Typography>
           <List dense>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Cohen's d for comparing means (with variants g, Δ, dz)" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Cohen's f and η² for ANOVA designs" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Other measures: r, w, h, f² for various test types" />
             </ListItem>
             <ListItem>
-              <ListItemIcon><CheckCircle sx={{ color: '#4caf50' }} /></ListItemIcon>
+              <ListItemIcon><CheckCircle sx={{ color: theme.palette.success.main }} /></ListItemIcon>
               <ListItemText primary="Effect size conversions and determination strategies" />
             </ListItem>
           </List>

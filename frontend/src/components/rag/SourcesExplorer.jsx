@@ -394,7 +394,7 @@ const SourcesExplorer = () => {
             Topic: {selectedDocument?.topic} | 
             Created: {selectedDocument?.created_at && new Date(selectedDocument.created_at).toLocaleDateString()}
           </Typography>
-          <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+          <Box sx={{ mt: 2, p: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100], borderRadius: 1 }}>
             <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
               {selectedDocument?.content}
             </pre>

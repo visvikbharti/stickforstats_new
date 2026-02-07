@@ -1225,6 +1225,7 @@ const ProbabilityCalculator = ({
   ];
   
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const calculationTypes = [
     { value: 'less_than', label: 'Less Than', description: 'P(X < value)', icon: '<' },
@@ -1245,8 +1246,10 @@ const ProbabilityCalculator = ({
             elevation={3} 
             sx={{ 
               borderRadius: 2,
-              background: 'linear-gradient(to bottom, #ffffff, #fcfcff)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              background: isDarkMode
+                ? `linear-gradient(to bottom, ${theme.palette.background.paper}, ${theme.palette.grey[900]})`
+                : 'linear-gradient(to bottom, #ffffff, #fcfcff)',
+              boxShadow: isDarkMode ? undefined : '0 4px 20px rgba(0,0,0,0.05)',
               position: 'relative',
               overflow: 'hidden',
               height: '100%'
@@ -1271,7 +1274,7 @@ const ProbabilityCalculator = ({
                   sx={{ 
                     p: 2, 
                     mb: 3, 
-                    backgroundColor: 'rgba(236, 239, 255, 0.5)',
+                    backgroundColor: isDarkMode ? theme.palette.action.hover : 'rgba(236, 239, 255, 0.5)',
                     borderRadius: 2
                   }}
                 >
@@ -1336,7 +1339,7 @@ const ProbabilityCalculator = ({
                     sx={{ 
                       p: 2, 
                       mb: 3, 
-                      backgroundColor: 'rgba(245, 247, 250, 0.7)',
+                      backgroundColor: isDarkMode ? theme.palette.action.hover : 'rgba(245, 247, 250, 0.7)',
                       borderRadius: 2,
                       borderLeft: '4px solid',
                       borderColor: 'primary.main'
@@ -1356,7 +1359,7 @@ const ProbabilityCalculator = ({
                       mt: 2, 
                       mb: 2,
                       borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(239, 83, 80, 0.15)'
+                      boxShadow: isDarkMode ? undefined : '0 2px 8px rgba(239, 83, 80, 0.15)'
                     }}
                     icon
                   >
@@ -1377,7 +1380,7 @@ const ProbabilityCalculator = ({
                       mt: 1,
                       py: 1.2,
                       borderRadius: 2,
-                      boxShadow: '0 4px 10px rgba(25, 118, 210, 0.3)'
+                      boxShadow: isDarkMode ? undefined : '0 4px 10px rgba(25, 118, 210, 0.3)'
                     }}
                   >
                     {loading ? 'Calculating...' : 'Calculate Probability'}
@@ -1401,8 +1404,10 @@ const ProbabilityCalculator = ({
                           p: 2, 
                           bgcolor: 'background.paper', 
                           borderRadius: 2,
-                          background: 'linear-gradient(135deg, #f5f7fa 0%, #f0f4fd 100%)',
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                          background: isDarkMode
+                            ? `linear-gradient(135deg, ${theme.palette.grey[800]} 0%, ${theme.palette.grey[900]} 100%)`
+                            : 'linear-gradient(135deg, #f5f7fa 0%, #f0f4fd 100%)',
+                          boxShadow: isDarkMode ? undefined : '0 4px 20px rgba(0,0,0,0.08)',
                           position: 'relative',
                           overflow: 'hidden'
                         }}
@@ -1413,7 +1418,9 @@ const ProbabilityCalculator = ({
                           right: 0, 
                           width: '120px', 
                           height: '120px', 
-                          background: 'radial-gradient(circle at top right, rgba(25, 118, 210, 0.1), transparent 70%)',
+                          background: isDarkMode
+                            ? 'radial-gradient(circle at top right, rgba(144, 202, 249, 0.08), transparent 70%)'
+                            : 'radial-gradient(circle at top right, rgba(25, 118, 210, 0.1), transparent 70%)',
                           borderRadius: '0 0 0 100%',
                           zIndex: 0
                         }} />
@@ -1520,7 +1527,7 @@ const ProbabilityCalculator = ({
                       border: '1px dashed',
                       borderColor: 'divider',
                       borderRadius: 2,
-                      bgcolor: 'rgba(245, 247, 250, 0.7)'
+                      bgcolor: isDarkMode ? theme.palette.action.hover : 'rgba(245, 247, 250, 0.7)'
                     }}
                   >
                     <Typography variant="body2" color="text.secondary">
@@ -1539,8 +1546,10 @@ const ProbabilityCalculator = ({
             sx={{ 
               height: '100%',
               borderRadius: 2,
-              background: 'linear-gradient(to bottom, #ffffff, #fcfcff)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              background: isDarkMode
+                ? `linear-gradient(to bottom, ${theme.palette.background.paper}, ${theme.palette.grey[900]})`
+                : 'linear-gradient(to bottom, #ffffff, #fcfcff)',
+              boxShadow: isDarkMode ? undefined : '0 4px 20px rgba(0,0,0,0.05)',
               position: 'relative',
               overflow: 'hidden'
             }}
@@ -1590,7 +1599,7 @@ const ProbabilityCalculator = ({
                     py: 4, 
                     px: 2, 
                     textAlign: 'center',
-                    backgroundColor: 'rgb(250, 250, 252)',
+                    backgroundColor: isDarkMode ? theme.palette.grey[800] : 'rgb(250, 250, 252)',
                     borderRadius: 2,
                     borderStyle: 'dashed'
                   }}
@@ -1606,7 +1615,7 @@ const ProbabilityCalculator = ({
                   sx={{ 
                     maxHeight: isMobile ? 300 : 400, 
                     overflow: 'auto',
-                    bgcolor: 'rgba(245, 247, 250, 0.5)',
+                    bgcolor: isDarkMode ? theme.palette.action.hover : 'rgba(245, 247, 250, 0.5)',
                     borderRadius: 2,
                     p: 1
                   }}
@@ -1653,7 +1662,7 @@ const ProbabilityCalculator = ({
                                   size="small" 
                                   onClick={() => handleApplyFromHistory(item)}
                                   color="primary"
-                                  sx={{ backgroundColor: 'rgba(25, 118, 210, 0.1)' }}
+                                  sx={{ backgroundColor: isDarkMode ? theme.palette.action.selected : 'rgba(25, 118, 210, 0.1)' }}
                                 >
                                   <VisibilityIcon fontSize="small" />
                                 </IconButton>
@@ -1677,7 +1686,7 @@ const ProbabilityCalculator = ({
                   sx={{ 
                     p: 2.5, 
                     borderRadius: 2, 
-                    backgroundColor: 'rgba(236, 239, 255, 0.3)' 
+                    backgroundColor: isDarkMode ? theme.palette.action.hover : 'rgba(236, 239, 255, 0.3)'
                   }}
                 >
                   <Typography variant="body2" paragraph>
@@ -1691,7 +1700,7 @@ const ProbabilityCalculator = ({
                           elevation={0} 
                           sx={{ 
                             p: 1.5, 
-                            bgcolor: 'white', 
+                            bgcolor: theme.palette.background.paper,
                             borderRadius: 2, 
                             height: '100%',
                             border: '1px solid',
@@ -1717,7 +1726,7 @@ const ProbabilityCalculator = ({
                     ))}
                   </Grid>
                   
-                  <Box sx={{ mt: 2, p: 1.5, bgcolor: 'rgba(25, 118, 210, 0.05)', borderRadius: 2 }}>
+                  <Box sx={{ mt: 2, p: 1.5, bgcolor: isDarkMode ? theme.palette.action.hover : 'rgba(25, 118, 210, 0.05)', borderRadius: 2 }}>
                     <Typography variant="body2" color="primary.dark" sx={{ fontStyle: 'italic' }}>
                       The visualizations help you see the probability areas directly on the distribution curve.
                     </Typography>

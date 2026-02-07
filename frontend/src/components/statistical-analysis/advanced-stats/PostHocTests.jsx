@@ -34,7 +34,8 @@ import {
   Divider,
   ToggleButton,
   ToggleButtonGroup,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -59,6 +60,8 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
  * Main Post-hoc Tests Component
  */
 const PostHocTests = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [groupVariable, setGroupVariable] = useState('');
   const [dependentVar, setDependentVar] = useState('');
   const [testMethod, setTestMethod] = useState('tukey');
@@ -442,7 +445,7 @@ const PostHocTests = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CalculateIcon /> Post-hoc Test Configuration
         </Typography>
 
@@ -550,7 +553,7 @@ const PostHocTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Group</strong></TableCell>
                     <TableCell align="right"><strong>n</strong></TableCell>
                     <TableCell align="right"><strong>Mean</strong></TableCell>
@@ -584,7 +587,7 @@ const PostHocTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Comparison</strong></TableCell>
                     <TableCell align="right"><strong>Mean Difference</strong></TableCell>
                     <TableCell align="right"><strong>SE</strong></TableCell>
@@ -595,7 +598,7 @@ const PostHocTests = ({ data }) => {
                 </TableHead>
                 <TableBody>
                   {pairwiseComparisons.map((comp, index) => (
-                    <TableRow key={index} sx={{ bgcolor: comp.significant ? '#ffebee' : 'white' }}>
+                    <TableRow key={index} sx={{ bgcolor: comp.significant ? (isDarkMode ? theme.palette.error.dark + '15' : theme.palette.error.light + '20') : 'transparent' }}>
                       <TableCell>{comp.group1} vs {comp.group2}</TableCell>
                       <TableCell align="right">{comp.meanDiff.toFixed(3)}</TableCell>
                       <TableCell align="right">{comp.seDiff.toFixed(3)}</TableCell>
@@ -651,8 +654,8 @@ const PostHocTests = ({ data }) => {
                   <YAxis label={{ value: dependentVar, angle: -90, position: 'insideLeft' }} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="mean" fill="#8884d8" name="Mean">
-                    <ErrorBar dataKey="se" width={4} strokeWidth={2} stroke="#000" />
+                  <Bar dataKey="mean" fill={theme.palette.primary.main} name="Mean">
+                    <ErrorBar dataKey="se" width={4} strokeWidth={2} stroke={theme.palette.text.primary} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -684,7 +687,7 @@ const PostHocTests = ({ data }) => {
 
       {/* Guardian Blocking Message */}
       {isTestBlocked && groupVariable && dependentVar && groupedData && (
-        <Paper elevation={2} sx={{ p: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
+        <Paper elevation={2} sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
           <Alert severity="error">
             <Typography variant="body1" gutterBottom>
               <strong>Post-hoc Test Blocked Due to Assumption Violations</strong>

@@ -63,8 +63,8 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
       PaperProps={{
         sx: {
           borderRadius: 3,
-          backgroundColor: '#fbfbff',
-          backgroundImage: 'radial-gradient(circle at top right, rgba(25, 118, 210, 0.03), transparent 70%)',
+          backgroundColor: theme.palette.background.paper,
+          backgroundImage: `radial-gradient(circle at top right, ${theme.palette.primary.main}08, transparent 70%)`,
           overflow: 'hidden'
         }
       }}
@@ -73,7 +73,7 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
         px: 3, 
         py: 2,
         backgroundColor: theme.palette.primary.main,
-        color: '#fff',
+        color: theme.palette.primary.contrastText,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -94,7 +94,7 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
         </IconButton>
       </DialogTitle>
       
-      <Box sx={{ px: 3, py: 2, backgroundColor: 'rgba(245, 247, 250, 0.7)' }}>
+      <Box sx={{ px: 3, py: 2, backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[900] : 'rgba(245, 247, 250, 0.7)' }}>
         <Stepper activeStep={activeStep} alternativeLabel={!isMobile}>
           {content.map((section, index) => (
             <Step key={index} completed={index < activeStep}>
@@ -124,7 +124,7 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
               sx={{ 
                 mb: 3, 
                 p: 2, 
-                backgroundColor: 'rgba(236, 239, 255, 0.3)',
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : 'rgba(236, 239, 255, 0.3)',
                 borderRadius: 2,
                 borderLeft: '4px solid',
                 borderColor: 'primary.main'
@@ -171,7 +171,7 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
               sx={{ 
                 p: 2, 
                 mb: 3, 
-                backgroundColor: 'rgba(251, 251, 255, 0.9)',
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : 'rgba(251, 251, 255, 0.9)',
                 borderRadius: 2
               }}
             >
@@ -193,7 +193,7 @@ const EducationalOverlay = ({ open, onClose, title, content, distribution }) => 
               sx={{ 
                 p: 2, 
                 mb: 2, 
-                backgroundColor: 'rgba(236, 239, 255, 0.4)',
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : 'rgba(236, 239, 255, 0.4)',
                 borderRadius: 2
               }}
             >

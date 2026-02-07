@@ -42,7 +42,8 @@ import {
   Tabs,
   Tab,
   Tooltip,
-  IconButton
+  IconButton,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -74,6 +75,8 @@ const CLUSTER_COLORS = [
 ];
 
 const Clustering = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   // Algorithm selection
   const [algorithm, setAlgorithm] = useState('kmeans');
 
@@ -839,11 +842,11 @@ const Clustering = ({ data }) => {
                 <Line
                   type="monotone"
                   dataKey="inertia"
-                  stroke="#1976d2"
+                  stroke={theme.palette.primary.main}
                   strokeWidth={2}
-                  dot={{ fill: '#1976d2', r: 5 }}
+                  dot={{ fill: theme.palette.primary.main, r: 5 }}
                 />
-                <ReferenceLine x={nClusters} stroke="#f57c00" strokeDasharray="5 5" label={{ value: `k=${nClusters}`, position: 'top' }} />
+                <ReferenceLine x={nClusters} stroke={theme.palette.warning.main} strokeDasharray="5 5" label={{ value: `k=${nClusters}`, position: 'top' }} />
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -863,10 +866,10 @@ const Clustering = ({ data }) => {
           {/* Summary Cards */}
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid item xs={6} md={3}>
-              <Card elevation={3} sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+              <Card elevation={3} sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">Clusters Found</Typography>
-                  <Typography variant="h3" sx={{ color: '#1976d2' }}>
+                  <Typography variant="h3" sx={{ color: theme.palette.primary.main }}>
                     {results.nClusters}
                   </Typography>
                   {results.nNoise > 0 && (
@@ -880,8 +883,8 @@ const Clustering = ({ data }) => {
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">Silhouette Score</Typography>
                   <Typography variant="h4" sx={{
-                    color: results.metrics.silhouette > 0.5 ? '#2e7d32' :
-                      results.metrics.silhouette > 0.25 ? '#f57c00' : '#d32f2f'
+                    color: results.metrics.silhouette > 0.5 ? theme.palette.success.main :
+                      results.metrics.silhouette > 0.25 ? theme.palette.warning.main : theme.palette.error.main
                   }}>
                     {isNaN(results.metrics.silhouette) ? 'N/A' : results.metrics.silhouette.toFixed(3)}
                   </Typography>
@@ -967,7 +970,7 @@ const Clustering = ({ data }) => {
                   <Scatter
                     name="Data Points"
                     data={results.plotData}
-                    fill="#1976d2"
+                    fill={theme.palette.primary.main}
                   >
                     {results.plotData.map((entry, index) => (
                       <Cell
@@ -1017,7 +1020,7 @@ const Clustering = ({ data }) => {
             <TableContainer sx={{ mt: 2 }}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Cluster</strong></TableCell>
                     <TableCell align="right"><strong>Size</strong></TableCell>
                     <TableCell align="right"><strong>Percentage</strong></TableCell>
@@ -1049,8 +1052,8 @@ const Clustering = ({ data }) => {
           </Paper>
 
           {/* Interpretation */}
-          <Paper elevation={2} sx={{ p: 3, bgcolor: '#e3f2fd' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+          <Paper elevation={2} sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
               Interpretation
             </Typography>
             <Typography variant="body2">
@@ -1069,7 +1072,7 @@ const Clustering = ({ data }) => {
 
       {/* Selection Prompt */}
       {selectedFeatures.length < 2 && (
-        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: '#fafafa' }}>
+        <Paper elevation={1} sx={{ p: 3, textAlign: 'center', bgcolor: theme.palette.grey[isDarkMode ? 800 : 50] }}>
           <Typography variant="body1" color="text.secondary">
             Select at least <strong>2 numeric features</strong> to begin clustering analysis.
           </Typography>

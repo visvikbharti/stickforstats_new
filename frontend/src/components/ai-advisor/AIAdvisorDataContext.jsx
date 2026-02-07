@@ -85,13 +85,13 @@ const getAssumptionIcon = (status) => {
     case 'met':
     case 'pass':
     case 'ok':
-      return <CheckIcon sx={{ fontSize: 16, color: '#4caf50' }} />;
+      return <CheckIcon sx={{ fontSize: 16, color: 'success.main' }} />;
     case 'warning':
     case 'marginal':
-      return <WarningIcon sx={{ fontSize: 16, color: '#ff9800' }} />;
+      return <WarningIcon sx={{ fontSize: 16, color: 'warning.main' }} />;
     case 'violated':
     case 'fail':
-      return <ErrorIcon sx={{ fontSize: 16, color: '#f44336' }} />;
+      return <ErrorIcon sx={{ fontSize: 16, color: 'error.main' }} />;
     default:
       return null;
   }
@@ -103,7 +103,7 @@ const AIAdvisorDataContext = ({
 }) => {
   if (!dataContext) {
     return (
-      <Box sx={{ p: 2, bgcolor: '#fff3e0' }}>
+      <Box sx={{ p: 2, bgcolor: 'warning.light' }}>
         <Alert severity="info" sx={{ mb: 0 }}>
           No data loaded. Upload a dataset to get personalized recommendations.
         </Alert>
@@ -121,7 +121,7 @@ const AIAdvisorDataContext = ({
   } = dataContext;
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
+    <Box sx={{ bgcolor: 'background.default', borderBottom: 1, borderColor: 'divider' }}>
       {/* Header */}
       <Box
         sx={{
@@ -130,7 +130,7 @@ const AIAdvisorDataContext = ({
           justifyContent: 'space-between',
           px: 2,
           py: 1,
-          bgcolor: '#e3f2fd',
+          bgcolor: 'primary.light',
         }}
       >
         <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

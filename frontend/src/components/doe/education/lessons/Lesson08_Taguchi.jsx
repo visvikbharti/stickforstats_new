@@ -22,6 +22,8 @@ import {
   Chip,
   Divider
 } from '@mui/material';
+import { useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MathJax } from 'better-react-mathjax';
 import SecurityIcon from '@mui/icons-material/Security';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -39,6 +41,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
  */
 
 const Lesson08_Taguchi = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [activeStep, setActiveStep] = useState(0);
   const [temp, setTemp] = useState(350);
   const [pressure, setPressure] = useState(60);
@@ -150,7 +154,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             The Quality Loss Function
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               Taguchi introduced the <strong>quadratic loss function</strong> to quantify the
               cost of deviation from target:
@@ -186,7 +190,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#e8f5e9' }}>
+              <Card variant="outlined" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="success.main" gutterBottom>
                     Taguchi View (Quadratic Loss)
@@ -370,7 +374,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             Why SNR Works
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Nominal-the-Best SNR Interpretation:</strong>
             </Typography>
@@ -407,15 +411,15 @@ const Lesson08_Taguchi = ({ onComplete }) => {
                   <TableCell>High humidity, Poor material</TableCell>
                   <TableCell>97.5</TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                   <TableCell><strong>Mean (ȳ)</strong></TableCell>
                   <TableCell><strong>98.6</strong></TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                   <TableCell><strong>Std Dev (s)</strong></TableCell>
                   <TableCell><strong>1.35</strong></TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                   <TableCell><strong>SNR (dB)</strong></TableCell>
                   <TableCell><strong>37.2 dB</strong></TableCell>
                 </TableRow>
@@ -432,7 +436,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             Two-Step Optimization
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa' }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
             <Typography variant="body2">
               Taguchi recommends a two-step approach:
             </Typography>
@@ -507,57 +511,57 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell rowSpan={2} sx={{ borderRight: '2px solid #1976d2' }}>
+                  <TableCell rowSpan={2} sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>
                     <strong>Run</strong>
                   </TableCell>
-                  <TableCell colSpan={2} align="center" sx={{ borderRight: '2px solid #1976d2', bgcolor: '#e3f2fd' }}>
+                  <TableCell colSpan={2} align="center" sx={{ borderRight: `2px solid ${theme.palette.primary.main}`, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                     <strong>Inner Array (Control)</strong>
                   </TableCell>
-                  <TableCell colSpan={3} align="center" sx={{ bgcolor: '#ffebee' }}>
+                  <TableCell colSpan={3} align="center" sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                     <strong>Outer Array (Noise)</strong>
                   </TableCell>
                   <TableCell rowSpan={2}><strong>SNR</strong></TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ bgcolor: '#e3f2fd' }}>Temp</TableCell>
-                  <TableCell sx={{ bgcolor: '#e3f2fd', borderRight: '2px solid #1976d2' }}>Press</TableCell>
-                  <TableCell sx={{ bgcolor: '#ffebee' }}>N1</TableCell>
-                  <TableCell sx={{ bgcolor: '#ffebee' }}>N2</TableCell>
-                  <TableCell sx={{ bgcolor: '#ffebee' }}>N3</TableCell>
+                  <TableCell sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>Temp</TableCell>
+                  <TableCell sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2), borderRight: `2px solid ${theme.palette.primary.main}` }}>Press</TableCell>
+                  <TableCell sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>N1</TableCell>
+                  <TableCell sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>N2</TableCell>
+                  <TableCell sx={{ bgcolor: alpha(theme.palette.error.light, 0.2) }}>N3</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>1</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>1</TableCell>
                   <TableCell>330</TableCell>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>50</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>50</TableCell>
                   <TableCell>95.2</TableCell>
                   <TableCell>96.8</TableCell>
                   <TableCell>94.5</TableCell>
                   <TableCell><strong>35.6</strong></TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>2</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>2</TableCell>
                   <TableCell>330</TableCell>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>70</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>70</TableCell>
                   <TableCell>97.1</TableCell>
                   <TableCell>98.3</TableCell>
                   <TableCell>96.9</TableCell>
                   <TableCell><strong>37.8</strong></TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>3</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>3</TableCell>
                   <TableCell>370</TableCell>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>50</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>50</TableCell>
                   <TableCell>102.5</TableCell>
                   <TableCell>103.1</TableCell>
                   <TableCell>102.8</TableCell>
                   <TableCell><strong>40.2</strong></TableCell>
                 </TableRow>
-                <TableRow sx={{ bgcolor: '#e8f5e9' }}>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>4</TableCell>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>4</TableCell>
                   <TableCell>370</TableCell>
-                  <TableCell sx={{ borderRight: '2px solid #1976d2' }}>70</TableCell>
+                  <TableCell sx={{ borderRight: `2px solid ${theme.palette.primary.main}` }}>70</TableCell>
                   <TableCell>105.8</TableCell>
                   <TableCell>106.2</TableCell>
                   <TableCell>106.0</TableCell>
@@ -571,7 +575,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             • Each inner array run is tested under all outer array noise conditions<br/>
             • For each run, calculate SNR from the 3 noise responses<br/>
             • Analyze SNR to find robust control settings<br/>
-            • <span style={{ color: '#4caf50', fontWeight: 'bold' }}>Run 4 (Temp=370°C, Press=70 psi)
+            • <span style={{ color: theme.palette.success.main, fontWeight: 'bold' }}>Run 4 (Temp=370°C, Press=70 psi)
             has highest SNR → most robust!</span>
           </Typography>
 
@@ -581,7 +585,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#e8f5e9' }}>
+              <Card variant="outlined" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="success.main" gutterBottom>
                     <strong>✓ Benefits</strong>
@@ -597,7 +601,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: '#fff3e0' }}>
+              <Card variant="outlined" sx={{ bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
                 <CardContent>
                   <Typography variant="subtitle2" color="warning.main" gutterBottom>
                     <strong>⚠ Limitations</strong>
@@ -636,7 +640,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Control Factors (You Set These)
                 </Typography>
@@ -677,7 +681,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Noise Factors (Uncontrollable)
                 </Typography>
@@ -718,7 +722,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </Grid>
           </Grid>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Robustness Analysis
             </Typography>
@@ -744,15 +748,15 @@ const Lesson08_Taguchi = ({ onComplete }) => {
                       <TableCell align="right">{snrAnalysis.responses[idx].toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
-                  <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                  <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                     <TableCell colSpan={3}><strong>Mean (ȳ)</strong></TableCell>
                     <TableCell align="right"><strong>{snrAnalysis.mean.toFixed(2)}</strong></TableCell>
                   </TableRow>
-                  <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                  <TableRow sx={{ bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
                     <TableCell colSpan={3}><strong>Std Dev (s)</strong></TableCell>
                     <TableCell align="right"><strong>{snrAnalysis.sd.toFixed(2)}</strong></TableCell>
                   </TableRow>
-                  <TableRow sx={{ bgcolor: '#e8f5e9' }}>
+                  <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                     <TableCell colSpan={3}><strong>SNR (dB)</strong></TableCell>
                     <TableCell align="right">
                       <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
@@ -765,7 +769,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </TableContainer>
           </Paper>
 
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Your Selected Noise Condition
             </Typography>
@@ -811,7 +815,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             Key Observation
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
             <Typography variant="body2">
               Notice how certain control factor combinations make the process <strong>less sensitive</strong>
               to humidity and material variation. This is the essence of robust design—finding
@@ -957,7 +961,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
                 <Typography variant="subtitle2" color="success.main" gutterBottom>
                   <strong>✓ Do This</strong>
                 </Typography>
@@ -972,7 +976,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2) }}>
                 <Typography variant="subtitle2" color="error.main" gutterBottom>
                   <strong>✗ Avoid This</strong>
                 </Typography>
@@ -991,7 +995,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             Modern Perspectives
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#fafafa', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], mb: 3 }}>
             <Typography variant="body2" gutterBottom>
               <strong>Taguchi's Legacy:</strong>
             </Typography>
@@ -1013,7 +1017,7 @@ const Lesson08_Taguchi = ({ onComplete }) => {
             Real-World Impact
           </Typography>
 
-          <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 3 }}>
+          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 3 }}>
             <Typography variant="body2">
               <strong>Case Study:</strong> A major automotive supplier used Taguchi methods to
               optimize a welding process. By identifying control factor settings that minimized
@@ -1048,9 +1052,9 @@ const Lesson08_Taguchi = ({ onComplete }) => {
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <SecurityIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <SecurityIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 2 }} />
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1976d2' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
               Robust Design & Taguchi Methods
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

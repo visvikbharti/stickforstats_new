@@ -7,7 +7,7 @@
 @import '../../styles/enterprise-design-system.scss';
 
 .data-input-panel {
-  background-color: white;
+  background-color: var(--bg-primary, $bg-primary);
   border: 1px solid $border-color-medium;
   border-radius: $border-radius-md;
   
@@ -73,7 +73,7 @@
         &.active {
           color: $primary-700;
           border-bottom-color: $primary-600;
-          background-color: white;
+          background-color: var(--bg-primary, $bg-primary);
         }
       }
     }

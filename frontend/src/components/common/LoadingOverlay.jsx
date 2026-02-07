@@ -141,7 +141,7 @@ const LoadingOverlay = ({
         open={open}
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: blur ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: blur ? 'rgba(0, 0, 0, 0.7)' : (theme) => theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: blur ? 'blur(4px)' : 'none',
         }}
       >
@@ -216,7 +216,7 @@ export const LoadingButton = ({ loading = false, children, ...props }) => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          backgroundColor="rgba(255, 255, 255, 0.7)"
+          sx={{ backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)' }}
           borderRadius="inherit"
         >
           <CircularProgress size={20} />
