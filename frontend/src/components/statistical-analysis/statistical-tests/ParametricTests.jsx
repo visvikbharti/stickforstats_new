@@ -29,8 +29,15 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   BarChart,
   Bar,
@@ -56,13 +63,17 @@ import {
 } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+import { useSettings } from '../../../context/SettingsContext';
 
 /**
  * Main Parametric Tests Component
  */
 const ParametricTests = ({ data }) => {
+  // Get Expert Mode setting from global context
+  const { expertMode, shouldBlockTest } = useSettings();
   const [testType, setTestType] = useState('');
   const [selectedColumn, setSelectedColumn] = useState('');
   const [selectedColumn2, setSelectedColumn2] = useState('');
@@ -75,6 +86,8 @@ const ParametricTests = ({ data }) => {
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState(null);
   const [isTestBlocked, setIsTestBlocked] = useState(false);
+  const [selectedAlternative, setSelectedAlternative] = useState(null);
+  const [showVisualEvidence, setShowVisualEvidence] = useState(false);
 
   /**
    * Detect column types
@@ -309,7 +322,9 @@ const ParametricTests = ({ data }) => {
         );
 
         setGuardianReport(report);
-        setIsTestBlocked(!report.can_proceed);
+        // In Expert Mode, don't block - only show warnings
+        // In normal mode, block if can_proceed is false
+        setIsTestBlocked(!expertMode && !report.can_proceed);
         setGuardianLoading(false);
 
       } catch (error) {
@@ -322,7 +337,65 @@ const ParametricTests = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [testType, columnData, columnData2, groupedData, alpha, data]);
+  }, [testType, columnData, columnData2, groupedData, alpha, data, expertMode]);
+
+  /**
+   * Handle alternative test selection from Guardian
+   */
+  const handleSelectAlternative = (alternativeTest) => {
+    console.log('[ParametricTests] Alternative test selected:', alternativeTest);
+    setSelectedAlternative(alternativeTest);
+
+    // Map alternative test names to user-friendly display
+    const testDisplayNames = {
+      'bootstrap': 'Bootstrap Test',
+      'permutation_test': 'Permutation Test',
+      'mann_whitney': 'Mann-Whitney U Test',
+      'wilcoxon': 'Wilcoxon Signed-Rank Test',
+      'kruskal_wallis': 'Kruskal-Wallis H Test',
+      'friedman': 'Friedman Test'
+    };
+
+    const displayName = testDisplayNames[alternativeTest] || alternativeTest.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    // Alert user about the alternative test recommendation
+    alert(`Alternative Test Selected: ${displayName}\n\nTo use this non-parametric alternative:\n1. Navigate to "Non-Parametric Tests" in the Statistical Analysis module\n2. Select "${displayName}" from the available tests\n3. Use the same data columns for analysis\n\nNon-parametric tests don't assume normal distribution and are robust to violations detected by Guardian.`);
+  };
+
+  /**
+   * Handle visual evidence viewing from Guardian
+   * Opens a modal with diagnostic plots
+   */
+  const handleViewEvidence = (evidence) => {
+    console.log('[ParametricTests] View evidence requested:', evidence);
+    setShowVisualEvidence(true);
+  };
+
+  /**
+   * Close visual evidence dialog
+   */
+  const handleCloseVisualEvidence = () => {
+    setShowVisualEvidence(false);
+  };
+
+  /**
+   * Prepare data for VisualEvidence component
+   */
+  const visualEvidenceData = useMemo(() => {
+    if (!data || data.length === 0) return null;
+
+    // Get numeric columns from data
+    const columns = Object.keys(data[0]);
+    const numericColumns = columns.filter(col => {
+      const values = data.map(row => parseFloat(row[col]));
+      return values.some(v => !isNaN(v));
+    });
+
+    return {
+      data: data,
+      columns: numericColumns
+    };
+  }, [data]);
 
   /**
    * Render data requirement message
@@ -556,6 +629,13 @@ const ParametricTests = ({ data }) => {
           guardianReport={guardianReport}
           data={columnData}
           alpha={alpha}
+          onProceed={() => {
+            console.log('[ParametricTests] User chose to proceed despite warnings');
+            setIsTestBlocked(false);
+          }}
+          onSelectAlternative={handleSelectAlternative}
+          onViewEvidence={handleViewEvidence}
+          educationalMode={true}
         />
       )}
 
@@ -1142,6 +1222,58 @@ const ParametricTests = ({ data }) => {
           </Typography>
         </Alert>
       )}
+
+      {/* Visual Evidence Dialog */}
+      <Dialog
+        open={showVisualEvidence}
+        onClose={handleCloseVisualEvidence}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '70vh',
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText'
+        }}>
+          <Typography variant="h6">
+            📊 Visual Evidence - Assumption Diagnostics
+          </Typography>
+          <IconButton
+            onClick={handleCloseVisualEvidence}
+            sx={{ color: 'inherit' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {visualEvidenceData ? (
+            <VisualEvidence
+              data={visualEvidenceData}
+              testType={testType}
+              guardianReport={guardianReport}
+            />
+          ) : (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="body2">
+                No data available for visualization. Please upload data and select a test type first.
+              </Typography>
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: 'grey.100' }}>
+          <Button onClick={handleCloseVisualEvidence} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

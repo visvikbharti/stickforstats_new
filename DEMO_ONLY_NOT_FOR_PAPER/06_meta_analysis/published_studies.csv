@@ -1,0 +1,16 @@
+study_id,author,year,n_treatment,n_control,mean_treatment,mean_control,sd_treatment,sd_control,effect_size_d,se_d,country,quality_score
+1,Smith et al.,2018,45,42,24.5,28.2,4.8,5.1,0.75,0.22,USA,8
+2,Johnson & Lee,2019,62,58,23.8,27.9,5.2,4.9,0.81,0.19,UK,9
+3,Chen et al.,2017,38,35,25.1,28.8,4.5,4.7,0.80,0.24,China,7
+4,Mueller,2020,85,80,24.2,27.5,5.0,5.3,0.64,0.16,Germany,9
+5,Tanaka et al.,2019,52,48,23.5,28.1,4.9,5.0,0.93,0.21,Japan,8
+6,Brown & Davis,2018,40,38,24.8,27.8,5.1,4.8,0.61,0.23,Canada,7
+7,Kim et al.,2021,70,68,24.0,27.2,4.7,5.2,0.65,0.17,Korea,9
+8,Garcia,2017,35,32,25.5,29.0,4.6,4.9,0.74,0.25,Spain,6
+9,Wilson et al.,2020,55,52,23.9,27.6,5.3,5.1,0.71,0.20,Australia,8
+10,Patel & Singh,2019,48,45,24.3,28.0,4.8,5.0,0.76,0.22,India,7
+11,Anderson,2021,90,88,24.1,27.0,5.0,4.9,0.59,0.15,Sweden,9
+12,Martinez et al.,2018,42,40,25.0,28.5,4.7,5.2,0.71,0.23,Mexico,7
+13,Thompson,2020,65,62,23.7,27.3,5.1,4.8,0.73,0.18,UK,8
+14,Yamamoto,2019,50,47,24.6,28.2,4.9,5.1,0.72,0.21,Japan,8
+15,Fischer et al.,2021,75,72,24.0,27.1,4.8,5.0,0.63,0.17,Germany,9
