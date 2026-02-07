@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickForStats v1.0 - Lab Meeting | February 2026</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/black.css" id="theme">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --primary-blue: #0066FF;
+            --primary-teal: #00D4FF;
+            --success-green: #10B981;
+            --error-red: #EF4444;
+            --warning-orange: #F59E0B;
+            --accent-purple: #7C3AED;
+            --gold: #F59E0B;
+        }
+
+        .reveal {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 32px;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            text-transform: none;
+        }
+
+        .reveal h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+        }
+
+        .reveal h2 {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            color: #FFFFFF;
+        }
+
+        .reveal h3 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #A1A1AA;
+        }
+
+        .reveal section {
+            text-align: left;
+        }
+
+        .reveal .title-slide {
+            text-align: center;
+        }
+
+        .reveal p, .reveal li {
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #A1A1AA;
+        }
+
+        .logo {
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #999;
+            margin: 20px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .badge-success { background: var(--success-green); color: white; }
+        .badge-primary { background: var(--primary-blue); color: white; }
+        .badge-warning { background: var(--warning-orange); color: white; }
+        .badge-purple { background: var(--accent-purple); color: white; }
+        .badge-gold { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; }
+
+        .feature-box {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #0055b3 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, var(--success-green) 0%, #059669 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, var(--error-red) 0%, #dc2626 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .purple-box {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #6d28d9 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .teal-box {
+            background: linear-gradient(135deg, var(--primary-teal) 0%, #0891b2 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .orange-box {
+            background: linear-gradient(135deg, var(--warning-orange) 0%, #d97706 100%);
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .highlight-box {
+            background: rgba(0, 102, 255, 0.15);
+            border: 2px solid var(--primary-blue);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stats-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 25px 15px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.85em;
+            color: var(--primary-teal);
+        }
+
+        .stat-card .value {
+            font-size: 2.8em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--success-green), var(--primary-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card p {
+            font-size: 0.7em;
+            margin: 10px 0 0 0;
+            color: #888;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.7em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .comparison-table thead {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+            color: white;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 14px;
+            border: 1px solid #444;
+            text-align: center;
+        }
+
+        .comparison-table tbody tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .checkmark { color: var(--success-green); font-weight: bold; font-size: 1.3em; }
+        .xmark { color: var(--error-red); font-weight: bold; font-size: 1.3em; }
+
+        .demo-section {
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-purple) 100%);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-section h2 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 0.85em;
+        }
+
+        .flow-step {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 1.5em;
+            color: var(--primary-teal);
+        }
+
+        .quote-box {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 5px solid var(--primary-blue);
+            padding: 25px 30px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            font-size: 1.1em;
+            color: white;
+        }
+
+        .validator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .validator-item {
+            background: linear-gradient(135deg, rgba(0,102,255,0.3), rgba(0,212,255,0.2));
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-teal);
+        }
+
+        .validator-item strong {
+            color: white;
+            font-size: 1em;
+        }
+
+        .validator-item span {
+            color: #A1A1AA;
+            font-size: 0.85em;
+        }
+
+        .precision-table {
+            width: 100%;
+            margin: 20px 0;
+            font-size: 0.75em;
+        }
+
+        .precision-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .precision-table td:first-child {
+            color: #A1A1AA;
+        }
+
+        .precision-table td:last-child {
+            color: var(--success-green);
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .module-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border-top: 3px solid var(--primary-blue);
+        }
+
+        .module-card h4 {
+            color: white;
+            margin: 0 0 10px 0;
+            font-size: 1em;
+        }
+
+        .module-card p {
+            margin: 0;
+            font-size: 0.75em;
+        }
+
+        .icon-large {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .citation-footer {
+            font-size: 0.6em;
+            color: #666;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide 1: Title -->
+            <section class="title-slide">
+                <div class="logo">StickForStats</div>
+                <h2 style="color: white; font-size: 1.4em;">Mandatory Statistical Assumption Validation<br>for Reproducible Science</h2>
+                <div class="subtitle">Lab Meeting | February 2026</div>
+                <hr style="border-color: var(--primary-blue); width: 50%; margin: 30px auto;">
+                <div style="margin-top: 30px;">
+                    <span class="badge badge-gold">JSS Submission Ready</span>
+                    <span class="badge badge-success">8 Validators</span>
+                    <span class="badge badge-primary">86 Modules</span>
+                    <span class="badge badge-purple">58 Lessons</span>
+                </div>
+            </section>
+
+            <!-- Slide 2: The Design Contract -->
+            <section class="title-slide">
+                <h2 style="color: #666; font-size: 1em; margin-bottom: 40px;">THE CORE PRINCIPLE</h2>
+                <div class="quote-box" style="max-width: 900px; margin: 0 auto; font-size: 1.3em; font-style: normal;">
+                    "No statistical result may exist without an explicit, traceable assumption context."
+                </div>
+                <p style="margin-top: 40px; font-size: 0.9em; color: #888;">
+                    — The StickForStats Design Contract
+                </p>
+            </section>
+
+            <!-- Slide 3: The Problem -->
+            <section>
+                <h2>The Reproducibility Crisis</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-left-color: var(--error-red);">
+                        <h3 style="color: var(--error-red);">Failed Replication</h3>
+                        <div class="value" style="background: linear-gradient(135deg, var(--error-red), #f87171); -webkit-background-clip: text;">70%</div>
+                        <p>of researchers</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--error-red);">
+                        <h3 style="color: var(--error-red);">Own Work</h3>
+                        <div class="value" style="background: linear-gradient(135deg, var(--error-red), #f87171); -webkit-background-clip: text;">50%</div>
+                        <p>failed to reproduce</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--warning-orange);">
+                        <h3 style="color: var(--warning-orange);">Root Cause</h3>
+                        <div class="value" style="background: linear-gradient(135deg, var(--warning-orange), #fbbf24); -webkit-background-clip: text;">50%</div>
+                        <p>poor statistics</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: var(--error-red);">
+                        <h3 style="color: var(--error-red);">Validation</h3>
+                        <div class="value" style="background: linear-gradient(135deg, var(--error-red), #f87171); -webkit-background-clip: text; font-size: 1.8em;">OPTIONAL</div>
+                        <p>in current tools</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box" style="text-align: center;">
+                    <strong style="color: var(--primary-blue); font-size: 1.1em;">The Problem:</strong>
+                    <span style="color: white;"> SPSS, R, GraphPad have assumption tests — but they're <strong style="color: var(--error-red);">optional and passive</strong></span>
+                </div>
+
+                <p class="citation-footer">Baker, Nature 2016 • Ioannidis, 2005 • Nosek et al.</p>
+            </section>
+
+            <!-- Slide 4: Solution Comparison -->
+            <section>
+                <h2>Our Solution: The Guardian System</h2>
+
+                <div class="two-column">
+                    <div class="warning-box" style="padding: 25px;">
+                        <h3 style="color: white; text-align: center; margin-bottom: 20px;">❌ Traditional Tools</h3>
+                        <div style="text-align: center; font-size: 1em; line-height: 2.2; color: white;">
+                            Upload Data<br>
+                            <span style="font-size: 1.5em;">↓</span><br>
+                            Select ANY Test<br>
+                            <span style="font-size: 1.5em;">↓</span><br>
+                            Run Test<br>
+                            <span style="font-size: 1.5em;">↓</span><br>
+                            <strong>Results (May be invalid)</strong>
+                        </div>
+                    </div>
+
+                    <div class="success-box" style="padding: 25px;">
+                        <h3 style="color: white; text-align: center; margin-bottom: 20px;">✅ StickForStats + Guardian</h3>
+                        <div style="text-align: center; font-size: 1em; line-height: 2.2; color: white;">
+                            Upload Data<br>
+                            <span style="font-size: 1.5em;">↓</span><br>
+                            <strong>Guardian Validates First</strong><br>
+                            <span style="font-size: 1.5em;">↓</span><br>
+                            Valid → Proceed ✓<br>
+                            Violated → <strong>BLOCK + Alternatives</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Platform Stats -->
+            <section>
+                <h2>Platform at a Glance</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Backend</h3>
+                        <div class="value">86</div>
+                        <p>Python Modules</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Frontend</h3>
+                        <div class="value">633</div>
+                        <p>React Components</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Education</h3>
+                        <div class="value">58</div>
+                        <p>Interactive Lessons</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Precision</h3>
+                        <div class="value">50</div>
+                        <p>Decimal Places</p>
+                    </div>
+                </div>
+
+                <div class="success-box" style="text-align: center;">
+                    <strong style="font-size: 1.1em;">First platform combining: Statistical Analysis + Mandatory Validation + Integrated Education + AI Guidance</strong>
+                </div>
+            </section>
+
+            <!-- Slide 6: 8 Validators -->
+            <section>
+                <h2>The 8 Guardian Validators</h2>
+
+                <div class="validator-grid">
+                    <div class="validator-item">
+                        <strong>1. Normality</strong><br>
+                        <span>Shapiro-Wilk • Anderson-Darling</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>2. Variance Homogeneity</strong><br>
+                        <span>Levene's test • Bartlett's test</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>3. Independence</strong><br>
+                        <span>Autocorrelation • Durbin-Watson</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>4. Outliers</strong><br>
+                        <span>IQR method • Z-score detection</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>5. Sample Size</strong><br>
+                        <span>Evidence-based thresholds</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>6. Modality</strong><br>
+                        <span>KDE peak detection</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>7. Linearity</strong><br>
+                        <span>Residual analysis • Runs test</span>
+                    </div>
+                    <div class="validator-item">
+                        <strong>8. Homoscedasticity</strong><br>
+                        <span>Breusch-Pagan • White test</span>
+                    </div>
+                </div>
+
+                <div class="highlight-box" style="text-align: center;">
+                    All validators tested against R packages • Peer-reviewed methodologies
+                </div>
+            </section>
+
+            <!-- Slide 7: DEMO 1 -->
+            <section>
+                <div class="demo-section">
+                    <div class="demo-badge">🖥️ LIVE DEMO 1</div>
+                    <h2>T-Test with Guardian Validation</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 25px 0;">
+                        Watch Guardian automatically validate assumptions<br>
+                        before showing any statistical results
+                    </p>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 30px;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Navigate:</strong> T-Test Module
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Data:</strong> Anxiety Scores
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Show:</strong> Guardian Report
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Advanced Methods -->
+            <section>
+                <h2>Advanced Statistical Methods</h2>
+
+                <div class="three-column" style="font-size: 0.85em;">
+                    <div class="purple-box" style="padding: 18px;">
+                        <h3 style="color: white; margin: 0 0 12px 0;">🎲 Bayesian Statistics</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            JZS t-tests • ANOVA<br>
+                            Bayes Factors • HDI<br>
+                            <em style="font-size: 0.85em;">Rouder et al. 2009</em>
+                        </p>
+                    </div>
+                    <div class="teal-box" style="padding: 18px;">
+                        <h3 style="color: white; margin: 0 0 12px 0;">🔗 Causal Inference</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            DAG Builder • ATE/ATT<br>
+                            Propensity Scores<br>
+                            Mediation • DiD
+                        </p>
+                    </div>
+                    <div class="orange-box" style="padding: 18px;">
+                        <h3 style="color: white; margin: 0 0 12px 0;">📊 Mixed Models</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            LMM • ICC (6 types)<br>
+                            Random Effects<br>
+                            Model Comparison
+                        </p>
+                    </div>
+                </div>
+
+                <div class="three-column" style="font-size: 0.85em; margin-top: 15px;">
+                    <div class="feature-box" style="padding: 18px;">
+                        <h3 style="color: white; margin: 0 0 12px 0;">📈 Meta-Analysis</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            Forest Plots • Funnel Plots<br>
+                            Heterogeneity (I²)
+                        </p>
+                    </div>
+                    <div class="success-box" style="padding: 18px;">
+                        <h3 style="color: white; margin: 0 0 12px 0;">📉 P-Curve</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            Evidential Value<br>
+                            <em style="font-size: 0.85em;">Simonsohn et al. 2014</em>
+                        </p>
+                    </div>
+                    <div class="warning-box" style="padding: 18px; background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <h3 style="color: white; margin: 0 0 12px 0;">⚡ Power Analysis</h3>
+                        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9em;">
+                            All test types<br>
+                            Sample size planning
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 9: Numerical Precision -->
+            <section>
+                <h2>50-Decimal Precision Computing</h2>
+
+                <div class="two-column">
+                    <div>
+                        <h3 style="color: var(--primary-teal);">Validation Against References</h3>
+                        <table class="precision-table">
+                            <tr>
+                                <td>T-test statistic</td>
+                                <td>16 decimal match ✓</td>
+                            </tr>
+                            <tr>
+                                <td>ANOVA F-statistic</td>
+                                <td>14 decimal match ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Correlation r</td>
+                                <td>16 decimal match ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Power analysis</td>
+                                <td>Within 5% of G*Power ✓</td>
+                            </tr>
+                            <tr>
+                                <td>Effect sizes</td>
+                                <td>±0.05 vs R effectsize ✓</td>
+                            </tr>
+                            <tr>
+                                <td>ICC</td>
+                                <td>Exact match vs R psych ✓</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div>
+                        <div class="success-box" style="margin-bottom: 15px;">
+                            <h3 style="color: white; margin: 0 0 10px 0;">80+ Test Files</h3>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0;">400+ test methods validating every statistical computation</p>
+                        </div>
+                        <div class="feature-box">
+                            <h3 style="color: white; margin: 0 0 10px 0;">Reference Standards</h3>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0;">scipy.stats • statsmodels • G*Power 3.1.9.7 • R packages</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 10: DEMO 2 -->
+            <section>
+                <div class="demo-section" style="background: linear-gradient(135deg, #059669, var(--primary-teal));">
+                    <div class="demo-badge">🖥️ LIVE DEMO 2</div>
+                    <h2>Causal Inference DAG Builder</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 25px 0;">
+                        Interactive DAG construction with Pearl's d-separation<br>
+                        Automatic adjustment set identification
+                    </p>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 30px;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Build:</strong> Treatment → Outcome
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Add:</strong> Confounder
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Analyze:</strong> Adjustment Sets
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 11: Educational Platform -->
+            <section>
+                <h2>58 Interactive Educational Lessons</h2>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <h3>PCA</h3>
+                        <div class="value">10</div>
+                        <p>Lessons</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Power Analysis</h3>
+                        <div class="value">11</div>
+                        <p>Lessons</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Biophysics</h3>
+                        <div class="value">9</div>
+                        <p>Lessons</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>CI</h3>
+                        <div class="value">8</div>
+                        <p>Lessons</p>
+                    </div>
+                </div>
+
+                <div class="two-column" style="font-size: 0.85em;">
+                    <div class="feature-box" style="padding: 18px;">
+                        <strong>Interactive Features:</strong>
+                        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">
+                            D3.js visualizations • MathJax formulas<br>
+                            Real-time computation • Progress tracking
+                        </p>
+                    </div>
+                    <div class="purple-box" style="padding: 18px;">
+                        <strong>Additional Modules:</strong>
+                        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">
+                            DOE (8) • Probability (6) • SQC (6)<br>
+                            All beginner → advanced progression
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 12: DEMO 3 -->
+            <section>
+                <div class="demo-section" style="background: linear-gradient(135deg, var(--accent-purple), #c026d3);">
+                    <div class="demo-badge">🖥️ LIVE DEMO 3</div>
+                    <h2>PCA Interactive Learning</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 25px 0;">
+                        Drag data points → Watch eigenvalues recalculate<br>
+                        Real math, not animation tricks
+                    </p>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 30px;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Lesson:</strong> Eigendecomposition
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Interact:</strong> Drag Points
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Watch:</strong> Real-time Math
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 13: AI Advisor -->
+            <section>
+                <h2>AI-Powered Statistical Advisor</h2>
+
+                <div class="two-column">
+                    <div>
+                        <div class="feature-box" style="margin-bottom: 15px;">
+                            <h3 style="color: white; margin: 0 0 12px 0;">🤖 Claude Integration</h3>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0;">
+                                Real AI guidance, not canned responses<br>
+                                Temperature 0.3 for accuracy
+                            </p>
+                        </div>
+                        <div class="success-box" style="margin-bottom: 15px;">
+                            <h3 style="color: white; margin: 0 0 12px 0;">📝 APA Generation</h3>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0;">
+                                Methods sections in APA 7th edition<br>
+                                Copy-paste into manuscripts
+                            </p>
+                        </div>
+                        <div class="purple-box">
+                            <h3 style="color: white; margin: 0 0 12px 0;">🛡️ Scientific Integrity</h3>
+                            <p style="color: rgba(255,255,255,0.9); margin: 0;">
+                                Warns against p-hacking & HARKing<br>
+                                Cites established benchmarks
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--primary-teal);">Capabilities</h3>
+                        <ul style="line-height: 2;">
+                            <li style="color: white;">Test recommendation</li>
+                            <li style="color: white;">Result interpretation</li>
+                            <li style="color: white;">Assumption guidance</li>
+                            <li style="color: white;">13 intent types recognized</li>
+                            <li style="color: white;">12 analysis patterns</li>
+                            <li style="color: white;">Multi-step query parsing</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 14: DEMO 4 -->
+            <section>
+                <div class="demo-section" style="background: linear-gradient(135deg, #f59e0b, #ea580c);">
+                    <div class="demo-badge">🖥️ LIVE DEMO 4</div>
+                    <h2>AI Statistical Advisor</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 25px 0;">
+                        Ask questions in natural language<br>
+                        Get expert statistical guidance
+                    </p>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 30px;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Ask:</strong> "What test for comparing groups?"
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 10px;">
+                            <strong>Request:</strong> "Generate methods section"
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 15: Comparison Table -->
+            <section>
+                <h2>StickForStats vs. Existing Tools</h2>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Feature</th>
+                            <th>SPSS</th>
+                            <th>R</th>
+                            <th>GraphPad</th>
+                            <th style="background: var(--success-green);">StickForStats</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>Assumption Validation</strong></td>
+                            <td><span class="xmark">✗</span> Optional</td>
+                            <td><span class="xmark">✗</span> Optional</td>
+                            <td><span class="xmark">✗</span> Optional</td>
+                            <td><span class="checkmark">✓</span> <strong>Mandatory</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>Test Blocking</strong></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="checkmark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>Alternative Suggestions</strong></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="checkmark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>Confidence Score</strong></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="checkmark">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>Integrated Education</strong></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td>Some</td>
+                            <td>Limited</td>
+                            <td><span class="checkmark">✓</span> 58 lessons</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; color: white;"><strong>AI Guidance</strong></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="xmark">✗</span></td>
+                            <td><span class="checkmark">✓</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Slide 16: DEMO 5 -->
+            <section>
+                <div class="demo-section" style="background: linear-gradient(135deg, #dc2626, #9333ea);">
+                    <div class="demo-badge">🖥️ LIVE DEMO 5</div>
+                    <h2>Complete Analysis Workflow</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9em; margin: 25px 0;">
+                        End-to-end analysis with Guardian protection<br>
+                        See blocking, alternatives, and reproducibility export
+                    </p>
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px; flex-wrap: wrap;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 20px; border-radius: 10px;">
+                            1. Upload data with outlier
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 20px; border-radius: 10px;">
+                            2. Guardian WARNING
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 20px; border-radius: 10px;">
+                            3. Run alternative
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 20px; border-radius: 10px;">
+                            4. Export report
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 17: JSS Status -->
+            <section>
+                <h2>JSS Submission Status</h2>
+
+                <div class="success-box" style="text-align: center; margin-bottom: 25px;">
+                    <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.3em;">✅ MANUSCRIPT READY</h3>
+                    <p style="color: rgba(255,255,255,0.9); margin: 0;">Journal of Statistical Software</p>
+                </div>
+
+                <div class="two-column">
+                    <div>
+                        <h3 style="color: var(--success-green);">Verified Claims</h3>
+                        <ul style="line-height: 1.8;">
+                            <li style="color: white;">✓ 8 Guardian validators</li>
+                            <li style="color: white;">✓ 50-decimal precision</li>
+                            <li style="color: white;">✓ 58 educational lessons</li>
+                            <li style="color: white;">✓ 14+ decimal validation</li>
+                            <li style="color: white;">✓ Bayesian, Causal, Mixed Models</li>
+                            <li style="color: white;">✓ AI Advisor integration</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--warning-orange);">Minor Corrections</h3>
+                        <ul style="line-height: 1.8;">
+                            <li style="color: #A1A1AA;">Code export: Python only (R pending)</li>
+                            <li style="color: #A1A1AA;">Updated lesson count to 58</li>
+                        </ul>
+                        <div class="highlight-box" style="margin-top: 20px;">
+                            <strong style="color: var(--primary-blue);">Everything demonstrated today is REAL</strong>
+                            <p style="margin: 5px 0 0 0; color: white;">No demo-only features</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 18: Future -->
+            <section>
+                <h2>Roadmap</h2>
+
+                <div class="three-column" style="font-size: 0.85em;">
+                    <div class="feature-box" style="padding: 20px;">
+                        <h3 style="color: white; margin: 0 0 15px 0;">🎯 3 Months</h3>
+                        <ul style="color: rgba(255,255,255,0.9); line-height: 1.8; padding-left: 20px; margin: 0;">
+                            <li>R code export</li>
+                            <li>Additional Bayesian</li>
+                            <li>Instrumental variables</li>
+                        </ul>
+                    </div>
+                    <div class="purple-box" style="padding: 20px;">
+                        <h3 style="color: white; margin: 0 0 15px 0;">📅 6-12 Months</h3>
+                        <ul style="color: rgba(255,255,255,0.9); line-height: 1.8; padding-left: 20px; margin: 0;">
+                            <li>SEM GUI</li>
+                            <li>Multi-level mediation</li>
+                            <li>Collaborative features</li>
+                        </ul>
+                    </div>
+                    <div class="teal-box" style="padding: 20px;">
+                        <h3 style="color: white; margin: 0 0 15px 0;">🚀 Long-term</h3>
+                        <ul style="color: rgba(255,255,255,0.9); line-height: 1.8; padding-left: 20px; margin: 0;">
+                            <li>OSF integration</li>
+                            <li>Auto meta-analysis</li>
+                            <li>Mobile companion</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 19: Key Takeaway -->
+            <section class="title-slide">
+                <h2 style="color: #666; font-size: 1em; margin-bottom: 30px;">KEY TAKEAWAY</h2>
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <div class="quote-box" style="font-size: 1.2em; font-style: normal; padding: 35px;">
+                        Everything you've seen today is <strong style="color: var(--success-green);">REAL, production code</strong>.<br><br>
+                        Nothing is demo-only.<br><br>
+                        Every feature is exactly what will be published in JSS and available to researchers.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 20: Questions -->
+            <section class="title-slide">
+                <h1>Questions & Discussion</h1>
+
+                <div style="text-align: left; display: inline-block; font-size: 0.85em; margin: 30px 0;">
+                    <strong style="color: var(--primary-teal);">Discussion Topics:</strong>
+                    <ul style="line-height: 2; margin-top: 15px;">
+                        <li style="color: white;">Guardian strictness: Should critical violations always block?</li>
+                        <li style="color: white;">Educational integration: Learning vs. speed trade-off?</li>
+                        <li style="color: white;">AI guidance: How much assistance is appropriate?</li>
+                        <li style="color: white;">Reproducibility: What else should the bundle capture?</li>
+                    </ul>
+                </div>
+
+                <hr style="border-color: var(--primary-blue); width: 50%; margin: 35px auto;">
+
+                <div style="margin-top: 30px;">
+                    <span class="badge badge-success">Demo: localhost:3000</span>
+                    <span class="badge badge-primary">JSS Ready</span>
+                </div>
+
+                <p style="margin-top: 40px; font-size: 1.1em; color: var(--success-green);">
+                    <strong>Thank you!</strong>
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/zoom/zoom.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            center: true,
+            width: 1280,
+            height: 720,
+            margin: 0.05,
+            transition: 'slide',
+            transitionSpeed: 'default',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            slideNumber: 'c/t',
+            showSlideNumber: 'all',
+            keyboard: true,
+            overview: true,
+            touch: true,
+            loop: false,
+            plugins: [ RevealNotes, RevealZoom ]
+        });
+
+        // Blank screen shortcut (press B)
+        Reveal.addKeyBinding({keyCode: 66, key: 'B', description: 'Blank screen'}, () => {
+            document.querySelector('.reveal').style.opacity =
+                document.querySelector('.reveal').style.opacity === '0' ? '1' : '0';
+        });
+    </script>
+</body>
+</html>

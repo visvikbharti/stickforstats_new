@@ -14,7 +14,7 @@ import {
   setCorrectionMethod,
   setAlphaLevel,
   applyCorrection,
-  exportCorrectionReport
+  exportRegistry
 } from '../../store/slices/multiplicityCorrectionSlice';
 import './MultiplicityCorrectionPanel.scss';
 
@@ -189,12 +189,8 @@ const MultiplicityCorrectionPanel = () => {
   
   // Export report
   const handleExport = useCallback(() => {
-    dispatch(exportCorrectionReport({
-      format: exportFormat,
-      includeDecisions: true,
-      includeRationale: true
-    }));
-  }, [dispatch, exportFormat]);
+    dispatch(exportRegistry());
+  }, [dispatch]);
   
   return (
     <div className="multiplicity-correction-panel">
