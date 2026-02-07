@@ -343,3 +343,301 @@ class ErrorResponseSerializer(serializers.Serializer):
     code = serializers.CharField(required=False)
     timestamp = serializers.DateTimeField()
     request_id = serializers.CharField(required=False)
+
+
+# Bayesian Statistics Serializers
+
+class BayesianTTestRequestSerializer(serializers.Serializer):
+    """Serializer for Bayesian t-test requests"""
+    test_type = serializers.ChoiceField(
+        choices=['one_sample', 'two_sample', 'paired'],
+        required=True
+    )
+    data = serializers.ListField(
+        child=serializers.FloatField(),
+        required=True,
+        help_text="Data for one-sample test or first group/pre-test"
+    )
+    data2 = serializers.ListField(
+        child=serializers.FloatField(),
+        required=False,
+        help_text="Second group for two-sample test or post-test for paired"
+    )
+    mu = serializers.FloatField(default=0, help_text="Null hypothesis value for one-sample test")
+    prior_scale = serializers.CharField(
+        default='medium',
+        help_text="Prior scale: 'ultrawide', 'wide', 'medium', 'narrow', 'ultranarrow', or numeric"
+    )
+    rope_low = serializers.FloatField(default=-0.1, help_text="ROPE lower bound")
+    rope_high = serializers.FloatField(default=0.1, help_text="ROPE upper bound")
+    credible_mass = serializers.FloatField(default=0.95, min_value=0.5, max_value=0.99)
+    robustness_check = serializers.BooleanField(default=True)
+
+
+class BayesianAnovaRequestSerializer(serializers.Serializer):
+    """Serializer for Bayesian ANOVA requests"""
+    groups = serializers.ListField(
+        child=serializers.ListField(child=serializers.FloatField()),
+        min_length=2,
+        help_text="List of groups, each containing numeric values"
+    )
+    group_names = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Optional names for groups"
+    )
+    prior_scale = serializers.CharField(default='medium')
+    compute_pairwise = serializers.BooleanField(default=True)
+    robustness_check = serializers.BooleanField(default=True)
+
+
+class BayesianCorrelationRequestSerializer(serializers.Serializer):
+    """Serializer for Bayesian correlation requests"""
+    x = serializers.ListField(
+        child=serializers.FloatField(),
+        required=True
+    )
+    y = serializers.ListField(
+        child=serializers.FloatField(),
+        required=True
+    )
+    kappa = serializers.FloatField(
+        default=1.0,
+        min_value=0.1,
+        max_value=10.0,
+        help_text="Prior parameter (1=uniform, <1 concentrates near 0)"
+    )
+    credible_mass = serializers.FloatField(default=0.95, min_value=0.5, max_value=0.99)
+    robustness_check = serializers.BooleanField(default=True)
+
+
+class BayesFactorInterpretationSerializer(serializers.Serializer):
+    """Serializer for Bayes Factor interpretation"""
+    level = serializers.CharField()
+    label = serializers.CharField()
+    favors = serializers.ChoiceField(choices=['H1', 'H0', 'neither'])
+    strength = serializers.CharField()
+    color = serializers.CharField()
+
+
+class ROPEAnalysisSerializer(serializers.Serializer):
+    """Serializer for ROPE analysis results"""
+    rope_low = serializers.FloatField()
+    rope_high = serializers.FloatField()
+    percentage_in_rope = serializers.FloatField()
+    percentage_below_rope = serializers.FloatField()
+    percentage_above_rope = serializers.FloatField()
+    decision = serializers.CharField()
+    decision_confidence = serializers.CharField()
+
+
+class BayesianTTestResultSerializer(serializers.Serializer):
+    """Serializer for Bayesian t-test results"""
+    test_type = serializers.CharField()
+    bf10 = serializers.FloatField()
+    bf01 = serializers.FloatField()
+    log_bf10 = serializers.FloatField()
+    interpretation = BayesFactorInterpretationSerializer()
+    posterior_probability_h1 = serializers.FloatField()
+    posterior_probability_h0 = serializers.FloatField()
+    effect_size = serializers.FloatField()
+    effect_size_hdi = serializers.ListField(child=serializers.FloatField())
+    prior_scale = serializers.FloatField()
+    prior_description = serializers.CharField()
+    posterior_median = serializers.FloatField()
+    posterior_mean = serializers.FloatField()
+    posterior_mode = serializers.FloatField()
+    posterior_sd = serializers.FloatField()
+    rope_analysis = ROPEAnalysisSerializer()
+    frequentist_t = serializers.FloatField()
+    frequentist_df = serializers.FloatField()
+    frequentist_p = serializers.FloatField()
+    n = serializers.IntegerField()
+    n1 = serializers.IntegerField(allow_null=True)
+    n2 = serializers.IntegerField(allow_null=True)
+    posterior_x = serializers.ListField(child=serializers.FloatField())
+    posterior_y = serializers.ListField(child=serializers.FloatField())
+    prior_x = serializers.ListField(child=serializers.FloatField())
+    prior_y = serializers.ListField(child=serializers.FloatField())
+    robustness_check = serializers.DictField(allow_null=True)
+
+
+class BayesianAnovaResultSerializer(serializers.Serializer):
+    """Serializer for Bayesian ANOVA results"""
+    bf10 = serializers.FloatField()
+    bf01 = serializers.FloatField()
+    log_bf10 = serializers.FloatField()
+    interpretation = BayesFactorInterpretationSerializer()
+    posterior_probability_h1 = serializers.FloatField()
+    posterior_probability_h0 = serializers.FloatField()
+    eta_squared = serializers.FloatField()
+    omega_squared = serializers.FloatField()
+    prior_scale = serializers.FloatField()
+    group_means = serializers.ListField(child=serializers.FloatField())
+    group_sds = serializers.ListField(child=serializers.FloatField())
+    group_ns = serializers.ListField(child=serializers.IntegerField())
+    grand_mean = serializers.FloatField()
+    frequentist_f = serializers.FloatField()
+    frequentist_df_between = serializers.IntegerField()
+    frequentist_df_within = serializers.IntegerField()
+    frequentist_p = serializers.FloatField()
+    n_groups = serializers.IntegerField()
+    n_total = serializers.IntegerField()
+    pairwise_bf = serializers.DictField(allow_null=True)
+    robustness_check = serializers.DictField(allow_null=True)
+
+
+class BayesianCorrelationResultSerializer(serializers.Serializer):
+    """Serializer for Bayesian correlation results"""
+    r = serializers.FloatField()
+    r_squared = serializers.FloatField()
+    bf10 = serializers.FloatField()
+    bf01 = serializers.FloatField()
+    log_bf10 = serializers.FloatField()
+    interpretation = BayesFactorInterpretationSerializer()
+    posterior_probability_h1 = serializers.FloatField()
+    posterior_probability_h0 = serializers.FloatField()
+    posterior_median = serializers.FloatField()
+    posterior_mean = serializers.FloatField()
+    posterior_hdi = serializers.ListField(child=serializers.FloatField())
+    credible_mass = serializers.FloatField()
+    prior_kappa = serializers.FloatField()
+    frequentist_t = serializers.FloatField()
+    frequentist_df = serializers.IntegerField()
+    frequentist_p = serializers.FloatField()
+    n = serializers.IntegerField()
+    posterior_x = serializers.ListField(child=serializers.FloatField())
+    posterior_y = serializers.ListField(child=serializers.FloatField())
+    prior_x = serializers.ListField(child=serializers.FloatField())
+    prior_y = serializers.ListField(child=serializers.FloatField())
+    robustness_check = serializers.DictField(allow_null=True)
+
+
+# Pre-Registration Serializers
+
+class HypothesisRequestSerializer(serializers.Serializer):
+    """Serializer for hypothesis creation requests"""
+    description = serializers.CharField(required=True)
+    iv_name = serializers.CharField(required=True)
+    iv_operationalization = serializers.CharField(required=True)
+    iv_measurement = serializers.ChoiceField(
+        choices=['nominal', 'ordinal', 'interval', 'ratio'],
+        required=True
+    )
+    iv_levels = serializers.ListField(
+        child=serializers.CharField(),
+        required=False
+    )
+    dv_name = serializers.CharField(required=True)
+    dv_operationalization = serializers.CharField(required=True)
+    dv_measurement = serializers.ChoiceField(
+        choices=['nominal', 'ordinal', 'interval', 'ratio'],
+        required=True
+    )
+    direction = serializers.ChoiceField(
+        choices=['greater', 'less', 'different', 'equivalent'],
+        default='different'
+    )
+    hypothesis_type = serializers.ChoiceField(
+        choices=['directional', 'non_directional', 'equivalence', 'non_inferiority', 'superiority'],
+        default='non_directional'
+    )
+    effect_size = serializers.FloatField(required=False, allow_null=True)
+    effect_size_type = serializers.CharField(required=False, allow_null=True)
+    alpha = serializers.FloatField(default=0.05)
+    rationale = serializers.CharField(required=False, allow_blank=True)
+
+
+class SampleSizeJustificationRequestSerializer(serializers.Serializer):
+    """Serializer for sample size justification requests"""
+    target_n = serializers.IntegerField(required=True, min_value=1)
+    strategy = serializers.ChoiceField(
+        choices=['power_analysis', 'precision', 'resource_constraints',
+                 'sequential', 'rule_of_thumb', 'replication', 'bayesian_updating'],
+        required=True
+    )
+    rationale = serializers.CharField(required=True)
+    effect_size = serializers.FloatField(required=False, allow_null=True)
+    effect_size_type = serializers.CharField(required=False, allow_null=True)
+    alpha = serializers.FloatField(default=0.05)
+    power = serializers.FloatField(default=0.80)
+    test_type = serializers.CharField(default='t-test')
+    effect_size_rationale = serializers.CharField(required=False, allow_blank=True)
+
+
+class PreRegistrationRequestSerializer(serializers.Serializer):
+    """Serializer for pre-registration creation requests"""
+    template = serializers.ChoiceField(
+        choices=['osf', 'aspredicted', 'jars'],
+        default='osf'
+    )
+    title = serializers.CharField(required=True, max_length=500)
+    authors = serializers.ListField(
+        child=serializers.CharField(),
+        required=False
+    )
+    affiliations = serializers.ListField(
+        child=serializers.CharField(),
+        required=False
+    )
+    template_data = serializers.DictField(required=False)
+
+
+class PreRegistrationExportRequestSerializer(serializers.Serializer):
+    """Serializer for pre-registration export requests"""
+    prereg_id = serializers.CharField(required=True)
+    format = serializers.ChoiceField(
+        choices=['markdown', 'osf_json', 'pdf_data'],
+        default='markdown'
+    )
+
+
+# P-Curve Analysis Serializers
+
+class PCurveInputSerializer(serializers.Serializer):
+    """Serializer for p-curve input"""
+    studies = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="List of test statistic strings, e.g., ['t(24) = 2.45', 'F(2, 45) = 4.56']"
+    )
+    p_values = serializers.ListField(
+        child=serializers.FloatField(min_value=0, max_value=1),
+        required=False,
+        help_text="Direct list of p-values"
+    )
+    detailed_inputs = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        help_text="Detailed test specifications"
+    )
+
+    def validate(self, data):
+        if not data.get('studies') and not data.get('p_values') and not data.get('detailed_inputs'):
+            raise serializers.ValidationError(
+                "Must provide either 'studies', 'p_values', or 'detailed_inputs'"
+            )
+        return data
+
+
+class PCurveResultSerializer(serializers.Serializer):
+    """Serializer for p-curve analysis results"""
+    n_studies = serializers.IntegerField()
+    n_significant = serializers.IntegerField()
+    p_values = serializers.ListField(child=serializers.FloatField())
+    right_skew_test = serializers.DictField()
+    flat_test = serializers.DictField()
+    half_test = serializers.DictField()
+    has_evidential_value = serializers.BooleanField()
+    inadequate_evidence = serializers.BooleanField()
+    interpretation = serializers.CharField()
+    estimated_power = serializers.FloatField(allow_null=True)
+    power_ci = serializers.ListField(child=serializers.FloatField(), allow_null=True)
+    histogram_bins = serializers.ListField(child=serializers.FloatField())
+    histogram_counts = serializers.ListField(child=serializers.IntegerField())
+
+
+class TestStatisticParseRequestSerializer(serializers.Serializer):
+    """Serializer for parsing test statistics"""
+    input_string = serializers.CharField(required=True)
+    study_id = serializers.CharField(required=False, default="")

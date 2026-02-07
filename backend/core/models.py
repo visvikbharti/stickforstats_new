@@ -34,8 +34,9 @@ from django.core.validators import MinValueValidator, MaxValueValidator, FileExt
 from django.utils import timezone
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-# Commented out non-existent import - TODO: Create these models if needed
-# from stickforstats.mainapp.models.analysis import AnalysisSession, AnalysisResult, Dataset, Visualization
+# Note: The following models are planned for future implementation:
+# AnalysisSession, AnalysisResult, Dataset, Visualization
+# Currently using simplified Analysis model for core functionality.
 
 # Simplified model just to get the server running
 class Analysis(models.Model):
@@ -57,15 +58,8 @@ class Analysis(models.Model):
     def __str__(self):
         return f"{self.name} ({self.analysis_type})"
 
-# Import models from mainapp for backward compatibility
-# Commented out non-existent models - TODO: Create these if needed
-# from stickforstats.mainapp.models import (
-#     Dataset, 
-#     Visualization, 
-#     Workflow,
-#     AnalysisSession,
-#     AnalysisResult
-# )
+# Note: Extended models (Dataset, Visualization, Workflow, etc.) are planned
+# for future releases. See project roadmap for implementation timeline.
 
 # Create Report as an alias to Analysis for compatibility
 Report = Analysis

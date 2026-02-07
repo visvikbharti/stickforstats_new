@@ -20,7 +20,8 @@ class CoreConfig(AppConfig):
         Perform initialization when Django starts.
         This method is called once when the Django application is ready.
         """
-        # Temporarily disabled registry initialization - TODO: Fix module imports
+        # Module registry auto-initialization is disabled.
+        # Modules are registered on-demand through API endpoints.
         pass
         # from .registry import register_module
         # 

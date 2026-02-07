@@ -22,6 +22,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from ai_advisor.services import get_ai_advisor_service
+from ai_advisor.services.nlp_enhanced import (
+    get_query_parser,
+    get_plan_generator,
+    get_report_generator,
+    StatisticalResult,
+    StatisticalTest
+)
 
 logger = logging.getLogger(__name__)
 
@@ -564,6 +571,317 @@ def assumption_guidance(request):
             {
                 'success': False,
                 'error': 'Failed to get assumption guidance'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# =============================================================================
+# NLP ENHANCED ENDPOINTS
+# =============================================================================
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def parse_query(request):
+    """
+    Parse a complex statistical query.
+
+    POST /api/v1/ai-advisor/parse-query/
+    {
+        "query": "First check normality, then compare treatment vs control group scores, and finally calculate effect size",
+        "data_context": {
+            "variables": [
+                {"name": "score", "type": "continuous"},
+                {"name": "group", "type": "categorical"}
+            ]
+        }
+    }
+
+    Returns:
+        Parsed query with intents, variables, steps, and analysis types
+    """
+    try:
+        query = request.data.get('query', '').strip()
+        data_context = request.data.get('data_context')
+
+        if not query:
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Query is required'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Parse the query
+        parser = get_query_parser()
+        parsed = parser.parse(query, data_context)
+
+        return Response({
+            'success': True,
+            'parsed_query': parsed.to_dict()
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception(f"Error parsing query: {e}")
+        return Response(
+            {
+                'success': False,
+                'error': f'Failed to parse query: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_analysis_plan(request):
+    """
+    Generate a structured analysis plan from a query.
+
+    POST /api/v1/ai-advisor/analysis-plan/
+    {
+        "query": "Compare treatment and control groups on anxiety scores, checking assumptions first",
+        "data_context": {
+            "variables": [...],
+            "sample_size": 100
+        }
+    }
+
+    Returns:
+        Complete analysis plan with steps, assumptions, and alternatives
+    """
+    try:
+        query = request.data.get('query', '').strip()
+        data_context = request.data.get('data_context')
+
+        if not query:
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Query is required'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Parse the query first
+        parser = get_query_parser()
+        parsed = parser.parse(query, data_context)
+
+        # Generate the analysis plan
+        planner = get_plan_generator()
+        plan = planner.generate_plan(parsed, data_context)
+
+        return Response({
+            'success': True,
+            'analysis_plan': plan.to_dict(),
+            'parsed_query': parsed.to_dict()
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception(f"Error generating analysis plan: {e}")
+        return Response(
+            {
+                'success': False,
+                'error': f'Failed to generate analysis plan: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_apa_report(request):
+    """
+    Generate APA-formatted statistical report.
+
+    POST /api/v1/ai-advisor/apa-report/
+    {
+        "test_type": "independent_t_test",
+        "results": {
+            "test_statistic": 2.45,
+            "p_value": 0.023,
+            "effect_size": 0.65,
+            "ci_lower": 0.12,
+            "ci_upper": 1.18,
+            "df": 48,
+            "mean_1": 25.4,
+            "mean_2": 21.2,
+            "sd_1": 5.2,
+            "sd_2": 4.8
+        },
+        "sample_info": {
+            "n_total": 50,
+            "groups": {"treatment": 25, "control": 25}
+        },
+        "variables": {
+            "dependent": "anxiety_score",
+            "grouping": "treatment_condition"
+        },
+        "assumptions_checked": ["normality", "homogeneity of variance"]
+    }
+
+    Returns:
+        APA-formatted Methods and Results sections
+    """
+    try:
+        test_type_str = request.data.get('test_type', 'independent_t_test')
+        results = request.data.get('results', {})
+        sample_info = request.data.get('sample_info', {})
+        variables = request.data.get('variables', {})
+        assumptions_checked = request.data.get('assumptions_checked', [])
+        descriptives = request.data.get('descriptives')
+
+        # Map test type string to enum
+        test_type_map = {
+            'independent_t_test': StatisticalTest.T_TEST_INDEPENDENT,
+            'paired_t_test': StatisticalTest.T_TEST_PAIRED,
+            'one_sample_t_test': StatisticalTest.T_TEST_ONE_SAMPLE,
+            'one_way_anova': StatisticalTest.ANOVA_ONE_WAY,
+            'two_way_anova': StatisticalTest.ANOVA_TWO_WAY,
+            'pearson_correlation': StatisticalTest.CORRELATION_PEARSON,
+            'spearman_correlation': StatisticalTest.CORRELATION_SPEARMAN,
+            'linear_regression': StatisticalTest.REGRESSION_LINEAR,
+            'chi_square': StatisticalTest.CHI_SQUARE,
+            'mann_whitney': StatisticalTest.MANN_WHITNEY,
+            'mediation': StatisticalTest.MEDIATION,
+            'difference_in_differences': StatisticalTest.DID
+        }
+
+        test_type = test_type_map.get(test_type_str, StatisticalTest.T_TEST_INDEPENDENT)
+
+        # Create StatisticalResult
+        stat_result = StatisticalResult(
+            test_type=test_type,
+            test_statistic=results.get('test_statistic', 0),
+            test_statistic_name=results.get('test_statistic_name', 't'),
+            df=results.get('df'),
+            p_value=results.get('p_value', 1.0),
+            effect_size=results.get('effect_size'),
+            effect_size_name=results.get('effect_size_name', 'd'),
+            mean_1=results.get('mean_1'),
+            mean_2=results.get('mean_2'),
+            sd_1=results.get('sd_1'),
+            sd_2=results.get('sd_2'),
+            ci_lower=results.get('ci_lower'),
+            ci_upper=results.get('ci_upper'),
+            n_total=sample_info.get('n_total')
+        )
+
+        # Generate report
+        reporter = get_report_generator()
+        report = reporter.generate_full_report(
+            results=[stat_result],
+            sample_info=sample_info,
+            variables=variables,
+            assumptions_checked=assumptions_checked,
+            descriptives=descriptives
+        )
+
+        return Response({
+            'success': True,
+            'report': {
+                'methods': {
+                    'content': report['methods'].content,
+                    'formatting_notes': report['methods'].formatting_notes
+                },
+                'results': {
+                    'content': report['results'].content,
+                    'formatting_notes': report['results'].formatting_notes
+                }
+            },
+            'formatted_statistic': reporter.format_statistic(stat_result)
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception(f"Error generating APA report: {e}")
+        return Response(
+            {
+                'success': False,
+                'error': f'Failed to generate APA report: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def enhanced_chat(request):
+    """
+    Enhanced chat with query parsing and plan generation.
+
+    POST /api/v1/ai-advisor/enhanced-chat/
+    {
+        "message": "I want to compare two groups and check if there's a significant difference",
+        "conversation_id": "optional",
+        "data_context": {...},
+        "include_plan": true,
+        "include_parse": true
+    }
+
+    Returns:
+        AI response with parsed query and analysis plan
+    """
+    try:
+        message = request.data.get('message', '').strip()
+        conversation_id = request.data.get('conversation_id')
+        data_context = request.data.get('data_context')
+        include_plan = request.data.get('include_plan', True)
+        include_parse = request.data.get('include_parse', True)
+
+        if not message:
+            return Response(
+                {
+                    'success': False,
+                    'error': 'Message is required'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not conversation_id:
+            conversation_id = str(uuid.uuid4())
+
+        response_data = {
+            'success': True,
+            'conversation_id': conversation_id
+        }
+
+        # Parse query if requested
+        if include_parse:
+            parser = get_query_parser()
+            parsed = parser.parse(message, data_context)
+            response_data['parsed_query'] = parsed.to_dict()
+
+            # Generate plan if requested and query is substantive
+            if include_plan and parsed.confidence_score > 0.3:
+                planner = get_plan_generator()
+                plan = planner.generate_plan(parsed, data_context)
+                response_data['analysis_plan'] = plan.to_dict()
+
+        # Also get AI response
+        service = get_ai_advisor_service()
+        ai_result = service.chat(
+            message=message,
+            conversation_id=conversation_id,
+            data_context=data_context
+        )
+
+        if ai_result.get('success'):
+            response_data['ai_response'] = ai_result.get('content')
+            response_data['recommendations'] = ai_result.get('recommendations', [])
+            response_data['metadata'] = ai_result.get('metadata')
+        else:
+            response_data['ai_response'] = None
+            response_data['ai_error'] = ai_result.get('error')
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception(f"Error in enhanced chat: {e}")
+        return Response(
+            {
+                'success': False,
+                'error': f'Enhanced chat failed: {str(e)}'
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

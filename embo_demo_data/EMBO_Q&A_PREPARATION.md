@@ -224,8 +224,8 @@ SD = 0.6, n = 15) and Treatment (M = 28.5, SD = 0.7,
 n = 15) groups. Effect size was large (Cohen's d = 5.8,
 95% CI [4.2, 7.4]). Significance was set at α = 0.05.
 
-All analyses were validated using Guardian Statistical
-Validator v1.0 (DOI: 10.xxxx/guardian).
+All analyses were validated using StickForStats Guardian
+System v1.0 (https://github.com/visvikbharti/stickforstats_new).
 ```
 
 **Why game-changing:**

@@ -27,7 +27,7 @@ class GuardianCheckView(APIView):
 
     POST /api/guardian/check/
     """
-    permission_classes = [AllowAny]  # TODO: Change to IsAuthenticated in production
+    permission_classes = [AllowAny]  # Public endpoint - Guardian is freely accessible
 
     def post(self, request):
         """

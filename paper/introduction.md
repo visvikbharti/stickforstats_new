@@ -52,13 +52,13 @@ Beyond the Guardian system, StickForStats offers several additional features des
 
 **Reproducibility Framework.** Each analysis generates a complete reproducibility bundle including data fingerprints (SHA-256 hashes), processing pipeline records, decision point documentation, and environment specifications. These bundles enable exact replication and provide evidence for peer review.
 
-**Code Export.** For every analysis, users can export equivalent R or Python code, facilitating verification and integration with existing workflows.
+**Code Export.** For every analysis, users can export equivalent Python code, facilitating verification and integration with existing workflows.
 
 ### 1.5 Contributions of This Paper
 
 This paper makes the following contributions:
 
-1. We introduce the Guardian system, an industry-first implementation of mandatory assumption validation in statistical software. We describe its architecture, the 15 validators implemented, and its integration with statistical analysis workflows.
+1. We introduce the Guardian system, which to our knowledge represents the first implementation of mandatory, automatic assumption validation integrated directly into statistical software. We describe its architecture, the eight validators implemented, and its integration with statistical analysis workflows.
 
 2. We present a validation study comparing StickForStats results against established reference implementations (SciPy, R, G*Power 3.1), demonstrating agreement to 14+ decimal places for standard statistical tests.
 

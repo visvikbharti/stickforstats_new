@@ -3,6 +3,12 @@ Statistical Tests Service for StickForStats platform.
 
 This module provides statistical testing functionality for basic statistical tests,
 including parametric and non-parametric tests of differences and relationships.
+
+DESIGN CONTRACT COMPLIANCE:
+- All statistical results MUST include Guardian context
+- Use GuardianStatisticalTestService for contract-compliant operations
+- The legacy StatisticalTestService is retained for backwards compatibility
+  but should NOT be used directly in new code
 """
 
 import pandas as pd
@@ -12,6 +18,15 @@ import pingouin as pg
 from typing import Dict, Any, List, Optional, Union, Tuple
 import logging
 from dataclasses import dataclass
+
+# Guardian integration
+# Note: Using absolute import from core, not backend.core
+from core.guardian import (
+    GuardianIntegratedService,
+    GuardianEnrichedResult,
+    guardian_protected,
+    resolve_test_type
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -516,5 +531,280 @@ class StatisticalTestService:
             
         else:
             raise ValueError(f"Unsupported non-parametric test type: {test_type}")
-        
+
         return results
+
+
+# =============================================================================
+# GUARDIAN-INTEGRATED SERVICE (DESIGN CONTRACT COMPLIANT)
+# =============================================================================
+
+class GuardianStatisticalTestService(GuardianIntegratedService):
+    """
+    Guardian-integrated statistical test service.
+
+    This service ensures all statistical results include Guardian assumption
+    context, complying with the design contract requirement:
+    "No statistical result may exist without an explicit, traceable assumption context."
+
+    Usage:
+        service = GuardianStatisticalTestService()
+
+        # Run t-test with Guardian protection
+        result = service.run_t_test_guarded(
+            data=my_data,
+            test_type='independent',
+            variables={'variable': 'score', 'group': 'treatment'},
+            expert_mode=False  # Set True to override critical violations
+        )
+
+        # Result includes both statistical results AND Guardian report
+        print(result.statistical_results)  # Test statistics
+        print(result.guardian_report)       # Assumption validation
+        print(result.can_proceed)           # Whether analysis is valid
+    """
+
+    def __init__(self):
+        """Initialize Guardian-integrated service."""
+        super().__init__()
+        self._legacy_service = StatisticalTestService()
+
+    def run_t_test_guarded(
+        self,
+        data: pd.DataFrame,
+        test_type: str,
+        variables: Dict[str, Any],
+        expert_mode: bool = False,
+        alpha: float = 0.05,
+        **kwargs
+    ) -> GuardianEnrichedResult:
+        """
+        Run t-test with Guardian protection.
+
+        Args:
+            data: DataFrame containing the data
+            test_type: Type of t-test ('one_sample', 'independent', 'paired')
+            variables: Dictionary of variables to use
+            expert_mode: If True, proceed despite critical violations
+            alpha: Significance level for assumption tests
+            **kwargs: Additional test parameters
+
+        Returns:
+            GuardianEnrichedResult with statistical results and Guardian context
+        """
+        # Prepare data for Guardian
+        guardian_data = self._prepare_data_for_guardian(data, test_type, variables)
+
+        # Define computation function
+        def compute(d):
+            return self._legacy_service.run_t_test(data, test_type, variables, **kwargs)
+
+        # Execute with Guardian protection
+        return self.execute_with_guardian(
+            test_type='t_test',
+            data=guardian_data,
+            compute_function=compute,
+            alpha=alpha,
+            expert_mode=expert_mode
+        )
+
+    def run_correlation_guarded(
+        self,
+        data: pd.DataFrame,
+        test_type: str,
+        variables: Dict[str, Any],
+        expert_mode: bool = False,
+        alpha: float = 0.05,
+        **kwargs
+    ) -> GuardianEnrichedResult:
+        """
+        Run correlation test with Guardian protection.
+
+        Args:
+            data: DataFrame containing the data
+            test_type: Type of correlation ('pearson', 'spearman', 'kendall')
+            variables: Dictionary with 'x' and 'y' variable names
+            expert_mode: If True, proceed despite critical violations
+            alpha: Significance level for assumption tests
+            **kwargs: Additional test parameters
+
+        Returns:
+            GuardianEnrichedResult with statistical results and Guardian context
+        """
+        # Prepare data for Guardian (X and Y arrays)
+        x_var = variables.get('x')
+        y_var = variables.get('y')
+
+        if x_var and y_var:
+            mask = ~(data[x_var].isna() | data[y_var].isna())
+            guardian_data = [
+                data.loc[mask, x_var].values,
+                data.loc[mask, y_var].values
+            ]
+        else:
+            guardian_data = data
+
+        # Define computation function
+        def compute(d):
+            return self._legacy_service.run_correlation_test(data, test_type, variables, **kwargs)
+
+        # Map test type to Guardian type
+        guardian_test_type = 'pearson' if test_type == 'pearson' else 'mann_whitney'
+
+        return self.execute_with_guardian(
+            test_type=guardian_test_type,
+            data=guardian_data,
+            compute_function=compute,
+            alpha=alpha,
+            expert_mode=expert_mode
+        )
+
+    def run_chi_square_guarded(
+        self,
+        data: pd.DataFrame,
+        test_type: str,
+        variables: Dict[str, Any],
+        expert_mode: bool = False,
+        alpha: float = 0.05,
+        **kwargs
+    ) -> GuardianEnrichedResult:
+        """
+        Run chi-square test with Guardian protection.
+
+        Args:
+            data: DataFrame containing the data
+            test_type: Type of chi-square test ('independence', 'goodness_of_fit')
+            variables: Dictionary of variables to use
+            expert_mode: If True, proceed despite critical violations
+            alpha: Significance level for assumption tests
+            **kwargs: Additional test parameters
+
+        Returns:
+            GuardianEnrichedResult with statistical results and Guardian context
+        """
+        # Prepare data for Guardian
+        guardian_data = self._prepare_data_for_guardian(data, 'chi_square', variables)
+
+        # Define computation function
+        def compute(d):
+            return self._legacy_service.run_chi_square_test(data, test_type, variables, **kwargs)
+
+        return self.execute_with_guardian(
+            test_type='chi_square',
+            data=guardian_data,
+            compute_function=compute,
+            alpha=alpha,
+            expert_mode=expert_mode
+        )
+
+    def run_nonparametric_guarded(
+        self,
+        data: pd.DataFrame,
+        test_type: str,
+        variables: Dict[str, Any],
+        expert_mode: bool = False,
+        alpha: float = 0.05,
+        **kwargs
+    ) -> GuardianEnrichedResult:
+        """
+        Run non-parametric test with Guardian protection.
+
+        Args:
+            data: DataFrame containing the data
+            test_type: Type of test ('mann_whitney', 'wilcoxon', 'kruskal')
+            variables: Dictionary of variables to use
+            expert_mode: If True, proceed despite critical violations
+            alpha: Significance level for assumption tests
+            **kwargs: Additional test parameters
+
+        Returns:
+            GuardianEnrichedResult with statistical results and Guardian context
+        """
+        # Prepare data for Guardian
+        guardian_data = self._prepare_data_for_guardian(data, test_type, variables)
+
+        # Map test types to Guardian types
+        guardian_type_map = {
+            'mann_whitney': 'mann_whitney',
+            'wilcoxon': 'mann_whitney',
+            'kruskal': 'kruskal_wallis'
+        }
+        guardian_test_type = guardian_type_map.get(test_type, 'mann_whitney')
+
+        # Define computation function
+        def compute(d):
+            return self._legacy_service.run_nonparametric_test(data, test_type, variables, **kwargs)
+
+        return self.execute_with_guardian(
+            test_type=guardian_test_type,
+            data=guardian_data,
+            compute_function=compute,
+            alpha=alpha,
+            expert_mode=expert_mode
+        )
+
+    def _prepare_data_for_guardian(
+        self,
+        data: pd.DataFrame,
+        test_type: str,
+        variables: Dict[str, Any]
+    ) -> List[np.ndarray]:
+        """
+        Prepare data arrays for Guardian validation.
+
+        Guardian expects data as list of numpy arrays.
+        This method extracts the relevant data based on test type.
+        """
+        if test_type in ['independent', 'mann_whitney']:
+            # Two-group comparison
+            var = variables.get('variable')
+            group = variables.get('group')
+            if var and group:
+                unique_groups = data[group].unique()
+                if len(unique_groups) >= 2:
+                    return [
+                        data[data[group] == unique_groups[0]][var].dropna().values,
+                        data[data[group] == unique_groups[1]][var].dropna().values
+                    ]
+
+        elif test_type in ['paired', 'wilcoxon']:
+            # Paired comparison
+            var1 = variables.get('variable1')
+            var2 = variables.get('variable2')
+            if var1 and var2:
+                mask = ~(data[var1].isna() | data[var2].isna())
+                return [
+                    data.loc[mask, var1].values,
+                    data.loc[mask, var2].values
+                ]
+
+        elif test_type == 'one_sample':
+            # Single sample
+            var = variables.get('variable')
+            if var:
+                return [data[var].dropna().values]
+
+        elif test_type == 'kruskal':
+            # Multiple groups
+            var = variables.get('variable')
+            group = variables.get('group')
+            if var and group:
+                return [
+                    data[data[group] == g][var].dropna().values
+                    for g in data[group].unique()
+                    if len(data[data[group] == g][var].dropna()) > 0
+                ]
+
+        elif test_type == 'chi_square':
+            # Chi-square - pass as dict for Guardian
+            var1 = variables.get('variable1')
+            var2 = variables.get('variable2')
+            if var1 and var2:
+                return {'var1': data[var1].values, 'var2': data[var2].values}
+
+        # Default: return first numeric column as array
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            return [data[numeric_cols[0]].dropna().values]
+
+        return [np.array([])]

@@ -79,14 +79,47 @@ class GuardianCore:
         }
 
         # Test requirements mapping
+        # Each test type maps to its required assumptions for Guardian validation
         self.test_requirements = {
+            # Parametric tests
             't_test': ['normality', 'variance_homogeneity', 'independence', 'outliers'],
             'anova': ['normality', 'variance_homogeneity', 'independence'],
             'pearson': ['normality', 'linearity', 'outliers'],
             'regression': ['normality', 'independence', 'homoscedasticity', 'linearity'],
+
+            # Non-parametric tests
             'chi_square': ['expected_frequencies', 'independence'],
             'mann_whitney': ['independence', 'similar_shapes'],
-            'kruskal_wallis': ['independence', 'similar_shapes']
+            'kruskal_wallis': ['independence', 'similar_shapes'],
+
+            # Mixed Models (NEW)
+            # Reference: Snijders & Bosker (2012), Hox (2010)
+            'mixed_model': ['normality', 'independence', 'homoscedasticity'],
+            'lmm': ['normality', 'independence', 'homoscedasticity'],  # Linear Mixed Model
+            'hlm': ['normality', 'independence', 'homoscedasticity'],  # Hierarchical Linear Model
+            'multilevel': ['normality', 'independence', 'homoscedasticity'],
+
+            # Causal Inference (NEW)
+            # Reference: Angrist & Pischke (2009), Imbens & Rubin (2015)
+            'difference_in_differences': ['independence'],  # Parallel trends checked separately
+            'did': ['independence'],  # Alias
+            'propensity_score': ['independence'],  # Overlap checked in matching
+            'psm': ['independence'],  # Alias for propensity score matching
+            'mediation': ['normality', 'independence', 'linearity'],
+            'iv': ['independence'],  # Instrumental variables
+
+            # Bayesian tests
+            'bayesian_t_test': ['normality', 'independence'],
+            'bayesian_anova': ['normality', 'independence'],
+            'bayesian_correlation': ['independence'],
+
+            # Survival analysis
+            'survival': ['independence'],
+            'cox_regression': ['independence'],
+
+            # Factor analysis
+            'factor_analysis': ['normality', 'sample_size'],
+            'pca': ['sample_size'],
         }
 
         # Initialize visualization and effect size calculators
@@ -379,11 +412,12 @@ class VarianceHomogeneityValidator:
             variances = [np.var(arr) for arr in data_arrays]
             ratio = max(variances) / min(variances)
 
-            # Severity based on ratio (using golden ratio threshold)
-            phi = float(PHI)
-            if ratio > phi ** 2:  # > ~2.618
+            # Severity based on variance ratio using evidence-based thresholds
+            # Reference: Box (1954) suggests ANOVA is robust when variance ratio < 4
+            # Commonly used thresholds in statistical software: 4 (critical), 2 (warning)
+            if ratio > 4.0:
                 severity = 'critical'
-            elif ratio > phi:     # > ~1.618
+            elif ratio > 2.0:
                 severity = 'warning'
             else:
                 severity = 'minor'
@@ -516,8 +550,11 @@ class SampleSizeValidator:
 
         min_size = min(len(arr) for arr in data_arrays)
 
-        # Using golden ratio for thresholds
-        phi = float(PHI)
+        # Evidence-based sample size thresholds:
+        # - n < 3: Cannot compute variance reliably
+        # - n < 20: Small sample; CLT approximations may not hold well
+        # - n >= 20: Generally adequate for parametric tests (common threshold in literature)
+        # Reference: Central Limit Theorem convergence rates improve significantly around n=20-30
 
         if min_size < 3:
             return {
@@ -525,9 +562,9 @@ class SampleSizeValidator:
                 'test_name': 'Sample Size Check',
                 'severity': 'critical',
                 'message': f'Sample size too small (n={min_size})',
-                'recommendation': 'Minimum n=3 required, n≥30 recommended for parametric tests'
+                'recommendation': 'Minimum n=3 required, n≥20 recommended for parametric tests'
             }
-        elif min_size < int(30 / phi):  # ~18
+        elif min_size < 20:
             return {
                 'violated': True,
                 'test_name': 'Sample Size Check',
@@ -840,11 +877,13 @@ class HomoscedasticityValidator:
 
             var_ratio = np.var(second_half) / (np.var(first_half) + 1e-10)
 
-            # Determine severity using golden ratio
-            phi = float(PHI)
-            if var_ratio > phi ** 2 or var_ratio < 1 / (phi ** 2):
+            # Determine severity using evidence-based thresholds
+            # Variance ratio > 4 or < 0.25 indicates severe heteroscedasticity
+            # Variance ratio > 2 or < 0.5 indicates moderate heteroscedasticity
+            # Reference: Consistent with Box (1954) and standard regression diagnostics
+            if var_ratio > 4.0 or var_ratio < 0.25:
                 severity = 'critical'
-            elif var_ratio > phi or var_ratio < 1 / phi:
+            elif var_ratio > 2.0 or var_ratio < 0.5:
                 severity = 'warning'
             else:
                 severity = 'minor'

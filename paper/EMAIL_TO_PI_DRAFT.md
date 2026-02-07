@@ -23,7 +23,7 @@ I hope this email finds you well. I am writing to request your review and approv
 
 The manuscript (37 pages) covers:
 
-1. **Guardian System** - Automatic assumption validation with 15+ validators covering normality, homogeneity of variance, independence, sphericity, multicollinearity, and more
+1. **Guardian System** - Automatic assumption validation with 8 validators covering normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity
 
 2. **AI Statistical Advisor** - Claude-powered natural language guidance for test selection and interpretation
 
@@ -107,7 +107,7 @@ Dear Dr. Chakraborty,
 I have completed the StickForStats software paper for submission to the Journal of Statistical Software. The manuscript (37 pages) describes our statistical analysis platform with automatic assumption validation through the Guardian system.
 
 Key contributions:
-- Mandatory assumption checking (15+ validators)
+- Mandatory assumption checking (8 validators)
 - AI-powered statistical guidance
 - Paper Parser for manuscript compliance checking
 - High-precision (50-decimal) computing

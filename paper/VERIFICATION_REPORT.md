@@ -1,7 +1,8 @@
 # StickForStats Feature Verification Report
 
-**Date:** December 16, 2025
+**Date:** December 26, 2025 (Updated)
 **Purpose:** Verify all claims made in the JSS paper against actual codebase
+**Last Updated:** December 26, 2025 - Fixed PHI references, updated to evidence-based thresholds
 
 ---
 
@@ -53,15 +54,17 @@
 
 **Evidence in code:**
 ```python
-# From guardian_core.py, line 23-24
+# From guardian_core.py, line 20-21
+from decimal import Decimal, getcontext
 getcontext().prec = 50
-PHI = Decimal(1 + 5**0.5) / 2  # Golden Ratio with 50-decimal precision
 ```
 
 **Also found in:**
 - `backend/core/hp_ttest.py` - High-precision t-test
 - `backend/core/hp_anova.py` - High-precision ANOVA
 - `backend/core/hp_correlation.py` - High-precision correlation
+- `backend/core/hp_anova_comprehensive.py` - Comprehensive high-precision ANOVA
+- `backend/core/hp_power_analysis_comprehensive.py` - High-precision power analysis
 
 **VERDICT: ✅ CLAIM VERIFIED - High-precision modules exist**
 
@@ -109,24 +112,36 @@ backend/core/guardian/urls.py:
 
 ---
 
-## 6. Confidence Scoring Weights
+## 6. Confidence Scoring and Severity Thresholds
 
-### Original: Golden ratio (φ ≈ 1.618) for confidence scoring
-### Updated: Severity-based weights (3.0, 2.0, 1.0)
+### Implemented: Evidence-based thresholds
 
-**Updated code (December 16, 2025):**
+**Current code (December 26, 2025):**
 ```python
-# guardian_core.py - UPDATED
+# guardian_core.py - Severity weights for confidence scoring
 SEVERITY_WEIGHTS = {
     'critical': 3.0,  # Severe violations that invalidate results
     'warning': 2.0,   # Moderate issues requiring attention
     'minor': 1.0      # Small concerns, usually acceptable
 }
+
+# Variance ratio thresholds (VarianceHomogeneityValidator, HomoscedasticityValidator)
+# Reference: Box (1954) - ANOVA robust when variance ratio < 4
+if ratio > 4.0:      # Critical
+if ratio > 2.0:      # Warning
+
+# Sample size thresholds (SampleSizeValidator)
+# Reference: CLT convergence rates; n >= 20 generally adequate
+if min_size < 3:     # Critical - cannot compute variance
+if min_size < 20:    # Warning - small sample
 ```
 
-**VERDICT: ✅ FIXED - Now uses intuitive, justifiable weights**
+**VERDICT: ✅ IMPLEMENTED - Uses evidence-based, justifiable thresholds**
 
-**Rationale:** Critical violations are penalized 3x, warnings 2x, minor issues 1x. This reflects the relative impact of each violation type on analysis validity and is easier to justify than arbitrary mathematical constants.
+**Rationale:**
+- Severity weights (3, 2, 1) reflect relative impact on analysis validity
+- Variance ratio thresholds (4, 2) based on Box (1954) robustness studies
+- Sample size thresholds (3, 20) based on statistical requirements and CLT convergence
 
 ---
 

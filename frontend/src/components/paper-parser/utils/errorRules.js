@@ -409,6 +409,94 @@ export const ERROR_RULES = [
       'Franco et al. (2014). Publication bias in the social sciences',
       'Simmons et al. (2011). False-Positive Psychology'
     ]
+  },
+
+  // ============================================
+  // ADDITIONAL EFFECT SIZE AND PRECISION RULES
+  // ============================================
+  {
+    id: 'effect_size_without_ci',
+    name: 'Effect Size Without Confidence Interval',
+    description: 'Effect sizes were reported without accompanying confidence intervals.',
+    severity: SEVERITY.MEDIUM,
+    category: CATEGORY.REPORTING,
+    check: (stats) => {
+      // Has effect sizes but no CIs for them
+      const hasEffectSizes = stats.effectSizes.length > 0;
+      const hasCIsForEffects = stats.confidenceIntervals.some(ci =>
+        /d|g|η|omega|r²|R²|OR|RR/i.test(ci)
+      );
+      return hasEffectSizes && !hasCIsForEffects;
+    },
+    recommendation: 'Report confidence intervals for all effect sizes. CIs indicate precision of effect estimates and are required by JARS-Quant guidelines.',
+    references: [
+      'APA (2020). Publication Manual, 7th ed., Section 6.35',
+      'Cumming (2014). The New Statistics: Why and How',
+      'JARS-Quant: Effect sizes should include CIs'
+    ],
+    jarsStandard: true
+  },
+
+  {
+    id: 'missing_descriptive_statistics',
+    name: 'Missing Descriptive Statistics',
+    description: 'No means or standard deviations were reported for continuous variables.',
+    severity: SEVERITY.MEDIUM,
+    category: CATEGORY.REPORTING,
+    check: (stats, text) => {
+      // Check for parametric tests without descriptive statistics
+      const hasParametricTests = stats.testNames.some(t =>
+        /t-?test|ANOVA|regression|correlation/i.test(t.name)
+      );
+      const hasDescriptives = /[Mm]\s*=\s*[\d.]+|[Mm]ean\s*[=:]\s*[\d.]+|SD\s*=\s*[\d.]+|[Ss]tandard\s*[Dd]eviation/i.test(text);
+      return hasParametricTests && !hasDescriptives;
+    },
+    recommendation: 'Report means (M) and standard deviations (SD) for all continuous variables. Example: M = 4.56, SD = 1.23. This allows readers to understand data distributions and calculate effect sizes.',
+    references: [
+      'APA (2020). Publication Manual, 7th ed., Section 6.34',
+      'Wilkinson & Task Force (1999). Statistical methods in psychology journals'
+    ],
+    jarsStandard: true
+  },
+
+  {
+    id: 'sphericity_not_reported',
+    name: 'Sphericity Not Reported for Repeated Measures',
+    description: 'Repeated measures ANOVA results lack sphericity assumption check.',
+    severity: SEVERITY.MEDIUM,
+    category: CATEGORY.METHODOLOGY,
+    check: (stats, text) => {
+      // Check for repeated measures without sphericity reporting
+      const hasRepeatedMeasures = /repeated\s*measures?|within[- ]subjects?|RM[- ]?ANOVA/i.test(text);
+      const hasSphericityCheck = /[Mm]auchly|sphericity|[Gg]reenhouse[- ]?[Gg]eisser|[Hh]uynh[- ]?[Ff]eldt|epsilon/i.test(text);
+      return hasRepeatedMeasures && !hasSphericityCheck;
+    },
+    recommendation: 'For repeated measures ANOVA, report Mauchly\'s test of sphericity. If violated (p < .05), apply Greenhouse-Geisser or Huynh-Feldt correction and report the epsilon value.',
+    references: [
+      'APA (2020). Publication Manual, 7th ed., Section 6.34',
+      'Field (2018). Discovering Statistics Using IBM SPSS Statistics',
+      'Keselman et al. (1998). Statistical practices of educational researchers'
+    ]
+  },
+
+  {
+    id: 'effect_size_not_interpreted',
+    name: 'Effect Size Magnitude Not Interpreted',
+    description: 'Effect sizes were reported numerically but their practical magnitude was not discussed.',
+    severity: SEVERITY.LOW,
+    category: CATEGORY.INTERPRETATION,
+    check: (stats, text) => {
+      const hasEffectSizes = stats.effectSizes.length > 0;
+      const hasInterpretation = /(small|medium|moderate|large|negligible|trivial)\s+(effect|d|η|omega)/i.test(text) ||
+                               /effect\s+(size\s+)?(was|is|were)\s+(small|medium|moderate|large)/i.test(text);
+      return hasEffectSizes && !hasInterpretation;
+    },
+    recommendation: 'Interpret the magnitude of effect sizes using established benchmarks (e.g., Cohen\'s guidelines: d = 0.2 small, 0.5 medium, 0.8 large). Context-specific interpretation is preferred over generic benchmarks.',
+    references: [
+      'Cohen (1988). Statistical Power Analysis for the Behavioral Sciences',
+      'Fritz et al. (2012). Effect size estimates: Current use, calculations, and interpretation',
+      'Thompson (2007). Effect sizes, confidence intervals, and confidence intervals for effect sizes'
+    ]
   }
 ];
 

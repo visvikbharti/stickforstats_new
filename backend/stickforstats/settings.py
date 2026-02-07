@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Guardian Design Contract Compliance Middleware
+    # Ensures all statistical API responses include assumption context
+    'core.middleware.GuardianComplianceMiddleware',
 ]
 
 ROOT_URLCONF = 'stickforstats.urls'
@@ -236,4 +239,37 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+# =============================================================================
+# GUARDIAN MIDDLEWARE CONFIGURATION
+# =============================================================================
+# Enforces the Design Contract requirement:
+# "No statistical result may exist without an explicit, traceable assumption context."
+#
+# Configuration options:
+# - ENABLED: Turn middleware on/off (default: True)
+# - STRICT_MODE: Block non-compliant responses (default: False for development)
+# - LOG_LEVEL: Logging severity for violations (WARNING, ERROR, INFO)
+# - STATISTICAL_ENDPOINTS: URL patterns to monitor
+# - INJECT_CONTEXT: Enable legacy context injection (default: False)
+
+GUARDIAN_MIDDLEWARE = {
+    'ENABLED': True,
+    'STRICT_MODE': False,  # Set to True in production to enforce compliance
+    'LOG_LEVEL': 'WARNING',
+    'INJECT_CONTEXT': False,  # Don't inject - require proper integration
+    'STATISTICAL_ENDPOINTS': [
+        '/api/core/test/execute/',
+        '/api/core/bayesian/',
+        '/api/core/correlation/',
+        '/api/core/regression/',
+        '/api/core/anova/',
+        '/api/core/chi-square/',
+        '/api/core/nonparametric/',
+        '/api/core/mixed/',
+        '/api/core/causal/',
+        '/api/core/mediation/',
+        '/api/core/did/',
+    ],
 }

@@ -97,7 +97,12 @@ from .ai_advisor_views import (
     quick_recommendation,
     interpret_results,
     generate_methods_section,
-    assumption_guidance
+    assumption_guidance,
+    # NLP Enhanced endpoints
+    parse_query,
+    generate_analysis_plan,
+    generate_apa_report,
+    enhanced_chat
 )
 from .meta_analysis_views import (
     MetaAnalysisView,
@@ -235,6 +240,12 @@ urlpatterns = [
     path('ai-advisor/interpret/', interpret_results, name='ai-advisor-interpret'),
     path('ai-advisor/methods-section/', generate_methods_section, name='ai-advisor-methods'),
     path('ai-advisor/assumption-guidance/', assumption_guidance, name='ai-advisor-assumption'),
+
+    # NLP Enhanced AI Advisor endpoints
+    path('ai-advisor/parse-query/', parse_query, name='ai-advisor-parse-query'),
+    path('ai-advisor/analysis-plan/', generate_analysis_plan, name='ai-advisor-analysis-plan'),
+    path('ai-advisor/apa-report/', generate_apa_report, name='ai-advisor-apa-report'),
+    path('ai-advisor/enhanced-chat/', enhanced_chat, name='ai-advisor-enhanced-chat'),
 
     # Meta-Analysis endpoints
     path('meta-analysis/', MetaAnalysisView.as_view(), name='meta-analysis'),
