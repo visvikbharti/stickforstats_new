@@ -60,6 +60,10 @@ body.dark-mode,
   --info-border: #90caf9;
   --info-text: #0277bd;
   --code-bg: #f5f5f5;
+  --divider-color: #e0e0e0;
+  --surface-bg: #f5f5f5;
+  --text-primary: #212121;
+  --text-secondary: #666666;
 }
 
 /* Professional color scheme - Dark Mode */
@@ -94,6 +98,10 @@ body.dark-mode {
   --info-border: #33667f;
   --info-text: #90caf9;
   --code-bg: #252545;
+  --divider-color: #424242;
+  --surface-bg: #1e1e1e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
 }
 
 /* Dense table styling */

@@ -49,7 +49,7 @@ const LearningHub = () => {
       title: 'Principal Component Analysis',
       shortTitle: 'PCA',
       icon: <AutoGraphIcon sx={{ fontSize: 48 }} />,
-      color: '#1976d2',
+      color: 'primary.main',
       bgColor: '#e3f2fd',
       route: '/pca-learn',
       category: 'Multivariate Analysis',
@@ -305,7 +305,7 @@ const LearningHub = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100], minHeight: '100vh', py: 4 }}>
       <Container maxWidth="xl">
         {/* Hero Header */}
         <Paper elevation={4} sx={{ p: 5, mb: 4, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
@@ -518,7 +518,7 @@ const LearningHub = () => {
 
         {/* Learning Path Recommendation */}
         <Paper elevation={3} sx={{ p: 4, mt: 5, bgcolor: '#e3f2fd' }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
             📚 Recommended Learning Path
           </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -563,14 +563,14 @@ const LearningHub = () => {
         </Paper>
 
         {/* Platform Features */}
-        <Paper sx={{ p: 4, mt: 4, bgcolor: '#f5f5f5' }}>
-          <Typography variant="h5" gutterBottom sx={{ color: '#1976d2', fontWeight: 600 }}>
+        <Paper sx={{ p: 4, mt: 4, bgcolor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100] }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
             Why Learn with StickForStats?
           </Typography>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <TimelineIcon sx={{ fontSize: 48, color: '#1976d2', mb: 1 }} />
+                <TimelineIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
                 <Typography variant="h6" gutterBottom>
                   Interactive Visualizations
                 </Typography>

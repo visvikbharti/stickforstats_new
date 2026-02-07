@@ -459,25 +459,25 @@ MS = Mean Square`}
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
-                        <th style={{ padding: '8px', borderBottom: '2px solid #ddd' }}>Comparison</th>
-                        <th style={{ padding: '8px', borderBottom: '2px solid #ddd' }}>Mean Difference</th>
-                        <th style={{ padding: '8px', borderBottom: '2px solid #ddd' }}>p-value</th>
-                        <th style={{ padding: '8px', borderBottom: '2px solid #ddd' }}>Significant</th>
+                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Comparison</th>
+                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Mean Difference</th>
+                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>p-value</th>
+                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Significant</th>
                       </tr>
                     </thead>
                     <tbody>
                       {anovaResults.post_hoc.map((comparison, index) => (
                         <tr key={index}>
-                          <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                          <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)' }}>
                             {comparison.group1} vs {comparison.group2}
                           </td>
-                          <td style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+                          <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
                             {comparison.mean_diff.toFixed(3)}
                           </td>
-                          <td style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+                          <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
                             {comparison.p_value.toFixed(4)}
                           </td>
-                          <td style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+                          <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
                             {comparison.significant ? (
                               <CheckIcon color="success" fontSize="small" />
                             ) : (
