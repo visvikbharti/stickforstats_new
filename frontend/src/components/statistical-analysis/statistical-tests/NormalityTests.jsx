@@ -28,7 +28,8 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -101,6 +102,9 @@ const inverseNormalCDF = (p) => {
  * Main Normality Tests Component
  */
 const NormalityTests = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const [selectedColumn, setSelectedColumn] = useState('');
   const [alpha, setAlpha] = useState(0.05);
 
@@ -335,7 +339,7 @@ const NormalityTests = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CheckCircleOutlineIcon /> Normality Tests Configuration
         </Typography>
 
@@ -399,8 +403,8 @@ const NormalityTests = ({ data }) => {
 
       {/* Guardian Warning Display (Informational Only) */}
       {guardianReport && (
-        <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5', borderLeft: '4px solid #2196f3' }}>
-          <Typography variant="subtitle2" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], borderLeft: `4px solid ${theme.palette.info.main}` }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
             ℹ️ Data Quality Information
           </Typography>
           <GuardianWarning
@@ -474,7 +478,7 @@ const NormalityTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Test</strong></TableCell>
                     <TableCell align="right"><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>p-value</strong></TableCell>

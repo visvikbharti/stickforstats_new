@@ -37,7 +37,8 @@ import {
   TableRow,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  useTheme
 } from '@mui/material';
 import {
   ScatterChart,
@@ -79,6 +80,9 @@ const TransformationWizard = ({
   violations = [],
   onTransformComplete
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Wizard steps
   const steps = ['Analysis', 'Suggestion', 'Preview', 'Apply'];
   const [activeStep, setActiveStep] = useState(0);
@@ -325,7 +329,7 @@ const TransformationWizard = ({
    */
   const renderAnalysisStep = () => (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
         <InfoIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
         Current Data Analysis
       </Typography>
@@ -432,7 +436,7 @@ const TransformationWizard = ({
    */
   const renderSuggestionStep = () => (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
         <TrendingUpIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
         Transformation Recommendation
       </Typography>
@@ -455,7 +459,7 @@ const TransformationWizard = ({
       {suggestion && !isLoading && (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Paper elevation={2} sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+            <Paper elevation={2} sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '30' : theme.palette.primary.light + '30' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                 Recommended: {TransformationService.getTransformationDisplayName(suggestion.recommended)}
               </Typography>
@@ -514,7 +518,7 @@ const TransformationWizard = ({
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -548,7 +552,7 @@ const TransformationWizard = ({
    */
   const renderPreviewStep = () => (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ color: '#1976d2' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
         <CompareArrowsIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
         Before & After Comparison
       </Typography>
@@ -582,7 +586,7 @@ const TransformationWizard = ({
 
           <Grid item xs={12} md={6}>
             <Paper elevation={2} sx={{ p: 2 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.error.main }}>
                 Before Transformation
               </Typography>
               <ResponsiveContainer width="100%" height={250}>
@@ -609,7 +613,7 @@ const TransformationWizard = ({
 
           <Grid item xs={12} md={6}>
             <Paper elevation={2} sx={{ p: 2 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.success.main }}>
                 After Transformation
               </Typography>
               <ResponsiveContainer width="100%" height={250}>
@@ -638,7 +642,7 @@ const TransformationWizard = ({
             <TableContainer component={Paper}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Metric</strong></TableCell>
                     <TableCell align="right"><strong>Before</strong></TableCell>
                     <TableCell align="right"><strong>After</strong></TableCell>
@@ -695,7 +699,7 @@ const TransformationWizard = ({
    */
   const renderApplyStep = () => (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ color: '#2e7d32' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.success.main }}>
         <CheckCircleIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
         Ready to Apply
       </Typography>
@@ -787,7 +791,7 @@ const TransformationWizard = ({
         sx: { minHeight: '70vh' }
       }}
     >
-      <DialogTitle sx={{ bgcolor: '#1976d2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle sx={{ bgcolor: theme.palette.primary.main, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <AutoFixHighIcon sx={{ mr: 1 }} />
           <Typography variant="h6">Data Transformation Wizard</Typography>
@@ -811,7 +815,7 @@ const TransformationWizard = ({
 
       <Divider />
 
-      <DialogActions sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+      <DialogActions sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
         <Button onClick={handleClose} color="inherit">
           Cancel
         </Button>

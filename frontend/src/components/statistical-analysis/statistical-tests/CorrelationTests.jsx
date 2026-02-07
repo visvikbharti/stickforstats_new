@@ -36,7 +36,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  IconButton
+  IconButton,
+  useTheme
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import {
@@ -66,6 +67,9 @@ import { DebuggerPanel } from '../../statistical-debugger';
  * Main Correlation Tests Component
  */
 const CorrelationTests = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const [analysisMode, setAnalysisMode] = useState('pairwise');
   const [xColumn, setXColumn] = useState('');
   const [yColumn, setYColumn] = useState('');
@@ -356,7 +360,7 @@ const CorrelationTests = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <ScatterPlotIcon /> Correlation Tests Configuration
         </Typography>
 
@@ -499,8 +503,8 @@ const CorrelationTests = ({ data }) => {
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark, display: 'flex', alignItems: 'center', gap: 1 }}>
             🚫 Test Execution Blocked
           </Typography>
           <Typography variant="body2" paragraph>
@@ -574,7 +578,7 @@ const CorrelationTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -854,7 +858,7 @@ const CorrelationTests = ({ data }) => {
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                      <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                         <TableCell><strong>Variable 1</strong></TableCell>
                         <TableCell><strong>Variable 2</strong></TableCell>
                         <TableCell align="right"><strong>Correlation</strong></TableCell>

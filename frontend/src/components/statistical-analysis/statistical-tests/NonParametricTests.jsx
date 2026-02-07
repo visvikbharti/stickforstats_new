@@ -38,7 +38,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  IconButton
+  IconButton,
+  useTheme
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import {
@@ -72,6 +73,9 @@ import { DebuggerPanel } from '../../statistical-debugger';
  * Main Non-Parametric Tests Component
  */
 const NonParametricTests = ({ data }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const [testType, setTestType] = useState('');
   const [selectedColumn, setSelectedColumn] = useState('');
   const [selectedColumn2, setSelectedColumn2] = useState(''); // For Wilcoxon paired test
@@ -549,7 +553,7 @@ const NonParametricTests = ({ data }) => {
     <Box>
       {/* Configuration Panel */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CompareArrowsIcon /> Non-Parametric Tests Configuration
         </Typography>
 
@@ -591,7 +595,7 @@ const NonParametricTests = ({ data }) => {
           </Grid>
 
           <Grid item xs={12}>
-            <Paper sx={{ p: 2, bgcolor: '#f8f9fa', border: '1px solid #e0e0e0' }}>
+            <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], border: `1px solid ${theme.palette.divider}` }}>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -624,7 +628,7 @@ const NonParametricTests = ({ data }) => {
 
               {/* Sample Size Information */}
               {sampleSizeInfo && testType === 'mann-whitney' && (
-                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'white', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
                   <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                     Current Sample Sizes:
                   </Typography>
@@ -881,8 +885,8 @@ const NonParametricTests = ({ data }) => {
 
       {/* Test Blocked Notice */}
       {isTestBlocked && (
-        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: '#fff3e0', border: '2px solid #ff9800' }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Paper elevation={3} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', border: `2px solid ${theme.palette.warning.main}` }}>
+          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.dark, display: 'flex', alignItems: 'center', gap: 1 }}>
             🚫 Test Execution Blocked
           </Typography>
           <Typography variant="body2" paragraph>
@@ -907,7 +911,7 @@ const NonParametricTests = ({ data }) => {
       {/* Mann-Whitney U Test Results (Backend) */}
       {backendResult && backendResult.test_statistic !== undefined && !isTestBlocked && (
         <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: '2px solid #1976d2' }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.primary.main}` }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Box>
                 <Typography variant="h6">
@@ -951,7 +955,7 @@ const NonParametricTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -961,7 +965,7 @@ const NonParametricTests = ({ data }) => {
                     <TableCell>U Statistic</TableCell>
                     <TableCell align="right">{backendResult.test_statistic}</TableCell>
                   </TableRow>
-                  <TableRow sx={{ bgcolor: '#fff3e0' }}>
+                  <TableRow sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <TableCell>
                       <strong>p-value {backendResult.exact_p_value ? '(Exact)' : '(Normal Approximation)'}</strong>
                     </TableCell>
@@ -1071,7 +1075,7 @@ const NonParametricTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -1174,8 +1178,8 @@ const NonParametricTests = ({ data }) => {
       {/* Kruskal-Wallis H Test Results (Frontend) */}
       {kruskalWallisResult && !isTestBlocked && (
         <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: '2px solid #9c27b0' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#9c27b0' }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.secondary.main}` }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
               Kruskal-Wallis H Test Results
             </Typography>
             <Typography variant="caption" color="text.secondary" paragraph>
@@ -1185,7 +1189,7 @@ const NonParametricTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -1269,8 +1273,8 @@ const NonParametricTests = ({ data }) => {
       {/* Wilcoxon Signed-Rank Test Results (Frontend) */}
       {wilcoxonResult && !isTestBlocked && (
         <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: '2px solid #ff9800' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#ff9800' }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.warning.main}` }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
               Wilcoxon Signed-Rank Test Results
             </Typography>
             <Typography variant="caption" color="text.secondary" paragraph>
@@ -1280,7 +1284,7 @@ const NonParametricTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>
@@ -1364,8 +1368,8 @@ const NonParametricTests = ({ data }) => {
       {/* Friedman Test Results (Frontend) */}
       {friedmanResult && !isTestBlocked && (
         <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: '2px solid #2196f3' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#2196f3' }}>
+          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.info.main}` }}>
+            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
               Friedman Test Results
             </Typography>
             <Typography variant="caption" color="text.secondary" paragraph>
@@ -1375,7 +1379,7 @@ const NonParametricTests = ({ data }) => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
                     <TableCell><strong>Statistic</strong></TableCell>
                     <TableCell align="right"><strong>Value</strong></TableCell>
                   </TableRow>

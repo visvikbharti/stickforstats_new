@@ -41,6 +41,7 @@ import { MathJax } from 'better-react-mathjax';
 
 const Lesson08_KernelPCA = ({ onComplete }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);
@@ -211,7 +212,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
     const height = canvas.height;
 
     // Clear
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = theme.palette.background.paper;
     ctx.fillRect(0, 0, width, height);
 
     const centerX = width / 2;
@@ -219,7 +220,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
     const scale = 40;
 
     // Draw axes
-    ctx.strokeStyle = '#dddddd';
+    ctx.strokeStyle = theme.palette.divider;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, centerY);
@@ -272,7 +273,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
     const height = canvas.height;
 
     // Clear
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = theme.palette.background.paper;
     ctx.fillRect(0, 0, width, height);
 
     const centerX = width / 2;
@@ -286,7 +287,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
     const scale = (width - 40) / range;
 
     // Draw axis
-    ctx.strokeStyle = '#dddddd';
+    ctx.strokeStyle = theme.palette.divider;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(20, centerY);
@@ -345,7 +346,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
             <Typography variant="h6">When Linear PCA Fails</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 Standard PCA is a <strong>linear</strong> method. It finds the best linear subspace
                 to represent the data. But what if the data has <strong>nonlinear structure</strong>?
@@ -353,7 +354,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" color="success.main" gutterBottom>
                         ✓ Linear PCA Works Well
@@ -368,7 +369,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#ffebee' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.error.dark + '20' : theme.palette.error.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" color="error.main" gutterBottom>
                         ✗ Linear PCA Struggles
@@ -393,7 +394,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 The Solution: Kernel PCA
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                 <Typography paragraph>
                   <strong>Kernel PCA</strong> applies the "kernel trick" to perform PCA in a high-dimensional
                   feature space where the data becomes linearly separable, without explicitly computing
@@ -419,7 +420,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
             <Typography variant="h6">The Kernel Trick</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 The Big Idea
               </Typography>
@@ -533,7 +534,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
             <Typography variant="h6">Compare Linear vs Kernel PCA</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 Below you can see how Kernel PCA handles nonlinear data much better than linear PCA.
               </Typography>
@@ -650,7 +651,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
             <Typography variant="h6">How Kernel PCA Works</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Algorithm Overview
               </Typography>
@@ -750,7 +751,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🚀 Advanced PCA Complete!
               </Typography>
@@ -761,9 +762,9 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Concepts
                       </Typography>
@@ -778,7 +779,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         When to Use Kernel PCA
@@ -804,7 +805,7 @@ const Lesson08_KernelPCA = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   Key Formula: RBF Kernel
                 </Typography>

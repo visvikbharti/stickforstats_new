@@ -38,6 +38,7 @@ import {
 
 const Lesson03_CovarianceMatrix = () => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [datasetType, setDatasetType] = useState('correlated');

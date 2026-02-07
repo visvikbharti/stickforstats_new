@@ -42,6 +42,7 @@ import { MathJax } from 'better-react-mathjax';
 
 const Lesson07_Proof = ({ onComplete }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);
@@ -69,7 +70,7 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">The Optimization Problem</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 What Are We Trying to Prove?
               </Typography>
@@ -124,7 +125,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Variance Along Direction v
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                 <Typography paragraph>
                   The variance of the data when projected onto direction <MathJax inline>{"\\(\\mathbf{v}\\)"}</MathJax> is:
                 </Typography>
@@ -148,7 +149,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 well-defined. Without this constraint, we could make variance arbitrarily large by scaling v.
               </Alert>
 
-              <Paper sx={{ p: 2, bgcolor: '#fff3e0', mt: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                   Optimization Problem:
                 </Typography>
@@ -179,7 +180,7 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">Lagrange Multipliers Method</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 To solve this <strong>constrained optimization problem</strong>, we use the method of
                 <strong> Lagrange multipliers</strong>.
@@ -261,7 +262,7 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">Taking the Gradient</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Step 1: Compute ∇<sub>v</sub> ℒ
               </Typography>
@@ -320,7 +321,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 Applying the Rules
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                 <Typography paragraph>
                   Term 1: <MathJax inline>{"\\(\\frac{\\partial}{\\partial \\mathbf{v}} (\\mathbf{v}^T \\mathbf{C} \\mathbf{v}) = 2 \\mathbf{C} \\mathbf{v}\\)"}</MathJax>
                 </Typography>
@@ -372,12 +373,12 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">The Eigenvalue Equation</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 What Does This Mean?
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <FunctionsIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 2 }} />
                   <MathJax style={{ fontSize: '1.5rem' }}>
@@ -421,7 +422,7 @@ const Lesson07_Proof = ({ onComplete }) => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Largest Eigenvalue λ₁
@@ -437,7 +438,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Second Largest λ₂
@@ -473,7 +474,7 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">Orthogonality of Principal Components</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 A beautiful property: the principal components (eigenvectors of <strong>C</strong>) are
                 <strong> mutually orthogonal</strong>.
@@ -549,7 +550,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 32, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 32, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Independence
                       </Typography>
@@ -563,7 +564,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 32, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 32, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         No Redundancy
                       </Typography>
@@ -577,7 +578,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 32, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 32, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Simplified Geometry
                       </Typography>
@@ -603,7 +604,7 @@ const Lesson07_Proof = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🎓 Mathematical Foundation Complete!
               </Typography>
@@ -612,7 +613,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 You now understand the rigorous mathematical proof that PCA finds the optimal directions.
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   The Complete Proof Chain
                 </Typography>
@@ -661,9 +662,9 @@ const Lesson07_Proof = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Takeaways
                       </Typography>
@@ -678,7 +679,7 @@ const Lesson07_Proof = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         Why This Matters

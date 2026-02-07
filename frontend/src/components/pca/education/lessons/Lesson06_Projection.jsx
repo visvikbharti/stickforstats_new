@@ -42,6 +42,7 @@ import { MathJax } from 'better-react-mathjax';
 
 const Lesson06_Projection = ({ onComplete }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);
@@ -225,7 +226,7 @@ const Lesson06_Projection = ({ onComplete }) => {
     const height = canvas.height;
 
     // Clear
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = theme.palette.background.paper;
     ctx.fillRect(0, 0, width, height);
 
     // 3D projection parameters
@@ -427,7 +428,7 @@ const Lesson06_Projection = ({ onComplete }) => {
             <Typography variant="h6">What is Projection?</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 <strong>Projection</strong> is how PCA performs dimensionality reduction. Instead of keeping
                 all original dimensions, we project data onto a lower-dimensional subspace defined by the
@@ -503,7 +504,7 @@ const Lesson06_Projection = ({ onComplete }) => {
             <Typography variant="h6">Visualize Projection in 3D</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 Below is a 3D dataset. Watch how changing the number of principal components affects
                 the reconstruction quality.
@@ -533,7 +534,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <Card sx={{ mb: 2, bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ mb: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>Controls</Typography>
 
@@ -604,7 +605,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                     </CardContent>
                   </Card>
 
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Metrics
@@ -653,7 +654,7 @@ const Lesson06_Projection = ({ onComplete }) => {
             <Typography variant="h6">The Mathematics of Projection</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Projection Formula
               </Typography>
@@ -757,14 +758,14 @@ const Lesson06_Projection = ({ onComplete }) => {
             <Typography variant="h6">Choosing the Number of Components</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 How many components should you keep? This is the fundamental tradeoff in dimensionality reduction:
               </Typography>
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" color="success.main" gutterBottom>
                         ✓ Keep More Components
@@ -782,7 +783,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" color="warning.main" gutterBottom>
                         ⚡ Keep Fewer Components
@@ -868,7 +869,7 @@ const Lesson06_Projection = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🎉 Lesson Complete!
               </Typography>
@@ -881,7 +882,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Concepts
                       </Typography>
@@ -898,7 +899,7 @@ const Lesson06_Projection = ({ onComplete }) => {
                 <Grid item xs={12} md={6}>
                   <Card>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Formulas
                       </Typography>

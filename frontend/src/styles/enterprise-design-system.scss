@@ -92,6 +92,31 @@ $text-secondary: #616161; // Secondary text
 $text-disabled: #9e9e9e;  // Disabled text
 $text-hint: #bdbdbd;      // Hint text
 
+// Semantic Aliases (for convenience)
+$warning: $warning-main;
+$error: $error-main;
+$success: $success-main;
+$info: $info-main;
+
+// Info Panel Colors
+$info-bg: #e3f2fd;        // Light blue background
+$info-border: #90caf9;    // Blue border
+
+// Warning Panel Colors
+$warning-bg: #fff3e0;     // Light orange background
+$warning-border: #ffb74d; // Orange border
+
+// Error Panel Colors
+$error-bg: #ffebee;       // Light red background
+$error-border: #ef9a9a;   // Red border
+
+// Success Panel Colors
+$success-bg: #e8f5e9;     // Light green background
+$success-border: #a5d6a7; // Green border
+
+// Font Aliases
+$font-mono: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+
 // Statistical Significance Colors
 $sig-001: #1a237e;  // p < 0.001 (deep blue)
 $sig-01: #283593;   // p < 0.01
@@ -279,7 +304,7 @@ $z-index-tooltip: 1070;
       white-space: nowrap;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: $z-index-sticky;  // Use variable (1020) to prevent conflicts with dropdowns
       
       &.sortable {
         cursor: pointer;

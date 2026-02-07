@@ -52,6 +52,7 @@ import { MathJax } from 'better-react-mathjax';
 
 const Lesson10_Applications = ({ onComplete }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);
@@ -138,7 +139,7 @@ const Lesson10_Applications = ({ onComplete }) => {
             <Typography variant="h6">PCA Across Domains</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 PCA is one of the most widely-used techniques in data science. It appears in virtually
                 every field that works with high-dimensional data.
@@ -206,7 +207,7 @@ const Lesson10_Applications = ({ onComplete }) => {
             <Typography variant="h6">Application Deep Dives</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Tabs
                 value={selectedDomain}
                 onChange={(e, val) => setSelectedDomain(val)}
@@ -236,7 +237,7 @@ const Lesson10_Applications = ({ onComplete }) => {
 
                 <Grid container spacing={2} sx={{ mb: 2 }}>
                   <Grid item xs={12} md={6}>
-                    <Card sx={{ bgcolor: '#f5f5f5', height: '100%' }}>
+                    <Card sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], height: '100%' }}>
                       <CardContent>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                           Problem Scale
@@ -249,7 +250,7 @@ const Lesson10_Applications = ({ onComplete }) => {
                   </Grid>
 
                   <Grid item xs={12} md={6}>
-                    <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                    <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                       <CardContent>
                         <Typography variant="subtitle1" sx={{ fontWeight: 600 }} gutterBottom>
                           Why PCA Works
@@ -448,7 +449,7 @@ const Lesson10_Applications = ({ onComplete }) => {
                         PCA can compress images by keeping only top principal components:
                       </Typography>
 
-                      <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
+                      <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100], mb: 2 }}>
                         <Typography variant="subtitle2" gutterBottom>
                           Compression Process:
                         </Typography>
@@ -517,7 +518,7 @@ const Lesson10_Applications = ({ onComplete }) => {
                         <strong>PCA/SVD discovers latent factors:</strong>
                       </Typography>
 
-                      <Paper sx={{ p: 2, bgcolor: '#e3f2fd', mb: 2 }}>
+                      <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                         <Typography variant="subtitle2" gutterBottom>
                           Movie Example:
                         </Typography>
@@ -587,14 +588,14 @@ const Lesson10_Applications = ({ onComplete }) => {
             <Typography variant="h6">Best Practices & Pitfalls</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 When to Use PCA (and When Not To)
               </Typography>
 
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30', height: '100%' }}>
                     <CardContent>
                       <Typography variant="h6" color="success.main" gutterBottom>
                         ✅ Good Use Cases
@@ -642,7 +643,7 @@ const Lesson10_Applications = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#ffebee', height: '100%' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.error.dark + '20' : theme.palette.error.light + '30', height: '100%' }}>
                     <CardContent>
                       <Typography variant="h6" color="error.main" gutterBottom>
                         ❌ Poor Use Cases
@@ -798,7 +799,7 @@ const Lesson10_Applications = ({ onComplete }) => {
             <Typography variant="h6">Congratulations!</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: theme.palette.success.main }}>
                 🎓 PCA Mastery Achieved!
               </Typography>
@@ -808,7 +809,7 @@ const Lesson10_Applications = ({ onComplete }) => {
                 foundation and practical knowledge to apply PCA effectively.
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e8f5e9', mb: 3 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30', mb: 3 }}>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <EmojiObjectsIcon color="success" />
                   What You've Learned

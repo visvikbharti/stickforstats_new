@@ -38,6 +38,7 @@ import {
 
 const Lesson05_Eigendecomposition = () => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);

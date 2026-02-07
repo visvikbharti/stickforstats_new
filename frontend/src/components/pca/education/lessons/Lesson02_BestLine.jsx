@@ -14,6 +14,7 @@ import {
   Chip,
   Divider
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -39,6 +40,9 @@ import { animate, easing, animateVarianceSearch } from '../utils/animations';
  * Builds on Lesson 1's variance intuition to introduce optimization.
  */
 const Lesson02_BestLine = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -133,11 +137,11 @@ const Lesson02_BestLine = ({ onComplete }) => {
     ctx.scale(dpr, dpr);
 
     // Clear
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = theme.palette.background.paper;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Draw grid
-    ctx.strokeStyle = '#f0f0f0';
+    ctx.strokeStyle = theme.palette.divider;
     ctx.lineWidth = 1;
     for (let x = 0; x <= CANVAS_WIDTH; x += 50) {
       ctx.beginPath();
@@ -370,8 +374,8 @@ const Lesson02_BestLine = ({ onComplete }) => {
   return (
     <Box>
       {/* Header */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#f5f9ff', borderLeft: '4px solid #1976d2' }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
           Lesson 2: Finding the Best Line
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -452,7 +456,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
                     sx={{
                       width: '100%',
                       height: 8,
-                      bgcolor: '#e0e0e0',
+                      bgcolor: theme.palette.grey[isDarkMode ? 800 : 300],
                       borderRadius: 4,
                       overflow: 'hidden'
                     }}
@@ -461,7 +465,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
                       sx={{
                         width: `${searchProgress}%`,
                         height: '100%',
-                        bgcolor: '#1976d2',
+                        bgcolor: theme.palette.primary.main,
                         transition: 'width 0.1s'
                       }}
                     />
@@ -523,7 +527,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
                 <Typography variant="body2" color="text.secondary">
                   Angle
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#f44336' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.error.main }}>
                   {(angle * 180 / Math.PI).toFixed(1)}°
                 </Typography>
               </Box>
@@ -532,7 +536,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
                 <Typography variant="body2" color="text.secondary">
                   Variance
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {variance.toFixed(4)}
                 </Typography>
               </Box>
@@ -543,7 +547,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
                 <Typography variant="body2" color="text.secondary">
                   Maximum Variance
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#4caf50' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                   {maxVariance.toFixed(4)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -582,7 +586,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
       </Grid>
 
       {/* Theory section */}
-      <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+      <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
           📚 The Optimization Problem
         </Typography>
@@ -591,7 +595,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
           We want to find the direction <InlineMath math="\mathbf{u}" /> that maximizes variance:
         </Typography>
 
-        <Box sx={{ my: 3, p: 2, bgcolor: '#fff', borderRadius: 1 }}>
+        <Box sx={{ my: 3, p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1 }}>
           <BlockMath math="\text{maximize: } \quad \text{Var}(\mathbf{u}) = \frac{1}{n} \sum_{i=1}^{n} \left(\mathbf{x}_i \cdot \mathbf{u}\right)^2" />
           <BlockMath math="\text{subject to: } \quad \|\mathbf{u}\| = 1" />
         </Box>
@@ -604,7 +608,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card variant="outlined">
               <CardContent>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#f44336' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.error.main }}>
                   1. Brute Force Search
                 </Typography>
                 <Typography variant="body2" paragraph>
@@ -621,7 +625,7 @@ const Lesson02_BestLine = ({ onComplete }) => {
           <Grid item xs={12} md={6}>
             <Card variant="outlined">
               <CardContent>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#4caf50' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                   2. Eigendecomposition
                 </Typography>
                 <Typography variant="body2" paragraph>

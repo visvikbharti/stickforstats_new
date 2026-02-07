@@ -15,6 +15,7 @@ import {
   ToggleButton,
   Alert
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -43,6 +44,9 @@ import { animateVarianceSearch } from '../utils/animations';
  */
 
 const Lesson01_Variance = ({ onComplete }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   // Refs
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -127,11 +131,11 @@ const Lesson01_Variance = ({ onComplete }) => {
     ctx.scale(dpr, dpr);
 
     // Clear
-    ctx.fillStyle = '#fafafa';
+    ctx.fillStyle = isDarkMode ? theme.palette.grey[900] : '#fafafa';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Draw grid
-    ctx.strokeStyle = '#e0e0e0';
+    ctx.strokeStyle = theme.palette.divider;
     ctx.lineWidth = 1;
     for (let x = PADDING; x < CANVAS_WIDTH; x += 50) {
       ctx.beginPath();
@@ -313,8 +317,8 @@ const Lesson01_Variance = ({ onComplete }) => {
     <MathJaxContext>
       <Box sx={{ maxWidth: 1400, mx: 'auto', p: 3 }}>
         {/* Header */}
-        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: '#e3f2fd', borderLeft: '4px solid #1976d2' }}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: '#1976d2' }}>
+        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
             Lesson 1: The Variance Intuition
           </Typography>
           <Typography variant="body1" color="text.secondary">
@@ -424,7 +428,7 @@ const Lesson01_Variance = ({ onComplete }) => {
                 <Typography variant="h6" gutterBottom>
                   Current Variance
                 </Typography>
-                <Typography variant="h3" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                <Typography variant="h3" sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
                   {variance.toFixed(2)}
                 </Typography>
               </CardContent>
@@ -445,7 +449,7 @@ const Lesson01_Variance = ({ onComplete }) => {
         </Grid>
 
         {/* Theory section */}
-        <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: '#fafafa' }}>
+        <Paper elevation={2} sx={{ p: 3, mt: 3, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50] }}>
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
             📐 The Mathematics
           </Typography>
@@ -454,7 +458,7 @@ const Lesson01_Variance = ({ onComplete }) => {
             Variance along a direction <MathJax inline>{"\\(\\mathbf{u}\\)"}</MathJax> is:
           </Typography>
 
-          <Box sx={{ my: 2, p: 2, bgcolor: '#fff', borderRadius: 1 }}>
+          <Box sx={{ my: 2, p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1 }}>
             <MathJax>
               {
                 "\\[\\text{Var}(\\mathbf{u}) = \\frac{1}{n} \\sum_{i=1}^{n} \\left(\\mathbf{x}_i \\cdot \\mathbf{u}\\right)^2\\]"

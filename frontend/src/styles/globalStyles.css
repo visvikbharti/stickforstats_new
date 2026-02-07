@@ -11,10 +11,18 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
   font-size: 13px;
   line-height: 1.4;
-  color: #2c3e50;
-  background-color: #ecf0f1;
+  color: var(--text-primary);
+  background-color: var(--background-light);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body styles */
+body.dark-mode,
+[data-theme="dark"] body {
+  color: var(--text-primary);
+  background-color: var(--background-light);
 }
 
 /* Enterprise UI - Dense Layout */
@@ -22,7 +30,7 @@ body {
   padding: 4px;
 }
 
-/* Professional color scheme */
+/* Professional color scheme - Light Mode */
 :root {
   --primary-color: #34495e;
   --secondary-color: #7f8c8d;
@@ -33,8 +41,33 @@ body {
   --border-color: #bdc3c7;
   --background-light: #ecf0f1;
   --background-white: #ffffff;
+  --background-paper: #ffffff;
   --text-primary: #2c3e50;
   --text-secondary: #7f8c8d;
+  --surface-100: #ffffff;
+  --surface-200: #fafafa;
+  --surface-300: #f5f5f5;
+}
+
+/* Professional color scheme - Dark Mode */
+[data-theme="dark"],
+.dark-mode,
+body.dark-mode {
+  --primary-color: #5d7a96;
+  --secondary-color: #9eaab4;
+  --success-color: #4caf50;
+  --danger-color: #ef5350;
+  --warning-color: #ffb74d;
+  --info-color: #4fc3f7;
+  --border-color: #424242;
+  --background-light: #1a1a2e;
+  --background-white: #0f0f23;
+  --background-paper: #1a1a35;
+  --text-primary: #e8e8e8;
+  --text-secondary: #a0a0a0;
+  --surface-100: #1a1a35;
+  --surface-200: #252545;
+  --surface-300: #303055;
 }
 
 /* Dense table styling */

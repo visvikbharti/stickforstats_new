@@ -36,6 +36,7 @@ import {
 
 const Lesson04_Eigenvectors = () => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [mode, setMode] = useState('exploration'); // 'exploration' or 'covariance'

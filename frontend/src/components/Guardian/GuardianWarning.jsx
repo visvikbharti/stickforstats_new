@@ -3,7 +3,8 @@ import {
   Alert, AlertTitle, Box, Button, Collapse, Typography,
   List, ListItem, ListItemIcon, ListItemText, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  LinearProgress, IconButton, Tooltip, Paper, Grid
+  LinearProgress, IconButton, Tooltip, Paper, Grid,
+  useTheme
 } from '@mui/material';
 import {
   Warning as WarningIcon,
@@ -39,6 +40,9 @@ const GuardianWarning = ({
   alpha = 0.05,  // Add alpha prop for export
   onTransformComplete = null  // Callback when transformation is applied
 }) => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const [expanded, setExpanded] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [showEducation, setShowEducation] = useState(false);
@@ -186,8 +190,12 @@ const GuardianWarning = ({
           sx={{
             mb: 2,
             border: '2px solid',
-            borderColor: getSeverityColor() === 'error' ? '#FF5252' : '#FFD700',
-            boxShadow: '0 4px 20px rgba(255, 215, 0, 0.2)'
+            borderColor: getSeverityColor() === 'error'
+              ? theme.palette.error.main
+              : theme.palette.warning.main,
+            boxShadow: isDarkMode
+              ? `0 4px 20px ${theme.palette.warning.dark}40`
+              : `0 4px 20px ${theme.palette.warning.light}40`
           }}
         >
           <AlertTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -215,14 +223,14 @@ const GuardianWarning = ({
                   sx={{
                     height: 10,
                     borderRadius: 5,
-                    bgcolor: 'grey.300',
+                    bgcolor: theme.palette.grey[isDarkMode ? 700 : 300],
                     '& .MuiLinearProgress-bar': {
                       borderRadius: 5,
                       background: confidence_score > 0.618
-                        ? 'linear-gradient(90deg, #4CAF50, #8BC34A)'
+                        ? `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.success.light})`
                         : confidence_score > 0.382
-                        ? 'linear-gradient(90deg, #FFC107, #FFD700)'
-                        : 'linear-gradient(90deg, #FF5252, #FF9800)'
+                        ? `linear-gradient(90deg, ${theme.palette.warning.main}, ${theme.palette.warning.light})`
+                        : `linear-gradient(90deg, ${theme.palette.error.main}, ${theme.palette.warning.main})`
                     }
                   }}
                 />
@@ -234,7 +242,11 @@ const GuardianWarning = ({
                 <Chip
                   label="φ"
                   size="small"
-                  sx={{ bgcolor: '#FFD700', color: '#000', fontWeight: 'bold' }}
+                  sx={{
+                    bgcolor: theme.palette.warning.main,
+                    color: theme.palette.warning.contrastText,
+                    fontWeight: 'bold'
+                  }}
                 />
               </Tooltip>
             </Box>
@@ -264,9 +276,9 @@ const GuardianWarning = ({
                   startIcon={<TransformIcon />}
                   onClick={() => setWizardOpen(true)}
                   sx={{
-                    background: 'linear-gradient(90deg, #FF9800, #FFD700)',
+                    background: `linear-gradient(90deg, ${theme.palette.warning.main}, ${theme.palette.warning.light})`,
                     '&:hover': {
-                      background: 'linear-gradient(90deg, #F57C00, #FFC107)'
+                      background: `linear-gradient(90deg, ${theme.palette.warning.dark}, ${theme.palette.warning.main})`
                     }
                   }}
                 >
@@ -418,10 +430,11 @@ const GuardianWarning = ({
                       sx={{
                         textTransform: 'none',
                         justifyContent: 'flex-start',
-                        borderColor: '#FFD700',
+                        borderColor: theme.palette.warning.main,
+                        color: theme.palette.text.primary,
                         '&:hover': {
-                          bgcolor: 'rgba(255, 215, 0, 0.1)',
-                          borderColor: '#FFD700'
+                          bgcolor: theme.palette.action.hover,
+                          borderColor: theme.palette.warning.main
                         }
                       }}
                     >
@@ -439,8 +452,14 @@ const GuardianWarning = ({
           {/* Educational Content */}
           {educationalMode && (
             <Collapse in={showEducation}>
-              <Paper sx={{ mt: 2, p: 2, bgcolor: '#FFF9E6' }}>
-                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: '#F57C00' }}>
+              <Paper sx={{
+                mt: 2,
+                p: 2,
+                bgcolor: isDarkMode
+                  ? theme.palette.warning.dark + '20'
+                  : theme.palette.warning.light + '30'
+              }}>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: theme.palette.warning.main }}>
                   📚 Why These Assumptions Matter:
                 </Typography>
                 {violations.map((violation, index) => (
@@ -472,7 +491,7 @@ const GuardianWarning = ({
             <>
               <DialogTitle>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ShieldIcon sx={{ color: '#FFD700' }} />
+                  <ShieldIcon sx={{ color: theme.palette.warning.main }} />
                   {selectedViolation.assumption} Violation Details
                 </Box>
               </DialogTitle>

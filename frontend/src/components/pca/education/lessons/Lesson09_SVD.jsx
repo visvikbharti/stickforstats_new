@@ -43,6 +43,7 @@ import { MathJax } from 'better-react-mathjax';
 
 const Lesson09_SVD = ({ onComplete }) => {
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
 
   // State
   const [activeStep, setActiveStep] = useState(0);
@@ -80,12 +81,12 @@ const Lesson09_SVD = ({ onComplete }) => {
             <Typography variant="h6">What is SVD?</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Singular Value Decomposition (SVD)
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#e3f2fd', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', mb: 2 }}>
                 <Typography paragraph>
                   SVD is a fundamental matrix factorization that works for <strong>any</strong> matrix
                   (not just square or symmetric).
@@ -202,13 +203,13 @@ const Lesson09_SVD = ({ onComplete }) => {
             <Typography variant="h6">How SVD Gives Us PCA</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 Here's the beautiful connection: <strong>The right singular vectors of the centered
                 data matrix are exactly the principal components!</strong>
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <CompareArrowsIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 2 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -321,7 +322,7 @@ const Lesson09_SVD = ({ onComplete }) => {
             <Typography variant="h6">PCA via Eigendecomposition vs SVD</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography paragraph>
                 There are two computational paths to PCA. Both give identical results!
               </Typography>
@@ -329,7 +330,7 @@ const Lesson09_SVD = ({ onComplete }) => {
               <Paper sx={{ p: 0, overflow: 'hidden', mb: 2 }}>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#e3f2fd' }}>
+                    <TableRow sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                       <TableCell><strong>Aspect</strong></TableCell>
                       <TableCell><strong>Eigendecomposition Method</strong></TableCell>
                       <TableCell><strong>SVD Method</strong></TableCell>
@@ -446,7 +447,7 @@ const Lesson09_SVD = ({ onComplete }) => {
             <Typography variant="h6">Truncated SVD for Efficiency</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h6" gutterBottom>
                 Computing Only k Components
               </Typography>
@@ -455,7 +456,7 @@ const Lesson09_SVD = ({ onComplete }) => {
                 Often we only need the top k principal components (k {"<<"} d). We don't need the full SVD!
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: '#e8f5e9', mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30', mb: 2 }}>
                 <Typography paragraph>
                   <strong>Truncated SVD</strong> (also called partial SVD) computes only the largest k singular
                   values and corresponding vectors:
@@ -478,7 +479,7 @@ const Lesson09_SVD = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#fff3e0' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Full SVD
@@ -497,7 +498,7 @@ const Lesson09_SVD = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Truncated SVD (k components)
@@ -570,7 +571,7 @@ const Lesson09_SVD = ({ onComplete }) => {
             <Typography variant="h6">Summary & Completion</Typography>
           </StepLabel>
           <StepContent>
-            <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper sx={{ p: 3, bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
                 🎯 SVD Connection Complete!
               </Typography>
@@ -581,9 +582,9 @@ const Lesson09_SVD = ({ onComplete }) => {
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e3f2fd' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30' }}>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#2196f3', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.primary.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Insights
                       </Typography>
@@ -598,9 +599,9 @@ const Lesson09_SVD = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: '#e8f5e9' }}>
+                  <Card sx={{ bgcolor: isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30' }}>
                     <CardContent>
-                      <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 40, mb: 1 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 40, mb: 1 }} />
                       <Typography variant="h6" gutterBottom>
                         Practical Takeaways
                       </Typography>
@@ -615,7 +616,7 @@ const Lesson09_SVD = ({ onComplete }) => {
                 </Grid>
               </Grid>
 
-              <Paper sx={{ p: 3, bgcolor: '#fff3e0', mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30', mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   The Complete Picture
                 </Typography>
