@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'confidence_intervals.apps.ConfidenceIntervalsConfig',  # Re-enabled
     'probability_distributions.apps.ProbabilityDistributionsConfig',
     'sqc_analysis.apps.SQCAnalysisConfig',  # ENABLED for backend integration
-    # 'doe_analysis.apps.DOEAnalysisConfig',  # Needs core.AnalysisSession/AnalysisResult models (not yet created)
+    'doe_analysis.apps.DOEAnalysisConfig',
     'pca_analysis.apps.PCAAnalysisConfig',
 ]
 

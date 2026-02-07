@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/v1/confidence-intervals/', include('confidence_intervals.api.urls')),
     path('api/v1/probability-distributions/', include('probability_distributions.api.urls')),
     path('api/v1/sqc-analysis/', include('sqc_analysis.api.urls')),  # ← ENABLED for backend integration
-    # path('api/v1/doe-analysis/', include('doe_analysis.api.urls')),  # Needs core.AnalysisSession/AnalysisResult models
+    path('api/v1/doe-analysis/', include('doe_analysis.api.urls')),
     path('api/v1/pca-analysis/', include('pca_analysis.urls')),
 ]
 

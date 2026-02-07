@@ -34,10 +34,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator, FileExt
 from django.utils import timezone
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-# Note: The following models are planned for future implementation:
-# AnalysisSession, AnalysisResult, Dataset, Visualization
-# Currently using simplified Analysis model for core functionality.
-
 # Simplified model just to get the server running
 class Analysis(models.Model):
     """
@@ -63,6 +59,51 @@ class Analysis(models.Model):
 
 # Create Report as an alias to Analysis for compatibility
 Report = Analysis
+
+
+class AnalysisSession(models.Model):
+    """Groups related analyses into a user session."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        'auth.User', on_delete=models.CASCADE,
+        related_name='analysis_sessions', null=True, blank=True
+    )
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    analysis_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, default='active', choices=[
+        ('active', 'Active'), ('completed', 'Completed'), ('archived', 'Archived')
+    ])
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} ({self.analysis_type})"
+
+
+class AnalysisResult(models.Model):
+    """Stores results from an analysis within a session."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    analysis_session = models.ForeignKey(
+        AnalysisSession, on_delete=models.CASCADE, related_name='results'
+    )
+    analysis_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, default='pending', choices=[
+        ('pending', 'Pending'), ('running', 'Running'),
+        ('completed', 'Completed'), ('failed', 'Failed')
+    ])
+    result_data = JSONField(default=dict)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Result ({self.analysis_type}) - {self.status}"
 
 
 class StatisticalAudit(models.Model):
@@ -281,13 +322,9 @@ class AuditSummary(models.Model):
 
 __all__ = [
     'Analysis',
-    'Report',  # Alias to Analysis
+    'Report',
+    'AnalysisSession',
+    'AnalysisResult',
     'StatisticalAudit',
     'AuditSummary',
-    # These models are not yet implemented:
-    # 'Dataset',
-    # 'Visualization',
-    # 'Workflow',
-    # 'AnalysisSession',
-    # 'AnalysisResult'
 ]

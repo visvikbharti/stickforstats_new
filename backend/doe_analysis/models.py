@@ -11,9 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 import json
 
-# from core.models import AnalysisSession, AnalysisResult  # Models don't exist yet
-from typing import Any as AnalysisSession  # Placeholder type
-from typing import Any as AnalysisResult  # Placeholder type
+from core.models import AnalysisSession, AnalysisResult
 from .constants import (
     FACTORIAL_DESIGN, FRACTIONAL_FACTORIAL_DESIGN, RESPONSE_SURFACE_DESIGN,
     CENTRAL_COMPOSITE_DESIGN, BOX_BEHNKEN_DESIGN, PLACKETT_BURMAN_DESIGN,
@@ -208,6 +206,8 @@ class ModelAnalysis(models.Model):
     
     # Model metadata
     response_name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
     model_type = models.CharField(
         max_length=30,
         choices=[
@@ -219,7 +219,16 @@ class ModelAnalysis(models.Model):
             ('customized', 'Customized')
         ]
     )
-    
+
+    # Workflow fields
+    status = models.CharField(max_length=20, default='PENDING', choices=[
+        ('PENDING', 'Pending'), ('RUNNING', 'Running'),
+        ('COMPLETED', 'Completed'), ('FAILED', 'Failed')
+    ])
+    responses = models.JSONField(default=list, blank=True)
+    results = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True)
+
     # Model statistics
     r_squared = models.FloatField(null=True, blank=True)
     adjusted_r_squared = models.FloatField(null=True, blank=True)
@@ -319,10 +328,26 @@ class OptimizationAnalysis(models.Model):
         blank=True
     )
     
+    # Link to model analysis (for optimization based on fitted model)
+    model_analysis = models.ForeignKey(
+        'ModelAnalysis', on_delete=models.SET_NULL,
+        related_name='optimization_from_model', null=True, blank=True
+    )
+
     # Optimization metadata
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    
+
+    # Workflow fields
+    status = models.CharField(max_length=20, default='PENDING', choices=[
+        ('PENDING', 'Pending'), ('RUNNING', 'Running'),
+        ('COMPLETED', 'Completed'), ('FAILED', 'Failed')
+    ])
+    response_goals = models.JSONField(default=dict, blank=True)
+    constraints = models.JSONField(default=list, blank=True)
+    results = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True)
+
     # Optimization type
     OPTIMIZATION_TYPES = [
         ('single_response', 'Single Response'),
