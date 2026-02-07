@@ -47,6 +47,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import { getApiUrl } from '../config/apiConfig';
 import {
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
@@ -305,7 +306,7 @@ const ProfessionalStatisticalAnalysis = () => {
           return;
       }
 
-      const response = await axios.post(`http://localhost:8000${endpoint}`, payload);
+      const response = await axios.post(getApiUrl(endpoint), payload);
 
       if (response.data.high_precision_result) {
         setResults(response.data);

@@ -23,6 +23,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { getApiUrl } from '../../../../config/apiConfig';
 
 /**
  * Lesson 4: Process Capability Analysis
@@ -95,7 +96,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
       const measurements = sampleData.map(s => parseFloat(s.value));
 
       // Call REAL backend Quick API (public endpoint, no auth!)
-      const response = await fetch('http://localhost:8000/api/v1/sqc-analysis/quick-capability/', {
+      const response = await fetch(getApiUrl('/v1/sqc-analysis/quick-capability/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -713,7 +714,7 @@ const Lesson04_ProcessCapability = ({ onComplete }) => {
 
               {!backendResults && !isLoadingBackend && (
                 <Alert severity="info" sx={{ mt: 2 }}>
-                  <strong>How it works:</strong> When you click the button above, your browser sends the current slider values to the Django backend at <code>localhost:8000</code>. The backend generates 100 random samples, calculates all metrics using SciPy, and returns the results along with a matplotlib-generated visualization.
+                  <strong>How it works:</strong> When you click the button above, your browser sends the current slider values to the backend server. The backend generates 100 random samples, calculates all metrics using SciPy, and returns the results along with a matplotlib-generated visualization.
                 </Alert>
               )}
             </Box>

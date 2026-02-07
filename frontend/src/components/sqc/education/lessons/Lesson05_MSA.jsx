@@ -22,6 +22,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { getApiUrl } from '../../../../config/apiConfig';
 
 /**
  * Lesson 5: Measurement System Analysis
@@ -137,7 +138,7 @@ const Lesson05_MSA = ({ onComplete }) => {
       });
 
       // Call REAL backend Quick MSA API (public endpoint, no auth!)
-      const response = await fetch('http://localhost:8000/api/v1/sqc-analysis/quick-msa/', {
+      const response = await fetch(getApiUrl('/v1/sqc-analysis/quick-msa/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
