@@ -1,0 +1,372 @@
+/* HypothesisRegistry.scss */
+/* Styles for the hypothesis tracking and p-hacking prevention component */
+
+.hypothesis-registry {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+
+    h2 {
+      margin: 0;
+      color: #1a237e;
+      font-size: 1.5rem;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__stat-card {
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 6px;
+    text-align: center;
+
+    &-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1976d2;
+    }
+
+    &-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+  }
+
+  &__form {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e0e0e0;
+  }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__input-group {
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+
+      &:focus {
+        outline: none;
+        border-color: #1976d2;
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  &__list {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__list-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 100px 100px 80px;
+    background: #1a237e;
+    color: white;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    @media (max-width: 992px) {
+      display: none;
+    }
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 100px 100px 80px;
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    align-items: center;
+    transition: background 0.2s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    &--locked {
+      background: #e3f2fd;
+      opacity: 0.9;
+    }
+
+    &--flagged {
+      background: #ffebee;
+    }
+
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+
+  &__item-id {
+    font-weight: 600;
+    color: #1976d2;
+    font-family: monospace;
+  }
+
+  &__item-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__item-category {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &--primary {
+      background: #1a237e;
+      color: white;
+    }
+
+    &--secondary {
+      background: #283593;
+      color: white;
+    }
+
+    &--exploratory {
+      background: #3949ab;
+      color: white;
+    }
+
+    &--post_hoc {
+      background: #ef6c00;
+      color: white;
+    }
+
+    &--confirmatory {
+      background: #2e7d32;
+      color: white;
+    }
+  }
+
+  &__item-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+
+    &--registered {
+      color: #757575;
+    }
+
+    &--testing {
+      color: #ef6c00;
+    }
+
+    &--tested {
+      color: #2e7d32;
+    }
+
+    &--locked {
+      color: #1a237e;
+    }
+
+    &--flagged {
+      color: #c62828;
+    }
+  }
+
+  &__item-pvalue {
+    font-family: monospace;
+    font-weight: 500;
+
+    &--significant {
+      color: #2e7d32;
+    }
+
+    &--not-significant {
+      color: #757575;
+    }
+  }
+
+  &__item-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+
+  &__tag {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #333;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+
+    p {
+      margin: 0.5rem 0;
+    }
+  }
+
+  &__export {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &--primary {
+    background: #1976d2;
+    color: white;
+
+    &:hover {
+      background: #1565c0;
+    }
+  }
+
+  &--secondary {
+    background: #e0e0e0;
+    color: #333;
+
+    &:hover {
+      background: #bdbdbd;
+    }
+  }
+
+  &--danger {
+    background: #c62828;
+    color: white;
+
+    &:hover {
+      background: #b71c1c;
+    }
+  }
+
+  &--small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  &__content {
+    background: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+  }
+}

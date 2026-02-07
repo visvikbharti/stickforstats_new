@@ -87,6 +87,11 @@ const CorrelationRegressionModule = lazy(() => import('./modules/CorrelationRegr
 const NonParametricTestsReal = lazy(() => import('./modules/NonParametricTestsReal'));
 const NonParametricTestsRealProfessional = lazy(() => import('./modules/NonParametricTestsRealProfessional'));
 const PowerAnalysisReal = lazy(() => import('./modules/PowerAnalysisReal'));
+// Mixed Effects Models & Causal Inference Modules (Phase 2/3 - December 2025)
+const MixedModelsModule = lazy(() => import('./modules/MixedModelsModule'));
+const CausalInferenceModule = lazy(() => import('./modules/CausalInferenceModule'));
+// Multiple Testing Correction Panel
+const MultiplicityCorrectionPanel = lazy(() => import('./components/MultiplicityCorrectionPanel/MultiplicityCorrectionPanel'));
 const StatisticalDashboard = lazy(() => import('./pages/StatisticalDashboard'));
 // Test Universe - Access to 40+ Statistical Tests
 const TestSelectionDashboard = lazy(() => import('./components/TestSelectionDashboard'));
@@ -192,8 +197,12 @@ const prefetchOptions = {
 };
 
 function App() {
-  // Cosmic landing page state
-  const [showLanding, setShowLanding] = useState(true);
+  // Check if we're on a deep link (any path other than home)
+  // If so, skip the landing page to allow direct URL navigation
+  const isDeepLink = window.location.pathname !== '/' && window.location.pathname !== '';
+
+  // Cosmic landing page state - skip if deep linking
+  const [showLanding, setShowLanding] = useState(!isDeepLink);
   const [animatingOut, setAnimatingOut] = useState(false);
 
   // Handle entering the main app from landing
@@ -436,6 +445,36 @@ function App() {
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Correlation & Regression Module..." />}>
                               <CorrelationRegressionModule />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Mixed Effects Models Module (Phase 2 - December 2025) */}
+                        <Route
+                          path="/modules/mixed-models"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Mixed Effects Models..." />}>
+                              <MixedModelsModule />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Causal Inference Module (Phase 2 - December 2025) */}
+                        <Route
+                          path="/modules/causal-inference"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Causal Inference Toolkit..." />}>
+                              <CausalInferenceModule />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Multiple Testing Correction - Prevent p-hacking */}
+                        <Route
+                          path="/modules/multiplicity"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Multiplicity Correction..." />}>
+                              <MultiplicityCorrectionPanel />
                             </Suspense>
                           }
                         />

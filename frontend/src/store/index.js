@@ -6,13 +6,14 @@
 
 import { configureStore } from '@reduxjs/toolkit';
 import testRecommenderReducer from './slices/testRecommenderSlice';
+import multiplicityCorrectionReducer from './slices/multiplicityCorrectionSlice';
 
 // Create the Redux store
 export const store = configureStore({
   reducer: {
     testRecommender: testRecommenderReducer,
+    multiplicityCorrection: multiplicityCorrectionReducer,
     // Add other reducers here as we integrate more modules
-    // multiplicity: multiplicityReducer,
     // powerAnalysis: powerAnalysisReducer,
     // effectSizes: effectSizesReducer,
     // reproducibility: reproducibilityReducer,
