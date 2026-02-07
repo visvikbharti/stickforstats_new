@@ -30,8 +30,15 @@ import {
   TableHead,
   TableRow,
   ToggleButtonGroup,
-  ToggleButton
+  ToggleButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   ScatterChart,
   Scatter,
@@ -51,6 +58,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { pearsonCorrelation, spearmanCorrelation } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
 
@@ -69,6 +77,7 @@ const CorrelationTests = ({ data }) => {
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState(null);
   const [isTestBlocked, setIsTestBlocked] = useState(false);
+  const [showVisualEvidence, setShowVisualEvidence] = useState(false);
 
   /**
    * Guardian Action Handlers
@@ -90,10 +99,25 @@ const CorrelationTests = ({ data }) => {
   };
 
   const handleViewEvidence = () => {
-    console.log('Guardian: User requested visual evidence');
-    // Visual evidence would be shown in a modal or expanded section
-    alert('Visual evidence display coming soon!');
+    console.log('[CorrelationTests] View evidence requested');
+    setShowVisualEvidence(true);
   };
+
+  const handleCloseVisualEvidence = () => {
+    setShowVisualEvidence(false);
+  };
+
+  /**
+   * Prepare data for VisualEvidence component
+   */
+  const visualEvidenceData = useMemo(() => {
+    if (!data || data.length === 0) return null;
+
+    return {
+      data: data,
+      columns: numericColumns
+    };
+  }, [data, numericColumns]);
 
   /**
    * Detect numeric columns
@@ -880,6 +904,58 @@ const CorrelationTests = ({ data }) => {
           </Typography>
         </Alert>
       )}
+
+      {/* Visual Evidence Dialog */}
+      <Dialog
+        open={showVisualEvidence}
+        onClose={handleCloseVisualEvidence}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '70vh',
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText'
+        }}>
+          <Typography variant="h6">
+            📊 Visual Evidence - Assumption Diagnostics
+          </Typography>
+          <IconButton
+            onClick={handleCloseVisualEvidence}
+            sx={{ color: 'inherit' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {visualEvidenceData ? (
+            <VisualEvidence
+              data={visualEvidenceData}
+              testType="correlation"
+              guardianReport={guardianReport}
+            />
+          ) : (
+            <Alert severity="info">
+              <Typography variant="body2">
+                No data available for visualization. Please select variables first.
+              </Typography>
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: 'grey.100' }}>
+          <Button onClick={handleCloseVisualEvidence} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

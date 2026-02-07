@@ -33,9 +33,9 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 // Import test components
 import TwoWayANOVA from './TwoWayANOVA';
 import PostHocTests from './PostHocTests';
-// import MANOVA from './MANOVA';
-// import RepeatedMeasuresANOVA from './RepeatedMeasuresANOVA';
-// import EffectSizeAnalysis from './EffectSizeAnalysis';
+import MANOVA from './MANOVA';
+import RepeatedMeasuresANOVA from './RepeatedMeasuresANOVA';
+import EffectSizePower from './EffectSizePower';
 
 /**
  * Main Advanced Statistics Component
@@ -64,7 +64,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
       name: 'MANOVA',
       description: 'Multivariate analysis of variance for multiple dependent variables simultaneously',
       icon: CompareIcon,
-      component: null, // MANOVA,
+      component: MANOVA,
       available: true,
       difficulty: 'Advanced',
       concepts: ['Multivariate', "Wilks' Lambda", "Pillai's Trace", 'Roy\'s Root']
@@ -74,7 +74,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
       name: 'Repeated Measures ANOVA',
       description: 'Within-subjects design analysis for measurements taken at multiple time points',
       icon: AutoGraphIcon,
-      component: null, // RepeatedMeasuresANOVA,
+      component: RepeatedMeasuresANOVA,
       available: true,
       difficulty: 'Advanced',
       concepts: ['Within-Subjects', 'Sphericity', 'Greenhouse-Geisser', 'Mauchly\'s Test']
@@ -94,7 +94,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
       name: 'Effect Size & Power',
       description: 'Calculate effect sizes (η², ω², Cohen\'s d) and statistical power analysis',
       icon: TimelineIcon,
-      component: null, // EffectSizeAnalysis,
+      component: EffectSizePower,
       available: true,
       difficulty: 'Intermediate',
       concepts: ['Effect Size', 'Statistical Power', 'Sample Size', 'Cohen\'s d', 'η²']

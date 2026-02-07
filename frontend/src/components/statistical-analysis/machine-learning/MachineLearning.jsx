@@ -32,7 +32,7 @@ import BubbleChartIcon from '@mui/icons-material/BubbleChart';
 // Import ML components
 import LinearRegressionML from './LinearRegressionML';
 import Classification from './Classification';
-// import Clustering from './Clustering';
+import Clustering from './Clustering';
 
 /**
  * Main Machine Learning Component
@@ -71,7 +71,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
       name: 'Clustering',
       description: 'Discover natural groupings in data: K-means, Hierarchical, DBSCAN',
       icon: BubbleChartIcon,
-      component: null, // Clustering,
+      component: Clustering,
       available: true,
       difficulty: 'Intermediate',
       concepts: ['K-means', 'Hierarchical', 'Silhouette Score', 'Elbow Method', 'Dendrogram']
