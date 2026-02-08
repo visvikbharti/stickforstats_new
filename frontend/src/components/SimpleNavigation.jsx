@@ -40,6 +40,7 @@ import BiotechIcon from '@mui/icons-material/Biotech';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import ArticleIcon from '@mui/icons-material/Article';
+import BrushIcon from '@mui/icons-material/Brush';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import CasinoIcon from '@mui/icons-material/Casino';
 import { useAuth } from '../context/AuthContext';
@@ -75,6 +76,7 @@ const NAV_CATEGORIES = [
     label: 'Tools',
     icon: <BuildIcon fontSize="small" />,
     items: [
+      { name: 'Publication Plots', path: '/publication-plots', icon: <BrushIcon fontSize="small" /> },
       { name: 'Paper Parser', path: '/paper-parser', icon: <ArticleIcon fontSize="small" /> },
       { name: 'Confidence Intervals', path: '/confidence-intervals', icon: <ConfirmationNumberIcon fontSize="small" /> },
       { name: 'Probability Distributions', path: '/probability-distributions', icon: <CasinoIcon fontSize="small" /> },

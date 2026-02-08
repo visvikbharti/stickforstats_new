@@ -121,6 +121,7 @@ const PowerAnalysisEducationHub = lazy(() => import('./components/power-analysis
 const BiophysicsLearningHub = lazy(() => import('./components/biophysics-education/BiophysicsLearningHub'));
 const StatisticalAnalysisHub = lazy(() => import('./components/statistical-analysis/StatisticalAnalysisHub'));
 const MetaAnalysisHub = lazy(() => import('./components/meta-analysis/MetaAnalysisHub'));
+const PublicationPlotsPage = lazy(() => import('./pages/PublicationPlotsPage'));
 const PaperParserHub = lazy(() => import('./components/paper-parser/PaperParserHub'));
 const LearningHub = lazy(() => import('./components/education/LearningHub'));
 const WorkflowManagementPage = lazy(() => import('./pages/WorkflowManagementPage'));
@@ -609,6 +610,16 @@ function App() {
                         element={
                           <Suspense fallback={<LoadingComponent message="Loading Meta-Analysis..." />}>
                             <MetaAnalysisHub />
+                          </Suspense>
+                        }
+                      />
+
+                      {/* Publication Plot Builder - Prism-like publication-quality plots */}
+                      <Route
+                        path="/publication-plots"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Publication Plot Builder..." />}>
+                            <PublicationPlotsPage />
                           </Suspense>
                         }
                       />
