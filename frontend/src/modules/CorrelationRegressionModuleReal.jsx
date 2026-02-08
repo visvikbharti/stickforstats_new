@@ -28,6 +28,7 @@ import {
   ComposedChart, ErrorBar, ZAxis
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
+import jStat from 'jstat';
 
 // Guardian Design Contract compliance
 // "No statistical result may exist without an explicit, traceable assumption context."
@@ -799,8 +800,9 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
   }, [selectedDataset, correlationType]);
 
   const getSignificance = (r, n = 10) => {
+    if (Math.abs(r) >= 1 || n <= 2) return '';
     const t = r * Math.sqrt((n - 2) / (1 - r * r));
-    const p = 2 * (1 - Math.min(0.999, Math.max(0.001, 0.5 + 0.5 * Math.sign(t) * (1 - Math.exp(-Math.abs(t) * 1.5)))));
+    const p = 2 * (1 - jStat.studentt.cdf(Math.abs(t), n - 2));
     return p < 0.001 ? '***' : p < 0.01 ? '**' : p < 0.05 ? '*' : '';
   };
 

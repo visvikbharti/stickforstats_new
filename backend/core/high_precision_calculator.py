@@ -167,12 +167,10 @@ class HighPrecisionCalculator:
         # Calculate p-value using mpmath for high precision
         df = n - 1
 
-        # Use mpmath's t-distribution CDF
+        # t-distribution CDF via regularized incomplete beta (same approach as F-test)
         t_float = float(t_stat)
-        p_value = Decimal(str(2 * mpmath.nsum(lambda x:
-            mpmath.gamma((df + 1) / 2) / (mpmath.sqrt(df * mpmath.pi) *
-            mpmath.gamma(df / 2)) * (1 + x**2 / df)**(-(df + 1) / 2),
-            [abs(t_float), mpmath.inf])))
+        x_beta = df / (df + t_float**2)
+        p_value = Decimal(str(float(mpmath.betainc(df/2, 0.5, 0, x_beta, regularized=True))))
 
         return {
             't_statistic': t_stat,
@@ -283,11 +281,9 @@ class HighPrecisionCalculator:
                 t_float = float(t_stat)
                 df_float = float(df)
 
-                # Two-tailed p-value
-                p_value = Decimal(str(2 * (1 - float(mpmath.nsum(lambda x:
-                    mpmath.gamma((df_float + 1) / 2) / (mpmath.sqrt(df_float * mpmath.pi) *
-                    mpmath.gamma(df_float / 2)) * (1 + x**2 / df_float)**(-(df_float + 1) / 2),
-                    [-mpmath.inf, abs(t_float)])))))
+                # Two-tailed p-value via regularized incomplete beta
+                x_beta = df_float / (df_float + t_float**2)
+                p_value = Decimal(str(float(mpmath.betainc(df_float/2, 0.5, 0, x_beta, regularized=True))))
             except (OverflowError, ValueError):
                 # Handle numerical overflow in p-value calculation
                 p_value = Decimal('1e-50')
@@ -457,17 +453,16 @@ class HighPrecisionCalculator:
             t_float = float(t_stat)
             df_float = float(df)
 
-            p_value = Decimal(str(2 * (1 - float(mpmath.nsum(lambda x:
-                mpmath.gamma((df_float + 1) / 2) / (mpmath.sqrt(df_float * mpmath.pi) *
-                mpmath.gamma(df_float / 2)) * (1 + x**2 / df_float)**(-(df_float + 1) / 2),
-                [-mpmath.inf, abs(t_float)])))))
+            # Two-tailed p-value via regularized incomplete beta
+            x_beta = df_float / (df_float + t_float**2)
+            p_value = Decimal(str(float(mpmath.betainc(df_float/2, 0.5, 0, x_beta, regularized=True))))
 
         # Fisher's z transformation for confidence interval
         if abs(r) < 1:
             z = Decimal(str(mpmath.atanh(float(r))))
             se_z = Decimal('1') / Decimal(str(mpmath.sqrt(n - 3)))
 
-            # 95% confidence interval
+            # 95% confidence interval (hardcoded for 95%; add confidence_level param to generalize)
             z_critical = Decimal('1.96')
             z_lower = z - z_critical * se_z
             z_upper = z + z_critical * se_z

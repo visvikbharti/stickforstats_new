@@ -49,6 +49,17 @@ import {
 } from '@mui/icons-material';
 
 /**
+ * Sanitize HTML to prevent XSS attacks.
+ * Strips script tags, event handlers, and javascript: URLs.
+ */
+const sanitizeHTML = (html) => {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript:/gi, '');
+};
+
+/**
  * Individual message component
  */
 const ChatMessage = ({
@@ -169,11 +180,11 @@ const ChatMessage = ({
             },
           }}
           dangerouslySetInnerHTML={{
-            __html: part
+            __html: sanitizeHTML(part
               .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
               .replace(/\*(.*?)\*/g, '<em>$1</em>')
               .replace(/`([^`]+)`/g, '<code>$1</code>')
-              .replace(/\n/g, '<br/>')
+              .replace(/\n/g, '<br/>'))
           }}
         />
       );

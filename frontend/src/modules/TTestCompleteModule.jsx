@@ -288,8 +288,26 @@ const TTestCompleteModule = () => {
       interp.summary = 'No significant difference detected';
     }
 
-    // Effect size interpretation
-    const effectSize = Math.abs(tStat) / Math.sqrt(parseData(sample1).length);
+    // Effect size interpretation (Cohen's d)
+    let effectSize = 0;
+    const data1 = parseData(sample1);
+    if (testType === 'one-sample') {
+      // One-sample Cohen's d = |mean - mu| / sd
+      const mean1 = data1.reduce((a, b) => a + b, 0) / data1.length;
+      const sd1 = Math.sqrt(data1.reduce((s, x) => s + (x - mean1) ** 2, 0) / (data1.length - 1));
+      effectSize = sd1 > 0 ? Math.abs(mean1 - populationMean) / sd1 : 0;
+    } else {
+      // Two-sample / paired Cohen's d = |mean1 - mean2| / pooled_SD
+      const data2 = parseData(sample2);
+      if (data1 && data2 && data1.length > 1 && data2.length > 1) {
+        const mean1 = data1.reduce((a, b) => a + b, 0) / data1.length;
+        const mean2 = data2.reduce((a, b) => a + b, 0) / data2.length;
+        const var1 = data1.reduce((s, x) => s + (x - mean1) ** 2, 0) / (data1.length - 1);
+        const var2 = data2.reduce((s, x) => s + (x - mean2) ** 2, 0) / (data2.length - 1);
+        const pooledSD = Math.sqrt(((data1.length - 1) * var1 + (data2.length - 1) * var2) / (data1.length + data2.length - 2));
+        effectSize = pooledSD > 0 ? Math.abs(mean1 - mean2) / pooledSD : 0;
+      }
+    }
     if (effectSize < 0.2) interp.practical = 'The effect size is negligible.';
     else if (effectSize < 0.5) interp.practical = 'The effect size is small.';
     else if (effectSize < 0.8) interp.practical = 'The effect size is medium.';

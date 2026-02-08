@@ -35,7 +35,7 @@ const ShowcaseHomePage = () => {
     {
       id: 'statistical-analysis',
       title: 'Statistical Analysis Center',
-      description: 'Statistical analysis tools for data exploration and hypothesis testing (in development).',
+      description: 'Statistical analysis tools for data exploration and hypothesis testing.',
       icon: <AssessmentIcon fontSize="large" color="error" />,
       path: '/statistical-analysis-tools',
       features: ['Descriptive Statistics', 'Hypothesis Testing', 'Regression Analysis', 'ANOVA', 'Time Series'],
@@ -126,7 +126,7 @@ const ShowcaseHomePage = () => {
           </Typography>
           <Typography variant="body1" sx={{ mt: 3, mb: 4, maxWidth: 800, mx: 'auto' }} align="center">
             An open-source statistical platform focused on accuracy and transparency.
-            Currently featuring confidence intervals with more modules in development.
+            Featuring 46+ statistical tests, Guardian assumption checking, and publication-quality visualizations.
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
             <Button
@@ -182,7 +182,7 @@ const ShowcaseHomePage = () => {
           Statistical Analysis Modules
         </Typography>
         <Typography variant="subtitle1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-          Currently implementing statistical modules with focus on accuracy and transparency
+          Statistical modules built with focus on accuracy and transparency
         </Typography>
         
         <Grid container spacing={4}>
@@ -257,11 +257,11 @@ const ShowcaseHomePage = () => {
       <Box sx={{ bgcolor: 'grey.100', py: 8 }}>
         <Container maxWidth="md">
           <Typography variant="h4" align="center" gutterBottom>
-            Development Status
+            Get Started
           </Typography>
           <Typography variant="body1" align="center" color="text.secondary" paragraph>
-            This platform is in active development. Confidence Intervals module is functional,
-            other modules are being implemented. Your feedback is welcome.
+            StickForStats provides 46+ statistical tests across multiple modules, with Guardian
+            assumption checking and publication-quality visualizations. Your feedback is welcome.
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
             <Button
@@ -290,9 +290,9 @@ const ShowcaseHomePage = () => {
             For Manuscript Reviewers
           </Typography>
           <Typography variant="body2">
-            StickForStats is an open-source statistical platform in early development.
-            Currently, the Confidence Intervals module is functional with validated calculations.
-            Additional statistical methods are being implemented with focus on scientific accuracy
+            StickForStats is an open-source statistical platform featuring 46+ statistical tests,
+            8 education hubs, Guardian assumption checking, Publication Plot Builder, and more.
+            All calculations are validated with focus on scientific accuracy
             and transparent, verifiable computations.
           </Typography>
         </Paper>

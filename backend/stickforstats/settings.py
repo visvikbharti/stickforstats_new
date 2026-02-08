@@ -3,19 +3,20 @@ Django settings for the StickForStats v1.0 Production project.
 """
 
 import os
+import secrets
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-for-development-only')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', secrets.token_urlsafe(50))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 # Allow network access for local development and lab sharing
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,192.168.40.40,*').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,192.168.40.40,0.0.0.0').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -166,7 +167,7 @@ try:
     redis_client = redis.StrictRedis(host='127.0.0.1', port=6379, db=1)
     redis_client.ping()
     REDIS_AVAILABLE = True
-except:
+except Exception:
     REDIS_AVAILABLE = False
     print("WARNING: Redis not available, using local memory cache")
 

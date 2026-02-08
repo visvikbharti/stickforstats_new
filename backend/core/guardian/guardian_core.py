@@ -245,7 +245,7 @@ class GuardianCore:
             summary[key] = {
                 'n': len(arr),
                 'mean': float(np.mean(arr)),
-                'std': float(np.std(arr)),
+                'std': float(np.std(arr, ddof=1)),
                 'median': float(np.median(arr)),
                 'min': float(np.min(arr)),
                 'max': float(np.max(arr)),
@@ -445,7 +445,7 @@ class VarianceHomogeneityValidator:
         """Generate variance comparison visualization data"""
         return {
             'variances': [float(np.var(arr)) for arr in data_arrays],
-            'std_devs': [float(np.std(arr)) for arr in data_arrays],
+            'std_devs': [float(np.std(arr, ddof=1)) for arr in data_arrays],
             'group_sizes': [len(arr) for arr in data_arrays]
         }
 

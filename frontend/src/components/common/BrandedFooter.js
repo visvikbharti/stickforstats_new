@@ -172,10 +172,7 @@ const BrandedFooter = ({
               </Typography>
               <Stack spacing={1}>
                 <Typography variant="body2" color="text.secondary">
-                  Pre-Alpha Version
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  In Development
+                  Version 1.0
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Open Source
@@ -207,7 +204,7 @@ const BrandedFooter = ({
               View on GitHub
             </FooterLink>
             <Typography variant="body2" color="text.secondary">
-              Pre-Alpha v1.0
+              v1.0
             </Typography>
           </Stack>
         </Box>

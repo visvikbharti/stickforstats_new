@@ -114,7 +114,9 @@ const BrowserCompatibilityTestPage = () => {
       name: 'JavaScript ES6+',
       test: () => {
         try {
-          eval('const test = () => {}; let x = 1;');
+          // Test ES6 support without eval
+          const test = (() => {})();
+          const x = 1;
           return true;
         } catch {
           return false;

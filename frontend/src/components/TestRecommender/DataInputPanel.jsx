@@ -55,8 +55,8 @@ const DataInputPanel = ({
   
   // Sample datasets for demonstration
   const sampleDatasets = [
-    { id: 'iris', name: 'Fisher\'s Iris', description: 'Classic 3-group classification' },
-    { id: 'clinical', name: 'Clinical Trial', description: 'Treatment vs Control' },
+    { id: 'iris', name: 'Sample Biology Data (simulated)', description: 'Simulated 3-group classification' },
+    { id: 'clinical', name: 'Sample Clinical Data (simulated)', description: 'Simulated Treatment vs Control' },
     { id: 'anova', name: 'One-Way ANOVA', description: '4 groups, continuous outcome' },
     { id: 'paired', name: 'Paired Samples', description: 'Before/After measurements' },
     { id: 'regression', name: 'Regression Data', description: 'Multiple predictors' }
@@ -310,38 +310,40 @@ const DataInputPanel = ({
         stats.mean = numbers.reduce((a, b) => a + b, 0) / numbers.length;
         stats.min = Math.min(...numbers);
         stats.max = Math.max(...numbers);
-        stats.std = Math.sqrt(
-          numbers.reduce((sq, n) => sq + Math.pow(n - stats.mean, 2), 0) / numbers.length
-        );
+        stats.std = numbers.length > 1
+          ? Math.sqrt(numbers.reduce((sq, n) => sq + Math.pow(n - stats.mean, 2), 0) / (numbers.length - 1))
+          : 0;
       }
     }
     
     return stats;
   };
   
-  // Generate sample data (simplified for demonstration)
+  // Generate simulated sample data for demonstration (NOT real datasets)
   const generateIrisData = () => {
+    // Simulated multi-group data for demonstration (NOT Fisher's real Iris dataset)
     const data = [];
-    const species = ['setosa', 'versicolor', 'virginica'];
+    const groups = ['Group_A', 'Group_B', 'Group_C'];
     for (let i = 0; i < 150; i++) {
       data.push({
-        sepal_length: 4.5 + Math.random() * 3,
-        sepal_width: 2 + Math.random() * 2,
-        petal_length: 1 + Math.random() * 5,
-        petal_width: 0.1 + Math.random() * 2,
-        species: species[Math.floor(i / 50)]
+        measurement_1: 4.5 + Math.random() * 3,
+        measurement_2: 2 + Math.random() * 2,
+        measurement_3: 1 + Math.random() * 5,
+        measurement_4: 0.1 + Math.random() * 2,
+        group: groups[Math.floor(i / 50)]
       });
     }
     return data;
   };
-  
+
   const generateClinicalData = () => {
+    // Simulated clinical data for demonstration (NOT from a real trial)
     const data = [];
     for (let i = 0; i < 100; i++) {
       data.push({
-        patient_id: `P${String(i + 1).padStart(3, '0')}`,
+        subject_id: `S${String(i + 1).padStart(3, '0')}`,
         age: 20 + Math.floor(Math.random() * 60),
-        treatment: i < 50 ? 'Control' : 'Treatment',
+        group: i < 50 ? 'Control' : 'Treatment',
         baseline: 70 + Math.random() * 30,
         outcome: (i < 50 ? 75 : 85) + Math.random() * 20,
         sex: Math.random() > 0.5 ? 'M' : 'F'

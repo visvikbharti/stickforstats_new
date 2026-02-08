@@ -1,6 +1,5 @@
 /**
  * ExportPanel - Multi-format export controls
- * STUB - will be fully implemented by customization agent
  */
 
 import React, { useState } from 'react';

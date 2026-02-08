@@ -133,9 +133,10 @@ const AdvancedStatisticsPage = lazy(() => import('./pages/AdvancedStatisticsPage
 const VisualizationStudioPage = lazy(() => import('./pages/VisualizationStudioPage'));
 const ReportingStudioPage = lazy(() => import('./pages/ReportingStudioPage'));
 const SecurityDashboardPage = lazy(() => import('./pages/SecurityDashboardPage'));
-const MLStudioPage = lazy(() => import('./pages/MLStudioPage'));
-const CollaborationHubPage = lazy(() => import('./pages/CollaborationHubPage'));
-const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
+// ML Studio, Collaboration Hub, and Marketplace pages removed from navigation (contain mockup data)
+// const MLStudioPage = lazy(() => import('./pages/MLStudioPage'));
+// const CollaborationHubPage = lazy(() => import('./pages/CollaborationHubPage'));
+// const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 const PerformanceTestDashboard = lazy(() => import('./components/performance/PerformanceTestDashboard'));
 const WebSocketMonitoringPage = lazy(() => import('./pages/WebSocketMonitoringPage'));
 const RAGPerformanceMonitoringPage = lazy(() => import('./pages/RAGPerformanceMonitoringPage'));
@@ -788,38 +789,9 @@ function App() {
                         } 
                       />
                       
-                      <Route 
-                        path="/ml-studio/*" 
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading ML Studio..." />}>
-                              <MLStudioPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/collaboration/*" 
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Collaboration Hub..." />}>
-                              <CollaborationHubPage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/marketplace/*" 
-                        element={
-                          <ProtectedRoute>
-                            <Suspense fallback={<LoadingComponent message="Loading Marketplace..." />}>
-                              <MarketplacePage />
-                            </Suspense>
-                          </ProtectedRoute>
-                        } 
-                      />
+                      {/* ML Studio, Collaboration Hub, and Marketplace routes removed from navigation.
+                         These pages contain mockup/fake data and are not ready for production use.
+                         Page files are retained but routes are disabled. */}
                       
                       {/* Test routes - for development only */}
                       <Route 

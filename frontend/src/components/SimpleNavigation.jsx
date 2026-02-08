@@ -65,8 +65,8 @@ const NAV_CATEGORIES = [
     label: 'Advanced Methods',
     icon: <ScienceIcon fontSize="small" />,
     items: [
-      { name: 'Mixed Models', path: '/modules/mixed-models', icon: <PsychologyIcon fontSize="small" /> },
-      { name: 'Causal Inference', path: '/modules/causal-inference', icon: <AccountTreeIcon fontSize="small" /> },
+      { name: 'Mixed Models (Preview)', path: '/modules/mixed-models', icon: <PsychologyIcon fontSize="small" /> },
+      { name: 'Causal Inference (Preview)', path: '/modules/causal-inference', icon: <AccountTreeIcon fontSize="small" /> },
       { name: 'Multiple Testing', path: '/modules/multiplicity', icon: <FactCheckIcon fontSize="small" /> },
       { name: 'DOE Analysis', path: '/doe-analysis', icon: <PrecisionManufacturingIcon fontSize="small" /> },
       { name: 'SQC Analysis', path: '/sqc-analysis', icon: <TuneIcon fontSize="small" /> },

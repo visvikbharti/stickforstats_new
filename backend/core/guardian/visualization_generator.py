@@ -142,7 +142,7 @@ class VisualizationGenerator:
         # Add reference bands (optional - shows where 95% of points should be)
         # Calculate 95% confidence envelope
         n = len(data_clean)
-        se = np.std(ordered_values) * np.sqrt(1 + 1/n)
+        se = np.std(ordered_values, ddof=1) * np.sqrt(1 + 1/n)
         upper_band = theoretical_line + 1.96 * se
         lower_band = theoretical_line - 1.96 * se
         ax.fill_between(theoretical_quantiles, lower_band, upper_band,
@@ -216,7 +216,7 @@ class VisualizationGenerator:
                                    label='Observed distribution')
 
         # Overlay normal distribution
-        mu, sigma = np.mean(data_clean), np.std(data_clean)
+        mu, sigma = np.mean(data_clean), np.std(data_clean, ddof=1)
         x_range = np.linspace(data_clean.min(), data_clean.max(), 100)
         normal_curve = stats.norm.pdf(x_range, mu, sigma)
         ax.plot(x_range, normal_curve, 'r--', linewidth=2,
@@ -388,7 +388,7 @@ class VisualizationGenerator:
         # Add summary statistics
         summary = "Group Statistics:\n"
         for i, (group, label) in enumerate(zip(cleaned_groups, group_labels)):
-            summary += f"{label}: n={len(group)}, μ={np.mean(group):.2f}, σ={np.std(group):.2f}\n"
+            summary += f"{label}: n={len(group)}, μ={np.mean(group):.2f}, σ={np.std(group, ddof=1):.2f}\n"
 
         fig.text(0.5, 0.02, summary, ha='center', fontsize=8,
                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))

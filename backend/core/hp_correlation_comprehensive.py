@@ -13,6 +13,7 @@ from decimal import Decimal, getcontext
 from typing import Dict, List, Tuple, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
+import math
 import numpy as np
 from scipy import stats
 import warnings
@@ -444,12 +445,12 @@ class HighPrecisionCorrelation:
         # Update the correlation type
         result.correlation_type = "Spearman"
 
-        # For Spearman, we use different formulas for large samples
+        # For Spearman, use t-distribution (same as Pearson), matching R's cor.test(method="spearman")
         n = len(x)
         if n > 20:
-            # Large sample approximation for p-value
-            z_stat = result.correlation_coefficient * Decimal(n - 1).sqrt()
-            p_value = Decimal(str(2 * (1 - stats.norm.cdf(abs(float(z_stat))))))
+            rs = float(result.correlation_coefficient)
+            t_stat = rs * math.sqrt((n - 2) / (1 - rs**2)) if abs(rs) < 1 else float('inf')
+            p_value = Decimal(str(2 * (1 - stats.t.cdf(abs(t_stat), n - 2))))
             result.p_value = p_value
 
         return result
@@ -499,18 +500,16 @@ class HighPrecisionCorrelation:
         else:
             tau = (concordant - discordant) / denominator
 
-        # Calculate standard error and z-statistic
-        v0 = total_pairs * (total_pairs - Decimal(1)) / Decimal(2)
-        v1 = ties_x * (ties_x - Decimal(1)) / Decimal(2) + ties_y * (ties_y - Decimal(1)) / Decimal(2)
-        v2 = ties_x * (ties_x - Decimal(1)) * (ties_x - Decimal(2)) / Decimal(6) + \
-             ties_y * (ties_y - Decimal(1)) * (ties_y - Decimal(2)) / Decimal(6)
+        # Use scipy's kendalltau for correct tie-adjusted p-value
+        tau_scipy, p_scipy = stats.kendalltau(x_arr, y_arr)
+        p_value = Decimal(str(p_scipy))
 
+        # Standard error using simplified formula (for CI calculation below)
         var = Decimal(4 * n + 10) / Decimal(9 * n * (n - 1))
         se = var.sqrt()
 
-        # Z-statistic for significance test
+        # Z-statistic for reporting
         z_stat = tau / se if se > 0 else Decimal(0)
-        p_value = Decimal(str(2 * (1 - stats.norm.cdf(abs(float(z_stat))))))
 
         # Confidence interval
         z_critical = Decimal(str(stats.norm.ppf((1 + confidence_level) / 2)))

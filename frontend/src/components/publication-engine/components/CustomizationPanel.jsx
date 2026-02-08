@@ -1,6 +1,5 @@
 /**
  * CustomizationPanel - Tabbed right sidebar for plot customization
- * STUB - will be fully implemented by customization agent
  */
 
 import React, { useState } from 'react';
