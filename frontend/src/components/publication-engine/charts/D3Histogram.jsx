@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';
+import { getMargins, styleXAxis, styleYAxis, renderAxisLabels, renderTitle, getDimensions } from '../utils/chartHelpers';
 
 const D3Histogram = ({ svgRef, onScalesReady }) => {
   const { state } = usePlotConfig();
@@ -15,10 +16,8 @@ const D3Histogram = ({ svgRef, onScalesReady }) => {
     const svg = d3.select(svgRef.current);
     svg.selectAll('.chart-content').remove();
 
-    const { width, height, unit } = state.dimensions;
-    const w = unit === 'inches' ? width * 96 : width;
-    const h = unit === 'inches' ? height * 96 : height;
-    const margin = { top: 50, right: 30, bottom: 60, left: 60 };
+    const { w, h } = getDimensions(state);
+    const margin = getMargins(state);
     const innerW = w - margin.left - margin.right;
     const innerH = h - margin.top - margin.bottom;
 
@@ -47,11 +46,12 @@ const D3Histogram = ({ svgRef, onScalesReady }) => {
 
     // Grid
     if (state.grid.showY) {
-      g.append('g').attr('class', 'grid')
-        .call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''))
-        .selectAll('line').attr('stroke', state.grid.color)
-        .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '');
-      g.select('.grid .domain').remove();
+      const gridG = g.append('g').attr('class', 'grid');
+      gridG.call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''));
+      gridG.selectAll('line').attr('stroke', state.grid.color || '#e0e0e0')
+        .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '')
+        .attr('stroke-width', 0.5);
+      gridG.select('.domain').remove();
     }
 
     // Bars
@@ -109,26 +109,17 @@ const D3Histogram = ({ svgRef, onScalesReady }) => {
     }
 
     // Axes
-    g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale))
-      .selectAll('text').style('font-family', state.xAxis.fontFamily).style('font-size', `${state.xAxis.fontSize}px`);
-    g.append('g').call(d3.axisLeft(yScale))
-      .selectAll('text').style('font-family', state.yAxis.fontFamily).style('font-size', `${state.yAxis.fontSize}px`);
+    const xAxisG = g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale));
+    styleXAxis(xAxisG, state);
+
+    const yAxisG = g.append('g').call(d3.axisLeft(yScale));
+    styleYAxis(yAxisG, state);
 
     // Labels
-    g.append('text').attr('x', innerW / 2).attr('y', innerH + 45).attr('text-anchor', 'middle')
-      .attr('font-family', state.xAxis.fontFamily).attr('font-size', state.xAxis.fontSize)
-      .attr('fill', state.xAxis.color).text(state.xAxis.label || xCol);
-    g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerH / 2).attr('y', -45).attr('text-anchor', 'middle')
-      .attr('font-family', state.yAxis.fontFamily).attr('font-size', state.yAxis.fontSize)
-      .attr('fill', state.yAxis.color).text(state.yAxis.label || 'Frequency');
+    renderAxisLabels(g, state, innerW, innerH);
 
     // Title
-    if (state.title.text) {
-      svg.append('text').attr('class', 'chart-content').attr('x', w / 2).attr('y', 25)
-        .attr('text-anchor', 'middle').attr('font-family', state.title.fontFamily)
-        .attr('font-size', state.title.fontSize).attr('font-weight', state.title.fontWeight)
-        .attr('fill', state.title.color).text(state.title.text);
-    }
+    renderTitle(svg, state, w);
 
     if (onScalesReady) {
       onScalesReady({ xScale, yScale, margin, innerWidth: innerW, innerHeight: innerH });

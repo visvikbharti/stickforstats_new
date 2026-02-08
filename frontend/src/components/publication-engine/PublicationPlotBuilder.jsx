@@ -62,7 +62,7 @@ const PublicationPlotBuilderInner = () => {
         {/* Left Sidebar - Data & Plot Type */}
         <Box
           sx={{
-            width: isMobile ? '100%' : 240,
+            width: isMobile ? '100%' : 260,
             flexShrink: 0,
             borderRight: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
             overflowY: 'auto',

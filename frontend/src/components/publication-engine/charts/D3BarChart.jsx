@@ -1,11 +1,11 @@
 /**
  * D3BarChart - Grouped/stacked bar chart with error bars
- * STUB - to be implemented by chart agent
  */
 import React, { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';
+import { getMargins, styleXAxis, styleYAxis, renderAxisLabels, renderTitle, getDimensions } from '../utils/chartHelpers';
 
 const D3BarChart = ({ svgRef, onScalesReady }) => {
   const { state } = usePlotConfig();
@@ -14,13 +14,15 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
     if (!svgRef?.current || !state.data || !state.dataMapping.x) return;
 
     const svg = d3.select(svgRef.current);
-    const existing = svg.select('.chart-content');
-    if (existing.size()) existing.remove();
+    svg.selectAll('.chart-content').remove();
 
-    const { width, height, unit } = state.dimensions;
-    const w = unit === 'inches' ? width * 96 : width;
-    const h = unit === 'inches' ? height * 96 : height;
-    const margin = { top: 50, right: 30, bottom: 60, left: 60 };
+    const { w, h } = getDimensions(state);
+    const { x: xCol, y: yCol, group: groupCol } = state.dataMapping;
+    const data = state.data.filter(d => d[xCol] != null);
+    const colors = getPaletteColors(state.colorPalette);
+    const categories = [...new Set(data.map(d => String(d[xCol])))];
+
+    const margin = getMargins(state, categories.length);
     const innerW = w - margin.left - margin.right;
     const innerH = h - margin.top - margin.bottom;
 
@@ -28,21 +30,16 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
       .attr('class', 'chart-content')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const { x: xCol, y: yCol, group: groupCol } = state.dataMapping;
-    const data = state.data.filter(d => d[xCol] != null);
-    const colors = getPaletteColors(state.colorPalette);
-
     if (groupCol) {
       // Grouped bar chart
       const groups = [...new Set(data.map(d => d[groupCol]))];
-      const categories = [...new Set(data.map(d => d[xCol]))];
 
       // Compute group means and error
       const grouped = [];
       categories.forEach(cat => {
         const entry = { category: cat };
         groups.forEach(grp => {
-          const vals = data.filter(d => d[xCol] === cat && d[groupCol] === grp).map(d => d[yCol]).filter(v => v != null);
+          const vals = data.filter(d => String(d[xCol]) === cat && d[groupCol] === grp).map(d => d[yCol]).filter(v => v != null);
           const mean = vals.length > 0 ? d3.mean(vals) : 0;
           const n = vals.length;
           const sd = vals.length > 1 ? d3.deviation(vals) : 0;
@@ -63,12 +60,12 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
 
       // Grid
       if (state.grid.showY) {
-        g.append('g').attr('class', 'grid')
-          .call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''))
-          .selectAll('line')
-          .attr('stroke', state.grid.color)
-          .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '');
-        g.select('.grid .domain').remove();
+        const gridG = g.append('g').attr('class', 'grid');
+        gridG.call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''));
+        gridG.selectAll('line').attr('stroke', state.grid.color || '#e0e0e0')
+          .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '')
+          .attr('stroke-width', 0.5);
+        gridG.select('.domain').remove();
       }
 
       // Bars
@@ -105,32 +102,15 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
         });
       });
 
-      // Axes
-      const xAxis = g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x0));
-      const yAxis = g.append('g').call(d3.axisLeft(yScale));
+      // Axes with proper rotation
+      const xAxisG = g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x0));
+      styleXAxis(xAxisG, state, categories.length);
 
-      xAxis.selectAll('text').style('font-family', state.xAxis.fontFamily).style('font-size', `${state.xAxis.fontSize}px`);
-      yAxis.selectAll('text').style('font-family', state.yAxis.fontFamily).style('font-size', `${state.yAxis.fontSize}px`);
+      const yAxisG = g.append('g').call(d3.axisLeft(yScale));
+      styleYAxis(yAxisG, state);
 
-      // Axis labels
-      g.append('text')
-        .attr('x', innerW / 2).attr('y', innerH + 45)
-        .attr('text-anchor', 'middle')
-        .attr('font-family', state.xAxis.fontFamily)
-        .attr('font-size', state.xAxis.fontSize)
-        .attr('font-weight', state.xAxis.fontWeight)
-        .attr('fill', state.xAxis.color)
-        .text(state.xAxis.label);
-
-      g.append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('x', -innerH / 2).attr('y', -45)
-        .attr('text-anchor', 'middle')
-        .attr('font-family', state.yAxis.fontFamily)
-        .attr('font-size', state.yAxis.fontSize)
-        .attr('font-weight', state.yAxis.fontWeight)
-        .attr('fill', state.yAxis.color)
-        .text(state.yAxis.label);
+      // Labels
+      renderAxisLabels(g, state, innerW, innerH, categories.length);
 
       // Legend
       if (state.legend.show) {
@@ -156,9 +136,8 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
       }
     } else if (yCol) {
       // Simple bar chart (aggregate by x)
-      const categories = [...new Set(data.map(d => d[xCol]))];
       const aggregated = categories.map(cat => {
-        const vals = data.filter(d => d[xCol] === cat).map(d => d[yCol]).filter(v => v != null);
+        const vals = data.filter(d => String(d[xCol]) === cat).map(d => d[yCol]).filter(v => v != null);
         const mean = vals.length > 0 ? d3.mean(vals) : 0;
         const sd = vals.length > 1 ? d3.deviation(vals) : 0;
         const sem = vals.length > 0 ? sd / Math.sqrt(vals.length) : 0;
@@ -173,12 +152,12 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
       const yScale = d3.scaleLinear().domain([0, yMax]).nice().range([innerH, 0]);
 
       if (state.grid.showY) {
-        g.append('g').attr('class', 'grid')
-          .call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''))
-          .selectAll('line')
-          .attr('stroke', state.grid.color)
-          .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '');
-        g.select('.grid .domain').remove();
+        const gridG = g.append('g').attr('class', 'grid');
+        gridG.call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''));
+        gridG.selectAll('line').attr('stroke', state.grid.color || '#e0e0e0')
+          .attr('stroke-dasharray', state.grid.style === 'dashed' ? '4,4' : state.grid.style === 'dotted' ? '2,2' : '')
+          .attr('stroke-width', 0.5);
+        gridG.select('.domain').remove();
       }
 
       aggregated.forEach((d, i) => {
@@ -209,23 +188,15 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
         }
       });
 
-      g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale))
-        .selectAll('text').style('font-family', state.xAxis.fontFamily).style('font-size', `${state.xAxis.fontSize}px`);
-      g.append('g').call(d3.axisLeft(yScale))
-        .selectAll('text').style('font-family', state.yAxis.fontFamily).style('font-size', `${state.yAxis.fontSize}px`);
+      // Axes with proper rotation
+      const xAxisG = g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale));
+      styleXAxis(xAxisG, state, categories.length);
 
-      g.append('text')
-        .attr('x', innerW / 2).attr('y', innerH + 45)
-        .attr('text-anchor', 'middle')
-        .attr('font-family', state.xAxis.fontFamily).attr('font-size', state.xAxis.fontSize)
-        .attr('fill', state.xAxis.color).text(state.xAxis.label);
+      const yAxisG = g.append('g').call(d3.axisLeft(yScale));
+      styleYAxis(yAxisG, state);
 
-      g.append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('x', -innerH / 2).attr('y', -45)
-        .attr('text-anchor', 'middle')
-        .attr('font-family', state.yAxis.fontFamily).attr('font-size', state.yAxis.fontSize)
-        .attr('fill', state.yAxis.color).text(state.yAxis.label);
+      // Labels
+      renderAxisLabels(g, state, innerW, innerH, categories.length);
 
       if (onScalesReady) {
         onScalesReady({ xScale, yScale, margin, innerWidth: innerW, innerHeight: innerH });
@@ -233,18 +204,7 @@ const D3BarChart = ({ svgRef, onScalesReady }) => {
     }
 
     // Title
-    if (state.title.text) {
-      svg.select('.chart-title').remove();
-      svg.append('text')
-        .attr('class', 'chart-title chart-content')
-        .attr('x', w / 2).attr('y', 25)
-        .attr('text-anchor', 'middle')
-        .attr('font-family', state.title.fontFamily)
-        .attr('font-size', state.title.fontSize)
-        .attr('font-weight', state.title.fontWeight)
-        .attr('fill', state.title.color)
-        .text(state.title.text);
-    }
+    renderTitle(svg, state, w);
   }, [svgRef, state, onScalesReady]);
 
   return null;

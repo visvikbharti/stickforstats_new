@@ -17,9 +17,27 @@ import { usePlotConfig } from '../context/PlotConfigContext';
 
 const DataImporter = () => {
   const theme = useTheme();
-  const { state, setData, setDataMapping } = usePlotConfig();
+  const { state, dispatch, setData, setDataMapping } = usePlotConfig();
   const [error, setError] = useState(null);
   const [fileName, setFileName] = useState(null);
+
+  // Auto-set axis labels and title when columns change
+  const handleMappingChange = useCallback((mapping) => {
+    setDataMapping(mapping);
+    // Auto-populate axis labels from column names
+    if (mapping.x) {
+      dispatch({ type: 'SET_X_AXIS', payload: { label: mapping.x } });
+    }
+    if (mapping.y) {
+      dispatch({ type: 'SET_Y_AXIS', payload: { label: mapping.y } });
+    }
+    // Auto-generate title
+    const xName = mapping.x || state.dataMapping.x;
+    const yName = mapping.y || state.dataMapping.y;
+    if (xName && yName) {
+      dispatch({ type: 'SET_TITLE', payload: { text: `${yName} by ${xName}` } });
+    }
+  }, [setDataMapping, dispatch, state.dataMapping]);
 
   const handleFileUpload = useCallback((event) => {
     const file = event.target.files[0];
@@ -115,12 +133,12 @@ const DataImporter = () => {
           </Box>
 
           {/* Column Mapping */}
-          <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
             <InputLabel>X Axis / Category</InputLabel>
             <Select
               value={state.dataMapping.x || ''}
               label="X Axis / Category"
-              onChange={(e) => setDataMapping({ x: e.target.value })}
+              onChange={(e) => handleMappingChange({ x: e.target.value })}
             >
               {state.columns.map(col => (
                 <MenuItem key={col} value={col}>{col}</MenuItem>
@@ -128,12 +146,12 @@ const DataImporter = () => {
             </Select>
           </FormControl>
 
-          <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
             <InputLabel>Y Axis / Value</InputLabel>
             <Select
               value={state.dataMapping.y || ''}
               label="Y Axis / Value"
-              onChange={(e) => setDataMapping({ y: e.target.value })}
+              onChange={(e) => handleMappingChange({ y: e.target.value })}
             >
               <MenuItem value=""><em>None</em></MenuItem>
               {numericColumns.map(col => (
@@ -142,7 +160,7 @@ const DataImporter = () => {
             </Select>
           </FormControl>
 
-          <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
             <InputLabel>Group / Color</InputLabel>
             <Select
               value={state.dataMapping.group || ''}
