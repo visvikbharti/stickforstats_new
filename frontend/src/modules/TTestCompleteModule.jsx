@@ -167,12 +167,16 @@ const TTestCompleteModule = () => {
       ? 'Sample size adequate (n ≥ 20)'
       : 'Small sample size - consider non-parametric alternatives';
 
-    // Simplified normality check (would use Shapiro-Wilk in production)
+    // Quick normality heuristic (proper Shapiro-Wilk requires backend)
+    // D'Agostino rule of thumb: |skewness| < 2 AND |excess kurtosis| < 7
     const checkNormality = (data) => {
-      const mean = data.reduce((a, b) => a + b, 0) / data.length;
-      const std = Math.sqrt(data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length);
-      const skewness = data.reduce((a, b) => a + Math.pow((b - mean) / std, 3), 0) / data.length;
-      return Math.abs(skewness) < 2;
+      const n = data.length;
+      const mean = data.reduce((a, b) => a + b, 0) / n;
+      const std = Math.sqrt(data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n);
+      if (std === 0) return true;
+      const skewness = data.reduce((a, b) => a + Math.pow((b - mean) / std, 3), 0) / n;
+      const kurtosis = data.reduce((a, b) => a + Math.pow((b - mean) / std, 4), 0) / n;
+      return Math.abs(skewness) < 2 && Math.abs(kurtosis - 3) < 7;
     };
 
     assumptions.normality.passed = checkNormality(data1) && (!data2 || checkNormality(data2));
@@ -180,15 +184,19 @@ const TTestCompleteModule = () => {
       ? 'Data appears approximately normal'
       : 'Data may violate normality - interpret with caution';
 
-    // Variance equality check (simplified F-test)
+    // Variance equality check (F-test with proper p-value)
     if (data2) {
       const var1 = data1.reduce((a, b, i, arr) => a + Math.pow(b - arr.reduce((x, y) => x + y, 0) / arr.length, 2), 0) / (data1.length - 1);
       const var2 = data2.reduce((a, b, i, arr) => a + Math.pow(b - arr.reduce((x, y) => x + y, 0) / arr.length, 2), 0) / (data2.length - 1);
       const fStat = Math.max(var1, var2) / Math.min(var1, var2);
-      assumptions.equalVariance.passed = fStat < 3;
+      const df1 = (var1 >= var2 ? data1.length : data2.length) - 1;
+      const df2 = (var1 >= var2 ? data2.length : data1.length) - 1;
+      const fPValue = 2 * Math.min(1 - jStat.centralF.cdf(fStat, df1, df2), jStat.centralF.cdf(fStat, df1, df2));
+      assumptions.equalVariance.passed = fPValue > 0.05;
+      assumptions.equalVariance.pValue = fPValue;
       assumptions.equalVariance.message = assumptions.equalVariance.passed
-        ? 'Variances appear equal'
-        : 'Unequal variances detected - using Welch\'s t-test';
+        ? `Variances appear equal (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)})`
+        : `Unequal variances detected (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)}) - using Welch's t-test`;
     }
 
     return assumptions;

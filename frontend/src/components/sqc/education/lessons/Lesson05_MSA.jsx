@@ -24,6 +24,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { getApiUrl } from '../../../../config/apiConfig';
+import DOMPurify from 'dompurify';
 
 /**
  * Lesson 5: Measurement System Analysis
@@ -39,10 +40,7 @@ import { getApiUrl } from '../../../../config/apiConfig';
 
 const sanitizeHTML = (html) => {
   if (!html) return '';
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript\s*:/gi, '');
+  return DOMPurify.sanitize(html);
 };
 
 const Lesson05_MSA = ({ onComplete }) => {

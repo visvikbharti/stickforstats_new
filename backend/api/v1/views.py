@@ -336,6 +336,7 @@ class DataImportView(APIView):
     Import data from various formats (CSV, Excel, JSON)
     """
     permission_classes = [AllowAny]  # Allow public access for statistical calculations
+    MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
 
     def post(self, request):
         """
@@ -350,6 +351,13 @@ class DataImportView(APIView):
             )
 
         file = request.FILES['file']
+
+        if file.size > self.MAX_UPLOAD_SIZE:
+            return Response(
+                {"error": f"File too large. Maximum size is {self.MAX_UPLOAD_SIZE // (1024 * 1024)}MB."},
+                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+            )
+
         file_name = file.name.lower()
 
         try:

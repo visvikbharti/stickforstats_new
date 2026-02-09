@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import { MathJax } from 'better-react-mathjax';
 import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
+import DOMPurify from 'dompurify';
 
 /**
  * Lesson 6: Acceptance Sampling
@@ -37,10 +38,7 @@ import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
 
 const sanitizeHTML = (html) => {
   if (!html) return '';
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript\s*:/gi, '');
+  return DOMPurify.sanitize(html);
 };
 
 const Lesson06_AcceptanceSampling = ({ onComplete }) => {

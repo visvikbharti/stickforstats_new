@@ -521,9 +521,10 @@ class NonParametricService:
         if n1 > 0 and n2 > 0:
             variance = (2 * n1 * n2 * (2 * n1 * n2 - n)) / (n**2 * (n - 1))
             
-            # Z-statistic with continuity correction
+            # Z-statistic with continuity correction (two-sided)
             if variance > 0:
-                z_stat = (runs - expected_runs - 0.5) / np.sqrt(variance)
+                z_stat = (abs(runs - expected_runs) - 0.5) / np.sqrt(variance)
+                z_stat = z_stat if runs >= expected_runs else -z_stat
                 p_value = 2 * (1 - stats.norm.cdf(np.abs(z_stat)))
             else:
                 z_stat = 0

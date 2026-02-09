@@ -291,10 +291,14 @@ export const useSQCAnalysisAPI = () => {
       const target = params.targetValue || ((usl + lsl) / 2);
 
       // Calculate capability indices
+      // Cp/Cpk use within-subgroup (short-term) standard deviation
       const cp = (usl - lsl) / (6 * stdDev);
       const cpk = Math.min((usl - mean) / (3 * stdDev), (mean - lsl) / (3 * stdDev));
-      const pp = cp; // Simplified for demo
-      const ppk = cpk; // Simplified for demo
+      // Pp/Ppk use overall (long-term) standard deviation
+      // In demo mode, approximate overall SD as 1.2x within-subgroup SD (typical ratio)
+      const overallStd = params.overallStdDev || stdDev * 1.2;
+      const pp = (usl - lsl) / (6 * overallStd);
+      const ppk = Math.min((usl - mean) / (3 * overallStd), (mean - lsl) / (3 * overallStd));
 
       // Calculate sigma level and DPMO
       const zMin = Math.min((usl - mean) / stdDev, (mean - lsl) / stdDev);

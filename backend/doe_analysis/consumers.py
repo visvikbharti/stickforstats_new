@@ -1,3 +1,10 @@
+"""
+NOTE: This WebSocket consumer is currently inactive.
+ASGI/Channels is not configured in this deployment.
+The corresponding frontend features use REST API fallbacks.
+To enable WebSocket support, configure Django Channels with ASGI.
+"""
+
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async

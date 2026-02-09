@@ -212,25 +212,36 @@ const SensitivityAnalyzer = ({
   const performMonteCarloSimulation = () => {
     const { iterations, distributions } = parameters.monteCarlo;
     const results = [];
-    
-    // Random number generators
+
+    // Seeded PRNG (mulberry32) for reproducibility
+    function seededRandom(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    const random = seededRandom(42);
+
+    // Random number generators using seeded PRNG
     const randomNormal = (mean, sd) => {
-      const u1 = Math.random();
-      const u2 = Math.random();
+      const u1 = random();
+      const u2 = random();
       const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
       return mean + z * sd;
     };
-    
+
     const randomUniform = (min, max) => {
-      return min + Math.random() * (max - min);
+      return min + random() * (max - min);
     };
-    
+
     const randomBeta = (alpha, beta) => {
       // Simplified beta distribution using acceptance-rejection
       let x;
       do {
-        x = Math.random();
-      } while (Math.random() > Math.pow(x, alpha - 1) * Math.pow(1 - x, beta - 1));
+        x = random();
+      } while (random() > Math.pow(x, alpha - 1) * Math.pow(1 - x, beta - 1));
       return x;
     };
     

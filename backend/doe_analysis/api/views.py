@@ -67,6 +67,8 @@ class ExperimentDesignViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
+
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def upload_design_data(self, request, pk=None):
@@ -77,6 +79,12 @@ class ExperimentDesignViewSet(viewsets.ModelViewSet):
             file = request.FILES.get('file')
             if not file:
                 return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if file.size > self.MAX_UPLOAD_SIZE:
+                return Response(
+                    {"error": f"File too large. Maximum size is {self.MAX_UPLOAD_SIZE // (1024 * 1024)}MB."},
+                    status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+                )
 
             df = pd.read_csv(file)
 

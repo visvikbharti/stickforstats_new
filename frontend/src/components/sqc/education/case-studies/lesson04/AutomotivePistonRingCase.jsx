@@ -55,6 +55,7 @@ import {
 } from 'recharts';
 import CaseStudyTemplate from '../components/CaseStudyTemplate';
 import useSQCAnalysisAPI from '../../../../../hooks/useSQCAnalysisAPI';
+import DOMPurify from 'dompurify';
 
 /**
  * Automotive Piston Ring Tolerance Case Study
@@ -71,10 +72,7 @@ import useSQCAnalysisAPI from '../../../../../hooks/useSQCAnalysisAPI';
  */
 const sanitizeHTML = (html) => {
   if (!html) return '';
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript\s*:/gi, '');
+  return DOMPurify.sanitize(html);
 };
 
 const AutomotivePistonRingCase = ({ onComplete }) => {

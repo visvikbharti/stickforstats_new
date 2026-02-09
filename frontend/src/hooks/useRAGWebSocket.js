@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { secureWebSocketUrl, createWebSocketOptions, safeSend, isWebSocketConnected, createHeartbeat } from '../utils/secureWebSocketUtils';
 
+/**
+ * Custom hook for RAG (Retrieval-Augmented Generation) WebSocket communication.
+ * NOTE: ASGI/Channels is not currently configured on the backend.
+ * This hook gracefully handles connection failures and will not spam
+ * console errors. When ASGI is enabled, WebSocket connections will
+ * work automatically.
+ */
 const useRAGWebSocket = (options = {}) => {
   const {
     autoConnect = true,
@@ -175,7 +182,10 @@ const useRAGWebSocket = (options = {}) => {
       };
 
       ws.onerror = (event) => {
-        console.error('RAG WebSocket error:', event);
+        // Log at warn level to avoid console.error spam when ASGI is not configured
+        if (reconnectCountRef.current === 0) {
+          console.warn('RAG WebSocket connection failed. ASGI may not be configured. Falling back to REST.');
+        }
         updateStatus('error');
         setError('WebSocket connection error');
         if (onError) onError('WebSocket connection error');
@@ -207,7 +217,10 @@ const useRAGWebSocket = (options = {}) => {
         }
       };
     } catch (err) {
-      console.error('Error creating RAG WebSocket:', err);
+      // Log once at warn level; avoid console.error spam when ASGI is not configured
+      if (reconnectCountRef.current === 0) {
+        console.warn('RAG WebSocket creation failed. ASGI may not be configured.', err.message);
+      }
       setError('Failed to establish WebSocket connection');
       updateStatus('error');
     }

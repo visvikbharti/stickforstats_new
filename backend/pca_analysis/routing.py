@@ -1,5 +1,9 @@
 """
 WebSocket routing for PCA Analysis.
+
+NOTE: These WebSocket routes are currently inactive.
+ASGI/Channels is not configured in this deployment.
+To enable WebSocket support, configure Django Channels with ASGI.
 """
 
 from django.urls import re_path

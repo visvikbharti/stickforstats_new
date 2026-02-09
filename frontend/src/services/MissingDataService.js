@@ -543,8 +543,9 @@ class MissingDataService {
         ? parseFloat(processed.p_value)
         : processed.p_value;
 
-      processed.is_mcar = pVal > 0.05;
-      processed.interpretation = pVal > 0.05
+      const alpha = processed.alpha || 0.05;
+      processed.is_mcar = pVal > alpha;
+      processed.interpretation = pVal > alpha
         ? 'Data appears to be Missing Completely At Random (MCAR)'
         : 'Data is likely not Missing Completely At Random';
     }

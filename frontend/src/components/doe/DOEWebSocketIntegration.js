@@ -95,7 +95,10 @@ const DOEWebSocketIntegration = ({
       };
 
       ws.onerror = (event) => {
-        console.error('DOE WebSocket error:', event);
+        // Log at warn level to avoid console.error spam when ASGI is not configured
+        if (reconnectAttempts === 0) {
+          console.warn('DOE WebSocket connection failed. ASGI may not be configured. Falling back to REST.');
+        }
         setConnectionStatus('error');
         setError('WebSocket connection error');
       };
@@ -115,7 +118,10 @@ const DOEWebSocketIntegration = ({
         }
       };
     } catch (err) {
-      console.error('Error creating WebSocket:', err);
+      // Log once at warn level; avoid console.error spam when ASGI is not configured
+      if (reconnectAttempts === 0) {
+        console.warn('DOE WebSocket creation failed. ASGI may not be configured.', err.message);
+      }
       setError('Failed to establish WebSocket connection');
       setConnectionStatus('error');
     }

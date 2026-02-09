@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import logging
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
@@ -32,6 +33,10 @@ class SessionService:
         """Initialize session service with necessary storage paths."""
         self._ensure_storage_directories()
         
+    def _sanitize_path_component(self, name: str) -> str:
+        """Remove any path traversal characters from a path component."""
+        return re.sub(r'[^a-zA-Z0-9_\-.]', '_', name).strip('.')
+
     def _ensure_storage_directories(self):
         """Ensure required storage directories exist."""
         base_dir = settings.BASE_DIR
@@ -65,7 +70,8 @@ class SessionService:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         analysis_id = f"{analysis_type}_{timestamp}"
-        history_dir = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", username))
+        safe_username = self._sanitize_path_component(username)
+        history_dir = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", safe_username))
         history_dir.mkdir(parents=True, exist_ok=True)
         history_file = history_dir / "history.json"
         
@@ -82,7 +88,7 @@ class SessionService:
 
         # Handle plot saving
         if plots:
-            plots_dir = Path(os.path.join(settings.BASE_DIR, "data", "plots", username, timestamp))
+            plots_dir = Path(os.path.join(settings.BASE_DIR, "data", "plots", safe_username, timestamp))
             plots_dir.mkdir(parents=True, exist_ok=True)
             plot_references = []
             
@@ -167,13 +173,14 @@ class SessionService:
         Returns:
             List of analysis history records
         """
-        history_file = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", username, "history.json"))
+        safe_username = self._sanitize_path_component(username)
+        history_file = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", safe_username, "history.json"))
         if not history_file.exists():
             return []
-            
+
         with open(history_file, 'r') as f:
             history = json.load(f)
-            
+
         if load_plots:
             return self._load_plots_for_history(username, history)
         
@@ -243,12 +250,13 @@ class SessionService:
             Boolean indicating success or failure
         """
         # Delete history file
-        history_file = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", username, "history.json"))
+        safe_username = self._sanitize_path_component(username)
+        history_file = Path(os.path.join(settings.BASE_DIR, "data", "analysis_history", safe_username, "history.json"))
         if history_file.exists():
             os.remove(history_file)
-        
+
         # Delete plot files
-        plots_dir = Path(os.path.join(settings.BASE_DIR, "data", "plots", username))
+        plots_dir = Path(os.path.join(settings.BASE_DIR, "data", "plots", safe_username))
         if plots_dir.exists():
             import shutil
             shutil.rmtree(plots_dir)

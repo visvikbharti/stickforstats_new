@@ -475,12 +475,25 @@ const EffectSizeEstimator = ({
         method: 't-distribution'
       };
     } else if (distributionType === 'bootstrap') {
-      // Bootstrap simulation
+      // Proper bootstrap: resample with replacement
       const bootstrapSamples = [];
+      const se = Math.sqrt((n1 + n2) / (n1 * n2) + effectSize ** 2 / (2 * (n1 + n2)));
+      // If we have literature studies, resample from them; otherwise use parametric bootstrap
+      const studyEffects = parameters.literature.studies.length > 0
+        ? parameters.literature.studies.map(s => s.effectSize)
+        : null;
       for (let i = 0; i < iterations; i++) {
-        // Simulate bootstrap sample
-        const sample = effectSize + (Math.random() - 0.5) * 0.5; // Simplified
-        bootstrapSamples.push(sample);
+        if (studyEffects) {
+          // Resample with replacement from actual study effect sizes
+          const resample = studyEffects.map(() => studyEffects[Math.floor(Math.random() * studyEffects.length)]);
+          bootstrapSamples.push(resample.reduce((a, b) => a + b, 0) / resample.length);
+        } else {
+          // Parametric bootstrap: sample from estimated distribution
+          const u1 = Math.random();
+          const u2 = Math.random();
+          const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+          bootstrapSamples.push(effectSize + z * se);
+        }
       }
       bootstrapSamples.sort((a, b) => a - b);
       

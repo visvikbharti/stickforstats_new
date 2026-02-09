@@ -15,6 +15,7 @@
     "better-react-mathjax": "^2.3.0",
     "chart.js": "^4.3.0",
     "d3": "^7.8.5",
+    "dompurify": "^3.3.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",

@@ -47,17 +47,9 @@ import {
   PlayArrow as RunIcon,
   Description as MethodsIcon,
 } from '@mui/icons-material';
+import DOMPurify from 'dompurify';
 
-/**
- * Sanitize HTML to prevent XSS attacks.
- * Strips script tags, event handlers, and javascript: URLs.
- */
-const sanitizeHTML = (html) => {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript:/gi, '');
-};
+const sanitizeHTML = (html) => DOMPurify.sanitize(html);
 
 /**
  * Individual message component

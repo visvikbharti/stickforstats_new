@@ -433,7 +433,7 @@ class CausalInferenceService {
    * @param {Object} eventStudyData - Event study results
    * @returns {Array} Formatted for EventStudyPlot component
    */
-  processEventStudyData(eventStudyData) {
+  processEventStudyData(eventStudyData, alpha = 0.05) {
     if (!eventStudyData || !eventStudyData.coefficients) return [];
 
     return eventStudyData.coefficients.map(coef => ({
@@ -443,7 +443,7 @@ class CausalInferenceService {
       ciLower: coef.ci_lower,
       ciUpper: coef.ci_upper,
       pValue: coef.p_value,
-      significant: coef.p_value < 0.05
+      significant: coef.p_value < alpha
     }));
   }
 }

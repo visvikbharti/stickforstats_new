@@ -2,6 +2,11 @@
 WebSocket consumers for SQC Analysis.
 
 This module provides WebSocket consumers for real-time updates during SQC analysis.
+
+NOTE: This WebSocket consumer is currently inactive.
+ASGI/Channels is not configured in this deployment.
+The corresponding frontend features use REST API fallbacks.
+To enable WebSocket support, configure Django Channels with ASGI.
 """
 
 import json

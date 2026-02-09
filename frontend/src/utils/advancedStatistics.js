@@ -388,19 +388,19 @@ export const distributionFitting = {
   },
 
   // Chi-square goodness of fit test
-  goodnessOfFit: (observed, expected) => {
+  goodnessOfFit: (observed, expected, alpha = 0.05) => {
     const chiSquare = observed.reduce((sum, obs, i) => {
       return sum + Math.pow(obs - expected[i], 2) / expected[i];
     }, 0);
-    
+
     const df = observed.length - 1;
     const pValue = 1 - jStat.chisquare.cdf(chiSquare, df);
-    
+
     return {
       chiSquare,
       degreesOfFreedom: df,
       pValue,
-      reject: pValue < 0.05
+      reject: pValue < alpha
     };
   }
 };
