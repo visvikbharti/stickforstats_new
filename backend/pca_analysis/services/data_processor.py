@@ -133,7 +133,7 @@ class DataProcessorService:
             return False, validation_messages
         
         # Check if data is numeric
-        if not df.applymap(np.isreal).all().all():
+        if not df.map(np.isreal).all().all():
             validation_messages.append("All expression values must be numeric.")
             return False, validation_messages
         

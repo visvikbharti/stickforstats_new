@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 
 from ..models import (
@@ -27,7 +27,7 @@ class DistributionProjectViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and custom actions for project management.
     """
     serializer_class = DistributionProjectSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return DistributionProject.objects.filter(user=self.request.user)
@@ -85,7 +85,7 @@ class DistributionViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and calculations for distributions.
     """
     serializer_class = DistributionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Distribution.objects.filter(project__user=self.request.user)
@@ -182,7 +182,7 @@ class DistributionUtilityViewSet(viewsets.ViewSet):
     """
     ViewSet for utility operations on distributions not tied to specific models.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     @action(detail=False, methods=['post'])
     def binomial_approximation(self, request):

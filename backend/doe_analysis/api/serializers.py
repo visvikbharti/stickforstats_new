@@ -95,8 +95,8 @@ class ExperimentDesignDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for ExperimentDesign model with related objects."""
     analysis_session = AnalysisSessionSerializer(read_only=True)
     factors = FactorDefinitionSerializer(many=True, read_only=True)
-    responses = ResponseDefinitionSerializer(source='responses_defs', many=True, read_only=True)
-    runs = ExperimentRunSerializer(source='runs_set', many=True, read_only=True)
+    responses = ResponseDefinitionSerializer(many=True, read_only=True)
+    runs = ExperimentRunSerializer(many=True, read_only=True)
 
     class Meta:
         model = ExperimentDesign
@@ -107,21 +107,6 @@ class ExperimentDesignDetailSerializer(serializers.ModelSerializer):
             'design_matrix', 'factor_details', 'response_details',
             'created_at', 'updated_at', 'factors', 'responses', 'runs'
         ]
-
-    def to_representation(self, instance):
-        """Override to use correct related names."""
-        ret = super().to_representation(instance)
-        # Use the actual related_name from the FK definitions
-        ret['factors'] = FactorDefinitionSerializer(
-            instance.factors.all(), many=True
-        ).data
-        ret['responses'] = ResponseDefinitionSerializer(
-            instance.responses.all(), many=True
-        ).data
-        ret['runs'] = ExperimentRunSerializer(
-            instance.runs.all(), many=True
-        ).data
-        return ret
 
 
 class ModelAnalysisSerializer(serializers.ModelSerializer):

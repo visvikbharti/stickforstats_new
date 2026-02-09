@@ -26,17 +26,28 @@ const mockProjects = [
   }
 ];
 
+// Seeded PRNG for deterministic mock data (mulberry32)
+function seededRandom(seed) {
+  let t = seed + 0x6D2B79F5;
+  return function() {
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // Generate mock PCA results
 const generateMockPcaResults = (projectId) => {
   const n_samples = 100;
   const n_features = 20;
   const n_components = 3;
-  
-  // Generate mock data
-  const pc1Values = Array.from({length: n_samples}, () => (Math.random() - 0.5) * 4);
-  const pc2Values = Array.from({length: n_samples}, () => (Math.random() - 0.5) * 3);
-  const pc3Values = Array.from({length: n_samples}, () => (Math.random() - 0.5) * 2);
-  
+  const rng = seededRandom(42);
+
+  // Generate deterministic mock data
+  const pc1Values = Array.from({length: n_samples}, () => (rng() - 0.5) * 4);
+  const pc2Values = Array.from({length: n_samples}, () => (rng() - 0.5) * 3);
+  const pc3Values = Array.from({length: n_samples}, () => (rng() - 0.5) * 2);
+
   return {
     sessionId: `demo-session-${Date.now()}`,
     projectId: projectId,
@@ -44,9 +55,9 @@ const generateMockPcaResults = (projectId) => {
     cumulative_variance_ratio: [0.45, 0.70, 0.85, 0.93, 0.97, 1.0],
     loadings: Array.from({length: n_features}, (_, i) => ({
       feature: `Feature_${i + 1}`,
-      PC1: (Math.random() - 0.5) * 2,
-      PC2: (Math.random() - 0.5) * 2,
-      PC3: (Math.random() - 0.5) * 2
+      PC1: (rng() - 0.5) * 2,
+      PC2: (rng() - 0.5) * 2,
+      PC3: (rng() - 0.5) * 2
     })),
     scores: pc1Values.map((pc1, i) => ({
       sample_id: `Sample_${i + 1}`,
@@ -149,7 +160,7 @@ export const uploadPcaData = async (formData) => {
       categorical_columns: ['Group'],
       preview: Array.from({length: 5}, (_, i) => ({
         ...Object.fromEntries(
-          Array.from({length: 20}, (_, j) => [`Feature_${j + 1}`, Math.random() * 100])
+          Array.from({length: 20}, (_, j) => [`Feature_${j + 1}`, ((i * 20 + j + 1) * 7.3 % 100).toFixed(2)])
         ),
         Group: i < 2 ? 'Control' : 'Treatment'
       }))

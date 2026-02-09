@@ -6,7 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
@@ -65,7 +65,7 @@ class PCAProjectViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA projects."""
     
     serializer_class = PCAProjectSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         return PCAProject.objects.filter(user=self.request.user)
@@ -211,7 +211,7 @@ class SampleGroupViewSet(viewsets.ModelViewSet):
     """ViewSet for sample groups."""
     
     serializer_class = SampleGroupSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         project_id = self.kwargs.get('project_pk')
@@ -229,7 +229,7 @@ class SampleViewSet(viewsets.ModelViewSet):
     """ViewSet for samples."""
     
     serializer_class = SampleSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         project_id = self.kwargs.get('project_pk')
@@ -242,7 +242,7 @@ class GeneViewSet(viewsets.ModelViewSet):
     """ViewSet for genes."""
     
     serializer_class = GeneSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         project_id = self.kwargs.get('project_pk')
@@ -255,7 +255,7 @@ class PCAResultViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA results."""
     
     serializer_class = PCAResultSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     http_method_names = ['get', 'head', 'options']  # Read-only
     
     def get_queryset(self):
@@ -364,7 +364,7 @@ class PCAVisualizationViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA visualizations."""
     
     serializer_class = PCAVisualizationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         result_id = self.kwargs.get('result_pk')
@@ -439,7 +439,7 @@ class _QuickPCAResult:
 
 class QuickPCAView(APIView):
     """Quick PCA analysis without project setup"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Perform quick PCA analysis on uploaded data"""
@@ -553,7 +553,7 @@ class QuickPCAView(APIView):
 
 class InteractivePCAView(APIView):
     """Interactive PCA with real-time parameter updates"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """Update PCA visualization with new parameters"""
@@ -613,7 +613,7 @@ class InteractivePCAView(APIView):
 
 class GeneContributionView(APIView):
     """Analyze gene contributions to principal components"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def post(self, request):
         """Calculate and visualize gene contributions"""
@@ -679,7 +679,7 @@ class GeneContributionView(APIView):
 
 class PCAComparisonView(APIView):
     """Compare multiple PCA analyses"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def post(self, request):
         """Compare PCA results from different conditions or datasets"""
@@ -772,7 +772,7 @@ class PCAComparisonView(APIView):
 
 class PCASimulationView(APIView):
     """Interactive PCA simulation for education"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request):
         """Get PCA simulation with animated explanation"""
@@ -863,7 +863,7 @@ class PCASimulationView(APIView):
 
 class DemoDataView(APIView):
     """Generate various demo datasets for PCA"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request):
         """Get list of available demo datasets"""
