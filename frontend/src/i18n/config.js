@@ -375,7 +375,7 @@ i18n
     load: 'languageOnly', // Load only language codes (en, not en-US)
     
     // Whitelist supported languages
-    whitelist: ['en', 'es', 'fr', 'de'],
+    whitelist: ['en', 'es', 'fr', 'de', 'pt', 'zh'],
     
     // Non-explicit whitelist handling
     nonExplicitWhitelist: true,

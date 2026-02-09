@@ -46,10 +46,13 @@
 %% -- Article metainformation --------------------------------------------------
 
 \author{
-  Vishal Bharti~\orcidicon{0009-0003-1431-4457}\\CSIR-IGIB
+  Vishal Bharti$^{1,*}$~\orcidicon{0009-0003-1431-4457}
   \And
-  Debojyoti Chakraborty\\CSIR-IGIB and AcSIR
+  Debojyoti Chakraborty$^{1,2,*}$~\orcidicon{0000-0003-1460-7594}
 }
+% $^1$CSIR-Institute of Genomics and Integrative Biology, New Delhi, 110025, India
+% $^2$Academy of Scientific and Innovative Research, Ghaziabad, 201002, India
+% $^*$Corresponding authors
 
 \title{\pkg{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation}
 
@@ -68,14 +71,15 @@ Statistical assumption violations contribute to unreliable results in scientific
 \Plainkeywords{statistical assumptions, reproducibility, automatic validation, AI-assisted analysis, statistical reporting, Python, open-source}
 
 \Address{
-  Vishal Bharti\\
-  ORCID: 0009-0003-1431-4457\\
-  CSIR-Institute of Genomics and Integrative Biology (IGIB)\\
+  Vishal Bharti (Corresponding Author)\\
+  ORCID: \href{https://orcid.org/0009-0003-1431-4457}{0009-0003-1431-4457}\\
+  CSIR-Institute of Genomics and Integrative Biology\\
   Mathura Road, New Delhi 110025, India\\
   E-mail: \email{vishalvikashbharti@gmail.com}\\
   URL: \url{https://github.com/visvikbharti/stickforstats_new}\\[1.5em]
   Debojyoti Chakraborty (Corresponding Author)\\
-  CSIR-Institute of Genomics and Integrative Biology (IGIB)\\
+  ORCID: \href{https://orcid.org/0000-0003-1460-7594}{0000-0003-1460-7594}\\
+  CSIR-Institute of Genomics and Integrative Biology\\
   Mathura Road, New Delhi 110025, India\\
   and Academy of Scientific and Innovative Research (AcSIR)\\
   Ghaziabad 201002, India\\
@@ -137,7 +141,7 @@ Beyond the Guardian system, \pkg{StickForStats} offers several additional featur
 
 \textbf{AI Statistical Advisor.} An integrated natural language interface (StickAI) provides conversational guidance for statistical analysis. Users can ask questions about test selection, assumption interpretation, and result reporting. The advisor includes an intelligent test selector using decision-tree logic to recommend appropriate statistical tests based on data characteristics. A Methods Section Generator produces publication-ready text following APA and JARS-Quant guidelines \citep{appelbaum2018jars}, reducing both the cognitive burden of methods writing and the risk of omitting required reporting elements.
 
-\textbf{Paper Parser.} This module analyzes uploaded PDF manuscripts to detect common statistical reporting errors. Drawing on JARS-Quant guidelines and documented statistical pitfalls \citep{appelbaum2018jars, keselman1998statistical}, the parser identifies issues such as missing effect sizes, unreported assumption checks, incomplete test statistics, and p-value reporting problems. The tool generates structured reports with specific recommendations for improving statistical reporting quality.
+\textbf{Paper Parser (SQS).} This module analyzes uploaded PDF manuscripts to detect common statistical reporting errors, computing a Statistical Quality Score (SQS) on a 0--100 scale. Drawing on JARS-Quant guidelines and documented statistical pitfalls \citep{appelbaum2018jars, keselman1998statistical}, the parser identifies issues such as missing effect sizes, unreported assumption checks, incomplete test statistics, and p-value reporting problems. The tool generates structured reports with specific recommendations for improving statistical reporting quality.
 
 \textbf{Statistical Debugger.} A comprehensive debugging system helps users identify and resolve statistical analysis problems. The debugger maintains a database of test-specific pitfalls and common errors, providing targeted checklists for each statistical test. When analyses produce unexpected results, users can consult the debugger for systematic troubleshooting guidance.
 
@@ -149,7 +153,7 @@ Beyond the Guardian system, \pkg{StickForStats} offers several additional featur
 
 \textbf{Reproducibility framework.} Each analysis generates a complete reproducibility bundle including data fingerprints (SHA-256 hashes), processing pipeline records, and environment specifications.
 
-\textbf{Code export.} For analyses, users can export equivalent \proglang{Python} code, facilitating verification and integration with existing workflows.
+\textbf{Code export.} For analyses, users can export equivalent \proglang{R} and \proglang{Python} code, facilitating verification and integration with existing workflows.
 
 \subsection{Contributions of this paper}
 
@@ -159,7 +163,8 @@ This paper makes the following contributions:
 \item We introduce the Guardian system, which to our knowledge represents the first implementation of mandatory, automatic assumption validation integrated directly into statistical software. We describe its architecture, the eight validators implemented, and its integration with statistical analysis workflows.
 \item We present an AI-powered Statistical Advisor that provides natural language guidance for test selection and generates publication-ready methods sections following established reporting guidelines.
 \item We describe a Paper Parser that analyzes manuscripts for statistical reporting quality, identifying common errors and omissions against JARS-Quant standards.
-\item We present a comprehensive validation study comparing \pkg{StickForStats} results against established reference implementations (\pkg{SciPy}, \proglang{R}, G*Power 3.1), demonstrating agreement to 14+ decimal places for standard statistical tests.
+\item We present a comprehensive validation study comparing \pkg{StickForStats} results against established reference implementations (\pkg{SciPy}, \proglang{R}), demonstrating agreement to 14+ decimal places for standard statistical tests.
+\item We document a backend test suite of 38 automated tests ensuring Design Contract compliance: that no statistical result can exist without Guardian context.
 \item We provide case studies using real datasets (Fisher's Iris, UCI Wine Quality) demonstrating Guardian's effectiveness in detecting assumption violations.
 \item We provide complete code examples showing API usage patterns for common statistical workflows.
 \item We describe the high-precision computing architecture and discuss scenarios where 50-decimal precision provides practical benefits.
@@ -168,7 +173,7 @@ This paper makes the following contributions:
 
 \subsection{Paper organization}
 
-The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work in statistical software and reproducibility tools. Section~\ref{sec:architecture} describes the system architecture. Section~\ref{sec:guardian} presents the Guardian system in detail. Section~\ref{sec:advisor} describes the AI Statistical Advisor and its components. Section~\ref{sec:parser} presents the Paper Parser for manuscript analysis. Section~\ref{sec:code} provides comprehensive code examples. Section~\ref{sec:precision} describes the high-precision computing implementation. Section~\ref{sec:validation} presents validation results. Section~\ref{sec:cases} provides case studies with real data. Section~\ref{sec:discussion} discusses limitations and future work. Section~\ref{sec:conclusion} concludes.
+The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work in statistical software and reproducibility tools. Section~\ref{sec:architecture} describes the system architecture including frontend Guardian components. Section~\ref{sec:guardian} presents the Guardian system in detail. Section~\ref{sec:advisor} describes the AI Statistical Advisor and its components. Section~\ref{sec:parser} presents the Paper Parser for manuscript analysis. Section~\ref{sec:code} provides comprehensive code examples. Section~\ref{sec:precision} describes the high-precision computing implementation. Section~\ref{sec:validation} presents validation results and the comprehensive test suite. Section~\ref{sec:cases} provides case studies with real data. Section~\ref{sec:discussion} discusses limitations and future work. Section~\ref{sec:conclusion} concludes.
 
 %% =============================================================================
 %% SECTION 2: RELATED WORK
@@ -202,13 +207,15 @@ Automatic assumption checks & \checkmark & -- & -- & -- & Partial \\
 Integrated into results & \checkmark & -- & -- & -- & -- \\
 Confidence scoring & \checkmark & -- & -- & -- & -- \\
 Alternative recommendations & \checkmark & -- & -- & -- & -- \\
+Design Contract test suite$^a$ & \checkmark & -- & -- & -- & -- \\
 Web-based interface & \checkmark & -- & -- & -- & -- \\
 Open source & \checkmark & -- & \checkmark & \checkmark & \checkmark \\
-High-precision option & \checkmark & -- & Partial$^a$ & -- & -- \\
+High-precision option & \checkmark & -- & Partial$^b$ & -- & -- \\
 Educational content & \checkmark & -- & -- & Partial & \checkmark \\
-Code export & \checkmark & -- & Native & -- & -- \\
+Code export (R/Python) & \checkmark & -- & Native & -- & -- \\
 \bottomrule
-\multicolumn{6}{l}{\small $^a$Via Rmpfr package, not integrated} \\
+\multicolumn{6}{l}{\small $^a$38 automated backend tests enforcing assumption validation compliance} \\
+\multicolumn{6}{l}{\small $^b$Via Rmpfr package, not integrated} \\
 \end{tabular}
 \end{table}
 
@@ -242,17 +249,17 @@ Several initiatives have attempted to address statistical quality:
 
 \section{System architecture} \label{sec:architecture}
 
-\pkg{StickForStats} follows a three-tier architecture comprising a user interface layer (\proglang{React}), an application layer (\proglang{Django} REST Framework with Guardian integration), and a data layer (PostgreSQL with Redis caching).
+\pkg{StickForStats} follows a three-tier architecture comprising a user interface layer (\proglang{React}), an application layer (\proglang{Django} REST Framework with Guardian integration), and a data layer (database with optional caching).
 
 \subsection{Technology stack}
 
 The technology choices reflect priorities of correctness, maintainability, and accessibility:
 
 \begin{itemize}
-\item \textbf{Frontend:} React 18 with Material-UI for consistent design, Plotly.js for interactive visualizations, and MathJax for mathematical notation rendering.
-\item \textbf{Backend:} Django 4.2 with Django REST Framework for API design, Celery for asynchronous task processing, and comprehensive logging.
-\item \textbf{Statistical Engine:} NumPy 1.24 for array operations, SciPy 1.11 for statistical functions, statsmodels 0.14 for regression diagnostics, and mpmath for arbitrary precision.
-\item \textbf{Data Layer:} PostgreSQL 15 for relational data, Redis for caching and session management, and file storage for uploaded datasets.
+\item \textbf{Frontend:} React 18 with Material-UI for consistent design, Recharts for interactive visualizations (with Plotly.js for specialized 3D plots), and MathJax for mathematical notation rendering.
+\item \textbf{Backend:} Django 4.2 with Django REST Framework for API design, optional Celery integration for asynchronous task processing in production deployments, and comprehensive logging.
+\item \textbf{Statistical Engine:} NumPy $\geq$1.24 for array operations, SciPy $\geq$1.10 for statistical functions, statsmodels $\geq$0.14 for regression diagnostics, and mpmath for arbitrary precision.
+\item \textbf{Data Layer:} PostgreSQL for production deployments (SQLite for development and single-user installations), optional Redis caching with automatic fallback to in-memory cache, and file storage for uploaded datasets.
 \end{itemize}
 
 \subsection{Guardian integration architecture}
@@ -262,7 +269,7 @@ The Guardian system is implemented as middleware that intercepts all statistical
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/figure1.pdf}
-\caption{StickForStats system architecture showing the three-tier design: user interface (React), application layer (Django REST with Guardian integration), and data layer (PostgreSQL, Redis, file storage). The Guardian layer intercepts all statistical test requests.}
+\caption{StickForStats system architecture showing the three-tier design: user interface (React), application layer (Django REST with Guardian integration), and data layer (database, optional cache, file storage). The Guardian layer intercepts all statistical test requests.}
 \label{fig:architecture}
 \end{figure}
 
@@ -287,17 +294,34 @@ This architecture ensures that users cannot receive statistical results without 
 \label{fig:workflow}
 \end{figure}
 
+\subsection{Frontend Guardian components}
+
+The frontend provides four specialized React components for displaying Guardian reports:
+
+\begin{itemize}
+\item \textbf{GuardianReportDisplay}: A comprehensive expandable panel showing all assumption checks, violations with severity coloring, confidence score gauge, and alternative test recommendations. This component appears above statistical results, ensuring users see assumption status before interpreting results.
+
+\item \textbf{GuardianBadge}: A compact chip indicator showing confidence score percentage and violation counts. Placed next to result headers for at-a-glance status. Color-coded: green (success), orange (warning), red (critical).
+
+\item \textbf{ConfidenceGauge}: A visual meter displaying the 0-100 confidence score with gradient coloring and threshold markers at 60\% and 80\%.
+
+\item \textbf{ViolationCard}: Individual violation display showing assumption name, severity level, test statistics with p-values, and actionable recommendations.
+\end{itemize}
+
+A custom React hook (\code{useGuardianReport}) extracts Guardian context from API responses, providing ready-to-use props for display components. The hook handles null/undefined responses gracefully and includes helper functions for compliance checking, violation summarization, and status message generation.
+
+\textbf{Design Contract enforcement}: If an API response lacks Guardian context (missing \code{guardian\_report} or \code{assumptions\_checked} fields), the frontend displays a ``Missing Guardian Context'' warning alert, making it visually apparent when results lack proper assumption validation.
+
 \subsection{API design}
 
 The REST API follows standard conventions with endpoints organized by analysis type:
 
 \begin{lstlisting}[language=bash,caption={API endpoint structure}]
-POST /api/v1/ttest/independent/     # Independent t-test
-POST /api/v1/ttest/paired/          # Paired t-test
-POST /api/v1/anova/oneway/          # One-way ANOVA
-POST /api/v1/correlation/pearson/   # Pearson correlation
-POST /api/v1/regression/linear/     # Linear regression
-POST /api/v1/meta-analysis/         # Meta-analysis
+POST /api/v1/stats/ttest/            # Independent/paired t-test
+POST /api/v1/stats/anova/            # One-way ANOVA
+POST /api/v1/stats/correlation/      # Pearson/Spearman correlation
+POST /api/v1/regression/linear/      # Linear regression
+POST /api/v1/meta-analysis/          # Meta-analysis
 \end{lstlisting}
 
 All endpoints accept JSON payloads and return JSON responses that include both statistical results and Guardian reports.
@@ -668,9 +692,9 @@ The Methods Section Generator specifically addresses the reporting gaps identifi
 %% SECTION 6: PAPER PARSER
 %% =============================================================================
 
-\section{Paper Parser} \label{sec:parser}
+\section{Paper Parser and Statistical Quality Score} \label{sec:parser}
 
-The Paper Parser analyzes uploaded PDF manuscripts to identify statistical reporting problems before submission. This addresses the finding that many published papers contain statistical errors that could have been detected through systematic checking \citep{bakker2011misreporting}.
+The Paper Parser (internally implemented as the Statistical Quality Score, or SQS, system) analyzes uploaded PDF manuscripts to identify statistical reporting problems before submission. This addresses the finding that many published papers contain statistical errors that could have been detected through systematic checking \citep{bakker2011misreporting}.
 
 \subsection{Functionality}
 
@@ -684,14 +708,15 @@ Users upload PDF files of draft manuscripts. The parser extracts text and applie
 
 \subsection{Rule database}
 
-The parser implements 23 detection rules organized by category:
+The parser implements 45 detection rules organized by six categories:
 
 \begin{itemize}
-\item \textbf{Effect size rules} (6 rules): Detect absence of standardized and unstandardized effect sizes
-\item \textbf{Precision rules} (4 rules): Check for confidence intervals and exact values
-\item \textbf{Assumption rules} (5 rules): Verify reporting of normality, homogeneity, and other assumption tests
-\item \textbf{Sample rules} (4 rules): Check for N reporting, power analysis mention, and attrition documentation
-\item \textbf{Statistical reporting rules} (4 rules): Verify complete test statistics (F, t, $\chi^2$ with df)
+\item \textbf{Effect size rules} (11 rules): Detect absence of standardized and unstandardized effect sizes, confidence intervals for effect sizes, and interpretation guidelines
+\item \textbf{Assumption rules} (8 rules): Verify reporting of normality, homogeneity, independence, and other assumption tests
+\item \textbf{Precision rules} (8 rules): Check for confidence intervals, exact $p$-values, and appropriate decimal reporting
+\item \textbf{Reproducibility rules} (7 rules): Check for data availability statements, software versions, and seed reporting
+\item \textbf{Sample rules} (6 rules): Check for N reporting, power analysis, attrition documentation, and inclusion criteria
+\item \textbf{Guideline compliance rules} (5 rules): Verify JARS-Quant, CONSORT, and other reporting standard elements
 \end{itemize}
 
 \subsection{Output format}
@@ -735,7 +760,7 @@ import requests
 import json
 
 # API endpoint
-url = "http://localhost:8000/api/v1/ttest/independent/"
+url = "http://localhost:8000/api/v1/stats/ttest/"
 
 # Prepare data
 data = {
@@ -810,7 +835,7 @@ import requests
 def analyze_with_guardian(data, test_type="ttest"):
     """Perform analysis with Guardian validation handling."""
 
-    url = f"http://localhost:8000/api/v1/{test_type}/independent/"
+    url = f"http://localhost:8000/api/v1/stats/{test_type}/"
     response = requests.post(url, json=data)
     result = response.json()
 
@@ -849,7 +874,7 @@ result = analyze_with_guardian(problematic_data)
 \begin{lstlisting}[language=Python,caption={One-way ANOVA with Guardian validation}]
 import requests
 
-url = "http://localhost:8000/api/v1/anova/oneway/"
+url = "http://localhost:8000/api/v1/stats/anova/"
 
 # Three-group comparison
 data = {
@@ -897,7 +922,7 @@ if result['p_value'] < 0.05 and 'posthoc_results' in result:
 import requests
 import numpy as np
 
-url = "http://localhost:8000/api/v1/correlation/pearson/"
+url = "http://localhost:8000/api/v1/stats/correlation/"
 
 # Generate sample data with potential non-linearity
 np.random.seed(42)
@@ -939,7 +964,7 @@ import pandas as pd
 def batch_ttests(data_pairs, alpha=0.05):
     """Perform multiple t-tests with Guardian validation."""
 
-    url = "http://localhost:8000/api/v1/ttest/independent/"
+    url = "http://localhost:8000/api/v1/stats/ttest/"
     results = []
 
     for name, (group1, group2) in data_pairs.items():
@@ -1054,13 +1079,13 @@ High precision is approximately 20--30$\times$ slower. Users should enable it se
 
 \subsection{Validation of precision}
 
-We verified high-precision results against Wolfram Mathematica with 100-digit precision. Agreement was exact to all 50 decimal places for:
+High-precision arithmetic was validated by comparing results at different precision levels (standard 64-bit, 50-digit, 100-digit) and verifying convergence. The implementation uses Python's \pkg{mpmath} library for arbitrary-precision arithmetic, which has been extensively validated in the numerical computing community.
 
 \begin{itemize}
-\item Standard normal CDF and quantile functions
-\item Student's $t$ distribution functions
-\item $F$ distribution functions
-\item Chi-square distribution functions
+\item Standard normal CDF and quantile functions: Agreement across precision levels
+\item Student's $t$ distribution functions: Agreement across precision levels
+\item $F$ distribution functions: Agreement across precision levels
+\item Chi-square distribution functions: Agreement across precision levels
 \end{itemize}
 
 %% =============================================================================
@@ -1076,10 +1101,11 @@ We validated \pkg{StickForStats} through comparison with established reference i
 Validation was performed against:
 
 \begin{itemize}
-\item \pkg{SciPy} 1.11.0 \citep{virtanen2020scipy}: Primary reference for statistical functions
-\item \proglang{R} 4.3.1 \citep{rcore2023}: Secondary reference for statistical tests
-\item G*Power 3.1.9.7 \citep{faul2007gpower}: Reference for power analysis
+\item \pkg{SciPy} 1.11.0 \citep{virtanen2020scipy}: Primary Python reference for statistical functions
+\item \proglang{R} 4.4.1 \citep{rcore2023}: Cross-validation of case study results
 \end{itemize}
+
+All statistical tests, distributions, and numerical algorithms in \pkg{StickForStats} were validated against \pkg{SciPy}'s implementations. Additionally, case study results were cross-validated against \proglang{R} using the provided \texttt{validate\_against\_R.R} script in the replication package.
 
 \subsection{Statistical test validation}
 
@@ -1104,8 +1130,7 @@ Chi-square test & $\chi^2$ & SciPy & Exact (14 digits) \\
 Mann-Whitney U & $U$-statistic & SciPy & Exact \\
 Shapiro-Wilk & $W$-statistic & SciPy & Exact (10 digits) \\
 Linear regression & Coefficients & statsmodels & Exact (12 digits) \\
-Power analysis & Power & G*Power & Within 0.1\% \\
-Meta-analysis & Pooled effect & metafor (R) & Exact (10 digits) \\
+Meta-analysis & Pooled effect & SciPy & Exact (10 digits) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1169,6 +1194,62 @@ python run_all_validations.py
 #
 # All validations passed.
 \end{lstlisting}
+
+\subsection{Comprehensive test suite}
+
+\pkg{StickForStats} includes an automated test suite with 38 backend tests covering Guardian logic and middleware compliance. This ensures Design Contract compliance: ``No statistical result may exist without an explicit, traceable assumption context.''
+
+\subsubsection{Backend tests (38 tests)}
+
+The backend test suite validates Guardian integration layer and middleware compliance:
+
+\begin{table}[htbp]
+\centering
+\caption{Backend test coverage summary}
+\label{tab:backend-tests}
+\begin{tabular}{llr}
+\toprule
+Test Module & Coverage Area & Tests \\
+\midrule
+\code{test\_guardian\_integration} & GuardianEnrichedResult dataclass & 4 \\
+ & GuardianServiceWrapper & 3 \\
+ & Test type resolution & 4 \\
+ & @guardian\_protected decorator & 2 \\
+ & API compliance structure & 1 \\
+ & Violation severity handling & 3 \\
+ & Confidence score calculation & 2 \\
+ & Design Contract compliance & 3 \\
+\code{test\_guardian\_middleware} & Middleware initialization & 4 \\
+ & Guardian context validation & 4 \\
+ & Statistical endpoint detection & 7 \\
+ & Configuration options & 2 \\
+\midrule
+\textbf{Total} & & \textbf{38} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key backend tests verify:
+\begin{itemize}
+\item \code{GuardianEnrichedResult.to\_dict()} includes all required fields: \code{guardian\_report}, \code{assumptions\_checked}, \code{violations}, \code{confidence\_score}, \code{can\_proceed}, \code{alternative\_tests}, \code{\_guardian\_context}, and \code{\_contract\_compliant}
+\item Critical violations block analysis by default unless Expert Mode is enabled
+\item Warning violations allow proceeding with annotations
+\item Statistical endpoints are correctly detected for middleware interception
+\item Missing Guardian context is logged with Design Contract violation warnings
+\end{itemize}
+
+\subsubsection{Running the test suite}
+
+The test suite can be executed with:
+
+\begin{lstlisting}[language=bash,caption={Running the Guardian test suite}]
+# Backend tests (Django)
+cd backend
+python manage.py test core.guardian.tests
+# Output: Ran 38 tests in 1.273s - OK
+\end{lstlisting}
+
+All 38 tests pass, providing confidence that the Guardian system correctly enforces the Design Contract on the backend. Frontend Guardian components (\code{GuardianReportDisplay}, \code{GuardianBadge}, \code{ConfidenceGauge}, \code{ViolationCard}) and the \code{useGuardianReport} hook enforce display-level compliance by showing a ``Missing Guardian Context'' warning when API responses lack Guardian data.
 
 %% =============================================================================
 %% SECTION 8: CASE STUDIES
@@ -1236,15 +1317,15 @@ result = requests.post(url, json={
 
 \subsection{Case 2: Wine Quality dataset -- Correlation assumptions}
 
-The UCI Wine Quality dataset \citep{cortez2009wine} contains physicochemical properties and quality ratings for Portuguese wines. We examine the relationship between alcohol content and quality.
+The UCI Wine Quality dataset \citep{cortez2009wine} contains physicochemical properties and quality ratings for Portuguese wines. We analyze the red wine subset ($n = 1{,}599$), examining the relationship between alcohol content and quality.
 
-\textbf{Analysis:} Correlation between alcohol percentage and quality rating (1--10 scale).
+\textbf{Analysis:} Correlation between alcohol percentage and quality rating (ordinal scale 3--9).
 
 \textbf{Traditional approach:}
 \begin{lstlisting}[language=Python]
 r, p = stats.pearsonr(wine['alcohol'], wine['quality'])
 print(f"r = {r:.3f}, p = {p:.2e}")
-# Output: r = 0.476, p = 1.5e-152
+# Output: r = 0.476, p = 2.83e-91
 \end{lstlisting}
 
 \textbf{Guardian findings:}
@@ -1255,12 +1336,12 @@ print(f"r = {r:.3f}, p = {p:.2e}")
 #
 # Violations:
 # - Normality (quality): CRITICAL
-#   Shapiro-Wilk: W=0.894, p<0.001
+#   Shapiro-Wilk: W=0.885, p<0.001
 #   Quality is ordinal, not continuous normal
 #
-# - Linearity: WARNING
-#   Quadratic R^2 improvement: 3.2%
-#   Relationship may have curvature
+# - Linearity: PASS
+#   Quadratic R^2 improvement: 1.0%
+#   Linear relationship adequate
 #
 # Alternatives suggested:
 # - Spearman's rho (ordinal data)
@@ -1269,20 +1350,23 @@ print(f"r = {r:.3f}, p = {p:.2e}")
 
 \textbf{Guardian finding:} Quality is an ordinal variable (integer 3--9 in data), violating the continuous normality assumption of Pearson's $r$. Guardian's critical normality violation flag alerts the researcher.
 
-\textbf{Appropriate analysis:} Spearman's $\rho = 0.444$, $p < 0.001$. The correlation remains significant, but Spearman's is the appropriate measure for ordinal data.
+\textbf{Appropriate analysis:} Spearman's $\rho = 0.479$, $p < 0.001$. The correlation remains significant, but Spearman's is the appropriate measure for ordinal data.
 
 \subsection{Case 3: Simulated meta-analysis -- Publication bias}
 
-We simulate a meta-analysis scenario where publication bias is present, using effect sizes from 12 studies.
+We simulate a meta-analysis scenario where publication bias is present, using effect sizes from 12 studies. The simulation models a realistic bias pattern: larger studies (smaller standard errors) publish regardless of effect size, while smaller studies only reach publication with larger effects. For reproducibility, this simulation uses \texttt{numpy.random.seed(561)}.
 
 \textbf{Data:} Studies with larger effects were more likely to be published, creating funnel plot asymmetry.
 
 \begin{lstlisting}[language=Python]
+import numpy as np
+np.random.seed(561)  # For reproducibility
+
 studies = {
-    'effect_sizes': [0.15, 0.22, 0.31, 0.18, 0.45, 0.28,
-                     0.52, 0.35, 0.41, 0.25, 0.48, 0.33],
-    'standard_errors': [0.12, 0.15, 0.08, 0.14, 0.06, 0.11,
-                        0.05, 0.09, 0.07, 0.13, 0.04, 0.10]
+    'effect_sizes': [0.23, 0.15, 0.25, 0.35, 0.28, 0.28,
+                     0.32, 0.42, 0.33, 0.28, 0.37, 0.31],
+    'standard_errors': [0.08, 0.04, 0.07, 0.06, 0.07, 0.08,
+                        0.13, 0.14, 0.12, 0.13, 0.12, 0.14]
 }
 \end{lstlisting}
 
@@ -1290,15 +1374,15 @@ studies = {
 
 \begin{lstlisting}
 # Meta-analysis results:
-# Pooled effect (random): 0.271, 95% CI [0.230, 0.313]
-# Heterogeneity: I^2 = 0.0%, Q = 12.48
+# Pooled effect (random): 0.263, 95% CI [0.213, 0.314]
+# Heterogeneity: I^2 = 14.4%, Q = 12.85
 #
 # Guardian Report:
 # Confidence Score: 0.65
 #
 # Violations:
 # - Publication Bias: WARNING
-#   Egger's test: intercept=1.72, p=0.024
+#   Egger's test: intercept=1.84, p=0.024
 #   Funnel plot shows asymmetry
 #   Recommendation: Consider publication bias in interpretation
 \end{lstlisting}
@@ -1465,7 +1549,7 @@ Several extensions are planned:
 
 \textbf{Paper Parser enhancements:} Detection of additional reporting issues, support for domain-specific reporting guidelines (CONSORT, STROBE), and integration with reference management tools.
 
-\textbf{Statistical Quality Score (SQS) for journals:} Beyond individual researcher use, the Paper Parser has potential applications in peer review. We envision a scoring system (0-100) evaluating manuscripts across six categories: effect size reporting, assumption transparency, sample and power documentation, statistical precision, reproducibility indicators, and guideline compliance. Journals could configure field-specific thresholds, similar to plagiarism detection sensitivity settings. This would not replace human judgment but could standardize the statistical review component that currently varies across reviewers. A prototype implementation with 50+ detection rules is included in the current release.
+\textbf{Statistical Quality Score (SQS) for journals:} Beyond individual researcher use, the Paper Parser's SQS system has potential applications in peer review. The current implementation provides a scoring system (0--100) evaluating manuscripts across six categories: effect size reporting, assumption transparency, sample and power documentation, statistical precision, reproducibility indicators, and guideline compliance, using 45 detection rules with field-specific weights. Journals could configure field-specific thresholds, similar to plagiarism detection sensitivity settings. This would not replace human judgment but could standardize the statistical review component that currently varies across reviewers.
 
 %% =============================================================================
 %% SECTION 10: CONCLUSION
@@ -1475,7 +1559,7 @@ Several extensions are planned:
 
 We have presented \pkg{StickForStats}, a statistical analysis platform with integrated automatic assumption validation through the Guardian system. The fundamental insight motivating this work is that optional assumption checking tools, available for over 25 years, have not solved the problem of assumption violations in published research. The solution is not better tools (the tools already exist), but different default behavior: automatic validation that informs every analysis.
 
-Guardian implements eight validators covering the most common assumptions for parametric tests: normality, variance homogeneity, independence, outliers, sample size adequacy, modality, linearity, and homoscedasticity. When violations are detected, Guardian provides severity classifications, specific recommendations, and alternative test suggestions. Validation against SciPy demonstrates computational correctness to 14+ decimal places.
+Guardian implements eight validators covering the most common assumptions for parametric tests: normality, variance homogeneity, independence, outliers, sample size adequacy, modality, linearity, and homoscedasticity. When violations are detected, Guardian provides severity classifications, specific recommendations, and alternative test suggestions. Validation against SciPy demonstrates computational correctness to 14+ decimal places. An automated test suite of 38 backend tests ensures that the Design Contract---``no statistical result may exist without an explicit, traceable assumption context''---is enforced at the API layer, while frontend Guardian components enforce display-level compliance.
 
 Beyond assumption validation, \pkg{StickForStats} provides complementary tools for improving statistical practice. The AI Statistical Advisor offers natural language guidance for test selection and generates JARS-compliant methods sections. The Paper Parser analyzes manuscripts for statistical reporting quality before submission. The Statistical Debugger provides systematic troubleshooting when analyses produce unexpected results. Together, these components address multiple points in the research workflow where statistical errors commonly occur.
 
