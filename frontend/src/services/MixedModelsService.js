@@ -13,6 +13,7 @@
  */
 
 import axios from 'axios';
+import jStat from 'jstat';
 
 class MixedModelsService {
   constructor() {
@@ -282,8 +283,8 @@ class MixedModelsService {
           effect: 'Intercept',
           estimate: value.estimate || value,
           se: value.se || value.std_error || 0,
-          ciLower: value.ci_lower || (value.estimate - 1.96 * (value.se || 0)),
-          ciUpper: value.ci_upper || (value.estimate + 1.96 * (value.se || 0))
+          ciLower: value.ci_lower || (value.estimate - jStat.normal.inv(0.975, 0, 1) * (value.se || 0)),
+          ciUpper: value.ci_upper || (value.estimate + jStat.normal.inv(0.975, 0, 1) * (value.se || 0))
         });
       });
     }
@@ -297,8 +298,8 @@ class MixedModelsService {
             effect: variable,
             estimate: value.estimate || value,
             se: value.se || value.std_error || 0,
-            ciLower: value.ci_lower || (value.estimate - 1.96 * (value.se || 0)),
-            ciUpper: value.ci_upper || (value.estimate + 1.96 * (value.se || 0))
+            ciLower: value.ci_lower || (value.estimate - jStat.normal.inv(0.975, 0, 1) * (value.se || 0)),
+            ciUpper: value.ci_upper || (value.estimate + jStat.normal.inv(0.975, 0, 1) * (value.se || 0))
           });
         });
       });

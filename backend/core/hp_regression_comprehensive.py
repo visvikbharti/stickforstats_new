@@ -1679,7 +1679,8 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
 
         # Confidence intervals
-        t_crit = stats.t.ppf(0.975, df_residual)
+        _confidence_level = kwargs.get('confidence_level', 0.95)
+        t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
         ci_lower = coefficients - t_crit * std_errors
         ci_upper = coefficients + t_crit * std_errors
 
@@ -1820,8 +1821,9 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
 
         # Confidence intervals
+        _confidence_level = kwargs.get('confidence_level', 0.95)
         if df_residual > 0:
-            t_crit = stats.t.ppf(0.975, df_residual)
+            t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
             ci_lower = coefficients - t_crit * std_errors
             ci_upper = coefficients + t_crit * std_errors
         else:
@@ -1961,8 +1963,9 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
 
         # Confidence intervals
+        _confidence_level = kwargs.get('confidence_level', 0.95)
         if df_residual > 0:
-            t_crit = stats.t.ppf(0.975, df_residual)
+            t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
             ci_lower = coefficients - t_crit * std_errors
             ci_upper = coefficients + t_crit * std_errors
         else:

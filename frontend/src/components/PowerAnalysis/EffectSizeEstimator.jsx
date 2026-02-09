@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import jStat from 'jstat';
 import './EffectSizeEstimator.scss';
 
 // Guardian Integration - Step 1: Import Dependencies
@@ -102,7 +103,7 @@ const EffectSizeEstimator = ({
           result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
         );
 
-        console.log('[EffectSizeEstimator] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[EffectSizeEstimator] Guardian validation error:', error);
@@ -415,7 +416,8 @@ const EffectSizeEstimator = ({
     let predictionInterval = null;
     if (metaAnalysis.model === 'random') {
       const tau = Math.sqrt(metaAnalysis.tau2 || 0);
-      const t_crit = 2; // Approximate t-distribution critical value
+      const k = metaAnalysis.effects.length;
+      const t_crit = k > 2 ? jStat.studentt.inv(1 - alpha / 2, k - 2) : jStat.normal.inv(1 - alpha / 2, 0, 1);
       predictionInterval = {
         lower: pooledEffect - t_crit * Math.sqrt(variance + tau ** 2),
         upper: pooledEffect + t_crit * Math.sqrt(variance + tau ** 2)
@@ -938,11 +940,11 @@ const EffectSizeEstimator = ({
               onProceed={() => setIsEstimationBlocked(false)}
               onSelectAlternative={(test) => {
                 // For effect size estimation, suggest robust measures
-                console.log('[EffectSizeEstimator] Alternative suggested:', test);
+                // Alternative suggested
                 // Could auto-switch to Hedges' g or Glass's Delta for robust estimation
               }}
               onViewEvidence={() => {
-                console.log('[EffectSizeEstimator] Visual evidence requested');
+                // Visual evidence requested
               }}
               data={[parameters.pilotData.group1, parameters.pilotData.group2]}
               alpha={0.05}
@@ -957,7 +959,7 @@ const EffectSizeEstimator = ({
                       group2: transformedData[1]
                     }
                   });
-                  console.log(`Pilot data transformed using ${transformationType}. Re-validating...`);
+                  // Pilot data transformed, re-validating
                 }
               }}
             />

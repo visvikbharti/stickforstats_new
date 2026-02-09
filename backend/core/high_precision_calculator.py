@@ -16,7 +16,7 @@ from decimal import Decimal, getcontext, ROUND_HALF_UP
 import numpy as np
 from typing import List, Tuple, Optional, Union, Dict, Any
 import math
-from scipy import special
+from scipy import special, stats
 import mpmath
 
 # Set high precision globally
@@ -393,7 +393,8 @@ class HighPrecisionCalculator:
         }
 
     def correlation_pearson(self, x: Union[List, np.ndarray],
-                           y: Union[List, np.ndarray]) -> Dict[str, Decimal]:
+                           y: Union[List, np.ndarray],
+                           confidence_level: float = 0.95) -> Dict[str, Decimal]:
         """
         Calculate Pearson correlation coefficient with high precision.
 
@@ -462,8 +463,7 @@ class HighPrecisionCalculator:
             z = Decimal(str(mpmath.atanh(float(r))))
             se_z = Decimal('1') / Decimal(str(mpmath.sqrt(n - 3)))
 
-            # 95% confidence interval (hardcoded for 95%; add confidence_level param to generalize)
-            z_critical = Decimal('1.96')
+            z_critical = Decimal(str(stats.norm.ppf(1 - (1 - confidence_level) / 2)))
             z_lower = z - z_critical * se_z
             z_upper = z + z_critical * se_z
 

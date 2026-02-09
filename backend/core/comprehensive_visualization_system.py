@@ -466,7 +466,7 @@ class ComprehensiveVisualizationSystem:
         )
 
         # 3. Scale-Location
-        standardized_residuals = residuals / np.std(residuals)
+        standardized_residuals = residuals / np.std(residuals, ddof=1)
         sqrt_abs_residuals = np.sqrt(np.abs(standardized_residuals))
         fig.add_trace(
             go.Scatter(x=predictions, y=sqrt_abs_residuals, mode='markers',
@@ -840,7 +840,7 @@ class ComprehensiveVisualizationSystem:
                 if pd.notna(bin_label):
                     bin_y = y[x_bins == bin_label]
                     if len(bin_y) > 1:
-                        variances.append(np.var(bin_y))
+                        variances.append(np.var(bin_y, ddof=1))
 
             if len(variances) > 1:
                 max_var = max(variances)
@@ -892,8 +892,8 @@ class ComprehensiveVisualizationSystem:
             'n': len(data),
             'mean': float(np.mean(data)),
             'median': float(np.median(data)),
-            'std': float(np.std(data)),
-            'var': float(np.var(data)),
+            'std': float(np.std(data, ddof=1)),
+            'var': float(np.var(data, ddof=1)),
             'min': float(np.min(data)),
             'max': float(np.max(data)),
             'q1': float(np.percentile(data, 25)),
@@ -901,7 +901,7 @@ class ComprehensiveVisualizationSystem:
             'iqr': float(np.percentile(data, 75) - np.percentile(data, 25)),
             'skewness': float(stats.skew(data)),
             'kurtosis': float(stats.kurtosis(data)),
-            'cv': float(np.std(data) / np.mean(data)) if np.mean(data) != 0 else None
+            'cv': float(np.std(data, ddof=1) / np.mean(data)) if np.mean(data) != 0 else None
         }
 
     def _calculate_correlation_summary(self, x: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
@@ -1045,7 +1045,7 @@ class ComprehensiveVisualizationSystem:
 
         # Normal distribution overlay if requested
         if config.show_distribution_fit:
-            mean, std = np.mean(data), np.std(data)
+            mean, std = np.mean(data), np.std(data, ddof=1)
             normal_values = stats.norm.pdf(x_range, mean, std)
             fig.add_trace(go.Scatter(
                 x=x_range,
@@ -1157,7 +1157,7 @@ class ComprehensiveVisualizationSystem:
 
         # Add theoretical CDF if normal
         if config.show_distribution_fit:
-            mean, std = np.mean(data), np.std(data)
+            mean, std = np.mean(data), np.std(data, ddof=1)
             theoretical_cdf = stats.norm.cdf(sorted_data, mean, std)
             fig.add_trace(go.Scatter(
                 x=sorted_data,

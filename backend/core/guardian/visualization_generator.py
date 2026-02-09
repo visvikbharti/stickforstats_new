@@ -143,8 +143,9 @@ class VisualizationGenerator:
         # Calculate 95% confidence envelope
         n = len(data_clean)
         se = np.std(ordered_values, ddof=1) * np.sqrt(1 + 1/n)
-        upper_band = theoretical_line + 1.96 * se
-        lower_band = theoretical_line - 1.96 * se
+        z_crit = stats.norm.ppf(0.975)
+        upper_band = theoretical_line + z_crit * se
+        lower_band = theoretical_line - z_crit * se
         ax.fill_between(theoretical_quantiles, lower_band, upper_band,
                         alpha=0.1, color='red',
                         label='95% confidence envelope')

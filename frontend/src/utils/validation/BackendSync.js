@@ -37,6 +37,9 @@ class BackendSyncService {
     this.isSyncing = false;
     this.websocket = null;
     this.syncInterval = null;
+    this.wsReconnectTimeout = null;
+    this.retryTimeout = null;
+    this.isShuttingDown = false;
     this.retryCount = 0;
     this.lastSyncTime = null;
     this.syncStats = {
@@ -69,7 +72,7 @@ class BackendSyncService {
       // Register with audit logger
       this.registerAuditHooks();
 
-      console.log('Backend sync service initialized');
+      // Backend sync service initialized
 
     } catch (error) {
       console.error('Failed to initialize backend sync:', error);
@@ -106,7 +109,7 @@ class BackendSyncService {
       this.websocket = new WebSocket(CONFIG.WEBSOCKET_URL);
 
       this.websocket.onopen = () => {
-        console.log('WebSocket connected for real-time sync');
+        // WebSocket connected for real-time sync
         this.sendWebSocketMessage({
           type: 'AUTH',
           token: this.getAuthToken()
@@ -123,8 +126,10 @@ class BackendSyncService {
       };
 
       this.websocket.onclose = () => {
-        console.log('WebSocket disconnected, attempting reconnect...');
-        setTimeout(() => this.initializeWebSocket(), 5000);
+        // WebSocket disconnected, attempting reconnect (unless shutting down)
+        if (!this.isShuttingDown) {
+          this.wsReconnectTimeout = setTimeout(() => this.initializeWebSocket(), 5000);
+        }
       };
 
     } catch (error) {
@@ -158,7 +163,7 @@ class BackendSyncService {
           break;
 
         default:
-          console.log('Unknown WebSocket message type:', message.type);
+          // Unknown WebSocket message type
       }
 
     } catch (error) {
@@ -229,7 +234,7 @@ class BackendSyncService {
    */
   async performSync() {
     if (this.isSyncing) {
-      console.log('Sync already in progress, skipping...');
+      // Sync already in progress, skipping
       return;
     }
 
@@ -259,9 +264,9 @@ class BackendSyncService {
       this.syncStats.lastError = error.message;
 
       // Retry logic
-      if (this.retryCount < CONFIG.MAX_RETRY_ATTEMPTS) {
+      if (this.retryCount < CONFIG.MAX_RETRY_ATTEMPTS && !this.isShuttingDown) {
         this.retryCount++;
-        setTimeout(() => this.performSync(), CONFIG.RETRY_DELAY * this.retryCount);
+        this.retryTimeout = setTimeout(() => this.performSync(), CONFIG.RETRY_DELAY * this.retryCount);
       }
 
       recordError(error, 'BackendSync', 'SYNC_FAILED');
@@ -304,7 +309,7 @@ class BackendSyncService {
         // Save updated queue
         this.savePendingItems();
 
-        console.log(`Synced ${batch.length} audit logs`);
+        // Audit logs synced
 
         return result;
       } else {
@@ -343,7 +348,7 @@ class BackendSyncService {
         this.metricsQueue = this.metricsQueue.slice(batch.length);
         this.savePendingItems();
 
-        console.log(`Synced ${batch.length} metrics`);
+        // Metrics synced
       }
 
     } catch (error) {
@@ -369,7 +374,7 @@ class BackendSyncService {
       });
 
       if (response.ok) {
-        console.log('Compliance data synced successfully');
+        // Compliance data synced successfully
       }
 
     } catch (error) {
@@ -534,7 +539,7 @@ class BackendSyncService {
         this.metricsQueue = JSON.parse(pendingMetrics);
       }
 
-      console.log(`Loaded ${this.syncQueue.length} pending audit logs and ${this.metricsQueue.length} pending metrics`);
+      // Pending items loaded from localStorage
 
     } catch (error) {
       console.error('Failed to load pending items:', error);
@@ -636,7 +641,7 @@ class BackendSyncService {
    * Force immediate sync
    */
   async forceSync() {
-    console.log('Forcing immediate sync...');
+    // Forcing immediate sync
     return this.performSync();
   }
 
@@ -647,15 +652,29 @@ class BackendSyncService {
     this.syncQueue = [];
     this.metricsQueue = [];
     this.savePendingItems();
-    console.log('Sync queues cleared');
+    // Sync queues cleared
   }
 
   /**
    * Shutdown sync service
    */
   shutdown() {
+    this.isShuttingDown = true;
+
     // Stop periodic sync
     this.stopPeriodicSync();
+
+    // Clear reconnect timeout
+    if (this.wsReconnectTimeout) {
+      clearTimeout(this.wsReconnectTimeout);
+      this.wsReconnectTimeout = null;
+    }
+
+    // Clear retry timeout
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
 
     // Close WebSocket
     if (this.websocket) {
@@ -665,8 +684,6 @@ class BackendSyncService {
 
     // Save pending items
     this.savePendingItems();
-
-    console.log('Backend sync service shut down');
   }
 }
 

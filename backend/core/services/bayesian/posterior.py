@@ -353,7 +353,7 @@ def posterior_summary(
         mean = np.mean(samples)
         median = np.median(samples)
         mode = samples[np.argmax(np.histogram(samples, bins=100)[0])]
-        sd = np.std(samples)
+        sd = np.std(samples, ddof=1)
         skewness = stats.skew(samples)
         kurtosis = stats.kurtosis(samples)
         hdi_low, hdi_high = compute_hdi(posterior_samples=samples, credible_mass=credible_mass)
@@ -483,5 +483,5 @@ def posterior_predictive_check(
         'simulated_statistics': simulated_stats.tolist(),
         'posterior_predictive_p': ppp,
         'mean_simulated': np.mean(simulated_stats),
-        'sd_simulated': np.std(simulated_stats)
+        'sd_simulated': np.std(simulated_stats, ddof=1)
     }

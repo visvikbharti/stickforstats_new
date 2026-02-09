@@ -212,7 +212,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
                           color={model.difficulty === 'Beginner' ? 'success' : 'warning'}
                         />
                         {isUnderDevelopment && (
-                          <Chip label="Coming Soon" size="small" color="default" />
+                          <Chip label="Preview" size="small" color="default" />
                         )}
                       </Box>
                     </Box>

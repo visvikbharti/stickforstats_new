@@ -21,7 +21,7 @@ export const preloadProbabilityCalculator = () => {
     // Preload after a short delay to prioritize initial page load
     setTimeout(() => {
       preloadComponent(() => import('./ProbabilityCalculator'));
-      console.log('Preloaded ProbabilityCalculator component');
+      // ProbabilityCalculator component preloaded
     }, 3000);
   }
 };
@@ -32,13 +32,13 @@ export const preloadPopularSimulations = () => {
     // Preload most commonly used simulations
     setTimeout(() => {
       preloadComponent(() => import('./simulations/EmailArrivalsD3'));
-      console.log('Preloaded EmailArrivalsD3 simulation');
+      // EmailArrivalsD3 simulation preloaded
     }, 5000);
     
     // Preload with longer delay for less frequently used simulations
     setTimeout(() => {
       preloadComponent(() => import('./simulations/QualityControlD3'));
-      console.log('Preloaded QualityControlD3 simulation');
+      // QualityControlD3 simulation preloaded
     }, 10000);
   }
 };
@@ -50,7 +50,7 @@ export const preloadComponents = (importFunctions, delay = 5000) => {
       importFunctions.forEach(importFn => {
         preloadComponent(importFn);
       });
-      console.log('Preloaded multiple components');
+      // Multiple components preloaded
     }, delay);
   }
 };

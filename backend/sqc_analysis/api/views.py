@@ -2491,7 +2491,7 @@ class SQCSimulationView(APIView):
         
         # Calculate control limits
         mean = np.mean(data1)  # Use only in-control data
-        std = np.std(data1)
+        std = np.std(data1, ddof=1)
         ucl = mean + 3 * std
         lcl = mean - 3 * std
         

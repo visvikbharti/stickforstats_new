@@ -90,7 +90,7 @@ export const useWebSocket = (endpoint, options = {}) => {
     optionsRef.current = options;
     
     if (!endpoint) {
-      console.log('No WebSocket endpoint provided, skipping connection');
+      // No WebSocket endpoint provided, skipping connection
       return;
     }
     
@@ -111,7 +111,7 @@ export const useWebSocket = (endpoint, options = {}) => {
       // Most handling done by options.onClose
       // Additional logging if needed
       if (options.debug) {
-        console.log(`WebSocket closed with code ${event.code}${event.reason ? ': ' + event.reason : ''}`);
+        // WebSocket closed
       }
     };
     

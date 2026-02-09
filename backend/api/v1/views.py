@@ -623,7 +623,7 @@ class HighPrecisionANOVAView(APIView):
                 for i, group in enumerate(groups):
                     group_label = f"Group_{i+1}"
                     viz_data['group_means'][group_label] = str(np.mean(group))
-                    viz_data['group_stds'][group_label] = str(np.std(group))
+                    viz_data['group_stds'][group_label] = str(np.std(group, ddof=1))
                     viz_data['group_sizes'][group_label] = len(group)
 
                 response_data['visualization_data'] = viz_data

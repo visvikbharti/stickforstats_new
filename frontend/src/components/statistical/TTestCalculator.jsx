@@ -1092,7 +1092,7 @@ const TTestCalculator = () => {
             alpha={1 - confidenceLevel}
             onTransformComplete={(transformedData, transformationType, parameters) => {
               // Handle transformation completion
-              console.log('[TTestCalculator] Transformation applied:', transformationType, parameters);
+              // Transformation applied
 
               if (testType === TEST_TYPES.INDEPENDENT && Array.isArray(transformedData[0])) {
                 // Independent samples: two arrays

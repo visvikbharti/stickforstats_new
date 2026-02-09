@@ -218,7 +218,7 @@ const ResultsPanel = ({ viewMode = 'guided' }) => {
    */
   const exportResults = useCallback(() => {
     // In production, this would trigger actual export
-    console.log('Exporting results in format:', exportFormat);
+    // Exporting results
   }, [exportFormat]);
   
   // Handle loading state

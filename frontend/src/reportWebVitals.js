@@ -53,10 +53,7 @@ const reportWebVitals = (onPerfEntry) => {
 
 // Default performance entry handler for production monitoring
 export const defaultPerfHandler = (metric) => {
-  // Log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Performance Metric:', metric);
-  }
+  // Performance metrics captured silently
   
   // Send to analytics service in production
   if (process.env.NODE_ENV === 'production') {
@@ -143,7 +140,7 @@ export const reportEnhancedWebVitals = (onPerfEntry = defaultPerfHandler) => {
   // React-specific performance monitoring
   if (window.React && window.React.Profiler) {
     // This would be set up in the React component tree
-    console.log('React Profiler available for detailed component performance monitoring');
+    // React Profiler available for detailed component performance monitoring
   }
 };
 

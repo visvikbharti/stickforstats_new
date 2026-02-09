@@ -372,7 +372,7 @@ const SQCAnalysisPage = () => {
                     <ControlChartVisualization
                       chartData={analysisResult}
                       chartType={configuration.chartType}
-                      onPointClick={(data) => console.log('Point clicked:', data)}
+                      onPointClick={(data) => { /* Point click handler */ }}
                       isLoading={false}
                     />
                   ) : (

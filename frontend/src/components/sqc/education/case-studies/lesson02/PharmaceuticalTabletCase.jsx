@@ -69,6 +69,14 @@ import useSQCAnalysisAPI from '../../../../../hooks/useSQCAnalysisAPI';
  *   - Identify special cause variation
  *   - Make data-driven process improvement decisions
  */
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const PharmaceuticalTabletCase = ({ onComplete }) => {
   // Interactive state
   const [subgroupSize, setSubgroupSize] = useState(5);
@@ -1342,7 +1350,7 @@ const PharmaceuticalTabletCase = ({ onComplete }) => {
                   Professional Control Chart (Matplotlib):
                 </Typography>
                 <Box
-                  dangerouslySetInnerHTML={{ __html: backendResults.visualizations.control_chart }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(backendResults.visualizations.control_chart) }}
                   sx={{
                     '& svg': {
                       width: '100%',

@@ -228,7 +228,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
                           color={test.difficulty === 'Intermediate' ? 'warning' : 'error'}
                         />
                         {isUnderDevelopment && (
-                          <Chip label="Coming Soon" size="small" color="default" />
+                          <Chip label="Preview" size="small" color="default" />
                         )}
                       </Box>
                     </Box>

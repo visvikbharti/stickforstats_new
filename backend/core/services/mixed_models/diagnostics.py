@@ -183,7 +183,7 @@ def residual_diagnostics(
     n = len(residuals)
 
     # Standardized residuals
-    std_residuals = (residuals - np.mean(residuals)) / np.std(residuals)
+    std_residuals = (residuals - np.mean(residuals)) / np.std(residuals, ddof=1)
 
     # 1. Normality test
     if n >= 20:
@@ -237,7 +237,7 @@ def residual_diagnostics(
     summary = {
         'n': n,
         'mean': round(float(np.mean(residuals)), 6),
-        'std': round(float(np.std(residuals)), 6),
+        'std': round(float(np.std(residuals, ddof=1)), 6),
         'min': round(float(np.min(residuals)), 4),
         'max': round(float(np.max(residuals)), 4),
         'outliers': {
@@ -330,7 +330,7 @@ def influence_diagnostics(
         if intercept_blups:
             blup_array = np.array(intercept_blups)
             blup_mean = np.mean(blup_array)
-            blup_std = np.std(blup_array)
+            blup_std = np.std(blup_array, ddof=1)
 
             if blup_std > 0:
                 z_scores = (blup_array - blup_mean) / blup_std
@@ -349,7 +349,7 @@ def influence_diagnostics(
     if hasattr(lmm_result, '_model_result') and lmm_result._model_result is not None:
         try:
             residuals = lmm_result._model_result.resid
-            std_resid = (residuals - np.mean(residuals)) / np.std(residuals)
+            std_resid = (residuals - np.mean(residuals)) / np.std(residuals, ddof=1)
 
             # Flag observations with |standardized residual| > 3
             extreme_idx = np.where(np.abs(std_resid) > 3)[0]

@@ -39,6 +39,14 @@ import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
  * Interactive: Build and interpret control charts
  */
 
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const Lesson02_VariablesControlCharts = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -738,7 +746,7 @@ const Lesson02_VariablesControlCharts = ({ onComplete }) => {
                       </Typography>
                       <Box
                         dangerouslySetInnerHTML={{
-                          __html: backendResults.visualizations.control_chart
+                          __html: sanitizeHTML(backendResults.visualizations.control_chart)
                         }}
                         sx={{
                           '& svg': {

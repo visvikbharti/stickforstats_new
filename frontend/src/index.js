@@ -20,14 +20,12 @@ root.render(
 // Register the service worker for offline capabilities and caching
 serviceWorkerRegistration.register({
   onSuccess: (registration) => {
-    console.log('Service worker registration successful with scope:', registration.scope);
+    // Service worker registration successful
   },
   onUpdate: (registration) => {
-    console.log('New app version available. Please refresh the page to update.');
-    // You could show a notification to the user here
+    // New app version available
   }
 });
 
-// If you want to measure performance in your app, enable this
-// and review the reportWebVitals output in your browser console
-reportWebVitals(console.log);
+// Performance metrics reporting (disabled in production)
+reportWebVitals();

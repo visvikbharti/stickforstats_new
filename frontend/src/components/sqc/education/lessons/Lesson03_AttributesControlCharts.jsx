@@ -39,6 +39,14 @@ import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
  * Interactive: Build attribute charts and choose the right type
  */
 
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const Lesson03_AttributesControlCharts = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -600,7 +608,7 @@ const Lesson03_AttributesControlCharts = ({ onComplete }) => {
                       </Typography>
                       <Box
                         dangerouslySetInnerHTML={{
-                          __html: backendResults.visualizations.control_chart
+                          __html: sanitizeHTML(backendResults.visualizations.control_chart)
                         }}
                         sx={{
                           '& svg': {

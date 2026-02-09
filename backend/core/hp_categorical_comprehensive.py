@@ -466,7 +466,7 @@ class HighPrecisionCategorical:
             log_or = odds_ratio.ln()
             se_log_or = (1/self._to_decimal(a) + 1/self._to_decimal(b) +
                         1/self._to_decimal(c) + 1/self._to_decimal(d)).sqrt()
-            z_alpha = self._to_decimal(1.96)  # 95% CI
+            z_alpha = self._to_decimal(stats.norm.ppf(0.975))
 
             ci_lower = (log_or - z_alpha * se_log_or).exp()
             ci_upper = (log_or + z_alpha * se_log_or).exp()
@@ -733,7 +733,7 @@ class HighPrecisionCategorical:
         # Calculate confidence interval for proportion
         prop = self._to_decimal(successes) / self._to_decimal(n)
         se = (prop * (1 - prop) / self._to_decimal(n)).sqrt()
-        z_alpha = self._to_decimal(1.96)  # 95% CI
+        z_alpha = self._to_decimal(stats.norm.ppf(0.975))
 
         ci_lower = prop - z_alpha * se
         ci_upper = prop + z_alpha * se
@@ -1018,7 +1018,7 @@ class HighPrecisionCategorical:
                     (1 / (self._to_decimal(c) + epsilon)) +
                     (1 / (self._to_decimal(d) + epsilon))).sqrt()
 
-        z_alpha = self._to_decimal(1.96)  # 95% CI
+        z_alpha = self._to_decimal(stats.norm.ppf(0.975))
         ci_lower = (log_or - z_alpha * se_log_or).exp()
         ci_upper = (log_or + z_alpha * se_log_or).exp()
 
@@ -1051,7 +1051,7 @@ class HighPrecisionCategorical:
             se_log_rr = ((1 - risk1) / (self._to_decimal(a) + self._to_decimal('1e-10')) +
                         (1 - risk2) / (self._to_decimal(c) + self._to_decimal('1e-10'))).sqrt()
 
-            z_alpha = self._to_decimal(1.96)
+            z_alpha = self._to_decimal(stats.norm.ppf(0.975))
             ci_lower = (log_rr - z_alpha * se_log_rr).exp()
             ci_upper = (log_rr + z_alpha * se_log_rr).exp()
         else:
@@ -1080,7 +1080,7 @@ class HighPrecisionCategorical:
                 (risk2 * (1 - risk2)) / self._to_decimal(c + d)).sqrt()
 
         # Confidence interval
-        z_alpha = self._to_decimal(1.96)
+        z_alpha = self._to_decimal(stats.norm.ppf(0.975))
         ci_lower = rd - z_alpha * se_rd
         ci_upper = rd + z_alpha * se_rd
 

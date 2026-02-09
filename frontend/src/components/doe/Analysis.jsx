@@ -78,14 +78,14 @@ function Analysis({ content }) {
   // Handle design generation completion
   const handleDesignGenerated = (result) => {
     // Update UI with new design
-    console.log('Design generated:', result);
+    // Design generated
     // You might want to switch tabs or update the experiment list
   };
   
   // Handle optimization completion
   const handleOptimizationComplete = (result) => {
     // Update UI with optimization results
-    console.log('Optimization complete:', result);
+    // Optimization complete
   };
   
   // Start analysis

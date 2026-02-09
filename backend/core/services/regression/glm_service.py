@@ -83,7 +83,8 @@ class GLMService:
                            regularization: Optional[str] = None,
                            lambda_reg: float = 0.0,
                            max_iter: int = 1000,
-                           tolerance: float = 1e-8) -> GLMResults:
+                           tolerance: float = 1e-8,
+                           confidence_level: float = 0.95) -> GLMResults:
         """
         Fit logistic regression model for binary classification.
         
@@ -198,11 +199,11 @@ class GLMService:
         p_values = 2 * (1 - norm.cdf(np.abs(z_statistics)))
         
         # Confidence intervals
-        z_critical = norm.ppf(0.975)
+        z_critical = norm.ppf(1 - (1 - confidence_level) / 2)
         ci_lower = beta - z_critical * standard_errors
         ci_upper = beta + z_critical * standard_errors
         confidence_intervals = np.column_stack([ci_lower, ci_upper])
-        
+
         # Odds ratios
         odds_ratios = np.exp(beta)
         
@@ -281,7 +282,8 @@ class GLMService:
                           feature_names: Optional[List[str]] = None,
                           add_intercept: bool = True,
                           max_iter: int = 1000,
-                          tolerance: float = 1e-8) -> GLMResults:
+                          tolerance: float = 1e-8,
+                          confidence_level: float = 0.95) -> GLMResults:
         """
         Fit Poisson regression model for count data.
         
@@ -384,12 +386,12 @@ class GLMService:
         p_values = 2 * (1 - norm.cdf(np.abs(z_statistics)))
         
         # Confidence intervals
-        z_critical = norm.ppf(0.975)
+        z_critical = norm.ppf(1 - (1 - confidence_level) / 2)
         confidence_intervals = np.column_stack([
             beta - z_critical * standard_errors,
             beta + z_critical * standard_errors
         ])
-        
+
         # Rate ratios (exp of coefficients)
         rate_ratios = np.exp(beta)
         

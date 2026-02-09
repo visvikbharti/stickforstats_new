@@ -74,7 +74,7 @@ function SurvivalVisualization({ results, configuration }) {
               📊 Survival Curve Visualization
               <br />
               <Typography variant="body2" sx={{ mt: 2 }}>
-                Interactive Kaplan-Meier curve visualization coming soon
+                Visualization will appear here after running analysis
               </Typography>
             </Typography>
           </Paper>

@@ -257,8 +257,8 @@ class MultivariateService:
         p_value = 1 - stats.chi2.cdf(chi_square, df)
         
         # Redundancy analysis
-        X_var_explained = np.var(X_scores, axis=0) / np.sum(np.var(X_std, axis=0))
-        Y_var_explained = np.var(Y_scores, axis=0) / np.sum(np.var(Y_std, axis=0))
+        X_var_explained = np.var(X_scores, axis=0, ddof=1) / np.sum(np.var(X_std, axis=0, ddof=1))
+        Y_var_explained = np.var(Y_scores, axis=0, ddof=1) / np.sum(np.var(Y_std, axis=0, ddof=1))
         
         return {
             'canonical_correlations': canonical_correlations,
@@ -784,7 +784,7 @@ class MultivariateService:
             r_squared = np.nan
         
         # Calculate variance explained by each dimension
-        var_explained = np.var(embedding, axis=0) / np.sum(np.var(embedding, axis=0))
+        var_explained = np.var(embedding, axis=0, ddof=1) / np.sum(np.var(embedding, axis=0, ddof=1))
         
         return {
             'embedding': embedding,

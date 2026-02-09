@@ -267,7 +267,7 @@ const StatisticalModuleTemplate = ({
   // Core Functions
   const trackModuleAccess = () => {
     // Analytics tracking
-    console.log(`Module accessed: ${moduleName}`);
+    // Module accessed
     // Would integrate with analytics service
   };
 
@@ -304,7 +304,7 @@ const StatisticalModuleTemplate = ({
 
   const trackEvent = (eventName, eventData) => {
     // Analytics event tracking
-    console.log('Event:', eventName, eventData);
+    // Event tracked
   };
 
   const handleAnalysis = async () => {

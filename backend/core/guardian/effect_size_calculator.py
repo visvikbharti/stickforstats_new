@@ -44,7 +44,7 @@ class EffectSizeCalculator:
     }
 
     def calculate_cohens_d(self, group1: np.ndarray, group2: np.ndarray,
-                          pooled: bool = True) -> Dict[str, Any]:
+                          pooled: bool = True, confidence_level: float = 0.95) -> Dict[str, Any]:
         """
         Calculate Cohen's d effect size for two groups
 
@@ -100,11 +100,12 @@ class EffectSizeCalculator:
             # Use control group SD (if group2 is control)
             d = mean_diff / np.sqrt(var2)
 
-        # Calculate 95% confidence interval
+        # Calculate confidence interval
         # Using Hedges and Olkin (1985) formula
         se_d = np.sqrt((n1 + n2) / (n1 * n2) + (d ** 2) / (2 * (n1 + n2)))
-        ci_lower = d - 1.96 * se_d
-        ci_upper = d + 1.96 * se_d
+        z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+        ci_lower = d - z_crit * se_d
+        ci_upper = d + z_crit * se_d
 
         # Interpret magnitude
         abs_d = abs(d)
@@ -133,7 +134,7 @@ class EffectSizeCalculator:
             'formula': 'Cohen\'s d (pooled SD)' if pooled else 'Cohen\'s d (control SD)'
         }
 
-    def calculate_correlation_effect_size(self, r: float, n: int) -> Dict[str, Any]:
+    def calculate_correlation_effect_size(self, r: float, n: int, confidence_level: float = 0.95) -> Dict[str, Any]:
         """
         Interpret correlation coefficient as effect size
 
@@ -157,11 +158,12 @@ class EffectSizeCalculator:
                 'ci_upper': None
             }
 
-        # Calculate 95% confidence interval using Fisher's z-transformation
+        # Calculate confidence interval using Fisher's z-transformation
         z = np.arctanh(r)  # Fisher's z
         se_z = 1 / np.sqrt(n - 3)
-        z_lower = z - 1.96 * se_z
-        z_upper = z + 1.96 * se_z
+        z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+        z_lower = z - z_crit * se_z
+        z_upper = z + z_crit * se_z
         ci_lower = np.tanh(z_lower)
         ci_upper = np.tanh(z_upper)
 

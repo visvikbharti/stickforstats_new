@@ -360,8 +360,8 @@ def baron_kenny_mediation(
             float(np.percentile(boot_direct, alpha/2 * 100)),
             float(np.percentile(boot_direct, (1 - alpha/2) * 100))
         )
-        indirect_se = float(np.std(boot_indirect))
-        direct_se = float(np.std(boot_direct))
+        indirect_se = float(np.std(boot_indirect, ddof=1))
+        direct_se = float(np.std(boot_direct, ddof=1))
     else:
         # Use Sobel SE
         indirect_se = sobel_se
@@ -482,7 +482,7 @@ def causal_mediation_analysis(
     model_m.fit(X_m, M)
     m_fitted = model_m.predict(X_m)
     m_resid = M - m_fitted
-    sigma_m = np.std(m_resid)
+    sigma_m = np.std(m_resid, ddof=1)
 
     # Fit outcome model: Y ~ X + M + C
     X_y = np.column_stack([np.ones(n), X, M, C])
@@ -490,7 +490,7 @@ def causal_mediation_analysis(
     model_y.fit(X_y, Y)
     y_fitted = model_y.predict(X_y)
     y_resid = Y - y_fitted
-    sigma_y = np.std(y_resid)
+    sigma_y = np.std(y_resid, ddof=1)
 
     # Extract coefficients
     beta_m = model_m.coef_  # [intercept, X, covariates...]
@@ -652,8 +652,8 @@ def mediation_sensitivity_analysis(
     b = model_y.coef_[2]  # M → Y
 
     # Residual variances
-    sigma_m = np.std(M - model_m.predict(X_m))
-    sigma_y = np.std(Y - model_y.predict(X_y))
+    sigma_m = np.std(M - model_m.predict(X_m), ddof=1)
+    sigma_y = np.std(Y - model_y.predict(X_y), ddof=1)
 
     # Original ACME (assuming rho = 0)
     acme_original = a * b

@@ -232,8 +232,9 @@ def estimate_power(p_values: List[float]) -> Tuple[Optional[float], Optional[Tup
 
     # Confidence interval using bootstrap would be ideal, but simplified here
     se = np.sqrt(prop_below_025 * (1 - prop_below_025) / n_total)
-    ci_low = max(0.05, estimated_power - 1.96 * se)
-    ci_high = min(0.99, estimated_power + 1.96 * se)
+    z_crit = stats.norm.ppf(0.975)
+    ci_low = max(0.05, estimated_power - z_crit * se)
+    ci_high = min(0.99, estimated_power + z_crit * se)
 
     return float(estimated_power), (float(ci_low), float(ci_high))
 

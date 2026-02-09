@@ -69,6 +69,14 @@ import useSQCAnalysisAPI from '../../../../../hooks/useSQCAnalysisAPI';
  *   - Apply Six Sigma principles to real manufacturing
  *   - Calculate defect rates (ppm) from capability indices
  */
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const AutomotivePistonRingCase = ({ onComplete }) => {
   // Backend integration
   const [backendResults, setBackendResults] = useState(null);
@@ -1637,7 +1645,7 @@ const AutomotivePistonRingCase = ({ onComplete }) => {
                   Process Capability Histogram (Matplotlib):
                 </Typography>
                 <Box
-                  dangerouslySetInnerHTML={{ __html: backendResults.visualizations.capability_histogram }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(backendResults.visualizations.capability_histogram) }}
                   sx={{
                     '& svg': {
                       width: '100%',

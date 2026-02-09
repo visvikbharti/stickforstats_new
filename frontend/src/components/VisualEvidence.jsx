@@ -359,7 +359,16 @@ const VisualEvidence = ({ data, testType, guardianReport = null }) => {
           break;
 
         case 4:
-          const predicted = values.map((v, i) => v + (Math.random() - 0.5) * 2);
+          // Compute predicted values using a simple linear regression (value vs index)
+          const n_res = values.length;
+          const indices = values.map((_, i) => i);
+          const sumIdx = indices.reduce((a, b) => a + b, 0);
+          const sumVal = values.reduce((a, b) => a + b, 0);
+          const sumIdxVal = indices.reduce((sum, idx, i) => sum + idx * values[i], 0);
+          const sumIdx2 = indices.reduce((sum, idx) => sum + idx * idx, 0);
+          const regSlope = (n_res * sumIdxVal - sumIdx * sumVal) / (n_res * sumIdx2 - sumIdx * sumIdx || 1);
+          const regIntercept = (sumVal - regSlope * sumIdx) / n_res;
+          const predicted = values.map((_, i) => regSlope * i + regIntercept);
           newPlotData = {
             type: 'residual',
             data: generateResidualPlot(values, predicted),

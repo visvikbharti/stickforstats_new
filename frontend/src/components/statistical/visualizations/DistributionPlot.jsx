@@ -232,11 +232,9 @@ const DistributionPlot = ({
 
   const handleExport = (format) => {
     if (format === 'png') {
-      // Implementation for PNG export would require a library like html2canvas
-      console.log('Export as PNG');
+      // PNG export would require a library like html2canvas
     } else if (format === 'svg') {
-      // Implementation for SVG export
-      console.log('Export as SVG');
+      // SVG export placeholder
     } else if (format === 'csv') {
       exportAsCSV();
     }

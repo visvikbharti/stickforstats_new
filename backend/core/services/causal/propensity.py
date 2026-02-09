@@ -244,7 +244,7 @@ def assess_overlap(
         'treated': {
             'n': len(treated_scores),
             'mean': float(np.mean(treated_scores)),
-            'std': float(np.std(treated_scores)),
+            'std': float(np.std(treated_scores, ddof=1)),
             'min': float(np.min(treated_scores)),
             'max': float(np.max(treated_scores)),
             'median': float(np.median(treated_scores)),
@@ -254,7 +254,7 @@ def assess_overlap(
         'control': {
             'n': len(control_scores),
             'mean': float(np.mean(control_scores)),
-            'std': float(np.std(control_scores)),
+            'std': float(np.std(control_scores, ddof=1)),
             'min': float(np.min(control_scores)),
             'max': float(np.max(control_scores)),
             'median': float(np.median(control_scores)),
@@ -357,7 +357,7 @@ def _calculate_balance(
                 # Continuous: standardized mean difference
                 t_mean = np.mean(t_values)
                 c_mean = np.mean(c_values)
-                pooled_std = np.sqrt((np.var(t_values) + np.var(c_values)) / 2)
+                pooled_std = np.sqrt((np.var(t_values, ddof=1) + np.var(c_values, ddof=1)) / 2)
 
                 smd = (t_mean - c_mean) / pooled_std if pooled_std > 0 else 0
 
@@ -462,13 +462,13 @@ def calculate_ipw_weights(
         'normalized': normalize,
         'weights_treated': {
             'mean': float(np.mean(weights[treatment == 1])),
-            'std': float(np.std(weights[treatment == 1])),
+            'std': float(np.std(weights[treatment == 1], ddof=1)),
             'min': float(np.min(weights[treatment == 1])),
             'max': float(np.max(weights[treatment == 1]))
         },
         'weights_control': {
             'mean': float(np.mean(weights[treatment == 0])),
-            'std': float(np.std(weights[treatment == 0])),
+            'std': float(np.std(weights[treatment == 0], ddof=1)),
             'min': float(np.min(weights[treatment == 0])),
             'max': float(np.max(weights[treatment == 0]))
         },
@@ -542,7 +542,7 @@ def propensity_score_stratification(
         y_control = outcome[c_mask]
 
         effect = np.mean(y_treated) - np.mean(y_control)
-        se = np.sqrt(np.var(y_treated) / n_treated + np.var(y_control) / n_control)
+        se = np.sqrt(np.var(y_treated, ddof=1) / n_treated + np.var(y_control, ddof=1) / n_control)
 
         stratum_results.append({
             'stratum': s,
@@ -552,8 +552,8 @@ def propensity_score_stratification(
             'n_control': n_control,
             'effect': float(effect),
             'se': float(se),
-            'ci_lower': float(effect - 1.96 * se),
-            'ci_upper': float(effect + 1.96 * se),
+            'ci_lower': float(effect - stats.norm.ppf(0.975) * se),
+            'ci_upper': float(effect + stats.norm.ppf(0.975) * se),
             'mean_treated': float(np.mean(y_treated)),
             'mean_control': float(np.mean(y_control))
         })
@@ -571,13 +571,14 @@ def propensity_score_stratification(
         overall_effect = None
         overall_se = None
 
+    z_crit = stats.norm.ppf(0.975)
     return {
         'n_strata': n_strata,
         'strata': stratum_results,
         'overall': {
             'effect': overall_effect,
             'se': overall_se,
-            'ci_lower': overall_effect - 1.96 * overall_se if overall_effect else None,
-            'ci_upper': overall_effect + 1.96 * overall_se if overall_effect else None
+            'ci_lower': overall_effect - z_crit * overall_se if overall_effect else None,
+            'ci_upper': overall_effect + z_crit * overall_se if overall_effect else None
         } if overall_effect else None
     }

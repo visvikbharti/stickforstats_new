@@ -35,6 +35,14 @@ import useSQCAnalysisAPI from '../../../../hooks/useSQCAnalysisAPI';
  * Topics: Single/double/sequential sampling, AQL, LTPD, producer/consumer risk
  */
 
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const Lesson06_AcceptanceSampling = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -750,7 +758,7 @@ const Lesson06_AcceptanceSampling = ({ onComplete }) => {
                         borderRadius: 1,
                         border: '1px solid #e0e0e0'
                       }}
-                      dangerouslySetInnerHTML={{ __html: backendResults.visualizations.oc_curve }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(backendResults.visualizations.oc_curve) }}
                     />
                   </Box>
                 )}

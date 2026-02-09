@@ -1253,7 +1253,7 @@ const ANOVACalculator = () => {
                       <MenuItem value={ANOVA_TYPES.TWO_WAY}>Two-Way ANOVA</MenuItem>
                       <MenuItem value={ANOVA_TYPES.REPEATED_MEASURES}>Repeated Measures ANOVA</MenuItem>
                       <MenuItem value={ANOVA_TYPES.ANCOVA}>ANCOVA (Covariate Adjustment)</MenuItem>
-                      <MenuItem value={ANOVA_TYPES.MANOVA} disabled>MANOVA (Coming Soon)</MenuItem>
+                      <MenuItem value={ANOVA_TYPES.MANOVA} disabled>MANOVA (Preview)</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -1546,7 +1546,7 @@ const ANOVACalculator = () => {
             data={groups.filter(g => g.data && g.data.trim().length > 0).map(g => parseData(g.data))}
             alpha={1 - confidenceLevel}
             onTransformComplete={(transformedData, transformationType, parameters) => {
-              console.log('[ANOVACalculator] Transformation applied:', transformationType, parameters);
+              // Transformation applied
 
               // Update group data with transformed values
               if (Array.isArray(transformedData) && transformedData.length === groups.filter(g => g.data && g.data.trim().length > 0).length) {

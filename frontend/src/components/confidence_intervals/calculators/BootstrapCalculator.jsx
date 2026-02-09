@@ -256,7 +256,7 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
           result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
         );
 
-        console.log('[BootstrapCalculator] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[BootstrapCalculator] Guardian validation error:', error);
@@ -854,7 +854,7 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
             guardianReport={guardianResult}
             onProceed={() => setIsCalculationBlocked(false)}
             onSelectAlternative={(test) => {
-              console.log('[BootstrapCalculator] Alternative suggested:', test);
+              // Alternative suggested
               // Bootstrap is already a robust non-parametric method
               enqueueSnackbar(
                 'Bootstrap is already robust to non-normality. Consider reviewing data quality issues if present.',
@@ -862,7 +862,7 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
               );
             }}
             onViewEvidence={() => {
-              console.log('[BootstrapCalculator] Visual evidence requested');
+              // Visual evidence requested
             }}
             data={intervalType === 'BOOTSTRAP_DIFFERENCE' ? [parsedData, parsedData2] : [parsedData]}
             alpha={1 - confidenceLevel}
@@ -878,7 +878,7 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
                   setParsedData2(transformed2);
                   setRawData2(transformed2.join(', '));
                 }
-                console.log(`[BootstrapCalculator] Data transformed using ${transformationType}. Re-validating...`);
+                // Data transformed, re-validating
               }
             }}
           />

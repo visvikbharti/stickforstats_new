@@ -111,18 +111,41 @@ const ANOVACompleteModule = () => {
   };
 
   const generatePostHocResults = (groups) => {
+    // Compute pooled within-group variance (MSW) for Bonferroni-corrected post-hoc
+    const allN = groups.map(g => g.length);
+    const totalN = allN.reduce((a, b) => a + b, 0);
+    const k = groups.length;
+    const groupMeans = groups.map(g => g.reduce((a, b) => a + b, 0) / g.length);
+    const groupVars = groups.map((g, idx) => {
+      const m = groupMeans[idx];
+      return g.reduce((acc, val) => acc + Math.pow(val - m, 2), 0);
+    });
+    const ssWithin = groupVars.reduce((a, b) => a + b, 0);
+    const dfWithin = totalN - k;
+    const msWithin = dfWithin > 0 ? ssWithin / dfWithin : 0;
+
+    const numComparisons = k * (k - 1) / 2;
+
     const results = [];
     for (let i = 0; i < groups.length; i++) {
       for (let j = i + 1; j < groups.length; j++) {
+        const meanDiff = Math.abs(groupMeans[i] - groupMeans[j]);
+        // Standard error for the difference of two group means
+        const se = msWithin > 0 ? Math.sqrt(msWithin * (1 / allN[i] + 1 / allN[j])) : 0;
+        // t-statistic for pairwise comparison
+        const tStat = se > 0 ? meanDiff / se : 0;
+        // Approximate two-tailed p-value using normal approximation (for large df)
+        // For small df this is approximate; proper computation requires t-distribution CDF
+        const rawP = se > 0 ? Math.exp(-0.717 * tStat - 0.416 * tStat * tStat) : 1;
+        // Bonferroni correction
+        const adjustedP = Math.min(rawP * numComparisons, 1);
+
         results.push({
           group1: `Group ${i + 1}`,
           group2: `Group ${j + 1}`,
-          mean_diff: Math.abs(
-            groups[i].reduce((a, b) => a + b, 0) / groups[i].length -
-            groups[j].reduce((a, b) => a + b, 0) / groups[j].length
-          ),
-          p_value: Math.random() * 0.1,
-          significant: Math.random() > 0.5
+          mean_diff: meanDiff,
+          p_value: adjustedP,
+          significant: adjustedP < 0.05
         });
       }
     }
@@ -572,7 +595,7 @@ MS = Mean Square`}
             }
           ]}
           onRun={(params) => {
-            console.log('Running ANOVA simulation with params:', params);
+            // Running ANOVA simulation
           }}
         />
       </Grid>

@@ -396,26 +396,39 @@ class EffectSizeCalculator:
                       ss_total: float,
                       ms_error: float,
                       df_effect: int,
-                      partial: bool = False) -> EffectSizeResult:
+                      partial: bool = False,
+                      df_error: Optional[int] = None) -> EffectSizeResult:
         """
         Calculate omega-squared (less biased than eta-squared)
-        
-        ω² = (SS_effect - df_effect × MS_error) / (SS_total + MS_error)
-        
+
+        Regular: ω² = (SS_effect - df_effect × MS_error) / (SS_total + MS_error)
+        Partial: ω²_partial = (SS_effect - df_effect × MS_error) / (SS_effect + (N - df_effect) × MS_error)
+
+        The partial version isolates the proportion of variance attributable to the
+        effect, excluding variance from other factors (Olejnik & Algina, 2003).
+
         Args:
             ss_effect: Sum of squares for effect
             ss_total: Total sum of squares
             ms_error: Mean square error
             df_effect: Degrees of freedom for effect
             partial: Calculate partial omega-squared
-            
+            df_error: Degrees of freedom for error (used in partial calculation;
+                      if not provided, estimated from ss_error / ms_error)
+
         Returns:
             EffectSizeResult with omega-squared
         """
         if partial:
-            # Partial omega-squared
+            # Partial omega-squared: ω²_p = (SS_effect - df_effect * MS_error) / (SS_effect + (N - df_effect) * MS_error)
+            # where N - df_effect = df_error + 1
             numerator = ss_effect - df_effect * ms_error
-            denominator = ss_effect + (ss_total - ss_effect) + ms_error
+            if df_error is None:
+                # Estimate df_error from available information
+                ss_error = ss_total - ss_effect
+                df_error = round(ss_error / ms_error) if ms_error > 0 else 0
+            n_minus_df_effect = df_error + 1
+            denominator = ss_effect + n_minus_df_effect * ms_error
             omega2 = numerator / denominator if denominator > 0 else 0
             effect_type = EffectSizeType.PARTIAL_OMEGA_SQUARED
         else:

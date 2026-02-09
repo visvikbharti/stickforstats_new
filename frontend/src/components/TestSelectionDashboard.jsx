@@ -40,7 +40,7 @@ const TEST_CATEGORIES = {
       { id: 'paired_t', name: 'Paired T-Test', endpoint: '/api/v1/stats/ttest/', precision: 50, guardian: true },
       { id: 'anova', name: 'One-Way ANOVA', endpoint: '/api/v1/stats/anova/', precision: 50, guardian: true },
       { id: 'ancova', name: 'ANCOVA', endpoint: '/api/v1/stats/ancova/', precision: 50, guardian: true },
-      { id: 'manova', name: 'MANOVA', endpoint: '/api/v1/stats/manova/', precision: 50, guardian: false },
+      { id: 'manova', name: 'MANOVA', endpoint: '/api/v1/multivariate/manova/', precision: 50, guardian: false },
       { id: 'repeated_anova', name: 'Repeated Measures ANOVA', endpoint: '/api/v1/stats/anova/', precision: 50, guardian: true }
     ]
   },

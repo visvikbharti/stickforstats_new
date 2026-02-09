@@ -103,7 +103,7 @@ const AuditDashboard = () => {
       return response.data;
     } catch (error) {
       // If no data available, return null to show empty state
-      console.log('No audit data available yet');
+      // No audit data available yet
       return null;
     }
   };

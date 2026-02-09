@@ -53,7 +53,7 @@ function FactorVisualization({ results, configuration }) {
               📊 Factor Loadings Heatmap
               <br />
               <Typography variant="body2" sx={{ mt: 2 }}>
-                Interactive visualization of factor loadings coming soon
+                Visualization will appear here after running analysis
               </Typography>
             </Typography>
           </Paper>

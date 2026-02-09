@@ -775,9 +775,9 @@ class TimeSeriesService:
             model_info = json.load(f)
         
         # Load model
-        import pickle
+        from core.utils.safe_pickle import safe_pickle_load
         with open(model_pkl_path, 'rb') as f:
-            model_results = pickle.load(f)
+            model_results = safe_pickle_load(f)
         
         # Generate forecast
         if model_info['type'] in ['ARIMA', 'SARIMA']:
@@ -804,7 +804,7 @@ class TimeSeriesService:
             
             # Calculate prediction intervals manually
             import scipy.stats as stats
-            resid_std = np.std(model_results.resid)
+            resid_std = np.std(model_results.resid, ddof=1)
             z_value = stats.norm.ppf(1 - (1 - confidence_level) / 2)
             
             forecast_lower = forecast_mean - z_value * resid_std

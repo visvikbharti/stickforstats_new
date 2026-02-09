@@ -72,7 +72,7 @@ const OptimizedExample = () => {
     }
     
     const endTime = performance.now();
-    console.log(`Data generation time: ${(endTime - startTime).toFixed(2)}ms`);
+    // Data generation timing captured
     
     return data;
   }), []);
@@ -311,7 +311,7 @@ const OptimizedExample = () => {
                   scale: 2
                 }}
                 onExport={(format, options) => {
-                  console.log(`Chart exported as ${format}:`, options);
+                  // Chart exported
                 }}
               />
               

@@ -55,7 +55,7 @@ const useRAGWebSocket = (options = {}) => {
       startTimeRef.current = Date.now();
 
       ws.onopen = () => {
-        console.log('RAG WebSocket connected');
+        // RAG WebSocket connected
         updateStatus('connected');
         reconnectCountRef.current = 0;
         setError(null);
@@ -163,7 +163,7 @@ const useRAGWebSocket = (options = {}) => {
               break;
               
             default:
-              console.log('Unknown RAG message type:', message.type);
+              // Unknown RAG message type
           }
           
           if (onMessage) {
@@ -182,7 +182,7 @@ const useRAGWebSocket = (options = {}) => {
       };
 
       ws.onclose = (event) => {
-        console.log('RAG WebSocket closed:', event.code, event.reason);
+        // RAG WebSocket closed
         updateStatus('disconnected');
         wsRef.current = null;
         
@@ -199,7 +199,7 @@ const useRAGWebSocket = (options = {}) => {
         // Attempt to reconnect if not a normal closure
         if (event.code !== 1000 && reconnectCountRef.current < reconnectAttempts && autoConnect) {
           reconnectCountRef.current++;
-          console.log(`Attempting to reconnect (${reconnectCountRef.current}/${reconnectAttempts})...`);
+          // Attempting to reconnect
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();

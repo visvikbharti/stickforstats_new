@@ -291,7 +291,7 @@ const RegressionCalculator = () => {
           shouldBlockTest(result.hasViolations, hasCritical)
         );
 
-        console.log('[RegressionCalculator] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[RegressionCalculator] Guardian validation error:', error);
@@ -1570,7 +1570,7 @@ const RegressionCalculator = () => {
               }
             }}
             onViewEvidence={() => {
-              console.log('[RegressionCalculator] Visual evidence requested');
+              // Visual evidence requested
             }}
             data={regressionType === 'linear'
               ? [dataPoints.X.map(row => row[0]), dataPoints.y]
@@ -1579,7 +1579,7 @@ const RegressionCalculator = () => {
                 ) || []), dataPoints.y]}
             alpha={1 - modelOptions.confidenceLevel}
             onTransformComplete={(transformedData, transformationType, parameters) => {
-              console.log('[RegressionCalculator] Transformation applied:', transformationType, parameters);
+              // Transformation applied
 
               // Handle transformation completion
               if (Array.isArray(transformedData) && transformedData.length >= 2) {
@@ -1608,7 +1608,7 @@ const RegressionCalculator = () => {
                 }
 
                 setError(null);
-                console.log(`Data transformed using ${transformationType}. Re-validating assumptions...`);
+                // Data transformed, re-validating assumptions
               }
             }}
           />

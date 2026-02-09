@@ -266,10 +266,10 @@ const MixedModelsModule = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Coming Soon Notice */}
+      {/* Preview Notice */}
       <Alert severity="info" icon={<ConstructionIcon />} sx={{ mb: 3 }}>
-        <AlertTitle>Coming Soon</AlertTitle>
-        This analysis module is under active development and will be available in a future release.
+        <AlertTitle>Preview</AlertTitle>
+        This module is under active development.
         The frontend interface is ready — backend integration is in progress.
       </Alert>
 

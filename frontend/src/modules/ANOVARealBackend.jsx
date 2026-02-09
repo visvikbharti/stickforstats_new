@@ -123,7 +123,7 @@ const ANOVARealBackend = () => {
       setEffectSizes(response.effect_sizes);
 
       // Log precision
-      console.log('50 Decimal Precision Results:', response.high_precision_result);
+      // High precision results received
 
     } catch (err) {
       setError(err.message || 'ANOVA calculation failed');

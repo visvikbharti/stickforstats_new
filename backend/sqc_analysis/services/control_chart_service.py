@@ -8,6 +8,7 @@ adapted from the original Streamlit implementation to work with Django/React arc
 import numpy as np
 import pandas as pd
 import json
+from scipy import stats
 from typing import Dict, List, Optional, Tuple, Union, Any
 
 from .utils_service import (
@@ -897,7 +898,7 @@ class ControlChartService:
             acf_values = acf_values / acf_values[0]  # Normalize
             
             # Check for significant autocorrelation
-            significance_level = 1.96 / np.sqrt(len(data_values))  # 95% confidence
+            significance_level = stats.norm.ppf(0.975) / np.sqrt(len(data_values))  # 95% confidence
             
             cycles = []
             for lag in range(2, min(len(acf_values) // 2, 20)):

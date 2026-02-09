@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import jStat from 'jstat';
 import './PowerCalculator.scss';
 
 const PowerCalculator = ({ 
@@ -118,101 +119,38 @@ const PowerCalculator = ({
     }
   };
 
-  // Statistical distribution functions
+  // Statistical distribution functions using jStat
   const Statistics = {
     // Normal distribution CDF
-    normalCDF: (x) => {
-      const a1 = 0.254829592;
-      const a2 = -0.284496736;
-      const a3 = 1.421413741;
-      const a4 = -1.453152027;
-      const a5 = 1.061405429;
-      const p = 0.3275911;
-      
-      const sign = x < 0 ? -1 : 1;
-      x = Math.abs(x) / Math.sqrt(2.0);
-      
-      const t = 1.0 / (1.0 + p * x);
-      const y = 1.0 - (((((a5 * t + a4) * t ** 2 + a3) * t ** 3 + a2) * t ** 4 + a1) * t ** 5) * Math.exp(-x * x);
-      
-      return 0.5 * (1.0 + sign * y);
-    },
+    normalCDF: (x) => jStat.normal.cdf(x, 0, 1),
 
     // Inverse normal CDF (quantile function)
-    normalQuantile: (p) => {
-      const a = [2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637];
-      const b = [-8.47351093090, 23.08336743743, -21.06224101826, 3.13082909833];
-      
-      const c = [0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
-                 0.0276438810333863, 0.0038405729373609, 0.0003951896511919,
-                 0.0000321767881768, 0.0000002888167364, 0.0000003960315187];
-      
-      let x, r;
-      const y = p - 0.5;
-      
-      if (Math.abs(y) < 0.42) {
-        r = y * y;
-        x = y * (((a[3] * r + a[2]) * r + a[1]) * r + a[0]) /
-            ((((b[3] * r + b[2]) * r + b[1]) * r + b[0]) * r + 1);
-      } else {
-        r = p > 0.5 ? 1 - p : p;
-        r = Math.log(-Math.log(r));
-        x = c[0] + r * (c[1] + r * (c[2] + r * (c[3] + r * 
-            (c[4] + r * (c[5] + r * (c[6] + r * (c[7] + r * c[8])))))));
-        if (p < 0.5) x = -x;
-      }
-      
-      return x;
-    },
+    normalQuantile: (p) => jStat.normal.inv(p, 0, 1),
 
-    // Non-central t distribution
+    // Non-central t distribution CDF
+    // Uses normal approximation: P(T < t) where T ~ t(df, ncp)
     nonCentralT: (t, df, ncp) => {
-      // Approximation using normal distribution for large df
-      if (df > 30) {
-        const z = (t * Math.sqrt(df) - ncp) / Math.sqrt(df + ncp * ncp);
-        return Statistics.normalCDF(z);
-      }
-      // For smaller df, use series expansion (simplified)
-      return Statistics.normalCDF((t - ncp) / Math.sqrt(1 + ncp * ncp / (2 * df)));
+      // Normal approximation to noncentral t
+      const z = (t - ncp) / Math.sqrt(1 + ncp * ncp / (2 * df));
+      return jStat.normal.cdf(z, 0, 1);
     },
 
-    // Non-central F distribution
+    // Non-central F distribution CDF (normal approximation)
     nonCentralF: (f, df1, df2, ncp) => {
-      // Approximation for power calculation
-      const lambda = ncp;
-      const fcrit = f;
-      const numerator = df1 + lambda;
-      const denominator = df2;
-      const ratio = (fcrit * denominator) / numerator;
-      return 1 - Statistics.betaCDF(ratio / (1 + ratio), df2 / 2, df1 / 2);
+      // Patnaik (1949) two-moment approximation
+      const meanNcF = (df2 * (df1 + ncp)) / (df1 * (df2 - 2));
+      const varNcF = 2 * (df2 / df1) ** 2 * ((df1 + ncp) ** 2 + (df1 + 2 * ncp) * (df2 - 2)) / ((df2 - 2) ** 2 * (df2 - 4));
+      const k = meanNcF ** 2 / varNcF;
+      const theta = varNcF / meanNcF;
+      // Approximate as scaled chi-squared -> use central F
+      const approxDf1 = 2 * k;
+      const approxDf2 = df2;
+      const scaledF = f / (k * theta / (approxDf1 / 2));
+      return jStat.centralF.cdf(scaledF, approxDf1, approxDf2);
     },
 
-    // Beta CDF (for F distribution)
-    betaCDF: (x, a, b) => {
-      // Incomplete beta function approximation
-      if (x <= 0) return 0;
-      if (x >= 1) return 1;
-      
-      // Use normal approximation for large parameters
-      if (a > 30 && b > 30) {
-        const mean = a / (a + b);
-        const variance = (a * b) / ((a + b) ** 2 * (a + b + 1));
-        const z = (x - mean) / Math.sqrt(variance);
-        return Statistics.normalCDF(z);
-      }
-      
-      // Series expansion for small parameters
-      let sum = 0;
-      for (let k = 0; k < 100; k++) {
-        const term = Math.exp(
-          k * Math.log(x) + (a - 1) * Math.log(x) + 
-          (b - 1) * Math.log(1 - x) - Math.log(k + 1)
-        );
-        sum += term;
-        if (term < 1e-10) break;
-      }
-      return sum;
-    }
+    // Beta CDF
+    betaCDF: (x, a, b) => jStat.beta.cdf(x, a, b)
   };
 
   // Core power calculation functions

@@ -330,7 +330,7 @@ const BiophysicsLearningHub = () => {
                           <Chip label={`Lesson ${lesson.id}`} color="primary" size="small" />
                         </Box>
                         {isCompleted && <CheckCircleIcon sx={{ color: '#4caf50', fontSize: 28 }} />}
-                        {!lesson.available && <Chip label="Coming Soon" size="small" color="warning" />}
+                        {!lesson.available && <Chip label="Preview" size="small" color="warning" />}
                       </Box>
 
                       <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>

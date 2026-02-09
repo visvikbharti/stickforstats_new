@@ -48,7 +48,7 @@ class RegressionDiagnostics:
         # Basic residual statistics
         results['statistics'] = {
             'mean': float(np.mean(residuals)),
-            'std': float(np.std(residuals)),
+            'std': float(np.std(residuals, ddof=1)),
             'min': float(np.min(residuals)),
             'max': float(np.max(residuals)),
             'q1': float(np.percentile(residuals, 25)),
@@ -66,7 +66,7 @@ class RegressionDiagnostics:
             'qq_plot': RegressionDiagnostics._qq_plot_data(residuals),
             'scale_location': {
                 'x': fitted.tolist(),
-                'y': np.sqrt(np.abs(residuals / np.std(residuals))).tolist()
+                'y': np.sqrt(np.abs(residuals / np.std(residuals, ddof=1))).tolist()
             },
             'histogram': {
                 'bins': np.histogram(residuals, bins=30)[1].tolist(),
@@ -324,10 +324,10 @@ class RegressionDiagnostics:
         
         return {
             'mean_score': np.mean(scores),
-            'std_score': np.std(scores),
+            'std_score': np.std(scores, ddof=1),
             'min_score': np.min(scores),
             'max_score': np.max(scores),
-            'cv_coefficient': np.std(scores) / np.mean(scores) if np.mean(scores) != 0 else np.inf,
+            'cv_coefficient': np.std(scores, ddof=1) / np.mean(scores) if np.mean(scores) != 0 else np.inf,
             'n_folds': len(scores)
         }
     
@@ -373,7 +373,7 @@ class RegressionDiagnostics:
         for j in range(X.shape[1]):
             # Partial residuals = residuals + beta_j * X_j
             # (simplified version without coefficient)
-            partial_res = residuals + X[:, j] * np.mean(residuals) / np.std(X[:, j])
+            partial_res = residuals + X[:, j] * np.mean(residuals) / np.std(X[:, j], ddof=1)
             
             plots.append({
                 'predictor_index': j,

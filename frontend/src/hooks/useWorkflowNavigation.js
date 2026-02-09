@@ -400,7 +400,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
-      console.log('WebSocket connected');
+      // WebSocket connected
     };
 
     wsRef.current.onmessage = (event) => {
@@ -418,7 +418,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
           setContext(prev => ({ ...prev, ...data.payload }));
           break;
         default:
-          console.log('Unknown WebSocket message type:', data.type);
+          // Unknown WebSocket message type
       }
     };
 
@@ -427,7 +427,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
     };
 
     wsRef.current.onclose = () => {
-      console.log('WebSocket disconnected');
+      // WebSocket disconnected
     };
   }, [enableWebSocket, apiBaseUrl, workflowId]);
 

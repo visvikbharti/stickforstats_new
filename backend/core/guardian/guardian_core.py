@@ -409,7 +409,7 @@ class VarianceHomogeneityValidator:
 
         if p_value < alpha:
             # Calculate variance ratio
-            variances = [np.var(arr) for arr in data_arrays]
+            variances = [np.var(arr, ddof=1) for arr in data_arrays]
             ratio = max(variances) / min(variances)
 
             # Severity based on variance ratio using evidence-based thresholds
@@ -444,7 +444,7 @@ class VarianceHomogeneityValidator:
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
         """Generate variance comparison visualization data"""
         return {
-            'variances': [float(np.var(arr)) for arr in data_arrays],
+            'variances': [float(np.var(arr, ddof=1)) for arr in data_arrays],
             'std_devs': [float(np.std(arr, ddof=1)) for arr in data_arrays],
             'group_sizes': [len(arr) for arr in data_arrays]
         }
@@ -875,7 +875,7 @@ class HomoscedasticityValidator:
             first_half = residuals[sorted_indices[:n//2]]
             second_half = residuals[sorted_indices[n//2:]]
 
-            var_ratio = np.var(second_half) / (np.var(first_half) + 1e-10)
+            var_ratio = np.var(second_half, ddof=1) / (np.var(first_half, ddof=1) + 1e-10)
 
             # Determine severity using evidence-based thresholds
             # Variance ratio > 4 or < 0.25 indicates severe heteroscedasticity

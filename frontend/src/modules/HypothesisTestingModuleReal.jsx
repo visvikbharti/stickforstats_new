@@ -23,6 +23,7 @@ import {
   RadialBarChart, RadialBar, PieChart as RechartsPieChart, Pie
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
+import jStat from 'jstat';
 
 // Guardian Design Contract compliance
 // "No statistical result may exist without an explicit, traceable assumption context."
@@ -113,7 +114,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
       // Generate visualization data for error regions
       const data = [];
       const iterations = 100;
-      const criticalValue = 1.96; // For alpha = 0.05, two-tailed
+      const criticalValue = jStat.normal.inv(1 - alpha / 2, 0, 1);
 
       for (let i = 0; i < iterations; i++) {
         const x = (i - 50) / 10;
@@ -382,7 +383,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
                   name="Type II Error Region"
                 />
 
-                <ReferenceLine x={1.96} stroke="#ff0000" strokeDasharray="5 5" label="Critical Value" />
+                <ReferenceLine x={jStat.normal.inv(1 - alpha / 2, 0, 1)} stroke="#ff0000" strokeDasharray="5 5" label="Critical Value" />
               </AreaChart>
             </ResponsiveContainer>
           </Paper>

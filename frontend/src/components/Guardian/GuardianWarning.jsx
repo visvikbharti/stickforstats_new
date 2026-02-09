@@ -62,15 +62,7 @@ const GuardianWarning = ({
     guardian_status = {}
   } = guardianReport;
 
-  // Debug logging
-  console.log('[GuardianWarning] Render:', {
-    hasData: !!data,
-    dataLength: Array.isArray(data) ? data.length : 'not array',
-    hasTestType: !!test_type,
-    test_type,
-    confidence_score,
-    exporting
-  });
+  // Debug data available in component state
 
   // Check if there are transformable violations (normality, variance)
   const hasTransformableViolations = violations.some(v =>
@@ -80,7 +72,7 @@ const GuardianWarning = ({
 
   // Handle transformation completion
   const handleTransformComplete = (transformedData, transformationType, parameters) => {
-    console.log('Transformation applied:', { transformationType, parameters });
+    // Transformation applied
     setWizardOpen(false);
 
     // Notify parent component if callback provided

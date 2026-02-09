@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 import pickle
+from core.utils.safe_pickle import safe_pickle_load
 import base64
 
 from django.conf import settings
@@ -492,8 +493,8 @@ class BayesianService:
                                 credible_interval: float, n_samples: int) -> Dict[str, Any]:
         """Perform Bayesian correlation using PyMC3."""
         # Standardize data
-        x_std = (x - np.mean(x)) / np.std(x)
-        y_std = (y - np.mean(y)) / np.std(y)
+        x_std = (x - np.mean(x)) / np.std(x, ddof=1)
+        y_std = (y - np.mean(y)) / np.std(y, ddof=1)
         
         # Create PyMC3 model
         with pm.Model() as model:
@@ -1045,7 +1046,7 @@ class BayesianService:
             
             # Probability of practical significance (outside ROPE)
             # This is a crude approximation in compatibility mode
-            coef_std = model.coef_[i] / np.std(X[predictor])  # Standardized coefficient
+            coef_std = model.coef_[i] / np.std(X[predictor], ddof=1)  # Standardized coefficient
             rope_width = 0.1  # Small effect size threshold
             
             if abs(coef_std) <= rope_width:
@@ -1235,7 +1236,7 @@ class BayesianService:
             raise ValueError(f"Model with ID {model_id} not found")
             
         with open(model_path, 'rb') as f:
-            model_data = pickle.load(f)
+            model_data = safe_pickle_load(f)
             
         # Extract basic info without the actual trace
         return {

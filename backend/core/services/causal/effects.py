@@ -73,7 +73,8 @@ def estimate_ate(
     treatment: str,
     outcome: str,
     covariates: Optional[List[str]] = None,
-    method: str = 'regression'
+    method: str = 'regression',
+    confidence_level: float = 0.95
 ) -> TreatmentEffectResult:
     """
     Estimate Average Treatment Effect (ATE).
@@ -104,13 +105,13 @@ def estimate_ate(
         y0 = Y[T == 0]
 
         ate = np.mean(y1) - np.mean(y0)
-        se = np.sqrt(np.var(y1) / n_treated + np.var(y0) / n_control)
+        se = np.sqrt(np.var(y1, ddof=1) / n_treated + np.var(y0, ddof=1) / n_control)
 
         diagnostics = {
             'mean_treated': float(np.mean(y1)),
             'mean_control': float(np.mean(y0)),
-            'sd_treated': float(np.std(y1)),
-            'sd_control': float(np.std(y0))
+            'sd_treated': float(np.std(y1, ddof=1)),
+            'sd_control': float(np.std(y0, ddof=1))
         }
 
     elif method == 'regression':
@@ -195,7 +196,7 @@ def estimate_ate(
         psi_0 = ((1 - T) / (1 - ps)) * (Y - mu0)
 
         psi = psi_1 - psi_0
-        se = np.sqrt(np.var(psi) / n_treated / n_control * (n_treated + n_control))
+        se = np.sqrt(np.var(psi, ddof=1) / n_treated / n_control * (n_treated + n_control))
 
         # Effective sample size
         ess_t = np.sum(weights[T == 1]) ** 2 / np.sum(weights[T == 1] ** 2)
@@ -222,10 +223,11 @@ def estimate_ate(
         raise ValueError(f"Unknown method: {method}")
 
     # Inference
+    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = ate / se if se > 0 else 0
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
-    ci_lower = ate - 1.96 * se
-    ci_upper = ate + 1.96 * se
+    ci_lower = ate - z_crit * se
+    ci_upper = ate + z_crit * se
 
     return TreatmentEffectResult(
         estimand='ate',
@@ -247,7 +249,8 @@ def estimate_att(
     treatment: str,
     outcome: str,
     covariates: Optional[List[str]] = None,
-    method: str = 'regression'
+    method: str = 'regression',
+    confidence_level: float = 0.95
 ) -> TreatmentEffectResult:
     """
     Estimate Average Treatment Effect on Treated (ATT).
@@ -279,7 +282,7 @@ def estimate_att(
         y0 = Y[T == 0]
 
         att = np.mean(y1) - np.mean(y0)
-        se = np.sqrt(np.var(y1) / n_treated + np.var(y0) / n_control)
+        se = np.sqrt(np.var(y1, ddof=1) / n_treated + np.var(y0, ddof=1) / n_control)
 
         warnings.append("Unadjusted ATT assumes no confounding")
 
@@ -324,7 +327,7 @@ def estimate_att(
             y0_b = model_b.predict(X_b[T_b == 1])
             boot_atts.append(np.mean(Y_b[T_b == 1]) - np.mean(y0_b))
 
-        se = np.std(boot_atts) if boot_atts else 0
+        se = np.std(boot_atts, ddof=1) if boot_atts else 0
 
         diagnostics = {
             'method': 'regression_imputation',
@@ -379,7 +382,7 @@ def estimate_att(
             y0_b = np.sum(Y_b[T_b == 0] * w_b[T_b == 0]) / np.sum(w_b[T_b == 0])
             boot_atts.append(y1_b - y0_b)
 
-        se = np.std(boot_atts) if boot_atts else 0
+        se = np.std(boot_atts, ddof=1) if boot_atts else 0
 
         diagnostics = {
             'method': 'IPW for ATT',
@@ -391,10 +394,11 @@ def estimate_att(
         raise ValueError(f"Unknown method: {method}")
 
     # Inference
+    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = att / se if se > 0 else 0
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
-    ci_lower = att - 1.96 * se
-    ci_upper = att + 1.96 * se
+    ci_lower = att - z_crit * se
+    ci_upper = att + z_crit * se
 
     return TreatmentEffectResult(
         estimand='att',
@@ -416,7 +420,8 @@ def estimate_effects_ipw(
     treatment: str,
     outcome: str,
     propensity_scores: np.ndarray,
-    estimand: str = 'ate'
+    estimand: str = 'ate',
+    confidence_level: float = 0.95
 ) -> TreatmentEffectResult:
     """
     Estimate treatment effects using pre-computed propensity scores.
@@ -462,8 +467,9 @@ def estimate_effects_ipw(
         effect = y1_mean - y0_weighted
 
     # Simple SE estimate
-    se = np.sqrt(np.var(Y[T == 1]) / n_treated + np.var(Y[T == 0]) / n_control)
+    se = np.sqrt(np.var(Y[T == 1], ddof=1) / n_treated + np.var(Y[T == 0], ddof=1) / n_control)
 
+    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = effect / se if se > 0 else 0
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
 
@@ -472,8 +478,8 @@ def estimate_effects_ipw(
         method='ipw_precomputed',
         estimate=float(effect),
         std_error=float(se),
-        ci_lower=float(effect - 1.96 * se),
-        ci_upper=float(effect + 1.96 * se),
+        ci_lower=float(effect - z_crit * se),
+        ci_upper=float(effect + z_crit * se),
         p_value=float(p_value),
         n_treated=n_treated,
         n_control=n_control,
@@ -487,7 +493,8 @@ def doubly_robust_estimator(
     treatment: str,
     outcome: str,
     covariates: List[str],
-    estimand: str = 'ate'
+    estimand: str = 'ate',
+    confidence_level: float = 0.95
 ) -> TreatmentEffectResult:
     """
     Doubly Robust (AIPW) estimation.
@@ -547,7 +554,7 @@ def doubly_robust_estimator(
 
         # Influence function for variance
         psi = term1 - term0 - effect
-        se = np.sqrt(np.var(psi) / n)
+        se = np.sqrt(np.var(psi, ddof=1) / n)
 
     else:  # ATT
         # ATT = E[Y(1) - Y(0) | T=1]
@@ -567,9 +574,10 @@ def doubly_robust_estimator(
         effect = mu1_observed - mu0_att
 
         # Simplified SE
-        se = np.sqrt(np.var(Y[T == 1]) / n_treated + np.var(mu0_hat[T == 1]) / n_treated)
+        se = np.sqrt(np.var(Y[T == 1], ddof=1) / n_treated + np.var(mu0_hat[T == 1], ddof=1) / n_treated)
 
     # Inference
+    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = effect / se if se > 0 else 0
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
 
@@ -591,8 +599,8 @@ def doubly_robust_estimator(
         method='doubly_robust',
         estimate=float(effect),
         std_error=float(se),
-        ci_lower=float(effect - 1.96 * se),
-        ci_upper=float(effect + 1.96 * se),
+        ci_lower=float(effect - z_crit * se),
+        ci_upper=float(effect + z_crit * se),
         p_value=float(p_value),
         n_treated=n_treated,
         n_control=n_control,
@@ -637,8 +645,9 @@ def sensitivity_analysis(
     for gamma in gammas:
         # Under confounding, bounds widen
         # Simplified: multiply SE by gamma
-        lower = point_estimate - gamma * result.std_error * 1.96
-        upper = point_estimate + gamma * result.std_error * 1.96
+        z_crit = stats.norm.ppf(0.975)
+        lower = point_estimate - gamma * result.std_error * z_crit
+        upper = point_estimate + gamma * result.std_error * z_crit
 
         bounds.append({
             'gamma': float(gamma),

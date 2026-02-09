@@ -154,7 +154,7 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
                 value={category.id}
                 disabled={!category.available}
               >
-                {category.name} {!category.available && '(Coming Soon)'}
+                {category.name} {!category.available && '(Preview)'}
               </MenuItem>
             ))}
           </Select>
@@ -196,7 +196,7 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
                       </Typography>
                       {!category.available && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'warning.main' }}>
-                          Coming soon!
+                          Preview
                         </Typography>
                       )}
                     </CardContent>
@@ -227,11 +227,11 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
         </Box>
       )}
 
-      {/* Coming Soon Message */}
+      {/* Preview Message */}
       {selectedCategory && !selectedCategory.component && (
         <Alert severity="warning">
           <Typography variant="body1">
-            <strong>{selectedCategory.name}</strong> is under development and will be available soon!
+            <strong>{selectedCategory.name}</strong> is under active development (Preview).
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             Available tests: {selectedCategory.tests.join(', ')}

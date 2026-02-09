@@ -172,26 +172,7 @@ export function createPerformanceTest(name, type, component, config = {}) {
       rawIterations: [...iterationResults]
     };
     
-    // Log result
-    if (testConfig.logToConsole) {
-      console.log(`%c📊 Performance Test: ${name}`, 'font-weight: bold; color: #6200ee;');
-      console.log(`Component: ${component}`);
-      console.log(`Type: ${type}`);
-      console.log(`Duration: ${duration.toFixed(2)}ms`);
-      
-      if (iterationResults.length > 1) {
-        console.log(`Iterations: ${iterationResults.length}`);
-        console.log(`Min: ${Math.min(...iterationResults).toFixed(2)}ms`);
-        console.log(`Max: ${Math.max(...iterationResults).toFixed(2)}ms`);
-      }
-      
-      if (Object.keys(measurements).length > 0) {
-        console.log('Measurements:');
-        Object.entries(measurements).forEach(([key, value]) => {
-          console.log(`  ${key}: ${value.toFixed(2)}ms`);
-        });
-      }
-    }
+    // Results are captured in the result object (logging removed for production)
     
     // Save to history
     if (testConfig.saveResult) {
@@ -286,8 +267,6 @@ export function timeFunction(fn, name = 'Function timing') {
   const result = fn();
   const duration = performance.now() - start;
   
-  console.log(`${name}: ${duration.toFixed(2)}ms`);
-  
   return result;
 }
 
@@ -301,8 +280,6 @@ export async function timeAsyncFunction(fn, name = 'Async function timing') {
   const start = performance.now();
   const result = await fn();
   const duration = performance.now() - start;
-  
-  console.log(`${name}: ${duration.toFixed(2)}ms`);
   
   return result;
 }
@@ -323,13 +300,9 @@ export function timed(name = null) {
       
       if (result instanceof Promise) {
         return result.then(value => {
-          const duration = performance.now() - start;
-          console.log(`${timingName}: ${duration.toFixed(2)}ms`);
           return value;
         });
       } else {
-        const duration = performance.now() - start;
-        console.log(`${timingName}: ${duration.toFixed(2)}ms`);
         return result;
       }
     };

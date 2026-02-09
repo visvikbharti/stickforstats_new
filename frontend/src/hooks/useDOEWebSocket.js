@@ -43,7 +43,7 @@ const useDOEWebSocket = (analysisId, options = {}) => {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('DOE WebSocket connected');
+        // DOE WebSocket connected
         updateStatus('connected');
         reconnectCountRef.current = 0;
         setError(null);
@@ -97,7 +97,7 @@ const useDOEWebSocket = (analysisId, options = {}) => {
               break;
               
             default:
-              console.log('Unknown DOE message type:', message.type);
+              // Unknown DOE message type
           }
           
           if (onMessage) {
@@ -116,14 +116,14 @@ const useDOEWebSocket = (analysisId, options = {}) => {
       };
 
       ws.onclose = (event) => {
-        console.log('DOE WebSocket closed:', event.code, event.reason);
+        // DOE WebSocket closed
         updateStatus('disconnected');
         wsRef.current = null;
         
         // Attempt to reconnect if not a normal closure
         if (event.code !== 1000 && reconnectCountRef.current < reconnectAttempts && autoConnect) {
           reconnectCountRef.current++;
-          console.log(`Attempting to reconnect (${reconnectCountRef.current}/${reconnectAttempts})...`);
+          // Attempting to reconnect
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();

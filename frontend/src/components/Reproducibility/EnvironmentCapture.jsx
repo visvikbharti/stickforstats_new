@@ -504,7 +504,7 @@ CMD ["npm", "start"]
         });
         
         if (changes.length > 0) {
-          console.log('Environment changes detected:', changes);
+          // Environment changes detected
         }
       }
     }, 30000); // Check every 30 seconds

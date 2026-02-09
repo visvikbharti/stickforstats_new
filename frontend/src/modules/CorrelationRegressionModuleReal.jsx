@@ -129,7 +129,7 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
         x: selectedDataset.x,
         y: selectedDataset.y,
         method: 'pearson',
-        confidence_level: 0.95
+        confidence_level: 0.95  // TODO: Make configurable via UI control (currently hardcoded to 95%)
       });
 
       if (result && result.high_precision_result) {

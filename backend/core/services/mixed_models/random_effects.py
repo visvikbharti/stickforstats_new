@@ -104,7 +104,7 @@ def extract_random_effects(lmm_result) -> RandomEffectsResult:
         blup_summary = {
             'intercept': {
                 'mean': round(float(np.mean(intercept_blups)), 4),
-                'std': round(float(np.std(intercept_blups)), 4),
+                'std': round(float(np.std(intercept_blups, ddof=1)), 4),
                 'min': round(float(np.min(intercept_blups)), 4),
                 'max': round(float(np.max(intercept_blups)), 4),
                 'range': round(float(np.max(intercept_blups) - np.min(intercept_blups)), 4)
@@ -116,7 +116,7 @@ def extract_random_effects(lmm_result) -> RandomEffectsResult:
             if slope_blups:
                 blup_summary['slope'] = {
                     'mean': round(float(np.mean(slope_blups)), 4),
-                    'std': round(float(np.std(slope_blups)), 4),
+                    'std': round(float(np.std(slope_blups, ddof=1)), 4),
                     'min': round(float(np.min(slope_blups)), 4),
                     'max': round(float(np.max(slope_blups)), 4)
                 }
@@ -255,7 +255,7 @@ def caterpillar_plot_data(
         'n_groups': len(groups),
         'summary': {
             'mean': round(float(np.mean(effects)), 4),
-            'std': round(float(np.std(effects)), 4),
+            'std': round(float(np.std(effects, ddof=1)), 4),
             'min': round(float(np.min(effects)), 4),
             'max': round(float(np.max(effects)), 4)
         }
@@ -430,7 +430,7 @@ def random_effects_qq_plot(lmm_result, effect: str = 'intercept') -> Dict[str, A
     n = len(values)
 
     # Standardize
-    values_std = (values - np.mean(values)) / np.std(values) if np.std(values) > 0 else values
+    values_std = (values - np.mean(values)) / np.std(values, ddof=1) if np.std(values, ddof=1) > 0 else values
 
     # Theoretical quantiles
     theoretical = stats.norm.ppf((np.arange(1, n + 1) - 0.5) / n)

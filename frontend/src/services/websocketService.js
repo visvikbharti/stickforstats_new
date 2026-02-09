@@ -1,6 +1,10 @@
 // WebSocket Service - Enterprise WebSocket communication service
 // Provides robust WebSocket connection management with automatic reconnection,
-// message queuing, and comprehensive error handling
+// message queuing, and comprehensive error handling.
+//
+// NOTE: ASGI (Django Channels) is not yet configured on the backend.
+// This service will fail to connect gracefully and fall back to REST polling.
+// Once ASGI is set up, WebSocket connections will work automatically.
 
 import { EventEmitter } from 'events';
 
@@ -92,6 +96,13 @@ class WebSocketService extends EventEmitter {
    * @param {Object} options - Connection options
    */
   connect(url, options = {}) {
+    // Graceful degradation: if WebSocket API is not available, skip silently
+    if (typeof WebSocket === 'undefined') {
+      this.log('WebSocket API not available in this environment, falling back to REST');
+      this.setStatus(ConnectionStatus.CLOSED);
+      return;
+    }
+
     if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) {
       this.log('WebSocket already connected or connecting');
       return;
@@ -99,7 +110,7 @@ class WebSocketService extends EventEmitter {
 
     this.url = url;
     this.config = { ...this.config, ...options };
-    
+
     this.log(`Attempting to connect to: ${url}`);
     this.setStatus(ConnectionStatus.CONNECTING);
     this.connectionMetrics.connectionAttempts++;
@@ -125,8 +136,13 @@ class WebSocketService extends EventEmitter {
       }, this.config.timeoutMs);
 
     } catch (error) {
-      this.log(`Connection error: ${error.message}`);
-      this.handleError(error);
+      // Graceful degradation: log once and stop retrying on construction errors
+      // This typically means the URL is invalid or WebSocket is blocked
+      if (this.reconnectAttempts === 0) {
+        console.warn('[WebSocketService] WebSocket connection failed. ASGI may not be configured. Falling back to REST.', error.message);
+      }
+      this.config.autoReconnect = false;
+      this.setStatus(ConnectionStatus.CLOSED);
     }
   }
 
@@ -308,18 +324,25 @@ class WebSocketService extends EventEmitter {
   }
 
   /**
-   * Handle WebSocket error event
+   * Handle WebSocket error event.
+   * Errors are logged at warn level to avoid console.error spam when
+   * ASGI is not configured and connections repeatedly fail.
    */
   handleError(error) {
-    this.log(`WebSocket error: ${error.message || error}`);
-    
+    // Only log the first error at warn level; subsequent errors use debug log
+    if (this.reconnectAttempts <= 1) {
+      console.warn(`[WebSocketService] Connection error: ${error.message || 'WebSocket error'}. Server may not support WebSocket (ASGI not configured).`);
+    } else {
+      this.log(`WebSocket error (attempt ${this.reconnectAttempts}): ${error.message || error}`);
+    }
+
     this.setStatus(ConnectionStatus.ERROR);
-    
+
     // Call user-defined onError handler
     if (this.config.onError) {
       this.config.onError(error);
     }
-    
+
     // Emit error event
     this.emit('error', error);
   }
@@ -429,7 +452,8 @@ class WebSocketService extends EventEmitter {
    */
   scheduleReconnect() {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-      this.log(`Max reconnect attempts (${this.config.maxReconnectAttempts}) reached`);
+      // Log a single user-visible warning when giving up on reconnection
+      console.warn('[WebSocketService] Max reconnect attempts reached. WebSocket unavailable (ASGI may not be configured). Falling back to REST polling.');
       this.setStatus(ConnectionStatus.CLOSED);
       this.emit('maxReconnectAttemptsReached');
       return;
@@ -577,9 +601,7 @@ class WebSocketService extends EventEmitter {
    * Log debug messages
    */
   log(message) {
-    if (this.config.debug) {
-      console.log(`[WebSocketService] ${message}`);
-    }
+    // Debug logging disabled for production
   }
 }
 

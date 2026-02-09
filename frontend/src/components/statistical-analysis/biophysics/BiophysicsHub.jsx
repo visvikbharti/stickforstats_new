@@ -124,7 +124,7 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
         <Box sx={{ py: 8, textAlign: 'center' }}>
           <ThermostatIcon sx={{ fontSize: 80, color: 'action.disabled', mb: 2 }} />
           <Typography variant="h5" gutterBottom color="text.secondary">
-            Coming Soon
+            Preview
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, mx: 'auto' }}>
             Thermal stability analysis including CD spectroscopy, thermal denaturation curves,
@@ -286,7 +286,7 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
                   </Typography>
                   {tab.comingSoon && (
                     <Chip
-                      label="Coming Soon"
+                      label="Preview"
                       size="small"
                       sx={{ ml: 1, height: 16, fontSize: '0.65rem' }}
                     />

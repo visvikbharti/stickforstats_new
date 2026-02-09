@@ -707,13 +707,15 @@ class HighPrecisionNonParametric:
                 p_value = min(p_value, self._to_decimal(1))
             elif alternative == 'less':
                 # Test if x < y (more negative differences)
+                # P-value = P(S+ <= n_pos) = probability of this few or fewer positives
                 p_value = self._to_decimal(
-                    stats.binom.cdf(n_neg, n_nonzero, 0.5)
+                    stats.binom.cdf(n_pos, n_nonzero, 0.5)
                 )
             else:  # greater
                 # Test if x > y (more positive differences)
+                # P-value = P(S- <= n_neg) = probability of this few or fewer negatives
                 p_value = self._to_decimal(
-                    stats.binom.cdf(n_pos, n_nonzero, 0.5)
+                    stats.binom.cdf(n_neg, n_nonzero, 0.5)
                 )
 
         # Effect size (proportion of non-zero differences that are positive)

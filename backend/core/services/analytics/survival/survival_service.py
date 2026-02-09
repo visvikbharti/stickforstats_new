@@ -26,6 +26,7 @@ import uuid
 import json
 import os
 import pickle
+from core.utils.safe_pickle import safe_pickle_load
 import base64
 from pathlib import Path
 from datetime import datetime
@@ -585,7 +586,7 @@ class SurvivalService:
 
         # Load model
         with open(model_path, 'rb') as f:
-            cph = pickle.load(f)
+            cph = safe_pickle_load(f)
 
         # Make predictions
         survival_funcs = cph.predict_survival_function(new_data, times=times)

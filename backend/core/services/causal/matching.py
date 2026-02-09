@@ -100,7 +100,7 @@ def propensity_score_matching(
 
     # Set default caliper (0.2 * SD of propensity scores)
     if caliper is None:
-        caliper = 0.2 * np.std(propensity_scores)
+        caliper = 0.2 * np.std(propensity_scores, ddof=1)
 
     # Perform matching based on method
     if method == 'nearest':
@@ -335,7 +335,7 @@ def assess_balance(
                 c_mean = np.mean(c_vals)
 
             # Pooled standard deviation
-            pooled_std = np.sqrt((np.var(t_vals) + np.var(c_vals)) / 2)
+            pooled_std = np.sqrt((np.var(t_vals, ddof=1) + np.var(c_vals, ddof=1)) / 2)
 
             if pooled_std > 0:
                 smd = (t_mean - c_mean) / pooled_std
@@ -393,9 +393,9 @@ def _assess_match_quality(
         'mean_distance': float(np.mean(distances)),
         'median_distance': float(np.median(distances)),
         'max_distance': float(np.max(distances)),
-        'std_distance': float(np.std(distances)),
+        'std_distance': float(np.std(distances, ddof=1)),
         'caliper_used': caliper,
-        'pct_within_01sd': float(np.mean(distances < 0.1 * np.std(scores)))
+        'pct_within_01sd': float(np.mean(distances < 0.1 * np.std(scores, ddof=1)))
     }
 
 
@@ -403,7 +403,8 @@ def estimate_effect_matched(
     matched_data: pd.DataFrame,
     treatment: str,
     outcome: str,
-    method: str = 'simple'
+    method: str = 'simple',
+    confidence_level: float = 0.95
 ) -> Dict[str, Any]:
     """
     Estimate treatment effect from matched data.
@@ -423,7 +424,7 @@ def estimate_effect_matched(
     if method == 'simple':
         # Simple difference in means
         effect = np.mean(treated) - np.mean(control)
-        se = np.sqrt(np.var(treated) / len(treated) + np.var(control) / len(control))
+        se = np.sqrt(np.var(treated, ddof=1) / len(treated) + np.var(control, ddof=1) / len(control))
 
     elif method == 'paired':
         # Paired analysis using match IDs
@@ -442,14 +443,15 @@ def estimate_effect_matched(
             return {'error': 'No complete pairs found'}
 
         effect = np.mean(pair_diffs)
-        se = np.std(pair_diffs) / np.sqrt(len(pair_diffs))
+        se = np.std(pair_diffs, ddof=1) / np.sqrt(len(pair_diffs))
 
     else:
         raise ValueError(f"Unknown method: {method}")
 
     # Inference
-    t_stat = effect / se if se > 0 else np.inf
     from scipy import stats as sp_stats
+    z_crit = sp_stats.norm.ppf(1 - (1 - confidence_level) / 2)
+    t_stat = effect / se if se > 0 else np.inf
     p_value = 2 * (1 - sp_stats.t.cdf(abs(t_stat), df=len(treated) + len(control) - 2))
 
     return {
@@ -457,8 +459,8 @@ def estimate_effect_matched(
         'se': float(se),
         't_statistic': float(t_stat),
         'p_value': float(p_value),
-        'ci_lower': float(effect - 1.96 * se),
-        'ci_upper': float(effect + 1.96 * se),
+        'ci_lower': float(effect - z_crit * se),
+        'ci_upper': float(effect + z_crit * se),
         'n_treated': len(treated),
         'n_control': len(control),
         'method': method

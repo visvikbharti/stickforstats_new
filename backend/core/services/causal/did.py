@@ -249,8 +249,9 @@ def difference_in_differences(
     t_stat = did_estimate / se
     df = n - X.shape[1]
     p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
-    ci_lower = did_estimate - 1.96 * se
-    ci_upper = did_estimate + 1.96 * se
+    z_crit = stats.norm.ppf(0.975)
+    ci_lower = did_estimate - z_crit * se
+    ci_upper = did_estimate + z_crit * se
 
     # Parallel trends test (if applicable)
     parallel_test = None
@@ -416,8 +417,9 @@ def event_study(
         p_values[p] = float(2 * (1 - stats.norm.cdf(abs(t))))
 
     # Confidence intervals
-    ci_lower = {p: coefficients[p] - 1.96 * std_errors[p] for p in coefficients}
-    ci_upper = {p: coefficients[p] + 1.96 * std_errors[p] for p in coefficients}
+    z_crit = stats.norm.ppf(0.975)
+    ci_lower = {p: coefficients[p] - z_crit * std_errors[p] for p in coefficients}
+    ci_upper = {p: coefficients[p] + z_crit * std_errors[p] for p in coefficients}
 
     # Pre-trend test: joint test that all pre-treatment coefficients = 0
     pre_coefs = [coefficients[p] for p in periods if p < 0 and p != reference_period]
@@ -703,8 +705,8 @@ def staggered_did(
             'std_error': float(overall_se),
             't_statistic': float(t_stat),
             'p_value': float(p_value),
-            'ci_lower': float(overall_att - 1.96 * overall_se),
-            'ci_upper': float(overall_att + 1.96 * overall_se)
+            'ci_lower': float(overall_att - stats.norm.ppf(0.975) * overall_se),
+            'ci_upper': float(overall_att + stats.norm.ppf(0.975) * overall_se)
         },
         'group_time_effects': group_time_effects,
         'event_time_effects': event_time_summary,

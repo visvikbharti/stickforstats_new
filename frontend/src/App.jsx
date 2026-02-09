@@ -4,7 +4,7 @@ import { SnackbarProvider } from 'notistack';
 import { MathJaxContext } from 'better-react-mathjax';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { ServiceWorkerUpdater } from './components/common';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography, Button } from '@mui/material';
 
 // Import Three.js setup (only loads Three.js when needed)
 import './setupThree';
@@ -890,6 +890,31 @@ function App() {
                         }
                       />
                       
+                      {/* Access Denied route */}
+                      <Route path="/unauthorized" element={
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+                          <Typography variant="h4" gutterBottom>Access Denied</Typography>
+                          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>You don't have permission to access this page.</Typography>
+                          <Button variant="contained" href="/">Return Home</Button>
+                        </Box>
+                      } />
+
+                      {/* Terms of Service */}
+                      <Route path="/terms" element={
+                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
+                          <Typography variant="h4" gutterBottom>Terms of Service</Typography>
+                          <Typography variant="body1">StickForStats is provided as-is for academic and research purposes. By using this software, you agree to use it responsibly and in accordance with your institution's policies.</Typography>
+                        </Box>
+                      } />
+
+                      {/* Privacy Policy */}
+                      <Route path="/privacy" element={
+                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
+                          <Typography variant="h4" gutterBottom>Privacy Policy</Typography>
+                          <Typography variant="body1">StickForStats processes all data locally in your browser. No personal data or uploaded datasets are transmitted to external servers. Session data is stored temporarily and cleared when you close the application.</Typography>
+                        </Box>
+                      } />
+
                       {/* Catch-all route for 404 */}
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>

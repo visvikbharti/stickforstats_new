@@ -3,6 +3,7 @@
 // Implements G*Power-validated algorithms for statistical power planning
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import jStat from 'jstat';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectTestType,
@@ -250,21 +251,8 @@ const PowerAnalysisWorkbench = () => {
   
   // Get z-score for given probability
   const getZScore = (p, tails) => {
-    // Standard normal quantiles (simplified)
-    const quantiles = {
-      0.001: 3.291,
-      0.01: 2.576,
-      0.025: 1.960,
-      0.05: 1.645,
-      0.10: 1.282,
-      0.20: 0.842,
-      0.80: -0.842,
-      0.90: -1.282,
-      0.95: -1.645
-    };
-    
     const adjustedP = tails === 'two' ? p / 2 : p;
-    return quantiles[adjustedP] || 1.96;
+    return jStat.normal.inv(1 - adjustedP, 0, 1);
   };
   
   // Format result for display

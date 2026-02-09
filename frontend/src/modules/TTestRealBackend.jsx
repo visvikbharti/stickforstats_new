@@ -103,7 +103,7 @@ const TTestRealBackend = () => {
       setAssumptions(response.assumptions);
 
       // Show precision achieved
-      console.log('50 Decimal Precision Achieved:', response.high_precision_result);
+      // High precision results achieved
 
     } catch (err) {
       setError(err.message || 'Calculation failed');

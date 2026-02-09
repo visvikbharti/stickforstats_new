@@ -29,6 +29,7 @@ import uuid
 import json
 import os
 import pickle
+from core.utils.safe_pickle import safe_pickle_load
 from pathlib import Path
 from datetime import datetime
 
@@ -575,7 +576,7 @@ class FactorAnalysisService:
 
         # Load model
         with open(model_path, 'rb') as f:
-            fa = pickle.load(f)
+            fa = safe_pickle_load(f)
 
         # Transform data
         numeric_data = new_data.select_dtypes(include=[np.number]).dropna()

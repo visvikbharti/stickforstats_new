@@ -252,7 +252,8 @@ class EffectSizeCalculator:
         ci = None
         if n1 and n2:
             se = np.sqrt((n1 + n2) / (n1 * n2) + d**2 / (2 * (n1 + n2)))
-            ci = (d - 1.96 * se, d + 1.96 * se)
+            z_crit = stats.norm.ppf(0.975)
+            ci = (d - z_crit * se, d + z_crit * se)
         
         return EffectSizeInfo(
             value=d,

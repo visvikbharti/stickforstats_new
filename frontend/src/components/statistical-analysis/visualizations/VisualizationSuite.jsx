@@ -152,7 +152,7 @@ const VisualizationSuite = ({ data, setData, onComplete }) => {
                 value={type.id}
                 disabled={!type.available}
               >
-                {type.name} {!type.available && '(Coming Soon)'}
+                {type.name} {!type.available && '(Preview)'}
               </MenuItem>
             ))}
           </Select>
@@ -194,7 +194,7 @@ const VisualizationSuite = ({ data, setData, onComplete }) => {
                       </Typography>
                       {!type.available && (
                         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'warning.main' }}>
-                          Coming soon!
+                          Preview
                         </Typography>
                       )}
                     </CardContent>
@@ -225,11 +225,11 @@ const VisualizationSuite = ({ data, setData, onComplete }) => {
         </Box>
       )}
 
-      {/* Coming Soon Message */}
+      {/* Preview Message */}
       {selectedAnalysis && !selectedAnalysis.component && (
         <Alert severity="warning">
           <Typography variant="body1">
-            <strong>{selectedAnalysis.name}</strong> is under development and will be available soon!
+            <strong>{selectedAnalysis.name}</strong> is under active development (Preview).
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             Available plot types: {selectedAnalysis.plotTypes.join(', ')}

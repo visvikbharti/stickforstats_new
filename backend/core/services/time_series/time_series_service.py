@@ -249,9 +249,9 @@ class TimeSeriesService:
             decomposition = stl.fit()
         
         # Calculate strength of seasonality and trend
-        var_detrended = np.var(series - decomposition.trend.dropna())
-        var_deseasonalized = np.var(series - decomposition.seasonal)
-        var_residual = np.var(decomposition.resid.dropna())
+        var_detrended = np.var(series - decomposition.trend.dropna(), ddof=1)
+        var_deseasonalized = np.var(series - decomposition.seasonal, ddof=1)
+        var_residual = np.var(decomposition.resid.dropna(), ddof=1)
         
         trend_strength = max(0, 1 - var_residual / var_detrended) if var_detrended > 0 else 0
         seasonal_strength = max(0, 1 - var_residual / var_deseasonalized) if var_deseasonalized > 0 else 0
@@ -289,7 +289,7 @@ class TimeSeriesService:
         pacf_values, pacf_ci = pacf(series, nlags=nlags, alpha=0.05)
         
         # Find significant lags
-        ci_width = 1.96 / np.sqrt(len(series))
+        ci_width = stats.norm.ppf(0.975) / np.sqrt(len(series))
         significant_acf = np.where(np.abs(acf_values[1:]) > ci_width)[0] + 1
         significant_pacf = np.where(np.abs(pacf_values[1:]) > ci_width)[0] + 1
         

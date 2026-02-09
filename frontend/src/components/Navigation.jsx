@@ -267,19 +267,7 @@ const DrawerContent = React.memo(({
   const safeMonitoringPages = Array.isArray(monitoringPages) ? monitoringPages : [];
   const safeAdminPages = Array.isArray(adminPages) ? adminPages : [];
 
-  // Add debugging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('DrawerContent props:', { 
-      pages: pages, 
-      pagesIsArray: Array.isArray(pages),
-      testPages: testPages,
-      testPagesIsArray: Array.isArray(testPages),
-      monitoringPages: monitoringPages,
-      monitoringPagesIsArray: Array.isArray(monitoringPages),
-      adminPages: adminPages,
-      adminPagesIsArray: Array.isArray(adminPages)
-    });
-  }
+  // Debug data available in development via React DevTools
 
   const openRagAndCloseDrawer = useCallback(() => {
     toggleDrawer(false)({});
@@ -612,17 +600,7 @@ const Navigation = () => {
     <RagDialog open={ragDialogOpen} onClose={handleCloseRagDialog} />
   ), [ragDialogOpen, handleCloseRagDialog]);
 
-  // Add debugging to help identify the issue
-  if (process.env.NODE_ENV === 'development' || process.env.REACT_APP_ENABLE_DEBUG === 'true') {
-    console.log('Navigation render debug:', {
-      pages: pages,
-      pagesType: typeof pages,
-      pagesIsArray: Array.isArray(pages),
-      navigationButtons: navigationButtons,
-      navButtonsType: typeof navigationButtons,
-      navButtonsIsArray: Array.isArray(navigationButtons)
-    });
-  }
+  // Debug data available via React DevTools
 
   // Wrap the JSX return in try-catch, not the hooks
   try {

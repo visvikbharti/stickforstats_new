@@ -12,6 +12,8 @@ Version: 1.0.0
 
 import json
 import pickle
+import io
+from core.utils.safe_pickle import safe_pickle_load
 import hashlib
 from typing import Dict, Any, List, Optional, Union, Tuple
 from datetime import datetime
@@ -394,7 +396,7 @@ class WorkflowContext:
             if format == "json":
                 import_data = json.loads(context_data)
             elif format == "pickle":
-                import_data = pickle.loads(context_data)
+                import_data = safe_pickle_load(io.BytesIO(context_data))
             else:
                 raise ValueError(f"Unsupported import format: {format}")
             

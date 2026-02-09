@@ -403,7 +403,8 @@ class NonParametricService:
     def sign_test(self,
                  x: Union[np.ndarray, pd.Series],
                  y: Optional[Union[np.ndarray, pd.Series]] = None,
-                 alternative: str = 'two-sided') -> NonParametricResult:
+                 alternative: str = 'two-sided',
+                 confidence_level: float = 0.95) -> NonParametricResult:
         """
         Sign test for paired samples or one-sample median test.
         
@@ -458,7 +459,7 @@ class NonParametricService:
         effect_size = n_positive / n
         
         # Confidence interval for median
-        ci_lower, ci_upper = self._sign_test_confidence_interval(differences, 0.95)
+        ci_lower, ci_upper = self._sign_test_confidence_interval(differences, confidence_level)
         
         result = NonParametricResult(
             test_name=test_type,
@@ -547,7 +548,8 @@ class NonParametricService:
     
     def spearman_correlation(self,
                            x: Union[np.ndarray, pd.Series],
-                           y: Union[np.ndarray, pd.Series]) -> Dict[str, Any]:
+                           y: Union[np.ndarray, pd.Series],
+                           confidence_level: float = 0.95) -> Dict[str, Any]:
         """
         Spearman's rank correlation coefficient.
         
@@ -577,7 +579,7 @@ class NonParametricService:
         # Calculate confidence interval using Fisher z-transformation
         z = np.arctanh(rho)
         se = 1 / np.sqrt(len(x) - 3)
-        z_critical = stats.norm.ppf(0.975)
+        z_critical = stats.norm.ppf(1 - (1 - confidence_level) / 2)
         
         ci_lower = np.tanh(z - z_critical * se)
         ci_upper = np.tanh(z + z_critical * se)
@@ -593,7 +595,8 @@ class NonParametricService:
     
     def kendall_tau(self,
                    x: Union[np.ndarray, pd.Series],
-                   y: Union[np.ndarray, pd.Series]) -> Dict[str, Any]:
+                   y: Union[np.ndarray, pd.Series],
+                   confidence_level: float = 0.95) -> Dict[str, Any]:
         """
         Kendall's tau rank correlation coefficient.
         
@@ -623,7 +626,7 @@ class NonParametricService:
         # Confidence interval (approximation)
         n = len(x)
         se = np.sqrt(2 * (2*n + 5)) / (3 * n * np.sqrt(n))
-        z_critical = stats.norm.ppf(0.975)
+        z_critical = stats.norm.ppf(1 - (1 - confidence_level) / 2)
         
         ci_lower = tau - z_critical * se
         ci_upper = tau + z_critical * se

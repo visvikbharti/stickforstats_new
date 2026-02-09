@@ -358,17 +358,50 @@ const TTestProfessionalModule = () => {
   const runSimulation = async (simType) => {
     setSimulationRunning(true);
     const template = simulationTemplates[simType];
+    const popMean = template.parameters.populationMean || 100;
+    const popSD = template.parameters.populationSD || 15;
+    const sampleN = template.parameters.sampleSize || 30;
+    const alpha = template.parameters.alpha || 0.05;
 
-    // Simulate data generation
+    // Standard error of the mean
+    const se = popSD / Math.sqrt(sampleN);
+
+    // Simulate data generation using Box-Muller for proper normal random samples
     const data = [];
     for (let i = 0; i < 100; i++) {
       await new Promise(resolve => setTimeout(resolve, 20));
+
+      // Generate a sample of size sampleN using Box-Muller transform
+      let sampleSum = 0;
+      for (let j = 0; j < sampleN; j++) {
+        const u1 = Math.random();
+        const u2 = Math.random();
+        const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        sampleSum += popMean + popSD * z;
+      }
+      const sampleMean = sampleSum / sampleN;
+
+      // Compute CI using proper critical value from jStat
+      const df = sampleN - 1;
+      // Use t-distribution for CI (accounts for df)
+      let tCrit;
+      try {
+        // jStat may be available globally or via import; use normal approx as fallback
+        tCrit = df > 0 && typeof jStat !== 'undefined'
+          ? jStat.studentt.inv(1 - alpha / 2, df)
+          : 1.96 + 2.4 / df + 1.08 / (df * df); // Approximation for t critical value
+      } catch {
+        // Cornish-Fisher approximation for t critical value
+        const z = 1.96; // for alpha=0.05 two-tailed
+        tCrit = z + (z * z * z + z) / (4 * df) + (5 * z * z * z * z * z + 16 * z * z * z + 3 * z) / (96 * df * df);
+      }
+
       data.push({
         iteration: i,
-        value: Math.random() * 10 + template.parameters.populationMean,
-        mean: template.parameters.populationMean + (Math.random() - 0.5) * 2,
-        ci_lower: template.parameters.populationMean - 1.96 * (15/Math.sqrt(30)),
-        ci_upper: template.parameters.populationMean + 1.96 * (15/Math.sqrt(30))
+        value: sampleMean,
+        mean: sampleMean,
+        ci_lower: sampleMean - tCrit * se,
+        ci_upper: sampleMean + tCrit * se
       });
       setSimulationData([...data]);
     }

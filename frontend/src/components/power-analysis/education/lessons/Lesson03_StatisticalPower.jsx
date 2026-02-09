@@ -60,6 +60,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import jStat from 'jstat';
 
 // Step titles for the lesson
 const steps = [
@@ -95,7 +96,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
     const noncentrality = effectSize * Math.sqrt(sampleSize / 2);
 
     // Critical value for two-tailed test
-    const zAlpha = alpha === 0.05 ? 1.96 : alpha === 0.01 ? 2.576 : alpha === 0.10 ? 1.645 : 1.96;
+    const zAlpha = jStat.normal.inv(1 - alpha / 2, 0, 1);
 
     // Power approximation using standard normal CDF
     // Φ(λ - z_{α/2}) + Φ(-λ - z_{α/2})

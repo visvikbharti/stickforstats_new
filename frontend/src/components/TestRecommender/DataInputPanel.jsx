@@ -85,7 +85,7 @@ const DataInputPanel = ({
       const result = await dispatch(uploadData({ 
         file,
         onProgress: (progress) => {
-          console.log(`Upload progress: ${progress}%`);
+          // Upload progress tracked
         }
       })).unwrap();
       

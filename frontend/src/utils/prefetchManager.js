@@ -510,11 +510,5 @@ export function resetPrefetchManager() {
  * @param {Object} data - Optional data to log
  */
 function debugLog(message, data) {
-  if (!options.debug) return;
-  
-  if (data) {
-    console.log(`[PrefetchManager] ${message}`, data);
-  } else {
-    console.log(`[PrefetchManager] ${message}`);
-  }
+  // Debug logging disabled for production
 }

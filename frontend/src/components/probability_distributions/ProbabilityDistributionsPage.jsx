@@ -210,7 +210,7 @@ const ProbabilityDistributionsPage = () => {
   // Handle calculation complete callback from DistributionPlot
   const handleCalculationComplete = (data) => {
     // Can be used for additional callbacks/actions when calculation completes
-    console.log('Distribution calculation complete:', data);
+    // Distribution calculation complete
   };
   
   // Render tab content based on active tab

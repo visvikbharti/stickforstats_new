@@ -13,6 +13,8 @@
  * - Press et al. (2007). Numerical Recipes: The Art of Scientific Computing
  */
 
+import jStat from 'jstat';
+
 // ============================================================================
 // MATRIX OPERATIONS
 // ============================================================================
@@ -449,35 +451,7 @@ export function levenbergMarquardt(model, xData, yData, initialParams, options =
  */
 export function getTCritical(alpha, df) {
   if (df <= 0) return NaN;
-  if (df > 1000) {
-    // Use normal approximation for large df
-    return 1.96; // Approximate for alpha = 0.05
-  }
-
-  // Table of t-critical values for common degrees of freedom (two-tailed, alpha = 0.05)
-  const tTable = {
-    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
-    6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
-    11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131,
-    16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086,
-    25: 2.060, 30: 2.042, 40: 2.021, 50: 2.009, 60: 2.000,
-    80: 1.990, 100: 1.984, 200: 1.972, 500: 1.965, 1000: 1.962
-  };
-
-  if (tTable[df]) return tTable[df];
-
-  // Interpolate for intermediate values
-  const keys = Object.keys(tTable).map(Number).sort((a, b) => a - b);
-  for (let i = 0; i < keys.length - 1; i++) {
-    if (df > keys[i] && df < keys[i + 1]) {
-      const t1 = tTable[keys[i]];
-      const t2 = tTable[keys[i + 1]];
-      const frac = (df - keys[i]) / (keys[i + 1] - keys[i]);
-      return t1 + frac * (t2 - t1);
-    }
-  }
-
-  return 1.96; // Default
+  return jStat.studentt.inv(1 - alpha / 2, df);
 }
 
 // ============================================================================

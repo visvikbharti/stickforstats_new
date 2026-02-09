@@ -679,7 +679,7 @@ const RecentAlerts = ({ alerts }) => (
  */
 const exportMetrics = () => {
   // Implementation would export metrics to CSV/JSON
-  console.log('Exporting metrics...');
+  // Exporting metrics
 };
 
 /**

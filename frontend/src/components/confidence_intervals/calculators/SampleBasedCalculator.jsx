@@ -176,7 +176,7 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
           result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
         );
 
-        console.log('[SampleBasedCalculator] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[SampleBasedCalculator] Guardian validation error:', error);
@@ -749,14 +749,14 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
             onProceed={() => setIsCalculationBlocked(false)}
             onSelectAlternative={(test) => {
               // For CI calculations, suggest bootstrap or non-parametric methods
-              console.log('[SampleBasedCalculator] Alternative suggested:', test);
+              // Alternative suggested
               if (test.toLowerCase().includes('bootstrap')) {
                 enqueueSnackbar('Switch to Bootstrap Calculator for non-parametric confidence intervals',
                   { variant: 'info' });
               }
             }}
             onViewEvidence={() => {
-              console.log('[SampleBasedCalculator] Visual evidence requested');
+              // Visual evidence requested
             }}
             data={[parsedData]}
             alpha={1 - confidenceLevel}
@@ -767,7 +767,7 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
                 setParsedData(transformed);
                 // Update rawData to reflect transformation
                 setRawData(transformed.join(', '));
-                console.log(`Data transformed using ${transformationType}. Re-validating...`);
+                // Data transformed, re-validating
               }
             }}
           />

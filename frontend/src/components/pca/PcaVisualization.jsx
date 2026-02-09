@@ -425,12 +425,12 @@ const PcaVisualization = ({ projectId, resultId, onNext }) => {
 
     // Set up WebSocket event handlers
     ws.onopen = () => {
-      console.log('WebSocket connected');
+      // WebSocket connected
       setWsConnected(true);
     };
 
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
+      // WebSocket disconnected
       setWsConnected(false);
     };
 
@@ -451,7 +451,7 @@ const PcaVisualization = ({ projectId, resultId, onNext }) => {
           }
         } else if (data.type === 'analysis_status') {
           // Handle analysis status updates
-          console.log('Analysis status update:', data.status);
+          // Analysis status update received
         }
       } catch (err) {
         console.error('Error processing WebSocket message:', err);

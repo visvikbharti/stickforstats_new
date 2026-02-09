@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import jStat from 'jstat';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 import {
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
@@ -352,10 +353,11 @@ const TTestCompleteModule = () => {
       );
       const tStat = (mean2 - mean1) / (pooledStd * Math.sqrt(2 / simParams.sampleSize));
 
+      const df = sample1Sim.length + sample2Sim.length - 2;
       results.push({
         iteration: i + 1,
         tStatistic: tStat,
-        significant: Math.abs(tStat) > 1.96, // Simplified for 95% CI
+        significant: Math.abs(tStat) > jStat.studentt.inv(1 - simParams.alpha / 2, df),
         effectSize: (mean2 - mean1) / pooledStd
       });
     }
@@ -1019,8 +1021,8 @@ const TTestCompleteModule = () => {
                       <XAxis dataKey="iteration" />
                       <YAxis />
                       <ChartTooltip />
-                      <ReferenceLine y={1.96} stroke={colors.danger} strokeDasharray="5 5" label="Critical Value" />
-                      <ReferenceLine y={-1.96} stroke={colors.danger} strokeDasharray="5 5" />
+                      <ReferenceLine y={jStat.normal.inv(1 - simParams.alpha / 2, 0, 1)} stroke={colors.danger} strokeDasharray="5 5" label="Critical Value" />
+                      <ReferenceLine y={-jStat.normal.inv(1 - simParams.alpha / 2, 0, 1)} stroke={colors.danger} strokeDasharray="5 5" />
                       <Line type="monotone" dataKey="tStatistic" stroke={colors.primary} dot={false} />
                       <Legend />
                     </LineChart>

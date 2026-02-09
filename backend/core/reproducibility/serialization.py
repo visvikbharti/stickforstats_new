@@ -12,6 +12,7 @@ and binary formats for efficient storage and sharing.
 import json
 import gzip
 import pickle
+from core.utils.safe_pickle import safe_pickle_load
 import zipfile
 import tarfile
 import hashlib
@@ -299,12 +300,12 @@ class BundleSerializer:
     def _import_pickle(self, filepath: Path) -> Dict[str, Any]:
         """Import from pickle"""
         with open(filepath, 'rb') as f:
-            return pickle.load(f)
-    
+            return safe_pickle_load(f)
+
     def _import_pickle_gz(self, filepath: Path) -> Dict[str, Any]:
         """Import from compressed pickle"""
         with gzip.open(filepath, 'rb') as f:
-            return pickle.load(f)
+            return safe_pickle_load(f)
     
     # Archive export/import methods
     def _export_zip(self, data: Dict[str, Any], filepath: Path, 

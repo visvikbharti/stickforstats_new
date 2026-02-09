@@ -400,7 +400,7 @@ export const useAIAdvisor = () => {
       setIsAIAvailable(false);
       return false;
     } catch (err) {
-      console.log('AI service status check failed, will use mock responses');
+      // AI service status check failed, will use mock responses
       setIsAIAvailable(false);
       return false;
     }
@@ -446,7 +446,7 @@ export const useAIAdvisor = () => {
       } catch (apiError) {
         // If API unavailable, fall back to mock
         if (apiError.message === 'AI_UNAVAILABLE' || apiError.name === 'TypeError') {
-          console.log('Backend AI unavailable, using mock responses');
+          // Backend AI unavailable, using mock responses
           response = await mockAIResponse(content, dataContext);
           usedMock = true;
           setUsingMockResponses(true);

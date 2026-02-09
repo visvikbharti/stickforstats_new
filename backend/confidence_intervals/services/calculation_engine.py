@@ -336,7 +336,7 @@ class ConfidenceIntervalCalculator:
             raise ValueError(f"Unknown method: {method}")
         
         # Calculate bootstrap standard error
-        bootstrap_se = np.std(bootstrap_statistics)
+        bootstrap_se = np.std(bootstrap_statistics, ddof=1)
         
         return {
             'point_estimate': original_statistic,

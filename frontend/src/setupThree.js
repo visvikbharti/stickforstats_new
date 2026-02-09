@@ -3,7 +3,7 @@
 
 const setupThree = () => {
   // Placeholder for Three.js initialization
-  console.log('Three.js setup initialized');
+  // Three.js setup initialized
 };
 
 export default setupThree;

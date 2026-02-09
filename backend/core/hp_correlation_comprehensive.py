@@ -113,7 +113,7 @@ class HighPrecisionCorrelation:
             'sample_size': n,
             'mean': float(np.mean(arr)),
             'median': float(np.median(arr)),
-            'std': float(np.std(arr)),
+            'std': float(np.std(arr, ddof=1)),
             'skewness': float(stats.skew(arr)),
             'kurtosis': float(stats.kurtosis(arr)),
             'outliers': self._detect_outliers(arr),

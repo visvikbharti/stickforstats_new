@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import jStat from 'jstat';
 import './PowerAnalysisReport.scss';
 
 // Report sections
@@ -110,8 +111,10 @@ const PowerAnalysisReport = () => {
     const twoTailed = powerAnalysis.alternative === 'two.sided';
     const df = powerAnalysis.df || (powerAnalysis.sampleSize - 2);
     
-    // Calculate critical t-value (simplified)
-    const tCrit = twoTailed ? 1.96 : 1.645; // For large samples
+    // Calculate critical t-value using jStat
+    const tCrit = df > 0
+      ? jStat.studentt.inv(twoTailed ? 1 - alpha / 2 : 1 - alpha, df)
+      : jStat.normal.inv(twoTailed ? 1 - alpha / 2 : 1 - alpha, 0, 1);
     
     return {
       title: 'Power Analysis Details',
@@ -200,7 +203,8 @@ const PowerAnalysisReport = () => {
       for (let d = baseEffect * 0.5; d <= baseEffect * 1.5; d += baseEffect * 0.1) {
         // Simplified power calculation
         const z = d * Math.sqrt(n / 2);
-        const power = 1 / (1 + Math.exp(-1.7 * (z - 1.96)));
+        const zCrit = jStat.normal.inv(0.975, 0, 1);
+        const power = jStat.normal.cdf(z - zCrit, 0, 1);
         sensitivityData.push({ n: Math.round(n), effectSize: d.toFixed(2), power: power.toFixed(3) });
       }
     }
@@ -220,7 +224,9 @@ const PowerAnalysisReport = () => {
         },
         {
           type: 'interpretation',
-          text: `Power is most sensitive to changes in ${Math.random() > 0.5 ? 'sample size' : 'effect size'} in this scenario.`
+          text: `Power is most sensitive to changes in ${
+            basePower < 0.8 ? 'sample size' : 'effect size'
+          } in this scenario.`
         }
       ]
     };

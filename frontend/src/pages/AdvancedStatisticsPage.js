@@ -58,7 +58,7 @@ const AdvancedStatisticsPage = () => {
       description: 'Bayesian inference, MCMC, prior/posterior distributions',
       icon: <AccountTreeIcon fontSize="large" />,
       topics: ['Bayesian Inference', 'MCMC', 'Prior Selection', 'Posterior Analysis'],
-      status: 'coming-soon',
+      status: 'preview',
       path: '/statistics/bayesian'
     },
     {
@@ -76,7 +76,7 @@ const AdvancedStatisticsPage = () => {
       description: 'Geostatistics, spatial autocorrelation, kriging',
       icon: <InsightsIcon fontSize="large" />,
       topics: ['Geostatistics', 'Spatial Autocorrelation', 'Kriging', 'Point Patterns'],
-      status: 'coming-soon',
+      status: 'preview',
       path: '/statistics/spatial'
     }
   ];
@@ -101,7 +101,7 @@ const AdvancedStatisticsPage = () => {
                 height: '100%', 
                 display: 'flex', 
                 flexDirection: 'column',
-                opacity: module.status === 'coming-soon' ? 0.7 : 1
+                opacity: module.status === 'preview' ? 0.7 : 1
               }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
@@ -113,8 +113,8 @@ const AdvancedStatisticsPage = () => {
                     <Typography variant="h5" component="h2">
                       {module.title}
                     </Typography>
-                    {module.status === 'coming-soon' && (
-                      <Chip label="Coming Soon" size="small" color="warning" />
+                    {module.status === 'preview' && (
+                      <Chip label="Preview" size="small" color="warning" />
                     )}
                   </Box>
                 </Box>
@@ -144,10 +144,10 @@ const AdvancedStatisticsPage = () => {
                 <Button 
                   fullWidth 
                   variant={module.status === 'available' ? 'contained' : 'outlined'}
-                  disabled={module.status === 'coming-soon'}
+                  disabled={module.status === 'preview'}
                   onClick={() => navigate(module.path)}
                 >
-                  {module.status === 'available' ? 'Explore Module' : 'Coming Soon'}
+                  {module.status === 'available' ? 'Explore Module' : 'Preview'}
                 </Button>
               </CardActions>
             </Card>

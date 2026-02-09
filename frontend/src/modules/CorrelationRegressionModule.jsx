@@ -27,6 +27,7 @@ import {
   ComposedChart, ErrorBar, ZAxis
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
+import jStat from 'jstat';
 
 // Styled Components
 const GradientCard = styled(Card)(({ theme, gradient }) => ({
@@ -662,7 +663,8 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
 
   const getSignificance = (r, n = 100) => {
     const t = r * Math.sqrt((n - 2) / (1 - r * r));
-    const p = 2 * (1 - Math.min(0.999, Math.max(0.001, 0.5 + 0.5 * Math.sign(t) * (1 - Math.exp(-Math.abs(t) * 1.5)))));
+    const df = n - 2;
+    const p = jStat.studentt.cdf(-Math.abs(t), df) * 2;
     return p < 0.001 ? '***' : p < 0.01 ? '**' : p < 0.05 ? '*' : '';
   };
 

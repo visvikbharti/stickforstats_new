@@ -1346,7 +1346,7 @@ class AdvancedVisualizationSystem:
 
         for n in sample_sizes:
             # Simplified power calculation for demonstration
-            power = 1 / (1 + np.exp(-2 * (effect_sizes * np.sqrt(n) - 1.96)))
+            power = 1 / (1 + np.exp(-2 * (effect_sizes * np.sqrt(n) - stats.norm.ppf(0.975))))
             fig.add_trace(
                 go.Scatter(x=effect_sizes, y=power, mode='lines', name=f'n={n}'),
                 row=row, col=col

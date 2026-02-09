@@ -556,14 +556,22 @@ const PcaReportGenerator = ({ projectId, resultId }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>Sample_{idx+1}</TableCell>
-                    <TableCell>{idx < 3 ? 'Control' : 'Treatment'}</TableCell>
-                    <TableCell>{(Math.random() * 2 - 1).toFixed(3)}</TableCell>
-                    <TableCell>{(Math.random() * 2 - 1).toFixed(3)}</TableCell>
+                {visualizationData?.sample_data ? (
+                  visualizationData.sample_data.slice(0, 10).map((sample, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{sample.sample_id}</TableCell>
+                      <TableCell>{sample.group}</TableCell>
+                      <TableCell>{sample.pc1 != null ? sample.pc1.toFixed(3) : 'N/A'}</TableCell>
+                      <TableCell>{sample.pc2 != null ? sample.pc2.toFixed(3) : 'N/A'}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      No sample data available. Run PCA analysis first.
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -580,14 +588,22 @@ const PcaReportGenerator = ({ projectId, resultId }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>Gene_{idx+1}</TableCell>
-                    <TableCell>{(Math.random() * 5 + 1).toFixed(2)}%</TableCell>
-                    <TableCell>{(Math.random() * 3 + 1).toFixed(2)}%</TableCell>
-                    <TableCell>{(Math.random() * 8 + 2).toFixed(2)}%</TableCell>
+                {visualizationData?.gene_loadings ? (
+                  visualizationData.gene_loadings.slice(0, 10).map((gene, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{gene.gene_name}</TableCell>
+                      <TableCell>{(gene.pc1_contribution || 0).toFixed(2)}%</TableCell>
+                      <TableCell>{(gene.pc2_contribution || 0).toFixed(2)}%</TableCell>
+                      <TableCell>{(gene.total_contribution || 0).toFixed(2)}%</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      No gene loading data available. Run PCA analysis first.
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>

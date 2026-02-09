@@ -70,10 +70,7 @@ function DataUploadPage() {
 
     // For this mock example, we'll just simulate a successful upload
     setTimeout(() => {
-      console.log('Uploading file:', file.name);
-      console.log('Dataset name:', datasetName);
-      console.log('Description:', description);
-      console.log('Data type:', dataType);
+      // File upload initiated
       
       setSuccess(true);
       setError('');

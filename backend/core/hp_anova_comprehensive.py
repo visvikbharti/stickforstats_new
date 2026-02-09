@@ -643,13 +643,10 @@ class HighPrecisionANOVA:
     def _calculate_t_p_value(self, t_stat: Decimal, df: int) -> Decimal:
         """Calculate p-value for t-statistic with high precision"""
         t_float = float(t_stat)
-        df_float = float(df)
+        df_int = int(df)
 
-        # Two-tailed p-value
-        p_value = Decimal(str(2 * (1 - float(mpmath.nsum(lambda x:
-            mpmath.gamma((df_float + 1) / 2) / (mpmath.sqrt(df_float * mpmath.pi) *
-            mpmath.gamma(df_float / 2)) * (1 + x**2 / df_float)**(-(df_float + 1) / 2),
-            [-mpmath.inf, abs(t_float)])))))
+        # Two-tailed p-value using scipy's survival function
+        p_value = Decimal(str(float(stats.t.sf(abs(t_float), df_int) * 2)))
 
         return p_value
 

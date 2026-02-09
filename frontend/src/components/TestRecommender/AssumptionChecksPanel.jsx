@@ -312,7 +312,7 @@ const AssumptionChecksPanel = ({
     };
     
     // In production, this would trigger actual export
-    console.log('Exporting diagnostic report:', report);
+    // Exporting diagnostic report
   }, [dataCharacteristics, detailedResults, assumptionHealthScore]);
   
   return (
@@ -408,41 +408,58 @@ const AssumptionChecksPanel = ({
                   </thead>
                   <tbody>
                     {AssumptionCategories[selectedAssumption].tests.map(testName => {
-                      // Mock data for demonstration
-                      const mockResult = {
-                        statistic: (Math.random() * 10).toFixed(3),
-                        pValue: Math.random() * 0.2,
-                        passed: Math.random() > 0.5
-                      };
-                      
+                      // Use actual results from assumptionChecks if available
+                      const actualResult = assumptionChecks[selectedAssumption];
+                      const testResult = actualResult ? {
+                        statistic: actualResult.statistic,
+                        pValue: actualResult.pValue,
+                        passed: actualResult.passed
+                      } : null;
+
                       return (
-                        <tr key={testName} className={mockResult.passed ? 'pass' : 'fail'}>
+                        <tr key={testName} className={testResult ? (testResult.passed ? 'pass' : 'fail') : ''}>
                           <td className="test-method">
                             {testName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </td>
-                          <td className="statistic">{mockResult.statistic}</td>
+                          <td className="statistic">
+                            {testResult?.statistic != null ? Number(testResult.statistic).toFixed(3) : 'Pending'}
+                          </td>
                           <td className={`p-value ${
-                            mockResult.pValue < 0.001 ? 'sig-001' :
-                            mockResult.pValue < 0.01 ? 'sig-01' :
-                            mockResult.pValue < 0.05 ? 'sig-05' : ''
+                            testResult?.pValue != null ? (
+                              testResult.pValue < 0.001 ? 'sig-001' :
+                              testResult.pValue < 0.01 ? 'sig-01' :
+                              testResult.pValue < 0.05 ? 'sig-05' : ''
+                            ) : ''
                           }`}>
-                            {mockResult.pValue < 0.001 ? '< 0.001' : mockResult.pValue.toFixed(4)}
+                            {testResult?.pValue != null
+                              ? (testResult.pValue < 0.001 ? '< 0.001' : testResult.pValue.toFixed(4))
+                              : 'Pending'}
                           </td>
                           <td className="decision">
-                            <span className={`decision-badge ${mockResult.passed ? 'pass' : 'fail'}`}>
-                              {mockResult.passed ? 'Pass' : 'Fail'}
-                            </span>
+                            {testResult ? (
+                              <span className={`decision-badge ${testResult.passed ? 'pass' : 'fail'}`}>
+                                {testResult.passed ? 'Pass' : 'Fail'}
+                              </span>
+                            ) : (
+                              <span className="decision-badge">Run checks</span>
+                            )}
                           </td>
                           <td className="confidence">
-                            <div className="confidence-bar">
-                              <div 
-                                className="confidence-fill"
-                                style={{ width: `${calculateConfidence(mockResult)}%` }}
-                              />
-                            </div>
-                            <span className="confidence-value">
-                              {calculateConfidence(mockResult)}%
-                            </span>
+                            {testResult ? (
+                              <>
+                                <div className="confidence-bar">
+                                  <div
+                                    className="confidence-fill"
+                                    style={{ width: `${calculateConfidence(testResult)}%` }}
+                                  />
+                                </div>
+                                <span className="confidence-value">
+                                  {calculateConfidence(testResult)}%
+                                </span>
+                              </>
+                            ) : (
+                              <span className="confidence-value">N/A</span>
+                            )}
                           </td>
                         </tr>
                       );

@@ -2018,7 +2018,7 @@ class PropensityScoreView(APIView):
             if len(response_data['scores']) > 100:
                 response_data['scores_summary'] = {
                     'mean': float(np.mean(result.scores)),
-                    'std': float(np.std(result.scores)),
+                    'std': float(np.std(result.scores, ddof=1)),
                     'min': float(np.min(result.scores)),
                     'max': float(np.max(result.scores)),
                     'n': len(result.scores)

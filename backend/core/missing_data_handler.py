@@ -792,8 +792,8 @@ class MissingDataHandler:
 
                 # Compare standard deviations
                 if len(orig_col) > 1:
-                    orig_std = np.std(orig_col)
-                    imp_std = np.std(imp_col)
+                    orig_std = np.std(orig_col, ddof=1)
+                    imp_std = np.std(imp_col, ddof=1)
                     metrics[f'std_shift_col_{i}'] = Decimal(str(abs(orig_std - imp_std)))
 
         # Overall quality score

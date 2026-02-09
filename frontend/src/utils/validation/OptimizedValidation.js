@@ -97,7 +97,7 @@ export const validateArrayOptimized = async (data, options = {}) => {
       batchSize,
       parallel,
       onProgress: (progress) => {
-        console.log(`Validation progress: ${progress.percentage.toFixed(1)}%`);
+        // Validation progress tracked
       }
     }
   );
@@ -326,7 +326,7 @@ export const validateInWorker = async (params, schema) => {
  */
 export const clearOptimizationCaches = () => {
   PerformanceOptimizer.clearAll();
-  console.log('All optimization caches cleared');
+  // All optimization caches cleared
 };
 
 /**
@@ -405,13 +405,13 @@ export const enableAutoOptimization = () => {
         PerformanceOptimizer.cache.maxSize * 1.5,
         10000 // Max 10,000 entries
       );
-      console.log(`Cache size increased to ${PerformanceOptimizer.cache.maxSize}`);
+      // Cache size increased
     }
 
     // Clear old cache entries if hit rate is low
     if (stats.cache.hitRate < 20) {
       PerformanceOptimizer.cache.clearExpired();
-      console.log('Cleared expired cache entries due to low hit rate');
+      // Cleared expired cache entries due to low hit rate
     }
   }, 300000); // Every 5 minutes
 };

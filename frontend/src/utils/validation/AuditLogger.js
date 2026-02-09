@@ -688,7 +688,7 @@ export class AuditLogger {
         // Note: In production, we'd need to handle schema upgrades properly
 
         // For now, just log that rotation occurred
-        console.log(`Rotated ${entriesToArchive.length} entries to archive`);
+        // Entries rotated to archive
       } catch (error) {
         console.error('Failed to rotate entries:', error);
       }

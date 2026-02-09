@@ -22,6 +22,7 @@ import {
   RadialBarChart, RadialBar, PieChart as RechartsPieChart, Pie
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
+import jStat from 'jstat';
 import {
   tTestService,
   anovaService,
@@ -119,7 +120,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
       // Generate distribution data for visualization using backend parameters
       const data = [];
       const iterations = 100;
-      const criticalValue = 1.96; // For alpha = 0.05, two-tailed
+      const criticalValue = jStat.normal.inv(1 - alpha / 2, 0, 1);
 
       for (let i = 0; i < iterations; i++) {
         const x = (i - 50) / 10;
@@ -144,6 +145,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
       // Fallback visualization data
       const data = [];
       const iterations = 100;
+      const fallbackCritical = jStat.normal.inv(1 - alpha / 2, 0, 1);
       for (let i = 0; i < iterations; i++) {
         const x = (i - 50) / 10;
         const h0 = Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
@@ -153,9 +155,9 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
           x: x,
           h0: h0,
           h1: h1,
-          typeI: x > 1.96 ? h0 : 0,
-          typeII: x < 1.96 ? h1 : 0,
-          power: x > 1.96 ? h1 : 0
+          typeI: x > fallbackCritical ? h0 : 0,
+          typeII: x < fallbackCritical ? h1 : 0,
+          power: x > fallbackCritical ? h1 : 0
         });
       }
       setSimulationData(data);
@@ -341,7 +343,7 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
                   name="Type II Error Region"
                 />
 
-                <ReferenceLine x={1.96} stroke="#ff0000" strokeDasharray="5 5" label="Critical Value" />
+                <ReferenceLine x={jStat.normal.inv(1 - alpha / 2, 0, 1)} stroke="#ff0000" strokeDasharray="5 5" label="Critical Value" />
               </AreaChart>
             </ResponsiveContainer>
           </Paper>
@@ -439,10 +441,10 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
         try {
           // For performance, we'll calculate power locally for the curve
           // But we've already gotten the accurate sample size from backend
-          const z_alpha = testType === 'two-tailed' ? 1.96 : 1.645;
+          const z_alpha = jStat.normal.inv(testType === 'two-tailed' ? 1 - alpha / 2 : 1 - alpha, 0, 1);
           const lambda = effectSize * Math.sqrt(n / 2);
           const z_beta = lambda - z_alpha;
-          const localPower = 1 - (1 / (1 + Math.exp(1.7 * z_beta)));
+          const localPower = jStat.normal.cdf(z_beta, 0, 1);
 
           data.push({
             sampleSize: n,
@@ -460,17 +462,17 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
       setError(err.message || 'Failed to connect to backend API');
 
       // Fallback to local calculation
-      const z_alpha = testType === 'two-tailed' ? 1.96 : 1.645;
-      const z_beta = Math.abs(Math.sqrt(-2 * Math.log(1 - desiredPower)));
-      const n = Math.ceil(2 * Math.pow((z_alpha + z_beta) / effectSize, 2));
+      const z_alpha_fallback = jStat.normal.inv(testType === 'two-tailed' ? 1 - alpha / 2 : 1 - alpha, 0, 1);
+      const z_beta = jStat.normal.inv(desiredPower, 0, 1);
+      const n = Math.ceil(2 * Math.pow((z_alpha_fallback + z_beta) / effectSize, 2));
       setRequiredSampleSize(n);
 
       // Generate power curve locally
       const data = [];
       for (let n = 10; n <= 200; n += 5) {
         const lambda = effectSize * Math.sqrt(n / 2);
-        const z_beta_local = lambda - z_alpha;
-        const power = 1 - (1 / (1 + Math.exp(1.7 * z_beta_local)));
+        const z_beta_local = lambda - z_alpha_fallback;
+        const power = jStat.normal.cdf(z_beta_local, 0, 1);
         data.push({
           sampleSize: n,
           power: Math.max(0, Math.min(1, power)),
@@ -738,8 +740,7 @@ const PValueDistributionExplorer = ({ darkMode }) => {
           const se = 1 / Math.sqrt(sampleSize);
           const t = (mean + (Math.random() - 0.5) * 2 * se) / se;
 
-          const p = 2 * (1 - Math.min(0.999, Math.max(0.001,
-            0.5 + 0.5 * Math.sign(t) * (1 - Math.exp(-Math.abs(t) * 1.5)))));
+          const p = jStat.studentt.cdf(-Math.abs(t), sampleSize - 1) * 2;
 
           pValues.push(p);
           const bin = Math.floor(p * 20);
@@ -767,8 +768,7 @@ const PValueDistributionExplorer = ({ darkMode }) => {
         const se = 1 / Math.sqrt(sampleSize);
         const t = (mean + (Math.random() - 0.5) * 2 * se) / se;
 
-        const p = 2 * (1 - Math.min(0.999, Math.max(0.001,
-          0.5 + 0.5 * Math.sign(t) * (1 - Math.exp(-Math.abs(t) * 1.5)))));
+        const p = jStat.studentt.cdf(-Math.abs(t), sampleSize - 1) * 2;
 
         pValues.push(p);
         const bin = Math.floor(p * 20);

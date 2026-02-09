@@ -48,7 +48,7 @@ const DOEWebSocketIntegration = ({
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('DOE WebSocket connected');
+        // DOE WebSocket connected
         setConnectionStatus('connected');
         setReconnectAttempts(0);
         setError(null);
@@ -87,7 +87,7 @@ const DOEWebSocketIntegration = ({
               break;
               
             default:
-              console.log('Unknown message type:', data.type);
+              // Unknown message type
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err);
@@ -101,7 +101,7 @@ const DOEWebSocketIntegration = ({
       };
 
       ws.onclose = (event) => {
-        console.log('DOE WebSocket closed:', event.code, event.reason);
+        // DOE WebSocket closed
         setConnectionStatus('disconnected');
         wsRef.current = null;
         
@@ -109,7 +109,7 @@ const DOEWebSocketIntegration = ({
         if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts && autoConnect) {
           setReconnectAttempts(prev => prev + 1);
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(`Attempting to reconnect (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
+            // Attempting to reconnect
             connect();
           }, reconnectDelay);
         }

@@ -81,10 +81,11 @@ class LinearRegressionService:
         self.y = None
         self.feature_names = None
     
-    def fit(self, X: Union[np.ndarray, pd.DataFrame], 
+    def fit(self, X: Union[np.ndarray, pd.DataFrame],
             y: Union[np.ndarray, pd.Series],
             feature_names: Optional[List[str]] = None,
-            add_intercept: bool = True) -> RegressionResults:
+            add_intercept: bool = True,
+            confidence_level: float = 0.95) -> RegressionResults:
         """
         Fit linear regression model using Ordinary Least Squares.
         
@@ -186,8 +187,8 @@ class LinearRegressionService:
         t_statistics = beta / standard_errors if np.any(standard_errors > 0) else np.zeros_like(beta)
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_statistics), df_resid))
         
-        # Confidence intervals (95% by default)
-        t_critical = stats.t.ppf(0.975, df_resid)
+        # Confidence intervals
+        t_critical = stats.t.ppf(1 - (1 - confidence_level) / 2, df_resid)
         confidence_intervals = np.column_stack([
             beta - t_critical * standard_errors,
             beta + t_critical * standard_errors

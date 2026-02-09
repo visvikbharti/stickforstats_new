@@ -149,7 +149,7 @@ export const fetchDistributionProjects = async () => {
   } catch (error) {
     console.error('Error fetching distribution projects:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo data for projects');
+      // Using fallback demo data for projects
       return { results: demoProjects };
     }
     throw error;
@@ -172,7 +172,7 @@ export const fetchDistributionProject = async (projectId) => {
   } catch (error) {
     console.error(`Error fetching distribution project ${projectId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo data for project ${projectId}`);
+      // Using fallback demo data
       const project = demoProjects.find(p => p.id === projectId);
       if (project) {
         return project;
@@ -203,7 +203,7 @@ export const createDistributionProject = async (projectData) => {
   } catch (error) {
     console.error('Error creating distribution project:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for project creation');
+      // Using fallback demo mode for project creation
       const newProject = {
         id: generateId(),
         name: projectData.name,
@@ -242,7 +242,7 @@ export const updateDistributionProject = async (projectId, projectData) => {
   } catch (error) {
     console.error(`Error updating distribution project ${projectId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo mode for project ${projectId} update`);
+      // Using fallback demo mode for project update
       const projectIndex = demoProjects.findIndex(p => p.id === projectId);
       if (projectIndex !== -1) {
         const updatedProject = {
@@ -277,7 +277,7 @@ export const deleteDistributionProject = async (projectId) => {
   } catch (error) {
     console.error(`Error deleting distribution project ${projectId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo mode for project ${projectId} deletion`);
+      // Using fallback demo mode for project deletion
       const projectIndex = demoProjects.findIndex(p => p.id === projectId);
       if (projectIndex !== -1) {
         demoProjects.splice(projectIndex, 1);
@@ -328,7 +328,7 @@ export const duplicateDistributionProject = async (projectId) => {
   } catch (error) {
     console.error(`Error duplicating distribution project ${projectId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo mode for project ${projectId} duplication`);
+      // Using fallback demo mode for project duplication
       const project = demoProjects.find(p => p.id === projectId);
       if (project) {
         const newProject = {
@@ -376,7 +376,7 @@ export const fetchDistributions = async (projectId) => {
   } catch (error) {
     console.error(`Error fetching distributions for project ${projectId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo data for distributions in project ${projectId}`);
+      // Using fallback demo data for distributions
       return { results: demoDistributions[projectId] || [] };
     }
     throw error;
@@ -402,7 +402,7 @@ export const fetchDistribution = async (distributionId) => {
   } catch (error) {
     console.error(`Error fetching distribution ${distributionId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo data for distribution ${distributionId}`);
+      // Using fallback demo data for distribution
       // Search through all distributions to find the matching ID
       for (const projectId in demoDistributions) {
         const distribution = demoDistributions[projectId].find(d => d.id === distributionId);
@@ -446,7 +446,7 @@ export const createDistribution = async (distributionData) => {
   } catch (error) {
     console.error('Error creating distribution:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for distribution creation');
+      // Using fallback demo mode for distribution creation
       const newDistribution = {
         id: generateId(),
         project: distributionData.project,
@@ -497,7 +497,7 @@ export const updateDistribution = async (distributionId, distributionData) => {
   } catch (error) {
     console.error(`Error updating distribution ${distributionId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo mode for distribution ${distributionId} update`);
+      // Using fallback demo mode for distribution update
       // Search through all distributions to find the matching ID
       for (const projectId in demoDistributions) {
         const distIndex = demoDistributions[projectId].findIndex(d => d.id === distributionId);
@@ -539,7 +539,7 @@ export const deleteDistribution = async (distributionId) => {
   } catch (error) {
     console.error(`Error deleting distribution ${distributionId}:`, error);
     if (DEMO_MODE) {
-      console.log(`Using fallback demo mode for distribution ${distributionId} deletion`);
+      // Using fallback demo mode for distribution deletion
       // Search through all distributions to find the matching ID
       for (const projectId in demoDistributions) {
         const distIndex = demoDistributions[projectId].findIndex(d => d.id === distributionId);
@@ -585,7 +585,7 @@ export const calculatePmfPdf = async (distributionType, parameters, xValues) => 
   } catch (error) {
     console.error('Error calculating PMF/PDF:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for PMF/PDF calculation');
+      // Using fallback demo mode for PMF/PDF calculation
       
       const pdfFunction = pdfFunctions[distributionType];
       if (!pdfFunction) {
@@ -638,7 +638,7 @@ export const calculateCdf = async (distributionType, parameters, xValues) => {
   } catch (error) {
     console.error('Error calculating CDF:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for CDF calculation');
+      // Using fallback demo mode for CDF calculation
       
       const cdfFunction = cdfFunctions[distributionType];
       if (!cdfFunction) {
@@ -716,7 +716,7 @@ export const calculateProbability = async (distributionType, parameters, probabi
   } catch (error) {
     console.error('Error calculating probability:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for probability calculation');
+      // Using fallback demo mode for probability calculation
       
       const cdfFunction = cdfFunctions[distributionType];
       if (!cdfFunction) {
@@ -1043,7 +1043,7 @@ export const generateRandomSample = async (distributionType, parameters, sampleS
     return data;
   } catch (error) {
     console.error('Error generating random sample from API:', error);
-    console.log('Falling back to client-side random sample generation');
+    // Falling back to client-side random sample generation
 
     // ALWAYS fall back to client-side generation when API fails
     // This ensures the feature works even when backend is unavailable
@@ -1351,7 +1351,7 @@ export const compareBinomialApproximations = async (n, p, approximationTypes = [
   } catch (error) {
     console.error('Error comparing binomial approximations:', error);
     if (DEMO_MODE) {
-      console.log('Using fallback demo mode for binomial approximation comparison');
+      // Using fallback demo mode for binomial approximation comparison
       
       // Calculate exact binomial probabilities
       const xValues = Array.from({ length: n + 1 }, (_, i) => i);
@@ -1415,55 +1415,104 @@ export const fitDistribution = async (
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
     
     if (isDirectData) {
-      // Calculate basic stats for more realistic demo data
+      // Calculate basic stats using Bessel's correction (N-1) for unbiased variance
       const data = projectIdOrData;
       const n = data.length;
       const sum = data.reduce((a, b) => a + b, 0);
       const mean = sum / n;
-      const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+      const variance = n > 1 ? data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1) : 0;
       const std = Math.sqrt(variance);
-      
-      // Generate random but somewhat realistic parameters for different distributions
+
+      // Method-of-moments estimates for gamma parameters
+      const gammaShape = mean > 0 && variance > 0 ? (mean * mean) / variance : 2;
+      const gammaScale = mean > 0 ? variance / mean : 1;
+
+      // Method-of-moments estimates for lognormal parameters
+      const lnMu = variance + mean * mean > 0 ? Math.log(mean * mean / Math.sqrt(variance + mean * mean)) : 0;
+      const lnSigma = mean > 0 ? Math.sqrt(Math.log(1 + variance / (mean * mean))) : 1;
+
+      // Compute actual log-likelihoods for AIC/BIC
+      // Normal log-likelihood
+      const llNormal = data.reduce((ll, x) => {
+        return ll + Math.log(jStat.normal.pdf(x, mean, std) || 1e-300);
+      }, 0);
+      const aicNormal = -2 * llNormal + 2 * 2; // 2 parameters
+      const bicNormal = -2 * llNormal + Math.log(n) * 2;
+
+      // Gamma log-likelihood (only valid for positive data)
+      const allPositive = data.every(x => x > 0);
+      let llGamma = -Infinity;
+      if (allPositive) {
+        llGamma = data.reduce((ll, x) => {
+          const p = jStat.gamma.pdf(x, gammaShape, gammaScale);
+          return ll + Math.log(p || 1e-300);
+        }, 0);
+      }
+      const aicGamma = llGamma > -Infinity ? -2 * llGamma + 2 * 2 : Infinity;
+      const bicGamma = llGamma > -Infinity ? -2 * llGamma + Math.log(n) * 2 : Infinity;
+
+      // Lognormal log-likelihood (only valid for positive data)
+      let llLognormal = -Infinity;
+      if (allPositive) {
+        llLognormal = data.reduce((ll, x) => {
+          const p = jStat.lognormal.pdf(x, lnMu, lnSigma);
+          return ll + Math.log(p || 1e-300);
+        }, 0);
+      }
+      const aicLognormal = llLognormal > -Infinity ? -2 * llLognormal + 2 * 2 : Infinity;
+      const bicLognormal = llLognormal > -Infinity ? -2 * llLognormal + Math.log(n) * 2 : Infinity;
+
+      // Compute KS test p-value approximation
+      const computeKSPValue = (data, cdfFn) => {
+        const sorted = [...data].sort((a, b) => a - b);
+        let dMax = 0;
+        for (let i = 0; i < sorted.length; i++) {
+          const cdfVal = cdfFn(sorted[i]);
+          const dPlus = Math.abs((i + 1) / n - cdfVal);
+          const dMinus = Math.abs(cdfVal - i / n);
+          dMax = Math.max(dMax, dPlus, dMinus);
+        }
+        // Kolmogorov approximation for p-value
+        const sqrtN = Math.sqrt(n);
+        const lambda = (sqrtN + 0.12 + 0.11 / sqrtN) * dMax;
+        // Approximate p-value using asymptotic formula
+        let pValue = 2 * Math.exp(-2 * lambda * lambda);
+        return Math.min(Math.max(pValue, 0), 1);
+      };
+
+      const ksNormal = computeKSPValue(data, x => jStat.normal.cdf(x, mean, std));
+      const ksGamma = allPositive ? computeKSPValue(data, x => jStat.gamma.cdf(x, gammaShape, gammaScale)) : 0;
+      const ksLognormal = allPositive ? computeKSPValue(data, x => jStat.lognormal.cdf(x, lnMu, lnSigma)) : 0;
+
+      const xRange = Array.from({ length: 100 }, (_, i) => mean - 3 * std + i * 6 * std / 99);
+
       return {
         fitted_distributions: [
           {
             distribution_type: 'NORMAL',
             parameters: { mean, std },
-            goodness_of_fit: { aic: 100 + Math.random() * 50, bic: 110 + Math.random() * 50, ks_pvalue: 0.3 + Math.random() * 0.6 },
-            x_values: Array.from({ length: 100 }, (_, i) => mean - 3 * std + i * 6 * std / 99),
-            pdf_values: Array.from({ length: 100 }, (_, i) => {
-              const x = mean - 3 * std + i * 6 * std / 99;
-              return Math.exp(-Math.pow(x - mean, 2) / (2 * std * std)) / (std * Math.sqrt(2 * Math.PI));
-            })
+            goodness_of_fit: { aic: aicNormal, bic: bicNormal, ks_pvalue: ksNormal },
+            x_values: xRange,
+            pdf_values: xRange.map(x => jStat.normal.pdf(x, mean, std))
           },
           {
             distribution_type: 'GAMMA',
-            parameters: { shape: 2 + Math.random() * 3, scale: std * std / mean },
-            goodness_of_fit: { aic: 120 + Math.random() * 50, bic: 130 + Math.random() * 50, ks_pvalue: 0.2 + Math.random() * 0.5 },
+            parameters: { shape: gammaShape, scale: gammaScale },
+            goodness_of_fit: { aic: aicGamma, bic: bicGamma, ks_pvalue: ksGamma },
             x_values: Array.from({ length: 100 }, (_, i) => i * mean * 3 / 99),
             pdf_values: Array.from({ length: 100 }, (_, i) => {
               const x = i * mean * 3 / 99;
-              const shape = 2 + Math.random() * 3;
-              const scale = std * std / mean;
-              return Math.pow(x, shape - 1) * Math.exp(-x / scale) / 
-                     (Math.pow(scale, shape) * (function(x) {
-                       let res = 1;
-                       for (let i = 2; i < x; i++) res *= i;
-                       return res;
-                     })(shape));
+              return allPositive ? jStat.gamma.pdf(x, gammaShape, gammaScale) : 0;
             })
           },
           {
             distribution_type: 'LOGNORMAL',
-            parameters: { mu: Math.log(mean * mean / Math.sqrt(variance + mean * mean)), sigma: Math.sqrt(Math.log(1 + variance / (mean * mean))) },
-            goodness_of_fit: { aic: 140 + Math.random() * 50, bic: 150 + Math.random() * 50, ks_pvalue: 0.1 + Math.random() * 0.4 },
+            parameters: { mu: lnMu, sigma: lnSigma },
+            goodness_of_fit: { aic: aicLognormal, bic: bicLognormal, ks_pvalue: ksLognormal },
             x_values: Array.from({ length: 100 }, (_, i) => i * mean * 3 / 99),
             pdf_values: Array.from({ length: 100 }, (_, i) => {
               const x = i * mean * 3 / 99;
-              if (x <= 0) return 0;
-              const mu = Math.log(mean * mean / Math.sqrt(variance + mean * mean));
-              const sigma = Math.sqrt(Math.log(1 + variance / (mean * mean)));
-              return Math.exp(-Math.pow(Math.log(x) - mu, 2) / (2 * sigma * sigma)) / (x * sigma * Math.sqrt(2 * Math.PI));
+              return (allPositive && x > 0) ? jStat.lognormal.pdf(x, lnMu, lnSigma) : 0;
             })
           }
         ]
@@ -1514,42 +1563,53 @@ export const fitDistribution = async (
     
     if (DEMO_MODE) {
       if (isDirectData) {
-        // Calculate basic stats for more realistic demo data
+        // Calculate basic stats using Bessel's correction (N-1)
         const data = projectIdOrData;
         const n = data.length;
         const sum = data.reduce((a, b) => a + b, 0);
         const mean = sum / n;
-        const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+        const variance = n > 1 ? data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1) : 0;
         const std = Math.sqrt(variance);
-        
+        const allPositive = data.every(x => x > 0);
+
+        const gammaShape = mean > 0 && variance > 0 ? (mean * mean) / variance : 2;
+        const gammaScale = mean > 0 ? variance / mean : 1;
+        const lnMu = variance + mean * mean > 0 ? Math.log(mean * mean / Math.sqrt(variance + mean * mean)) : 0;
+        const lnSigma = mean > 0 ? Math.sqrt(Math.log(1 + variance / (mean * mean))) : 1;
+
+        // Compute log-likelihoods for AIC/BIC
+        const llNormal = data.reduce((ll, x) => ll + Math.log(jStat.normal.pdf(x, mean, std) || 1e-300), 0);
+        const llGamma = allPositive ? data.reduce((ll, x) => ll + Math.log(jStat.gamma.pdf(x, gammaShape, gammaScale) || 1e-300), 0) : -Infinity;
+        const llLognormal = allPositive ? data.reduce((ll, x) => ll + Math.log(jStat.lognormal.pdf(x, lnMu, lnSigma) || 1e-300), 0) : -Infinity;
+
         return {
           fitted_distributions: [
             {
               distribution_type: 'NORMAL',
               parameters: { mean, std },
-              goodness_of_fit: { aic: 100 + Math.random() * 50, bic: 110 + Math.random() * 50, ks_pvalue: 0.3 + Math.random() * 0.6 }
+              goodness_of_fit: { aic: -2 * llNormal + 4, bic: -2 * llNormal + Math.log(n) * 2, ks_pvalue: null }
             },
             {
               distribution_type: 'GAMMA',
-              parameters: { shape: 2 + Math.random() * 3, scale: std * std / mean },
-              goodness_of_fit: { aic: 120 + Math.random() * 50, bic: 130 + Math.random() * 50, ks_pvalue: 0.2 + Math.random() * 0.5 }
+              parameters: { shape: gammaShape, scale: gammaScale },
+              goodness_of_fit: { aic: llGamma > -Infinity ? -2 * llGamma + 4 : Infinity, bic: llGamma > -Infinity ? -2 * llGamma + Math.log(n) * 2 : Infinity, ks_pvalue: null }
             },
             {
               distribution_type: 'LOGNORMAL',
-              parameters: { mu: Math.log(mean * mean / Math.sqrt(variance + mean * mean)), sigma: Math.sqrt(Math.log(1 + variance / (mean * mean))) },
-              goodness_of_fit: { aic: 140 + Math.random() * 50, bic: 150 + Math.random() * 50, ks_pvalue: 0.1 + Math.random() * 0.4 }
+              parameters: { mu: lnMu, sigma: lnSigma },
+              goodness_of_fit: { aic: llLognormal > -Infinity ? -2 * llLognormal + 4 : Infinity, bic: llLognormal > -Infinity ? -2 * llLognormal + Math.log(n) * 2 : Infinity, ks_pvalue: null }
             }
           ]
         };
       }
-      
-      // API call mode demo
+
+      // API call mode demo - no actual data, so return honest placeholders
       return {
-        best_fit: 'normal',
+        best_fit: 'unknown',
         fits: {
-          normal: { params: { mean: 5.2, std: 1.3 }, goodness_of_fit: 0.95 },
-          gamma: { params: { shape: 2.1, scale: 2.5 }, goodness_of_fit: 0.87 },
-          lognormal: { params: { mu: 1.6, sigma: 0.4 }, goodness_of_fit: 0.82 }
+          normal: { params: { mean: null, std: null }, goodness_of_fit: null },
+          gamma: { params: { shape: null, scale: null }, goodness_of_fit: null },
+          lognormal: { params: { mu: null, sigma: null }, goodness_of_fit: null }
         }
       };
     }

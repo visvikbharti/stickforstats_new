@@ -146,7 +146,7 @@ const AdvancedStatisticalTests = () => {
           result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
         );
 
-        console.log('[AdvancedStatisticalTests] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[AdvancedStatisticalTests] Guardian validation error:', error);
@@ -489,13 +489,13 @@ const AdvancedStatisticalTests = () => {
                       guardianReport={guardianResult}
                       onProceed={() => setIsTestBlocked(false)}
                       onSelectAlternative={(test) => {
-                        console.log('[AdvancedStatisticalTests] Alternative suggested:', test);
+                        // Alternative suggested
                         if (test.toLowerCase().includes('mann-whitney') || test.toLowerCase().includes('kruskal')) {
                           setTestType(test.toLowerCase().includes('mann') ? 'mann-whitney' : 'anova');
                         }
                       }}
                       onViewEvidence={() => {
-                        console.log('[AdvancedStatisticalTests] Visual evidence requested');
+                        // Visual evidence requested
                       }}
                       data={[parseData(data1), parseData(data2)]}
                       alpha={alpha}
@@ -505,7 +505,7 @@ const AdvancedStatisticalTests = () => {
                           const transformed2 = transformedData[1];
                           setData1(transformed1.join(', '));
                           setData2(transformed2.join(', '));
-                          console.log(`[AdvancedStatisticalTests] Data transformed using ${transformationType}. Re-validating...`);
+                          // Data transformed, re-validating
                         }
                       }}
                     />

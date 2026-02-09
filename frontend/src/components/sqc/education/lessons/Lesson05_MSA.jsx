@@ -37,6 +37,14 @@ import { getApiUrl } from '../../../../config/apiConfig';
  * Interactive: Simulated Gage R&R study
  */
 
+const sanitizeHTML = (html) => {
+  if (!html) return '';
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+};
+
 const Lesson05_MSA = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -599,7 +607,7 @@ const Lesson05_MSA = ({ onComplete }) => {
                         </Typography>
                         <Box
                           component="div"
-                          dangerouslySetInnerHTML={{ __html: backendResults.chart }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(backendResults.chart) }}
                           sx={{
                             '& svg': { width: '100%', height: 'auto', maxHeight: '400px' }
                           }}

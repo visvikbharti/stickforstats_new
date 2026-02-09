@@ -5,6 +5,8 @@ from typing import Dict, Any, List, Tuple, Optional, Union
 import uuid
 import json
 import pickle
+import io
+from core.utils.safe_pickle import safe_pickle_load
 import base64
 import os
 from pathlib import Path
@@ -338,7 +340,7 @@ class MLService:
             cv_scores = cross_val_score(best_model, X_train, y_train, cv=cv_folds, scoring=scoring)
             cv_results = {
                 'mean_test_score': np.mean(cv_scores),
-                'std_test_score': np.std(cv_scores)
+                'std_test_score': np.std(cv_scores, ddof=1)
             }
         
         # Record end time and compute training time
@@ -423,7 +425,7 @@ class MLService:
             raise ValueError(f"Model with UUID {model_uuid} not found")
             
         with open(model_path, 'rb') as f:
-            model_data = pickle.load(f)
+            model_data = safe_pickle_load(f)
             
         model = model_data['model']
         task_type = model_data['task_type']
@@ -560,7 +562,7 @@ class MLService:
             raise ValueError(f"Model with UUID {model_uuid} not found")
             
         with open(model_path, 'rb') as f:
-            model_data = pickle.load(f)
+            model_data = safe_pickle_load(f)
             
         model = model_data['model']
         task_type = model_data['task_type']
@@ -675,7 +677,7 @@ class MLService:
             raise ValueError(f"Model with UUID {model_uuid} not found")
             
         with open(model_path, 'rb') as f:
-            model_data = pickle.load(f)
+            model_data = safe_pickle_load(f)
         
         # Remove actual model object for serialization
         model_info = {
@@ -763,7 +765,7 @@ class MLService:
         
         # Verify this is a valid model
         try:
-            model_obj = pickle.loads(model_bytes)
+            model_obj = safe_pickle_load(io.BytesIO(model_bytes))
             if not (isinstance(model_obj, dict) and 'model' in model_obj 
                    and 'task_type' in model_obj and 'feature_names' in model_obj):
                 raise ValueError("Invalid model format")

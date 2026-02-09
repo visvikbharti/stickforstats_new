@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
+import jStat from 'jstat';
 import {
   Box,
   Typography,
@@ -184,8 +185,9 @@ const EffectSizePower = ({ data }) => {
 
         // 95% CI for Cohen's d (approximate)
         const seD = Math.sqrt((sampleN1 + sampleN2) / (sampleN1 * sampleN2) + (cohensD * cohensD) / (2 * (sampleN1 + sampleN2)));
-        const ciLower = cohensD - 1.96 * seD;
-        const ciUpper = cohensD + 1.96 * seD;
+        const zCrit95 = jStat.normal.inv(0.975, 0, 1);
+        const ciLower = cohensD - zCrit95 * seD;
+        const ciUpper = cohensD + zCrit95 * seD;
 
         result = {
           type: 't-test',
@@ -319,30 +321,32 @@ const EffectSizePower = ({ data }) => {
         if (powerTestType === 't-test') {
           // Two-sample t-test power approximation
           const ncp = powerEffectSize * Math.sqrt(powerN / 2); // non-centrality parameter
-          const critT = alternative === 'two-sided' ? 1.96 : 1.645; // approximate critical value
+          const critT = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
 
-          // Power approximation using normal distribution
-          const z = ncp - critT;
-          power = 0.5 * (1 + erf(z / Math.sqrt(2)));
+          // Power using normal CDF of (ncp - criticalValue)
+          power = jStat.normal.cdf(ncp - critT, 0, 1);
 
         } else if (powerTestType === 'anova') {
           // F-test power approximation
           const f = powerEffectSize; // Cohen's f
           const ncp = f * f * powerN * nGroups; // non-centrality parameter
           const dfBetween = nGroups - 1;
+          const dfWithin = nGroups * (powerN - 1);
 
-          // Simplified power calculation
-          const critF = 3.0 + 1.0 / dfBetween; // rough approximation
-          power = 1 - Math.exp(-ncp / (2 * critF));
+          // Use proper F critical value from jStat
+          const critF = jStat.centralF.inv(1 - powerAlpha, dfBetween, dfWithin);
+          // Power via normal approximation to noncentral F
+          const zF = Math.sqrt(2 * critF * dfBetween) - Math.sqrt(2 * ncp - dfBetween);
+          power = jStat.normal.cdf(-zF, 0, 1);
           power = Math.min(0.999, Math.max(0.001, power));
 
         } else if (powerTestType === 'correlation') {
-          // Correlation power
+          // Correlation power using Fisher's z transform
           const z = 0.5 * Math.log((1 + powerEffectSize) / (1 - powerEffectSize)); // Fisher's z
           const seZ = 1 / Math.sqrt(powerN - 3);
-          const critZ = alternative === 'two-sided' ? 1.96 : 1.645;
+          const critZ = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
 
-          power = 0.5 * (1 + erf((Math.abs(z) / seZ - critZ) / Math.sqrt(2)));
+          power = jStat.normal.cdf(Math.abs(z) / seZ - critZ, 0, 1);
         }
 
         result = {
@@ -365,21 +369,21 @@ const EffectSizePower = ({ data }) => {
 
         if (powerTestType === 't-test') {
           // Approximate sample size for t-test
-          const za = alternative === 'two-sided' ? 1.96 : 1.645;
-          const zb = getZFromPower(desiredPower);
+          const za = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
+          const zb = jStat.normal.inv(desiredPower, 0, 1);
           requiredN = Math.ceil(2 * Math.pow((za + zb) / powerEffectSize, 2));
 
         } else if (powerTestType === 'anova') {
           // Approximate sample size for ANOVA
-          const za = 1.96;
-          const zb = getZFromPower(desiredPower);
+          const za = jStat.normal.inv(1 - powerAlpha / 2, 0, 1);
+          const zb = jStat.normal.inv(desiredPower, 0, 1);
           const f = powerEffectSize;
           requiredN = Math.ceil(nGroups * Math.pow((za + zb) / (f * Math.sqrt(nGroups)), 2));
 
         } else if (powerTestType === 'correlation') {
           // Sample size for correlation
-          const za = alternative === 'two-sided' ? 1.96 : 1.645;
-          const zb = getZFromPower(desiredPower);
+          const za = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
+          const zb = jStat.normal.inv(desiredPower, 0, 1);
           const zr = 0.5 * Math.log((1 + powerEffectSize) / (1 - powerEffectSize));
           requiredN = Math.ceil(Math.pow((za + zb) / zr, 2) + 3);
         }
@@ -419,17 +423,21 @@ const EffectSizePower = ({ data }) => {
 
       if (testType === 't-test') {
         const ncp = effectSize * Math.sqrt(n / 2);
-        const critT = 1.96;
-        const z = ncp - critT;
-        power = 0.5 * (1 + erf(z / Math.sqrt(2)));
+        const critT = jStat.normal.inv(1 - alpha / 2, 0, 1);
+        power = jStat.normal.cdf(ncp - critT, 0, 1);
       } else if (testType === 'correlation') {
         const z = 0.5 * Math.log((1 + effectSize) / (1 - effectSize));
         const seZ = 1 / Math.sqrt(n - 3);
-        power = 0.5 * (1 + erf((Math.abs(z) / seZ - 1.96) / Math.sqrt(2)));
+        const critZ = jStat.normal.inv(1 - alpha / 2, 0, 1);
+        power = jStat.normal.cdf(Math.abs(z) / seZ - critZ, 0, 1);
       } else {
-        // ANOVA
+        // ANOVA power using normal approximation to noncentral F
+        const dfBetween = nGroups - 1;
+        const dfWithin = nGroups * (n - 1);
         const ncp = effectSize * effectSize * n * nGroups;
-        power = 1 - Math.exp(-ncp / 8);
+        const critF = jStat.centralF.inv(1 - alpha, dfBetween, dfWithin);
+        const zF = Math.sqrt(2 * critF * dfBetween) - Math.sqrt(2 * ncp - dfBetween);
+        power = jStat.normal.cdf(-zF, 0, 1);
         power = Math.min(0.999, Math.max(0.001, power));
       }
 

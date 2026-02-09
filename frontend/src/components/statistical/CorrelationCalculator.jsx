@@ -234,7 +234,7 @@ const CorrelationCalculator = () => {
           shouldBlockTest(result.hasViolations, hasCritical)
         );
 
-        console.log('[CorrelationCalculator] Guardian validation result:', result);
+        // Guardian validation result received
 
       } catch (error) {
         console.error('[CorrelationCalculator] Guardian validation error:', error);
@@ -1253,14 +1253,14 @@ const CorrelationCalculator = () => {
               }
             }}
             onViewEvidence={() => {
-              console.log('[CorrelationCalculator] Visual evidence requested');
+              // Visual evidence requested
             }}
             data={analysisMode === 'pairwise'
               ? [dataPoints.pairwiseX, dataPoints.pairwiseY]
               : dataPoints.data}
             alpha={1 - options.confidenceLevel}
             onTransformComplete={(transformedData, transformationType, parameters) => {
-              console.log('[CorrelationCalculator] Transformation applied:', transformationType, parameters);
+              // Transformation applied
 
               if (analysisMode === 'pairwise') {
                 // Pairwise mode: update X and Y arrays
@@ -1283,7 +1283,7 @@ const CorrelationCalculator = () => {
 
               // Show success feedback
               setError(null);
-              console.log(`Data transformed using ${transformationType}. Re-validating assumptions...`);
+              // Data transformed, re-validating assumptions
             }}
           />
         </Box>
