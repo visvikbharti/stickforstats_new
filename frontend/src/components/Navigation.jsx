@@ -53,16 +53,11 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import SecurityIcon from '@mui/icons-material/Security';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import ModelTrainingIcon from '@mui/icons-material/Psychology';
-import PsychologyIcon from '@mui/icons-material/Psychology';
-import GroupWorkIcon from '@mui/icons-material/GroupWork';
-import PeopleIcon from '@mui/icons-material/People';
 import BgColorsOutlined from '@mui/icons-material/PaletteOutlined';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 // Logo import
 import logo from '../assets/logo.png';
-import StorefrontIcon from '@mui/icons-material/Storefront';
 
 // Import branded components
 import BrandedLogo from './common/BrandedLogo';
@@ -97,10 +92,7 @@ const pages = Object.freeze([
   { name: 'Meta-Analysis', path: '/meta-analysis' },
   { name: 'Workflows', path: '/workflows' },
   { name: 'Reports', path: '/reports' },
-  { name: 'Reporting Studio', path: '/reporting-studio' },
-  { name: 'ML Studio', path: '/ml-studio' },
-  { name: 'Collaboration', path: '/collaboration' },
-  { name: 'Marketplace', path: '/marketplace' }
+  { name: 'Reporting Studio', path: '/reporting-studio' }
 ]);
 
 const testPages = [
@@ -172,12 +164,6 @@ const getIconForPage = (pageName) => {
       return <DescriptionIcon />;
     case 'Reporting Studio':
       return <SummarizeIcon />;
-    case 'ML Studio':
-      return <PsychologyIcon />;
-    case 'Collaboration':
-      return <GroupWorkIcon />;
-    case 'Marketplace':
-      return <StorefrontIcon />;
     default:
       return <BarChartIcon />;
   }

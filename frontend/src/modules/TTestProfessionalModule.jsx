@@ -1155,17 +1155,17 @@ const TTestProfessionalModule = () => {
         <SpeedDialAction
           icon={<DownloadIcon />}
           tooltipTitle="Export Results"
-          onClick={() => enqueueSnackbar('Export feature coming soon!', { variant: 'info' })}
+          onClick={() => enqueueSnackbar('Export is not available in this version.', { variant: 'info' })}
         />
         <SpeedDialAction
           icon={<ShareIcon />}
           tooltipTitle="Share Analysis"
-          onClick={() => enqueueSnackbar('Share feature coming soon!', { variant: 'info' })}
+          onClick={() => enqueueSnackbar('Sharing is not available in this version.', { variant: 'info' })}
         />
         <SpeedDialAction
           icon={<QuizIcon />}
           tooltipTitle="Take Quiz"
-          onClick={() => enqueueSnackbar('Quiz feature coming soon!', { variant: 'info' })}
+          onClick={() => enqueueSnackbar('Quizzes are not available in this version.', { variant: 'info' })}
         />
         <SpeedDialAction
           icon={<MenuBookIcon />}

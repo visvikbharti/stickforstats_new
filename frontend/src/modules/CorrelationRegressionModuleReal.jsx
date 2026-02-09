@@ -703,7 +703,7 @@ const MultipleRegressionSimulation = ({ darkMode }) => {
             <Paper sx={{ p: 2, mt: 2 }}>
               <Typography variant="subtitle1" gutterBottom>Cross-Validation Results</Typography>
               <Alert severity="info">
-                Cross-validation with real backend coming soon. Current model uses full dataset.
+                Cross-validation requires a backend endpoint not available in v1.0. Current model uses the full dataset.
               </Alert>
             </Paper>
           )}

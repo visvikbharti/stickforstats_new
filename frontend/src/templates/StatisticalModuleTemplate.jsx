@@ -1188,12 +1188,12 @@ const StatisticalModuleTemplate = ({
         <SpeedDialAction
           icon={<ShareIcon />}
           tooltipTitle="Share Analysis"
-          onClick={() => enqueueSnackbar('Sharing feature coming soon!', { variant: 'info' })}
+          onClick={() => enqueueSnackbar('Sharing is not available in this version.', { variant: 'info' })}
         />
         <SpeedDialAction
           icon={<GroupIcon />}
           tooltipTitle="Collaborate"
-          onClick={() => enqueueSnackbar('Collaboration feature coming soon!', { variant: 'info' })}
+          onClick={() => enqueueSnackbar('Collaboration is not available in this version.', { variant: 'info' })}
         />
         <SpeedDialAction
           icon={<HelpIcon />}

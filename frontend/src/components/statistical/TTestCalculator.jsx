@@ -1086,7 +1086,7 @@ const TTestCalculator = () => {
               );
             }}
             onViewEvidence={() => {
-              enqueueSnackbar('Visual evidence feature coming soon!', { variant: 'info' });
+              enqueueSnackbar('Visual evidence is not available in this version.', { variant: 'info' });
             }}
             data={testType === TEST_TYPES.INDEPENDENT && data2 ? [parseData(data1), parseData(data2)] : parseData(data1)}
             alpha={1 - confidenceLevel}

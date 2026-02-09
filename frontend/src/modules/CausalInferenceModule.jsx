@@ -190,10 +190,10 @@ const CausalInferenceModule = () => {
     }
   };
 
-  // Helper to format API errors (gracefully handles 404 when backend is not yet available)
+  // Helper to format API errors (gracefully handles 404 when backend endpoint is missing)
   const formatApiError = (err) => {
     if (err.response?.status === 404) {
-      return 'This feature is not yet available — the backend API is under development.';
+      return 'This feature requires a backend endpoint that is not available in v1.0.';
     }
     return err.response?.data?.error || err.message;
   };

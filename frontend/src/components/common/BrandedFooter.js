@@ -68,9 +68,8 @@ const BrandedFooter = ({
     ],
     legal: [
       { label: 'Open Source (MIT)', href: 'https://github.com/visvikbharti/stickforstats_new/blob/main/LICENSE' },
-      { label: 'Academic Use', href: '#academic-use' },
-      { label: 'Citation', href: '#citation' },
-      { label: 'Disclaimer', href: '#disclaimer' },
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Privacy Policy', href: '/privacy' },
     ],
   };
 

@@ -134,7 +134,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
         ) : (
           <Alert severity="info">
             <Typography variant="body1">
-              This model is under development. Coming soon!
+              This model is not available in the current version.
             </Typography>
           </Alert>
         )}

@@ -332,7 +332,6 @@ const ProfileViewer: React.FC<ProfileViewerProps> = ({
    */
   const handleExport = async (format: 'pdf' | 'json' | 'csv') => {
     // TODO: Implement export functionality
-    console.log('Exporting profile in format:', format);
   };
 
   // Loading state

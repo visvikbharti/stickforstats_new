@@ -5,7 +5,9 @@ function SurvivalVisualization({ results, configuration }) {
   if (!results) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>No results available.</Typography>
+        <Typography color="text.secondary">
+          Survival analysis visualization requires backend computation. Upload your data and run the analysis to see results.
+        </Typography>
       </Box>
     );
   }
@@ -67,16 +69,18 @@ function SurvivalVisualization({ results, configuration }) {
           </Grid>
         )}
 
-        {/* Visualization Placeholder */}
+        {/* Visualization Status */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-            <Typography variant="h6" color="text.secondary">
-              📊 Survival Curve Visualization
-              <br />
-              <Typography variant="body2" sx={{ mt: 2 }}>
-                Visualization will appear here after running analysis
+          <Paper sx={{ p: 3, minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
+            <Box textAlign="center">
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Survival Curve Visualization
               </Typography>
-            </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Kaplan-Meier curve plotting is not yet implemented in this version.
+                Numerical results are displayed above.
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
       </Grid>

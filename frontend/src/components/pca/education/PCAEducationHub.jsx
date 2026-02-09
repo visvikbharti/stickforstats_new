@@ -339,7 +339,7 @@ const PCAEducationHub = () => {
                             fontStyle: 'italic'
                           }}
                         >
-                          Coming soon! Complete previous lessons to unlock.
+                          Complete previous lessons to unlock.
                         </Typography>
                       )}
                     </CardContent>

@@ -3,7 +3,13 @@ import { Box, Typography, Paper, Grid } from '@mui/material';
 
 function FactorVisualization({ results, configuration }) {
   if (!results) {
-    return <Box sx={{ p: 3 }}><Typography>No results available.</Typography></Box>;
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="text.secondary">
+          Factor analysis visualization requires backend computation. Upload your data and run the analysis to see results.
+        </Typography>
+      </Box>
+    );
   }
 
   return (
@@ -46,16 +52,18 @@ function FactorVisualization({ results, configuration }) {
           </Paper>
         </Grid>
 
-        {/* Visualization Placeholder */}
+        {/* Visualization Status */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-            <Typography variant="h6" color="text.secondary" textAlign="center">
-              📊 Factor Loadings Heatmap
-              <br />
-              <Typography variant="body2" sx={{ mt: 2 }}>
-                Visualization will appear here after running analysis
+          <Paper sx={{ p: 3, minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
+            <Box textAlign="center">
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Factor Loadings Heatmap
               </Typography>
-            </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Factor loadings heatmap is not yet implemented in this version.
+                Numerical results are displayed above.
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
       </Grid>

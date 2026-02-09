@@ -77,7 +77,7 @@ const ANALYSIS_TABS = [
     icon: <ThermostatIcon />,
     description: 'Tm determination, protein folding analysis',
     color: '#FF9800',
-    comingSoon: true
+    planned: true
   }
 ];
 
@@ -119,16 +119,16 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
   const renderTabContent = () => {
     const currentTab = ANALYSIS_TABS[activeTab];
 
-    if (currentTab.comingSoon) {
+    if (currentTab.planned) {
       return (
         <Box sx={{ py: 8, textAlign: 'center' }}>
           <ThermostatIcon sx={{ fontSize: 80, color: 'action.disabled', mb: 2 }} />
           <Typography variant="h5" gutterBottom color="text.secondary">
-            Preview
+            Planned for Future Release
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, mx: 'auto' }}>
             Thermal stability analysis including CD spectroscopy, thermal denaturation curves,
-            and Tm determination will be available in an upcoming update.
+            and Tm determination is planned for a future release.
           </Typography>
         </Box>
       );
@@ -284,9 +284,9 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
                   <Typography variant="caption" color="text.secondary">
                     {tab.description}
                   </Typography>
-                  {tab.comingSoon && (
+                  {tab.planned && (
                     <Chip
-                      label="Preview"
+                      label="Planned"
                       size="small"
                       sx={{ ml: 1, height: 16, fontSize: '0.65rem' }}
                     />
@@ -294,7 +294,7 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
                 </Box>
               }
               iconPosition="start"
-              disabled={tab.comingSoon}
+              disabled={tab.planned}
               sx={{
                 '&.Mui-selected': {
                   bgcolor: `${tab.color}10`,

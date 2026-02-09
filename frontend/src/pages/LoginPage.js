@@ -125,11 +125,6 @@ const LoginPage = () => {
               </Link>
             </Box>
             
-            <Box sx={{ mt: 1, textAlign: 'center' }}>
-              <Link component={RouterLink} to="/forgot-password" variant="body2">
-                Forgot password?
-              </Link>
-            </Box>
           </Box>
         </Paper>
 

@@ -133,10 +133,6 @@ const AdvancedStatisticsPage = lazy(() => import('./pages/AdvancedStatisticsPage
 const VisualizationStudioPage = lazy(() => import('./pages/VisualizationStudioPage'));
 const ReportingStudioPage = lazy(() => import('./pages/ReportingStudioPage'));
 const SecurityDashboardPage = lazy(() => import('./pages/SecurityDashboardPage'));
-// ML Studio, Collaboration Hub, and Marketplace pages removed from navigation (contain mockup data)
-// const MLStudioPage = lazy(() => import('./pages/MLStudioPage'));
-// const CollaborationHubPage = lazy(() => import('./pages/CollaborationHubPage'));
-// const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 const PerformanceTestDashboard = lazy(() => import('./components/performance/PerformanceTestDashboard'));
 const WebSocketMonitoringPage = lazy(() => import('./pages/WebSocketMonitoringPage'));
 const RAGPerformanceMonitoringPage = lazy(() => import('./pages/RAGPerformanceMonitoringPage'));
@@ -789,10 +785,6 @@ function App() {
                         } 
                       />
                       
-                      {/* ML Studio, Collaboration Hub, and Marketplace routes removed from navigation.
-                         These pages contain mockup/fake data and are not ready for production use.
-                         Page files are retained but routes are disabled. */}
-                      
                       {/* Test routes - for development only */}
                       <Route 
                         path="/test/calculator" 
@@ -901,17 +893,23 @@ function App() {
 
                       {/* Terms of Service */}
                       <Route path="/terms" element={
-                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
+                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4, minHeight: '60vh' }}>
                           <Typography variant="h4" gutterBottom>Terms of Service</Typography>
-                          <Typography variant="body1">StickForStats is provided as-is for academic and research purposes. By using this software, you agree to use it responsibly and in accordance with your institution's policies.</Typography>
+                          <Typography variant="body1" paragraph>StickForStats is open-source software released under the MIT License. It is provided as-is for academic and research purposes.</Typography>
+                          <Typography variant="body1" paragraph>By using this software, you agree to use it responsibly and in accordance with your institution's policies. You are solely responsible for verifying the correctness of any statistical results before using them in publications or decision-making.</Typography>
+                          <Typography variant="body1" paragraph>This software is not a substitute for professional statistical consultation. The authors make no warranties regarding the accuracy or suitability of the software for any particular purpose.</Typography>
+                          <Button variant="outlined" href="/" sx={{ mt: 2 }}>Return Home</Button>
                         </Box>
                       } />
 
                       {/* Privacy Policy */}
                       <Route path="/privacy" element={
-                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
+                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4, minHeight: '60vh' }}>
                           <Typography variant="h4" gutterBottom>Privacy Policy</Typography>
-                          <Typography variant="body1">StickForStats processes all data locally in your browser. No personal data or uploaded datasets are transmitted to external servers. Session data is stored temporarily and cleared when you close the application.</Typography>
+                          <Typography variant="body1" paragraph>StickForStats processes all data locally in your browser. No personal data or uploaded datasets are transmitted to external servers unless you explicitly connect to a backend instance you control.</Typography>
+                          <Typography variant="body1" paragraph>Session data is stored temporarily in your browser and cleared when you close the application. No cookies are used for tracking purposes.</Typography>
+                          <Typography variant="body1" paragraph>If you run the optional Django backend, all data remains on that server instance. No telemetry or usage data is collected.</Typography>
+                          <Button variant="outlined" href="/" sx={{ mt: 2 }}>Return Home</Button>
                         </Box>
                       } />
 

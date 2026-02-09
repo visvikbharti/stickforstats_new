@@ -1541,7 +1541,7 @@ const ANOVACalculator = () => {
               );
             }}
             onViewEvidence={() => {
-              enqueueSnackbar('Visual evidence feature coming soon!', { variant: 'info' });
+              enqueueSnackbar('Visual evidence is not available in this version.', { variant: 'info' });
             }}
             data={groups.filter(g => g.data && g.data.trim().length > 0).map(g => parseData(g.data))}
             alpha={1 - confidenceLevel}

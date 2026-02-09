@@ -157,7 +157,7 @@ const AdvancedStatistics = ({ data, setData, onComplete }) => {
         ) : (
           <Alert severity="info">
             <Typography variant="body1">
-              This test is under development. Coming soon!
+              This test is not available in the current version.
             </Typography>
           </Alert>
         )}

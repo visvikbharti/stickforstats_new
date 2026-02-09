@@ -90,7 +90,7 @@ const StatisticalTestsPage = () => {
       default:
         return (
           <Alert severity="info">
-            This statistical test is under development. Please check back soon!
+            This statistical test is not available in the current version.
           </Alert>
         );
     }
@@ -151,7 +151,7 @@ const StatisticalTestsPage = () => {
                   <ListItemIcon>{test.icon}</ListItemIcon>
                   <ListItemText
                     primary={test.name}
-                    secondary={!test.available ? 'Coming soon' : null}
+                    secondary={!test.available ? 'Not available' : null}
                   />
                   {test.available && selectedTest === test.id && (
                     <Chip label="Active" size="small" color="primary" />
@@ -188,7 +188,7 @@ const StatisticalTestsPage = () => {
             <Link underline="hover" color="inherit" href="/">
               Home
             </Link>
-            <Link underline="hover" color="inherit" href="/statistical-analysis">
+            <Link underline="hover" color="inherit" href="/statistical-analysis-tools">
               Statistical Analysis
             </Link>
             <Typography color="text.primary">

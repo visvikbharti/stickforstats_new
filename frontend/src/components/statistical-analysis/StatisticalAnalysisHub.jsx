@@ -260,7 +260,7 @@ const StatisticalAnalysisHub = () => {
             />
           ) : (
             <Alert severity="info">
-              This module is under development. Coming soon!
+              This module is not available in the current version.
             </Alert>
           )}
         </Container>
