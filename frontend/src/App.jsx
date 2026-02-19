@@ -137,6 +137,8 @@ const PerformanceTestDashboard = lazy(() => import('./components/performance/Per
 const WebSocketMonitoringPage = lazy(() => import('./pages/WebSocketMonitoringPage'));
 const RAGPerformanceMonitoringPage = lazy(() => import('./pages/RAGPerformanceMonitoringPage'));
 const BrowserCompatibilityTestPage = lazy(() => import('./pages/BrowserCompatibilityTestPage'));
+// Autonomous Intelligence Layer (v2.0)
+const SmartAnalysisPage = lazy(() => import('./pages/SmartAnalysisPage'));
 const EnterpriseDashboard = lazy(() => import('./components/enterprise/EnterpriseDashboard'));
 const KeyboardShortcutsPage = lazy(() => import('./pages/KeyboardShortcutsPage'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
@@ -274,6 +276,16 @@ function App() {
                         <Routes>
                         {/* Home page after landing */}
                         <Route path="/" element={<ShowcaseHomePage />} />
+
+                        {/* Smart Analysis — Autonomous Intelligence Layer (v2.0) */}
+                        <Route
+                          path="/smart-analysis"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Smart Analysis..." />}>
+                              <SmartAnalysisPage />
+                            </Suspense>
+                          }
+                        />
 
                         {/* Main Statistical Dashboard - The Hub */}
                         <Route

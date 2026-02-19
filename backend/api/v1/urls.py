@@ -151,6 +151,13 @@ from .mixed_models_views import (
     compare_models_view,
     lmm_diagnostics,
 )
+from .autonomous_views import (
+    SmartProfileView,
+    AutonomousQueryView,
+    CascadeExecuteView,
+    TranslateResultsView,
+    NextStepView,
+)
 
 app_name = 'api-v1'
 
@@ -320,4 +327,11 @@ urlpatterns = [
     path('core/mixed/lmm/random-effects/', random_effects_view, name='mixed-random-effects'),
     path('core/mixed/lmm/compare/', compare_models_view, name='mixed-compare'),
     path('core/mixed/lmm/diagnostics/', lmm_diagnostics, name='mixed-diagnostics'),
+
+    # Autonomous Intelligence Layer endpoints (v2.0)
+    path('autonomous/profile/', SmartProfileView.as_view(), name='autonomous-profile'),
+    path('autonomous/query/', AutonomousQueryView.as_view(), name='autonomous-query'),
+    path('autonomous/cascade/', CascadeExecuteView.as_view(), name='autonomous-cascade'),
+    path('autonomous/translate/', TranslateResultsView.as_view(), name='autonomous-translate'),
+    path('autonomous/next-step/', NextStepView.as_view(), name='autonomous-next-step'),
 ]
