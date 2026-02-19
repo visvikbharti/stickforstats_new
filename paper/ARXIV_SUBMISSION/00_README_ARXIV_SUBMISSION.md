@@ -1,76 +1,77 @@
-# arXiv Submission Guide for StickForStats Paper
+# ArXiv Submission Package -- StickForStats
 
-**Created:** 2026-01-27
+**Last updated:** 2026-02-19 (audit-verified version, all case studies corrected)
 **Status:** Ready for submission
 
 ---
 
-## Quick Summary
+## Package Contents
 
-You have TWO options for arXiv submission:
+This directory contains everything needed for ArXiv LaTeX compilation.
 
-| Option | What to upload | Difficulty |
-|--------|---------------|------------|
-| **Option A: PDF only** | Just `stickforstats_expanded.pdf` | Easiest |
-| **Option B: LaTeX source** | All .tex, .bib, .cls files | Recommended |
+| File | Purpose | Include in upload? |
+|------|---------|-------------------|
+| `stickforstats_expanded.tex` | Main manuscript source (1586 lines) | **Yes** |
+| `stickforstats_expanded.bbl` | Pre-compiled bibliography (29 references) | **Yes** |
+| `jss.cls` | JSS document class | **Yes** |
+| `jss.bst` | JSS bibliography style | **Yes** |
+| `jsslogo.jpg` | JSS logo (referenced by `jss.cls`) | **Yes** |
+| `figures/figure1.pdf` | System architecture diagram | **Yes** |
+| `figures/figure2.pdf` | Guardian workflow diagram | **Yes** |
+| `stickforstats_expanded.pdf` | Pre-compiled PDF (for reference only) | No (ArXiv compiles from source) |
+| `stickforstats.bib` | BibTeX source (for reference only) | No (ArXiv uses `.bbl`) |
+| `00_README_ARXIV_SUBMISSION.md` | This file | No |
 
-**I recommend Option B** (LaTeX source) because:
-- arXiv compiles it (looks more professional)
-- Easy to make future revisions
-- Better for citations
+### File integrity checksums (SHA-256)
+
+```
+716a91cf6402...  stickforstats_expanded.tex
+24e9fe599c2b...  stickforstats_expanded.pdf
+```
 
 ---
 
-## Step-by-Step Instructions
+## How to Submit
 
-### Step 1: Create arXiv Account (if you don't have one)
+### 1. Create or log in to your ArXiv account
 
-1. Go to: https://arxiv.org/user/register
-2. Fill in your details
-3. Verify your email
-4. Wait for endorsement (may take 1-2 days for first submission)
+- https://arxiv.org/user/register (new account)
+- https://arxiv.org/login (existing account)
+- First-time submitters may need endorsement (1--2 days).
 
-### Step 2: Start New Submission
+### 2. Start a new submission
 
-1. Go to: https://arxiv.org/submit
-2. Click "Start New Submission"
+Go to https://arxiv.org/submit and click "Start New Submission."
 
-### Step 3: Choose License
+### 3. Choose license
 
 Select: **arXiv.org perpetual, non-exclusive license to distribute**
+(You retain copyright; ArXiv can distribute.)
 
-This is the standard choice - you keep copyright, arXiv can distribute.
+### 4. Select categories
 
-### Step 4: Select Categories
+- **Primary:** `stat.CO` (Statistics -- Computation)
+- **Cross-list (optional):** `cs.SE` (Software Engineering), `stat.ME` (Methodology)
 
-- **Primary category:** `stat.CO` (Statistics - Computation)
-- **Cross-list (optional):** 
-  - `cs.SE` (Computer Science - Software Engineering)
-  - `stat.ME` (Statistics - Methodology)
+### 5. Upload the submission zip
 
-### Step 5: Upload Files
+Upload `ARXIV_SUBMISSION.zip` (located one level up at `paper/ARXIV_SUBMISSION.zip`).
 
-#### Option A: PDF Only
-- Just upload `stickforstats_expanded.pdf`
-- Click "Process"
+The zip contains only the files ArXiv needs to compile:
 
-#### Option B: LaTeX Source (Recommended)
-
-Upload these files:
 ```
-stickforstats_expanded.tex   (main file)
-stickforstats_expanded.bbl   (bibliography - compiled)
-jss.cls                       (style class)
-jss.bst                       (bibliography style)
-jsslogo.jpg                   (logo image)
-figures/                      (folder with figures)
+stickforstats_expanded.tex
+stickforstats_expanded.bbl
+jss.cls
+jss.bst
+jsslogo.jpg
+figures/figure1.pdf
+figures/figure2.pdf
 ```
 
-**Important:** 
-- You can upload files individually OR create a .zip/.tar.gz file
-- The main .tex file will be auto-detected
+ArXiv will auto-detect `stickforstats_expanded.tex` as the main file and compile it.
 
-### Step 6: Enter Metadata
+### 6. Enter metadata
 
 **Title:**
 ```
@@ -84,86 +85,81 @@ Vishal Bharti, Debojyoti Chakraborty
 
 **Abstract:**
 ```
-Statistical assumption violations contribute to unreliable results in scientific research. While assumption testing tools have been available in statistical software for decades, their optional nature means researchers may skip validation, potentially leading to invalid conclusions. We present StickForStats, an open-source statistical analysis platform featuring three integrated systems for improving statistical practice. First, the Guardian system provides automatic assumption validation that checks assumptions before every statistical test without requiring user action, implementing eight validators and recommending alternative tests when violations are detected. Second, an AI-powered Statistical Advisor offers natural language guidance for test selection, result interpretation, and automatic generation of publication-ready methods sections following APA/JARS guidelines. Third, a Paper Parser analyzes uploaded manuscripts to detect common statistical reporting errors and assess reproducibility. The platform also includes a Statistical Debugger for identifying analytical pitfalls, optional extended precision arithmetic using mpmath, and multi-language support. Validation against SciPy demonstrates agreement to 14+ decimal places for standard statistical tests, with cross-validation against R confirming case study results. We describe the design rationale, implementation details, and validation methodology, positioning StickForStats as a comprehensive tool for improving statistical practice in research.
+Statistical assumption violations contribute to unreliable results in scientific
+research. While assumption testing tools have been available in statistical software
+for decades, their optional nature means researchers may skip validation, potentially
+leading to invalid conclusions. We present StickForStats, an open-source statistical
+analysis platform featuring three integrated systems for improving statistical
+practice. First, the Guardian system provides automatic assumption validation that
+checks assumptions before every statistical test without requiring user action,
+implementing eight validators and recommending alternative tests when violations are
+detected. Second, an AI-powered Statistical Advisor offers natural language guidance
+for test selection, result interpretation, and automatic generation of
+publication-ready methods sections following APA/JARS guidelines. Third, a Paper
+Parser analyzes uploaded manuscripts to detect common statistical reporting errors and
+assess reproducibility. The platform also includes a Statistical Debugger for
+identifying analytical pitfalls, optional extended precision arithmetic using mpmath,
+and multi-language support. Validation against SciPy demonstrates agreement to 14+
+decimal places for standard statistical tests, with cross-validation against R
+confirming case study results. We describe the design rationale, implementation
+details, and validation methodology, positioning StickForStats as a comprehensive tool
+for improving statistical practice in research.
 ```
 
 **Comments:**
 ```
-41 pages, 5 figures, 9 tables. Submitted to Journal of Statistical Software. Source code: https://github.com/visvikbharti/stickforstats_new
+41 pages, 2 figures, 7 tables. Submitted to Journal of Statistical Software.
+Source code: https://github.com/visvikbharti/stickforstats_new
 ```
 
-**MSC-class (optional):**
-```
-62-04
-```
+**MSC-class (optional):** `62-04`
+**ACM-class (optional):** `G.3`
 
-**ACM-class (optional):**
-```
-G.3
-```
+### 7. Preview and submit
 
-### Step 7: Preview and Submit
+1. Click "Preview" -- ArXiv will compile the paper (1--2 minutes).
+2. Review the generated PDF.
+3. If it looks correct, click "Submit."
+4. Note the submission ID (e.g., `submit/1234567`).
 
-1. Click "Preview"
-2. arXiv will compile your paper (takes 1-2 minutes)
-3. Review the PDF that arXiv generated
-4. If it looks good, click "Submit"
-5. You'll get a submission ID (e.g., submit/1234567)
+### 8. After submission
 
-### Step 8: Wait for Processing
-
-- arXiv processes submissions at specific times (usually afternoon US Eastern time)
-- You'll receive an email when your paper is assigned an arXiv ID
-- Typical format: `arXiv:2601.XXXXX` (year+month.number)
+- ArXiv processes submissions on a daily schedule (afternoon US Eastern time).
+- You will receive an email with an arXiv identifier (e.g., `arXiv:2602.XXXXX`).
+- Update the JSS submission and GitHub repository with the arXiv link.
 
 ---
 
-## Files in This Directory
+## Compilation Notes
 
-| File | Purpose | Required for arXiv |
-|------|---------|-------------------|
-| `stickforstats_expanded.tex` | Main manuscript | Yes |
-| `stickforstats_expanded.bbl` | Compiled bibliography | Yes (for LaTeX submission) |
-| `stickforstats_expanded.pdf` | Compiled PDF | Yes (for PDF-only submission) |
-| `jss.cls` | JSS document class | Yes |
-| `jss.bst` | Bibliography style | No (we use .bbl) |
-| `jsslogo.jpg` | JSS logo | Yes |
-| `stickforstats.bib` | Bibliography source | No (we use .bbl) |
-| `figures/` | Figure files | Yes |
+The `.tex` file contains a `\bibliography{stickforstats}` command. ArXiv's build
+system handles this correctly when a `.bbl` file is present: it uses the pre-compiled
+`.bbl` for references rather than running BibTeX. The `.bib` file is excluded from the
+zip because it is not needed.
+
+All LaTeX packages used (`amsmath`, `amssymb`, `booktabs`, `algorithm`,
+`algpseudocode`, `tikz`, `graphicx`, `listings`, `xcolor`) are part of standard TeX
+Live distributions and are available on ArXiv's build system.
 
 ---
 
-## Common Issues and Solutions
+## Troubleshooting
 
-### Issue: arXiv can't compile
-**Solution:** Submit the .bbl file (already compiled bibliography) instead of .bib
-
-### Issue: Missing fonts
-**Solution:** The jss.cls uses standard LaTeX fonts, should work
-
-### Issue: Figures not found
-**Solution:** Make sure figures/ directory is included in upload
-
-### Issue: Need endorsement
-**Solution:** First-time submitters to a category need endorsement. Ask a colleague who has published in that category, or wait for arXiv to find an endorser.
+| Problem | Solution |
+|---------|----------|
+| ArXiv cannot compile | Verify the `.bbl` file is included in the upload |
+| Figures not found | Ensure the `figures/` directory structure is preserved in the zip |
+| Missing fonts | The `jss.cls` uses standard LaTeX fonts; no special fonts needed |
+| Endorsement required | First-time submitters to `stat.CO` need endorsement from an existing author |
 
 ---
 
-## After Submission
+## Version History
 
-1. **Note your arXiv ID** (e.g., arXiv:2601.12345)
-2. **Update your JSS submission** with the arXiv link
-3. **Update GitHub README** with arXiv link
-4. **Share on social media** if desired
-
----
-
-## Contact
-
-If you have issues:
-- arXiv help: https://arxiv.org/help
-- Email Vishal: vishalvikashbharti@gmail.com
+- **2026-02-19:** Updated README for audit-verified manuscript (all case studies
+  corrected, 7 manuscript-codebase discrepancies fixed, figure/table counts verified).
+- **2026-01-27:** Initial ArXiv submission package created.
 
 ---
 
-*Guide created: 2026-01-27*
+*Contact: vishalvikashbharti@gmail.com*

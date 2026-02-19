@@ -1,11 +1,11 @@
-# StickForStats JSS Paper Replication Scripts
-# Requirements for running validation and accuracy verification
+# StickForStats JSS Paper -- Replication Script Dependencies
 #
 # Install with: pip install -r requirements.txt
 #
 # These scripts validate StickForStats' computational accuracy
-# against reference implementations in scipy and scikit-learn.
+# against reference implementations in SciPy and scikit-learn.
 
 numpy>=1.24.0
-scipy>=1.11.0
+scipy>=1.10.0
 scikit-learn>=1.3.0
+statsmodels>=0.14.0
