@@ -7,9 +7,12 @@ Thank you for your interest in contributing to StickForStats! This document prov
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [How to Contribute](#how-to-contribute)
+- [Project Structure](#project-structure)
 - [Development Setup](#development-setup)
 - [Coding Standards](#coding-standards)
 - [Testing Guidelines](#testing-guidelines)
+- [Plugin Contribution Guide](#plugin-contribution-guide)
+- [Translation Guide](#translation-guide)
 - [Pull Request Process](#pull-request-process)
 - [Reporting Issues](#reporting-issues)
 
@@ -38,11 +41,64 @@ We welcome:
 
 ### What We're Looking For
 
+#### Core Platform
+
 - **New Guardian validators**: Additional assumption checks for statistical tests
 - **Statistical tests**: Implementations of tests not yet supported
 - **Educational content**: New lessons for the Learning Hub
 - **Performance improvements**: Optimizations for large datasets
 - **Accessibility**: Making the UI more accessible
+
+#### v2.0 Contribution Areas
+
+- **Plugin Development**: Custom statistical tests, SQS rule packs, visualization templates for the marketplace
+- **Manuscript Validators**: New journal-specific validators (CONSORT, STROBE, PRISMA, etc.)
+- **Discipline Profiles**: Field-specific statistical standards (medicine, psychology, economics, etc.)
+- **Mobile App**: React Native components and screens
+- **Desktop App**: Tauri integration improvements
+- **SDK Development**: Python SDK (`sdk/python/`) and R SDK (`sdk/r/`) enhancements
+- **Browser Extension**: Chrome/Firefox extension features
+- **Jupyter Extension**: JupyterLab widget improvements
+- **LMS Integration**: Canvas, Blackboard, Moodle connectors
+- **Internationalization**: We support 16 languages (ar, de, en, es, fr, hi, id, ja, ko, pl, pt, ru, th, tr, vi, zh) -- new languages and translation improvements welcome
+- **Compliance Documentation**: SOC 2, FDA 21 CFR Part 11, GDPR updates
+- **Autonomous Pipeline**: SmartProfiler, CascadeEngine, PlainLanguageTranslator improvements
+- **Journal API**: Webhook handlers, batch processing, submission system plugins (OJS, ScholarOne)
+
+## Project Structure
+
+The v2.0 repository is organized as follows:
+
+```
+stickforstats/
+├── backend/
+│   ├── api/v1/           # 195 REST API endpoints
+│   ├── core/
+│   │   ├── guardian/     # 8 assumption validators
+│   │   ├── services/     # Smart profiler, cascade engine, manuscript parser, etc.
+│   │   └── tasks.py      # 13 Celery async tasks
+│   └── stickforstats/    # Django settings + Celery config
+├── frontend/
+│   ├── src/
+│   │   ├── components/   # React components (autonomous/, manuscript/, etc.)
+│   │   ├── pages/        # 25 page components
+│   │   └── i18n/         # 16 languages
+│   └── public/           # PWA manifest + service worker
+├── mobile/               # React Native app
+├── desktop/              # Tauri desktop app
+├── sdk/
+│   ├── python/           # Python SDK (PyPI)
+│   └── r/                # R SDK (CRAN)
+├── extensions/
+│   ├── browser/          # Chrome/Firefox extension
+│   └── jupyter/          # JupyterLab extension
+├── infrastructure/
+│   ├── keycloak/         # SSO configuration
+│   └── kong/             # API Gateway configuration
+├── compliance/           # SOC 2, FDA, GDPR, Security Matrix
+├── paper/                # JSS publication materials
+└── docs/                 # Documentation
+```
 
 ## Development Setup
 
@@ -51,6 +107,8 @@ We welcome:
 - Python 3.10+
 - Node.js 18+
 - Git
+- Redis (for Celery task queue)
+- Rust toolchain (for desktop development only)
 
 ### Backend Setup
 
@@ -72,6 +130,28 @@ npm install
 npm start
 ```
 
+### Celery Workers (Async Tasks)
+
+```bash
+# Celery worker (for async tasks)
+cd backend && celery -A stickforstats worker -l info
+
+# Celery beat (for periodic tasks)
+cd backend && celery -A stickforstats beat -l info
+```
+
+### Mobile Development
+
+```bash
+cd mobile && npx react-native start
+```
+
+### Desktop Development
+
+```bash
+cd desktop && cargo tauri dev
+```
+
 ### Running Tests
 
 ```bash
@@ -79,9 +159,15 @@ npm start
 cd backend
 pytest
 
+# Guardian tests (38 tests)
+cd backend && python manage.py test core.guardian.tests
+
 # Frontend tests
 cd frontend
 npm test
+
+# Frontend build verification
+cd frontend && NODE_OPTIONS="--max-old-space-size=4096" npx react-scripts build
 ```
 
 ## Coding Standards
@@ -141,6 +227,23 @@ ResultDisplay.propTypes = {
 
 export default ResultDisplay;
 ```
+
+### TypeScript (Mobile)
+
+- Follow React Native conventions
+- Use TypeScript strict mode
+- All new mobile components must be written in TypeScript
+
+### Rust (Desktop)
+
+- Follow Tauri conventions for Rust backend code
+- Use idiomatic Rust patterns for the desktop shell layer
+
+### Plugin Development
+
+- Plugins must use the sandboxed PluginRuntime API
+- Time limits are strictly enforced (see [Plugin Contribution Guide](#plugin-contribution-guide))
+- Plugins must not access the filesystem or network directly outside the sandbox
 
 ### Statistical Code
 
@@ -239,6 +342,90 @@ def test_ttest_matches_scipy():
     assert abs(our_result['p_value'] - scipy_p) < 1e-10
 ```
 
+## Plugin Contribution Guide
+
+StickForStats v2.0 supports a plugin marketplace. Plugins extend the platform with custom functionality and run inside a sandboxed `PluginRuntime` environment.
+
+### Plugin Types
+
+| Type | Description | Time Limit |
+|------|-------------|------------|
+| `statistical_test` | Custom statistical tests | 5 seconds |
+| `sqs_rules` | Statistical Quality Score rule packs | 10 seconds |
+| `visualization` | Chart and visualization templates | 15 seconds |
+| `data_connector` | Import/export connectors for external data sources | 30 seconds |
+| `report_template` | Custom report generation templates | 60 seconds |
+
+### Plugin Structure
+
+Every plugin must include a `config.json` at its root:
+
+```json
+{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "type": "statistical_test",
+  "displayName": "My Custom Test",
+  "description": "A brief description of what this plugin does.",
+  "author": "Your Name",
+  "license": "MIT",
+  "entry": "index.js",
+  "permissions": ["data_read"],
+  "stickforstats": {
+    "minVersion": "2.0.0"
+  }
+}
+```
+
+### Guidelines
+
+- All plugins execute inside the sandboxed `PluginRuntime` API. Direct filesystem or network access is not permitted.
+- Time limits (listed above) are strictly enforced. Plugins that exceed their limit are terminated.
+- Include a README and at least one example in your plugin package.
+- Write tests that demonstrate correct output for known inputs.
+- See `docs/plugin-marketplace.md` for the full API reference and publishing instructions.
+
+## Translation Guide
+
+StickForStats supports 16 languages. Translations are organized into four namespace files per language.
+
+### Namespace Files
+
+| Namespace | Purpose |
+|-----------|---------|
+| `common.json` | General UI labels, buttons, messages |
+| `navigation.json` | Menu items, page titles, breadcrumbs |
+| `statistics.json` | Statistical terms, test names, result labels |
+| `education.json` | Learning Hub lessons, tooltips, explanations |
+
+### File Location
+
+Translation files live at:
+
+```
+frontend/src/i18n/locales/{lang_code}/
+├── common.json
+├── navigation.json
+├── statistics.json
+└── education.json
+```
+
+Where `{lang_code}` is one of: `ar`, `de`, `en`, `es`, `fr`, `hi`, `id`, `ja`, `ko`, `pl`, `pt`, `ru`, `th`, `tr`, `vi`, `zh`.
+
+### Adding a New Language
+
+1. Create a new directory under `frontend/src/i18n/locales/` with the appropriate language code.
+2. Copy the four namespace files from `en/` as a starting point.
+3. Translate all strings, preserving the JSON keys exactly.
+4. Register the new language in `frontend/src/i18n/index.js`.
+5. Submit a PR with the new locale files.
+
+### Translation Tips
+
+- Preserve all interpolation placeholders (e.g., `{{count}}`, `{{testName}}`).
+- Keep statistical term translations accurate for the target audience. When in doubt, use the accepted term from published statistical textbooks in that language.
+- Test your translations by switching languages in the app UI to verify layout and rendering.
+
 ## Pull Request Process
 
 ### Before Submitting
@@ -259,6 +446,10 @@ Brief description of changes
 - [ ] New feature
 - [ ] Documentation update
 - [ ] Performance improvement
+- [ ] Plugin
+- [ ] Translation
+- [ ] SDK enhancement
+- [ ] Mobile/Desktop
 
 ## Testing
 Describe how you tested the changes

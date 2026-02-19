@@ -9,12 +9,15 @@ Complete production deployment configuration for the StickForStats Statistical A
 ## 📦 Deployment Architecture
 
 ```
-StickForStats Production Stack
-├── Frontend (React + Nginx)
-├── Backend API (Python/Django)
+StickForStats v2.0 Production Stack
+├── Frontend (React + Nginx) — 25 pages, PWA-enabled
+├── Backend API (Python/Django) — 195 endpoints
 ├── PostgreSQL Database
-├── Redis Cache
-├── Celery Workers
+├── Redis Cache + Message Broker
+├── Celery Workers (7 queue routes)
+├── Celery Beat (4 periodic tasks)
+├── Keycloak SSO (SAML/OIDC)
+├── Kong API Gateway
 ├── Prometheus Monitoring
 ├── Grafana Dashboards
 └── Kubernetes Orchestration
@@ -71,6 +74,11 @@ curl http://localhost:8000/api/v1/health/
 | postgres | postgres:15 | 5432 | 2GB RAM, 1 CPU |
 | redis | redis:7 | 6379 | 512MB RAM, 0.5 CPU |
 | celery | python:3.11 | - | 1GB RAM, 1 CPU |
+| keycloak | quay.io/keycloak | 8080 | 1GB RAM, 1 CPU |
+| kong | kong:3.4 | 8001, 8443 | 512MB RAM, 0.5 CPU |
+| celery-worker | python:3.11 | - | 2GB RAM, 2 CPU |
+| celery-beat | python:3.11 | - | 256MB RAM, 0.25 CPU |
+| flower | mher/flower | 5555 | 256MB RAM, 0.25 CPU |
 | prometheus | prom/prometheus | 9090 | 512MB RAM, 0.5 CPU |
 | grafana | grafana/grafana | 3000 | 512MB RAM, 0.5 CPU |
 
@@ -157,6 +165,196 @@ kubectl autoscale deployment stickforstats-backend \
 kubectl scale deployment stickforstats-frontend --replicas=5 -n production
 kubectl scale deployment stickforstats-backend --replicas=10 -n production
 ```
+
+---
+
+## Celery Configuration
+
+### Starting Celery Services
+
+```bash
+# Start Celery worker with all queues
+celery -A stickforstats worker -l info -Q default,analysis,manuscript,reports,gdpr,analytics,webhooks
+
+# Start Celery beat scheduler
+celery -A stickforstats beat -l info
+
+# Monitor with Flower
+celery -A stickforstats flower --port=5555
+```
+
+### Queue Routes
+
+| Queue | Purpose |
+|-------|---------|
+| `analysis` | Statistical analysis tasks |
+| `manuscript` | Manuscript processing |
+| `reports` | Report generation |
+| `gdpr` | Data export/erasure |
+| `analytics` | Journal analytics |
+| `webhooks` | Webhook delivery |
+| `default` | Everything else |
+
+### Celery Settings
+
+```python
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/1"
+CELERY_TASK_TIME_LIMIT = 600        # Hard time limit: 600s
+CELERY_TASK_SOFT_TIME_LIMIT = 300   # Soft time limit: 300s
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 100
+```
+
+### Periodic Tasks (Celery Beat)
+
+Celery Beat runs 4 periodic tasks on a configured schedule. Ensure the beat scheduler is running alongside the workers for scheduled task execution.
+
+---
+
+## Keycloak SSO Setup
+
+StickForStats v2.0 uses Keycloak for Single Sign-On via SAML and OIDC protocols.
+
+### Realm Configuration
+
+1. **Import the StickForStats realm**
+```bash
+# Import realm on first startup
+docker exec keycloak /opt/keycloak/bin/kc.sh import \
+  --file /opt/keycloak/data/import/realm-export.json
+```
+
+2. **Verify realm is active**
+```bash
+curl -s http://localhost:8080/realms/stickforstats | jq .realm
+```
+
+### Client Registration
+
+- **SAML Client**: Configured for enterprise SSO integrations (e.g., institutional IdPs)
+- **OIDC Client**: Configured for the StickForStats web and mobile applications
+
+### User Federation
+
+Connect Keycloak to external user directories (LDAP, Active Directory) for institutional deployments.
+
+### Role Mapping to StickForStats RBAC
+
+Keycloak roles are mapped to the StickForStats role-based access control system:
+- `admin` -- Full platform administration
+- `researcher` -- Standard research user
+- `reviewer` -- Read-only review access
+- `tenant-admin` -- Tenant-scoped administration
+
+**Reference**: `infrastructure/keycloak/realm-export.json`
+
+---
+
+## Kong API Gateway
+
+Kong serves as the API gateway for all inbound traffic, handling routing, rate limiting, and authentication validation.
+
+### Route Configuration
+
+```yaml
+services:
+  - name: stickforstats-api-v1
+    url: http://backend:8000/api/v1/
+    routes:
+      - name: api-v1-route
+        paths:
+          - /api/v1/
+  - name: stickforstats-api-v2
+    url: http://backend:8000/api/v2/
+    routes:
+      - name: api-v2-route
+        paths:
+          - /api/v2/
+```
+
+### Rate Limiting Plugin
+
+```yaml
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 60
+      hour: 1000
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+```
+
+### JWT Validation Plugin
+
+```yaml
+plugins:
+  - name: jwt
+    config:
+      uri_param_names:
+        - jwt
+      claims_to_verify:
+        - exp
+```
+
+### Tenant Routing
+
+Kong routes requests to the correct tenant schema based on the `X-Tenant-ID` header or subdomain, working in conjunction with the tenant context middleware.
+
+**Reference**: `infrastructure/kong/kong.yml`
+
+---
+
+## Multi-Tenant Configuration
+
+### Database Configuration
+
+Replace SQLite with PostgreSQL for multi-tenant production deployments:
+
+```env
+DATABASE_URL=postgresql://stickforstats_user:secure_password@postgres:5432/stickforstats
+```
+
+### Schema-Per-Tenant via django-tenants
+
+StickForStats uses `django-tenants` to isolate tenant data at the PostgreSQL schema level. Each tenant receives its own schema, ensuring complete data separation.
+
+```python
+# settings.py
+DATABASES = {
+    "default": {
+        "ENGINE": "django_tenants.postgresql_backend",
+        "NAME": "stickforstats",
+        "USER": "stickforstats_user",
+        "PASSWORD": "secure_password",
+        "HOST": "postgres",
+        "PORT": "5432",
+    }
+}
+
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+```
+
+### Tenant Context Middleware
+
+```python
+MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
+    # ... other middleware
+]
+```
+
+The middleware resolves the current tenant from the request (via subdomain or header) and sets the PostgreSQL `search_path` accordingly.
+
+### Usage Metering Configuration
+
+```env
+USAGE_METERING_ENABLED=true
+USAGE_METERING_BACKEND=redis
+USAGE_METERING_FLUSH_INTERVAL=60  # seconds
+```
+
+Usage metering tracks per-tenant API calls, computation time, and storage consumption for billing and quota enforcement.
 
 ---
 
@@ -483,6 +681,145 @@ docker-compose restart frontend
 
 ---
 
+## Mobile App Deployment
+
+### iOS (App Store)
+
+1. **Build the iOS app**
+```bash
+cd mobile/ios
+xcodebuild -workspace StickForStats.xcworkspace \
+  -scheme StickForStats \
+  -configuration Release \
+  -archivePath build/StickForStats.xcarchive \
+  archive
+```
+
+2. **Export for App Store submission**
+```bash
+xcodebuild -exportArchive \
+  -archivePath build/StickForStats.xcarchive \
+  -exportPath build/AppStore \
+  -exportOptionsPlist ExportOptions.plist
+```
+
+3. **Upload to App Store Connect**
+```bash
+xcrun altool --upload-app \
+  -f build/AppStore/StickForStats.ipa \
+  -u "$APPLE_ID" -p "$APP_SPECIFIC_PASSWORD"
+```
+
+### Android (Play Store)
+
+1. **Build the Android release APK/AAB**
+```bash
+cd mobile/android
+./gradlew bundleRelease
+```
+
+2. **Sign the release bundle**
+```bash
+jarsigner -verbose -sigalg SHA256withRSA \
+  -digestalg SHA-256 \
+  -keystore release-keystore.jks \
+  app/build/outputs/bundle/release/app-release.aab \
+  stickforstats-key
+```
+
+3. **Upload to Google Play Console** via the Play Developer API or the web console.
+
+**Reference**: `mobile/` directory
+
+---
+
+## Desktop App Deployment
+
+### Tauri Build (macOS / Windows / Linux)
+
+1. **Build the desktop application**
+```bash
+cd desktop
+npm run tauri build
+```
+
+This produces platform-specific installers:
+- **macOS**: `.dmg` in `src-tauri/target/release/bundle/dmg/`
+- **Windows**: `.msi` in `src-tauri/target/release/bundle/msi/`
+- **Linux**: `.AppImage` / `.deb` in `src-tauri/target/release/bundle/`
+
+### Code Signing
+
+- **macOS**: Sign with an Apple Developer ID certificate and notarize via `xcrun notarytool`.
+- **Windows**: Sign with an EV code signing certificate using `signtool`.
+- **Linux**: GPG-sign the release artifacts.
+
+### Auto-Update Configuration
+
+```json
+{
+  "tauri": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://releases.stickforstats.com/{{target}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "pubkey": "<your-public-key>"
+    }
+  }
+}
+```
+
+The desktop app checks for updates on launch and prompts the user to install new versions automatically.
+
+**Reference**: `desktop/` directory
+
+---
+
+## Compliance Deployment
+
+### SOC 2 Audit Trail Configuration
+
+```env
+SOC2_AUDIT_TRAIL=true
+SOC2_LOG_RETENTION_DAYS=365
+SOC2_CHANGE_MANAGEMENT=true
+```
+
+Enable comprehensive audit trails for all administrative actions, data access events, and configuration changes to satisfy SOC 2 Type II requirements.
+
+### FDA 21 CFR Part 11 Validation Mode
+
+```env
+FDA_VALIDATION_MODE=true
+FDA_ELECTRONIC_SIGNATURES=true
+FDA_AUDIT_TRAIL_INTEGRITY=sha256
+```
+
+When validation mode is active, the system enforces electronic signature requirements, maintains tamper-evident audit logs, and restricts system changes to authorized personnel only. See the FDA Compliance Configuration section above for the full checklist.
+
+### GDPR Data Residency (EU Region)
+
+```env
+GDPR_DATA_RESIDENCY=eu
+GDPR_DPA_ENABLED=true
+GDPR_RIGHT_TO_ERASURE=true
+GDPR_DATA_EXPORT_FORMAT=json
+```
+
+For EU-region deployments, all personal data is stored within EU data centers. The GDPR Celery queue (`gdpr`) handles data export and erasure requests asynchronously.
+
+### Compliance Documents
+
+**Reference**: `compliance/` directory (4 documents)
+- SOC 2 controls mapping
+- FDA 21 CFR Part 11 validation protocol
+- GDPR Data Protection Impact Assessment
+- Compliance deployment runbook
+
+---
+
 ## ✅ Pre-Deployment Checklist
 
 - [ ] All environment variables configured
@@ -499,8 +836,8 @@ docker-compose restart frontend
 
 ---
 
-**Deployment Version**: 1.0.0
-**Last Updated**: October 2025
+**Deployment Version**: 2.0.0
+**Last Updated**: February 2026
 **Platform Status**: Production-Ready
 
 🎉 **StickForStats is ready for production deployment!**
