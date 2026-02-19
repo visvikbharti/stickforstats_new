@@ -1,0 +1,22 @@
+{
+  "t_test": "Test T",
+  "anova": "Analiza wariancji",
+  "correlation": "Korelacja",
+  "regression": "Regresja",
+  "chi_square": "Test chi-kwadrat",
+  "mann_whitney": "Test Manna-Whitneya",
+  "kruskal_wallis": "Test Kruskala-Wallisa",
+  "p_value": "Warto\u015b\u0107 P",
+  "effect_size": "Wielko\u015b\u0107 efektu",
+  "confidence_interval": "Przedzia\u0142 ufno\u015bci",
+  "sample_size": "Wielko\u015b\u0107 pr\u00f3by",
+  "standard_deviation": "Odchylenie standardowe",
+  "mean": "\u015arednia",
+  "median": "Mediana",
+  "normality": "Normalno\u015b\u0107",
+  "homogeneity": "Jednorodno\u015b\u0107",
+  "significance": "Istotno\u015b\u0107",
+  "hypothesis": "Hipoteza",
+  "null_hypothesis": "Hipoteza zerowa",
+  "alternative_hypothesis": "Hipoteza alternatywna"
+}

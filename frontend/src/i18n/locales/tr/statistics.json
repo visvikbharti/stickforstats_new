@@ -1,0 +1,22 @@
+{
+  "t_test": "T-Testi",
+  "anova": "Varyans Analizi",
+  "correlation": "Korelasyon",
+  "regression": "Regresyon",
+  "chi_square": "Ki-Kare Testi",
+  "mann_whitney": "Mann-Whitney U Testi",
+  "kruskal_wallis": "Kruskal-Wallis Testi",
+  "p_value": "P De\u011feri",
+  "effect_size": "Etki B\u00fcy\u00fckl\u00fc\u011f\u00fc",
+  "confidence_interval": "G\u00fcven Aral\u0131\u011f\u0131",
+  "sample_size": "\u00d6rneklem B\u00fcy\u00fckl\u00fc\u011f\u00fc",
+  "standard_deviation": "Standart Sapma",
+  "mean": "Ortalama",
+  "median": "Ortanca",
+  "normality": "Normallik",
+  "homogeneity": "Homojenlik",
+  "significance": "Anlaml\u0131l\u0131k",
+  "hypothesis": "Hipotez",
+  "null_hypothesis": "S\u0131f\u0131r Hipotezi",
+  "alternative_hypothesis": "Alternatif Hipotez"
+}

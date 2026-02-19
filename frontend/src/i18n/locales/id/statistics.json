@@ -1,0 +1,22 @@
+{
+  "t_test": "Uji-T",
+  "anova": "Analisis Varians",
+  "correlation": "Korelasi",
+  "regression": "Regresi",
+  "chi_square": "Uji Chi-Kuadrat",
+  "mann_whitney": "Uji Mann-Whitney",
+  "kruskal_wallis": "Uji Kruskal-Wallis",
+  "p_value": "Nilai-P",
+  "effect_size": "Ukuran Efek",
+  "confidence_interval": "Interval Kepercayaan",
+  "sample_size": "Ukuran Sampel",
+  "standard_deviation": "Simpangan Baku",
+  "mean": "Rata-rata",
+  "median": "Median",
+  "normality": "Normalitas",
+  "homogeneity": "Homogenitas",
+  "significance": "Signifikansi",
+  "hypothesis": "Hipotesis",
+  "null_hypothesis": "Hipotesis Nol",
+  "alternative_hypothesis": "Hipotesis Alternatif"
+}

@@ -155,6 +155,8 @@ const PrivacyDashboardPage = lazy(() => import('./pages/PrivacyDashboardPage'));
 const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 // Certification Program
 const CertificationPage = lazy(() => import('./pages/CertificationPage'));
+// API Documentation
+const APIDocsPage = lazy(() => import('./pages/APIDocsPage'));
 
 // Loading fallback component
 const LoadingComponent = ({ message = "Loading module..." }) => (
@@ -982,6 +984,16 @@ function App() {
                         element={
                           <Suspense fallback={<LoadingComponent message="Loading Certification Program..." />}>
                             <CertificationPage />
+                          </Suspense>
+                        }
+                      />
+
+                      {/* API Documentation */}
+                      <Route
+                        path="/api-docs"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading API Documentation..." />}>
+                            <APIDocsPage />
                           </Suspense>
                         }
                       />

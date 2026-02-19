@@ -320,3 +320,9 @@ CORS_ALLOW_HEADERS += [
     'x-api-key',
     'x-organization',
 ]
+
+# ── Celery Configuration ──────────────────────────────────
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/2')
+CELERY_TASK_ALWAYS_EAGER = os.environ.get('CELERY_TASK_ALWAYS_EAGER', 'True').lower() == 'true'  # Sync in dev
+CELERY_TASK_EAGER_PROPAGATES = True

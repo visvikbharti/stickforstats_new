@@ -213,6 +213,7 @@ from . import marketplace_views
 from . import lms_views
 from . import certification_views
 from . import sso_views
+from . import site_license_views, plugin_runtime_views
 
 app_name = 'api-v1'
 
@@ -466,6 +467,17 @@ urlpatterns = [
     path('sso/callback/', sso_views.SSOCallbackView.as_view(), name='sso-callback'),
     path('sso/validate/', sso_views.SSOTokenValidateView.as_view(), name='sso-validate'),
     path('sso/providers/', sso_views.SSOProvidersView.as_view(), name='sso-providers'),
+
+    # ── Site Licensing ──────────────────────────────────────
+    path('licensing/tiers/', site_license_views.SiteLicenseTiersView.as_view(), name='license-tiers'),
+    path('licensing/create/', site_license_views.SiteLicenseCreateView.as_view(), name='license-create'),
+    path('licensing/verify/', site_license_views.SiteLicenseVerifyView.as_view(), name='license-verify'),
+    path('licensing/usage/<str:license_key>/', site_license_views.SiteLicenseUsageView.as_view(), name='license-usage'),
+    path('licensing/report/<str:license_key>/', site_license_views.SiteLicenseReportView.as_view(), name='license-report'),
+
+    # ── Plugin Runtime ──────────────────────────────────────
+    path('marketplace/plugins/<slug:plugin_slug>/execute/', plugin_runtime_views.PluginExecuteView.as_view(), name='plugin-execute'),
+    path('marketplace/plugins/<slug:plugin_slug>/config/', plugin_runtime_views.PluginConfigUpdateView.as_view(), name='plugin-config'),
 
     # OpenAPI Schema & Documentation
     path('schema/', OpenAPISchemaView.as_view(), name='openapi-schema'),

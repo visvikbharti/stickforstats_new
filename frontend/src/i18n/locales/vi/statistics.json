@@ -1,0 +1,22 @@
+{
+  "t_test": "Ki\u1ec3m \u0111\u1ecbnh T",
+  "anova": "Ph\u00e2n t\u00edch ph\u01b0\u01a1ng sai",
+  "correlation": "T\u01b0\u01a1ng quan",
+  "regression": "H\u1ed3i quy",
+  "chi_square": "Ki\u1ec3m \u0111\u1ecbnh Chi b\u00ecnh ph\u01b0\u01a1ng",
+  "mann_whitney": "Ki\u1ec3m \u0111\u1ecbnh Mann-Whitney",
+  "kruskal_wallis": "Ki\u1ec3m \u0111\u1ecbnh Kruskal-Wallis",
+  "p_value": "Gi\u00e1 tr\u1ecb P",
+  "effect_size": "K\u00edch th\u01b0\u1edbc hi\u1ec7u \u1ee9ng",
+  "confidence_interval": "Kho\u1ea3ng tin c\u1eady",
+  "sample_size": "C\u1ee1 m\u1eabu",
+  "standard_deviation": "\u0110\u1ed9 l\u1ec7ch chu\u1ea9n",
+  "mean": "Trung b\u00ecnh",
+  "median": "Trung v\u1ecb",
+  "normality": "T\u00ednh chu\u1ea9n",
+  "homogeneity": "T\u00ednh \u0111\u1ed3ng nh\u1ea5t",
+  "significance": "\u00dd ngh\u0129a",
+  "hypothesis": "Gi\u1ea3 thuy\u1ebft",
+  "null_hypothesis": "Gi\u1ea3 thuy\u1ebft kh\u00f4ng",
+  "alternative_hypothesis": "Gi\u1ea3 thuy\u1ebft thay th\u1ebf"
+}
