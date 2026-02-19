@@ -577,6 +577,313 @@ class ReviewReport(models.Model):
         return f"{self.report_type} report — {self.submission}"
 
 
+# =============================================================================
+# PLATFORM MODELS (Pillar 3 — Universal Platform)
+# =============================================================================
+
+
+class SubscriptionTier(models.Model):
+    """
+    Defines a subscription tier with usage limits and feature flags.
+    Seeded with Free, Pro, Enterprise tiers.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)  # Free, Pro, Enterprise
+    slug = models.SlugField(max_length=50, unique=True)
+    display_name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+
+    # Pricing
+    price_monthly_cents = models.IntegerField(default=0, help_text='Monthly price in cents (0=free)')
+    price_yearly_cents = models.IntegerField(default=0, help_text='Yearly price in cents (discount)')
+    stripe_price_id_monthly = models.CharField(max_length=100, blank=True)
+    stripe_price_id_yearly = models.CharField(max_length=100, blank=True)
+
+    # Usage limits
+    max_analyses_per_month = models.IntegerField(default=100)
+    max_upload_size_mb = models.IntegerField(default=10)
+    max_projects = models.IntegerField(default=5)
+    max_team_members = models.IntegerField(default=1)
+    max_api_keys = models.IntegerField(default=1)
+    max_stored_datasets = models.IntegerField(default=10)
+
+    # Feature flags
+    features = JSONField(default=dict, blank=True, help_text=(
+        '{"guardian": true, "autonomous": true, "manuscript_review": false, '
+        '"ai_advisor": false, "export_pdf": true, "priority_support": false, '
+        '"sso": false, "rbac": false, "audit_log": false, "api_access": false, '
+        '"custom_branding": false, "dedicated_support": false}'
+    ))
+
+    # Ordering
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False, help_text='Default tier for new orgs')
+
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order']
+        verbose_name = 'Subscription Tier'
+        verbose_name_plural = 'Subscription Tiers'
+
+    def __str__(self):
+        price = f"${self.price_monthly_cents / 100:.0f}/mo" if self.price_monthly_cents else "Free"
+        return f"{self.display_name} ({price})"
+
+    def has_feature(self, feature_name: str) -> bool:
+        return self.features.get(feature_name, False)
+
+
+class Organization(models.Model):
+    """
+    Multi-tenant organization. All usage, billing, and team management
+    is scoped to an organization.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    # Subscription
+    tier = models.ForeignKey(
+        SubscriptionTier, on_delete=models.PROTECT,
+        related_name='organizations', null=True, blank=True
+    )
+    stripe_customer_id = models.CharField(max_length=100, blank=True)
+    stripe_subscription_id = models.CharField(max_length=100, blank=True)
+    subscription_status = models.CharField(max_length=20, default='active', choices=[
+        ('active', 'Active'),
+        ('trialing', 'Trialing'),
+        ('past_due', 'Past Due'),
+        ('canceled', 'Canceled'),
+        ('unpaid', 'Unpaid'),
+    ])
+    trial_ends_at = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+
+    # Settings
+    settings = JSONField(default=dict, blank=True, help_text=(
+        '{"default_alpha": 0.05, "default_field": "general", '
+        '"require_guardian": true, "allow_expert_mode": false}'
+    ))
+
+    # Branding (Enterprise)
+    logo_url = models.URLField(blank=True)
+    primary_color = models.CharField(max_length=7, blank=True, help_text='Hex color e.g. #1976d2')
+
+    # Contact
+    contact_email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+
+    # Status
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Organization'
+        verbose_name_plural = 'Organizations'
+
+    def __str__(self):
+        tier_name = self.tier.display_name if self.tier else 'No tier'
+        return f"{self.name} ({tier_name})"
+
+    def get_usage_this_month(self):
+        """Get total API usage for the current billing month."""
+        now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return self.usage_records.filter(timestamp__gte=start_of_month).count()
+
+    def is_within_limits(self):
+        """Check if organization is within its tier usage limits."""
+        if not self.tier:
+            return True  # No tier = no limits (shouldn't happen in production)
+        return self.get_usage_this_month() < self.tier.max_analyses_per_month
+
+
+class OrganizationMembership(models.Model):
+    """Links users to organizations with role-based access."""
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+        ('viewer', 'Viewer'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name='memberships'
+    )
+    user = models.ForeignKey(
+        'auth.User', on_delete=models.CASCADE, related_name='org_memberships'
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+
+    # Invitation tracking
+    invited_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='sent_invitations'
+    )
+    invitation_email = models.EmailField(blank=True)
+    invitation_accepted = models.BooleanField(default=True)
+    invitation_token = models.CharField(max_length=64, blank=True)
+
+    # Status
+    is_active = models.BooleanField(default=True)
+    joined_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = [['organization', 'user']]
+        ordering = ['role', 'joined_at']
+        verbose_name = 'Organization Membership'
+        verbose_name_plural = 'Organization Memberships'
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.organization.name} ({self.role})"
+
+    def can_manage_members(self):
+        return self.role in ('owner', 'admin')
+
+    def can_manage_billing(self):
+        return self.role == 'owner'
+
+    def can_create_api_keys(self):
+        return self.role in ('owner', 'admin')
+
+
+class PlatformAPIKey(models.Model):
+    """
+    API key for programmatic access to the platform, scoped to an organization.
+    Separate from JournalAPIKey which is for journal M2M auth.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name='api_keys'
+    )
+    created_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    name = models.CharField(max_length=100, help_text='Descriptive name for this key')
+    key_prefix = models.CharField(max_length=8, help_text='First 8 chars for identification')
+    key_hash = models.CharField(max_length=128, help_text='SHA-256 hash of full key')
+
+    # Permissions
+    scopes = JSONField(default=list, blank=True, help_text=(
+        '["stats:read", "stats:write", "autonomous:read", "autonomous:write", '
+        '"manuscript:read", "manuscript:write", "platform:read"]'
+    ))
+
+    # Rate limiting
+    rate_limit_per_minute = models.IntegerField(default=60)
+    rate_limit_per_day = models.IntegerField(default=10000)
+
+    # Status
+    is_active = models.BooleanField(default=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    last_used_ip = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Platform API Key'
+        verbose_name_plural = 'Platform API Keys'
+
+    def __str__(self):
+        return f"{self.organization.name} — {self.name} ({self.key_prefix}...)"
+
+    @classmethod
+    def generate_key(cls):
+        """Generate a new platform API key. Returns (raw_key, key_prefix, key_hash)."""
+        raw_key = f"sk_sfs_{uuid.uuid4().hex}{uuid.uuid4().hex[:16]}"
+        key_prefix = raw_key[:8]
+        key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+        return raw_key, key_prefix, key_hash
+
+    def verify_key(self, raw_key: str) -> bool:
+        """Verify a raw API key against stored hash."""
+        return hashlib.sha256(raw_key.encode()).hexdigest() == self.key_hash
+
+    def is_expired(self):
+        if self.expires_at is None:
+            return False
+        return timezone.now() > self.expires_at
+
+    def has_scope(self, scope: str) -> bool:
+        """Check if this key has a specific scope permission."""
+        if not self.scopes:
+            return True  # Empty scopes = all access
+        return scope in self.scopes
+
+
+class UsageRecord(models.Model):
+    """
+    Tracks every API call for metering, billing, and analytics.
+    High-volume table — uses integer PK for performance.
+    """
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name='usage_records', null=True, blank=True
+    )
+    user = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='usage_records'
+    )
+    api_key = models.ForeignKey(
+        PlatformAPIKey, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='usage_records'
+    )
+
+    # Request details
+    endpoint = models.CharField(max_length=255, db_index=True)
+    method = models.CharField(max_length=10)  # GET, POST, PUT, DELETE
+    endpoint_category = models.CharField(max_length=50, blank=True, db_index=True,
+        help_text='stats, power, autonomous, manuscript, platform, etc.'
+    )
+
+    # Response details
+    status_code = models.IntegerField()
+    response_time_ms = models.IntegerField(null=True, blank=True)
+    response_size_bytes = models.IntegerField(null=True, blank=True)
+
+    # Client info
+    client_type = models.CharField(max_length=20, blank=True, choices=[
+        ('web', 'Web App'),
+        ('sdk_python', 'Python SDK'),
+        ('sdk_r', 'R SDK'),
+        ('cli', 'CLI'),
+        ('api', 'Direct API'),
+        ('journal', 'Journal Integration'),
+    ])
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    # Billing
+    is_billable = models.BooleanField(default=True)
+    credits_consumed = models.IntegerField(default=1)
+
+    # Timestamp
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['organization', '-timestamp']),
+            models.Index(fields=['organization', 'endpoint_category', '-timestamp']),
+            models.Index(fields=['-timestamp', 'status_code']),
+        ]
+        verbose_name = 'Usage Record'
+        verbose_name_plural = 'Usage Records'
+
+    def __str__(self):
+        org_name = self.organization.name if self.organization else 'anonymous'
+        return f"{self.method} {self.endpoint} ({org_name}) — {self.status_code}"
+
+
 __all__ = [
     'Analysis',
     'Report',
@@ -588,4 +895,9 @@ __all__ = [
     'JournalAPIKey',
     'ManuscriptSubmission',
     'ReviewReport',
+    'SubscriptionTier',
+    'Organization',
+    'OrganizationMembership',
+    'PlatformAPIKey',
+    'UsageRecord',
 ]

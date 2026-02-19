@@ -166,6 +166,27 @@ from .manuscript_views import (
     SubmissionReportView,
     JournalSubmitView,
 )
+from .data_import_views import (
+    UniversalDataImportView,
+    SupportedFormatsView,
+)
+from .schema_views import (
+    OpenAPISchemaView,
+    SwaggerUIView,
+    ReDocView,
+)
+from .platform_views import (
+    TierInfoView,
+    OrganizationCreateView,
+    OrganizationDetailView,
+    OrganizationMembersView,
+    InviteMemberView,
+    UsageDashboardView,
+    BillingView,
+    StripeWebhookView,
+    APIKeyManageView,
+    APIKeyRevokeView,
+)
 
 app_name = 'api-v1'
 
@@ -190,6 +211,8 @@ urlpatterns = [
 
     # Data management
     path('data/import/', DataImportView.as_view(), name='data-import'),
+    path('data/universal-import/', UniversalDataImportView.as_view(), name='universal-data-import'),
+    path('data/supported-formats/', SupportedFormatsView.as_view(), name='supported-formats'),
 
     # Validation and metrics
     path('validation/dashboard/', ValidationDashboardView.as_view(), name='validation-dashboard'),
@@ -350,4 +373,25 @@ urlpatterns = [
     path('manuscript/consistency/', ConsistencyCheckView.as_view(), name='manuscript-consistency'),
     path('manuscript/report/<uuid:submission_id>/', SubmissionReportView.as_view(), name='manuscript-report'),
     path('manuscript/journal/submit/', JournalSubmitView.as_view(), name='journal-submit'),
+
+    # Universal Data Import
+    path('data/universal-import/', UniversalDataImportView.as_view(), name='universal-data-import'),
+    path('data/supported-formats/', SupportedFormatsView.as_view(), name='supported-formats'),
+
+    # Platform — Universal Platform Layer (Pillar 3)
+    path('platform/tiers/', TierInfoView.as_view(), name='platform-tiers'),
+    path('platform/organizations/', OrganizationCreateView.as_view(), name='platform-org-list'),
+    path('platform/organizations/<slug:org_slug>/', OrganizationDetailView.as_view(), name='platform-org-detail'),
+    path('platform/organizations/<slug:org_slug>/members/', OrganizationMembersView.as_view(), name='platform-org-members'),
+    path('platform/organizations/<slug:org_slug>/invite/', InviteMemberView.as_view(), name='platform-org-invite'),
+    path('platform/usage/', UsageDashboardView.as_view(), name='platform-usage'),
+    path('platform/billing/', BillingView.as_view(), name='platform-billing'),
+    path('platform/billing/webhook/', StripeWebhookView.as_view(), name='platform-stripe-webhook'),
+    path('platform/api-keys/', APIKeyManageView.as_view(), name='platform-api-keys'),
+    path('platform/api-keys/<uuid:key_id>/', APIKeyRevokeView.as_view(), name='platform-api-key-revoke'),
+
+    # OpenAPI Schema & Documentation
+    path('schema/', OpenAPISchemaView.as_view(), name='openapi-schema'),
+    path('schema/swagger/', SwaggerUIView.as_view(), name='swagger-ui'),
+    path('schema/redoc/', ReDocView.as_view(), name='redoc'),
 ]

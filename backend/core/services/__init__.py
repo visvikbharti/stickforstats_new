@@ -4,6 +4,7 @@
 # DataService has issues with Dataset model that doesn't exist yet
 # from .data_service import DataService
 from .dataset_service import DatasetService
+from .data_import_service import DataImportService
 from .error_handler import ErrorHandler, safe_operation, try_except, ApiErrorResponse
 
 # Import services from submodules
@@ -34,6 +35,7 @@ __all__ = [
     # Core services
     # 'DataService',  # Disabled until Dataset model is implemented
     'DatasetService',
+    'DataImportService',
     'ErrorHandler',
     'safe_operation',
     'try_except',

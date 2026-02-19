@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
 import { MathJaxContext } from 'better-react-mathjax';
 import ErrorBoundary from './components/common/ErrorBoundary';
-import { ServiceWorkerUpdater } from './components/common';
+import { ServiceWorkerUpdater, PWAInstallPrompt } from './components/common';
 import { Box, CircularProgress, Typography, Button } from '@mui/material';
 
 // Import Three.js setup (only loads Three.js when needed)
@@ -141,6 +141,8 @@ const BrowserCompatibilityTestPage = lazy(() => import('./pages/BrowserCompatibi
 const SmartAnalysisPage = lazy(() => import('./pages/SmartAnalysisPage'));
 // Journal Integration / Manuscript Review (Pillar 2)
 const ManuscriptReviewPage = lazy(() => import('./pages/ManuscriptReviewPage'));
+// Platform Dashboard — Organization & Billing Management
+const PlatformDashboardPage = lazy(() => import('./pages/PlatformDashboardPage'));
 const EnterpriseDashboard = lazy(() => import('./components/enterprise/EnterpriseDashboard'));
 const KeyboardShortcutsPage = lazy(() => import('./pages/KeyboardShortcutsPage'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
@@ -295,6 +297,16 @@ function App() {
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Manuscript Review..." />}>
                               <ManuscriptReviewPage />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Platform Dashboard — Organization & Billing Management */}
+                        <Route
+                          path="/platform"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Platform Dashboard..." />}>
+                              <PlatformDashboardPage />
                             </Suspense>
                           }
                         />
@@ -943,6 +955,7 @@ function App() {
                   </main>
                   <Footer />
                     <ServiceWorkerUpdater />
+                    <PWAInstallPrompt />
                     {showPrefetchDebug && <PrefetchDebug position={{ bottom: 16, right: 16 }} />}
                     {/* {process.env.NODE_ENV === 'development' && <AuthDebug />} */}
                               </div>

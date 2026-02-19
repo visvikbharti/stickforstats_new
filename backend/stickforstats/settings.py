@@ -5,6 +5,7 @@ Django settings for the StickForStats v1.0 Production project.
 import os
 import secrets
 from pathlib import Path
+from .env_settings import get_database_config, get_platform_config, get_s3_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +58,10 @@ MIDDLEWARE = [
     # Guardian Design Contract Compliance Middleware
     # Ensures all statistical API responses include assumption context
     'core.middleware.GuardianComplianceMiddleware',
+    # Platform: Tenant context resolution (org from header/API key)
+    'core.middleware.TenantContextMiddleware',
+    # Platform: Usage metering (records API calls)
+    'core.middleware.UsageMeteringMiddleware',
 ]
 
 ROOT_URLCONF = 'stickforstats.urls'
@@ -79,12 +84,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'stickforstats.wsgi.application'
 
-# Database
+# Database — supports DATABASE_URL env var, falls back to SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': get_database_config(BASE_DIR)
 }
 
 # Password validation
@@ -293,3 +295,28 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = True
+
+# =============================================================================
+# PLATFORM CONFIGURATION (Pillar 3 — Universal Platform)
+# =============================================================================
+_platform_config = get_platform_config()
+
+# Tenant/billing enforcement (disabled by default for local dev)
+STICKFORSTATS_TIER_ENFORCEMENT = _platform_config['TIER_ENFORCEMENT']
+STICKFORSTATS_USAGE_METERING = _platform_config['USAGE_METERING']
+
+# Frontend URL for OAuth/Stripe redirects
+FRONTEND_URL = _platform_config['FRONTEND_URL']
+
+# Stripe billing integration
+STRIPE_SECRET_KEY = _platform_config['STRIPE_SECRET_KEY']
+STRIPE_WEBHOOK_SECRET = _platform_config['STRIPE_WEBHOOK_SECRET']
+
+# S3/MinIO object storage
+S3_CONFIG = get_s3_config()
+
+# Allow X-API-Key and X-Organization headers through CORS
+CORS_ALLOW_HEADERS += [
+    'x-api-key',
+    'x-organization',
+]
