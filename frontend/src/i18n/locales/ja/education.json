@@ -1,0 +1,71 @@
+{
+  "title": "学習ハブ",
+  "subtitle": "インタラクティブなレッスンで統計学をマスター",
+
+  "modules": {
+    "pca": "主成分分析",
+    "confidenceIntervals": "信頼区間",
+    "doe": "実験計画法",
+    "probability": "確率分布",
+    "sqc": "統計的品質管理",
+    "powerAnalysis": "検出力分析",
+    "biophysics": "生物物理統計学"
+  },
+
+  "levels": {
+    "beginner": "初級",
+    "intermediate": "中級",
+    "advanced": "上級",
+    "expert": "エキスパート"
+  },
+
+  "lesson": {
+    "title": "レッスン",
+    "duration": "所要時間",
+    "objectives": "学習目標",
+    "prerequisites": "前提知識",
+    "content": "内容",
+    "exercises": "演習",
+    "quiz": "クイズ",
+    "summary": "まとめ",
+    "nextLesson": "次のレッスン",
+    "previousLesson": "前のレッスン",
+    "complete": "レッスン完了",
+    "progress": "進捗"
+  },
+
+  "progress": {
+    "notStarted": "未開始",
+    "inProgress": "進行中",
+    "completed": "完了",
+    "lessonsCompleted": "完了したレッスン",
+    "totalLessons": "レッスン総数",
+    "overallProgress": "全体の進捗"
+  },
+
+  "interactive": {
+    "tryIt": "自分で試す",
+    "simulation": "インタラクティブシミュレーション",
+    "calculator": "計算機",
+    "visualization": "可視化",
+    "example": "例",
+    "practice": "練習問題"
+  },
+
+  "concepts": {
+    "whatIs": "とは",
+    "whyImportant": "なぜ重要か？",
+    "howToCalculate": "計算方法",
+    "whenToUse": "使用する場面",
+    "commonMistakes": "よくある間違い",
+    "bestPractices": "ベストプラクティス",
+    "realWorldExamples": "実例"
+  },
+
+  "resources": {
+    "additionalReading": "参考文献",
+    "references": "引用文献",
+    "downloadMaterials": "資料をダウンロード",
+    "relatedTopics": "関連トピック"
+  }
+}

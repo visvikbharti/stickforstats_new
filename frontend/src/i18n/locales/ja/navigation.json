@@ -1,0 +1,39 @@
+{
+  "home": "ホーム",
+  "dashboard": "ダッシュボード",
+  "learningHub": "学習ハブ",
+  "statisticalAnalysis": "統計分析",
+  "metaAnalysis": "メタ分析",
+  "paperParser": "論文パーサー",
+  "confidenceIntervals": "信頼区間",
+  "pcaAnalysis": "主成分分析",
+  "factorAnalysis": "因子分析",
+  "survivalAnalysis": "生存分析",
+  "doeAnalysis": "実験計画法",
+  "sqcAnalysis": "統計的品質管理",
+  "probabilityDistributions": "確率分布",
+  "powerAnalysis": "検出力分析",
+  "biophysics": "生物物理学",
+  "enterprise": "エンタープライズ",
+  "admin": "管理",
+  "branding": "ブランディング",
+  "security": "セキュリティ",
+  "monitoring": "モニタリング",
+
+  "menu": {
+    "analysis": "分析",
+    "education": "教育",
+    "tools": "ツール",
+    "advanced": "上級",
+    "settings": "設定"
+  },
+
+  "footer": {
+    "aboutUs": "私たちについて",
+    "contactUs": "お問い合わせ",
+    "termsOfService": "利用規約",
+    "privacyPolicy": "プライバシーポリシー",
+    "copyright": "\u00a9 2025 StickForStats. All rights reserved.",
+    "poweredBy": "高度な統計アルゴリズムを搭載"
+  }
+}

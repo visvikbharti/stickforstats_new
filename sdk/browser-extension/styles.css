@@ -1,0 +1,84 @@
+/*
+ * StickForStats Browser Extension — Content Styles
+ * ==================================================
+ * All selectors are prefixed with "sfs-" to avoid conflicts
+ * with host page CSS.
+ */
+
+/* --- Detected claim (default: blue dotted underline) --- */
+.sfs-claim {
+  border-bottom: 2px dotted #1976d2;
+  cursor: help;
+  position: relative;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.sfs-claim:hover {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* --- Validated: consistent (green) --- */
+.sfs-claim.sfs-claim-valid {
+  border-bottom-color: #2e7d32;
+  border-bottom-style: solid;
+}
+
+.sfs-claim.sfs-claim-valid:hover {
+  background-color: rgba(46, 125, 50, 0.08);
+}
+
+/* --- Warning: minor issue (orange) --- */
+.sfs-claim.sfs-claim-warning {
+  border-bottom-color: #ed6c02;
+  border-bottom-style: dashed;
+  background-color: rgba(237, 108, 2, 0.06);
+}
+
+.sfs-claim.sfs-claim-warning:hover {
+  background-color: rgba(237, 108, 2, 0.12);
+}
+
+/* --- Error: inconsistency found (red) --- */
+.sfs-claim.sfs-claim-error {
+  border-bottom-color: #d32f2f;
+  border-bottom-style: solid;
+  border-bottom-width: 2.5px;
+  background-color: rgba(211, 47, 47, 0.06);
+}
+
+.sfs-claim.sfs-claim-error:hover {
+  background-color: rgba(211, 47, 47, 0.12);
+}
+
+/* --- Tooltip --- */
+.sfs-tooltip {
+  position: absolute;
+  z-index: 2147483647;
+  background: #263238;
+  color: #eceff1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 320px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.sfs-tooltip strong {
+  color: #80cbc4;
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.sfs-tooltip em {
+  font-style: italic;
+  color: #b0bec5;
+  font-size: 11.5px;
+}

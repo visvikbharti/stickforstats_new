@@ -1,0 +1,71 @@
+{
+  "title": "학습 허브",
+  "subtitle": "인터랙티브 강의로 통계학 마스터",
+
+  "modules": {
+    "pca": "주성분 분석",
+    "confidenceIntervals": "신뢰구간",
+    "doe": "실험 설계",
+    "probability": "확률 분포",
+    "sqc": "통계적 품질 관리",
+    "powerAnalysis": "검정력 분석",
+    "biophysics": "생물물리 통계학"
+  },
+
+  "levels": {
+    "beginner": "초급",
+    "intermediate": "중급",
+    "advanced": "고급",
+    "expert": "전문가"
+  },
+
+  "lesson": {
+    "title": "강의",
+    "duration": "소요 시간",
+    "objectives": "학습 목표",
+    "prerequisites": "선수 지식",
+    "content": "내용",
+    "exercises": "연습 문제",
+    "quiz": "퀴즈",
+    "summary": "요약",
+    "nextLesson": "다음 강의",
+    "previousLesson": "이전 강의",
+    "complete": "강의 완료",
+    "progress": "진도"
+  },
+
+  "progress": {
+    "notStarted": "시작 전",
+    "inProgress": "진행 중",
+    "completed": "완료",
+    "lessonsCompleted": "완료한 강의",
+    "totalLessons": "전체 강의 수",
+    "overallProgress": "전체 진도"
+  },
+
+  "interactive": {
+    "tryIt": "직접 해보기",
+    "simulation": "인터랙티브 시뮬레이션",
+    "calculator": "계산기",
+    "visualization": "시각화",
+    "example": "예제",
+    "practice": "연습 문제"
+  },
+
+  "concepts": {
+    "whatIs": "이란 무엇인가",
+    "whyImportant": "왜 중요한가?",
+    "howToCalculate": "계산 방법",
+    "whenToUse": "사용 시기",
+    "commonMistakes": "흔한 실수",
+    "bestPractices": "모범 사례",
+    "realWorldExamples": "실제 사례"
+  },
+
+  "resources": {
+    "additionalReading": "추가 자료",
+    "references": "참고 문헌",
+    "downloadMaterials": "자료 다운로드",
+    "relatedTopics": "관련 주제"
+  }
+}

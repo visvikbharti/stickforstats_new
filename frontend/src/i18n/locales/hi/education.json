@@ -1,0 +1,71 @@
+{
+  "title": "लर्निंग हब",
+  "subtitle": "इंटरैक्टिव पाठों से सांख्यिकी में महारत हासिल करें",
+
+  "modules": {
+    "pca": "प्रमुख घटक विश्लेषण",
+    "confidenceIntervals": "विश्वास अंतराल",
+    "doe": "प्रयोग अभिकल्पन",
+    "probability": "प्रायिकता वितरण",
+    "sqc": "सांख्यिकीय गुणवत्ता नियंत्रण",
+    "powerAnalysis": "सामर्थ्य विश्लेषण",
+    "biophysics": "जैवभौतिकी सांख्यिकी"
+  },
+
+  "levels": {
+    "beginner": "प्रारंभिक",
+    "intermediate": "मध्यवर्ती",
+    "advanced": "उन्नत",
+    "expert": "विशेषज्ञ"
+  },
+
+  "lesson": {
+    "title": "पाठ",
+    "duration": "अवधि",
+    "objectives": "सीखने के उद्देश्य",
+    "prerequisites": "पूर्वापेक्षाएं",
+    "content": "सामग्री",
+    "exercises": "अभ्यास",
+    "quiz": "प्रश्नोत्तरी",
+    "summary": "सारांश",
+    "nextLesson": "अगला पाठ",
+    "previousLesson": "पिछला पाठ",
+    "complete": "पाठ पूर्ण करें",
+    "progress": "प्रगति"
+  },
+
+  "progress": {
+    "notStarted": "शुरू नहीं हुआ",
+    "inProgress": "प्रगति पर",
+    "completed": "पूर्ण",
+    "lessonsCompleted": "पूर्ण किए गए पाठ",
+    "totalLessons": "कुल पाठ",
+    "overallProgress": "समग्र प्रगति"
+  },
+
+  "interactive": {
+    "tryIt": "स्वयं करके देखें",
+    "simulation": "इंटरैक्टिव सिमुलेशन",
+    "calculator": "कैलकुलेटर",
+    "visualization": "दृश्यावलोकन",
+    "example": "उदाहरण",
+    "practice": "अभ्यास प्रश्न"
+  },
+
+  "concepts": {
+    "whatIs": "क्या है",
+    "whyImportant": "यह क्यों महत्वपूर्ण है?",
+    "howToCalculate": "गणना कैसे करें",
+    "whenToUse": "कब उपयोग करें",
+    "commonMistakes": "सामान्य गलतियां",
+    "bestPractices": "सर्वोत्तम प्रथाएं",
+    "realWorldExamples": "वास्तविक उदाहरण"
+  },
+
+  "resources": {
+    "additionalReading": "अतिरिक्त पठन सामग्री",
+    "references": "संदर्भ",
+    "downloadMaterials": "सामग्री डाउनलोड करें",
+    "relatedTopics": "संबंधित विषय"
+  }
+}

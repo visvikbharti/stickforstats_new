@@ -2,7 +2,8 @@
  * Internationalization (i18n) Configuration
  *
  * Multi-language support for StickForStats platform.
- * Supports: English, Spanish, Chinese, Portuguese, French, German
+ * Supports: English, Spanish, Chinese, Portuguese, French, German,
+ *           Japanese, Korean, Hindi, Arabic
  *
  * @author StickForStats Team
  * @version 1.0.0
@@ -43,6 +44,29 @@ import deStatistics from './locales/de/statistics.json';
 import deNavigation from './locales/de/navigation.json';
 import deEducation from './locales/de/education.json';
 
+import jaCommon from './locales/ja/common.json';
+import jaStatistics from './locales/ja/statistics.json';
+import jaNavigation from './locales/ja/navigation.json';
+import jaEducation from './locales/ja/education.json';
+
+import koCommon from './locales/ko/common.json';
+import koStatistics from './locales/ko/statistics.json';
+import koNavigation from './locales/ko/navigation.json';
+import koEducation from './locales/ko/education.json';
+
+import hiCommon from './locales/hi/common.json';
+import hiStatistics from './locales/hi/statistics.json';
+import hiNavigation from './locales/hi/navigation.json';
+import hiEducation from './locales/hi/education.json';
+
+import arCommon from './locales/ar/common.json';
+import arStatistics from './locales/ar/statistics.json';
+import arNavigation from './locales/ar/navigation.json';
+import arEducation from './locales/ar/education.json';
+
+// RTL languages
+const RTL_LANGUAGES = ['ar'];
+
 // Supported languages configuration
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
@@ -50,7 +74,11 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
   { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇧🇷' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' }
+  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+  { code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: 'Korean', nativeName: '한국어', flag: '🇰🇷' },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl' }
 ];
 
 // Resources object with all translations
@@ -90,6 +118,30 @@ const resources = {
     statistics: deStatistics,
     navigation: deNavigation,
     education: deEducation
+  },
+  ja: {
+    common: jaCommon,
+    statistics: jaStatistics,
+    navigation: jaNavigation,
+    education: jaEducation
+  },
+  ko: {
+    common: koCommon,
+    statistics: koStatistics,
+    navigation: koNavigation,
+    education: koEducation
+  },
+  hi: {
+    common: hiCommon,
+    statistics: hiStatistics,
+    navigation: hiNavigation,
+    education: hiEducation
+  },
+  ar: {
+    common: arCommon,
+    statistics: arStatistics,
+    navigation: arNavigation,
+    education: arEducation
   }
 };
 
@@ -121,13 +173,18 @@ i18n
 
 /**
  * Change the current language
- * @param {string} languageCode - Language code (en, es, zh, pt, fr, de)
+ * @param {string} languageCode - Language code (en, es, zh, pt, fr, de, ja, ko, hi, ar)
  */
 export const changeLanguage = (languageCode) => {
   i18n.changeLanguage(languageCode);
   localStorage.setItem('stickforstats-language', languageCode);
-  // Update document direction for RTL languages if needed in future
   document.documentElement.lang = languageCode;
+  // Set document direction for RTL languages (e.g., Arabic)
+  if (RTL_LANGUAGES.includes(languageCode)) {
+    document.documentElement.dir = 'rtl';
+  } else {
+    document.documentElement.dir = 'ltr';
+  }
 };
 
 /**

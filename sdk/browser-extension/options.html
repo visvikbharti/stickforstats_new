@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StickForStats — Extension Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      color: #263238;
+      background: #fafafa;
+      padding: 0;
+    }
+
+    .sfs-options-container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1565c0;
+      margin-bottom: 8px;
+    }
+
+    .sfs-subtitle {
+      font-size: 13px;
+      color: #78909c;
+      margin-bottom: 28px;
+    }
+
+    /* --- Sections --- */
+    .sfs-section {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .sfs-section h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #37474f;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eceff1;
+    }
+
+    /* --- Form fields --- */
+    .sfs-field {
+      margin-bottom: 16px;
+    }
+
+    .sfs-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .sfs-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #455a64;
+      margin-bottom: 5px;
+    }
+
+    .sfs-field .sfs-hint {
+      font-size: 11.5px;
+      color: #90a4ae;
+      margin-top: 4px;
+    }
+
+    .sfs-field input[type="text"],
+    .sfs-field input[type="password"],
+    .sfs-field input[type="url"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cfd8dc;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #263238;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+
+    .sfs-field input:focus {
+      outline: none;
+      border-color: #1565c0;
+      background: white;
+    }
+
+    /* --- Toggle switch --- */
+    .sfs-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .sfs-toggle:last-child {
+      margin-bottom: 0;
+    }
+
+    .sfs-toggle-label {
+      font-size: 13px;
+      color: #455a64;
+    }
+
+    .sfs-toggle-label .sfs-toggle-hint {
+      display: block;
+      font-size: 11.5px;
+      color: #90a4ae;
+      margin-top: 2px;
+    }
+
+    .sfs-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+
+    .sfs-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .sfs-switch .sfs-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #b0bec5;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .sfs-switch .sfs-slider::before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+
+    .sfs-switch input:checked + .sfs-slider {
+      background-color: #1565c0;
+    }
+
+    .sfs-switch input:checked + .sfs-slider::before {
+      transform: translateX(20px);
+    }
+
+    /* --- Color pickers --- */
+    .sfs-color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sfs-color-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .sfs-color-row input[type="color"] {
+      width: 36px;
+      height: 28px;
+      border: 1px solid #cfd8dc;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 1px;
+    }
+
+    .sfs-color-label {
+      font-size: 12.5px;
+      color: #546e7a;
+    }
+
+    /* --- Buttons --- */
+    .sfs-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .sfs-btn {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sfs-btn-save {
+      background: #1565c0;
+      color: white;
+    }
+
+    .sfs-btn-save:hover {
+      background: #0d47a1;
+    }
+
+    .sfs-btn-reset {
+      background: #eceff1;
+      color: #455a64;
+    }
+
+    .sfs-btn-reset:hover {
+      background: #cfd8dc;
+    }
+
+    /* --- Status --- */
+    .sfs-save-status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #2e7d32;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .sfs-save-status.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sfs-options-container">
+    <h1>StickForStats Settings</h1>
+    <p class="sfs-subtitle">Configure the Statistical Claim Detector extension.</p>
+
+    <!-- API Configuration -->
+    <div class="sfs-section">
+      <h2>API Connection</h2>
+
+      <div class="sfs-field">
+        <label for="apiBaseUrl">StickForStats Base URL</label>
+        <input type="url" id="apiBaseUrl" placeholder="http://localhost:8000">
+        <div class="sfs-hint">
+          The URL where your StickForStats instance is running. Used for claim validation.
+        </div>
+      </div>
+
+      <div class="sfs-field">
+        <label for="apiKey">API Key</label>
+        <input type="password" id="apiKey" placeholder="Enter your API key">
+        <div class="sfs-hint">
+          Required for the "Validate with StickForStats" feature. Leave blank to use detection only.
+        </div>
+      </div>
+    </div>
+
+    <!-- Behavior -->
+    <div class="sfs-section">
+      <h2>Behavior</h2>
+
+      <div class="sfs-toggle">
+        <div class="sfs-toggle-label">
+          Auto-highlight on page load
+          <span class="sfs-toggle-hint">
+            Automatically scan and highlight statistical claims when a page loads.
+          </span>
+        </div>
+        <label class="sfs-switch">
+          <input type="checkbox" id="autoHighlight">
+          <span class="sfs-slider"></span>
+        </label>
+      </div>
+
+      <div class="sfs-toggle">
+        <div class="sfs-toggle-label">
+          Auto-validate claims
+          <span class="sfs-toggle-hint">
+            Automatically send detected claims to the StickForStats API for consistency checking. Requires an API key.
+          </span>
+        </div>
+        <label class="sfs-switch">
+          <input type="checkbox" id="autoValidate">
+          <span class="sfs-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Highlight Colors -->
+    <div class="sfs-section">
+      <h2>Highlight Colors</h2>
+
+      <div class="sfs-color-row">
+        <input type="color" id="colorDetected" value="#1976d2">
+        <span class="sfs-color-label">Detected claims (default: blue)</span>
+      </div>
+
+      <div class="sfs-color-row">
+        <input type="color" id="colorValid" value="#2e7d32">
+        <span class="sfs-color-label">Validated / consistent (default: green)</span>
+      </div>
+
+      <div class="sfs-color-row">
+        <input type="color" id="colorWarning" value="#ed6c02">
+        <span class="sfs-color-label">Minor issue / warning (default: orange)</span>
+      </div>
+
+      <div class="sfs-color-row">
+        <input type="color" id="colorError" value="#d32f2f">
+        <span class="sfs-color-label">Inconsistency / error (default: red)</span>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="sfs-btn-row">
+      <button class="sfs-btn sfs-btn-save" id="btnSave">Save Settings</button>
+      <button class="sfs-btn sfs-btn-reset" id="btnReset">Reset to Defaults</button>
+    </div>
+
+    <div class="sfs-save-status" id="saveStatus">Settings saved successfully.</div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

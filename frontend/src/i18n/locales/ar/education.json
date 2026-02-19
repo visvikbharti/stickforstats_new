@@ -1,0 +1,71 @@
+{
+  "title": "مركز التعلم",
+  "subtitle": "أتقن الإحصاء من خلال دروس تفاعلية",
+
+  "modules": {
+    "pca": "تحليل المكونات الرئيسية",
+    "confidenceIntervals": "فترات الثقة",
+    "doe": "تصميم التجارب",
+    "probability": "التوزيعات الاحتمالية",
+    "sqc": "الضبط الإحصائي للجودة",
+    "powerAnalysis": "تحليل القوة الإحصائية",
+    "biophysics": "إحصاء الفيزياء الحيوية"
+  },
+
+  "levels": {
+    "beginner": "مبتدئ",
+    "intermediate": "متوسط",
+    "advanced": "متقدم",
+    "expert": "خبير"
+  },
+
+  "lesson": {
+    "title": "الدرس",
+    "duration": "المدة",
+    "objectives": "أهداف التعلم",
+    "prerequisites": "المتطلبات السابقة",
+    "content": "المحتوى",
+    "exercises": "التمارين",
+    "quiz": "اختبار قصير",
+    "summary": "الملخص",
+    "nextLesson": "الدرس التالي",
+    "previousLesson": "الدرس السابق",
+    "complete": "إكمال الدرس",
+    "progress": "التقدم"
+  },
+
+  "progress": {
+    "notStarted": "لم يبدأ",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "lessonsCompleted": "الدروس المكتملة",
+    "totalLessons": "إجمالي الدروس",
+    "overallProgress": "التقدم العام"
+  },
+
+  "interactive": {
+    "tryIt": "جرّب بنفسك",
+    "simulation": "محاكاة تفاعلية",
+    "calculator": "آلة حاسبة",
+    "visualization": "تمثيل بياني",
+    "example": "مثال",
+    "practice": "مسألة تدريبية"
+  },
+
+  "concepts": {
+    "whatIs": "ما هو",
+    "whyImportant": "لماذا هو مهم؟",
+    "howToCalculate": "كيفية الحساب",
+    "whenToUse": "متى يُستخدم",
+    "commonMistakes": "الأخطاء الشائعة",
+    "bestPractices": "أفضل الممارسات",
+    "realWorldExamples": "أمثلة من الواقع"
+  },
+
+  "resources": {
+    "additionalReading": "قراءات إضافية",
+    "references": "المراجع",
+    "downloadMaterials": "تحميل المواد",
+    "relatedTopics": "مواضيع ذات صلة"
+  }
+}

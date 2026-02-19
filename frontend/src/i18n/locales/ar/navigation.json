@@ -1,0 +1,39 @@
+{
+  "home": "الرئيسية",
+  "dashboard": "لوحة المعلومات",
+  "learningHub": "مركز التعلم",
+  "statisticalAnalysis": "التحليل الإحصائي",
+  "metaAnalysis": "التحليل التلوي",
+  "paperParser": "محلل الأوراق البحثية",
+  "confidenceIntervals": "فترات الثقة",
+  "pcaAnalysis": "تحليل المكونات الرئيسية",
+  "factorAnalysis": "التحليل العاملي",
+  "survivalAnalysis": "تحليل البقاء",
+  "doeAnalysis": "تصميم التجارب",
+  "sqcAnalysis": "الضبط الإحصائي للجودة",
+  "probabilityDistributions": "التوزيعات الاحتمالية",
+  "powerAnalysis": "تحليل القوة الإحصائية",
+  "biophysics": "الفيزياء الحيوية",
+  "enterprise": "المؤسسات",
+  "admin": "الإدارة",
+  "branding": "العلامة التجارية",
+  "security": "الأمان",
+  "monitoring": "المراقبة",
+
+  "menu": {
+    "analysis": "التحليل",
+    "education": "التعليم",
+    "tools": "الأدوات",
+    "advanced": "متقدم",
+    "settings": "الإعدادات"
+  },
+
+  "footer": {
+    "aboutUs": "من نحن",
+    "contactUs": "اتصل بنا",
+    "termsOfService": "شروط الخدمة",
+    "privacyPolicy": "سياسة الخصوصية",
+    "copyright": "\u00a9 2025 StickForStats. جميع الحقوق محفوظة.",
+    "poweredBy": "مدعوم بخوارزميات إحصائية متقدمة"
+  }
+}

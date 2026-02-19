@@ -166,6 +166,10 @@ from .manuscript_views import (
     SubmissionReportView,
     JournalSubmitView,
 )
+from .batch_views import (
+    BatchSubmitView,
+    BatchStatusView,
+)
 from .data_import_views import (
     UniversalDataImportView,
     SupportedFormatsView,
@@ -174,6 +178,12 @@ from .schema_views import (
     OpenAPISchemaView,
     SwaggerUIView,
     ReDocView,
+)
+from .journal_analytics_views import (
+    JournalAnalyticsOverviewView,
+    JournalAnalyticsIssuesView,
+    JournalAnalyticsTrendsView,
+    JournalAnalyticsComparisonView,
 )
 from .platform_views import (
     TierInfoView,
@@ -186,6 +196,18 @@ from .platform_views import (
     StripeWebhookView,
     APIKeyManageView,
     APIKeyRevokeView,
+)
+from .project_views import (
+    ProjectListCreateView,
+    ProjectDetailView,
+    RBACPermissionsView,
+    MemberRoleUpdateView,
+)
+from .gdpr_views import (
+    ConsentStatusView,
+    DataExportView,
+    DataErasureView,
+    PrivacyInfoView,
 )
 
 app_name = 'api-v1'
@@ -373,6 +395,14 @@ urlpatterns = [
     path('manuscript/consistency/', ConsistencyCheckView.as_view(), name='manuscript-consistency'),
     path('manuscript/report/<uuid:submission_id>/', SubmissionReportView.as_view(), name='manuscript-report'),
     path('manuscript/journal/submit/', JournalSubmitView.as_view(), name='journal-submit'),
+    path('manuscript/batch-submit/', BatchSubmitView.as_view(), name='manuscript-batch-submit'),
+    path('manuscript/batch-status/<str:batch_id>/', BatchStatusView.as_view(), name='manuscript-batch-status'),
+
+    # Journal Analytics
+    path('journal/analytics/overview/', JournalAnalyticsOverviewView.as_view(), name='journal-analytics-overview'),
+    path('journal/analytics/issues/', JournalAnalyticsIssuesView.as_view(), name='journal-analytics-issues'),
+    path('journal/analytics/trends/', JournalAnalyticsTrendsView.as_view(), name='journal-analytics-trends'),
+    path('journal/analytics/comparison/', JournalAnalyticsComparisonView.as_view(), name='journal-analytics-comparison'),
 
     # Universal Data Import
     path('data/universal-import/', UniversalDataImportView.as_view(), name='universal-data-import'),
@@ -389,6 +419,18 @@ urlpatterns = [
     path('platform/billing/webhook/', StripeWebhookView.as_view(), name='platform-stripe-webhook'),
     path('platform/api-keys/', APIKeyManageView.as_view(), name='platform-api-keys'),
     path('platform/api-keys/<uuid:key_id>/', APIKeyRevokeView.as_view(), name='platform-api-key-revoke'),
+
+    # Projects & RBAC
+    path('platform/projects/', ProjectListCreateView.as_view(), name='project-list-create'),
+    path('platform/projects/<slug:project_slug>/', ProjectDetailView.as_view(), name='project-detail'),
+    path('platform/permissions/', RBACPermissionsView.as_view(), name='rbac-permissions'),
+    path('platform/organizations/<slug:org_slug>/members/<uuid:member_id>/role/', MemberRoleUpdateView.as_view(), name='member-role-update'),
+
+    # GDPR / Privacy
+    path('privacy/consent/', ConsentStatusView.as_view(), name='privacy-consent'),
+    path('privacy/export/', DataExportView.as_view(), name='privacy-export'),
+    path('privacy/erase/', DataErasureView.as_view(), name='privacy-erase'),
+    path('privacy/info/', PrivacyInfoView.as_view(), name='privacy-info'),
 
     # OpenAPI Schema & Documentation
     path('schema/', OpenAPISchemaView.as_view(), name='openapi-schema'),

@@ -143,10 +143,14 @@ const SmartAnalysisPage = lazy(() => import('./pages/SmartAnalysisPage'));
 const ManuscriptReviewPage = lazy(() => import('./pages/ManuscriptReviewPage'));
 // Platform Dashboard — Organization & Billing Management
 const PlatformDashboardPage = lazy(() => import('./pages/PlatformDashboardPage'));
+// Journal Analytics Dashboard (v2.0)
+const JournalAnalyticsPage = lazy(() => import('./pages/JournalAnalyticsPage'));
 const EnterpriseDashboard = lazy(() => import('./components/enterprise/EnterpriseDashboard'));
 const KeyboardShortcutsPage = lazy(() => import('./pages/KeyboardShortcutsPage'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
 const BrandingManager = lazy(() => import('./components/admin/BrandingManager'));
+// GDPR Privacy Dashboard (v2.0)
+const PrivacyDashboardPage = lazy(() => import('./pages/PrivacyDashboardPage'));
 
 // Loading fallback component
 const LoadingComponent = ({ message = "Loading module..." }) => (
@@ -297,6 +301,16 @@ function App() {
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Manuscript Review..." />}>
                               <ManuscriptReviewPage />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Journal Analytics Dashboard (v2.0) */}
+                        <Route
+                          path="/journal-analytics"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Journal Analytics..." />}>
+                              <JournalAnalyticsPage />
                             </Suspense>
                           }
                         />
@@ -938,16 +952,15 @@ function App() {
                         </Box>
                       } />
 
-                      {/* Privacy Policy */}
-                      <Route path="/privacy" element={
-                        <Box sx={{ maxWidth: 800, mx: 'auto', p: 4, minHeight: '60vh' }}>
-                          <Typography variant="h4" gutterBottom>Privacy Policy</Typography>
-                          <Typography variant="body1" paragraph>StickForStats processes all data locally in your browser. No personal data or uploaded datasets are transmitted to external servers unless you explicitly connect to a backend instance you control.</Typography>
-                          <Typography variant="body1" paragraph>Session data is stored temporarily in your browser and cleared when you close the application. No cookies are used for tracking purposes.</Typography>
-                          <Typography variant="body1" paragraph>If you run the optional Django backend, all data remains on that server instance. No telemetry or usage data is collected.</Typography>
-                          <Button variant="outlined" href="/" sx={{ mt: 2 }}>Return Home</Button>
-                        </Box>
-                      } />
+                      {/* Privacy Dashboard — GDPR Compliance (v2.0) */}
+                      <Route
+                        path="/privacy"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Privacy Dashboard..." />}>
+                            <PrivacyDashboardPage />
+                          </Suspense>
+                        }
+                      />
 
                       {/* Catch-all route for 404 */}
                       <Route path="*" element={<NotFoundPage />} />

@@ -512,6 +512,32 @@ class JournalSubmitView(APIView):
             submission.completed_at = timezone.now()
             submission.save()
 
+            # Trigger webhook delivery if journal has a webhook URL configured
+            webhook_delivered = False
+            if journal.webhook_url:
+                try:
+                    # Create a ReviewReport record for webhook delivery
+                    review_report = ReviewReport.objects.create(
+                        submission=submission,
+                        report_type='editor',
+                        summary=f'Automated statistical review of {submission.title or submission.file_name}',
+                        overall_assessment=report.overall_assessment or 'minor_issues',
+                        findings=report.findings if hasattr(report, 'findings') else [],
+                        positive_findings=report.positive_findings if hasattr(report, 'positive_findings') else [],
+                        sqs_score=report.sqs_score,
+                        consistency_score=report.consistency_rate,
+                    )
+
+                    from core.services.webhook_service import WebhookDeliveryService
+                    webhook_delivered = WebhookDeliveryService.deliver_report(
+                        journal, submission, review_report,
+                    )
+                except Exception as webhook_exc:
+                    logger.warning(
+                        'Webhook delivery failed for submission %s: %s',
+                        submission.id, webhook_exc,
+                    )
+
             return Response({
                 'submission_id': str(submission.id),
                 'status': 'completed',
@@ -525,6 +551,7 @@ class JournalSubmitView(APIView):
                 'findings_count': len(report.findings),
                 'processing_time_ms': report.processing_time_ms,
                 'report_url': f'/api/v1/manuscript/report/{submission.id}/',
+                'webhook_delivered': webhook_delivered,
             }, status=status.HTTP_201_CREATED)
 
         except Exception as exc:

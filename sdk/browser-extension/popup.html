@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StickForStats</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      color: #263238;
+      background: #fafafa;
+    }
+
+    /* --- Header --- */
+    .sfs-header {
+      background: linear-gradient(135deg, #1565c0, #0d47a1);
+      color: white;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sfs-header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .sfs-header .sfs-version {
+      font-size: 10.5px;
+      opacity: 0.7;
+      margin-left: auto;
+    }
+
+    /* --- Total count --- */
+    .sfs-total {
+      text-align: center;
+      padding: 18px 16px 12px;
+    }
+
+    .sfs-total .sfs-count {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1565c0;
+    }
+
+    .sfs-total .sfs-label {
+      font-size: 12px;
+      color: #78909c;
+      margin-top: 2px;
+    }
+
+    /* --- Breakdown list --- */
+    .sfs-breakdown {
+      padding: 0 16px 12px;
+    }
+
+    .sfs-breakdown h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #90a4ae;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .sfs-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #eceff1;
+    }
+
+    .sfs-row:last-child {
+      border-bottom: none;
+    }
+
+    .sfs-row .sfs-row-label {
+      color: #455a64;
+    }
+
+    .sfs-row .sfs-row-count {
+      font-weight: 600;
+      color: #1565c0;
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .sfs-row .sfs-row-count.zero {
+      color: #b0bec5;
+    }
+
+    /* --- Issues section --- */
+    .sfs-issues {
+      padding: 0 16px 12px;
+    }
+
+    .sfs-issues h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #90a4ae;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .sfs-issue-item {
+      background: #fff3e0;
+      border-left: 3px solid #ed6c02;
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+      color: #5d4037;
+    }
+
+    .sfs-issue-item.sfs-error {
+      background: #fce4ec;
+      border-left-color: #d32f2f;
+      color: #b71c1c;
+    }
+
+    .sfs-no-issues {
+      color: #66bb6a;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+
+    /* --- Buttons --- */
+    .sfs-actions {
+      padding: 10px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sfs-btn {
+      display: block;
+      width: 100%;
+      padding: 9px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease, opacity 0.2s ease;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .sfs-btn-primary {
+      background: #1565c0;
+      color: white;
+    }
+
+    .sfs-btn-primary:hover {
+      background: #0d47a1;
+    }
+
+    .sfs-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .sfs-btn-secondary {
+      background: #eceff1;
+      color: #455a64;
+    }
+
+    .sfs-btn-secondary:hover {
+      background: #cfd8dc;
+    }
+
+    .sfs-btn-link {
+      background: none;
+      color: #1565c0;
+      font-size: 12px;
+      text-decoration: underline;
+    }
+
+    .sfs-btn-link:hover {
+      color: #0d47a1;
+    }
+
+    /* --- Footer --- */
+    .sfs-footer {
+      text-align: center;
+      padding: 10px 16px 12px;
+      border-top: 1px solid #eceff1;
+    }
+
+    .sfs-footer a {
+      font-size: 11.5px;
+      color: #90a4ae;
+      text-decoration: none;
+    }
+
+    .sfs-footer a:hover {
+      color: #1565c0;
+      text-decoration: underline;
+    }
+
+    /* Status message */
+    .sfs-status {
+      text-align: center;
+      font-size: 12px;
+      padding: 6px 16px;
+      color: #78909c;
+    }
+
+    .sfs-status.sfs-status-error {
+      color: #d32f2f;
+    }
+
+    .sfs-status.sfs-status-success {
+      color: #2e7d32;
+    }
+
+    /* Hidden */
+    .sfs-hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="sfs-header">
+    <h1>StickForStats</h1>
+    <span class="sfs-version">v0.1.0</span>
+  </div>
+
+  <!-- Total count -->
+  <div class="sfs-total">
+    <div class="sfs-count" id="totalCount">--</div>
+    <div class="sfs-label">statistical claims found on this page</div>
+  </div>
+
+  <!-- Breakdown by type -->
+  <div class="sfs-breakdown">
+    <h2>Breakdown</h2>
+    <div class="sfs-row">
+      <span class="sfs-row-label">t-tests</span>
+      <span class="sfs-row-count" id="count-t_test">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">F-tests (ANOVA)</span>
+      <span class="sfs-row-count" id="count-f_test">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Chi-square tests</span>
+      <span class="sfs-row-count" id="count-chi_square">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Correlations</span>
+      <span class="sfs-row-count" id="count-correlation">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">p-values</span>
+      <span class="sfs-row-count" id="count-p_value">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Effect sizes</span>
+      <span class="sfs-row-count" id="count-effect_size">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Confidence intervals</span>
+      <span class="sfs-row-count" id="count-confidence_interval">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">z-tests</span>
+      <span class="sfs-row-count" id="count-z_test">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">R-squared</span>
+      <span class="sfs-row-count" id="count-r_squared">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Odds / Hazard ratios</span>
+      <span class="sfs-row-count" id="count-ratios">0</span>
+    </div>
+    <div class="sfs-row">
+      <span class="sfs-row-label">Sample sizes</span>
+      <span class="sfs-row-count" id="count-sample_size">0</span>
+    </div>
+  </div>
+
+  <!-- Issues summary -->
+  <div class="sfs-issues sfs-hidden" id="issuesSection">
+    <h2>Issues Found</h2>
+    <div id="issuesList"></div>
+  </div>
+
+  <!-- Status message -->
+  <div class="sfs-status sfs-hidden" id="statusMessage"></div>
+
+  <!-- Action buttons -->
+  <div class="sfs-actions">
+    <button class="sfs-btn sfs-btn-primary" id="btnValidate">
+      Validate with StickForStats
+    </button>
+    <button class="sfs-btn sfs-btn-secondary" id="btnRescan">
+      Re-scan Page
+    </button>
+    <button class="sfs-btn sfs-btn-link" id="btnOpenApp">
+      Open full analysis in StickForStats
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <div class="sfs-footer">
+    <a href="options.html" target="_blank">Extension Settings</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

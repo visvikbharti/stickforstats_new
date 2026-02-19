@@ -1,0 +1,14 @@
+Package: stickforstats
+Title: R Client for StickForStats Statistical Analysis Platform
+Version: 0.1.0
+Authors@R: person("StickForStats", "Team", email = "dev@stickforstats.com", role = c("aut", "cre"))
+Description: R client for the StickForStats platform. Provides access to 40+ statistical
+    tests with Guardian assumption validation, autonomous analysis, manuscript review,
+    and 50-digit precision calculations.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: httr2, jsonlite, R6
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3

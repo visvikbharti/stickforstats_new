@@ -26,6 +26,7 @@ from enum import Enum
 import json
 from typing import Dict, List, Optional, Any
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
@@ -884,6 +885,90 @@ class UsageRecord(models.Model):
         return f"{self.method} {self.endpoint} ({org_name}) — {self.status_code}"
 
 
+# =============================================================================
+# GDPR COMPLIANCE MODELS (v2.0 — Privacy & Data Subject Rights)
+# =============================================================================
+
+
+class ConsentRecord(models.Model):
+    """GDPR consent tracking for data processing activities."""
+    CONSENT_TYPES = [
+        ('analytics', 'Usage Analytics'),
+        ('data_processing', 'Statistical Data Processing'),
+        ('email_notifications', 'Email Notifications'),
+        ('third_party_sharing', 'Third-Party Data Sharing'),
+        ('cookies', 'Cookie Consent'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='consent_records'
+    )
+    consent_type = models.CharField(max_length=50, choices=CONSENT_TYPES)
+    granted = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+    granted_at = models.DateTimeField(default=timezone.now)
+    revoked_at = models.DateTimeField(blank=True, null=True)
+    version = models.CharField(
+        max_length=20, default='1.0',
+        help_text='Privacy policy version when consent was given'
+    )
+
+    class Meta:
+        verbose_name = 'Consent Record'
+        verbose_name_plural = 'Consent Records'
+        ordering = ['-granted_at']
+        unique_together = [('user', 'consent_type')]
+
+    def __str__(self):
+        status = 'granted' if self.granted else 'revoked'
+        return f"{self.user.username} - {self.consent_type} ({status})"
+
+
+class Project(models.Model):
+    """A workspace for organizing analyses within an organization."""
+    VISIBILITY_CHOICES = [
+        ('private', 'Private'),
+        ('team', 'Team'),
+        ('public', 'Public'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        'Organization',
+        on_delete=models.CASCADE,
+        related_name='projects'
+    )
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=100)
+    description = models.TextField(blank=True)
+    visibility = models.CharField(
+        max_length=20, choices=VISIBILITY_CHOICES, default='team'
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_projects'
+    )
+    settings = models.JSONField(default=dict, blank=True)
+    is_archived = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
+        ordering = ['-updated_at']
+        unique_together = [('organization', 'slug')]
+
+    def __str__(self):
+        return f"{self.organization.name}/{self.name}"
+
+
 __all__ = [
     'Analysis',
     'Report',
@@ -900,4 +985,6 @@ __all__ = [
     'OrganizationMembership',
     'PlatformAPIKey',
     'UsageRecord',
+    'ConsentRecord',
+    'Project',
 ]

@@ -1,0 +1,39 @@
+{
+  "home": "홈",
+  "dashboard": "대시보드",
+  "learningHub": "학습 허브",
+  "statisticalAnalysis": "통계 분석",
+  "metaAnalysis": "메타분석",
+  "paperParser": "논문 파서",
+  "confidenceIntervals": "신뢰구간",
+  "pcaAnalysis": "주성분 분석",
+  "factorAnalysis": "요인 분석",
+  "survivalAnalysis": "생존 분석",
+  "doeAnalysis": "실험 설계",
+  "sqcAnalysis": "통계적 품질 관리",
+  "probabilityDistributions": "확률 분포",
+  "powerAnalysis": "검정력 분석",
+  "biophysics": "생물물리학",
+  "enterprise": "엔터프라이즈",
+  "admin": "관리",
+  "branding": "브랜딩",
+  "security": "보안",
+  "monitoring": "모니터링",
+
+  "menu": {
+    "analysis": "분석",
+    "education": "교육",
+    "tools": "도구",
+    "advanced": "고급",
+    "settings": "설정"
+  },
+
+  "footer": {
+    "aboutUs": "소개",
+    "contactUs": "문의하기",
+    "termsOfService": "이용약관",
+    "privacyPolicy": "개인정보처리방침",
+    "copyright": "\u00a9 2025 StickForStats. All rights reserved.",
+    "poweredBy": "고급 통계 알고리즘 기반"
+  }
+}
