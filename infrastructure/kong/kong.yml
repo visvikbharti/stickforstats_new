@@ -1,0 +1,190 @@
+# Kong API Gateway Configuration for StickForStats
+# Declarative configuration (DB-less mode)
+
+_format_version: "3.0"
+
+services:
+  # ── Backend API Service ──────────────────────────────
+  - name: stickforstats-api
+    url: http://backend:8000
+    connect_timeout: 10000
+    write_timeout: 60000
+    read_timeout: 120000
+    retries: 3
+    routes:
+      - name: api-routes
+        paths:
+          - /api/v1
+        strip_path: false
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      # Rate limiting per consumer
+      - name: rate-limiting
+        config:
+          minute: 60
+          hour: 1000
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+          error_code: 429
+          error_message: "Rate limit exceeded. Upgrade your plan for higher limits."
+
+      # CORS handling
+      - name: cors
+        config:
+          origins:
+            - https://app.stickforstats.com
+            - https://*.stickforstats.com
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+            - X-API-Key
+            - X-Organization
+            - X-CSRF-Token
+          exposed_headers:
+            - X-RateLimit-Limit
+            - X-RateLimit-Remaining
+            - X-RateLimit-Reset
+          credentials: true
+          max_age: 3600
+
+      # Request size limiting (10MB for file uploads)
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 10
+          size_unit: megabytes
+
+      # Response compression
+      - name: response-transformer
+        config:
+          add:
+            headers:
+              - "X-Powered-By: StickForStats"
+              - "X-Content-Type-Options: nosniff"
+              - "X-Frame-Options: DENY"
+              - "Strict-Transport-Security: max-age=31536000; includeSubDomains"
+
+      # Request logging
+      - name: file-log
+        config:
+          path: /tmp/kong-access.log
+          reopen: true
+
+  # ── Frontend Service ─────────────────────────────────
+  - name: stickforstats-frontend
+    url: http://frontend:80
+    routes:
+      - name: frontend-routes
+        paths:
+          - /
+        strip_path: false
+        protocols:
+          - https
+          - http
+
+  # ── Manuscript Upload Service (higher limits) ────────
+  - name: stickforstats-manuscript
+    url: http://backend:8000
+    write_timeout: 300000
+    read_timeout: 300000
+    routes:
+      - name: manuscript-routes
+        paths:
+          - /api/v1/manuscript
+          - /api/v1/sqs
+        strip_path: false
+        protocols:
+          - https
+    plugins:
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 50
+          size_unit: megabytes
+      - name: rate-limiting
+        config:
+          minute: 10
+          hour: 100
+          policy: local
+
+# ── Consumers (API Key based tiers) ───────────────────
+consumers:
+  - username: free-tier
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 10
+          hour: 100
+
+  - username: pro-tier
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          hour: 5000
+
+  - username: enterprise-tier
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 1000
+          hour: 50000
+
+  - username: journal-tier
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 50
+          hour: 500
+
+# ── Global Plugins ────────────────────────────────────
+plugins:
+  # Bot detection
+  - name: bot-detection
+    config:
+      allow: []
+      deny: []
+
+  # IP restriction (for admin endpoints)
+  - name: ip-restriction
+    route: null
+    service: null
+    consumer: null
+    enabled: false
+    config:
+      allow: []
+      deny: []
+
+# ── Upstreams (for load balancing) ────────────────────
+upstreams:
+  - name: backend-upstream
+    algorithm: round-robin
+    healthchecks:
+      active:
+        healthy:
+          interval: 10
+          successes: 3
+        unhealthy:
+          interval: 5
+          http_failures: 3
+        http_path: /api/v1/health/
+        timeout: 5
+    targets:
+      - target: backend:8000
+        weight: 100

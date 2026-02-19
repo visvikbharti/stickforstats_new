@@ -209,6 +209,10 @@ from .gdpr_views import (
     DataErasureView,
     PrivacyInfoView,
 )
+from . import marketplace_views
+from . import lms_views
+from . import certification_views
+from . import sso_views
 
 app_name = 'api-v1'
 
@@ -431,6 +435,37 @@ urlpatterns = [
     path('privacy/export/', DataExportView.as_view(), name='privacy-export'),
     path('privacy/erase/', DataErasureView.as_view(), name='privacy-erase'),
     path('privacy/info/', PrivacyInfoView.as_view(), name='privacy-info'),
+
+    # ── Marketplace ─────────────────────────────────────────
+    path('marketplace/plugins/', marketplace_views.MarketplaceListView.as_view(), name='marketplace-list'),
+    path('marketplace/plugins/<slug:plugin_slug>/', marketplace_views.PluginDetailView.as_view(), name='plugin-detail'),
+    path('marketplace/plugins/<slug:plugin_slug>/install/', marketplace_views.PluginInstallView.as_view(), name='plugin-install'),
+    path('marketplace/plugins/<slug:plugin_slug>/review/', marketplace_views.PluginReviewView.as_view(), name='plugin-review'),
+    path('marketplace/installed/', marketplace_views.InstalledPluginsView.as_view(), name='installed-plugins'),
+
+    # ── LMS Integration (LTI 1.3) ──────────────────────────
+    path('lti/config/', lms_views.LTIConfigView.as_view(), name='lti-config'),
+    path('lti/login/', lms_views.LTILoginView.as_view(), name='lti-login'),
+    path('lti/launch/', lms_views.LTILaunchView.as_view(), name='lti-launch'),
+    path('lti/deep-link/', lms_views.LTIDeepLinkView.as_view(), name='lti-deep-link'),
+    path('lti/grade/', lms_views.LTIGradePassbackView.as_view(), name='lti-grade'),
+    path('lti/platforms/', lms_views.LTIPlatformsView.as_view(), name='lti-platforms'),
+    path('lti/jwks/', lms_views.LTIJWKSView.as_view(), name='lti-jwks'),
+
+    # ── Certification Program ───────────────────────────────
+    path('certification/levels/', certification_views.CertificationLevelsView.as_view(), name='cert-levels'),
+    path('certification/levels/<str:level_id>/', certification_views.CertificationLevelDetailView.as_view(), name='cert-level-detail'),
+    path('certification/exam/start/', certification_views.ExamStartView.as_view(), name='cert-exam-start'),
+    path('certification/exam/submit/', certification_views.ExamSubmitView.as_view(), name='cert-exam-submit'),
+    path('certification/verify/<str:certificate_id>/', certification_views.CertificateVerifyView.as_view(), name='cert-verify'),
+    path('certification/my-certifications/', certification_views.UserCertificationsView.as_view(), name='cert-my-certs'),
+
+    # ── SSO / OIDC ──────────────────────────────────────────
+    path('sso/config/', sso_views.SSOConfigView.as_view(), name='sso-config'),
+    path('sso/login/', sso_views.SSOLoginView.as_view(), name='sso-login'),
+    path('sso/callback/', sso_views.SSOCallbackView.as_view(), name='sso-callback'),
+    path('sso/validate/', sso_views.SSOTokenValidateView.as_view(), name='sso-validate'),
+    path('sso/providers/', sso_views.SSOProvidersView.as_view(), name='sso-providers'),
 
     # OpenAPI Schema & Documentation
     path('schema/', OpenAPISchemaView.as_view(), name='openapi-schema'),

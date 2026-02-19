@@ -1,0 +1,191 @@
+{
+  "realm": "stickforstats",
+  "enabled": true,
+  "displayName": "StickForStats",
+  "displayNameHtml": "<b>StickForStats</b> Identity Provider",
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "passwordPolicy": "length(8) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1)",
+  "defaultRoles": ["sfs-user"],
+  "roles": {
+    "realm": [
+      {
+        "name": "sfs-admin",
+        "description": "StickForStats platform administrator"
+      },
+      {
+        "name": "sfs-user",
+        "description": "Standard StickForStats user"
+      },
+      {
+        "name": "sfs-journal-editor",
+        "description": "Journal editor with manuscript review access"
+      },
+      {
+        "name": "sfs-enterprise-user",
+        "description": "Enterprise tier user with full feature access"
+      },
+      {
+        "name": "sfs-instructor",
+        "description": "LMS instructor role for education features"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "stickforstats-web",
+      "name": "StickForStats Web Application",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [
+        "https://app.stickforstats.com/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "https://app.stickforstats.com",
+        "http://localhost:3000"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid", "profile", "email", "roles"],
+      "optionalClientScopes": ["offline_access"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://app.stickforstats.com/*"
+      }
+    },
+    {
+      "clientId": "stickforstats-api",
+      "name": "StickForStats API Server",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid", "profile", "email", "roles"]
+    },
+    {
+      "clientId": "stickforstats-desktop",
+      "name": "StickForStats Desktop App",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [
+        "stickforstats://callback",
+        "http://localhost:8080/callback"
+      ],
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "stickforstats-journal-api",
+      "name": "StickForStats Journal Integration",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": ["openid"],
+      "attributes": {
+        "use.refresh.tokens": "false"
+      }
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "roles",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "organization",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "claim.name": "organization",
+            "user.attribute": "organization",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": false,
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid email profile"
+      }
+    },
+    {
+      "alias": "github",
+      "providerId": "github",
+      "enabled": false,
+      "config": {
+        "clientId": "${GITHUB_CLIENT_ID}",
+        "clientSecret": "${GITHUB_CLIENT_SECRET}"
+      }
+    },
+    {
+      "alias": "orcid",
+      "providerId": "oidc",
+      "enabled": false,
+      "displayName": "ORCID",
+      "config": {
+        "clientId": "${ORCID_CLIENT_ID}",
+        "clientSecret": "${ORCID_CLIENT_SECRET}",
+        "authorizationUrl": "https://orcid.org/oauth/authorize",
+        "tokenUrl": "https://orcid.org/oauth/token",
+        "userInfoUrl": "https://orcid.org/oauth/userinfo",
+        "defaultScope": "openid /read-limited"
+      }
+    }
+  ],
+  "smtpServer": {
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "from": "noreply@stickforstats.com",
+    "fromDisplayName": "StickForStats",
+    "ssl": "true",
+    "auth": "true",
+    "user": "${SMTP_USER}",
+    "password": "${SMTP_PASSWORD}"
+  }
+}

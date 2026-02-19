@@ -969,6 +969,85 @@ class Project(models.Model):
         return f"{self.organization.name}/{self.name}"
 
 
+class Plugin(models.Model):
+    """Marketplace plugin — custom tests, SQS rule packs, visualization templates."""
+    PLUGIN_TYPES = [
+        ('statistical_test', 'Statistical Test'),
+        ('sqs_rule_pack', 'SQS Rule Pack'),
+        ('visualization', 'Visualization Template'),
+        ('data_connector', 'Data Connector'),
+        ('report_template', 'Report Template'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=100, unique=True)
+    plugin_type = models.CharField(max_length=30, choices=PLUGIN_TYPES)
+    description = models.TextField()
+    version = models.CharField(max_length=20, default='1.0.0')
+    author_name = models.CharField(max_length=200)
+    author_email = models.EmailField(blank=True)
+    homepage_url = models.URLField(blank=True)
+    repository_url = models.URLField(blank=True)
+    icon_url = models.URLField(blank=True)
+    config_schema = models.JSONField(default=dict, blank=True, help_text='JSON Schema for plugin configuration')
+    entry_point = models.JSONField(default=dict, help_text='Plugin entry point definition')
+    dependencies = models.JSONField(default=list, blank=True)
+    is_official = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+    downloads = models.PositiveIntegerField(default=0)
+    rating_sum = models.PositiveIntegerField(default=0)
+    rating_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-downloads']
+        verbose_name = 'Plugin'
+
+    def __str__(self):
+        return f"{self.name} v{self.version}"
+
+    @property
+    def average_rating(self):
+        if self.rating_count == 0:
+            return 0
+        return round(self.rating_sum / self.rating_count, 1)
+
+
+class PluginInstallation(models.Model):
+    """Tracks which plugins are installed per organization."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='installations')
+    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, related_name='installed_plugins')
+    installed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    config = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    installed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('plugin', 'organization')
+        ordering = ['-installed_at']
+
+    def __str__(self):
+        return f"{self.organization.name} → {self.plugin.name}"
+
+
+class PluginReview(models.Model):
+    """User reviews for plugins."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField()  # 1-5
+    title = models.CharField(max_length=200)
+    body = models.TextField(blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('plugin', 'user')
+        ordering = ['-created_at']
+
+
 __all__ = [
     'Analysis',
     'Report',
@@ -987,4 +1066,7 @@ __all__ = [
     'UsageRecord',
     'ConsentRecord',
     'Project',
+    'Plugin',
+    'PluginInstallation',
+    'PluginReview',
 ]

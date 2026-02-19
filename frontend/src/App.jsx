@@ -151,6 +151,10 @@ const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
 const BrandingManager = lazy(() => import('./components/admin/BrandingManager'));
 // GDPR Privacy Dashboard (v2.0)
 const PrivacyDashboardPage = lazy(() => import('./pages/PrivacyDashboardPage'));
+// Plugin Marketplace
+const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
+// Certification Program
+const CertificationPage = lazy(() => import('./pages/CertificationPage'));
 
 // Loading fallback component
 const LoadingComponent = ({ message = "Loading module..." }) => (
@@ -958,6 +962,26 @@ function App() {
                         element={
                           <Suspense fallback={<LoadingComponent message="Loading Privacy Dashboard..." />}>
                             <PrivacyDashboardPage />
+                          </Suspense>
+                        }
+                      />
+
+                      {/* Plugin Marketplace */}
+                      <Route
+                        path="/marketplace"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Plugin Marketplace..." />}>
+                            <MarketplacePage />
+                          </Suspense>
+                        }
+                      />
+
+                      {/* Certification Program */}
+                      <Route
+                        path="/certification"
+                        element={
+                          <Suspense fallback={<LoadingComponent message="Loading Certification Program..." />}>
+                            <CertificationPage />
                           </Suspense>
                         }
                       />
