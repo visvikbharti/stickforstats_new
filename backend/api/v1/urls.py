@@ -158,6 +158,14 @@ from .autonomous_views import (
     TranslateResultsView,
     NextStepView,
 )
+from .manuscript_views import (
+    ManuscriptAnalyzeView,
+    ManuscriptParseView,
+    ClaimExtractionView,
+    ConsistencyCheckView,
+    SubmissionReportView,
+    JournalSubmitView,
+)
 
 app_name = 'api-v1'
 
@@ -334,4 +342,12 @@ urlpatterns = [
     path('autonomous/cascade/', CascadeExecuteView.as_view(), name='autonomous-cascade'),
     path('autonomous/translate/', TranslateResultsView.as_view(), name='autonomous-translate'),
     path('autonomous/next-step/', NextStepView.as_view(), name='autonomous-next-step'),
+
+    # Manuscript Review / Journal Integration endpoints (Pillar 2)
+    path('manuscript/analyze/', ManuscriptAnalyzeView.as_view(), name='manuscript-analyze'),
+    path('manuscript/parse/', ManuscriptParseView.as_view(), name='manuscript-parse'),
+    path('manuscript/claims/', ClaimExtractionView.as_view(), name='manuscript-claims'),
+    path('manuscript/consistency/', ConsistencyCheckView.as_view(), name='manuscript-consistency'),
+    path('manuscript/report/<uuid:submission_id>/', SubmissionReportView.as_view(), name='manuscript-report'),
+    path('manuscript/journal/submit/', JournalSubmitView.as_view(), name='journal-submit'),
 ]

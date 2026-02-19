@@ -139,6 +139,8 @@ const RAGPerformanceMonitoringPage = lazy(() => import('./pages/RAGPerformanceMo
 const BrowserCompatibilityTestPage = lazy(() => import('./pages/BrowserCompatibilityTestPage'));
 // Autonomous Intelligence Layer (v2.0)
 const SmartAnalysisPage = lazy(() => import('./pages/SmartAnalysisPage'));
+// Journal Integration / Manuscript Review (Pillar 2)
+const ManuscriptReviewPage = lazy(() => import('./pages/ManuscriptReviewPage'));
 const EnterpriseDashboard = lazy(() => import('./components/enterprise/EnterpriseDashboard'));
 const KeyboardShortcutsPage = lazy(() => import('./pages/KeyboardShortcutsPage'));
 const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'));
@@ -283,6 +285,16 @@ function App() {
                           element={
                             <Suspense fallback={<LoadingComponent message="Loading Smart Analysis..." />}>
                               <SmartAnalysisPage />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* Manuscript Review — Journal Integration (Pillar 2) */}
+                        <Route
+                          path="/manuscript-review"
+                          element={
+                            <Suspense fallback={<LoadingComponent message="Loading Manuscript Review..." />}>
+                              <ManuscriptReviewPage />
                             </Suspense>
                           }
                         />
