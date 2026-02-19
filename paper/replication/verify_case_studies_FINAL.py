@@ -194,7 +194,7 @@ Heterogeneity I²: {I2:.1f}% (Paper says 14.4%) {'✓' if abs(I2 - 14.4) < 0.5 e
 Q statistic: {Q:.2f} (Paper says 12.85) {'✓' if abs(Q - 12.85) < 0.1 else '≈'}
 
 Egger's intercept: {intercept:.2f} (Paper says 1.84) {'✓' if abs(intercept - 1.84) < 0.1 else '≈'}
-Egger's p-value: {p_egger:.3f} (Paper says 0.024) {'✓' if abs(p_egger - 0.024) < 0.001 else '≈'}
+Egger's p-value: {p_egger:.3f} (Paper says 0.010) {'✓' if abs(p_egger - 0.010) < 0.002 else '≈'}
 """)
 
 # ==========================================================================

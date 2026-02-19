@@ -1336,7 +1336,7 @@ print(f"r = {r:.3f}, p = {p:.2e}")
 #
 # Violations:
 # - Normality (quality): CRITICAL
-#   Shapiro-Wilk: W=0.885, p<0.001
+#   Shapiro-Wilk: W=0.858, p<0.001
 #   Quality is ordinal, not continuous normal
 #
 # - Linearity: PASS
@@ -1382,12 +1382,12 @@ studies = {
 #
 # Violations:
 # - Publication Bias: WARNING
-#   Egger's test: intercept=1.84, p=0.024
+#   Egger's test: intercept=1.84, p=0.010
 #   Funnel plot shows asymmetry
 #   Recommendation: Consider publication bias in interpretation
 \end{lstlisting}
 
-\textbf{Guardian finding:} Egger's test ($p = 0.024$) indicates significant funnel plot asymmetry, suggesting publication bias. Researchers should interpret the pooled effect with caution and consider sensitivity analyses.
+\textbf{Guardian finding:} Egger's test ($p = 0.010$) indicates significant funnel plot asymmetry, suggesting publication bias. Researchers should interpret the pooled effect with caution and consider sensitivity analyses.
 
 \textbf{Key insight:} Without Guardian's automatic publication bias check, researchers might report the pooled effect without considering potential bias in the underlying literature.
 
