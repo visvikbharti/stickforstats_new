@@ -506,13 +506,12 @@ class ProfilingService:
             return html.encode('utf-8')
             
         elif format == 'pdf':
-            # Would use reportlab or similar
-            # For now, return placeholder
-            return b"PDF generation not yet implemented"
-            
+            # PDF export requires reportlab (not included in this version)
+            return b"PDF export is not available in this version"
+
         elif format == 'docx':
-            # Would use python-docx
-            return b"DOCX generation not yet implemented"
+            # DOCX export requires python-docx (not included in this version)
+            return b"DOCX export is not available in this version"
             
     def validate_profiling_results(self, profile: DatasetProfile) -> Dict[str, Any]:
         """

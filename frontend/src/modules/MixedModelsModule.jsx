@@ -31,7 +31,6 @@ import {
   Chip,
   Stack,
   Alert,
-  AlertTitle,
   CircularProgress,
   Table,
   TableBody,
@@ -56,7 +55,6 @@ import {
   Help as HelpIcon,
   Upload as UploadIcon,
   Clear as ClearIcon,
-  Construction as ConstructionIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 
@@ -179,7 +177,7 @@ const MixedModelsModule = () => {
   // Helper to format API errors (gracefully handles 404 when backend endpoint is missing)
   const formatApiError = (err) => {
     if (err.response?.status === 404) {
-      return 'This feature requires a backend endpoint that is not available in v1.0.';
+      return 'This endpoint is temporarily unavailable. Please try again later.';
     }
     return err.response?.data?.error || err.message;
   };
@@ -266,13 +264,6 @@ const MixedModelsModule = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Preview Notice */}
-      <Alert severity="info" icon={<ConstructionIcon />} sx={{ mb: 3 }}>
-        <AlertTitle>Preview</AlertTitle>
-        This module is under active development.
-        The frontend interface is ready — backend integration is in progress.
-      </Alert>
-
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>

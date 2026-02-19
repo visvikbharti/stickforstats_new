@@ -98,6 +98,7 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
   const [backendPrecision, setBackendPrecision] = useState(50);
   const [showTrendLine, setShowTrendLine] = useState(true);
   const [showConfidenceBands, setShowConfidenceBands] = useState(true);
+  const [confidenceLevel, setConfidenceLevel] = useState(0.95);
 
   // Guardian context for Design Contract compliance
   const correlationGuardian = useGuardianReport(correlationResult);
@@ -129,7 +130,7 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
         x: selectedDataset.x,
         y: selectedDataset.y,
         method: 'pearson',
-        confidence_level: 0.95  // TODO: Make configurable via UI control (currently hardcoded to 95%)
+        confidence_level: confidenceLevel
       });
 
       if (result && result.high_precision_result) {
@@ -217,6 +218,21 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
         </Alert>
       )}
 
+      <Box sx={{ mb: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Confidence Level</InputLabel>
+          <Select
+            value={confidenceLevel}
+            label="Confidence Level"
+            onChange={(e) => setConfidenceLevel(e.target.value)}
+          >
+            <MenuItem value={0.90}>90%</MenuItem>
+            <MenuItem value={0.95}>95%</MenuItem>
+            <MenuItem value={0.99}>99%</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
           {/* Guardian Report - Design Contract Compliance */}
@@ -273,7 +289,7 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
                 {correlationResult.confidence_interval && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="body2" color="text.secondary">
-                      95% Confidence Interval
+                      {Math.round(confidenceLevel * 100)}% Confidence Interval
                     </Typography>
                     <Typography variant="body1">
                       [{correlationResult.confidence_interval[0]?.toFixed(4)}, {correlationResult.confidence_interval[1]?.toFixed(4)}]

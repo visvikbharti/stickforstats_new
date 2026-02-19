@@ -33,11 +33,11 @@ import plotly.express as px
 
 # Django models
 # from ...models import Report, Analysis, Visualization, User, Dataset  # Models don't exist yet
-from typing import Any as Report  # Placeholder type
-from typing import Any as Analysis  # Placeholder type
-from typing import Any as Visualization  # Placeholder type
-from typing import Any as User  # Placeholder type
-from typing import Any as Dataset  # Placeholder type
+from typing import Any as Report  # Type alias (models not used in this module)
+from typing import Any as Analysis  # Type alias (models not used in this module)
+from typing import Any as Visualization  # Type alias (models not used in this module)
+from typing import Any as User  # Type alias (models not used in this module)
+from typing import Any as Dataset  # Type alias (models not used in this module)
 from core.services.error_handler import safe_operation, try_except
 
 logger = logging.getLogger(__name__)
@@ -1308,9 +1308,8 @@ class ReportService:
         Returns:
             A BytesIO containing the DOCX report
         """
-        # This would typically use the python-docx library
-        # For now, return a placeholder
+        # DOCX export requires python-docx (not included in this version)
         buffer = BytesIO()
-        buffer.write(b"DOCX report placeholder")
+        buffer.write(b"DOCX export is not available in this version")
         buffer.seek(0)
         return buffer

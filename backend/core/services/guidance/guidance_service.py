@@ -7,9 +7,9 @@ from dataclasses import dataclass
 import json
 
 # from ...models import Dataset, Analysis, GuidanceRecommendation  # Models don't exist yet
-from typing import Any as Dataset  # Placeholder type
-from typing import Any as Analysis  # Placeholder type
-from typing import Any as GuidanceRecommendation  # Placeholder type
+from typing import Any as Dataset  # Type alias (models not used in this module)
+from typing import Any as Analysis  # Type alias (models not used in this module)
+from typing import Any as GuidanceRecommendation  # Type alias (models not used in this module)
 
 logger = logging.getLogger(__name__)
 

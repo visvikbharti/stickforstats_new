@@ -63,14 +63,14 @@ def fix_model_imports_in_file(filepath):
                         new_lines.append(f'from core.models import {", ".join(existing)}\n')
                         new_lines.append(f'# Missing models: {", ".join(missing)}\n')
                         for model in missing:
-                            new_lines.append(f'from typing import Any as {model}  # Placeholder type\n')
+                            new_lines.append(f'from typing import Any as {model}  # Type alias\n')
                         changes_made.append(f"  - Fixed mixed import: {line.strip()}")
                         modified = True
                     elif missing and not existing:
                         # All models are missing
                         new_lines.append(f'# {line.strip()}  # Models don\'t exist yet\n')
                         for model in missing:
-                            new_lines.append(f'from typing import Any as {model}  # Placeholder type\n')
+                            new_lines.append(f'from typing import Any as {model}  # Type alias\n')
                         changes_made.append(f"  - Replaced missing models: {line.strip()}")
                         modified = True
                     else:

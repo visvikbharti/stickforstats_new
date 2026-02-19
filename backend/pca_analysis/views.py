@@ -757,7 +757,7 @@ class PCAComparisonView(APIView):
     def _create_comparison_plot(self, results):
         """Create side-by-side comparison visualization"""
         # Implementation would create an SVG with multiple subplots
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: comparison plot not implemented
     
     def _perform_procrustes_analysis(self, scores1, scores2):
         """Perform Procrustes analysis to compare shapes"""

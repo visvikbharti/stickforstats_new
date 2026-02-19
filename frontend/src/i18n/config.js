@@ -395,7 +395,9 @@ export const getSupportedLanguages = () => {
     { code: 'en', name: 'English', nativeName: 'English' },
     { code: 'es', name: 'Spanish', nativeName: 'Español' },
     { code: 'fr', name: 'French', nativeName: 'Français' },
-    { code: 'de', name: 'German', nativeName: 'Deutsch' }
+    { code: 'de', name: 'German', nativeName: 'Deutsch' },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
+    { code: 'zh', name: 'Chinese', nativeName: '中文' }
   ];
 };
 

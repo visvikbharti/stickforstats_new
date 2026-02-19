@@ -6,7 +6,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import './i18n/config'; // Initialize i18n
+// i18n initialized via App.jsx -> ./i18n/index.js
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

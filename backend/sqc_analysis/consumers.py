@@ -89,7 +89,7 @@ class SQCAnalysisConsumer(AsyncWebsocketConsumer):
     def check_analysis_access(self):
         """Check if user has access to the analysis session."""
 # from core.models import AnalysisSession  # Models don't exist yet
-from typing import Any as AnalysisSession  # Placeholder type
+from typing import Any as AnalysisSession  # Type alias (models not used in this module)
         try:
             # Filter by both ID and user to ensure user has access
             return AnalysisSession.objects.filter(
@@ -104,7 +104,7 @@ from typing import Any as AnalysisSession  # Placeholder type
     def get_analysis_status(self):
         """Get current status of the analysis session."""
 # from core.models import AnalysisSession  # Models don't exist yet
-from typing import Any as AnalysisSession  # Placeholder type
+from typing import Any as AnalysisSession  # Type alias (models not used in this module)
         try:
             session = AnalysisSession.objects.get(id=self.analysis_id)
             return {

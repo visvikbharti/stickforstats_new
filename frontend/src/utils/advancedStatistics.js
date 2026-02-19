@@ -49,14 +49,23 @@ export const confidenceIntervalCalculations = {
   },
 
   // Bootstrap CI (percentile method)
-  bootstrapPercentileCI: (data, confidenceLevel = 0.95, numBootstraps = 1000) => {
+  bootstrapPercentileCI: (data, confidenceLevel = 0.95, numBootstraps = 1000, seed = 12345) => {
     const n = data.length;
     const bootstrapMeans = [];
-    
+
+    // Seeded PRNG (mulberry32) for reproducibility
+    let s = seed | 0;
+    const seededRandom = () => {
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
     for (let i = 0; i < numBootstraps; i++) {
       const resample = [];
       for (let j = 0; j < n; j++) {
-        resample.push(data[Math.floor(Math.random() * n)]);
+        resample.push(data[Math.floor(seededRandom() * n)]);
       }
       bootstrapMeans.push(jStat.mean(resample));
     }
@@ -79,16 +88,25 @@ export const confidenceIntervalCalculations = {
   },
 
   // Bootstrap BCa (Bias-Corrected and Accelerated)
-  bootstrapBCaCI: (data, confidenceLevel = 0.95, numBootstraps = 1000) => {
+  bootstrapBCaCI: (data, confidenceLevel = 0.95, numBootstraps = 1000, seed = 54321) => {
     const n = data.length;
     const originalMean = jStat.mean(data);
     const bootstrapMeans = [];
-    
+
+    // Seeded PRNG (mulberry32) for reproducibility
+    let s = seed | 0;
+    const seededRandom = () => {
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
     // Generate bootstrap samples
     for (let i = 0; i < numBootstraps; i++) {
       const resample = [];
       for (let j = 0; j < n; j++) {
-        resample.push(data[Math.floor(Math.random() * n)]);
+        resample.push(data[Math.floor(seededRandom() * n)]);
       }
       bootstrapMeans.push(jStat.mean(resample));
     }
@@ -471,30 +489,40 @@ export const advancedProbabilityCalculations = {
 };
 
 // Monte Carlo Integration
-export const monteCarloIntegration = (func, lowerBound, upperBound, numSamples = 10000) => {
+export const monteCarloIntegration = (func, lowerBound, upperBound, numSamples = 10000, confidenceLevel = 0.95, seed = 99999) => {
+  // Seeded PRNG (mulberry32) for reproducibility
+  let s = seed | 0;
+  const seededRandom = () => {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
   let sum = 0;
   const range = upperBound - lowerBound;
-  
+  const values = [];
+
   for (let i = 0; i < numSamples; i++) {
-    const x = lowerBound + Math.random() * range;
-    sum += func(x);
+    const x = lowerBound + seededRandom() * range;
+    const val = func(x);
+    values.push(val);
+    sum += val;
   }
-  
+
   const estimate = (sum / numSamples) * range;
-  const standardError = Math.sqrt(range * range * jStat.variance(
-    Array.from({ length: 1000 }, () => {
-      const x = lowerBound + Math.random() * range;
-      return func(x);
-    })
-  ) / numSamples);
-  
+  const standardError = Math.sqrt(range * range * jStat.variance(values, true) / numSamples);
+  const alpha = 1 - confidenceLevel;
+  const zCritical = jStat.normal.inv(1 - alpha / 2, 0, 1);
+
   return {
     estimate,
     standardError,
     confidenceInterval: {
-      lower: estimate - 1.96 * standardError,
-      upper: estimate + 1.96 * standardError
+      lower: estimate - zCritical * standardError,
+      upper: estimate + zCritical * standardError
     },
-    numSamples
+    numSamples,
+    confidenceLevel
   };
 };

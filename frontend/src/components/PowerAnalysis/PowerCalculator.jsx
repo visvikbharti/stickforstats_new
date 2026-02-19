@@ -422,9 +422,8 @@ const PowerCalculator = ({
 
   // G*Power validation
   const validateAgainstGPower = (calculated) => {
-    // TODO: Connect to backend power analysis for real validation
-    // Backend provides 50-decimal precision power calculations
-    // For now, return the calculated value without fake comparison
+    // Backend power validation not connected in this version
+    // Returns the frontend-calculated value without cross-validation
     const tolerance = 0.01; // 1% tolerance
     const gpowerValue = calculated; // Use actual calculated value, not fake
 

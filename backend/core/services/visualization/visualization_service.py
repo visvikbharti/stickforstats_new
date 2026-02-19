@@ -21,7 +21,7 @@ from pathlib import Path
 from core.services.data_processing.statistical_utils import StatisticalUtilsService
 from core.services.error_handler import safe_operation, try_except
 # from core.models import Visualization  # Model doesn't exist yet
-from typing import Any as Visualization  # Placeholder type
+from typing import Any as Visualization  # Type alias (models not used in this module)
 from core.services.report.report_service import ReportService
 
 logger = logging.getLogger(__name__)

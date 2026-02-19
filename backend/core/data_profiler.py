@@ -724,7 +724,7 @@ class DataProfiler:
     
     def _validate_profile(self, profile: DatasetProfile) -> str:
         """
-        Validate profile against R calculations (placeholder for actual R integration)
+        Validate profile against R calculations (R integration optional; requires rpy2)
         
         Args:
             profile: Dataset profile

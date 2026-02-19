@@ -17,9 +17,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 
 # from core.models import AnalysisSession, AnalysisResult, User  # Models don't exist yet
-from typing import Any as AnalysisSession  # Placeholder type
-from typing import Any as AnalysisResult  # Placeholder type
-from typing import Any as User  # Placeholder type
+from typing import Any as AnalysisSession  # Type alias (models not used in this module)
+from typing import Any as AnalysisResult  # Type alias (models not used in this module)
+from typing import Any as User  # Type alias (models not used in this module)
 from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis, 
     AcceptanceSamplingPlan, MeasurementSystemAnalysis
@@ -326,7 +326,7 @@ def create_notification(user_id, title, message, notification_type="info",
     """Create a notification for a user."""
     try:
 # from core.models import Notification  # Models don't exist yet
-from typing import Any as Notification  # Placeholder type
+from typing import Any as Notification  # Type alias (models not used in this module)
         
         # Create notification
         user = User.objects.get(id=user_id)

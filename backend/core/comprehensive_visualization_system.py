@@ -1004,7 +1004,7 @@ class ComprehensiveVisualizationSystem:
             'missing_by_column': data.isnull().sum().to_dict(),
             'missing_percentage': (data.isnull().sum() / len(data) * 100).to_dict(),
             'complete_cases': len(data.dropna()),
-            'pattern': 'MCAR'  # Placeholder - would need statistical tests
+            'pattern': 'MCAR'  # Default assumption; Little's MCAR test not implemented
         }
 
         # Check if missing data is related to other variables

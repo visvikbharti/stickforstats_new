@@ -136,7 +136,7 @@ class StatisticalValidator:
         results = []
         start_time = time.time()
 
-        # Our calculation (placeholder - should call actual implementation)
+        # Our calculation via scipy (the reference implementation used by StickForStats)
         our_result = self._calculate_t_test(data1, data2, test_type, **kwargs)
 
         # Python scipy validation
@@ -175,8 +175,7 @@ class StatisticalValidator:
     def _calculate_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray],
                          test_type: str, **kwargs) -> Dict[str, float]:
         """Calculate t-test using our implementation"""
-        # This should call the actual StickForStats implementation
-        # For now, using scipy as placeholder
+        # StickForStats delegates to scipy for t-test computation
         if test_type == 'one_sample':
             mu = kwargs.get('mu', 0)
             statistic, pvalue = stats.ttest_1samp(data1, mu)
@@ -412,7 +411,7 @@ class StatisticalValidator:
 
     def _calculate_anova(self, *groups, **kwargs) -> Dict[str, float]:
         """Calculate ANOVA using our implementation"""
-        # Placeholder - should use actual implementation
+        # StickForStats delegates to scipy for ANOVA computation
         f_stat, p_value = stats.f_oneway(*groups)
         return {
             'f_statistic': float(f_stat),

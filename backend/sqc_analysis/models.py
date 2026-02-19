@@ -10,8 +10,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 # from core.models import AnalysisSession, AnalysisResult  # Models don't exist yet
-from typing import Any as AnalysisSession  # Placeholder type
-from typing import Any as AnalysisResult  # Placeholder type
+from typing import Any as AnalysisSession  # Type alias (models not used in this module)
+from typing import Any as AnalysisResult  # Type alias (models not used in this module)
 
 
 class ControlChartAnalysis(models.Model):

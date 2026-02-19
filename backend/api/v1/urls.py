@@ -127,6 +127,30 @@ from .sqs_views import (
     SQSQuickCheckView,
     SQSHealthView
 )
+from .causal_views import (
+    dag_create,
+    dag_analyze,
+    adjustment_sets,
+    propensity_scores,
+    matching,
+    treatment_effects,
+    sensitivity_analysis_view,
+    mediation_baron_kenny,
+    mediation_causal,
+    mediation_sensitivity,
+    mediation_multiple,
+    did_analysis,
+    did_event_study,
+    did_parallel_trends,
+    did_staggered,
+)
+from .mixed_models_views import (
+    calculate_icc_view,
+    fit_lmm,
+    random_effects_view,
+    compare_models_view,
+    lmm_diagnostics,
+)
 
 app_name = 'api-v1'
 
@@ -272,4 +296,28 @@ urlpatterns = [
     path('sqs/categories/', SQSCategoriesView.as_view(), name='sqs-categories'),
     path('sqs/quick-check/', SQSQuickCheckView.as_view(), name='sqs-quick-check'),
     path('sqs/health/', SQSHealthView.as_view(), name='sqs-health'),
+
+    # Causal Inference endpoints
+    path('core/causal/dag/create/', dag_create, name='causal-dag-create'),
+    path('core/causal/dag/analyze/', dag_analyze, name='causal-dag-analyze'),
+    path('core/causal/adjustment/', adjustment_sets, name='causal-adjustment'),
+    path('core/causal/propensity/', propensity_scores, name='causal-propensity'),
+    path('core/causal/match/', matching, name='causal-matching'),
+    path('core/causal/effect/', treatment_effects, name='causal-effect'),
+    path('core/causal/sensitivity/', sensitivity_analysis_view, name='causal-sensitivity'),
+    path('core/causal/mediation/baron-kenny/', mediation_baron_kenny, name='causal-mediation-bk'),
+    path('core/causal/mediation/causal/', mediation_causal, name='causal-mediation-causal'),
+    path('core/causal/mediation/sensitivity/', mediation_sensitivity, name='causal-mediation-sensitivity'),
+    path('core/causal/mediation/multiple/', mediation_multiple, name='causal-mediation-multiple'),
+    path('core/causal/did/', did_analysis, name='causal-did'),
+    path('core/causal/did/event-study/', did_event_study, name='causal-did-event-study'),
+    path('core/causal/did/parallel-trends/', did_parallel_trends, name='causal-did-parallel-trends'),
+    path('core/causal/did/staggered/', did_staggered, name='causal-did-staggered'),
+
+    # Mixed Models endpoints
+    path('core/mixed/icc/', calculate_icc_view, name='mixed-icc'),
+    path('core/mixed/lmm/fit/', fit_lmm, name='mixed-lmm-fit'),
+    path('core/mixed/lmm/random-effects/', random_effects_view, name='mixed-random-effects'),
+    path('core/mixed/lmm/compare/', compare_models_view, name='mixed-compare'),
+    path('core/mixed/lmm/diagnostics/', lmm_diagnostics, name='mixed-diagnostics'),
 ]

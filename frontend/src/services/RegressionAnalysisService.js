@@ -292,8 +292,8 @@ class RegressionAnalysisService {
     });
   }
 
-  // TODO: Backend endpoints for /regression/compare/ and /regression/diagnostics/
-  // need to be created. These methods are commented out until the backend supports them.
+  // Note: /regression/compare/ and /regression/diagnostics/ endpoints are not available
+  // in this version. These methods are commented out until the backend supports them.
 
   // /**
   //  * Compare multiple regression models

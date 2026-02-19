@@ -78,7 +78,7 @@ class ReportGenerationView(LoginRequiredMixin, TemplateView):
 
 
 # ============================================================================
-# PLACEHOLDER VIEWS - These require models that are not yet implemented
+# VIEWS NOT AVAILABLE - These require models that are not implemented in this version
 # ============================================================================
 #
 # The following views are documented here for future implementation:

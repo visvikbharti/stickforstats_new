@@ -17,8 +17,8 @@ from django.db import transaction
 from dataclasses import dataclass
 
 # from core.models import Dataset, User  # These models don't exist yet
-from typing import Any as Dataset  # Placeholder type
-from typing import Any as User  # Placeholder type
+from typing import Any as Dataset  # Type alias (models not used in this module)
+from typing import Any as User  # Type alias (models not used in this module)
 
 # Get logger
 logger = logging.getLogger(__name__)

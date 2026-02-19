@@ -25,9 +25,9 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 
 # from core.models import Dataset, AnalysisSession, AnalysisResult  # Models don't exist yet
-from typing import Any as Dataset  # Placeholder type
-from typing import Any as AnalysisSession  # Placeholder type
-from typing import Any as AnalysisResult  # Placeholder type
+from typing import Any as Dataset  # Type alias (models not used in this module)
+from typing import Any as AnalysisSession  # Type alias (models not used in this module)
+from typing import Any as AnalysisResult  # Type alias (models not used in this module)
 from sqc_analysis.models import (
     ControlChartAnalysis, ProcessCapabilityAnalysis, 
     AcceptanceSamplingPlan, MeasurementSystemAnalysis,
@@ -1788,12 +1788,12 @@ class QuickControlChartView(APIView):
     def _create_violations_plot(self, result):
         """Create violations highlight plot"""
         # Implementation for violations visualization
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_capability_preview(self, measurements, result):
         """Create process capability preview"""
         # Implementation for capability preview
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _interpret_control_chart(self, result, violations):
         """Generate control chart interpretation"""
@@ -1982,17 +1982,17 @@ class QuickProcessCapabilityView(APIView):
     def _create_performance_dashboard(self, result):
         """Create performance metrics dashboard"""
         # Implementation for dashboard
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_gauge_chart(self, cpk):
         """Create animated gauge chart for Cpk"""
         # Implementation for gauge chart
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_what_if_analysis(self, measurements, lsl, usl):
         """Create interactive what-if analysis"""
         # Implementation for what-if analysis
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _interpret_capability(self, result):
         """Generate capability interpretation"""
@@ -2046,8 +2046,7 @@ class QuickAcceptanceSamplingView(APIView):
                     consumer_risk=consumer_risk
                 )
             elif plan_type == 'double':
-                # For now, use single sampling plan
-                # TODO: Implement double sampling plan when method is available
+                # Double sampling plan not available; falling back to single sampling
                 result = sampling_service.calculate_single_sampling_plan(
                     lot_size=lot_size,
                     acceptable_quality_level=aql,
@@ -2160,17 +2159,17 @@ class QuickAcceptanceSamplingView(APIView):
     def _create_risk_plot(self, result):
         """Create risk analysis visualization"""
         # Implementation for risk plot
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_plan_diagram(self, result):
         """Create sampling plan flow diagram"""
         # Implementation for plan diagram
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_sampling_calculator(self):
         """Create interactive sampling calculator"""
         # Implementation for calculator
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _interpret_sampling_plan(self, result):
         """Generate sampling plan interpretation"""
@@ -2349,12 +2348,12 @@ class QuickMSAView(APIView):
     def _create_operator_comparison(self, df):
         """Create operator comparison chart"""
         # Implementation for operator comparison
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _create_gauge_run_chart(self, df):
         """Create gauge run chart"""
         # Implementation for gauge run chart
-        return "data:image/svg+xml;base64,..."  # Placeholder
+        return "data:image/svg+xml;base64,..."  # Stub: detailed visualization not implemented
     
     def _perform_bias_analysis(self, data):
         """Perform bias analysis"""
