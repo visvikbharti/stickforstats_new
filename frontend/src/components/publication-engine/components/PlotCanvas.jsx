@@ -20,6 +20,11 @@ import D3ViolinPlot from '../charts/D3ViolinPlot';
 import D3LineChart from '../charts/D3LineChart';
 import D3BeforeAfter from '../charts/D3BeforeAfter';
 import D3DotPlot from '../charts/D3DotPlot';
+import D3KaplanMeier from '../charts/D3KaplanMeier';
+import D3DoseResponse from '../charts/D3DoseResponse';
+import D3BlandAltman from '../charts/D3BlandAltman';
+import D3WaterfallChart from '../charts/D3WaterfallChart';
+import D3ForestPlot from '../charts/D3ForestPlot';
 
 const CHART_COMPONENTS = {
   bar: D3BarChart,
@@ -30,6 +35,11 @@ const CHART_COMPONENTS = {
   line: D3LineChart,
   beforeafter: D3BeforeAfter,
   dotplot: D3DotPlot,
+  kaplanmeier: D3KaplanMeier,
+  doseresponse: D3DoseResponse,
+  blandaltman: D3BlandAltman,
+  waterfall: D3WaterfallChart,
+  forest: D3ForestPlot,
 };
 
 const PlotCanvas = forwardRef((props, ref) => {
@@ -85,7 +95,7 @@ const PlotCanvas = forwardRef((props, ref) => {
             Select a plot type
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Choose from 8 publication-quality chart types
+            Choose from 13 publication-quality chart types
           </Typography>
         </Box>
       ) : !hasMapping ? (

@@ -10,7 +10,12 @@ import ColorPalettePanel from './panels/ColorPalettePanel';
 import ErrorBarPanel from './panels/ErrorBarPanel';
 import LegendGridPanel from './panels/LegendGridPanel';
 import DimensionsPanel from './panels/DimensionsPanel';
+import ChartSpecificPanel from './panels/ChartSpecificPanel';
 import JournalPresets from './JournalPresets';
+
+const CHART_OPTIONS_TYPES = [
+  'scatter', 'kaplanmeier', 'doseresponse', 'blandaltman', 'waterfall', 'forest',
+];
 
 const TabPanel = ({ children, value, index }) => (
   <Box role="tabpanel" hidden={value !== index} sx={{ pt: 1.5 }}>
@@ -20,7 +25,27 @@ const TabPanel = ({ children, value, index }) => (
 
 const CustomizationPanel = () => {
   const theme = useTheme();
+  const { state } = usePlotConfig();
   const [tab, setTab] = useState(0);
+
+  const hasChartOptions = CHART_OPTIONS_TYPES.includes(state.plotType);
+
+  // Build tab list dynamically
+  const tabs = [
+    { label: 'Title/Axes', panel: <TitleAxisPanel /> },
+    { label: 'Colors', panel: <ColorPalettePanel /> },
+    { label: 'Error Bars', panel: <ErrorBarPanel /> },
+  ];
+
+  if (hasChartOptions) {
+    tabs.push({ label: 'Chart Options', panel: <ChartSpecificPanel /> });
+  }
+
+  tabs.push({ label: 'Legend', panel: <LegendGridPanel /> });
+  tabs.push({ label: 'Size', panel: <DimensionsPanel /> });
+
+  // Clamp tab index
+  const safeTab = Math.min(tab, tabs.length - 1);
 
   return (
     <Box>
@@ -29,7 +54,7 @@ const CustomizationPanel = () => {
       </Typography>
       <JournalPresets />
       <Tabs
-        value={tab}
+        value={safeTab}
         onChange={(_, v) => setTab(v)}
         variant="scrollable"
         scrollButtons="auto"
@@ -38,17 +63,13 @@ const CustomizationPanel = () => {
           '& .MuiTab-root': { minHeight: 32, py: 0.5, fontSize: '0.7rem', minWidth: 'auto', px: 1 },
         }}
       >
-        <Tab label="Title/Axes" />
-        <Tab label="Colors" />
-        <Tab label="Error Bars" />
-        <Tab label="Legend" />
-        <Tab label="Size" />
+        {tabs.map((t, i) => (
+          <Tab key={t.label} label={t.label} />
+        ))}
       </Tabs>
-      <TabPanel value={tab} index={0}><TitleAxisPanel /></TabPanel>
-      <TabPanel value={tab} index={1}><ColorPalettePanel /></TabPanel>
-      <TabPanel value={tab} index={2}><ErrorBarPanel /></TabPanel>
-      <TabPanel value={tab} index={3}><LegendGridPanel /></TabPanel>
-      <TabPanel value={tab} index={4}><DimensionsPanel /></TabPanel>
+      {tabs.map((t, i) => (
+        <TabPanel key={t.label} value={safeTab} index={i}>{t.panel}</TabPanel>
+      ))}
     </Box>
   );
 };

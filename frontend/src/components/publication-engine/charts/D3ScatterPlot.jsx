@@ -1,11 +1,14 @@
 /**
- * D3ScatterPlot - Scatter plot with regression line and CI bands
+ * D3ScatterPlot - Scatter plot with regression line, CI bands,
+ * polynomial/LOESS regression, and configurable point shapes.
  */
 import React, { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';
 import { getMargins, styleXAxis, styleYAxis, renderAxisLabels, renderTitle, getDimensions } from '../utils/chartHelpers';
+import { polynomialCurve, loessSmooth } from '../utils/curveFitting';
+import { getSymbolGenerator, radiusToArea } from '../utils/pointShapes';
 
 const D3ScatterPlot = ({ svgRef, onScalesReady }) => {
   const { state } = usePlotConfig();
@@ -60,78 +63,134 @@ const D3ScatterPlot = ({ svgRef, onScalesReady }) => {
       gridG.select('.domain').remove();
     }
 
-    // Regression line
+    // Regression
     if (state.scatter.showRegression && data.length > 2) {
-      const xVals = data.map(d => d[xCol]);
-      const yVals = data.map(d => d[yCol]);
+      const xVals = data.map(d => +d[xCol]);
+      const yVals = data.map(d => +d[yCol]);
       const n = xVals.length;
-      const sumX = d3.sum(xVals);
-      const sumY = d3.sum(yVals);
-      const sumXY = d3.sum(xVals.map((x, i) => x * yVals[i]));
-      const sumX2 = d3.sum(xVals.map(x => x * x));
-      const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-      const intercept = (sumY - slope * sumX) / n;
+      const regType = state.scatter.regressionType || 'linear';
 
-      const xDomain = xScale.domain();
-      const lineData = [
-        { x: xDomain[0], y: slope * xDomain[0] + intercept },
-        { x: xDomain[1], y: slope * xDomain[1] + intercept },
-      ];
-
-      g.append('line')
-        .attr('x1', xScale(lineData[0].x)).attr('y1', yScale(lineData[0].y))
-        .attr('x2', xScale(lineData[1].x)).attr('y2', yScale(lineData[1].y))
-        .attr('stroke', '#333').attr('stroke-width', 1.5)
-        .attr('stroke-dasharray', '6,3');
-
-      // CI band
-      if (state.scatter.showCI) {
-        const yPred = xVals.map(x => slope * x + intercept);
-        const residuals = yVals.map((y, i) => y - yPred[i]);
-        const sse = d3.sum(residuals.map(r => r * r));
-        const mse = sse / (n - 2);
-        const xMean = d3.mean(xVals);
-        const ssx = d3.sum(xVals.map(x => (x - xMean) ** 2));
-        const tValue = 1.96; // approximate for large n
-
-        const nPoints = 50;
-        const xRange = d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / nPoints);
-        const upper = [];
-        const lower = [];
-        xRange.forEach(x => {
-          const yHat = slope * x + intercept;
-          const se = Math.sqrt(mse * (1 / n + (x - xMean) ** 2 / ssx));
-          upper.push({ x, y: yHat + tValue * se });
-          lower.push({ x, y: yHat - tValue * se });
-        });
-
-        const area = d3.area()
+      if (regType === 'loess') {
+        // LOESS smoother
+        const curve = loessSmooth(xVals, yVals, 0.3, 100);
+        const line = d3.line()
           .x(d => xScale(d.x))
-          .y0((d, i) => yScale(lower[i].y))
-          .y1(d => yScale(d.y));
+          .y(d => yScale(d.y))
+          .curve(d3.curveBasis);
 
         g.append('path')
-          .datum(upper)
-          .attr('d', area)
-          .attr('fill', colors[0])
-          .attr('fill-opacity', 0.1)
-          .attr('stroke', 'none');
+          .datum(curve)
+          .attr('d', line)
+          .attr('fill', 'none')
+          .attr('stroke', '#333')
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '6,3');
+
+      } else if (regType === 'quadratic' || regType === 'cubic') {
+        // Polynomial regression
+        const degree = regType === 'cubic' ? 3 : 2;
+        const curve = polynomialCurve(xVals, yVals, degree, 100);
+        const line = d3.line()
+          .x(d => xScale(d.x))
+          .y(d => yScale(d.y));
+
+        g.append('path')
+          .datum(curve)
+          .attr('d', line)
+          .attr('fill', 'none')
+          .attr('stroke', '#333')
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '6,3');
+
+      } else {
+        // Linear regression (original logic)
+        const sumX = d3.sum(xVals);
+        const sumY = d3.sum(yVals);
+        const sumXY = d3.sum(xVals.map((x, i) => x * yVals[i]));
+        const sumX2 = d3.sum(xVals.map(x => x * x));
+        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+
+        const xDomain = xScale.domain();
+        const lineData = [
+          { x: xDomain[0], y: slope * xDomain[0] + intercept },
+          { x: xDomain[1], y: slope * xDomain[1] + intercept },
+        ];
+
+        g.append('line')
+          .attr('x1', xScale(lineData[0].x)).attr('y1', yScale(lineData[0].y))
+          .attr('x2', xScale(lineData[1].x)).attr('y2', yScale(lineData[1].y))
+          .attr('stroke', '#333').attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '6,3');
+
+        // CI band (linear only)
+        if (state.scatter.showCI) {
+          const yPred = xVals.map(x => slope * x + intercept);
+          const residuals = yVals.map((y, i) => y - yPred[i]);
+          const sse = d3.sum(residuals.map(r => r * r));
+          const mse = sse / (n - 2);
+          const xMean = d3.mean(xVals);
+          const ssx = d3.sum(xVals.map(x => (x - xMean) ** 2));
+          const tValue = 1.96;
+
+          const nPoints = 50;
+          const xRange = d3.range(xDomain[0], xDomain[1], (xDomain[1] - xDomain[0]) / nPoints);
+          const upper = [];
+          const lower = [];
+          xRange.forEach(x => {
+            const yHat = slope * x + intercept;
+            const se = Math.sqrt(mse * (1 / n + (x - xMean) ** 2 / ssx));
+            upper.push({ x, y: yHat + tValue * se });
+            lower.push({ x, y: yHat - tValue * se });
+          });
+
+          const area = d3.area()
+            .x(d => xScale(d.x))
+            .y0((d, i) => yScale(lower[i].y))
+            .y1(d => yScale(d.y));
+
+          g.append('path')
+            .datum(upper)
+            .attr('d', area)
+            .attr('fill', colors[0])
+            .attr('fill-opacity', 0.1)
+            .attr('stroke', 'none');
+        }
       }
     }
 
-    // Points
+    // Points — with configurable shapes
     const groups = groupCol ? [...new Set(data.map(d => d[groupCol]))] : [null];
+    const pointShape = state.scatter.pointShape || 'circle';
+    const symbolArea = radiusToArea(state.scatter.pointSize);
+
     groups.forEach((grp, gi) => {
       const pts = grp ? data.filter(d => d[groupCol] === grp) : data;
-      g.selectAll(`.point-${gi}`)
-        .data(pts)
-        .join('circle')
-        .attr('class', `point-${gi}`)
-        .attr('cx', d => xScale(d[xCol]))
-        .attr('cy', d => yScale(d[yCol]))
-        .attr('r', state.scatter.pointSize)
-        .attr('fill', colors[gi % colors.length])
-        .attr('opacity', state.scatter.pointOpacity);
+      const color = colors[gi % colors.length];
+
+      if (pointShape === 'circle') {
+        // Optimized path: use native circles
+        g.selectAll(`.point-${gi}`)
+          .data(pts)
+          .join('circle')
+          .attr('class', `point-${gi}`)
+          .attr('cx', d => xScale(d[xCol]))
+          .attr('cy', d => yScale(d[yCol]))
+          .attr('r', state.scatter.pointSize)
+          .attr('fill', color)
+          .attr('opacity', state.scatter.pointOpacity);
+      } else {
+        // D3 symbol path for non-circle shapes
+        const gen = getSymbolGenerator(pointShape, symbolArea);
+        g.selectAll(`.point-${gi}`)
+          .data(pts)
+          .join('path')
+          .attr('class', `point-${gi}`)
+          .attr('d', gen())
+          .attr('transform', d => `translate(${xScale(d[xCol])},${yScale(d[yCol])})`)
+          .attr('fill', color)
+          .attr('opacity', state.scatter.pointOpacity);
+      }
     });
 
     // Axes

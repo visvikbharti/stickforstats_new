@@ -37,7 +37,7 @@ export const initialState = {
   },
 
   // Plot type
-  plotType: null, // 'bar' | 'scatter' | 'boxplot' | 'histogram' | 'violin' | 'line' | 'beforeafter' | 'dotplot'
+  plotType: null, // 'bar' | 'scatter' | 'boxplot' | 'histogram' | 'violin' | 'line' | 'beforeafter' | 'dotplot' | 'kaplanmeier' | 'doseresponse' | 'blandaltman' | 'waterfall' | 'forest'
 
   // Title
   title: {
@@ -152,6 +152,46 @@ export const initialState = {
     showMedian: false,
     meanSize: 10,
   },
+  kaplanMeier: {
+    showCI: true,
+    ciLevel: 0.95,
+    showCensorMarks: true,
+    showRiskTable: true,
+    showMedianLine: true,
+    censorMarkSize: 6,
+  },
+  doseResponse: {
+    showIC50Line: true,
+    showAsymptotes: false,
+    showHillSlope: true,
+    curvePoints: 200,
+    showErrorBars: false,
+    logBase: 10,
+  },
+  blandAltman: {
+    showLOA: true,
+    sdMultiplier: 1.96,
+    showBiasLine: true,
+    showStats: true,
+    pointSize: 4,
+    showPercentageDiff: false,
+  },
+  waterfall: {
+    showConnectors: true,
+    showValues: true,
+    showTotal: true,
+    totalLabel: 'Total',
+    positiveColor: null,
+    negativeColor: null,
+  },
+  forest: {
+    referenceValue: 1,
+    logScale: true,
+    showWeights: true,
+    showHeterogeneity: true,
+    diamondHeight: 12,
+    squareSizeRange: [4, 16],
+  },
 };
 
 const plotConfigReducer = (state, action) => {
@@ -209,6 +249,16 @@ const plotConfigReducer = (state, action) => {
       return { ...state, beforeAfter: { ...state.beforeAfter, ...action.payload } };
     case 'SET_DOTPLOT_OPTIONS':
       return { ...state, dotplot: { ...state.dotplot, ...action.payload } };
+    case 'SET_KAPLANMEIER_OPTIONS':
+      return { ...state, kaplanMeier: { ...state.kaplanMeier, ...action.payload } };
+    case 'SET_DOSERESPONSE_OPTIONS':
+      return { ...state, doseResponse: { ...state.doseResponse, ...action.payload } };
+    case 'SET_BLANDALTMAN_OPTIONS':
+      return { ...state, blandAltman: { ...state.blandAltman, ...action.payload } };
+    case 'SET_WATERFALL_OPTIONS':
+      return { ...state, waterfall: { ...state.waterfall, ...action.payload } };
+    case 'SET_FOREST_OPTIONS':
+      return { ...state, forest: { ...state.forest, ...action.payload } };
     case 'RESET':
       return { ...initialState };
     default:
