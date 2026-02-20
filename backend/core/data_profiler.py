@@ -113,8 +113,8 @@ class DatasetProfile:
     n_rows: int
     n_columns: int
     total_missing: int
-    missing_pattern: str  # MCAR, MAR, MNAR
-    memory_usage_mb: float
+    missing_pattern: str = "MCAR"  # MCAR, MAR, MNAR
+    memory_usage_mb: float = 0.0
     
     # Variable profiles
     variables: Dict[str, VariableProfile] = field(default_factory=dict)

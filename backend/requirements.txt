@@ -3,6 +3,9 @@ Django>=4.2.0,<4.3.0
 djangorestframework>=3.14.0
 django-cors-headers>=4.0.0
 
+# Authentication & Authorization
+djangorestframework-simplejwt>=5.3.0  # JWT authentication
+
 # Statistical computation - Essential packages only
 numpy>=1.24.3
 pandas>=2.0.1
@@ -12,7 +15,7 @@ scikit-learn>=1.2.2
 matplotlib>=3.7.1
 seaborn>=0.12.2
 
-# Advanced statistical methods (Added Oct 23, 2025)
+# Advanced statistical methods
 lifelines>=0.27.0  # Survival analysis (Kaplan-Meier, Cox regression)
 factor-analyzer>=0.4.0  # Factor analysis (EFA, rotation methods)
 mpmath>=1.3.0  # High-precision arithmetic for critical calculations
@@ -24,11 +27,30 @@ xlrd>=2.0.1
 pyyaml>=6.0
 python-dotenv>=1.0.0
 
+# Data import (v2.0 - SPSS/SAS/Stata support)
+pyreadstat>=1.2.0  # SPSS (.sav), SAS (.sas7bdat), Stata (.dta)
+
 # File handling
 Pillow>=9.5.0
+python-docx>=1.0.0  # Manuscript DOCX parsing
+lxml>=4.9.0  # XML/HTML parsing
 
 # AI Integration
 anthropic>=0.39.0  # Claude API SDK for AI Statistical Advisor
+
+# Async task processing (v2.0)
+celery>=5.3.0  # Distributed task queue
+redis>=5.0.0  # Celery broker + Django cache backend
+django-celery-beat>=2.5.0  # Periodic task scheduling
+django-celery-results>=2.5.0  # Task result storage
+django-redis>=5.4.0  # Redis cache backend for Django
+
+# Real-time communication (v2.0)
+channels>=4.0.0  # WebSocket support
+channels-redis>=4.0.0  # WebSocket channel layer backend
+
+# Billing (v2.0)
+stripe>=10.0.0  # Subscription and payment processing
 
 # Production server
 gunicorn>=21.0.0
