@@ -40,15 +40,20 @@ class DesignGeneratorServiceTests(TestCase):
             factors=self.test_factors[:2],
             center_points=0
         )
-        
+
         # Should have 2^2 = 4 runs
         self.assertEqual(len(design), 4)
-        
-        # Check that all combinations are present
-        self.assertTrue(any((row['Temperature'] == 60 and row['Pressure'] == 100) for _, row in design.iterrows()))
-        self.assertTrue(any((row['Temperature'] == 60 and row['Pressure'] == 200) for _, row in design.iterrows()))
-        self.assertTrue(any((row['Temperature'] == 80 and row['Pressure'] == 100) for _, row in design.iterrows()))
-        self.assertTrue(any((row['Temperature'] == 80 and row['Pressure'] == 200) for _, row in design.iterrows()))
+
+        # Design generator returns coded values (-1, 1) in factor columns
+        # and actual values in _actual columns
+        self.assertIn('Temperature_actual', design.columns)
+        self.assertIn('Pressure_actual', design.columns)
+
+        # Check that all combinations of actual values are present
+        self.assertTrue(any((row['Temperature_actual'] == 60 and row['Pressure_actual'] == 100) for _, row in design.iterrows()))
+        self.assertTrue(any((row['Temperature_actual'] == 60 and row['Pressure_actual'] == 200) for _, row in design.iterrows()))
+        self.assertTrue(any((row['Temperature_actual'] == 80 and row['Pressure_actual'] == 100) for _, row in design.iterrows()))
+        self.assertTrue(any((row['Temperature_actual'] == 80 and row['Pressure_actual'] == 200) for _, row in design.iterrows()))
     
     def test_fractional_factorial_design(self):
         """Test generation of a fractional factorial design"""
@@ -102,19 +107,21 @@ class DesignGeneratorServiceTests(TestCase):
     
     def test_plackett_burman_design(self):
         """Test generation of a Plackett-Burman design"""
-        # Generate a Plackett-Burman design with 3 factors
+        # PB designs start at n=8 (no n=4 support), so use 7 factors to trigger n=8
+        pb_factors = [
+            {'name': f'Factor{i+1}', 'low_level': i * 10, 'high_level': i * 10 + 10, 'is_categorical': False}
+            for i in range(7)
+        ]
         design = self.service.generate_design(
             design_type='PLACKETT_BURMAN',
-            factors=self.test_factors[:2] + [{
-                'name': 'Time',
-                'low_level': 30,
-                'high_level': 60,
-                'is_categorical': False
-            }]
+            factors=pb_factors
         )
-        
-        # For 3 factors, smallest Plackett-Burman design has 4 runs
-        self.assertEqual(len(design), 4)
+
+        # For 7 factors, PB design has n=8 runs
+        self.assertEqual(len(design), 8)
+        # Should have all 7 factor columns plus run_order
+        for f in pb_factors:
+            self.assertIn(f['name'], design.columns)
     
     def test_categorical_factor_handling(self):
         """Test that categorical factors are handled correctly"""
@@ -124,14 +131,16 @@ class DesignGeneratorServiceTests(TestCase):
             factors=[self.test_factors[0], self.test_factors[2]],
             center_points=0
         )
-        
+
         # Should have 2 * 3 = 6 runs (2 levels for continuous, 3 categories)
         self.assertEqual(len(design), 6)
-        
-        # Check that all combinations are present
+
+        # Continuous factor actual values are in Temperature_actual column;
+        # categorical factor values are directly in the Catalyst column
+        self.assertIn('Temperature_actual', design.columns)
         for temp in [60, 80]:
             for cat in ['A', 'B', 'C']:
-                self.assertTrue(any((row['Temperature'] == temp and row['Catalyst'] == cat) 
+                self.assertTrue(any((row['Temperature_actual'] == temp and row['Catalyst'] == cat)
                                    for _, row in design.iterrows()))
 
 
@@ -141,11 +150,12 @@ class ModelAnalyzerServiceTests(TestCase):
     def setUp(self):
         self.service = ModelAnalyzerService()
         
-        # Create sample factorial design data
+        # Create sample factorial design data with replicates
+        # (need >4 points so residual df > 0 for a 4-parameter model)
         self.factorial_data = pd.DataFrame({
-            'Temperature': [60, 60, 80, 80],
-            'Pressure': [100, 200, 100, 200],
-            'Yield': [75, 85, 80, 95]
+            'Temperature': [60, 60, 80, 80, 60, 60, 80, 80],
+            'Pressure': [100, 200, 100, 200, 100, 200, 100, 200],
+            'Yield': [75, 85, 80, 95, 74, 86, 81, 94]
         })
         
         # Create sample response surface design data
@@ -175,10 +185,12 @@ class ModelAnalyzerServiceTests(TestCase):
         self.assertIn('model_statistics', result)
         
         # Check ANOVA table for Yield
+        # anova_lm().to_dict() returns {col: {term: value}}, e.g. {'sum_sq': {'Temperature': ...}}
         self.assertIn('Yield', result['anova_tables'])
         anova = result['anova_tables']['Yield']
-        self.assertIn('Temperature', anova)
-        self.assertIn('Pressure', anova)
+        self.assertIn('sum_sq', anova)
+        self.assertIn('Temperature', anova['sum_sq'])
+        self.assertIn('Pressure', anova['sum_sq'])
         
         # Check model coefficients
         self.assertIn('Yield', result['model_coefficients'])
@@ -213,12 +225,13 @@ class ModelAnalyzerServiceTests(TestCase):
         self.assertIn('model_equations', result)
         self.assertIn('model_statistics', result)
         
-        # Check model coefficients for quadratic terms
+        # Check model coefficients for quadratic and interaction terms
         self.assertIn('Yield', result['model_coefficients'])
         coeffs = result['model_coefficients']['Yield']
         self.assertIn('Temperature^2', coeffs)
         self.assertIn('Pressure^2', coeffs)
-        self.assertIn('Temperature*Pressure', coeffs)
+        # statsmodels uses ':' for interaction terms
+        self.assertIn('Temperature:Pressure', coeffs)
     
     def test_response_optimization(self):
         """Test optimization of responses"""

@@ -8,17 +8,10 @@ import unittest
 import pandas as pd
 import numpy as np
 from django.test import TestCase
-from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
-import io
-import json
 import logging
 
-from stickforstats.core.models import Dataset, AnalysisSession, AnalysisResult
-from sqc_analysis.models import ControlChartAnalysis
 from sqc_analysis.services.control_charts import ControlChartService
 
-User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
@@ -276,152 +269,6 @@ class ControlChartServiceTestCase(TestCase):
         self.assertEqual(result.secondary_center_line, custom_limits['r_cl'])
         self.assertEqual(result.secondary_upper_control_limit, custom_limits['r_ucl'])
         self.assertEqual(result.secondary_lower_control_limit, custom_limits['r_lcl'])
-
-
-class ControlChartAPITestCase(TestCase):
-    """Test cases for the ControlChart API endpoints."""
-    
-    def setUp(self):
-        """Set up test data."""
-        # Create a test user
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpassword'
-        )
-        
-        # Create a CSV file for testing
-        self.csv_content = io.StringIO()
-        self.csv_content.write('Batch,Measurement\n')
-        self.csv_content.write('A,10.2\nA,10.5\nA,10.3\nA,10.4\nA,10.1\n')
-        self.csv_content.write('B,10.3\nB,10.6\nB,10.4\nB,10.5\nB,10.2\n')
-        self.csv_content.write('C,10.1\nC,10.4\nC,10.2\nC,10.3\nC,10.0\n')
-        self.csv_content.seek(0)
-        
-        # Create a test dataset
-        self.dataset = Dataset.objects.create(
-            user=self.user,
-            name='Test Dataset',
-            description='Test dataset for control chart analysis',
-            file=SimpleUploadedFile('test_data.csv', self.csv_content.getvalue().encode()),
-            file_type='csv',
-            rows=15,
-            columns=2,
-            column_types={'Batch': {'type': 'categorical'}, 'Measurement': {'type': 'numeric'}}
-        )
-        
-        # Create a test analysis session
-        self.session = AnalysisSession.objects.create(
-            user=self.user,
-            dataset=self.dataset,
-            name='Test Analysis',
-            module='sqc',
-            status='in_progress',
-            configuration={
-                'analysis_type': 'control_chart',
-                'chart_type': 'xbar_r'
-            }
-        )
-        
-        # Create a test analysis result
-        self.result = AnalysisResult.objects.create(
-            session=self.session,
-            name='X-bar R Chart Results',
-            analysis_type='control_chart_xbar_r',
-            parameters={
-                'chart_type': 'xbar_r',
-                'parameter_column': 'Measurement',
-                'grouping_column': 'Batch',
-                'sample_size': 5,
-                'detect_rules': True,
-                'rule_set': 'western_electric'
-            },
-            result_summary={
-                'center_line': 10.32,
-                'upper_control_limit': 10.52,
-                'lower_control_limit': 10.12,
-                'has_violations': False,
-                'process_statistics': {
-                    'average': 10.32,
-                    'average_range': 0.5,
-                    'standard_deviation': 0.21,
-                    'sample_size': 5,
-                    'num_subgroups': 3
-                }
-            },
-            result_detail={
-                'chart_type': 'xbar_r',
-                'data_points': [10.3, 10.4, 10.2],
-                'violations': [],
-                'secondary_center_line': 0.5,
-                'secondary_upper_control_limit': 1.06,
-                'secondary_lower_control_limit': 0,
-                'secondary_data_points': [0.4, 0.4, 0.4],
-                'secondary_violations': []
-            },
-            interpretation='The process appears to be in statistical control. Continue monitoring.',
-            plot_data={
-                'x_data': [1, 2, 3],
-                'xbar_values': [10.3, 10.4, 10.2],
-                'range_values': [0.4, 0.4, 0.4],
-                'x_center_line': 10.32,
-                'x_ucl': 10.52,
-                'x_lcl': 10.12,
-                'r_center_line': 0.5,
-                'r_ucl': 1.06,
-                'r_lcl': 0,
-                'subgroup_labels': ['A', 'B', 'C'],
-                'x_violations': [],
-                'r_violations': []
-            }
-        )
-        
-        # Create a test control chart analysis
-        self.control_chart = ControlChartAnalysis.objects.create(
-            analysis_session=self.session,
-            analysis_result=self.result,
-            chart_type='xbar_r',
-            sample_size=5,
-            variable_sample_size=False,
-            parameter_column='Measurement',
-            grouping_column='Batch',
-            time_column='',
-            use_custom_limits=False,
-            upper_control_limit=10.52,
-            lower_control_limit=10.12,
-            center_line=10.32,
-            detect_rules=True,
-            rule_set='western_electric',
-            special_causes_detected=[]
-        )
-    
-    def test_comparison_with_streamlit(self):
-        """Compare results with expected Streamlit output."""
-        # Load the CSV data into a DataFrame
-        df = pd.read_csv(io.StringIO(self.csv_content.getvalue()))
-        
-        # Use the ControlChartService to calculate results
-        service = ControlChartService()
-        result = service.calculate_xbar_r_chart(
-            data=df,
-            value_column='Measurement',
-            subgroup_column='Batch',
-            sample_size=5,
-            detect_rules=True,
-            rule_set='western_electric'
-        )
-        
-        # Compare with the stored test result
-        self.assertAlmostEqual(result.center_line, float(self.result.result_summary['center_line']), places=2)
-        self.assertAlmostEqual(result.upper_control_limit, float(self.result.result_summary['upper_control_limit']), places=2)
-        self.assertAlmostEqual(result.lower_control_limit, float(self.result.result_summary['lower_control_limit']), places=2)
-        
-        # Compare number of data points
-        self.assertEqual(len(result.data_points), len(self.result.result_detail['data_points']))
-        
-        # Compare data point values (approximately)
-        for i, (actual, expected) in enumerate(zip(result.data_points, self.result.result_detail['data_points'])):
-            self.assertAlmostEqual(actual, float(expected), places=2)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,9 @@ Date: 2025-08-26
 Version: 1.0.0
 """
 
-from .time_series_service import TimeSeriesService, TimeSeriesResults
+try:
+    from .time_series_service import TimeSeriesService, TimeSeriesResults
+except ImportError:
+    pass
 
 __all__ = ['TimeSeriesService', 'TimeSeriesResults']

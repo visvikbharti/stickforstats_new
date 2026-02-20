@@ -437,7 +437,7 @@ class ManuscriptGuardian:
         # Wrap text in a file-like object for the parser
         f = io.StringIO(text)
         f.name = 'manuscript.txt'
-        return self.review(f, file_type='auto')
+        return self.review(f, file_type='latex')
 
     # -----------------------------------------------------------------
     # Finding generation
@@ -458,13 +458,17 @@ class ManuscriptGuardian:
         # --- Consistency findings ---
         for result in consistency_summary.results:
             if result.severity == 'gross_error':
+                computed_str = (
+                    f'{result.computed_p:.6f}'
+                    if result.computed_p is not None else 'N/A'
+                )
                 findings.append(ReviewFinding(
                     severity='blocking',
                     category='consistency',
                     title=f'Gross statistical error in claim {result.claim_id}',
                     description=(
-                        f'Reported p {result.reported_p_comparison} {result.reported_p}, '
-                        f'but recomputed p = {result.computed_p:.6f}. '
+                        f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
+                        f'but recomputed p = {computed_str}. '
                         f'This leads to a different significance conclusion.'
                     ),
                     evidence=result.raw_text,
@@ -475,14 +479,22 @@ class ManuscriptGuardian:
                     claim_id=result.claim_id,
                 ))
             elif result.severity == 'major':
+                computed_str = (
+                    f'{result.computed_p:.6f}'
+                    if result.computed_p is not None else 'N/A'
+                )
+                discrepancy_str = (
+                    f'{result.discrepancy:.4f}'
+                    if result.discrepancy is not None else 'N/A'
+                )
                 findings.append(ReviewFinding(
                     severity='major',
                     category='consistency',
                     title=f'Significant discrepancy in claim {result.claim_id}',
                     description=(
-                        f'Reported p {result.reported_p_comparison} {result.reported_p}, '
-                        f'recomputed p = {result.computed_p:.6f} '
-                        f'(discrepancy: {result.discrepancy:.4f}).'
+                        f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
+                        f'recomputed p = {computed_str} '
+                        f'(discrepancy: {discrepancy_str}).'
                     ),
                     evidence=result.raw_text,
                     recommendation='Check and correct the reported values.',

@@ -55,7 +55,7 @@ def _get_file_and_type(request):
     elif name.endswith('.docx'):
         file_type = 'docx'
     elif name.endswith('.txt'):
-        file_type = 'auto'
+        file_type = 'latex'
     else:
         return None, None, (
             f'Unsupported file type: {name}. '

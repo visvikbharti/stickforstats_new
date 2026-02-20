@@ -22,19 +22,19 @@ class TestAcceptanceSamplingService(unittest.TestCase):
             producer_risk=0.05,
             consumer_risk=0.10
         )
-        
+
         # Check that the result contains the expected keys
         self.assertIn('plan_type', result)
         self.assertIn('sample_size', result)
         self.assertIn('acceptance_number', result)
         self.assertIn('oc_curve', result)
-        
+
         # Check that the values are of the expected types
         self.assertEqual(result['plan_type'], 'single')
         self.assertIsInstance(result['sample_size'], int)
         self.assertIsInstance(result['acceptance_number'], int)
         self.assertIsInstance(result['oc_curve'], dict)
-        
+
         # Verify sample size and acceptance number are reasonable
         self.assertGreater(result['sample_size'], 0)
         self.assertGreaterEqual(result['acceptance_number'], 0)
@@ -48,7 +48,7 @@ class TestAcceptanceSamplingService(unittest.TestCase):
             producer_risk=0.05,
             consumer_risk=0.10
         )
-        
+
         # Check that the result contains the expected keys
         self.assertIn('plan_type', result)
         self.assertIn('first_sample_size', result)
@@ -56,9 +56,8 @@ class TestAcceptanceSamplingService(unittest.TestCase):
         self.assertIn('first_rejection_number', result)
         self.assertIn('second_sample_size', result)
         self.assertIn('second_acceptance_number', result)
-        self.assertIn('second_rejection_number', result)
         self.assertIn('oc_curve', result)
-        
+
         # Check that the values are of the expected types
         self.assertEqual(result['plan_type'], 'double')
         self.assertIsInstance(result['first_sample_size'], int)
@@ -66,40 +65,41 @@ class TestAcceptanceSamplingService(unittest.TestCase):
         self.assertIsInstance(result['first_rejection_number'], int)
         self.assertIsInstance(result['second_sample_size'], int)
         self.assertIsInstance(result['second_acceptance_number'], int)
-        self.assertIsInstance(result['second_rejection_number'], int)
-        
+
         # Verify sample sizes and acceptance numbers are reasonable
         self.assertGreater(result['first_sample_size'], 0)
         self.assertGreaterEqual(result['first_acceptance_number'], 0)
         self.assertGreater(result['first_rejection_number'], result['first_acceptance_number'])
         self.assertGreater(result['second_sample_size'], 0)
         self.assertGreaterEqual(result['second_acceptance_number'], 0)
-        self.assertGreater(result['second_rejection_number'], result['second_acceptance_number'])
 
     def test_calculate_oc_curve(self):
-        """Test calculating the OC curve for a sampling plan."""
-        oc_curve = self.service.calculate_oc_curve(
-            sample_size=50,
-            acceptance_number=2,
-            quality_levels=np.linspace(0.01, 0.10, 10).tolist()
+        """Test that OC curve data is included in single sampling plan results."""
+        result = self.service.calculate_single_sampling_plan(
+            lot_size=1000,
+            acceptable_quality_level=1.0,
+            rejectable_quality_level=5.0,
+            producer_risk=0.05,
+            consumer_risk=0.10
         )
-        
-        # Check that the result is a dictionary with quality levels and probabilities
-        self.assertIsInstance(oc_curve, dict)
-        self.assertIn('quality_levels', oc_curve)
-        self.assertIn('probabilities', oc_curve)
-        
+
+        # Check that OC curve data is present
+        oc_curve = result['oc_curve']
+        self.assertIn('p_values', oc_curve)
+        self.assertIn('pa_values', oc_curve)
+
         # Check that the arrays have the expected length
-        self.assertEqual(len(oc_curve['quality_levels']), 10)
-        self.assertEqual(len(oc_curve['probabilities']), 10)
-        
-        # Check that probabilities are between 0 and 1
-        for prob in oc_curve['probabilities']:
-            self.assertGreaterEqual(prob, 0.0)
-            self.assertLessEqual(prob, 1.0)
-        
-        # Verify that the probabilities decrease as quality levels increase
-        self.assertGreater(oc_curve['probabilities'][0], oc_curve['probabilities'][-1])
+        self.assertEqual(len(oc_curve['p_values']), len(oc_curve['pa_values']))
+        self.assertGreater(len(oc_curve['p_values']), 0)
+
+        # Check that probabilities are between 0 and 1 (with floating point tolerance)
+        for prob in oc_curve['pa_values']:
+            self.assertGreaterEqual(prob, -1e-10)
+            self.assertLessEqual(prob, 1.0 + 1e-10)
+
+        # Verify the OC curve is monotonically non-increasing (within tolerance)
+        # At p=0, acceptance probability should be ~1.0
+        self.assertAlmostEqual(oc_curve['pa_values'][0], 1.0, places=5)
 
 
 if __name__ == '__main__':

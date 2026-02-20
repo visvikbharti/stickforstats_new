@@ -67,7 +67,7 @@ class MLService:
                     'kernel': ['linear', 'rbf'],
                     'gamma': ['scale', 'auto']
                 },
-                'description': 'A regression method based on support vector machines that's effective for non-linear relationships.'
+                'description': 'A regression method based on support vector machines that is effective for non-linear relationships.'
             },
             'lasso': {
                 'name': 'Lasso Regression',
@@ -107,7 +107,7 @@ class MLService:
                     'max_depth': [None, 10, 20, 30],
                     'min_samples_split': [2, 5, 10]
                 },
-                'description': 'An ensemble of decision trees for classification that's robust to overfitting.'
+                'description': 'An ensemble of decision trees for classification that is robust to overfitting.'
             },
             'svc': {
                 'name': 'Support Vector Classification',

@@ -100,6 +100,15 @@ class ConsistencyValidator:
     # Claim types that this validator can recompute
     SUPPORTED_TYPES = {'t', 'F', 'chi2', 'z', 'r'}
 
+    # Map extractor-style type names to validator-style type names
+    _CLAIM_TYPE_MAP = {
+        't_statistic': 't',
+        'f_statistic': 'F',
+        'chi_square': 'chi2',
+        'z_statistic': 'z',
+        'r_value': 'r',
+    }
+
     def __init__(self, alpha: float = 0.05, tolerance: float = 0.005) -> None:
         self.alpha = alpha
         self.tolerance = tolerance
@@ -164,8 +173,13 @@ class ConsistencyValidator:
         """
         claim_id: str = getattr(claim, 'claim_id', str(id(claim)))
         claim_type: str = getattr(claim, 'claim_type', '')
+        # Normalize extractor-style type names to validator-style
+        claim_type = self._CLAIM_TYPE_MAP.get(claim_type, claim_type)
         raw_text: str = getattr(claim, 'raw_text', '')
-        reported_stat: Optional[float] = getattr(claim, 'statistic', None)
+        reported_stat: Optional[float] = (
+            getattr(claim, 'statistic', None)
+            or getattr(claim, 'statistic_value', None)
+        )
         reported_p: Optional[float] = getattr(claim, 'p_value', None)
         p_comparison: str = getattr(claim, 'p_comparison', 'equals')
         df = getattr(claim, 'df', None)
@@ -789,7 +803,12 @@ class ConsistencyValidator:
         """
         claim_id = getattr(claim, 'claim_id', str(id(claim)))
         claim_type = getattr(claim, 'claim_type', '')
-        reported_stat = getattr(claim, 'statistic', 0.0) or 0.0
+        claim_type = self._CLAIM_TYPE_MAP.get(claim_type, claim_type)
+        reported_stat = (
+            getattr(claim, 'statistic', None)
+            or getattr(claim, 'statistic_value', None)
+            or 0.0
+        )
         reported_p = getattr(claim, 'p_value', 0.0) or 0.0
         p_comparison = getattr(claim, 'p_comparison', 'equals')
         raw_text = getattr(claim, 'raw_text', '')

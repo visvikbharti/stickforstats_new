@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -58,8 +59,8 @@ class ModelAnalyzerService:
             results = self._analyze_screening_model(analysis_data, factor_names, response_names, **kwargs)
         else:
             raise ValueError(f"Unknown analysis type: {analysis_type}")
-        
-        return results
+
+        return self._make_json_serializable(results)
     
     def optimize_response(self, model_results, factors, response_goals, constraints=None, optimization_type='DESIRABILITY', **kwargs):
         """
@@ -300,9 +301,9 @@ class ModelAnalyzerService:
                 coefficients = {}
                 for term, value in model.params.items():
                     term_name = term
-                    if "I(" in term and "**2" in term:
-                        # Convert I(X**2) to X^2 for readability
-                        term_name = term.replace("I(", "").replace("**2)", "^2")
+                    if "I(" in term and "**" in term:
+                        # Convert I(X**2) or I(X ** 2) to X^2 for readability
+                        term_name = re.sub(r'I\((\w+)\s*\*\*\s*2\)', r'\1^2', term)
                     
                     coefficients[term_name] = {
                         'estimate': value,
@@ -325,9 +326,9 @@ class ModelAnalyzerService:
                         # Format the coefficient with sign
                         coef = params
                         term_name = term
-                        if "I(" in term and "**2" in term:
-                            # Convert I(X**2) to X^2 for readability
-                            term_name = term.replace("I(", "").replace("**2)", "^2")
+                        if "I(" in term and "**" in term:
+                            # Convert I(X**2) or I(X ** 2) to X^2 for readability
+                            term_name = re.sub(r'I\((\w+)\s*\*\*\s*2\)', r'\1^2', term)
                         
                         if coef >= 0:
                             significant_terms.append(f"+ {coef:.4f}*{term_name}")
@@ -971,3 +972,27 @@ class ModelAnalyzerService:
                 raise ValueError(f"Unknown goal: {goal}")
         
         return calculate_desirability
+
+    @staticmethod
+    def _make_json_serializable(obj):
+        """Convert numpy types to native Python types for JSON serialization."""
+        import math
+        if isinstance(obj, dict):
+            return {k: ModelAnalyzerService._make_json_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [ModelAnalyzerService._make_json_serializable(v) for v in obj]
+        elif isinstance(obj, (np.integer,)):
+            return int(obj)
+        elif isinstance(obj, (np.floating,)):
+            if np.isnan(obj) or np.isinf(obj):
+                return None
+            return float(obj)
+        elif isinstance(obj, float):
+            if math.isnan(obj) or math.isinf(obj):
+                return None
+            return obj
+        elif isinstance(obj, np.ndarray):
+            return ModelAnalyzerService._make_json_serializable(obj.tolist())
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        return obj

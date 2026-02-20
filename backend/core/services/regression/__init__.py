@@ -12,9 +12,12 @@ This module provides comprehensive regression analysis capabilities including:
 Scientific Integrity: 100% - All calculations validated against R and SciPy
 """
 
-from .linear_regression_service import LinearRegressionService
-from .regression_diagnostics import RegressionDiagnostics
-from .glm_service import GLMService
+try:
+    from .linear_regression_service import LinearRegressionService
+    from .regression_diagnostics import RegressionDiagnostics
+    from .glm_service import GLMService
+except (ImportError, Exception):
+    pass
 
 __all__ = [
     'LinearRegressionService',

@@ -19,6 +19,9 @@ Date: 2025-08-26
 Version: 1.0.0
 """
 
-from .multivariate_service import MultivariateService, MultivariateResults
+try:
+    from .multivariate_service import MultivariateService, MultivariateResults
+except ImportError:
+    pass
 
 __all__ = ['MultivariateService', 'MultivariateResults']

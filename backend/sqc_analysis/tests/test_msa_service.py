@@ -13,13 +13,13 @@ class TestMSAService(unittest.TestCase):
     def setUp(self):
         """Set up for the tests."""
         self.service = MSAService()
-        
+
         # Create sample data for Gauge R&R
         np.random.seed(42)
         parts = 10
         operators = 3
         replicates = 2
-        
+
         data = []
         for part in range(1, parts + 1):
             true_value = 10 + np.random.normal(0, 1)
@@ -32,9 +32,9 @@ class TestMSAService(unittest.TestCase):
                         'Operator': f'Operator_{operator}',
                         'Measurement': measurement
                     })
-        
+
         self.gauge_rr_data = pd.DataFrame(data)
-        
+
         # Create sample data for Attribute Agreement
         data = []
         for part in range(1, parts + 1):
@@ -46,21 +46,21 @@ class TestMSAService(unittest.TestCase):
                         assessment = true_value
                     else:
                         assessment = 'Fail' if true_value == 'Pass' else 'Pass'
-                    
+
                     data.append({
                         'Part': f'Part_{part}',
                         'Operator': f'Operator_{operator}',
                         'Assessment': assessment,
                         'Reference': true_value
                     })
-        
+
         self.attribute_data = pd.DataFrame(data)
-        
+
         # Create sample data for Linearity & Bias
         data = []
         reference_values = [10, 20, 30, 40, 50]
         replicates = 3
-        
+
         for ref in reference_values:
             for rep in range(replicates):
                 # Add a small bias and error
@@ -69,7 +69,7 @@ class TestMSAService(unittest.TestCase):
                     'Reference': ref,
                     'Measurement': measurement
                 })
-        
+
         self.linearity_data = pd.DataFrame(data)
 
     def test_calculate_gauge_rr_anova(self):
@@ -80,13 +80,13 @@ class TestMSAService(unittest.TestCase):
             operators_col='Operator',
             measurements_col='Measurement'
         )
-        
+
         # Check that the result contains the expected keys
         self.assertIn('summary', result)
-        self.assertIn('components', result)
+        self.assertIn('variance_table', result)
         self.assertIn('assessment', result)
         self.assertIn('anova_table', result)
-        
+
         # Check that the summary contains the expected statistics
         summary = result['summary']
         self.assertIn('StdDev (Repeatability)', summary)
@@ -96,7 +96,7 @@ class TestMSAService(unittest.TestCase):
         self.assertIn('StdDev (Total)', summary)
         self.assertIn('%StudyVar (Gauge R&R)', summary)
         self.assertIn('Number of Distinct Categories', summary)
-        
+
         # Verify values are reasonable
         self.assertGreater(summary['StdDev (Total)'], 0)
         self.assertGreater(summary['StdDev (Gauge R&R)'], 0)
@@ -114,18 +114,21 @@ class TestMSAService(unittest.TestCase):
             assessment_col='Assessment',
             reference_col='Reference'
         )
-        
+
         # Check that the result contains the expected keys
         self.assertIn('summary', result)
-        self.assertIn('operator_results', result)
-        self.assertIn('assessment_counts', result)
-        
+        self.assertIn('repeatability', result)
+        self.assertIn('reproducibility', result)
+        self.assertIn('reference_agreement', result)
+        self.assertIn('kappa', result)
+        self.assertIn('categories', result)
+
         # Check that the summary contains the expected statistics
         summary = result['summary']
         self.assertIn('Overall Reproducibility', summary)
         self.assertIn('Overall Agreement with Reference', summary)
         self.assertIn('Overall Kappa', summary)
-        
+
         # Verify values are reasonable
         self.assertGreaterEqual(summary['Overall Reproducibility'], 0)
         self.assertLessEqual(summary['Overall Reproducibility'], 100)
@@ -141,20 +144,20 @@ class TestMSAService(unittest.TestCase):
             reference_col='Reference',
             measurement_col='Measurement'
         )
-        
+
         # Check that the result contains the expected keys
         self.assertIn('overall_bias', result)
         self.assertIn('linearity', result)
         self.assertIn('bias_by_reference', result)
-        
+
         # Check that the bias analysis contains the expected statistics
         overall_bias = result['overall_bias']
         self.assertIn('bias', overall_bias)
-        self.assertIn('bias_percent', overall_bias)
-        self.assertIn('t_value', overall_bias)
+        self.assertIn('percent_bias', overall_bias)
+        self.assertIn('t_statistic', overall_bias)
         self.assertIn('p_value', overall_bias)
         self.assertIn('significant', overall_bias)
-        
+
         # Check that the linearity analysis contains the expected statistics
         linearity = result['linearity']
         self.assertIn('slope', linearity)
@@ -162,7 +165,7 @@ class TestMSAService(unittest.TestCase):
         self.assertIn('r_squared', linearity)
         self.assertIn('p_value', linearity)
         self.assertIn('significant', linearity)
-        
+
         # Verify values are reasonable
         self.assertIsInstance(overall_bias['bias'], float)
         self.assertIsInstance(linearity['slope'], float)

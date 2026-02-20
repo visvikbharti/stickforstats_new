@@ -257,6 +257,7 @@ class ManuscriptParser:
         '.tex': 'latex',
         '.latex': 'latex',
         '.docx': 'docx',
+        '.txt': 'latex',
     }
 
     def __init__(self) -> None:

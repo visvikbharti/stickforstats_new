@@ -54,16 +54,16 @@ class RegressionResults:
     cooks_distance: np.ndarray
     leverage: np.ndarray
     dffits: np.ndarray
-    vif: Optional[np.ndarray] = None
-    
-    # ANOVA table
-    anova_table: Optional[pd.DataFrame] = None
-    
+
     # Additional info
     n_observations: int
     n_predictors: int
     degrees_of_freedom: int
     feature_names: List[str]
+
+    # Optional fields (must come after all required fields)
+    vif: Optional[np.ndarray] = None
+    anova_table: Optional[pd.DataFrame] = None
 
 
 class LinearRegressionService:
