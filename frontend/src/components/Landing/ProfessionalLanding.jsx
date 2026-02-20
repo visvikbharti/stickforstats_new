@@ -123,7 +123,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <div className="feature-icon guardian-icon">🛡️</div>
                 <div className="feature-content">
                   <h3>Guardian System</h3>
-                  <p>6 assumption validators prevent false positives</p>
+                  <p>8 assumption validators prevent false positives</p>
                 </div>
               </div>
               <div className="feature-item">
@@ -136,7 +136,7 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="feature-item">
                 <div className="feature-icon tests-icon">📊</div>
                 <div className="feature-content">
-                  <h3>40+ Statistical Tests</h3>
+                  <h3>46+ Statistical Tests</h3>
                   <p>Comprehensive suite with educational mode</p>
                 </div>
               </div>
@@ -156,7 +156,7 @@ const ProfessionalLanding = ({ onEnter }) => {
             {/* Trust Indicators */}
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-number">40+</span>
+                <span className="trust-number">46+</span>
                 <span className="trust-label">Statistical Tests</span>
               </div>
               <div className="trust-item">
@@ -164,7 +164,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <span className="trust-label">Decimal Precision</span>
               </div>
               <div className="trust-item">
-                <span className="trust-number">6</span>
+                <span className="trust-number">8</span>
                 <span className="trust-label">Guardian Validators</span>
               </div>
             </div>
@@ -293,7 +293,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                   Guardian validates statistical assumptions BEFORE running tests, preventing
                   Type I errors and false positives that plague published research.
                 </p>
-                <h4>6 Validators</h4>
+                <h4>8 Validators</h4>
                 <ul className="doc-list">
                   <li><strong>Normality:</strong> Shapiro-Wilk test with visual diagnostics</li>
                   <li><strong>Sample Size:</strong> Power analysis and minimum n requirements</li>

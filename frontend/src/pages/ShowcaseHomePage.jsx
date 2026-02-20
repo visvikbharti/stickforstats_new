@@ -140,7 +140,7 @@ const ShowcaseHomePage = () => {
             </Button>
             <Button 
               variant="outlined" 
-              sx={{ color: 'white', borderColor: 'white' }}
+              sx={{ color: 'primary.contrastText', borderColor: 'primary.contrastText' }}
               size="large"
               href="#modules"
             >

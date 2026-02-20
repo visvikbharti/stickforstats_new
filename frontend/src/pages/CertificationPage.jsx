@@ -123,7 +123,7 @@ const CertificationPage = () => {
               'Data Types and Measurement Scales',
               'Using StickForStats Interface',
             ],
-            badge_color: '#4CAF50',
+            badge_color: theme.palette.success.main,
           },
           {
             id: 'practitioner',
@@ -145,7 +145,7 @@ const CertificationPage = () => {
               'Power Analysis',
               'Missing Data Handling',
             ],
-            badge_color: '#2196F3',
+            badge_color: theme.palette.info.main,
           },
           {
             id: 'expert',
@@ -168,7 +168,7 @@ const CertificationPage = () => {
               'Statistical Consulting Best Practices',
               'APA Reporting Standards',
             ],
-            badge_color: '#9C27B0',
+            badge_color: theme.palette.secondary.main,
           },
         ]);
       } finally {
@@ -514,7 +514,7 @@ const CertificationPage = () => {
         <DialogTitle sx={{ textAlign: 'center', pt: 4 }}>
           {results.passed ? (
             <Box>
-              <EmojiEventsIcon sx={{ fontSize: 64, color: '#FFD700', mb: 1 }} />
+              <EmojiEventsIcon sx={{ fontSize: 64, color: theme.palette.warning.main, mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
                 Congratulations!
               </Typography>
@@ -591,25 +591,25 @@ const CertificationPage = () => {
                   layout="vertical"
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#333' : '#eee'} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                   <XAxis
                     type="number"
                     domain={[0, 100]}
-                    tick={{ fill: darkMode ? '#ccc' : '#333' }}
+                    tick={{ fill: theme.palette.text.secondary }}
                     tickFormatter={(v) => `${v}%`}
                   />
                   <YAxis
                     type="category"
                     dataKey="topic"
                     width={160}
-                    tick={{ fill: darkMode ? '#ccc' : '#333', fontSize: 12 }}
+                    tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                   />
                   <Tooltip
                     formatter={(value, name, props) => [`${props.payload.correct}/${props.payload.total} (${value}%)`, 'Score']}
                     labelFormatter={(label, payload) => payload?.[0]?.payload?.fullTopic || label}
                     contentStyle={{
-                      backgroundColor: darkMode ? '#2a2a3e' : '#fff',
-                      border: `1px solid ${darkMode ? '#444' : '#ddd'}`,
+                      backgroundColor: theme.palette.background.paper,
+                      border: `1px solid ${theme.palette.divider}`,
                       borderRadius: 8,
                     }}
                   />
@@ -619,10 +619,10 @@ const CertificationPage = () => {
                         key={index}
                         fill={
                           entry.score >= 80
-                            ? '#4CAF50'
+                            ? theme.palette.success.main
                             : entry.score >= 60
-                              ? '#FF9800'
-                              : '#f44336'
+                              ? theme.palette.warning.main
+                              : theme.palette.error.main
                         }
                       />
                     ))}
@@ -644,15 +644,15 @@ const CertificationPage = () => {
                   sx={{
                     p: 2,
                     mb: 1.5,
-                    borderLeft: `4px solid ${r.correct ? '#4CAF50' : '#f44336'}`,
+                    borderLeft: `4px solid ${r.correct ? theme.palette.success.main : theme.palette.error.main}`,
                     bgcolor: cardBg,
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     {r.correct ? (
-                      <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: 20 }} />
+                      <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />
                     ) : (
-                      <CancelIcon sx={{ color: '#f44336', fontSize: 20 }} />
+                      <CancelIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />
                     )}
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       Q{idx + 1} - {r.topic}

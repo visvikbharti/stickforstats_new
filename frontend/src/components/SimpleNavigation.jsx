@@ -43,6 +43,15 @@ import ArticleIcon from '@mui/icons-material/Article';
 import BrushIcon from '@mui/icons-material/Brush';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import CasinoIcon from '@mui/icons-material/Casino';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import DescriptionIcon from '@mui/icons-material/Description';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import ApiIcon from '@mui/icons-material/Api';
+import SecurityIcon from '@mui/icons-material/Security';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useAuth } from '../context/AuthContext';
 import DarkModeToggle from './common/DarkModeToggle';
 import ExpertModeToggle from './common/ExpertModeToggle';
@@ -80,6 +89,26 @@ const NAV_CATEGORIES = [
       { name: 'Paper Parser', path: '/paper-parser', icon: <ArticleIcon fontSize="small" /> },
       { name: 'Confidence Intervals', path: '/confidence-intervals', icon: <ConfirmationNumberIcon fontSize="small" /> },
       { name: 'Probability Distributions', path: '/probability-distributions', icon: <CasinoIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'Platform',
+    icon: <SmartToyIcon fontSize="small" />,
+    items: [
+      { name: 'Smart Analysis', path: '/smart-analysis', icon: <AutoFixHighIcon fontSize="small" /> },
+      { name: 'Manuscript Review', path: '/manuscript', icon: <DescriptionIcon fontSize="small" /> },
+      { name: 'Journal Analytics', path: '/journal-analytics', icon: <AnalyticsIcon fontSize="small" /> },
+      { name: 'API Documentation', path: '/api-docs', icon: <ApiIcon fontSize="small" /> },
+    ],
+  },
+  {
+    label: 'More',
+    icon: <DashboardIcon fontSize="small" />,
+    items: [
+      { name: 'Marketplace', path: '/marketplace', icon: <StorefrontIcon fontSize="small" /> },
+      { name: 'Certification', path: '/certification', icon: <VerifiedUserIcon fontSize="small" /> },
+      { name: 'Privacy Dashboard', path: '/privacy', icon: <SecurityIcon fontSize="small" /> },
+      { name: 'Platform Dashboard', path: '/platform', icon: <DashboardIcon fontSize="small" /> },
     ],
   },
   {

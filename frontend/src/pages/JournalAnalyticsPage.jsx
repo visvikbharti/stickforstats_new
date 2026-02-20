@@ -117,12 +117,18 @@ const DEMO_JOURNALS = [
   { slug: 'stats-in-medicine', name: 'Statistics in Medicine' },
 ];
 
-const PIE_COLORS = ['#4caf50', '#2196f3', '#ff9800', '#f44336'];
-
 // ---------- Main Component ----------
 
 function JournalAnalyticsPage() {
   const theme = useTheme();
+
+  // Pie chart colors derived from theme
+  const PIE_COLORS = [
+    theme.palette.success.main,
+    theme.palette.info.main,
+    theme.palette.warning.main,
+    theme.palette.error.main,
+  ];
   const isDark = theme.palette.mode === 'dark';
 
   // State

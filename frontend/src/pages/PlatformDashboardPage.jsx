@@ -224,13 +224,20 @@ function APIKeyRow({ apiKey, onRevoke }) {
   );
 }
 
-// Chart color palette
-const PIE_COLORS = ['#1976d2', '#388e3c', '#f57c00', '#d32f2f', '#7b1fa2', '#0097a7'];
-
 // ======================== Main Component ========================
 
 export default function PlatformDashboardPage() {
   const theme = useTheme();
+
+  // Chart color palette derived from theme
+  const PIE_COLORS = [
+    theme.palette.primary.main,
+    theme.palette.success.main,
+    theme.palette.warning.main,
+    theme.palette.error.main,
+    theme.palette.secondary.main,
+    theme.palette.info.main,
+  ];
 
   // ---- All state hooks ----
   const [organizations, setOrganizations] = useState([]);
