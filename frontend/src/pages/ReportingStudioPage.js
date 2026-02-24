@@ -215,7 +215,7 @@ const ReportingStudioPage = () => {
             <Typography variant="h6" gutterBottom>
               Report Preview
             </Typography>
-            <Paper elevation={1} sx={{ p: 3, bgcolor: 'grey.50' }}>
+            <Paper elevation={1} sx={{ p: 3, bgcolor: 'action.hover' }}>
               <Typography variant="h5" gutterBottom>
                 {reportConfig.title || 'Untitled Report'}
               </Typography>

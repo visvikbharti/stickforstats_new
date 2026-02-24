@@ -3,8 +3,8 @@ import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   Button, TextField, Select, MenuItem, FormControl, InputLabel,
   Alert, CircularProgress, Chip, Fade, Zoom, IconButton,
-  Tooltip, Tabs, Tab, Divider, useTheme, alpha, ThemeProvider,
-  createTheme, CssBaseline, Accordion, AccordionSummary,
+  Tooltip, Tabs, Tab, Divider, useTheme, alpha,
+  Accordion, AccordionSummary,
   AccordionDetails, Slider, Switch, FormControlLabel, List,
   ListItem, ListItemIcon, ListItemText, Stepper, Step, StepLabel,
   StepContent, Table, TableBody, TableCell, TableContainer,
@@ -15,8 +15,6 @@ import {
   Insights as InsightsIcon, TrendingUp as TrendingUpIcon,
   ShowChart as ShowChartIcon, BarChart as BarChartIcon,
   ScatterPlot as ScatterPlotIcon, Analytics as AnalyticsIcon,
-  AutoGraph as AutoGraphIcon, DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon, Download as DownloadIcon,
   Science as ScienceIcon, School as SchoolIcon,
   Psychology as PsychologyIcon, MenuBook as MenuBookIcon,
   Functions as FunctionsIcon, CheckCircle as CheckCircleIcon,
@@ -54,7 +52,8 @@ const gradients = {
 
 const EnhancedStatisticalAnalysis = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const [darkMode, setDarkMode] = useState(false);
+  const theme = useTheme();
+  const darkMode = theme.palette.mode === 'dark';
   const [selectedTab, setSelectedTab] = useState(0);
   const [analysisType, setAnalysisType] = useState('descriptive');
   const [inputData, setInputData] = useState('');
@@ -71,29 +70,14 @@ const EnhancedStatisticalAnalysis = () => {
   const [simulationResults, setSimulationResults] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Create custom theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: { main: '#667eea' },
-      secondary: { main: '#764ba2' },
-      background: {
-        default: darkMode ? '#0a0e27' : '#f8f9fa',
-        paper: darkMode ? '#1a1f3a' : '#ffffff',
-      },
-    },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      h3: {
-        fontWeight: 700,
-        background: darkMode ? gradients.dark : gradients.primary,
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-      },
-    },
-    shape: { borderRadius: 16 },
-  });
+  // Gradient heading style
+  const gradientHeadingSx = {
+    fontWeight: 700,
+    background: darkMode ? gradients.dark : gradients.primary,
+    backgroundClip: 'text',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  };
 
   // Parse comma-separated values
   const parseData = (dataString) => {
@@ -880,8 +864,6 @@ const EnhancedStatisticalAnalysis = () => {
   const requiresTwoInputs = ['ttest', 'correlation', 'regression'].includes(analysisType);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Box
         sx={{
           minHeight: '100vh',
@@ -895,7 +877,7 @@ const EnhancedStatisticalAnalysis = () => {
           {/* Header */}
           <Fade in={true} timeout={1000}>
             <Box sx={{ textAlign: 'center', mb: 5 }}>
-              <Typography variant="h3" gutterBottom>
+              <Typography variant="h3" gutterBottom sx={gradientHeadingSx}>
                 Enhanced Statistical Analysis Suite
               </Typography>
               <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
@@ -905,11 +887,6 @@ const EnhancedStatisticalAnalysis = () => {
                 <Chip icon={<ScienceIcon />} label="50-Decimal Precision" color="primary" />
                 <Chip icon={<SchoolIcon />} label="Educational Content" color="secondary" />
                 <Chip icon={<TimelineIcon />} label="Interactive Simulations" color="success" />
-                <Tooltip title="Toggle Dark Mode">
-                  <IconButton onClick={() => setDarkMode(!darkMode)}>
-                    {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-                  </IconButton>
-                </Tooltip>
               </Box>
             </Box>
           </Fade>
@@ -1115,7 +1092,6 @@ const EnhancedStatisticalAnalysis = () => {
           </Fade>
         </Container>
       </Box>
-    </ThemeProvider>
   );
 };
 

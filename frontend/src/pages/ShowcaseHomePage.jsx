@@ -254,7 +254,7 @@ const ShowcaseHomePage = () => {
       </Container>
 
       {/* Call to Action */}
-      <Box sx={{ bgcolor: 'grey.100', py: 8 }}>
+      <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100', py: 8 }}>
         <Container maxWidth="md">
           <Typography variant="h4" align="center" gutterBottom>
             Get Started

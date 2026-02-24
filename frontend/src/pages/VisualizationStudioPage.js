@@ -149,7 +149,7 @@ const VisualizationStudioPage = () => {
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  bgcolor: 'grey.100',
+                  bgcolor: 'action.hover',
                   borderRadius: 1
                 }}
               >

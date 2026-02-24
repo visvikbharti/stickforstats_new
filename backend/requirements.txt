@@ -52,6 +52,12 @@ channels-redis>=4.0.0  # WebSocket channel layer backend
 # Billing (v2.0)
 stripe>=10.0.0  # Subscription and payment processing
 
+# PostgreSQL adapter
+psycopg2-binary>=2.9.9  # Use psycopg2 (non-binary) for production builds with custom compilation
+
+# Static file serving
+whitenoise>=6.5.0  # Efficient static file serving for Django
+
 # Production server
 gunicorn>=21.0.0
 gevent>=23.0.0

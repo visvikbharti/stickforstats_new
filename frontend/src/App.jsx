@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
 import { MathJaxContext } from 'better-react-mathjax';
@@ -6,70 +6,51 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { ServiceWorkerUpdater, PWAInstallPrompt } from './components/common';
 import { Box, CircularProgress, Typography, Button } from '@mui/material';
 
-// Import Three.js setup (only loads Three.js when needed)
-import './setupThree';
-
 // Import i18n configuration (must be imported before any components that use translations)
 import './i18n';
 
-// Import Professional Landing Page (Scientific, minimal design)
-import ProfessionalLandingPage from './components/Landing/ProfessionalLanding';
-
-// Import theme context
+// Import theme and context providers
 import { AppThemeProvider } from './context/AppThemeContext';
-
-// Import dark mode context
 import { DarkModeProvider } from './context/DarkModeContext';
-
-// Import branding context
 import { BrandingProvider } from './context/BrandingContext';
 
 // Import layout components
-// import Navigation from './components/Navigation';
 import SimpleNavigation from './components/SimpleNavigation';
 import Footer from './components/Footer';
 
 // Import auth components
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import AuthDebug from './components/auth/AuthDebug';
 
-// Import prefetching components
+// Import context providers
 import { PrefetchProvider } from './context/PrefetchContext';
-
-// AI Statistical Advisor - Global floating component
-import AIAdvisorHub from './components/ai-advisor/AIAdvisorHub';
-import PrefetchDebug from './components/navigation/PrefetchDebug';
-
-// Import command palette components
 import { CommandPaletteProvider } from './context/CommandPaletteContext';
-import CommandPalette from './components/common/CommandPalette';
-
-// Import search components
 import { SearchProvider } from './context/SearchContext';
-import GlobalSearch from './components/common/GlobalSearch';
-
-// Import onboarding components
 import { OnboardingProvider } from './context/OnboardingContext';
 import {
   TourProvider,
   WelcomeModal,
-  OnboardingChecklist,
   HelpButton
 } from './components/onboarding';
-
-// Import settings context (Expert Mode, etc.)
 import { SettingsProvider } from './context/SettingsContext';
 
 // Import Redux store
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from './store';
 
-// Performance testing components are lazy loaded below
-
-// Import main home page
-import ShowcaseHomePage from './pages/ShowcaseHomePage';
 import NotFoundPage from './pages/NotFoundPage';
+
+// --- Lazy-loaded components (code-split into separate chunks) ---
+
+// Landing & home pages
+const ProfessionalLandingPage = lazy(() => import('./components/Landing/ProfessionalLanding'));
+const ShowcaseHomePage = lazy(() => import('./pages/ShowcaseHomePage'));
+
+// Global UI components (lazy-loaded to reduce main bundle)
+const AIAdvisorHub = lazy(() => import('./components/ai-advisor/AIAdvisorHub'));
+const PrefetchDebug = lazy(() => import('./components/navigation/PrefetchDebug'));
+const CommandPalette = lazy(() => import('./components/common/CommandPalette'));
+const GlobalSearch = lazy(() => import('./components/common/GlobalSearch'));
 
 // Lazy-load authentication pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -88,7 +69,6 @@ const ANOVARealBackend = lazy(() => import('./modules/ANOVARealBackend'));
 // Using Real Backend-Connected Modules (50-decimal precision)
 const HypothesisTestingModule = lazy(() => import('./modules/HypothesisTestingModuleReal'));
 const CorrelationRegressionModule = lazy(() => import('./modules/CorrelationRegressionModuleReal'));
-const NonParametricTestsReal = lazy(() => import('./modules/NonParametricTestsReal'));
 const NonParametricTestsRealProfessional = lazy(() => import('./modules/NonParametricTestsRealProfessional'));
 const PowerAnalysisReal = lazy(() => import('./modules/PowerAnalysisReal'));
 // Mixed Effects Models & Causal Inference Modules (Phase 2/3 - December 2025)
@@ -105,7 +85,6 @@ const MasterTestRunner = lazy(() => import('./components/MasterTestRunner'));
 const UnifiedTestExecutor = lazy(() => import('./components/UnifiedTestExecutor'));
 // Statistical Practice Audit Dashboard
 const AuditDashboard = lazy(() => import('./components/AuditDashboard'));
-const StatisticalTestsPage = lazy(() => import('./pages/StatisticalTestsPage'));
 const StatisticsPage = lazy(() => import('./pages/StatisticsPage'));
 const SQCAnalysisPage = lazy(() => import('./pages/SQCAnalysisPage'));
 const DOEAnalysisPage = lazy(() => import('./pages/DOEAnalysisPage'));
@@ -246,10 +225,12 @@ function App() {
   if (showLanding) {
     return (
       <ErrorBoundary onError={handleGlobalError}>
-        <ProfessionalLandingPage
-          onEnter={handleEnterApp}
-          animatingOut={animatingOut}
-        />
+        <Suspense fallback={<LoadingComponent message="Loading..." />}>
+          <ProfessionalLandingPage
+            onEnter={handleEnterApp}
+            animatingOut={animatingOut}
+          />
+        </Suspense>
       </ErrorBoundary>
     );
   }
@@ -279,17 +260,21 @@ function App() {
                             <TourProvider>
                               <div className="App">
                               <SimpleNavigation />
-                              <CommandPalette />
-                              <GlobalSearch />
+                              <Suspense fallback={null}>
+                                <CommandPalette />
+                                <GlobalSearch />
+                                <AIAdvisorHub />
+                              </Suspense>
                               <WelcomeModal />
-                              {/* <OnboardingChecklist /> */}
                               <HelpButton />
-                              {/* AI Statistical Advisor - Available on all pages */}
-                              <AIAdvisorHub />
                               <main style={{ minHeight: 'calc(100vh - 120px)', padding: '0' }}>
                         <Routes>
                         {/* Home page after landing */}
-                        <Route path="/" element={<ShowcaseHomePage />} />
+                        <Route path="/" element={
+                          <Suspense fallback={<LoadingComponent message="Loading Home..." />}>
+                            <ShowcaseHomePage />
+                          </Suspense>
+                        } />
 
                         {/* Smart Analysis — Autonomous Intelligence Layer (v2.0) */}
                         <Route
@@ -1005,8 +990,7 @@ function App() {
                   <Footer />
                     <ServiceWorkerUpdater />
                     <PWAInstallPrompt />
-                    {showPrefetchDebug && <PrefetchDebug position={{ bottom: 16, right: 16 }} />}
-                    {/* {process.env.NODE_ENV === 'development' && <AuthDebug />} */}
+                    {showPrefetchDebug && <Suspense fallback={null}><PrefetchDebug position={{ bottom: 16, right: 16 }} /></Suspense>}
                               </div>
                             </TourProvider>
                           </SettingsProvider>

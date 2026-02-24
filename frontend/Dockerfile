@@ -10,8 +10,8 @@ WORKDIR /app
 # Add package files
 COPY package*.json ./
 
-# Install dependencies with clean install for production
-RUN npm ci --only=production
+# Install all dependencies (devDependencies needed for react-scripts build)
+RUN npm ci
 
 # Copy source code
 COPY . .

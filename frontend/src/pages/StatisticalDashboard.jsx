@@ -4,8 +4,8 @@ import {
   CardActions, Button, IconButton, Chip, LinearProgress,
   Avatar, Badge, Tooltip, Fab, Divider, List, ListItem,
   ListItemIcon, ListItemText, ListItemAvatar, ListItemButton,
-  Tab, Tabs, alpha, useTheme, ThemeProvider, createTheme,
-  CssBaseline, Zoom, Fade, Grow, CardMedia, CardActionArea
+  Tab, Tabs, alpha, useTheme,
+  Zoom, Fade, Grow, CardMedia, CardActionArea
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -302,7 +302,8 @@ const achievements = [
 const StatisticalDashboard = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const [darkMode, setDarkMode] = useState(false);
+  const theme = useTheme();
+  const darkMode = theme.palette.mode === 'dark';
   const [selectedTab, setSelectedTab] = useState(0);
   const [userProgress, setUserProgress] = useState({
     totalModules: 0,
@@ -336,19 +337,6 @@ const StatisticalDashboard = () => {
       inProgressModules: inProgress
     }));
   }, []);
-
-  // Create theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: { main: '#667eea' },
-      secondary: { main: '#764ba2' },
-    },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    },
-    shape: { borderRadius: 16 },
-  });
 
   // Navigate to module
   const handleModuleClick = (module) => {
@@ -621,8 +609,6 @@ const StatisticalDashboard = () => {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Box
         sx={{
           minHeight: '100vh',
@@ -777,7 +763,6 @@ const StatisticalDashboard = () => {
           </Fab>
         </Tooltip>
       </Box>
-    </ThemeProvider>
   );
 };
 

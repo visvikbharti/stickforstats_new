@@ -34,7 +34,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import useRAGWebSocket from '../../hooks/useRAGWebSocket';
 import RAGWebSocketStatus from './RAGWebSocketStatus';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 
 const QueryInterface = ({ moduleContext = null, initialConversationId = null }) => {
   const [query, setQuery] = useState('');

@@ -400,7 +400,7 @@ const RAGPerformanceMonitoringPage = () => {
               <Typography variant="subtitle2" gutterBottom>
                 Query Volume (24h)
               </Typography>
-              <Box sx={{ height: 300, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ height: 300, bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography color="text.secondary">
                   Query volume chart visualization
                 </Typography>
@@ -410,7 +410,7 @@ const RAGPerformanceMonitoringPage = () => {
               <Typography variant="subtitle2" gutterBottom>
                 Response Latency (24h)
               </Typography>
-              <Box sx={{ height: 300, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ height: 300, bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography color="text.secondary">
                   Latency trend chart visualization
                 </Typography>

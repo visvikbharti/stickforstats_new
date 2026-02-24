@@ -96,7 +96,7 @@ const NAV_CATEGORIES = [
     icon: <SmartToyIcon fontSize="small" />,
     items: [
       { name: 'Smart Analysis', path: '/smart-analysis', icon: <AutoFixHighIcon fontSize="small" /> },
-      { name: 'Manuscript Review', path: '/manuscript', icon: <DescriptionIcon fontSize="small" /> },
+      { name: 'Manuscript Review', path: '/manuscript-review', icon: <DescriptionIcon fontSize="small" /> },
       { name: 'Journal Analytics', path: '/journal-analytics', icon: <AnalyticsIcon fontSize="small" /> },
       { name: 'API Documentation', path: '/api-docs', icon: <ApiIcon fontSize="small" /> },
     ],
