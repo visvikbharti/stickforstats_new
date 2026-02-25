@@ -42,7 +42,7 @@ export const ResponsiveView = ({
   if (isMobile) {
     return mobileContent;
   } else if (isTablet) {
-    return tabletContent;
+    return tabletContent || desktopContent;
   } else {
     return desktopContent;
   }

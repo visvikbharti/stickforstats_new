@@ -1021,6 +1021,6 @@ describe('Validation System Stress Tests', () => {
     ]);
 
     expect(validations.length).toBe(5);
-    expect(validations.filter(v => v.valid).length).toBeGreaterThan(0);
+    expect(validations.filter(v => v && v.valid).length).toBeGreaterThan(0);
   });
 });

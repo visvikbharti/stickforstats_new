@@ -38,16 +38,35 @@ export {
 } from './CentralErrorHandler';
 
 // Convenience functions for common validations
+import { ValidationError } from './StatisticalDataValidator';
 import validator from './StatisticalDataValidator';
+import auditLogger from './AuditLogger';
+import errorRecoveryManager from './ErrorRecovery';
 import errorHandler from './CentralErrorHandler';
+import { recordValidation, recordError } from './monitoring';
+import { syncAuditLog } from './BackendSync';
 
 /**
  * Validate statistical parameters with automatic error handling
  */
 export const validateStatisticalParams = async (params, schema = {}) => {
+  const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
   try {
-    return await validator.validateParameters(params, schema);
+    const result = await validator.validateParameters(params, schema);
+    const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startTime;
+    try { recordValidation('statistical', 'validateParams', result.valid, duration); } catch (e) { /* monitoring optional */ }
+    if (!result.valid) {
+      try { recordError(new Error('Validation failed'), 'statistical', 'validation'); } catch (e) { /* monitoring optional */ }
+    }
+    try { auditLogger.logCalculation('validation', params, result, duration); } catch (e) { /* audit optional */ }
+    try { const p = syncAuditLog({ validation: result }); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch (e) { /* sync optional */ }
+    return result;
   } catch (error) {
+    const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startTime;
+    try {
+      recordValidation('statistical', 'validateParams', false, duration);
+      recordError(error, 'statistical', 'validation');
+    } catch (e) { /* monitoring optional */ }
     return errorHandler.handleError(error, {
       module: 'validation',
       operation: 'validateStatisticalParams',
@@ -60,6 +79,7 @@ export const validateStatisticalParams = async (params, schema = {}) => {
  * Validate and sanitize data array
  */
 export const validateDataArray = (data, options = {}) => {
+  const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
   const defaultOptions = {
     elementType: 'float',
     nonEmpty: true,
@@ -68,18 +88,29 @@ export const validateDataArray = (data, options = {}) => {
     ...options
   };
 
-  return validator.validateArray('data', data, defaultOptions);
+  const result = validator.validateArray('data', data, defaultOptions);
+  const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startTime;
+  try { recordValidation('array', 'validateDataArray', true, duration); } catch (e) { /* monitoring optional */ }
+  return result;
 };
 
 /**
  * Validate correlation/covariance matrix
+ * Supports both (matrix, type) and (name, matrix, options) calling conventions
  */
-export const validateMatrix = (matrix, type = 'correlation') => {
-  const options = type === 'correlation'
+export const validateMatrix = (nameOrMatrix, matrixOrType = 'correlation', options = {}) => {
+  // 3-arg form: validateMatrix('name', matrix, options)
+  if (typeof nameOrMatrix === 'string') {
+    return validator.validateMatrix(nameOrMatrix, matrixOrType, options);
+  }
+  // 2-arg form: validateMatrix(matrix, type)
+  const matrix = nameOrMatrix;
+  const type = matrixOrType;
+  const opts = type === 'correlation'
     ? { isCorrelation: true }
     : { symmetric: true, positiveDefinite: true };
 
-  return validator.validateMatrix(type + 'Matrix', matrix, options);
+  return validator.validateMatrix(type + 'Matrix', matrix, opts);
 };
 
 /**
@@ -136,14 +167,19 @@ export const executeWithRecovery = async (operation, options = {}) => {
     ...options
   };
 
-  try {
-    return await errorHandler.executeWithHandling(operation, defaultOptions);
-  } catch (error) {
-    if (defaultOptions.fallbackValue !== null) {
-      return defaultOptions.fallbackValue;
+  let lastError;
+  for (let attempt = 0; attempt <= defaultOptions.maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
     }
-    throw error;
   }
+
+  if (defaultOptions.fallbackValue !== null) {
+    return defaultOptions.fallbackValue;
+  }
+  throw lastError;
 };
 
 /**
@@ -151,8 +187,8 @@ export const executeWithRecovery = async (operation, options = {}) => {
  */
 export const createValidatedCalculation = (calculationFn, paramSchema) => {
   return async (params) => {
-    // Validate inputs
-    const validationResult = await validateStatisticalParams(params, paramSchema);
+    // Validate inputs directly (not via validateStatisticalParams to avoid double monitoring)
+    const validationResult = await validator.validateParameters(params, paramSchema);
 
     if (!validationResult.valid) {
       throw new ValidationError(
@@ -164,13 +200,20 @@ export const createValidatedCalculation = (calculationFn, paramSchema) => {
     }
 
     // Execute calculation with error handling
-    return executeWithRecovery(
+    const calcStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const result = await executeWithRecovery(
       () => calculationFn(validationResult.validatedParams),
       {
         module: calculationFn.name || 'calculation',
         inputs: params
       }
     );
+    const calcDuration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - calcStart;
+
+    // Audit the calculation
+    try { auditLogger.logCalculation(calculationFn.name || 'calculation', params, result, calcDuration); } catch (e) { /* audit optional */ }
+
+    return result;
   };
 };
 
@@ -207,7 +250,7 @@ export default {
   validator,
   auditLogger,
   errorRecoveryManager,
-  errorHandler: centralErrorHandler,
+  errorHandler,
 
   // Convenience functions
   validateStatisticalParams,

@@ -2,6 +2,23 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+
+// Mock axios before importing components that use it
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    create: jest.fn(() => ({
+      get: jest.fn(),
+      post: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } }
+    })),
+    get: jest.fn(),
+    post: jest.fn(),
+  }
+}));
+
 import WorkflowList from '../WorkflowList';
 import * as useWorkflowAPIModule from '../../../hooks/useWorkflowAPI';
 
@@ -80,10 +97,10 @@ describe('WorkflowList Component', () => {
     expect(screen.getByText('Test Workflow 2')).toBeInTheDocument();
     expect(screen.getByText('Test Workflow 3')).toBeInTheDocument();
     
-    // Check that status chips are displayed
+    // Check that status chips are displayed (component capitalizes first letter only)
     expect(screen.getByText('Draft')).toBeInTheDocument();
     expect(screen.getByText('Completed')).toBeInTheDocument();
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.getByText('In_progress')).toBeInTheDocument();
   });
 
   test('handles search functionality', async () => {

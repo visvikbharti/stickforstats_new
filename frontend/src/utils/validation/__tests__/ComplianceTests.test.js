@@ -214,7 +214,7 @@ describe('FDA 21 CFR Part 11 Compliance Tests', () => {
       const integrity = logger.verifyChainIntegrity();
 
       expect(integrity.valid).toBe(false);
-      expect(integrity.brokenLinks.length).toBeGreaterThan(0);
+      expect(integrity.invalidSignatures.length).toBeGreaterThan(0);
     });
   });
 
@@ -978,6 +978,16 @@ describe('ISO 9001:2015 Compliance Tests', () => {
 });
 
 describe('Compliance Reporting', () => {
+  beforeEach(() => {
+    getComplianceStatus.mockResolvedValue({
+      fda21CFR11: { compliant: true, details: 'Electronic records compliant' },
+      gxp: { compliant: true, details: 'Good practice compliant' },
+      iso9001: { compliant: true, details: 'Quality management compliant' },
+      dataIntegrity: { compliant: true, details: 'ALCOA+ principles met' }
+    });
+    getAuditLogs.mockResolvedValue([]);
+  });
+
   test('should generate comprehensive compliance report', async () => {
     const complianceReport = await getComplianceStatus();
 

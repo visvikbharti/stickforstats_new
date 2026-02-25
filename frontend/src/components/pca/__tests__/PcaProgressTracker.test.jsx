@@ -44,7 +44,7 @@ describe('PcaProgressTracker Component', () => {
   
   beforeEach(() => {
     jest.clearAllMocks();
-    usePcaProgress.usePcaProgress = jest.fn(() => defaultMockHookReturn);
+    usePcaProgress.usePcaProgress.mockReturnValue(defaultMockHookReturn);
   });
 
   test('renders initializing state correctly', () => {

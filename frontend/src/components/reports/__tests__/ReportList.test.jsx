@@ -2,6 +2,23 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+
+// Mock axios before importing components that use it
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    create: jest.fn(() => ({
+      get: jest.fn(),
+      post: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } }
+    })),
+    get: jest.fn(),
+    post: jest.fn(),
+  }
+}));
+
 import ReportList from '../ReportList';
 import * as useReportAPIModule from '../../../hooks/useReportAPI';
 
@@ -76,10 +93,10 @@ describe('ReportList Component', () => {
     expect(screen.getByText('Test Report 2')).toBeInTheDocument();
     expect(screen.getByText('Test Report 3')).toBeInTheDocument();
     
-    // Check that format chips are displayed
-    expect(screen.getByText('PDF')).toBeInTheDocument();
-    expect(screen.getByText('HTML')).toBeInTheDocument();
-    expect(screen.getByText('DOCX')).toBeInTheDocument();
+    // Check that format chips are displayed (filter bar + table row = multiple matches)
+    expect(screen.getAllByText('PDF').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('HTML').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('DOCX').length).toBeGreaterThanOrEqual(1);
     
     // Check that file sizes are displayed properly
     expect(screen.getByText('250.00 KB')).toBeInTheDocument();
@@ -181,16 +198,16 @@ describe('ReportList Component', () => {
       </MemoryRouter>
     );
 
-    // Click on the PDF filter chip
-    fireEvent.click(screen.getByText('PDF'));
-    
+    // Click on the first PDF element (the filter chip in the filter bar)
+    fireEvent.click(screen.getAllByText('PDF')[0]);
+
     // Should only show the PDF report
     expect(screen.getByText('Test Report 1')).toBeInTheDocument();
     expect(screen.queryByText('Test Report 2')).not.toBeInTheDocument();
     expect(screen.queryByText('Test Report 3')).not.toBeInTheDocument();
-    
+
     // Click on the PDF filter chip again to clear it
-    fireEvent.click(screen.getByText('PDF'));
+    fireEvent.click(screen.getAllByText('PDF')[0]);
     
     // All reports should be visible again
     expect(screen.getByText('Test Report 1')).toBeInTheDocument();

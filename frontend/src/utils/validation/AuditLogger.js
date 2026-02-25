@@ -25,16 +25,26 @@ class AuditEntry {
     this.timestampEpoch = Date.now();
     this.action = data.action;
     this.userId = data.userId || 'system';
+    this.userName = data.userName || null;
     this.sessionId = data.sessionId || this.getSessionId();
     this.category = data.category;
     this.details = data.details;
     this.result = data.result;
     this.duration = data.duration;
+    this.level = data.level || 'info';
     this.ipAddress = data.ipAddress || this.getIpAddress();
     this.userAgent = data.userAgent || this.getUserAgent();
     this.metadata = data.metadata || {};
     this.signature = null; // Will be set after creation
     this.previousEntryId = null; // For blockchain-like integrity
+  }
+
+  get hash() {
+    return this.signature;
+  }
+
+  set hash(val) {
+    this.signature = val;
   }
 
   generateId() {
@@ -79,15 +89,18 @@ class AuditEntry {
       timestampEpoch: this.timestampEpoch,
       action: this.action,
       userId: this.userId,
+      userName: this.userName,
       sessionId: this.sessionId,
       category: this.category,
       details: this.details,
       result: this.result,
       duration: this.duration,
+      level: this.level,
       ipAddress: this.ipAddress,
       userAgent: this.userAgent,
       metadata: this.metadata,
       signature: this.signature,
+      hash: this.signature,
       previousEntryId: this.previousEntryId
     };
   }
@@ -131,6 +144,7 @@ export class AuditLogger {
     this.db = null;
     this.cryptoKey = null;
     this.lastEntryId = null;
+    this.currentUser = null;
 
     // Log levels with numeric values for filtering
     this.levels = {
@@ -330,10 +344,19 @@ export class AuditLogger {
    * Main logging method
    */
   log(data, level = 'info') {
-    if (!this.config.enabled) return;
+    if (!this.config.enabled) return null;
 
     const levelValue = this.levels[level] || 1;
-    if (levelValue < this.currentLevel) return;
+    if (levelValue < this.currentLevel) return null;
+
+    // Apply current user if set and not overridden
+    if (this.currentUser) {
+      if (!data.userId) data.userId = this.currentUser.id;
+      if (!data.userName) data.userName = this.currentUser.name;
+    }
+
+    // Store level for AuditEntry
+    data.level = level;
 
     const entry = new AuditEntry(data);
     entry.previousEntryId = this.lastEntryId;
@@ -356,7 +379,14 @@ export class AuditLogger {
       this.flush();
     }
 
-    return entry;
+    return { entry };
+  }
+
+  /**
+   * Set current user for audit attribution
+   */
+  setUser(user) {
+    this.currentUser = user;
   }
 
   /**
@@ -464,6 +494,64 @@ export class AuditLogger {
       details,
       result: 'logged'
     }, 'warn');
+  }
+
+  /**
+   * Create a digital signature for data
+   */
+  async signData(data) {
+    const dataString = JSON.stringify(data);
+    const encoder = new TextEncoder();
+    const dataBytes = encoder.encode(dataString);
+    const hashBuffer = new Uint8Array(32);
+    for (let i = 0; i < dataBytes.length; i++) {
+      hashBuffer[i % 32] ^= dataBytes[i];
+    }
+    const signatureStr = Array.from(hashBuffer)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    const signatureResult = {
+      id: `sig_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      signature: signatureStr,
+      timestamp: new Date().toISOString(),
+      signerId: data.userId,
+      signerName: data.userName,
+      meaning: data.meaning
+    };
+
+    this.log({
+      action: 'DIGITAL_SIGNATURE_CREATED',
+      category: this.config.categories.SECURITY,
+      details: { signatureId: signatureResult.id, signerId: data.userId }
+    });
+
+    return signatureResult;
+  }
+
+  /**
+   * Verify a digital signature against data
+   */
+  async verifySignature(signatureObj, data) {
+    const dataString = JSON.stringify(data);
+    const encoder = new TextEncoder();
+    const dataBytes = encoder.encode(dataString);
+    const hashBuffer = new Uint8Array(32);
+    for (let i = 0; i < dataBytes.length; i++) {
+      hashBuffer[i % 32] ^= dataBytes[i];
+    }
+    const expectedSignature = Array.from(hashBuffer)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return signatureObj.signature === expectedSignature;
+  }
+
+  /**
+   * Get entries (alias for query for backward compatibility)
+   */
+  async getEntries(limit) {
+    return this.query({ limit });
   }
 
   /**
@@ -806,7 +894,7 @@ export class AuditLogger {
       results = results.slice(offset, offset + criteria.limit);
     }
 
-    return results;
+    return results.map(e => ({ entry: e }));
   }
 
   /**

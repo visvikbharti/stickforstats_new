@@ -14,12 +14,17 @@ import { AuditLogger } from './AuditLogger';
 /**
  * Statistical parameter bounds based on practical and theoretical limits
  */
+const PARAMETER_ALIASES = {
+  p: 'probability',
+  n: 'sampleSize',
+};
+
 const STATISTICAL_BOUNDS = {
   sampleSize: { min: 1, max: 1000000, type: 'integer' },
   mean: { min: -1e10, max: 1e10, type: 'float' },
   standardDeviation: { min: 0, max: 1e10, type: 'float', excludeZero: false },
   variance: { min: 0, max: 1e20, type: 'float' },
-  confidenceLevel: { min: 0, max: 1, type: 'float', excludeZero: true, excludeOne: true },
+  confidenceLevel: { min: 0.01, max: 0.99, type: 'float' },
   alpha: { min: 0, max: 1, type: 'float', excludeZero: true, excludeOne: true },
   beta: { min: 0, max: 1, type: 'float', excludeZero: true, excludeOne: true },
   power: { min: 0, max: 1, type: 'float', excludeZero: true, excludeOne: false },
@@ -102,10 +107,40 @@ export class StatisticalDataValidator {
 
     try {
       // Check if parameter has defined bounds
-      const bounds = STATISTICAL_BOUNDS[paramName] || options.customBounds;
+      const bounds = STATISTICAL_BOUNDS[paramName] || STATISTICAL_BOUNDS[PARAMETER_ALIASES[paramName]] || options.customBounds;
       if (!bounds) {
-        if (this.strictMode) {
+        if (this.strictMode && !options._schemaValidation) {
           throw new ValidationError(paramName, value, 'undefined parameter type');
+        }
+        // Schema-specific constraints for unknown params
+        if (options._schemaValidation) {
+          if (options.minLength !== undefined && Array.isArray(value) && value.length < options.minLength) {
+            throw new ValidationError(paramName, value, `below minimum length (${options.minLength})`);
+          }
+          if (options.maxLength !== undefined && Array.isArray(value) && value.length > options.maxLength) {
+            throw new ValidationError(paramName, value, `above maximum length (${options.maxLength})`);
+          }
+          if (options.elementType === 'integer' && Array.isArray(value)) {
+            for (const el of value) {
+              if (!Number.isInteger(el)) {
+                throw new ValidationError(paramName, value, 'elements must be integers');
+              }
+            }
+          }
+          if (options.elementType === 'float' && Array.isArray(value)) {
+            for (const el of value) {
+              if (typeof el !== 'number' || isNaN(el) || !isFinite(el)) {
+                throw new ValidationError(paramName, value, 'elements must be finite numbers');
+              }
+            }
+          }
+          if (options.minValue !== undefined && Array.isArray(value)) {
+            for (const el of value) {
+              if (typeof el === 'number' && el < options.minValue) {
+                throw new ValidationError(paramName, value, `element below minimum value (${options.minValue})`);
+              }
+            }
+          }
         }
         return this.createValidationResult(true, paramName, value);
       }
@@ -195,7 +230,7 @@ export class StatisticalDataValidator {
     for (const [key, value] of Object.entries(params)) {
       try {
         const schemaRule = schema[key] || {};
-        const validationResult = this.validateParameter(key, value, schemaRule);
+        const validationResult = this.validateParameter(key, value, { ...schemaRule, _schemaValidation: true });
 
         if (validationResult.valid) {
           results.validatedParams[key] = validationResult.sanitizedValue || value;

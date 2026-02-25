@@ -349,7 +349,7 @@ export function useFormValidation(initialValues = {}, schema = {}, options = {})
   /**
    * Handle form submit
    */
-  const handleSubmit = useCallback(async (onSubmit) => {
+  const handleSubmit = useCallback((onSubmit) => {
     return async (e) => {
       if (e && e.preventDefault) {
         e.preventDefault();

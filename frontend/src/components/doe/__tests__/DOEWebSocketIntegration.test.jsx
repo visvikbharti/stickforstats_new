@@ -1,188 +1,188 @@
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import DOEWebSocketIntegration from '../DOEWebSocketIntegration';
-import useDOEWebSocket from '../../../hooks/useDOEWebSocket';
-import ProgressTracker from '../ProgressTracker';
 
-// Mock the custom hook
-jest.mock('../../../hooks/useDOEWebSocket', () => ({
-  __esModule: true,
-  default: jest.fn()
-}));
+// Mock WebSocket
+let mockWsInstance;
+const mockWsSend = jest.fn();
+const mockWsClose = jest.fn();
 
-// Mock the ProgressTracker component
-jest.mock('../ProgressTracker', () => {
-  return function MockProgressTracker({ status, progress, taskType, error, onComplete }) {
-    return (
-      <div data-testid="progress-tracker">
-        <div data-testid="connection-status">{status}</div>
-        <div data-testid="progress-status">{progress?.status || 'not_started'}</div>
-        <div data-testid="task-type">{taskType}</div>
-        {error && <div data-testid="error">{typeof error === 'string' ? error : error.message}</div>}
-        {progress?.status === 'completed' && (
-          <button 
-            data-testid="complete-button" 
-            onClick={() => onComplete && onComplete(progress.result)}
-          >
-            Complete
-          </button>
-        )}
-      </div>
-    );
-  };
-});
+class MockWebSocket {
+  constructor(url) {
+    this.url = url;
+    this.readyState = 1;
+    mockWsInstance = this;
+    this.onopen = null;
+    this.onmessage = null;
+    this.onerror = null;
+    this.onclose = null;
+    this.send = mockWsSend;
+    this.close = mockWsClose;
+    // Simulate async connection
+    setTimeout(() => {
+      if (this.onopen) this.onopen();
+    }, 0);
+  }
+}
+MockWebSocket.OPEN = 1;
+MockWebSocket.CLOSED = 3;
+
+// Store the original WebSocket
+const OriginalWebSocket = global.WebSocket;
 
 describe('DOEWebSocketIntegration Component', () => {
-  const experimentId = 'exp-123';
-  const mockOnDesignGenerated = jest.fn();
-  const mockOnAnalysisComplete = jest.fn();
-  const mockOnOptimizationComplete = jest.fn();
-  
-  // Mock implementation for the useDOEWebSocket hook
-  const mockSendMessage = jest.fn();
-  const mockRequestDesignGeneration = jest.fn();
-  const mockRequestAnalysisUpdate = jest.fn();
-  const mockRequestOptimization = jest.fn();
-  const mockConnect = jest.fn();
-  
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
-    
-    // Set up the mock return value for the hook
-    useDOEWebSocket.mockReturnValue({
-      status: 'connected',
-      error: null,
-      sendMessage: mockSendMessage,
-      requestDesignGeneration: mockRequestDesignGeneration,
-      requestAnalysisUpdate: mockRequestAnalysisUpdate,
-      requestOptimization: mockRequestOptimization,
-      connect: mockConnect,
-      isConnected: true,
-      isConnecting: false,
-      hasError: false
-    });
+    jest.useFakeTimers();
+    mockWsInstance = null;
+    global.WebSocket = MockWebSocket;
   });
-  
-  test('renders correctly with connected status', () => {
-    render(
-      <DOEWebSocketIntegration
-        experimentId={experimentId}
-        onDesignGenerated={mockOnDesignGenerated}
-        onAnalysisComplete={mockOnAnalysisComplete}
-        onOptimizationComplete={mockOnOptimizationComplete}
-        activeTask="design_generation"
-      />
-    );
-    
-    expect(screen.getByTestId('progress-tracker')).toBeInTheDocument();
-    expect(screen.getByTestId('connection-status').textContent).toBe('connected');
-    expect(screen.getByTestId('task-type').textContent).toBe('design_generation');
+
+  afterEach(() => {
+    jest.useRealTimers();
+    global.WebSocket = OriginalWebSocket;
   });
-  
-  test('shows error when WebSocket connection fails', () => {
-    useDOEWebSocket.mockReturnValue({
-      status: 'error',
-      error: 'Failed to connect to WebSocket server',
-      sendMessage: mockSendMessage,
-      requestDesignGeneration: mockRequestDesignGeneration,
-      requestAnalysisUpdate: mockRequestAnalysisUpdate,
-      requestOptimization: mockRequestOptimization,
-      connect: mockConnect,
-      isConnected: false,
-      isConnecting: false,
-      hasError: true
-    });
-    
-    render(
-      <DOEWebSocketIntegration
-        experimentId={experimentId}
-        activeTask="design_generation"
-      />
-    );
-    
-    expect(screen.getByTestId('connection-status').textContent).toBe('error');
-    expect(screen.getByTestId('error').textContent).toBe('Failed to connect to WebSocket server');
+
+  test('renders with title and initial disconnected state', () => {
+    render(<DOEWebSocketIntegration analysisId="test-123" autoConnect={false} />);
+    expect(screen.getByText('DOE Analysis Progress')).toBeInTheDocument();
+    expect(screen.getByText('disconnected')).toBeInTheDocument();
   });
-  
-  test('calls onDesignGenerated when design generation completes', async () => {
-    const mockHandleMessage = jest.fn();
-    let savedCallback;
-    
-    // Capture the onMessage callback
-    useDOEWebSocket.mockImplementation((expId, onMessage) => {
-      savedCallback = onMessage;
-      return {
-        status: 'connected',
-        error: null,
-        sendMessage: mockSendMessage,
-        requestDesignGeneration: mockRequestDesignGeneration,
-        requestAnalysisUpdate: mockRequestAnalysisUpdate,
-        requestOptimization: mockRequestOptimization,
-        connect: mockConnect,
-        isConnected: true,
-        isConnecting: false,
-        hasError: false
-      };
-    });
-    
-    render(
-      <DOEWebSocketIntegration
-        experimentId={experimentId}
-        onDesignGenerated={mockOnDesignGenerated}
-        activeTask="design_generation"
-      />
-    );
-    
-    // Simulate a task_complete message for design_generation
+
+  test('connects and shows connected status', async () => {
+    render(<DOEWebSocketIntegration analysisId="test-123" />);
+
+    // Advance timers to trigger onopen
     act(() => {
-      savedCallback({
-        type: 'task_complete',
-        task_type: 'design_generation',
-        status: 'completed',
-        result: { id: 'design-123', factors: 3, runs: 8 },
-        timestamp: new Date().toISOString()
-      });
+      jest.advanceTimersByTime(10);
     });
-    
-    // Wait for the component to update
+
     await waitFor(() => {
-      expect(screen.getByTestId('progress-status').textContent).toBe('completed');
+      expect(screen.getByText('connected')).toBeInTheDocument();
     });
-    
-    // Simulate clicking the complete button
-    act(() => {
-      screen.getByTestId('complete-button').click();
-    });
-    
-    // Check if the callback was called with the result
-    expect(mockOnDesignGenerated).toHaveBeenCalledWith({ id: 'design-123', factors: 3, runs: 8 });
   });
-  
-  test('exposes methods via ref', () => {
-    const ref = React.createRef();
-    
+
+  test('shows progress bar and percentage', async () => {
+    render(<DOEWebSocketIntegration analysisId="test-123" />);
+
+    act(() => {
+      jest.advanceTimersByTime(10);
+    });
+
+    // Simulate a progress message
+    act(() => {
+      if (mockWsInstance && mockWsInstance.onmessage) {
+        mockWsInstance.onmessage({
+          data: JSON.stringify({
+            type: 'progress',
+            progress: 45,
+            message: 'Computing eigenvalues...'
+          })
+        });
+      }
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('45%')).toBeInTheDocument();
+      expect(screen.getByText('Computing eigenvalues...')).toBeInTheDocument();
+    });
+  });
+
+  test('calls onComplete when result message is received', async () => {
+    const mockOnComplete = jest.fn();
     render(
       <DOEWebSocketIntegration
-        ref={ref}
-        experimentId={experimentId}
-        activeTask="design_generation"
+        analysisId="test-123"
+        onComplete={mockOnComplete}
       />
     );
-    
-    // Check if methods are exposed
-    expect(ref.current.startDesignGeneration).toBeDefined();
-    expect(ref.current.startAnalysis).toBeDefined();
-    expect(ref.current.startOptimization).toBeDefined();
-    
-    // Call methods and check if the underlying functions are called
-    ref.current.startDesignGeneration({ factors: 3 });
-    expect(mockRequestDesignGeneration).toHaveBeenCalledWith({ factors: 3 });
-    
-    ref.current.startAnalysis({ modelType: 'factorial' });
-    expect(mockRequestAnalysisUpdate).toHaveBeenCalledWith({ modelType: 'factorial' });
-    
-    ref.current.startOptimization({ target: 'maximize' });
-    expect(mockRequestOptimization).toHaveBeenCalledWith({ target: 'maximize' });
+
+    act(() => {
+      jest.advanceTimersByTime(10);
+    });
+
+    // Simulate a result message
+    act(() => {
+      if (mockWsInstance && mockWsInstance.onmessage) {
+        mockWsInstance.onmessage({
+          data: JSON.stringify({
+            type: 'result',
+            result: { factors: 3, runs: 8 }
+          })
+        });
+      }
+    });
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalledWith({ factors: 3, runs: 8 });
+      expect(screen.getByText('100%')).toBeInTheDocument();
+    });
+  });
+
+  test('shows error message on WebSocket error', async () => {
+    const mockOnError = jest.fn();
+    render(
+      <DOEWebSocketIntegration
+        analysisId="test-123"
+        onError={mockOnError}
+      />
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(10);
+    });
+
+    // Simulate an error message from the server
+    act(() => {
+      if (mockWsInstance && mockWsInstance.onmessage) {
+        mockWsInstance.onmessage({
+          data: JSON.stringify({
+            type: 'error',
+            error: 'Analysis failed'
+          })
+        });
+      }
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Analysis failed')).toBeInTheDocument();
+      expect(mockOnError).toHaveBeenCalledWith('Analysis failed');
+    });
+  });
+
+  test('shows completion state when progress reaches 100', async () => {
+    render(<DOEWebSocketIntegration analysisId="test-123" />);
+
+    act(() => {
+      jest.advanceTimersByTime(10);
+    });
+
+    // Simulate completion
+    act(() => {
+      if (mockWsInstance && mockWsInstance.onmessage) {
+        mockWsInstance.onmessage({
+          data: JSON.stringify({
+            type: 'result',
+            result: { success: true }
+          })
+        });
+      }
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Analysis completed successfully!')).toBeInTheDocument();
+    });
+  });
+
+  test('does not connect when autoConnect is false', () => {
+    render(<DOEWebSocketIntegration analysisId="test-123" autoConnect={false} />);
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    expect(mockWsInstance).toBeNull();
+    expect(screen.getByText('disconnected')).toBeInTheDocument();
   });
 });
