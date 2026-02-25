@@ -29,13 +29,6 @@ import {
   CardContent,
   Alert,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Divider,
   CircularProgress,
   Button,
   TextField,
@@ -43,12 +36,9 @@ import {
   Tab,
   Slider,
   Tooltip,
-  IconButton,
   useTheme
 } from '@mui/material';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Card,
   CardContent,
   Switch,
@@ -26,7 +25,6 @@ import AddIcon from '@mui/icons-material/Add';
 import { useSnackbar } from 'notistack';
 
 import { Line } from 'react-chartjs-2';
-import { MathJax } from 'better-react-mathjax';
 
 import DistributionSelector from './DistributionSelector';
 import DistributionParameters from './DistributionParameters';

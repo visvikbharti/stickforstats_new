@@ -4,7 +4,7 @@
  * Main component for rendering all advanced statistical visualizations
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Plot from 'react-plotly.js';
 import {
   Box,
@@ -13,36 +13,23 @@ import {
   Grid,
   Button,
   ButtonGroup,
-  IconButton,
   Tabs,
   Tab,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
-  Slider,
   Switch,
   FormControlLabel,
   Drawer,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Divider,
   Tooltip,
   CircularProgress,
   Alert,
   Snackbar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Chip,
-  Card,
-  CardContent,
-  CardActions,
-  Fab,
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction
@@ -56,7 +43,6 @@ import {
   ScatterPlot,
   ShowChart,
   PieChart,
-  BarChart,
   Functions,
   CloudDownload,
   Print,
@@ -64,19 +50,10 @@ import {
   Settings,
   Fullscreen,
   FullscreenExit,
-  PlayArrow,
-  Pause,
   Refresh,
-  ZoomIn,
-  ZoomOut,
   CameraAlt,
-  Palette,
-  Info,
   Help,
   Save,
-  FolderOpen,
-  Assessment,
-  Animation,
   Layers,
   NetworkCheck,
   Hub,
@@ -84,11 +61,9 @@ import {
 } from '@mui/icons-material';
 
 import { useTheme } from '@mui/material/styles';
-import { alpha } from '@mui/material/styles';
 
 // Import visualization service
 import VisualizationService from '../../services/VisualizationService';
-import StatisticsService from '../../services/StatisticsService';
 
 // Import sub-components
 import Plot3D from './Plot3D';

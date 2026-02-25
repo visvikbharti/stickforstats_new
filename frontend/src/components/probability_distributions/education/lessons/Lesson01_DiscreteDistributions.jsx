@@ -11,7 +11,6 @@ import {
   CardContent,
   Tabs,
   Tab,
-  Chip,
   Accordion,
   AccordionSummary,
   AccordionDetails

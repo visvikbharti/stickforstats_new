@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -16,10 +16,6 @@ import {
   IconButton,
   Stack,
   Button,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
   Chip,
   Collapse,
   useTheme,
@@ -34,7 +30,6 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import { MobileOnly, TabletOnly, DesktopOnly, useIsMobile } from '../utils/ResponsiveUtils';

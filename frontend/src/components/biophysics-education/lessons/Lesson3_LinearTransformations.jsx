@@ -35,14 +35,12 @@ import {
   TableHead,
   TableRow,
   FormControlLabel,
-  Switch,
-  Tooltip
+  Switch
 } from '@mui/material';
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
   Science as ScienceIcon,
-  Warning as WarningIcon,
   CheckCircle as CheckIcon,
   Info as InfoIcon,
   Timeline as TimelineIcon

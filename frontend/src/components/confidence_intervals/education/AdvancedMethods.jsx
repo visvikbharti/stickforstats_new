@@ -10,8 +10,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Button,
-  Chip,
   Alert,
   CircularProgress,
   Tab,
@@ -26,7 +24,6 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import SchoolIcon from '@mui/icons-material/School';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import CodeIcon from '@mui/icons-material/Code';
 import EqualizerIcon from '@mui/icons-material/Equalizer';
 import axios from 'axios';

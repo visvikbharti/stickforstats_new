@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { Container, Typography, Grid, Paper, Box } from '@mui/material';
-import { PieChart, BarChart, AreaChart, LineChart } from 'recharts';
+import { PieChart, BarChart } from 'recharts';
 
 // Sample pages
 import DataUploadPage from './statistics/DataUploadPage';

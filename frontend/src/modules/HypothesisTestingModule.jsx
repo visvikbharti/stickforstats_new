@@ -1,35 +1,28 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Tab, Tabs, Paper, Grid, Card, CardContent,
-  Button, Slider, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, Chip, LinearProgress, Tooltip, IconButton, Switch, FormControlLabel,
+  Button, Slider, Select, MenuItem, FormControl, InputLabel,
+  Alert, Chip, LinearProgress, Switch, FormControlLabel,
   Divider, List, ListItem, ListItemText, ListItemIcon, Accordion,
-  AccordionSummary, AccordionDetails, Stepper, Step, StepLabel, Badge,
-  Fab, Zoom, Fade, Grow, Collapse, CircularProgress, Snackbar
+  AccordionSummary, AccordionDetails, Stepper, Step, StepLabel,
+  Fab, Zoom, Fade, CircularProgress, Snackbar
 } from '@mui/material';
-import {
-  PlayArrow, Pause, Refresh, Info, School, Code, Assessment,
-  Psychology, Science, Timeline, Functions, Speed, CheckCircle,
-  Warning, Error, TrendingUp, ShowChart, BarChart, PieChart,
-  Help, Lightbulb, Calculate, Storage, CloudDownload, Share,
-  ExpandMore, NavigateNext, Casino, Equalizer
+import { Info, School, Assessment,
+  Psychology, Science, Functions, CheckCircle,
+  Warning, Error, TrendingUp, BarChart, Lightbulb,
+  ExpandMore, NavigateNext, Casino
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import {
-  LineChart, Line, BarChart as RechartsBarChart, Bar, AreaChart, Area,
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  Legend, ResponsiveContainer, ReferenceLine, ReferenceArea, Cell,
-  RadialBarChart, RadialBar, PieChart as RechartsPieChart, Pie
+  LineChart, Line, BarChart as RechartsBarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+  Legend, ResponsiveContainer, ReferenceLine, Cell
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 import jStat from 'jstat';
 import {
   tTestService,
-  anovaService,
-  correlationService,
   powerAnalysisService,
-  dataValidationService,
-  descriptiveStatisticsService
+  dataValidationService
 } from '../services/backendService';
 
 // Styled Components

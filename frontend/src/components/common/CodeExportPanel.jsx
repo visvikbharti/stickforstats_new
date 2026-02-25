@@ -27,7 +27,6 @@ import {
   Collapse,
   Snackbar,
   Alert,
-  Divider,
   Chip,
   useTheme
 } from '@mui/material';

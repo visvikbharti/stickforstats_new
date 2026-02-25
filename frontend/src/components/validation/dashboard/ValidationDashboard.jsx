@@ -8,7 +8,7 @@
  * @license MIT
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -25,18 +25,13 @@ import {
   AlertTitle,
   LinearProgress,
   CircularProgress,
-  Tooltip,
-  Badge,
-  Divider,
-  TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   Switch,
   FormControlLabel,
-  Fade,
-  Grow
+  Fade
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -45,25 +40,15 @@ import {
   Speed,
   Error as ErrorIcon,
   CheckCircle,
-  Warning,
-  Info,
   Refresh,
   Download,
-  FilterList,
   TrendingUp,
   TrendingDown,
-  Analytics,
-  VerifiedUser,
-  BugReport,
-  Timeline,
-  DataUsage,
-  Memory
+  VerifiedUser
 } from '@mui/icons-material';
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   AreaChart,
   Area,
   PieChart,
@@ -76,14 +61,13 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { format, subHours, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subHours, subDays } from 'date-fns';
 import {
   getValidationMetrics,
   getAuditLogs,
   getPerformanceMetrics,
   getComplianceStatus
 } from '../../../utils/validation/monitoring';
-import { ErrorCategory, NotificationLevel } from '../../../utils/validation';
 
 /**
  * Main dashboard component

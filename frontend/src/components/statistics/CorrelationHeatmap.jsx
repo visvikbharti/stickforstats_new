@@ -12,10 +12,7 @@ import {
   Scatter,
   XAxis,
   YAxis,
-  ZAxis,
-  Tooltip,
-  Cell,
-  Legend
+  Tooltip
 } from 'recharts';
 
 // Color scale for correlation values

@@ -20,10 +20,8 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
-  Dialog,
-  Chip
+  Dialog
 } from '@mui/material';
-import PrefetchLink from './navigation/PrefetchLink';
 import ButtonLink from './navigation/ButtonLink';
 import { useAuth } from '../context/AuthContext';
 import KeyboardShortcutHint from './common/KeyboardShortcutHint';
@@ -57,11 +55,9 @@ import BgColorsOutlined from '@mui/icons-material/PaletteOutlined';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 // Logo import
-import logo from '../assets/logo.png';
 
 // Import branded components
 import BrandedLogo from './common/BrandedLogo';
-import { useBranding } from '../context/BrandingContext';
 
 // Import the RAG components
 import { QueryInterface } from './rag';
@@ -70,7 +66,6 @@ import { QueryInterface } from './rag';
 import ThemeToggle from './common/ThemeToggle';
 
 // Import LanguageSelector
-import LanguageSelector from './common/LanguageSelector';
 
 // Import Search context
 import { useSearch } from '../context/SearchContext';

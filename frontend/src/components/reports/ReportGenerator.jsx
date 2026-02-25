@@ -19,8 +19,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemSecondaryAction,
-  IconButton,
   Chip,
   Alert,
   AlertTitle,
@@ -39,19 +37,13 @@ import {
   DialogActions
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
   CheckCircle as CheckIcon,
   ArrowForward as NextIcon,
   ArrowBack as BackIcon,
   Assignment as ReportIcon,
   Description as FileIcon,
-  Assessment as AnalysisIcon,
   Image as ImageIcon,
   TableChart as DataIcon,
-  Settings as SettingsIcon,
   GetApp as DownloadIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';

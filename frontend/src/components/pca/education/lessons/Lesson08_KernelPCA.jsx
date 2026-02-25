@@ -13,7 +13,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Chip,
   Divider,
   Slider,
   ToggleButtonGroup,
@@ -23,7 +22,6 @@ import {
   AccordionDetails
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { MathJax } from 'better-react-mathjax';

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Box, Card, CardContent, Grid, Typography, Button, TextField, IconButton,
+  Box, Typography, Button, TextField, IconButton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination,
   Paper, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   CircularProgress, Alert, MenuItem, Select, FormControl, InputLabel
 } from '@mui/material';
 import { 
-  Add as AddIcon, 
   Search as SearchIcon, 
   Delete as DeleteIcon, 
   RemoveRedEye as ViewIcon,
   BarChart as AnalyzeIcon,
-  FilterList as FilterIcon,
   CloudUpload as UploadIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';

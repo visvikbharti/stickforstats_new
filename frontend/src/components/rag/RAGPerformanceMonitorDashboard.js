@@ -14,24 +14,15 @@ import {
   TableRow,
   Chip,
   IconButton,
-  Button,
   Alert,
   CircularProgress,
-  LinearProgress,
   Tooltip,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  Memory as MemoryIcon,
   Speed as SpeedIcon,
-  Storage as StorageIcon,
   BugReport as BugIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
@@ -39,7 +30,6 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon,
   Settings as SettingsIcon,
-  Timeline as TimelineIcon,
   DataUsage as DataUsageIcon,
 } from '@mui/icons-material';
 import { Line, Bar } from 'react-chartjs-2';

@@ -28,7 +28,6 @@ import {
   Cloud as CloudIcon
 } from '@mui/icons-material';
 
-import { Alert } from '@mui/material';
 
 const ShowcaseHomePage = () => {
   const modules = [

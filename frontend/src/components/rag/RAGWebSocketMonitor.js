@@ -6,17 +6,12 @@ import {
   Grid,
   Card,
   CardContent,
-  LinearProgress,
   Chip,
   IconButton,
-  Button,
-  Divider,
   List,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  CircularProgress,
-  Alert,
   Tabs,
   Tab,
   Table,
@@ -37,11 +32,8 @@ import {
   Pause as PauseIcon,
   Clear as ClearIcon,
   Download as DownloadIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  Warning as WarningIcon,
 } from '@mui/icons-material';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,

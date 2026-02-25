@@ -34,17 +34,13 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow,
-  TextField,
-  InputAdornment
+  TableRow
 } from '@mui/material';
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
   Thermostat as ThermostatIcon,
-  Science as ScienceIcon,
-  CheckCircle as CheckIcon,
-  TrendingUp as TrendingUpIcon
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
 
 const STEPS = [

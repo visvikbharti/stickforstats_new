@@ -4,15 +4,12 @@ import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import * as d3 from 'd3';
 import { 
   debounce, 
-  createResponsiveDimensions, 
   optimizeSvg,
   addResponsiveResizeHandler,
   downsampleData
 } from './D3Optimizer';
 import { 
   getResponsiveDimensions,
-  getOptimalTickCount,
-  getOptimalLabelRotation,
   shouldUseTouchInteractions
 } from './ResponsiveUtils';
 import ExportControls from './ExportControls';

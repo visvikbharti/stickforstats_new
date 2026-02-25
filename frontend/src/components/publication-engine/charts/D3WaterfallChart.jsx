@@ -2,7 +2,7 @@
  * D3WaterfallChart - Waterfall chart for sequential/cumulative change visualization.
  * Floating bars with connectors, total bar, and value labels.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

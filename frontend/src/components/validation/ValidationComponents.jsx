@@ -11,11 +11,8 @@
 import React, { memo, useEffect, useState } from 'react';
 import {
   TextField,
-  FormControl,
-  FormHelperText,
   InputAdornment,
   CircularProgress,
-  Tooltip,
   Alert,
   AlertTitle,
   Chip,
@@ -42,12 +39,11 @@ import {
   ErrorOutline,
   WarningAmber,
   Refresh,
-  Shield,
   VerifiedUser,
   Security
 } from '@mui/icons-material';
-import { useValidation, useLiveValidation } from './useValidation';
-import { ErrorCategory, NotificationLevel } from '../../utils/validation';
+import { useLiveValidation } from './useValidation';
+import { NotificationLevel } from '../../utils/validation';
 
 /**
  * Validation status indicator

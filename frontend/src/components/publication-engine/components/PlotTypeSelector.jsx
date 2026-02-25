@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Box, Typography, Paper, Grid, ButtonBase, useTheme } from '@mui/material';
+import { Typography, Paper, Grid, ButtonBase, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
   BarChart as BarIcon,

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -14,15 +14,10 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Tooltip,
-  CircularProgress,
   Card,
   CardContent,
   Chip,
-  Divider,
   LinearProgress,
-  Fade,
-  Zoom,
   alpha,
   useTheme
 } from '@mui/material';
@@ -30,13 +25,9 @@ import {
   CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  Remove as RemoveIcon,
   Science as ScienceIcon,
-  Visibility as VisibilityIcon,
   Clear as ClearIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
   ContentPaste as PasteIcon,
   TableChart as TableIcon,
   Assessment as AssessmentIcon,

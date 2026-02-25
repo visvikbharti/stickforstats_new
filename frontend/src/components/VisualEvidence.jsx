@@ -12,7 +12,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Button,
   Alert,
   Chip,
   Tabs,
@@ -25,11 +24,7 @@ import {
   Science as ScienceIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  Visibility as VisibilityIcon,
-  ZoomIn as ZoomInIcon,
-  ZoomOut as ZoomOutIcon,
   Shield as ShieldIcon,
-  Assessment as AssessmentIcon,
   ShowChart as ChartIcon,
   ScatterPlot as ScatterIcon,
   BarChart as BarIcon,
@@ -39,24 +34,16 @@ import {
 import {
   ScatterChart,
   Scatter,
-  LineChart,
   Line,
   BarChart,
   Bar,
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as ChartTooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
-  ReferenceArea,
-  Cell,
-  ComposedChart,
-  ErrorBar,
-  Dot
+  ComposedChart
 } from 'recharts';
 import { useSnackbar } from 'notistack';
 import { useDarkMode } from '../context/DarkModeContext';

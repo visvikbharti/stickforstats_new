@@ -26,9 +26,7 @@ import { MathJax } from 'better-react-mathjax';
 import {
   eigendecomposition2D,
   covarianceMatrix2D,
-  matrixVectorMultiply,
-  normalize,
-  magnitude
+  matrixVectorMultiply
 } from '../utils/linearAlgebra';
 import {
   generateCorrelated

@@ -1,7 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+
+import ReportList from '../ReportList';
+import * as useReportAPIModule from '../../../hooks/useReportAPI';
 
 // Mock axios before importing components that use it
 jest.mock('axios', () => ({
@@ -18,9 +21,6 @@ jest.mock('axios', () => ({
     post: jest.fn(),
   }
 }));
-
-import ReportList from '../ReportList';
-import * as useReportAPIModule from '../../../hooks/useReportAPI';
 
 // Mock the useNavigate hook
 jest.mock('react-router-dom', () => ({

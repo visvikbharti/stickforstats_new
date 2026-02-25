@@ -22,8 +22,6 @@ import {
   Select,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
   Alert,
   Chip,
   Table,
@@ -33,14 +31,10 @@ import {
   TableHead,
   TableRow,
   Divider,
-  ToggleButton,
-  ToggleButtonGroup,
   CircularProgress,
   useTheme
 } from '@mui/material';
 import {
-  ScatterChart,
-  Scatter,
   XAxis,
   YAxis,
   CartesianGrid,

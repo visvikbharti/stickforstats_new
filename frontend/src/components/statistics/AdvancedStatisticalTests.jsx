@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -23,37 +23,25 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  ToggleButton,
-  ToggleButtonGroup,
   Accordion,
   AccordionSummary,
-  AccordionDetails,
-  FormControlLabel,
-  Checkbox,
-  Switch
+  AccordionDetails
 } from '@mui/material';
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  ScatterChart,
-  Scatter
+  ReferenceLine
 } from 'recharts';
 import { multipleTestingAdjustments } from '../../utils/advancedStatistics';
 import jStat from 'jstat';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import SchoolIcon from '@mui/icons-material/School';
 import ScienceIcon from '@mui/icons-material/Science';
 
 // Guardian Integration - Step 1: Import Dependencies

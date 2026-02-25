@@ -37,10 +37,8 @@ import {
   NavigateBefore,
   CheckCircle,
   Error as ErrorIcon,
-  Warning,
   Timeline,
   Block,
-  Lightbulb,
 } from '@mui/icons-material';
 import { alpha as alphaFn } from '@mui/material/styles';
 

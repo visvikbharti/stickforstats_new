@@ -5,14 +5,13 @@
  * Inspired by SPSS, SAS, and JMP professional interfaces
  */
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   analyzeData,
   checkAssumptions,
   runRecommendedTest,
   setActiveStep,
-  toggleSection,
   clearError,
   saveToHistory,
   resetAnalysis,

@@ -21,8 +21,7 @@ import {
   TableRow,
   Slider,
   ToggleButton,
-  ToggleButtonGroup,
-  Chip
+  ToggleButtonGroup
 } from '@mui/material';
 import { MathJax } from 'better-react-mathjax';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';

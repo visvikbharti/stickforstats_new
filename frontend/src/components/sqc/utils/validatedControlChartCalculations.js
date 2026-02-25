@@ -9,13 +9,11 @@
  */
 
 import {
-  validateStatisticalParams,
   validateDataArray,
   executeWithRecovery,
   auditLogger,
   ValidationError,
-  createValidatedCalculation,
-  validateMatrix
+  createValidatedCalculation
 } from '../../../utils/validation';
 
 // Import original SQC functions

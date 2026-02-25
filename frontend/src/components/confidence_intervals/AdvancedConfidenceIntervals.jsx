@@ -16,7 +16,6 @@ import {
   FormControl,
   InputLabel,
   Alert,
-  Chip,
   Divider,
   Table,
   TableBody,
@@ -27,28 +26,22 @@ import {
   CircularProgress
 } from '@mui/material';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
   ReferenceArea,
   Scatter,
-  ScatterChart,
-  ComposedChart,
-  Area
+  ScatterChart
 } from 'recharts';
 import { confidenceIntervalCalculations, coverageProbabilitySimulation } from '../../utils/advancedStatistics';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CalculateIcon from '@mui/icons-material/Calculate';
-import InfoIcon from '@mui/icons-material/Info';
 
 const AdvancedConfidenceIntervals = () => {
   const [activeTab, setActiveTab] = useState(0);

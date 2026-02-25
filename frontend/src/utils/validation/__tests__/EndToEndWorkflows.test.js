@@ -27,13 +27,11 @@ import {
   validateSQCParams,
   executeWithRecovery,
   createValidatedCalculation,
-  auditLogger,
-  centralErrorHandler,
-  ValidationError
+  auditLogger
 } from '../index';
 
-import { recordValidation, recordError, getValidationMetrics, recordComplianceMetric } from '../monitoring';
-import backendSync, { syncAuditLog, getSyncStatus, forceSync } from '../BackendSync';
+import { recordValidation, recordError } from '../monitoring';
+import { syncAuditLog, getSyncStatus, forceSync } from '../BackendSync';
 import { useValidation, useFormValidation } from '../../../components/validation/useValidation';
 import { renderHook, act } from '@testing-library/react';
 

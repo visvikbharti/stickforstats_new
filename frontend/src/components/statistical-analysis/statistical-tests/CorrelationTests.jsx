@@ -47,10 +47,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';

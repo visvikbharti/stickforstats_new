@@ -5,7 +5,7 @@
  * reducing the initial bundle size and improving loading performance.
  */
 import React, { lazy, Suspense } from 'react';
-import { Box, CircularProgress, Typography, Paper } from '@mui/material';
+import { CircularProgress, Typography, Paper } from '@mui/material';
 
 // Lazy load simulation components
 const EmailArrivalsD3 = lazy(() => import('./EmailArrivalsD3'));

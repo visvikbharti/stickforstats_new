@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Button, Paper, Grid } from '@mui/material';
-import { Timeline, TrendingUp, Assessment } from '@mui/icons-material';
+import { Timeline, TrendingUp } from '@mui/icons-material';
 
 function SurvivalIntroduction({ onContinue }) {
   return (

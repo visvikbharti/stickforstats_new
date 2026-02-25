@@ -6,17 +6,14 @@
  */
 
 import React, { useState } from 'react';
-import {
-  Paper, Typography, TextField, Button, Grid,
-  Card, CardContent, Alert, CircularProgress, Box,
-  FormControl, InputLabel, Select, MenuItem, Divider,
+import { Typography, TextField, Button, Grid,
+  Card, CardContent, Alert, CircularProgress, Box, Divider,
   Chip, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, IconButton, Tooltip,
-  Fade, Zoom, Grow, alpha
+  Fade, Zoom, Grow
 } from '@mui/material';
 import {
-  Calculate, Clear, Add, Remove, CheckCircle,
-  Warning, Science, TrendingUp,
+  Calculate, Clear, Add, Remove,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';

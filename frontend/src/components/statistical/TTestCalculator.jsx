@@ -14,7 +14,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 // Import settings context for Expert Mode
 import { useSettings } from '../../context/SettingsContext';
@@ -54,25 +54,18 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  LinearProgress,
-  Snackbar
+  LinearProgress
 } from '@mui/material';
 
 import {
   Calculate as CalculateIcon,
   Upload as UploadIcon,
   Download as DownloadIcon,
-  Help as HelpIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  ContentPaste as PasteIcon,
   Clear as ClearIcon,
   ExpandMore as ExpandMoreIcon,
   Info as InfoIcon,
   Science as ScienceIcon,
   Assessment as AssessmentIcon,
-  School as SchoolIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon
 } from '@mui/icons-material';

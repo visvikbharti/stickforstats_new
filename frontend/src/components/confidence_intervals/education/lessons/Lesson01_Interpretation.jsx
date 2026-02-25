@@ -7,12 +7,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider,
   Button,
   Card,
   CardContent,
-  Grid,
-  Chip
+  Grid
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

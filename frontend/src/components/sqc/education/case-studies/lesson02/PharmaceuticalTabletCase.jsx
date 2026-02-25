@@ -4,7 +4,6 @@ import {
   Typography,
   Paper,
   Alert,
-  Slider,
   Table,
   TableBody,
   TableCell,
@@ -41,18 +40,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ReferenceLine,
   ReferenceArea,
   ResponsiveContainer,
   BarChart,
   Bar,
-  Cell,
-  AreaChart,
-  Area,
-  ScatterChart,
-  Scatter,
-  ZAxis
+  Cell
 } from 'recharts';
 import CaseStudyTemplate from '../components/CaseStudyTemplate';
 import useSQCAnalysisAPI from '../../../../../hooks/useSQCAnalysisAPI';

@@ -35,14 +35,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider,
   CircularProgress,
   Button,
   Slider,
-  Tabs,
-  Tab,
   Tooltip,
-  IconButton,
   useTheme
 } from '@mui/material';
 import {

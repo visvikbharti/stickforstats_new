@@ -4,7 +4,7 @@
  * Visualizes the contribution of individual genes to principal components
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Paper, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 import * as d3 from 'd3';
 
 const GeneContributionPlot = ({ data, pcIndex = 0, width = 600, height = 400, topGenesCount = 20 }) => {

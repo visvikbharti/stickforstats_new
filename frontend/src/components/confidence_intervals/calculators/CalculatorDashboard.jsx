@@ -28,7 +28,6 @@ import BayesianCalculator from './BayesianCalculator';
 import DifferenceCalculator from './DifferenceCalculator';
 
 // Import visualization components
-import IntervalVisualization from '../visualizations/IntervalVisualization';
 
 /**
  * Dashboard component for confidence interval calculators

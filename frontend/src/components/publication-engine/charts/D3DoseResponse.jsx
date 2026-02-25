@@ -2,7 +2,7 @@
  * D3DoseResponse - Dose-response / sigmoidal curve with IC50/EC50.
  * Log-scale X axis, 4PL fitting, error bars, asymptote lines.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

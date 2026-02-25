@@ -9,12 +9,8 @@ import {
   Button,
   Card,
   CardContent,
-  CardActions,
   Switch,
-  FormControlLabel,
   Chip,
-  ColorPicker,
-  IconButton,
   Alert,
   Divider,
   List,
@@ -32,8 +28,7 @@ import {
   Upload as UploadIcon,
   Preview as PreviewIcon,
   Save as SaveIcon,
-  Refresh as RefreshIcon,
-  Delete as DeleteIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import BrandingContext from '../../context/BrandingContext';
 

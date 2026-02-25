@@ -1,31 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Tab, Tabs, Paper, Grid, Card, CardContent,
-  Button, Slider, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, Chip, LinearProgress, Tooltip, IconButton, Switch, FormControlLabel,
-  Divider, List, ListItem, ListItemText, ListItemIcon, Accordion,
-  AccordionSummary, AccordionDetails, Stepper, Step, StepLabel, Badge,
-  Fab, Zoom, Fade, Grow, Collapse, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, ToggleButton, ToggleButtonGroup,
-  Radio, RadioGroup, FormLabel, CircularProgress, Snackbar
+  Box, Typography, Tab, Tabs, Paper, Grid, Card,
+  Button, Select, MenuItem, FormControl, InputLabel,
+  Alert, Chip, LinearProgress, Tooltip, Switch, FormControlLabel,
+  Divider, Fade, ToggleButton, ToggleButtonGroup, CircularProgress, Snackbar
 } from '@mui/material';
-import {
-  PlayArrow, Pause, Refresh, Info, School, Code, Assessment,
-  Psychology, Science, Timeline, Functions, Speed, CheckCircle,
-  Warning, Error, TrendingUp, ShowChart, BarChart, PieChart,
-  Help, Lightbulb, Calculate, Storage, CloudDownload, Share,
-  ExpandMore, NavigateNext, Casino, Equalizer, ScatterPlot,
-  Analytics, AutoGraph, BubbleChart, DataUsage, Insights,
-  LinearScale, Polyline, TrendingDown, CompareArrows, GridOn
+import { School, Assessment, Science, ScatterPlot,
+  Analytics, AutoGraph, GridOn
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import ProfessionalContainer, { glassMorphism, gradients as proGradients } from '../components/common/ProfessionalContainer';
-import {
-  LineChart, Line, BarChart as RechartsBarChart, Bar, AreaChart, Area,
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  Legend, ResponsiveContainer, ReferenceLine, ReferenceArea, Cell,
-  RadialBarChart, RadialBar, PieChart as RechartsPieChart, Pie,
-  ComposedChart, ErrorBar, ZAxis
+import ProfessionalContainer, { glassMorphism } from '../components/common/ProfessionalContainer';
+import { Line, Area, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+  Legend, ResponsiveContainer, ReferenceLine,
+  ComposedChart
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 import jStat from 'jstat';

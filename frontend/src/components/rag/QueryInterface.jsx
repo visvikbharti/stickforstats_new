@@ -6,7 +6,6 @@ import {
   Paper, 
   Typography, 
   CircularProgress,
-  Divider,
   IconButton,
   Tooltip,
   Chip,
@@ -14,11 +13,8 @@ import {
   ListItem,
   ListItemText,
   Collapse,
-  Badge,
   Alert,
-  Snackbar,
-  FormControlLabel,
-  Switch
+  Snackbar
 } from '@mui/material';
 import { 
   Send as SendIcon, 

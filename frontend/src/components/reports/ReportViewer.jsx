@@ -17,7 +17,6 @@ import {
   AccordionDetails,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Card,
   CardMedia,
@@ -45,8 +44,7 @@ import {
   TableChart as TableIcon,
   BarChart as ChartIcon,
   Article as ArticleIcon,
-  Fullscreen as FullscreenIcon,
-  Refresh as RefreshIcon
+  Fullscreen as FullscreenIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useReportAPI } from '../../hooks/useReportAPI';

@@ -19,8 +19,6 @@ import {
   TableHead,
   TableRow,
   Slider,
-  ToggleButton,
-  ToggleButtonGroup,
   Chip
 } from '@mui/material';
 import { useTheme } from '@mui/material';

@@ -13,8 +13,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Chip,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,

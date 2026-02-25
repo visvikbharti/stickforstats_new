@@ -32,7 +32,7 @@ import {
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { normalPDF, normalCDF, normalQuantile } from '../utils/distributionFunctions';
+import { normalPDF, normalQuantile } from '../utils/distributionFunctions';
 
 // Cauchy PDF
 const cauchyPDF = (x, location = 0, scale = 1) => {

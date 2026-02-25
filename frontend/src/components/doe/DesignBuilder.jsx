@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Typography, 
   Box, 
@@ -33,20 +33,13 @@ import InfoIcon from '@mui/icons-material/Info';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
-  ScatterChart,
-  Scatter,
   BarChart,
-  Bar,
-  ReferenceLine,
-  Label
+  Bar
 } from 'recharts';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';

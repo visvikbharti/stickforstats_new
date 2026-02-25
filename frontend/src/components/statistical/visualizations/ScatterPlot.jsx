@@ -17,8 +17,6 @@ import {
 import {
   Download as DownloadIcon,
   Settings as SettingsIcon,
-  Fullscreen as FullscreenIcon,
-  TrendingUp as TrendIcon,
   BubbleChart as BubbleIcon,
   ScatterPlot as ScatterIcon
 } from '@mui/icons-material';
@@ -29,12 +27,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as ChartTooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
   Cell,
-  Line,
-  ComposedChart
+  Line
 } from 'recharts';
 
 const ScatterPlot = ({

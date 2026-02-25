@@ -32,8 +32,7 @@ import {
   Legend, 
   ResponsiveContainer,
   ScatterChart,
-  Scatter,
-  HeatMapChart
+  Scatter
 } from 'recharts';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 

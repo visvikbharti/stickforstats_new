@@ -33,13 +33,10 @@ import {
   Typography,
   Grid,
   Slider,
-  Button,
   Card,
   CardContent,
   Alert,
   Chip,
-  Tooltip,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -50,8 +47,6 @@ import {
   LinearProgress
 } from '@mui/material';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
-import InfoIcon from '@mui/icons-material/Info';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import SchoolIcon from '@mui/icons-material/School';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
@@ -59,7 +54,7 @@ import LightbulbIcon from '@mui/icons-material/Lightbulb';
 // Import functions
 import { alpha as alphaFn } from '@mui/material/styles';
 import { normalPDF, normalCDF } from '../utils/distributionFunctions';
-import { dToR, rToD, etaSquaredToF, fToEtaSquared } from '../utils/powerCalculations';
+import { dToR } from '../utils/powerCalculations';
 
 /**
  * Cohen's benchmarks configuration

@@ -13,7 +13,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Chip,
   Divider,
   Slider,
   ToggleButtonGroup,
@@ -25,7 +24,6 @@ import {
 import { useTheme } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { MathJax } from 'better-react-mathjax';

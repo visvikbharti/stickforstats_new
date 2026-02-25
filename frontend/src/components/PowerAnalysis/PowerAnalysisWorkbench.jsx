@@ -2,7 +2,7 @@
 // Enterprise-grade power analysis and sample size calculation interface
 // Implements G*Power-validated algorithms for statistical power planning
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import jStat from 'jstat';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -12,7 +12,6 @@ import {
   selectPower,
   selectSampleSize,
   selectCalculationMode,
-  setTestType,
   setEffectSize,
   setAlpha,
   setPower,

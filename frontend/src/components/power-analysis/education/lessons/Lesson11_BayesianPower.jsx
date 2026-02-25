@@ -5,7 +5,7 @@
  * Bayes Factor Design Analysis, Assurance, and precision-based planning.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,7 +17,6 @@ import {
   Card,
   CardContent,
   Grid,
-  Slider,
   Alert,
   Chip,
   Divider,
@@ -27,9 +26,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemIcon,
@@ -39,11 +35,7 @@ import {
   NavigateNext,
   NavigateBefore,
   CheckCircle,
-  ExpandMore,
   AutoGraph,
-  Psychology,
-  Compare,
-  Functions,
   Warning,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';

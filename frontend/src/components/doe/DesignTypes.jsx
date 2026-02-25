@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Typography, 
   Box, 
@@ -20,17 +20,11 @@ import {
   ListItemText,
   Button,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  TableContainer
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -39,9 +33,7 @@ import {
   ResponsiveContainer,
   ScatterChart,
   Scatter,
-  ZAxis,
-  Surface,
-  Contour
+  ZAxis
 } from 'recharts';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 

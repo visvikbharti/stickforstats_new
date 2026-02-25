@@ -44,7 +44,6 @@ import {
   CartesianGrid
 } from 'recharts';
 import PieChartIcon from '@mui/icons-material/PieChart';
-import DonutLargeIcon from '@mui/icons-material/DonutLarge';
 
 /**
  * Main Composition Analysis Component

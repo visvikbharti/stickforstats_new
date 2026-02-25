@@ -1,45 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   Button, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, CircularProgress, Chip, Fade, Zoom, IconButton,
-  Tooltip, Tabs, Tab, Divider, useTheme, alpha, ThemeProvider,
+  Alert, CircularProgress, Chip, Fade, Tabs, Tab, Divider, alpha, ThemeProvider,
   createTheme, CssBaseline, Accordion, AccordionSummary,
   AccordionDetails, Slider, Switch, FormControlLabel, List,
-  ListItem, ListItemIcon, ListItemText, Stepper, Step, StepLabel,
-  StepContent, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, LinearProgress, Badge, Avatar,
-  ToggleButton, ToggleButtonGroup, Radio, RadioGroup,
-  FormLabel, Checkbox, FormGroup
+  ListItem, ListItemIcon, ListItemText, Table, TableBody, TableCell, TableContainer, TableRow
 } from '@mui/material';
 import {
   Calculate as CalculateIcon, Clear as ClearIcon,
-  School as SchoolIcon, Science as ScienceIcon,
-  Psychology as PsychologyIcon, MenuBook as MenuBookIcon,
+  School as SchoolIcon, Science as ScienceIcon, MenuBook as MenuBookIcon,
   Functions as FunctionsIcon, CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon, Info as InfoIcon,
+  Warning as WarningIcon,
   ExpandMore as ExpandMoreIcon, Lightbulb as LightbulbIcon,
-  Timeline as TimelineIcon, Assessment as AssessmentIcon,
+  Timeline as TimelineIcon,
   BusinessCenter as BusinessIcon, LocalHospital as MedicalIcon,
-  PlayArrow as PlayIcon, Pause as PauseIcon,
-  Speed as SpeedIcon, SlowMotionVideo as SlowIcon,
-  Help as HelpIcon, Code as CodeIcon, Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon, GetApp as DownloadIcon,
-  Share as ShareIcon, Bookmark as BookmarkIcon,
-  ThumbUp as ThumbUpIcon, QuestionAnswer as QuestionIcon,
-  TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon,
-  CompareArrows as CompareIcon, BarChart as BarChartIcon
+  PlayArrow as PlayIcon,
+  CompareArrows as CompareIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import jStat from 'jstat';
-import { getApiUrl, endpoints } from '../config/apiConfig';
+import { getApiUrl } from '../config/apiConfig';
 import {
-  LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
+  LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
-  Legend, ResponsiveContainer, Area, AreaChart,
-  ReferenceLine, ReferenceArea, Cell, ComposedChart,
-  ErrorBar, Funnel, FunnelChart, RadialBar, RadialBarChart
+  Legend, ResponsiveContainer,
+  ReferenceLine
 } from 'recharts';
 
 // Professional color palette

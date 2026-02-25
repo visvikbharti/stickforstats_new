@@ -26,14 +26,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Tooltip,
   CircularProgress,
   List,
   ListItem,
@@ -63,8 +55,8 @@ import { useDropzone } from 'react-dropzone';
 
 // Import utilities
 import { extractTextFromPDF, extractSections, isValidPDF, formatFileSize } from './utils/pdfParser';
-import { extractStatisticalContent, getPrimarySampleSize } from './utils/statisticalPatterns';
-import { detectErrors, getSeverityColor, getSeverityLabel, SEVERITY, CATEGORY } from './utils/errorRules';
+import { extractStatisticalContent } from './utils/statisticalPatterns';
+import { detectErrors, getSeverityColor, getSeverityLabel, SEVERITY } from './utils/errorRules';
 import { generateReport, generateTextReport, generateSummaryStatement } from './utils/reportGenerator';
 
 // Import SQS component

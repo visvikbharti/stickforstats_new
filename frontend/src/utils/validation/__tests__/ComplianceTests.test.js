@@ -21,13 +21,11 @@
 import {
   validateStatisticalParams,
   auditLogger,
-  ValidationError,
   createValidatedCalculation
 } from '../index';
 
 import { AuditLogger } from '../AuditLogger';
-import { getComplianceStatus, recordComplianceMetric, getAuditLogs } from '../monitoring';
-import backendSync from '../BackendSync';
+import { getComplianceStatus, getAuditLogs } from '../monitoring';
 
 // Mock dependencies
 jest.mock('../monitoring');

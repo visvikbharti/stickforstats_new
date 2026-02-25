@@ -45,7 +45,6 @@ import {
 import {
   Search as SearchIcon,
   Download as DownloadIcon,
-  Star as StarIcon,
   Verified as VerifiedIcon,
   Shield as ShieldIcon,
   Close as CloseIcon,

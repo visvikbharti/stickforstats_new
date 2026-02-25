@@ -18,9 +18,7 @@ import {
   Card,
   CardContent,
   Grid,
-  Slider,
   Alert,
-  Chip,
   Divider,
   Table,
   TableBody,
@@ -35,28 +33,15 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Tabs,
-  Tab,
-  TextField,
-  InputAdornment,
 } from '@mui/material';
 import {
   NavigateNext,
   NavigateBefore,
   CheckCircle,
   ExpandMore,
-  Science,
-  Calculate,
-  CompareArrows,
   Category,
-  Timeline,
-  ScatterPlot,
-  Warning,
-  Info,
-  Lightbulb,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [

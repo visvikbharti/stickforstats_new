@@ -2,7 +2,7 @@
 // Central registry for tracking all hypotheses tested in a session
 // Critical component for preventing p-hacking and maintaining statistical integrity
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectAllHypotheses,
@@ -12,7 +12,6 @@ import {
   updateHypothesis,
   deleteHypothesis,
   groupHypotheses,
-  tagHypothesis,
   lockHypothesis,
   exportRegistry
 } from '../../store/slices/multiplicityCorrectionSlice';

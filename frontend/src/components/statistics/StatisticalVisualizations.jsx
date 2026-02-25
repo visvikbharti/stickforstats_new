@@ -15,7 +15,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
   Line,
   ScatterChart,
   Scatter,

@@ -26,12 +26,11 @@ import {
   Select,
   MenuItem,
   Alert,
-  Chip,
   Switch,
   FormControlLabel
 } from '@mui/material';
 import { alpha as alphaFn } from '@mui/material/styles';
-import { normalPDF, normalCDF, tPDF, tCDF, normalQuantile } from '../utils/distributionFunctions';
+import { normalPDF, normalCDF, tPDF, normalQuantile } from '../utils/distributionFunctions';
 
 // Approximation for non-central t PDF
 const nonCentralTPDF = (t, df, ncp) => {

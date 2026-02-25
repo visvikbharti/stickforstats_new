@@ -23,7 +23,7 @@
  * - Faul, F. et al. (2007). G*Power 3.
  */
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -34,7 +34,6 @@ import {
   Card,
   CardContent,
   Alert,
-  Chip,
   Tooltip,
   FormControl,
   InputLabel,
@@ -52,7 +51,6 @@ import {
   TextField
 } from '@mui/material';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -61,7 +59,6 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
-  Area,
   ComposedChart
 } from 'recharts';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -72,7 +69,6 @@ import InfoIcon from '@mui/icons-material/Info';
 
 // Import power calculation functions
 import {
-  generatePowerCurve,
   findSampleSizeForPower,
   powerTwoSampleTTest,
   powerOneSampleTTest,

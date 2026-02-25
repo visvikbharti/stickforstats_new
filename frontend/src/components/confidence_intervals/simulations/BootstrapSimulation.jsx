@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -17,13 +17,8 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider,
-  Tooltip,
-  RadioGroup,
-  Radio,
-  FormControlLabel
+  Divider
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { 
   BarChart, 
   Bar, 
@@ -31,14 +26,8 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  Legend, 
   ResponsiveContainer,
-  ReferenceLine,
-  Histogram,
-  LineChart,
-  Line,
-  ScatterChart,
-  Scatter
+  ReferenceLine
 } from 'recharts';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { runBootstrapSimulation } from '../../../utils/simulationUtils';

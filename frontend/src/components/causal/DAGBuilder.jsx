@@ -33,10 +33,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Divider
 } from '@mui/material';
@@ -47,10 +43,8 @@ import {
   Redo as RedoIcon,
   Save as SaveIcon,
   FolderOpen as LoadIcon,
-  PhotoCamera as ExportIcon,
   PlayArrow as AnalyzeIcon,
-  Clear as ClearIcon,
-  Help as HelpIcon
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 

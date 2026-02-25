@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -17,10 +17,8 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider,
-  Tooltip
+  Divider
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { 
   BarChart, 
   Bar, 
@@ -31,10 +29,6 @@ import {
   Legend, 
   ResponsiveContainer,
   ReferenceLine,
-  LineChart,
-  Line,
-  ScatterChart,
-  Scatter,
   AreaChart,
   Area
 } from 'recharts';

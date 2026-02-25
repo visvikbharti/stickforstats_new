@@ -15,7 +15,6 @@
 import {
   normalCDF,
   normalQuantile,
-  tCDF,
   tQuantile,
   fCDF,
   chiSquareCDF,

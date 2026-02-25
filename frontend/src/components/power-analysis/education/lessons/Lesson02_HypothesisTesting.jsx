@@ -35,8 +35,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Tooltip,
-  IconButton,
   List,
   ListItem,
   ListItemIcon,
@@ -51,16 +49,11 @@ import {
   Science,
   Psychology,
   ExpandMore,
-  Info,
   Lightbulb,
-  School,
   GridOn,
   PlayArrow,
-  Pause,
-  Refresh,
   TrendingUp,
   TrendingDown,
-  Help,
 } from '@mui/icons-material';
 import { alpha as alphaFn } from '@mui/material/styles';
 

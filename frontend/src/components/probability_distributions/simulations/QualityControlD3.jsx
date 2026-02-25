@@ -19,7 +19,6 @@ import {
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import FactoryIcon from '@mui/icons-material/Factory';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SettingsIcon from '@mui/icons-material/Settings';

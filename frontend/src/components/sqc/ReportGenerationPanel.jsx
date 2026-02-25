@@ -13,15 +13,10 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Divider,
   Card,
   CardContent,
-  CardMedia,
   List,
   ListItem,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,8 +33,7 @@ import {
   Download as DownloadIcon,
   Close as CloseIcon,
   SaveAlt as SaveAltIcon,
-  CheckCircle as CheckCircleIcon,
-  OpenInNew as OpenInNewIcon
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 

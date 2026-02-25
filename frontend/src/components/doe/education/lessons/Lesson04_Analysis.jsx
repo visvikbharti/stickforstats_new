@@ -22,8 +22,7 @@ import {
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 import { MathJax } from 'better-react-mathjax';
 
 /**

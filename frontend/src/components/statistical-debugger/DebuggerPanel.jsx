@@ -17,23 +17,19 @@
  * @version 1.0.0
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Paper,
   Typography,
   IconButton,
-  Button,
   Collapse,
   Alert,
   AlertTitle,
   Chip,
-  Divider,
   Grid,
   Card,
   CardContent,
-  LinearProgress,
-  Tooltip,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -54,15 +50,13 @@ import {
   Lightbulb as TipIcon,
   Psychology as InsightIcon,
   Speed as PowerIcon,
-  DataUsage as DataIcon,
   Assignment as ChecklistIcon,
-  Healing as FixIcon,
   TrendingUp as TrendIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
 
 import { analyzeTestResults } from './utils/debuggerEngine';
-import { getPitfallsForTest, getChecklistForTest, getGeneralPitfalls } from './utils/pitfallsDatabase';
+import { getPitfallsForTest, getChecklistForTest } from './utils/pitfallsDatabase';
 
 /**
  * Status badge colors

@@ -43,8 +43,6 @@ import {
   Cell
 } from 'recharts';
 import CompareIcon from '@mui/icons-material/Compare';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import { calculateDescriptiveStats } from '../utils/statisticalUtils';
 
 /**
  * Main Comparative Analysis Component

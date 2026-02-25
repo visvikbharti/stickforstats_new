@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Container, 
   Typography, 
   Paper, 
-  Grid, 
   Box, 
   Tabs, 
   Tab, 
-  Stepper, 
-  Step, 
-  StepLabel, 
   CircularProgress
 } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';

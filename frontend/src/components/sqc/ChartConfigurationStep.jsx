@@ -30,10 +30,8 @@ import { styled } from '@mui/material/styles';
 import { 
   BarChart, 
   ShowChart, 
-  Timeline, 
   PieChart, 
-  Analytics, 
-  Help,
+  Analytics,
   Info
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';

@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import {
   Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-  Collapse, Typography, TextField, Paper, Chip, Divider, IconButton,
-  Accordion, AccordionSummary, AccordionDetails, useMediaQuery, useTheme,
-  InputAdornment, Tooltip, Button, Alert, Tabs, Tab,
+  Collapse, Typography, TextField, Paper, Chip, Divider, IconButton, useMediaQuery, useTheme,
+  InputAdornment, Tooltip, Alert, Tabs, Tab,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,7 +24,6 @@ import BusinessIcon from '@mui/icons-material/Business';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import LockIcon from '@mui/icons-material/Lock';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DarkModeContext from '../context/DarkModeContext';
 
 // ---------------------------------------------------------------------------

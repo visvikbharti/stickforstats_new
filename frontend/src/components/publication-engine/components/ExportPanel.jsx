@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import {
   Box, Button, ButtonGroup, Menu, MenuItem, ListItemIcon, ListItemText,
-  CircularProgress, Tooltip, useTheme
+  CircularProgress
 } from '@mui/material';
 import {
   SaveAlt as SaveIcon,

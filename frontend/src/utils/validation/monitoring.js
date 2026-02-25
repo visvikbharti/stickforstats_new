@@ -9,7 +9,6 @@
  */
 
 import { auditLogger } from './AuditLogger';
-import { centralErrorHandler } from './CentralErrorHandler';
 
 /**
  * Metrics collector class

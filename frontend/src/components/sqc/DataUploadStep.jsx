@@ -4,8 +4,7 @@ import {
   Typography, 
   Button, 
   Paper, 
-  Grid, 
-  Divider,
+  Grid,
   CircularProgress,
   Card,
   CardContent,
@@ -14,17 +13,13 @@ import {
   FormControlLabel,
   Checkbox,
   Alert,
-  Fade,
   useTheme
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { 
   UploadFile, 
-  DataObject, 
-  Upload, 
   CloudUpload, 
   Check, 
-  BarChart, 
   DataUsage 
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';

@@ -23,7 +23,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { MathJax } from 'better-react-mathjax';
-import { alpha } from '@mui/material/styles';
 
 /**
  * Lesson 5: Hypothesis Testing Connection

@@ -12,15 +12,10 @@ import {
   InputLabel, 
   Tooltip, 
   IconButton,
-  CircularProgress,
-  Card,
-  CardContent,
-  Divider,
-  useTheme
+  CircularProgress
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import * as d3 from 'd3';
 import 'katex/dist/katex.min.css';

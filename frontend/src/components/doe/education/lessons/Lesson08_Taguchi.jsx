@@ -26,7 +26,6 @@ import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { MathJax } from 'better-react-mathjax';
 import SecurityIcon from '@mui/icons-material/Security';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 /**
  * DOE Lesson 8: Robust Design & Taguchi Methods

@@ -14,15 +14,12 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  Slider
+  TableRow
 } from '@mui/material';
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
-import ScienceIcon from '@mui/icons-material/Science';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { MathJax } from 'better-react-mathjax';
 
 /**

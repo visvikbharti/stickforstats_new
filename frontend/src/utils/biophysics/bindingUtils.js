@@ -22,10 +22,7 @@ import {
   fitBinding,
   fit4PL,
   levenbergMarquardt,
-  MODELS,
-  calculateRSquared,
-  calculateAIC,
-  calculateBIC
+  MODELS
 } from './nonLinearRegression';
 
 // ============================================================================

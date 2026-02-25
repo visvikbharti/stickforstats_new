@@ -31,8 +31,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterListIcon,
-  Sort as SortIcon,
   Article as ArticleIcon,
   Functions as FunctionsIcon,
   Dataset as DatasetIcon,

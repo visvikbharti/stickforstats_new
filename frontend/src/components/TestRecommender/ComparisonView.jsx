@@ -2,7 +2,7 @@
 // Enterprise-grade side-by-side statistical test comparison
 // Allows comparison of 2-4 tests simultaneously with synchronized views
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectComparisonTests,

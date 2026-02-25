@@ -24,15 +24,12 @@ import {
   Chip,
   Button,
   Tooltip,
-  Collapse,
   CircularProgress,
-  Divider,
   Card,
   CardContent,
   CardActions,
   useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import {
   Send as SendIcon,
   ContentCopy as CopyIcon,
@@ -41,7 +38,6 @@ import {
   Refresh as RefreshIcon,
   CheckCircle as CheckIcon,
   Science as ScienceIcon,
-  Code as CodeIcon,
   ExpandMore as ExpandIcon,
   ExpandLess as CollapseIcon,
   PlayArrow as RunIcon,

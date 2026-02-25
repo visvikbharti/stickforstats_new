@@ -26,12 +26,9 @@ import {
 } from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import RouterIcon from '@mui/icons-material/Router';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
-import SpeedIcon from '@mui/icons-material/Speed';
-import DeviceHubIcon from '@mui/icons-material/DeviceHub';
 
 import * as d3 from 'd3';
 import { motion, AnimatePresence } from 'framer-motion';

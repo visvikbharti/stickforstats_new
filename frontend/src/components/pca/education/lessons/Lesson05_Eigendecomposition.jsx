@@ -29,7 +29,6 @@ import { MathJax } from 'better-react-mathjax';
 import {
   eigendecomposition2D,
   covarianceMatrix2D,
-  mean,
   normalize
 } from '../utils/linearAlgebra';
 import {

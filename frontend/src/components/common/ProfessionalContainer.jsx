@@ -21,14 +21,12 @@ import {
   Container,
   IconButton,
   Tooltip,
-  Paper,
   Fade,
   Zoom,
   ThemeProvider,
   createTheme,
   CssBaseline,
-  alpha,
-  useTheme
+  alpha
 } from '@mui/material';
 import {
   DarkMode as DarkModeIcon,
@@ -36,7 +34,6 @@ import {
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon
 } from '@mui/icons-material';
-import { useAppTheme } from '../../context/AppThemeContext';
 
 // Professional gradients for consistent theming
 export const gradients = {

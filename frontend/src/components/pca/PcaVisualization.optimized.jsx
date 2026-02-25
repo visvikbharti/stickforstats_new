@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   Box,
   Typography,
-  Paper,
   Button,
   Alert,
   Divider,
@@ -23,7 +22,6 @@ import {
   IconButton,
   Tooltip,
   useMediaQuery,
-  LinearProgress,
   Snackbar,
   Fade,
   Badge,
@@ -44,7 +42,6 @@ import { schemeCategory10, schemeSet2, schemePaired } from 'd3-scale-chromatic';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import { saveSvgAsPng } from 'save-svg-as-png';
-import { useSnackbar } from 'notistack';
 
 import { fetchPcaVisualizationData } from '../../api/pcaApi';
 

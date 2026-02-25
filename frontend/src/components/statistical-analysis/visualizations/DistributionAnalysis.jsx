@@ -44,11 +44,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  Cell,
-  Area,
-  AreaChart,
-  ComposedChart
+  ReferenceLine
 } from 'recharts';
 import { calculateDescriptiveStats, createHistogramBins, shapiroWilkTest } from '../utils/statisticalUtils';
 import jStat from 'jstat';

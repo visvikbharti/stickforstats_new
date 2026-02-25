@@ -13,10 +13,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction,
   Chip,
-  Avatar,
-  AvatarGroup,
   LinearProgress,
   Tab,
   Tabs,
@@ -42,10 +39,8 @@ import {
   MoreVert as MoreVertIcon,
   Add as AddIcon,
   Settings as SettingsIcon,
-  Assignment as AssignmentIcon,
   AttachMoney as AttachMoneyIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 

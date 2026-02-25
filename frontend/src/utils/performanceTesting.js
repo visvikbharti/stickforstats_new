@@ -4,7 +4,7 @@
  * This module provides tools for automated performance testing, including benchmarking,
  * network throttling, device emulation, and reporting.
  */
-import { getMetrics, getPerformanceSummary, initPerformanceMonitoring } from './performanceMonitoring';
+import { getPerformanceSummary, initPerformanceMonitoring } from './performanceMonitoring';
 
 // Device profiles for testing
 export const DEVICE_PROFILES = {

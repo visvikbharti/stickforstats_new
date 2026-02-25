@@ -38,12 +38,9 @@ import {
 import {
   NavigateNext as NextIcon,
   NavigateBefore as BackIcon,
-  CheckCircle as CheckIcon,
-  RadioButtonUnchecked as PendingIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
   Help as HelpIcon,
-  PlayArrow as StartIcon,
   RestartAlt as RestartIcon,
   Save as SaveIcon,
   TipsAndUpdates as TipIcon,

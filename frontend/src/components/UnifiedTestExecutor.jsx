@@ -19,9 +19,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemIcon,
@@ -31,24 +28,15 @@ import {
   DialogContent,
   DialogActions,
   useTheme,
-  alpha,
-  IconButton,
-  Tooltip,
-  Badge
+  Tooltip
 } from '@mui/material';
 import {
   Science as ScienceIcon,
   Shield as ShieldIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   Error as ErrorIcon,
-  ExpandMore as ExpandMoreIcon,
   PlayArrow as PlayIcon,
-  Refresh as RefreshIcon,
   Assessment as AssessmentIcon,
-  DataUsage as DataIcon,
-  Timeline as TimelineIcon,
-  Psychology as PsychologyIcon,
   Speed as SpeedIcon,
   Fingerprint as FingerprintIcon,
   AutoAwesome as AutoIcon

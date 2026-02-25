@@ -20,8 +20,7 @@ import {
   fitMichaelisMenten,
   fitHill,
   levenbergMarquardt,
-  MODELS,
-  calculateRSquared
+  MODELS
 } from './nonLinearRegression';
 
 // ============================================================================

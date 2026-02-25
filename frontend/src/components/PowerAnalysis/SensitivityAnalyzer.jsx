@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import './SensitivityAnalyzer.scss';
 
 const SensitivityAnalyzer = ({ 

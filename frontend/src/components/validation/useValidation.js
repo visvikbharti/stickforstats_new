@@ -13,7 +13,6 @@ import {
   validateStatisticalParams,
   validateDataArray,
   centralErrorHandler,
-  ValidationError,
   auditLogger
 } from '../../utils/validation';
 

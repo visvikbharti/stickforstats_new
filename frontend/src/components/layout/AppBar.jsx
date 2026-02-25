@@ -17,8 +17,7 @@ import {
   Divider,
   Dialog,
   DialogTitle,
-  DialogContent,
-  DialogActions
+  DialogContent
 } from '@mui/material';
 import {
   Menu as MenuIcon,

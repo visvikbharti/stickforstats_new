@@ -17,16 +17,12 @@ import {
 import {
   BarChart as BarChartIcon,
   ShowChart as LineChartIcon,
-  BubbleChart as ScatterIcon,
   Download as DownloadIcon,
-  Settings as SettingsIcon,
-  Fullscreen as FullscreenIcon,
-  Info as InfoIcon
+  Settings as SettingsIcon
 } from '@mui/icons-material';
 import {
   BarChart,
   Bar,
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -36,9 +32,6 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
-  ScatterChart,
-  Scatter,
-  Cell,
   ReferenceLine
 } from 'recharts';
 

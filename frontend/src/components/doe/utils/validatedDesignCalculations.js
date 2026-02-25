@@ -14,8 +14,7 @@ import {
   executeWithRecovery,
   auditLogger,
   ValidationError,
-  createValidatedCalculation,
-  validateMatrix
+  createValidatedCalculation
 } from '../../../utils/validation';
 
 // Import original DOE functions

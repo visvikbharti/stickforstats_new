@@ -28,7 +28,6 @@ import {
   generateBinomialSample,
   generatePoissonSample,
   generateExponentialSample,
-  generateRandomSample,
   getDistributionMean,
   getDistributionVariance
 } from './distributions';

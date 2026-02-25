@@ -39,14 +39,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  ToggleButton,
-  ToggleButtonGroup,
   TextField
 } from '@mui/material';
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
-  Science as ScienceIcon,
   Block as BlockIcon,
   CheckCircle as CheckIcon,
   Compare as CompareIcon

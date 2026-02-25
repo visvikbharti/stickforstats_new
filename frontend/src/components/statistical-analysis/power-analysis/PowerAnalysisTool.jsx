@@ -16,7 +16,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Grid,
@@ -58,17 +57,12 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import GroupsIcon from '@mui/icons-material/Groups';
-import InfoIcon from '@mui/icons-material/Info';
-import WarningIcon from '@mui/icons-material/Warning';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DownloadIcon from '@mui/icons-material/Download';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ScienceIcon from '@mui/icons-material/Science';
 import CodeIcon from '@mui/icons-material/Code';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -77,7 +71,6 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
-  Area,
   ComposedChart
 } from 'recharts';
 
@@ -98,14 +91,7 @@ import {
   generatePowerCurve,
   findSampleSizeForPower,
   minimumDetectableEffectSize,
-  cohensD,
-  hedgesG,
-  cohensF,
-  cohensW,
-  cohensH,
-  interpretEffectSize,
-  dToR,
-  rToD
+  interpretEffectSize
 } from '../../power-analysis/education/utils/powerCalculations';
 
 // Import code generators for R and Python

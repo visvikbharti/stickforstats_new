@@ -3,8 +3,6 @@ import {
   Box,
   Container,
   Typography,
-  Tabs,
-  Tab,
   Paper,
   Grid,
   Card,
@@ -15,7 +13,6 @@ import {
   Button,
   Alert
 } from '@mui/material';
-import SchoolIcon from '@mui/icons-material/School';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';

@@ -59,7 +59,6 @@ import {
   CircularProgress,
   Tooltip,
   IconButton,
-  Divider,
   FormControlLabel,
   Checkbox,
   RadioGroup,
@@ -71,7 +70,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemSecondaryAction,
   ListItemButton,
   Dialog,
   DialogTitle,
@@ -80,14 +78,11 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
-  Badge
+  StepContent
 } from '@mui/material';
 
 import {
   ExpandMore as ExpandMoreIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
   Help as HelpIcon,
   Assessment as AssessmentIcon,
@@ -102,9 +97,7 @@ import {
   VisibilityOff as VisibilityOffIcon,
   PictureAsPdf as PictureAsPdfIcon,
   TableChart as TableChartIcon,
-  Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
   SwapHoriz as SwapHorizIcon,
   Functions as FunctionsIcon

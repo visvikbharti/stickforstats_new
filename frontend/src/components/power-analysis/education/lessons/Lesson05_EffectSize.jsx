@@ -38,8 +38,6 @@ import {
   TextField,
   Tabs,
   Tab,
-  ToggleButton,
-  ToggleButtonGroup,
   InputAdornment,
 } from '@mui/material';
 import {
@@ -49,14 +47,8 @@ import {
   ExpandMore,
   TrendingUp,
   Functions,
-  Calculate,
   SwapHoriz,
-  Science,
-  School,
-  Psychology,
   Warning,
-  Info,
-  Lightbulb,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';

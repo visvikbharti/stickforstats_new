@@ -27,7 +27,7 @@
  * - Educational without being condescending
  */
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import './TestSelectionPanel.scss';
 
 // Test categories and their properties

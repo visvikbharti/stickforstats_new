@@ -5,9 +5,6 @@ import {
   Box,
   Grid,
   Paper,
-  Card,
-  CardContent,
-  CardActions,
   Button,
   Stepper,
   Step,
@@ -32,7 +29,6 @@ import {
   Article as WordIcon,
   Code as HtmlIcon,
   Assessment as AssessmentIcon,
-  Delete as DeleteIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Preview as PreviewIcon

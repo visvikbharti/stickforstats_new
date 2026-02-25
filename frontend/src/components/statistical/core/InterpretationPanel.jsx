@@ -13,13 +13,10 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Button,
   Grid,
   Card,
   CardContent,
-  Divider,
-  IconButton,
-  Tooltip
+  IconButton
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -31,7 +28,6 @@ import {
   Info as InfoIcon,
   AutoGraph as GraphIcon,
   Psychology as PsychologyIcon,
-  QuestionMark as QuestionIcon,
   BookmarkBorder as BookmarkIcon
 } from '@mui/icons-material';
 

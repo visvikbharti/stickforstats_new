@@ -2,7 +2,7 @@
  * D3BlandAltman - Bland-Altman agreement plot for method comparison.
  * Scatter of (mean) vs (difference) with bias line and LOA.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

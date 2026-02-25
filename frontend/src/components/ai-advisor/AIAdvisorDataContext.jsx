@@ -16,16 +16,8 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
-  Collapse,
   Alert,
   Divider,
 } from '@mui/material';

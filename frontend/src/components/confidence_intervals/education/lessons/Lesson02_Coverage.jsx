@@ -4,9 +4,6 @@ import {
   Typography,
   Paper,
   Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Button,
   Grid,
   Card,
@@ -16,7 +13,6 @@ import {
   StepLabel,
   Chip
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { MathJax } from 'better-react-mathjax';

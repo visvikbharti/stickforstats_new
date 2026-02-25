@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Grid, Card, CardContent, Typography, Button, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Alert, IconButton, Tooltip, TextField, InputAdornment,
-  Accordion, AccordionSummary, AccordionDetails, Badge,
-  LinearProgress, Fade, Zoom, Switch, FormControlLabel,
+  Alert, Tooltip, TextField, InputAdornment,
+  Accordion, AccordionSummary, AccordionDetails, Fade, Switch, FormControlLabel,
   ThemeProvider, createTheme, CssBaseline, alpha
 } from '@mui/material';
 import {
@@ -12,10 +11,6 @@ import {
   Shield as ShieldIcon,
   Science as ScienceIcon,
   TrendingUp as TrendingUpIcon,
-  School as SchoolIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Info as InfoIcon,
   Search as SearchIcon,
   Speed as SpeedIcon,
   Psychology as PsychologyIcon,

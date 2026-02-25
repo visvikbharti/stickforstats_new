@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } fr
 import {
   Box,
   Typography,
-  Paper,
   Button,
   Alert,
   Divider,
@@ -23,22 +22,17 @@ import {
   IconButton,
   Tooltip,
   useMediaQuery,
-  LinearProgress,
   Snackbar,
   Fade,
   Badge,
   Chip
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import DownloadIcon from '@mui/icons-material/Download';
 import SettingsIcon from '@mui/icons-material/Settings';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { useSnackbar } from 'notistack';
 
 // Import API
 import { fetchPcaVisualizationData } from '../../api/pcaApi';

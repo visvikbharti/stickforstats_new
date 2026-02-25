@@ -8,9 +8,7 @@ import {
   Tab,
   Grid,
   Alert,
-  Button,
   Chip,
-  Divider,
   Card,
   CardContent,
   List,
@@ -25,7 +23,6 @@ import {
   Science as ScienceIcon,
   ArrowBack as BackIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   Functions as FunctionsIcon,
   CompareArrows as CompareIcon
 } from '@mui/icons-material';
@@ -40,7 +37,6 @@ import {
   ResultDisplay,
   InterpretationPanel,
   DistributionPlot,
-  ScatterPlot,
   TheoryCard,
   SimulationControl
 } from '../components/statistical';

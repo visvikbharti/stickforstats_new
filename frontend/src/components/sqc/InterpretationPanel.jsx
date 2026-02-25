@@ -1,23 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Box, 
   Typography, 
   Paper, 
-  Divider, 
   Chip,
   Collapse,
   IconButton,
-  Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Tooltip,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   useTheme
 } from '@mui/material';
@@ -27,12 +20,7 @@ import {
   Check as CheckIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  Info as InfoIcon,
-  Assessment as AssessmentIcon,
-  Speed as SpeedIcon,
-  Functions as FunctionsIcon,
-  BarChart as BarChartIcon,
-  ShowChart as ShowChartIcon
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 

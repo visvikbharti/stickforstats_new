@@ -37,7 +37,6 @@ import {
   TableRow,
   Divider,
   IconButton,
-  Tooltip,
   useTheme
 } from '@mui/material';
 import {
@@ -48,10 +47,7 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Line,
-  LineChart,
-  ReferenceLine,
-  Legend
+  Line
 } from 'recharts';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';

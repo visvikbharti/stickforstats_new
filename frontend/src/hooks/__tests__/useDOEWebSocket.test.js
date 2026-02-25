@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import useDOEWebSocket from '../useDOEWebSocket';
 
 // Mock the secureWebSocketUtils module

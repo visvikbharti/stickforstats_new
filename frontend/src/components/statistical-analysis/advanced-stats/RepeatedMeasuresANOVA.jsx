@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
+import { endpoints, getApiUrl } from '../../../config/apiConfig';
 import {
   Box,
   Typography,
@@ -58,8 +58,7 @@ import {
   CartesianGrid,
   Tooltip as ChartTooltip,
   Legend,
-  ResponsiveContainer,
-  ErrorBar
+  ResponsiveContainer
 } from 'recharts';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoIcon from '@mui/icons-material/Info';

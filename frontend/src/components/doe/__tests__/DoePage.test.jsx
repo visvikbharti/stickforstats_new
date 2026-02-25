@@ -2,6 +2,11 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+// Import after mocks
+import DoePage from '../DoePage';
+import authService from '../../../services/authService';
+import contentService from '../../../services/contentService';
+
 // Mock the services BEFORE importing DoePage (virtual: true since files don't exist yet)
 jest.mock('../../../services/authService', () => ({
   __esModule: true,
@@ -79,11 +84,6 @@ jest.mock('../utils/ResponsiveDoePage', () => {
     );
   };
 });
-
-// Import after mocks
-import DoePage from '../DoePage';
-import authService from '../../../services/authService';
-import contentService from '../../../services/contentService';
 
 describe('DoePage Component', () => {
   const mockUser = { id: 'user123', name: 'Test User' };

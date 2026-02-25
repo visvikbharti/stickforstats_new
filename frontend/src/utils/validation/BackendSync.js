@@ -9,7 +9,6 @@
  */
 
 import { auditLogger } from './AuditLogger';
-import { centralErrorHandler } from './CentralErrorHandler';
 import { recordError, recordComplianceMetric } from './monitoring';
 
 /**

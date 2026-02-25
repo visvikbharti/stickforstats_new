@@ -16,11 +16,7 @@ import {
   Typography,
   Paper,
   Chip,
-  Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText
+  Grid
 } from '@mui/material';
 import {
   CheckCircle as CompleteIcon,

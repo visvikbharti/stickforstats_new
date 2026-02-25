@@ -5,18 +5,16 @@
  * Now with Professional UI featuring dark mode, gradients, and glass effects
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Paper, Typography, TextField, Button, Grid,
   Card, CardContent, Alert, CircularProgress, Box,
   FormControl, InputLabel, Select, MenuItem, Divider,
-  Chip, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Fade, Zoom, Grow, alpha
+  Chip, Fade, Zoom, Grow
 } from '@mui/material';
 import {
-  Calculate, Clear, CheckCircle, Warning,
+  Calculate, Clear,
   TrendingUp as TrendingUpIcon,
-  Science as ScienceIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';

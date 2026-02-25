@@ -3,6 +3,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+import PcaVisualization from '../PcaVisualization';
+import * as pcaApi from '../../../api/pcaApi';
+
 // Mock notistack before importing components
 jest.mock('notistack', () => ({
   useSnackbar: () => ({
@@ -64,9 +67,6 @@ global.WebSocket = class MockWebSocket {
   close() {}
 };
 global.WebSocket.OPEN = 1;
-
-import PcaVisualization from '../PcaVisualization';
-import * as pcaApi from '../../../api/pcaApi';
 
 // Sample mock data
 const mockVisualizationData = {

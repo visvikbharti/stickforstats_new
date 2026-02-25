@@ -2,20 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
-  Paper, 
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
-  Divider,
+  Paper,
   Chip,
-  Tooltip,
   IconButton,
   Button,
   Card,
   CardContent,
-  CardActions,
   Collapse,
   CircularProgress,
   useTheme
@@ -29,14 +21,10 @@ import {
   Build as BuildIcon,
   Info as InfoIcon,
   BarChart as BarChartIcon,
-  ShowChart as ShowChartIcon,
-  Functions as FunctionsIcon,
-  Speed as SpeedIcon,
   ExpandMore as ExpandMoreIcon,
   ArrowForward as ArrowForwardIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
-  NewReleases as NewReleasesIcon
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 

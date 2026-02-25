@@ -11,7 +11,6 @@ import {
   StepLabel,
   Button,
   Chip,
-  Divider,
   useTheme
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';

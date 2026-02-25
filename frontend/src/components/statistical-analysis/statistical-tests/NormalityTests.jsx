@@ -34,9 +34,7 @@ import {
 import {
   ScatterChart,
   Scatter,
-  LineChart,
   Line,
-  BarChart,
   ComposedChart,
   Bar,
   XAxis,
@@ -45,8 +43,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  Cell
+  ReferenceLine
 } from 'recharts';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';

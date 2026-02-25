@@ -1,30 +1,20 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Tab, Tabs, Paper, Grid, Card, CardContent,
-  Button, Slider, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, Chip, LinearProgress, Tooltip, IconButton, Switch, FormControlLabel,
-  Divider, List, ListItem, ListItemText, ListItemIcon, Accordion,
-  AccordionSummary, AccordionDetails, Stepper, Step, StepLabel, Badge,
-  Fab, Zoom, Fade, Grow, Collapse, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, ToggleButton, ToggleButtonGroup,
-  Radio, RadioGroup, FormLabel
+  Button, Slider, Select, MenuItem, FormControl, InputLabel,
+  Alert, Chip, LinearProgress, Tooltip, Switch, FormControlLabel,
+  Divider, List, ListItem, ListItemText, Stepper, Step, StepLabel,
+  Fab, Zoom, Fade, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
-import {
-  PlayArrow, Pause, Refresh, Info, School, Code, Assessment,
-  Psychology, Science, Timeline, Functions, Speed, CheckCircle,
-  Warning, Error, TrendingUp, ShowChart, BarChart, PieChart,
-  Help, Lightbulb, Calculate, Storage, CloudDownload, Share,
-  ExpandMore, NavigateNext, Casino, Equalizer, ScatterPlot,
-  Analytics, AutoGraph, BubbleChart, DataUsage, Insights,
-  LinearScale, Polyline, TrendingDown, CompareArrows, GridOn
+import { Refresh, Assessment,
+  Psychology, Science, TrendingUp, NavigateNext, ScatterPlot,
+  Analytics, Insights, GridOn
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import {
-  LineChart, Line, BarChart as RechartsBarChart, Bar, AreaChart, Area,
+import { Line, Area,
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  Legend, ResponsiveContainer, ReferenceLine, ReferenceArea, Cell,
-  RadialBarChart, RadialBar, PieChart as RechartsPieChart, Pie,
-  ComposedChart, ErrorBar, ZAxis
+  Legend, ResponsiveContainer, ReferenceLine, ReferenceArea,
+  ComposedChart
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 import jStat from 'jstat';

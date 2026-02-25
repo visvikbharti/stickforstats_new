@@ -5,10 +5,10 @@
  * Mimics SPSS/SAS data input workflows
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Papa from 'papaparse';
-import { uploadData, setSelectedVariables, getRecommendations } from '../../store/slices/testRecommenderSlice';
+import { uploadData } from '../../store/slices/testRecommenderSlice';
 import './DataInputPanel.scss';
 
 const DataInputPanel = ({ 

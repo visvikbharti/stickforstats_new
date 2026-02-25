@@ -2,11 +2,11 @@
  * D3ForestPlot - Forest plot for meta-analysis / hazard ratio visualization.
  * CI lines, weight-sized squares, diamond for pooled effect, reference line.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';
-import { getMargins, styleXAxis, renderTitle, getDimensions } from '../utils/chartHelpers';
+import { styleXAxis, renderTitle, getDimensions } from '../utils/chartHelpers';
 
 const D3ForestPlot = ({ svgRef, onScalesReady }) => {
   const { state } = usePlotConfig();

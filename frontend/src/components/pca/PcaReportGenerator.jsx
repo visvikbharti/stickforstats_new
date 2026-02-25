@@ -14,12 +14,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,7 +28,6 @@ import {
   Stack,
   Tab,
   Tabs,
-  FormHelperText,
   Table,
   TableBody,
   TableCell,
@@ -43,19 +37,12 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import ImageIcon from '@mui/icons-material/Image';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import InfoIcon from '@mui/icons-material/Info';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import DownloadIcon from '@mui/icons-material/Download';
 import PreviewIcon from '@mui/icons-material/Preview';
 import InsightsIcon from '@mui/icons-material/Insights';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import EditNoteIcon from '@mui/icons-material/EditNote';
-import BiotechIcon from '@mui/icons-material/Biotech';
 import FileOpenIcon from '@mui/icons-material/FileOpen';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -65,7 +52,6 @@ import PhotoIcon from '@mui/icons-material/Photo';
 import ArticleIcon from '@mui/icons-material/Article';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
 import * as d3 from 'd3';
 
 import { fetchPcaVisualizationData, fetchPcaResults, fetchPcaProject } from '../../api/pcaApi';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMediaQuery, useTheme, Grid, Box } from '@mui/material';
+import { useMediaQuery, useTheme, Grid } from '@mui/material';
 
 /**
  * Custom hook to check if current viewport is mobile size

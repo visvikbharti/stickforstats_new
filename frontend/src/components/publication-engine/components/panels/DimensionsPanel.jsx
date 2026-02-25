@@ -4,8 +4,7 @@
 
 import React from 'react';
 import {
-  Box, Typography, TextField, FormControl, InputLabel, Select, MenuItem,
-  Switch, FormControlLabel, Chip, Divider
+  Box, Typography, TextField, FormControl, InputLabel, Select, MenuItem, Chip, Divider
 } from '@mui/material';
 import { usePlotConfig } from '../../context/PlotConfigContext';
 

@@ -3,11 +3,6 @@ import {
   Container, 
   Typography, 
   Box, 
-  Paper, 
-  FormControl, 
-  InputLabel, 
-  MenuItem, 
-  Select, 
   Dialog,
   DialogContent,
   DialogActions,
@@ -28,7 +23,6 @@ import { SnackbarProvider } from 'notistack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
 import SchoolIcon from '@mui/icons-material/School';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import { motion } from 'framer-motion';
 

@@ -43,7 +43,6 @@ import {
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
-  Timeline as TimelineIcon,
   LocalPharmacy as PharmacyIcon,
   CheckCircle as CheckIcon,
   TrendingDown as InhibitionIcon,

@@ -7,19 +7,14 @@ import {
   Grid,
   Card,
   CardContent,
-  CardMedia,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Button,
   Chip,
   Alert,
   CircularProgress
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import InfoIcon from '@mui/icons-material/Info';
-import SchoolIcon from '@mui/icons-material/School';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import axios from 'axios';
 
 // Import components for displaying math formulas

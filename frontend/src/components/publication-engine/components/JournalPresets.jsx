@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { Box, Typography, Chip, useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { JOURNAL_PRESETS, applyPreset } from '../utils/journalPresets';
 

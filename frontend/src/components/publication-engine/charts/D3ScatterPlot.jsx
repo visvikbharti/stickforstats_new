@@ -2,7 +2,7 @@
  * D3ScatterPlot - Scatter plot with regression line, CI bands,
  * polynomial/LOESS regression, and configurable point shapes.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

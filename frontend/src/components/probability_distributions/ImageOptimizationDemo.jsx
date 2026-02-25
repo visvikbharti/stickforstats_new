@@ -20,12 +20,8 @@ import InfoIcon from '@mui/icons-material/Info';
 import OptimizedImage from '../common/OptimizedImage';
 import useImageConverter from '../../hooks/useImageConverter';
 import { imagePreloader, PRELOAD_PRIORITY } from '../../utils/imagePreloader';
-import { 
-  generateSrcset, 
-  generateSizes, 
-  generateMultiFormatSrcset,
-  STANDARD_BREAKPOINTS 
-} from '../../utils/responsiveImageUtils';
+
+
 
 /**
  * Demonstration component showcasing image optimization techniques

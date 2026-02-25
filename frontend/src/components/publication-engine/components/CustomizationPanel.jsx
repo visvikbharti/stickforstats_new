@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { Box, Typography, Tabs, Tab, Paper, useTheme } from '@mui/material';
+import { Box, Typography, Tabs, Tab, useTheme } from '@mui/material';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import TitleAxisPanel from './panels/TitleAxisPanel';
 import ColorPalettePanel from './panels/ColorPalettePanel';

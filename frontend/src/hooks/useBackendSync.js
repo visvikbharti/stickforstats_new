@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import backendSync, { getSyncStatus, forceSync, clearSyncQueue } from '../utils/validation/BackendSync';
+import { getSyncStatus, forceSync, clearSyncQueue } from '../utils/validation/BackendSync';
 
 /**
  * Custom hook for backend synchronization

@@ -21,29 +21,20 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Slider,
-  Switch,
-  FormControlLabel,
-  Tooltip,
-  IconButton,
   Divider,
   useTheme
 } from '@mui/material';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   ScatterChart,
   Scatter,
-  ComposedChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
   Cell,
   PieChart,
   Pie,
@@ -54,14 +45,8 @@ import {
   Radar
 } from 'recharts';
 import {
-  ShowChart as ShowChartIcon,
   BarChart as BarChartIcon,
-  PieChart as PieChartIcon,
-  ScatterPlot as ScatterPlotIcon,
-  Timeline as TimelineIcon,
-  InfoOutlined as InfoIcon,
-  GetApp as DownloadIcon,
-  Fullscreen as FullscreenIcon
+  Timeline as TimelineIcon
 } from '@mui/icons-material';
 import Decimal from 'decimal.js';
 

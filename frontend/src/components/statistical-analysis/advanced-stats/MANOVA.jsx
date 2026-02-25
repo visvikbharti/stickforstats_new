@@ -17,7 +17,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { chiSquarePValue, fTestPValue } from '../../../utils/statisticalDistributions';
-import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
+import { endpoints, getApiUrl } from '../../../config/apiConfig';
 import {
   Box,
   Typography,

@@ -13,7 +13,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Chip,
   Slider,
   ToggleButtonGroup,
   ToggleButton
@@ -22,7 +21,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import { MathJax } from 'better-react-mathjax';
 import { alpha } from '@mui/material/styles';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 /**
  * Lesson 6: Non-Normal Data & Transformations

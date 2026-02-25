@@ -16,8 +16,6 @@ import {
   CircularProgress,
   Switch,
   FormControlLabel,
-  Autocomplete,
-  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,8 +27,6 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
-  Code as CodeIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';

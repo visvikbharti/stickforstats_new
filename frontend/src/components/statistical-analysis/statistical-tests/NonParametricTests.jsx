@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { apiConfig, endpoints, getApiUrl } from '../../../config/apiConfig';
+import { endpoints, getApiUrl } from '../../../config/apiConfig';
 import { useSettings } from '../../../context/SettingsContext';
 import {
   Box,
@@ -20,8 +20,6 @@ import {
   Select,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
   Alert,
   Chip,
   Table,
@@ -33,7 +31,6 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,

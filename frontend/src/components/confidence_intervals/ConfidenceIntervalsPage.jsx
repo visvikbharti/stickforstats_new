@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Tab, Box, Typography, Container, Paper, Button } from '@mui/material';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
-import apiConfig from '../../config/apiConfig';
 
 // Import sub-components
 import TheoryFoundations from './education/TheoryFoundations';

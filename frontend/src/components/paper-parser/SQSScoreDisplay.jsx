@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -22,9 +22,6 @@ import {
   Chip,
   LinearProgress,
   CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   FormControl,
   InputLabel,
   Select,
@@ -34,7 +31,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Tooltip,
   useTheme,
 } from '@mui/material';
 import {
@@ -43,9 +39,7 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
-  ExpandMore as ExpandMoreIcon,
   Download as DownloadIcon,
-  Lightbulb as LightbulbIcon,
   Science as ScienceIcon,
   LocalHospital as MedicalIcon,
   Psychology as PsychologyIcon,

@@ -33,12 +33,9 @@ import {
   Error as ErrorIcon,
   Timer as TimerIcon,
   Storage as StorageIcon,
-  TrendingUp as TrendingUpIcon,
   Refresh as RefreshIcon,
-  Download as DownloadIcon,
-  Info as InfoIcon
+  Download as DownloadIcon
 } from '@mui/icons-material';
-import { Line, Bar } from 'recharts';
 
 const RAGPerformanceMonitoringPage = () => {
   const [activeTab, setActiveTab] = useState(0);

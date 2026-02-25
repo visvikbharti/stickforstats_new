@@ -9,6 +9,15 @@
  */
 
 // Core validators
+// Convenience functions for common validations
+import { ValidationError } from './StatisticalDataValidator';
+import validator from './StatisticalDataValidator';
+import auditLogger from './AuditLogger';
+import errorRecoveryManager from './ErrorRecovery';
+import errorHandler from './CentralErrorHandler';
+import { recordValidation, recordError } from './monitoring';
+import { syncAuditLog } from './BackendSync';
+
 export {
   StatisticalDataValidator,
   ValidationError
@@ -36,15 +45,6 @@ export {
   NotificationLevel,
   default as centralErrorHandler
 } from './CentralErrorHandler';
-
-// Convenience functions for common validations
-import { ValidationError } from './StatisticalDataValidator';
-import validator from './StatisticalDataValidator';
-import auditLogger from './AuditLogger';
-import errorRecoveryManager from './ErrorRecovery';
-import errorHandler from './CentralErrorHandler';
-import { recordValidation, recordError } from './monitoring';
-import { syncAuditLog } from './BackendSync';
 
 /**
  * Validate statistical parameters with automatic error handling

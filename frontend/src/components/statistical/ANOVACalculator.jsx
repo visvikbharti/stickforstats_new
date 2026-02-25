@@ -15,7 +15,7 @@
  * - Export to publication-ready formats
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 // Import settings context for Expert Mode
 import { useSettings } from '../../context/SettingsContext';
@@ -56,11 +56,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   LinearProgress,
-  Snackbar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   FormGroup,
   Switch
 } from '@mui/material';
@@ -69,23 +64,17 @@ import {
   Calculate as CalculateIcon,
   Upload as UploadIcon,
   Download as DownloadIcon,
-  Help as HelpIcon,
-  Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  ContentPaste as PasteIcon,
   Clear as ClearIcon,
   ExpandMore as ExpandMoreIcon,
   Info as InfoIcon,
   Science as ScienceIcon,
   Assessment as AssessmentIcon,
-  School as SchoolIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
   BarChart as BarChartIcon,
-  Timeline as TimelineIcon,
   CompareArrows as CompareArrowsIcon
 } from '@mui/icons-material';
 
@@ -103,7 +92,6 @@ import GuardianService from '../../services/GuardianService';
 // Import components
 import ExampleDataLoader from '../common/ExampleDataLoader';
 import GuardianWarning from '../Guardian/GuardianWarning';
-import { ExampleDatasets } from '../../data/ExampleDatasets';
 
 // Configure Decimal.js for 50 decimal precision
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });

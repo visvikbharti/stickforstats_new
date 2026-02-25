@@ -32,15 +32,12 @@ import {
   TableRow,
   Slider,
   Button,
-  Divider,
   CircularProgress,
   useTheme
 } from '@mui/material';
 import {
   ScatterChart,
   Scatter,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

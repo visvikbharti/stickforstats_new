@@ -42,15 +42,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ReferenceLine,
   ReferenceArea,
   ResponsiveContainer,
   BarChart,
   Bar,
   Cell,
-  AreaChart,
-  Area,
   ComposedChart
 } from 'recharts';
 import CaseStudyTemplate from '../components/CaseStudyTemplate';

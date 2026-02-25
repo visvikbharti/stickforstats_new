@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -10,7 +10,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Chip,
   Button,
   IconButton,
@@ -21,7 +20,6 @@ import {
   TableHead,
   TableRow,
   Alert,
-  LinearProgress,
   Switch,
   FormControlLabel
 } from '@mui/material';
@@ -33,9 +31,7 @@ import {
   Speed as SpeedIcon,
   Timer as TimerIcon,
   DataUsage as DataUsageIcon,
-  Error as ErrorIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   Cable as CableIcon
 } from '@mui/icons-material';
 

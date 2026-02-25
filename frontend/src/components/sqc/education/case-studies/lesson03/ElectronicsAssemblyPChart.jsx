@@ -47,10 +47,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Cell,
-  PieChart,
-  Pie,
-  Sector
+  Cell
 } from 'recharts';
 import { CaseStudyTemplate } from '../components/CaseStudyTemplate';
 import { useSQCAnalysisAPI } from '../../../hooks/useSQCAnalysisAPI';

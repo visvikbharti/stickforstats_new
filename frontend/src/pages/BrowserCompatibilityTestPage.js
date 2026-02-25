@@ -5,8 +5,6 @@ import {
   Box,
   Grid,
   Paper,
-  Card,
-  CardContent,
   Button,
   Alert,
   AlertTitle,
@@ -31,12 +29,7 @@ import {
   Cancel as CancelIcon,
   Warning as WarningIcon,
   ExpandMore as ExpandMoreIcon,
-  Computer as ComputerIcon,
-  Smartphone as SmartphoneIcon,
-  Tablet as TabletIcon,
-  Web as WebIcon,
-  Speed as SpeedIcon,
-  Memory as MemoryIcon
+  Web as WebIcon
 } from '@mui/icons-material';
 
 const BrowserCompatibilityTestPage = () => {

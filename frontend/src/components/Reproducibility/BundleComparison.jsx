@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import './BundleComparison.scss';
 
 // Comparison categories

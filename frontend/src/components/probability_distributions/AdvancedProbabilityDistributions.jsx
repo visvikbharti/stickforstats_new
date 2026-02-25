@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -10,19 +10,16 @@ import {
   Tab,
   Button,
   Slider,
-  TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   Alert,
-  Chip,
   Divider,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   ToggleButton,
   ToggleButtonGroup,
@@ -42,8 +39,6 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
-  ReferenceArea,
-  Area,
   ComposedChart
 } from 'recharts';
 import { advancedProbabilityCalculations } from '../../utils/advancedStatistics';

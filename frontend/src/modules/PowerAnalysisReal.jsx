@@ -33,12 +33,6 @@ import {
   Chip,
   CircularProgress,
   Paper,
-  Slider,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-  Tabs,
-  Tab,
   Table,
   TableBody,
   TableCell,
@@ -47,18 +41,14 @@ import {
   TableRow,
   Fade,
   Zoom,
-  Grow,
-  alpha
+  Grow
 } from '@mui/material';
 
 import {
-  TrendingUp as TrendingUpIcon,
   Calculate as CalculateIcon,
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
-  Assessment as AssessmentIcon,
   Timeline as TimelineIcon,
-  Science as ScienceIcon,
   Analytics as AnalyticsIcon
 } from '@mui/icons-material';
 
@@ -69,7 +59,7 @@ import ProfessionalContainer, { glassMorphism, gradients } from '../components/c
 import axios from 'axios';
 
 // Import API configuration
-import { apiConfig, getApiUrl } from '../config/apiConfig';
+import { apiConfig } from '../config/apiConfig';
 
 // Import real example scenarios
 const POWER_SCENARIOS = {

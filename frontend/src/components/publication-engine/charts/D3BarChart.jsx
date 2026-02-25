@@ -1,7 +1,7 @@
 /**
  * D3BarChart - Grouped/stacked bar chart with error bars
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

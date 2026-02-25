@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -23,7 +23,6 @@ import {
   Tabs,
   Tab,
   Divider,
-  useTheme,
   alpha,
   ThemeProvider,
   createTheme,
@@ -48,12 +47,9 @@ import {
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
-import {
-  LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
+import { Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
-  Legend, ResponsiveContainer, Area, AreaChart,
-  PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis, ReferenceLine
+  Legend, ResponsiveContainer, Area, AreaChart, Cell
 } from 'recharts';
 
 // Beautiful gradient color schemes

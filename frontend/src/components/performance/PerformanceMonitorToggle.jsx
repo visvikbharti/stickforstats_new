@@ -7,7 +7,6 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
-  ToggleButtonGroup,
   ToggleButton
 } from '@mui/material';
 

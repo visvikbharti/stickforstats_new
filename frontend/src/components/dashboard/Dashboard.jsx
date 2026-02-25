@@ -8,7 +8,6 @@ import {
   Card, 
   CardContent, 
   CardActions,
-  CardMedia,
   Divider,
   List,
   ListItem,
@@ -20,15 +19,12 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   IconButton
 } from '@mui/material';
-import { 
-  Dashboard as DashboardIcon,
+import {
   Dataset as DatasetIcon,
   Timeline as TimelineIcon,
   Science as ScienceIcon,
-  Description as DescriptionIcon,
   Functions as FunctionsIcon,
   BarChart as BarChartIcon,
   BubbleChart as BubbleChartIcon,

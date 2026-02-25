@@ -43,9 +43,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   FormControlLabel,
-  Switch,
-  Tooltip,
-  IconButton
+  Switch
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,

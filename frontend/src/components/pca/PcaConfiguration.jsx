@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Button,
   Alert,
   Divider,
@@ -16,21 +15,15 @@ import {
   CardContent,
   CardHeader,
   Grid,
-  LinearProgress,
   TextField,
   MenuItem,
   Select,
   InputLabel,
-  Tooltip,
-  IconButton,
-  Collapse,
   Fade
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SettingsIcon from '@mui/icons-material/Settings';
-import TuneIcon from '@mui/icons-material/Tune';
 import BarChartIcon from '@mui/icons-material/BarChart';
 
 import { runPcaAnalysis } from '../../api/pcaApi';

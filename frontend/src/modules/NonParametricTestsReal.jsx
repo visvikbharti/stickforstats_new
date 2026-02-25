@@ -38,8 +38,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  Tab,
-  Divider
+  Tab
 } from '@mui/material';
 
 import {

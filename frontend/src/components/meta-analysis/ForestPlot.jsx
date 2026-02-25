@@ -19,7 +19,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Divider,
 } from '@mui/material';
 
 const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {

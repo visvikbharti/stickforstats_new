@@ -40,12 +40,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Tooltip,
-  Switch,
-  FormControlLabel,
   CircularProgress,
   Tabs,
-  Tab,
-  Divider
+  Tab
 } from '@mui/material';
 
 // Icons

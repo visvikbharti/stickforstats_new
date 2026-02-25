@@ -14,8 +14,7 @@ import {
   executeWithRecovery,
   auditLogger,
   ValidationError,
-  createValidatedCalculation,
-  centralErrorHandler
+  createValidatedCalculation
 } from './validation';
 
 // Import original simulation functions

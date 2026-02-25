@@ -23,14 +23,11 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Tooltip,
-  Divider,
   Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   FormControl,
   RadioGroup,
@@ -48,8 +45,6 @@ import {
   Psychology as AIIcon,
   TrendingUp as ParametricIcon,
   Shuffle as NonParametricIcon,
-  Lightbulb as RecommendedIcon,
-  Info as InfoIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
 

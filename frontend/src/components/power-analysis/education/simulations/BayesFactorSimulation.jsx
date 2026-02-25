@@ -42,32 +42,22 @@ import {
   CardContent,
   Alert,
   Chip,
-  Tooltip,
   IconButton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Divider,
-  LinearProgress
+  Divider
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import InfoIcon from '@mui/icons-material/Info';
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import BalanceIcon from '@mui/icons-material/Balance';
 
 // Import functions
-import { normalPDF, normalCDF, normalQuantile } from '../utils/distributionFunctions';
+import { normalPDF, normalCDF } from '../utils/distributionFunctions';
 
 /**
  * Cauchy PDF for JZS prior

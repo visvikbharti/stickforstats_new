@@ -12,7 +12,7 @@
  * @version 1.0.0
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { alpha } from '@mui/material/styles';
 import {
   Box,
@@ -21,12 +21,10 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   Button,
   Card,
   CardContent,
   Grid,
-  Slider,
   Alert,
   AlertTitle,
   Divider,
@@ -43,8 +41,6 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ScienceIcon from '@mui/icons-material/Science';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import InfoIcon from '@mui/icons-material/Info';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 // ============================================================================
 // CONSTANTS

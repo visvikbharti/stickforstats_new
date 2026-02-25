@@ -15,16 +15,11 @@ import {
   CircularProgress,
   Alert,
   AlertTitle,
-  Tooltip,
-  IconButton,
-  Card,
-  CardContent,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Divider
 } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SaveIcon from '@mui/icons-material/Save';
 import CalculateIcon from '@mui/icons-material/Calculate';
@@ -39,7 +34,6 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 
 // Import visualization components
 import IntervalVisualization from '../visualizations/IntervalVisualization';
-import BootstrapSimulationVisualization from '../visualizations/BootstrapSimulationVisualization';
 
 /**
  * Calculator for bootstrap confidence intervals

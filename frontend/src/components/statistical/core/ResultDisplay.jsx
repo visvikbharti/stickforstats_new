@@ -7,8 +7,6 @@ import {
   Card,
   CardContent,
   Chip,
-  Button,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -25,16 +23,12 @@ import {
 } from '@mui/material';
 import {
   Assessment as AssessmentIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
   BarChart as BarChartIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
-  Share as ShareIcon,
   Print as PrintIcon,
   Check as CheckIcon,
-  Close as CloseIcon,
-  Info as InfoIcon
+  Close as CloseIcon
 } from '@mui/icons-material';
 
 const ResultDisplay = ({

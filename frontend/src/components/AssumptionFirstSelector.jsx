@@ -8,13 +8,11 @@
 import React, { useState } from 'react';
 import {
   Container, Paper, Typography, Box, Grid, Card, CardContent,
-  Button, Stepper, Step, StepLabel, Alert, Chip, Divider,
-  List, ListItem, ListItemIcon, ListItemText, CircularProgress,
-  Accordion, AccordionSummary, AccordionDetails, LinearProgress
+  Button, Stepper, Step, StepLabel, Alert, Chip, Divider, ListItemIcon, CircularProgress,
+  Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import {
-  CheckCircle, Warning, Error as ErrorIcon, ExpandMore,
-  Science, TrendingUp, School, Lightbulb, PlayArrow
+  CheckCircle, Warning, Error as ErrorIcon, ExpandMore, Lightbulb, PlayArrow
 } from '@mui/icons-material';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 

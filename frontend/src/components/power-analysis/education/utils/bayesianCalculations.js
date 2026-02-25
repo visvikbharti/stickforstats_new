@@ -12,7 +12,7 @@
  * - O'Hagan et al. (2005). Assurance in clinical trial design.
  */
 
-import { normalPDF, normalCDF, normalQuantile, tCDF, tPDF } from './distributionFunctions';
+import { normalPDF, normalQuantile, tPDF } from './distributionFunctions';
 
 // ============================================================================
 // BAYES FACTOR CALCULATIONS

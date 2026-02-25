@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -31,7 +31,6 @@ import { useTheme } from '@mui/material/styles';
 import DownloadIcon from '@mui/icons-material/Download';
 import SettingsIcon from '@mui/icons-material/Settings';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
@@ -40,7 +39,6 @@ import * as d3 from 'd3';
 import { scaleOrdinal } from 'd3-scale';
 import { schemeCategory10, schemeSet2, schemePaired } from 'd3-scale-chromatic';
 import { saveSvgAsPng } from 'save-svg-as-png';
-import { useSnackbar } from 'notistack';
 
 import { fetchPcaVisualizationData } from '../../../api/pcaApi';
 

@@ -33,7 +33,6 @@ import {
   Typography,
   Grid,
   Slider,
-  Button,
   Card,
   CardContent,
   Alert,
@@ -48,11 +47,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider,
-  Tooltip
+  Divider
 } from '@mui/material';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -62,12 +59,9 @@ import {
   ResponsiveContainer,
   ReferenceLine,
   Area,
-  ComposedChart,
-  BarChart,
-  Bar
+  ComposedChart
 } from 'recharts';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
-import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';

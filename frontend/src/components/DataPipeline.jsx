@@ -9,16 +9,13 @@ import React, { useState } from 'react';
 import {
   Container, Paper, Typography, Box, Stepper, Step, StepLabel,
   StepContent, Button, TextField, Grid, Card, CardContent,
-  Alert, CircularProgress, Chip, Divider, IconButton,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Alert, CircularProgress, Chip, Divider,
+  Table, TableBody, TableCell, TableContainer, TableRow,
   List, ListItem, ListItemText, ListItemIcon
 } from '@mui/material';
-import {
-  CloudUpload, CheckCircle, Science, Assessment,
-  TrendingUp, Download, Share, PlayArrow
+import { CheckCircle, Science, Download, PlayArrow
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
-import AssumptionFirstSelector from './AssumptionFirstSelector';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 
 const DataPipeline = () => {

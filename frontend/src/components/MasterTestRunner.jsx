@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Box, Stepper, Step, StepLabel, StepContent, Button, Card, CardContent,
-  Typography, Alert, CircularProgress, LinearProgress, Chip, Paper,
-  Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider,
-  IconButton, Tooltip, Badge, Fade, Zoom, Collapse, useTheme
+  Box, Stepper, Step, StepLabel, Button, Card, CardContent,
+  Typography, Alert, CircularProgress, LinearProgress, Chip, Paper, Grid,
+  IconButton, Tooltip, Badge, Fade, Collapse, useTheme
 } from '@mui/material';
 import {
   Shield as ShieldIcon,
   Science as ScienceIcon,
   Upload as UploadIcon,
   PlayArrow as PlayArrowIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
   Refresh as RefreshIcon,
   Assessment as AssessmentIcon,
-  Visibility as VisibilityIcon,
   Speed as SpeedIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { apiConfig, getApiUrl } from '../config/apiConfig';
+import { getApiUrl } from '../config/apiConfig';
 import TestSelectionDashboard from './TestSelectionDashboard';
 import GuardianWarning from './Guardian/GuardianWarning';
 

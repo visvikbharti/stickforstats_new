@@ -22,20 +22,17 @@ import ChartIcon from '@mui/icons-material/ShowChart';
 import CompareIcon from '@mui/icons-material/Compare';
 import AppIcon from '@mui/icons-material/Apps';
 
-import DistributionSelector from './DistributionSelector';
 import DistributionParameters from './DistributionParameters';
 import DistributionPlot from './DistributionPlot';
 import ProbabilityCalculator from './ProbabilityCalculator';
-import RandomSampleGenerator from './RandomSampleGenerator';
 import BinomialApproximation from './BinomialApproximation';
-import DataFitting from './DataFitting';
 import ApplicationSimulations from './ApplicationSimulations';
 import EducationalContent from './EducationalContent';
 import SaveDistributionDialog from './SaveDistributionDialog';
 import DistributionComparison from './DistributionComparison';
 import AdvancedProbabilityDistributions from './AdvancedProbabilityDistributions';
 
-import { fetchDistributionProject, fetchDistribution, createDistributionProject } from '../../api/probabilityDistributionsApi';
+import { fetchDistributionProject, fetchDistribution } from '../../api/probabilityDistributionsApi';
 import { useErrorHandler } from '../../utils/errorHandlers';
 
 /**

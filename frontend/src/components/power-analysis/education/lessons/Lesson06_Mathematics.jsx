@@ -20,7 +20,6 @@ import {
   Grid,
   Slider,
   Alert,
-  Chip,
   Divider,
   Table,
   TableBody,
@@ -35,8 +34,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import {
   NavigateNext,
@@ -44,12 +41,6 @@ import {
   CheckCircle,
   ExpandMore,
   Functions,
-  ShowChart,
-  Science,
-  Calculate,
-  School,
-  Lightbulb,
-  Info,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';

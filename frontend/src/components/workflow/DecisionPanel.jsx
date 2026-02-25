@@ -20,7 +20,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardActions,
   Alert,
   AlertTitle,
   Chip,
@@ -33,11 +32,9 @@ import {
 } from '@mui/material';
 import {
   HelpOutline as HelpIcon,
-  CheckCircle as SelectIcon,
   ArrowForward as ProceedIcon,
   Info as InfoIcon,
-  Star as RecommendedIcon,
-  Warning as WarningIcon
+  Star as RecommendedIcon
 } from '@mui/icons-material';
 
 const DecisionPanel = ({ 

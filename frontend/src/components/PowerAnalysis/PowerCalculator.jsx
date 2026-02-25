@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import jStat from 'jstat';
 import './PowerCalculator.scss';
 

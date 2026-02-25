@@ -17,15 +17,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tooltip,
-  Chip
+  Tooltip
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Delete as DeleteIcon,
   ArrowForward as ArrowForwardIcon,
-  Visibility as VisibilityIcon,
-  FilterList as FilterListIcon
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';

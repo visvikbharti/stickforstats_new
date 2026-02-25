@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Alert, AlertTitle, Box, Button, Collapse, Typography,
   List, ListItem, ListItemIcon, ListItemText, Chip,
@@ -20,7 +20,6 @@ import {
   Visibility as ViewIcon,
   PictureAsPdf as PdfIcon,
   Code as JsonIcon,
-  Download as DownloadIcon,
   AutoFixHigh as TransformIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';

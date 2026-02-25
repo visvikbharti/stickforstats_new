@@ -9,7 +9,6 @@
 
 import React from 'react';
 import {
-  Box,
   Table,
   TableBody,
   TableCell,

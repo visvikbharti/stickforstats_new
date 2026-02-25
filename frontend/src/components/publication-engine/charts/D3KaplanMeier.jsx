@@ -2,7 +2,7 @@
  * D3KaplanMeier - Kaplan-Meier survival curve with CI bands,
  * censoring marks, multi-group overlay, risk table, and median line.
  */
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as d3 from 'd3';
 import { usePlotConfig } from '../context/PlotConfigContext';
 import { getPaletteColors } from '../utils/colorPalettes';

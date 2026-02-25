@@ -11,7 +11,7 @@
  * - Effect size visualizations
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -29,20 +29,13 @@ import {
   Paper,
   Chip,
   Alert,
-  Button,
   Tooltip,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Switch,
   FormControlLabel
 } from '@mui/material';
 import {
-  Info as InfoIcon,
   Download as DownloadIcon,
-  Fullscreen as FullscreenIcon,
   Science as ScienceIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon

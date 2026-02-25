@@ -45,7 +45,6 @@ import {
   CloudUpload as UploadIcon,
   CheckCircle as CheckIcon,
   PlayArrow as RunIcon,
-  Description as ReportIcon,
   Article as ApaIcon,
   TableChart as TableIcon,
   Code as CodeIcon

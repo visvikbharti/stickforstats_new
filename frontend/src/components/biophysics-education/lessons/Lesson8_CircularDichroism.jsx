@@ -40,10 +40,8 @@ import {
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
-  Science as ScienceIcon,
   Waves as WavesIcon,
-  CheckCircle as CheckIcon,
-  Biotech as BiotechIcon
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
 
 const STEPS = [

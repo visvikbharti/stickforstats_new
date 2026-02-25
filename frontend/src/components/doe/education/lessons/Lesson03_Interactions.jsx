@@ -9,11 +9,7 @@ import {
   Card,
   CardContent,
   Chip,
-  Slider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  Slider
 } from '@mui/material';
 import { useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';

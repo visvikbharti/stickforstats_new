@@ -9,7 +9,7 @@
  * @version 1.0.0
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,24 +17,14 @@ import {
   TextField,
   Slider,
   FormControl,
-  FormLabel,
   RadioGroup,
   FormControlLabel,
   Radio,
   Alert,
   Chip,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
   Button,
-  Tooltip,
-  Card,
-  CardContent,
   Divider,
-  InputAdornment,
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -43,11 +33,9 @@ import {
   Speed as EffectIcon,
   Info as InfoIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   Lightbulb as TipIcon,
 } from '@mui/icons-material';
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,

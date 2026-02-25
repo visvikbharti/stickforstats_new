@@ -9,25 +9,19 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Slider,
-  Divider
+  Slider
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { 
-  BarChart, 
-  Bar, 
   LineChart, 
   Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
   ScatterChart,
-  Scatter,
-  ContourChart,
-  Contour
+  Scatter
 } from 'recharts';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { motion } from 'framer-motion';

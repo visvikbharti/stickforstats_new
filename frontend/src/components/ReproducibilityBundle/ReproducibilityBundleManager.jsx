@@ -2,7 +2,7 @@
 // Enterprise-grade reproducibility bundle management interface
 // Ensures complete analysis reproducibility with data fingerprinting and state capture
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectCurrentBundle,
@@ -14,11 +14,7 @@ import {
   loadBundle,
   exportBundle,
   importBundle,
-  verifyBundle,
-  addPipelineStep,
-  addDataFingerprint,
-  setSeed,
-  clearBundle
+  verifyBundle
 } from '../../store/slices/reproducibilitySlice';
 import './ReproducibilityBundleManager.scss';
 

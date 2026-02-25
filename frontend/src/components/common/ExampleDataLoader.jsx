@@ -20,7 +20,6 @@ import {
   Chip,
   Alert,
   IconButton,
-  Tooltip,
   Divider,
   Card,
   CardContent,
@@ -35,8 +34,6 @@ import {
   Agriculture as AgricultureIcon,
   Psychology as PsychologyIcon,
   Assessment as AssessmentIcon,
-  TrendingUp as TrendingUpIcon,
-  Category as CategoryIcon,
   DataUsage as DataIcon,
   Close as CloseIcon,
   Info as InfoIcon

@@ -22,7 +22,6 @@ import {
   Slider,
   Alert,
   Chip,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -36,10 +35,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   LinearProgress,
 } from '@mui/material';
 import {
@@ -49,17 +44,11 @@ import {
   BoltOutlined,
   ExpandMore,
   Lightbulb,
-  Science,
   Warning,
   Info,
-  PlayArrow,
   TrendingUp,
-  Psychology,
-  School,
-  BarChart,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import jStat from 'jstat';
 
 // Step titles for the lesson

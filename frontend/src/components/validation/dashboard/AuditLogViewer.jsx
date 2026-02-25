@@ -8,7 +8,7 @@
  * @license MIT
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -37,7 +37,6 @@ import {
 } from '@mui/material';
 import {
   Search,
-  FilterList,
   Download,
   Refresh,
   ExpandMore,
@@ -47,10 +46,9 @@ import {
   Warning,
   Error as ErrorIcon,
   Security,
-  ContentCopy,
-  Visibility
+  ContentCopy
 } from '@mui/icons-material';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 
 /**
  * Main audit log viewer component

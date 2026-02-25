@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import {
   Speed as SpeedIcon,
-  Memory as MemoryIcon,
   Storage as StorageIcon,
   Timeline as TimelineIcon,
   Assessment as AssessmentIcon,

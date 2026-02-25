@@ -19,7 +19,6 @@ import {
   Card,
   CardContent,
   LinearProgress,
-  Alert,
   ToggleButton,
   ToggleButtonGroup
 } from '@mui/material';
@@ -27,15 +26,12 @@ import {
   PlayArrow as PlayIcon,
   Pause as PauseIcon,
   Replay as ResetIcon,
-  Speed as SpeedIcon,
   Casino as RandomIcon,
   Settings as SettingsIcon,
   Download as DownloadIcon,
-  TrendingUp as TrendingIcon,
-  Science as ScienceIcon,
-  Info as InfoIcon
+  Science as ScienceIcon
 } from '@mui/icons-material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 const SimulationControl = ({
   parameters = [],

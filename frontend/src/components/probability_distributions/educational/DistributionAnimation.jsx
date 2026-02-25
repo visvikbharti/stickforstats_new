@@ -9,20 +9,13 @@ import {
   CardContent,
   Grid,
   Paper,
-  IconButton,
-  Tooltip,
-  CircularProgress,
-  useTheme,
-  useMediaQuery
+  CircularProgress
 } from '@mui/material';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { BlockMath } from 'react-katex';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import InfoIcon from '@mui/icons-material/Info';
-import FunctionsIcon from '@mui/icons-material/Functions';
-import { motion, AnimatePresence } from 'framer-motion';
 import * as d3 from 'd3';
 
 // For direct calculation without API

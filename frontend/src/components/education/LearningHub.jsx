@@ -14,8 +14,7 @@ import {
   LinearProgress,
   Alert,
   Tabs,
-  Tab,
-  Badge
+  Tab
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';

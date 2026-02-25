@@ -38,15 +38,11 @@ import {
   Card,
   CardContent,
   Alert,
-  Chip,
-  Tooltip,
   IconButton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Switch,
-  FormControlLabel,
   LinearProgress,
   Divider,
   useTheme
@@ -54,12 +50,7 @@ import {
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import FastForwardIcon from '@mui/icons-material/FastForward';
-import SpeedIcon from '@mui/icons-material/Speed';
 import ScienceIcon from '@mui/icons-material/Science';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import InfoIcon from '@mui/icons-material/Info';
 
 // Import distribution functions

@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
-  CardActions, Button, IconButton, Chip, LinearProgress,
-  Avatar, Badge, Tooltip, Fab, Divider, List, ListItem,
-  ListItemIcon, ListItemText, ListItemAvatar, ListItemButton,
-  Tab, Tabs, alpha, useTheme,
-  Zoom, Fade, Grow, CardMedia, CardActionArea
+  CardActions, Button, Chip, LinearProgress,
+  Avatar, Tooltip, Fab,
+  Tab, Tabs, alpha, useTheme, Grow, CardActionArea
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   School as SchoolIcon,
   Science as ScienceIcon,
   Timeline as TimelineIcon,
-  Assessment as AssessmentIcon,
-  TrendingUp as TrendingUpIcon,
   Functions as FunctionsIcon,
   Psychology as PsychologyIcon,
   BusinessCenter as BusinessIcon,
   LocalHospital as MedicalIcon,
-  Factory as FactoryIcon,
-  Nature as EnvironmentIcon,
   CompareArrows as CompareIcon,
   BarChart as BarChartIcon,
   ScatterPlot as ScatterPlotIcon,
@@ -29,18 +23,13 @@ import {
   DonutLarge as DonutIcon,
   Speed as SpeedIcon,
   CheckCircle as CheckCircleIcon,
-  RadioButtonUnchecked as PendingIcon,
   Lock as LockIcon,
   Star as StarIcon,
   EmojiEvents as TrophyIcon,
   MenuBook as MenuBookIcon,
   PlayCircleFilled as PlayIcon,
   ArrowForward as ArrowForwardIcon,
-  Whatshot as HotIcon,
-  NewReleases as NewIcon,
-  Verified as VerifiedIcon,
-  Grade as GradeIcon,
-  WorkspacePremium as PremiumIcon
+  Whatshot as HotIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';

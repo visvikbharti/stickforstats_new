@@ -13,7 +13,6 @@ import {
 import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Refresh as RefreshIcon,
   SignalCellularAlt as SignalIcon,
   SignalCellularConnectedNoInternet0Bar as NoSignalIcon,

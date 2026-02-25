@@ -26,13 +26,12 @@ import {
 import {
   PlayArrow as PlayArrowIcon,
   Refresh as RefreshIcon,
-  Save as SaveIcon,
   ContentCopy as ContentCopyIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 
-import { Line, Bar, Scatter } from 'react-chartjs-2';
+import { Bar, Scatter } from 'react-chartjs-2';
 
 import { generateRandomSample } from '../../api/probabilityDistributionsApi';
 

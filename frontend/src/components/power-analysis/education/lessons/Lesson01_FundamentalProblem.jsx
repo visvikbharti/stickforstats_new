@@ -10,10 +10,6 @@ import {
   Button,
   Slider,
   Chip,
-  Divider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Table,
   TableBody,
   TableCell,
@@ -21,8 +17,6 @@ import {
   TableHead,
   TableRow
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ScienceIcon from '@mui/icons-material/Science';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';

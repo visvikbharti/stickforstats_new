@@ -27,7 +27,6 @@ import {
   Slider,
   Alert,
   AlertTitle,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
@@ -37,7 +36,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   TextField
 } from '@mui/material';
@@ -46,8 +44,6 @@ import {
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import FunctionsIcon from '@mui/icons-material/Functions';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import QuizIcon from '@mui/icons-material/Quiz';
 
 // ============================================================================

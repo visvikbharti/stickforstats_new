@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -7,7 +7,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   Button,
   Card,
@@ -22,10 +21,7 @@ import {
   Collapse,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
-  Divider,
-  LinearProgress,
   useTheme,
   alpha,
   Dialog,
@@ -41,21 +37,14 @@ import {
 import {
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   Error as ErrorIcon,
-  Info as InfoIcon,
   Science as ScienceIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Shield as ShieldIcon,
-  TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon,
   Code as CodeIcon,
-  TableChart as TableIcon,
-  Description as DocumentIcon,
   Psychology as PsychologyIcon,
   Calculate as CalculateIcon,
   Fingerprint as FingerprintIcon

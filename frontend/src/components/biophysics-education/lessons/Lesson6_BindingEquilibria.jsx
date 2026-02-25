@@ -41,10 +41,8 @@ import {
 import {
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
-  Science as ScienceIcon,
   ShowChart as ChartIcon,
-  CheckCircle as CheckIcon,
-  Calculate as CalcIcon
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
 
 const STEPS = [

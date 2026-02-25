@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -13,7 +13,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Chip,
   Divider,
   Accordion,
   AccordionSummary,

@@ -2,7 +2,7 @@
 // Enterprise-grade effect size calculation and interpretation interface
 // Implements multiple effect size measures with confidence intervals
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectTestType,
@@ -11,12 +11,8 @@ import {
   selectSummaryStats,
   selectCalculatedEffectSizes,
   setTestType,
-  setEffectSizeType,
   setRawData,
-  setSummaryStats,
   calculateEffectSize,
-  calculateConfidenceInterval,
-  performBootstrap,
   exportResults
 } from '../../store/slices/effectSizeSlice';
 import './EffectSizeCalculator.scss';

@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -41,12 +41,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  IconButton,
   Tooltip,
-  Divider,
   Switch,
   FormControlLabel,
-  Slider,
   CircularProgress
 } from '@mui/material';
 
@@ -58,21 +55,12 @@ import DownloadIcon from '@mui/icons-material/Download';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 
 // Utilities
 import {
   analyzeMichaelisMenten,
-  analyzeHill,
-  calculateLineweaverBurk,
-  calculateEadieHofstee,
-  calculateHanesWoolf,
-  generateMichaelisMentenCurve,
-  generateHillCurve,
-  INHIBITION_TYPES
+  analyzeHill
 } from '../../../../utils/biophysics';
 
 // ============================================================================

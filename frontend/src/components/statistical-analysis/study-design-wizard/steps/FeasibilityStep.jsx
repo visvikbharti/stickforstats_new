@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,12 +17,8 @@ import {
   Slider,
   Paper,
   Alert,
-  Chip,
   List,
   ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
   FormControlLabel,
   Checkbox,
   Card,

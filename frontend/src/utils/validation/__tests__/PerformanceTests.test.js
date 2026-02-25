@@ -23,18 +23,13 @@ import {
   validateDataArray,
   validateMatrix,
   validateConfidenceInterval,
-  validateDOEParams,
-  validateSQCParams,
   executeWithRecovery,
-  createValidatedCalculation,
-  batchValidate,
-  ValidationError
+  batchValidate
 } from '../index';
 
 import { AuditLogger } from '../AuditLogger';
 import { ErrorRecoveryManager } from '../ErrorRecovery';
-import { recordValidation, recordError, getValidationMetrics, getPerformanceMetrics } from '../monitoring';
-import backendSync from '../BackendSync';
+import { recordValidation } from '../monitoring';
 
 // Mock dependencies
 jest.mock('../monitoring');

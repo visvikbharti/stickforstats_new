@@ -29,15 +29,13 @@ import {
   CloudUpload as CloudUploadIcon, 
   Delete as DeleteIcon,
   Info as InfoIcon,
-  Save as SaveIcon,
-  ZoomIn as ZoomInIcon
+  Save as SaveIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 
-import { Line, Bar } from 'react-chartjs-2';
-import { MathJax } from 'better-react-mathjax';
+import { Line } from 'react-chartjs-2';
 
 import { fitDistribution } from '../../api/probabilityDistributionsApi';
 

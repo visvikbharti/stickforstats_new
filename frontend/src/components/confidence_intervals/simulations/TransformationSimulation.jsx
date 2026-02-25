@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -17,10 +17,8 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider,
-  Tooltip
+  Divider
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { 
   LineChart, 
   Line, 
@@ -30,9 +28,7 @@ import {
   Tooltip as RechartsTooltip, 
   Legend, 
   ResponsiveContainer,
-  ReferenceLine,
-  ScatterChart,
-  Scatter
+  ReferenceLine
 } from 'recharts';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { runTransformationSimulation } from '../../../utils/simulationUtils';

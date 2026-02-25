@@ -1,14 +1,12 @@
 import React, { useMemo } from 'react';
-import { Box, Typography, CircularProgress, Button, IconButton, Tooltip, Badge, Chip } from '@mui/material';
+import { Box, Typography, CircularProgress, Button, IconButton, Tooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { scaleOrdinal } from 'd3-scale';
 import { schemeCategory10, schemeSet2, schemePaired } from 'd3-scale-chromatic';
 import DownloadIcon from '@mui/icons-material/Download';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 // Import patched THREE
-import patchedTHREE from '../../../utils/patchedThree';
 
 // Import react-three-fiber (will be loaded conditionally)
 import { Canvas } from '@react-three/fiber';

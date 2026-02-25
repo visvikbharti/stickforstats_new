@@ -24,8 +24,7 @@
  * - Clear pass/fail indicators with severity levels
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Line, Scatter, Bar } from 'recharts';
+import React, { useState, useCallback, useMemo } from 'react';
 import './AssumptionChecksPanel.scss';
 
 // Test result severity levels

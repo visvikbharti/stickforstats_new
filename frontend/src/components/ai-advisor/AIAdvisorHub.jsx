@@ -41,7 +41,6 @@ import {
   Close as CloseIcon,
   Psychology as PsychologyIcon,
   AutoAwesome as SparkleIcon,
-  Help as HelpIcon,
   Science as ScienceIcon,
   Assessment as AssessmentIcon,
   School as SchoolIcon,
@@ -51,11 +50,9 @@ import {
   Shield as ShieldIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 
 import AIAdvisorChat from './AIAdvisorChat';
-import AIAdvisorSuggestions from './AIAdvisorSuggestions';
 import AIAdvisorDataContext from './AIAdvisorDataContext';
 import MethodsSectionGenerator from './MethodsSectionGenerator';
 import { useAIAdvisor } from './hooks/useAIAdvisor';

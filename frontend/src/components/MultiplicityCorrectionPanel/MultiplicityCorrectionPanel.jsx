@@ -2,7 +2,7 @@
 // Enterprise-grade multiple hypothesis correction interface
 // Tracks all tests in session, applies corrections, prevents p-hacking
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectHypotheses,

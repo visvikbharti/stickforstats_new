@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   Button, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, CircularProgress, Chip, Fade, Zoom, IconButton,
-  Tooltip, Tabs, Tab, Divider, useTheme, alpha,
+  Alert, CircularProgress, Chip, Fade, Tabs, Tab, Divider, useTheme, alpha,
   Accordion, AccordionSummary,
-  AccordionDetails, Slider, Switch, FormControlLabel, List,
+  AccordionDetails, Slider, List,
   ListItem, ListItemIcon, ListItemText, Stepper, Step, StepLabel,
-  StepContent, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, ToggleButton, ToggleButtonGroup
+  StepContent
 } from '@mui/material';
 import {
   Calculate as CalculateIcon, Clear as ClearIcon, ContentCopy as CopyIcon,
-  Insights as InsightsIcon, TrendingUp as TrendingUpIcon,
-  ShowChart as ShowChartIcon, BarChart as BarChartIcon,
-  ScatterPlot as ScatterPlotIcon, Analytics as AnalyticsIcon,
+  Insights as InsightsIcon, TrendingUp as TrendingUpIcon, BarChart as BarChartIcon,
+  ScatterPlot as ScatterPlotIcon,
   Science as ScienceIcon, School as SchoolIcon,
   Psychology as PsychologyIcon, MenuBook as MenuBookIcon,
   Functions as FunctionsIcon, CheckCircle as CheckCircleIcon,
   WarningAmber as WarningIcon, Info as InfoIcon,
   ExpandMore as ExpandMoreIcon, Lightbulb as LightbulbIcon,
-  Timeline as TimelineIcon, Assessment as AssessmentIcon,
+  Timeline as TimelineIcon,
   BusinessCenter as BusinessIcon, LocalHospital as MedicalIcon,
   Factory as FactoryIcon, Nature as EnvironmentIcon,
   Campaign as MarketingIcon
@@ -29,10 +26,9 @@ import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
 import {
-  LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
+  LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
-  Legend, ResponsiveContainer, Area, AreaChart,
-  ReferenceLine, ReferenceArea, Cell
+  Legend, ResponsiveContainer
 } from 'recharts';
 
 // Enhanced gradient color schemes

@@ -30,11 +30,6 @@ import {
   batchValidate
 } from '../index';
 
-import { auditLogger } from '../AuditLogger';
-import { centralErrorHandler } from '../CentralErrorHandler';
-import { errorRecoveryManager } from '../ErrorRecovery';
-import backendSync from '../BackendSync';
-import { recordValidation, recordError, getValidationMetrics } from '../monitoring';
 
 // Mock modules
 jest.mock('../AuditLogger');

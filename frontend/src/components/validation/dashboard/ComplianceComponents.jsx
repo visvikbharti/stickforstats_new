@@ -25,26 +25,16 @@ import {
   Divider,
   Alert,
   AlertTitle,
-  CircularProgress,
-  Button,
-  IconButton,
-  Tooltip
+  CircularProgress
 } from '@mui/material';
 import {
   VerifiedUser,
   CheckCircle,
   Cancel,
   Warning,
-  Security,
-  AssignmentTurnedIn,
   Schedule,
-  TrendingUp,
   Info,
-  Download,
-  Refresh,
-  Shield,
-  Policy,
-  Gavel
+  Shield
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 

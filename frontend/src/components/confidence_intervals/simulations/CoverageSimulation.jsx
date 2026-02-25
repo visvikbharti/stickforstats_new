@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -15,12 +15,10 @@ import {
   CircularProgress,
   LinearProgress,
   Alert,
-  Tooltip,
   Card,
   CardContent,
   Divider
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import { 
   BarChart, 
   Bar, 
@@ -28,14 +26,8 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  Legend, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  ReferenceLine,
-  ComposedChart
+  ResponsiveContainer
 } from 'recharts';
-import axios from 'axios';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { runCoverageSimulation } from '../../../utils/simulationUtils';
 
