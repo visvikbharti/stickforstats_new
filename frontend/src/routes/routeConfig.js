@@ -1,0 +1,216 @@
+import { lazy } from 'react';
+
+// --- Lazy-loaded page components (code-split into separate chunks) ---
+
+// Landing & home pages
+export const ProfessionalLandingPage = lazy(() => import('../components/Landing/ProfessionalLanding'));
+const ShowcaseHomePage = lazy(() => import('../pages/ShowcaseHomePage'));
+
+// Global UI components (lazy-loaded to reduce main bundle)
+export const AIAdvisorHub = lazy(() => import('../components/ai-advisor/AIAdvisorHub'));
+export const PrefetchDebug = lazy(() => import('../components/navigation/PrefetchDebug'));
+export const CommandPalette = lazy(() => import('../components/common/CommandPalette'));
+export const GlobalSearch = lazy(() => import('../components/common/GlobalSearch'));
+
+// Authentication pages
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const RegisterPage = lazy(() => import('../pages/RegisterPage'));
+const DebugLoginPage = lazy(() => import('../pages/DebugLoginPage'));
+
+// Main statistical pages
+const EnhancedStatisticalAnalysis = lazy(() => import('../pages/EnhancedStatisticalAnalysis'));
+const TTestCompleteModule = lazy(() => import('../modules/TTestCompleteModule'));
+const ANOVACompleteModule = lazy(() => import('../modules/ANOVACompleteModule'));
+
+// Real Backend-Connected Test Modules (50-decimal precision)
+const TTestRealBackend = lazy(() => import('../modules/TTestRealBackend'));
+const ANOVARealBackend = lazy(() => import('../modules/ANOVARealBackend'));
+
+// Using Real Backend-Connected Modules (50-decimal precision)
+const HypothesisTestingModule = lazy(() => import('../modules/HypothesisTestingModuleReal'));
+const CorrelationRegressionModule = lazy(() => import('../modules/CorrelationRegressionModuleReal'));
+const NonParametricTestsRealProfessional = lazy(() => import('../modules/NonParametricTestsRealProfessional'));
+const PowerAnalysisReal = lazy(() => import('../modules/PowerAnalysisReal'));
+
+// Mixed Effects Models & Causal Inference Modules
+const MixedModelsModule = lazy(() => import('../modules/MixedModelsModule'));
+const CausalInferenceModule = lazy(() => import('../modules/CausalInferenceModule'));
+
+// Multiple Testing Correction Panel
+const MultiplicityCorrectionPanel = lazy(() => import('../components/MultiplicityCorrectionPanel/MultiplicityCorrectionPanel'));
+const StatisticalDashboard = lazy(() => import('../pages/StatisticalDashboard'));
+
+// Test Universe - Access to 40+ Statistical Tests
+const TestSelectionDashboard = lazy(() => import('../components/TestSelectionDashboard'));
+const GuardianWarning = lazy(() => import('../components/Guardian/GuardianWarning'));
+const MasterTestRunner = lazy(() => import('../components/MasterTestRunner'));
+
+// Unified Test Executor - Complete test workflow with all 46 tests
+const UnifiedTestExecutor = lazy(() => import('../components/UnifiedTestExecutor'));
+
+// Statistical Practice Audit Dashboard
+const AuditDashboard = lazy(() => import('../components/AuditDashboard'));
+const StatisticsPage = lazy(() => import('../pages/StatisticsPage'));
+const SQCAnalysisPage = lazy(() => import('../pages/SQCAnalysisPage'));
+const DOEAnalysisPage = lazy(() => import('../pages/DOEAnalysisPage'));
+const PCAAnalysisPage = lazy(() => import('../pages/PCAAnalysisPage'));
+const SurvivalAnalysisPage = lazy(() => import('../pages/SurvivalAnalysisPage'));
+const FactorAnalysisPage = lazy(() => import('../pages/FactorAnalysisPage'));
+const PCAEducationHub = lazy(() => import('../components/pca/education/PCAEducationHub'));
+const CIEducationHub = lazy(() => import('../components/confidence_intervals/education/CIEducationHub'));
+const DOEEducationHub = lazy(() => import('../components/doe/education/DOEEducationHub'));
+const ProbabilityEducationHub = lazy(() => import('../components/probability_distributions/education/ProbabilityEducationHub'));
+const SQCEducationHub = lazy(() => import('../components/sqc/education/SQCEducationHub'));
+const PowerAnalysisEducationHub = lazy(() => import('../components/power-analysis/education/PowerAnalysisEducationHub'));
+const BiophysicsLearningHub = lazy(() => import('../components/biophysics-education/BiophysicsLearningHub'));
+const StatisticalAnalysisHub = lazy(() => import('../components/statistical-analysis/StatisticalAnalysisHub'));
+const MetaAnalysisHub = lazy(() => import('../components/meta-analysis/MetaAnalysisHub'));
+const PublicationPlotsPage = lazy(() => import('../pages/PublicationPlotsPage'));
+const PaperParserHub = lazy(() => import('../components/paper-parser/PaperParserHub'));
+const LearningHub = lazy(() => import('../components/education/LearningHub'));
+const WorkflowManagementPage = lazy(() => import('../pages/WorkflowManagementPage'));
+const ReportManagementPage = lazy(() => import('../pages/ReportManagementPage'));
+const ConfidenceIntervalsPage = lazy(() => import('../components/confidence_intervals/ConfidenceIntervalsPage'));
+const ProbabilityDistributionsPage = lazy(() => import('../pages/LazyProbabilityDistributionsPage'));
+const TestCalculator = lazy(() => import('../components/probability_distributions/TestCalculator'));
+const AdvancedStatisticsPage = lazy(() => import('../pages/AdvancedStatisticsPage'));
+const VisualizationStudioPage = lazy(() => import('../pages/VisualizationStudioPage'));
+const ReportingStudioPage = lazy(() => import('../pages/ReportingStudioPage'));
+const SecurityDashboardPage = lazy(() => import('../pages/SecurityDashboardPage'));
+const PerformanceTestDashboard = lazy(() => import('../components/performance/PerformanceTestDashboard'));
+const WebSocketMonitoringPage = lazy(() => import('../pages/WebSocketMonitoringPage'));
+const RAGPerformanceMonitoringPage = lazy(() => import('../pages/RAGPerformanceMonitoringPage'));
+const BrowserCompatibilityTestPage = lazy(() => import('../pages/BrowserCompatibilityTestPage'));
+
+// Autonomous Intelligence Layer (v2.0)
+const SmartAnalysisPage = lazy(() => import('../pages/SmartAnalysisPage'));
+
+// Journal Integration / Manuscript Review (Pillar 2)
+const ManuscriptReviewPage = lazy(() => import('../pages/ManuscriptReviewPage'));
+
+// Platform Dashboard
+const PlatformDashboardPage = lazy(() => import('../pages/PlatformDashboardPage'));
+
+// Journal Analytics Dashboard (v2.0)
+const JournalAnalyticsPage = lazy(() => import('../pages/JournalAnalyticsPage'));
+
+const EnterpriseDashboard = lazy(() => import('../components/enterprise/EnterpriseDashboard'));
+const KeyboardShortcutsPage = lazy(() => import('../pages/KeyboardShortcutsPage'));
+const SearchResultsPage = lazy(() => import('../pages/SearchResultsPage'));
+const BrandingManager = lazy(() => import('../components/admin/BrandingManager'));
+
+// GDPR Privacy Dashboard (v2.0)
+const PrivacyDashboardPage = lazy(() => import('../pages/PrivacyDashboardPage'));
+
+// Plugin Marketplace
+const MarketplacePage = lazy(() => import('../pages/MarketplacePage'));
+
+// Certification Program
+const CertificationPage = lazy(() => import('../pages/CertificationPage'));
+
+// API Documentation
+const APIDocsPage = lazy(() => import('../pages/APIDocsPage'));
+
+// --- Route configuration ---
+// Each entry: { path, component, loadingMessage, protected?, requiredRole?, props? }
+
+const ROUTE_CONFIG = [
+  // Home
+  { path: '/', component: ShowcaseHomePage, loadingMessage: 'Loading Home...' },
+
+  // v2.0 Pillar routes
+  { path: '/smart-analysis', component: SmartAnalysisPage, loadingMessage: 'Loading Smart Analysis...' },
+  { path: '/manuscript-review', component: ManuscriptReviewPage, loadingMessage: 'Loading Manuscript Review...' },
+  { path: '/journal-analytics', component: JournalAnalyticsPage, loadingMessage: 'Loading Journal Analytics...' },
+  { path: '/platform', component: PlatformDashboardPage, loadingMessage: 'Loading Platform Dashboard...' },
+
+  // Main statistical pages
+  { path: '/dashboard', component: StatisticalDashboard, loadingMessage: 'Loading Statistical Dashboard...' },
+  { path: '/analysis', component: StatisticalAnalysisHub, loadingMessage: 'Loading Analysis Interface...' },
+  { path: '/enhanced-analysis', component: EnhancedStatisticalAnalysis, loadingMessage: 'Loading Enhanced Analysis...' },
+
+  // Test modules
+  { path: '/modules/t-test', component: TTestCompleteModule, loadingMessage: 'Loading T-Test Module...' },
+  { path: '/modules/anova', component: ANOVACompleteModule, loadingMessage: 'Loading ANOVA Module...' },
+  { path: '/test-universe', component: TestSelectionDashboard, loadingMessage: 'Loading Test Universe...' },
+  {
+    path: '/guardian-demo',
+    component: GuardianWarning,
+    loadingMessage: 'Loading Guardian System...',
+    props: { educationalMode: true, onProceed: () => {}, onSelectAlternative: () => {}, onViewEvidence: () => {} }
+  },
+  { path: '/test-runner', component: MasterTestRunner, loadingMessage: 'Loading Master Test Runner...' },
+  { path: '/unified-test', component: UnifiedTestExecutor, loadingMessage: 'Loading Unified Test Executor...' },
+  { path: '/audit', component: AuditDashboard, loadingMessage: 'Loading Audit Dashboard...' },
+
+  // Real backend modules (50-decimal precision)
+  { path: '/modules/t-test-real', component: TTestRealBackend, loadingMessage: 'Loading Real T-Test with Backend...' },
+  { path: '/modules/anova-real', component: ANOVARealBackend, loadingMessage: 'Loading Real ANOVA with Backend...' },
+  { path: '/modules/nonparametric-real', component: NonParametricTestsRealProfessional, loadingMessage: 'Loading Non-Parametric Tests with Professional UI...' },
+  { path: '/modules/power-analysis-real', component: PowerAnalysisReal, loadingMessage: 'Loading Power Analysis with Backend...' },
+  { path: '/modules/hypothesis-testing', component: HypothesisTestingModule, loadingMessage: 'Loading Hypothesis Testing Module...' },
+  { path: '/modules/correlation-regression', component: CorrelationRegressionModule, loadingMessage: 'Loading Correlation & Regression Module...' },
+  { path: '/modules/mixed-models', component: MixedModelsModule, loadingMessage: 'Loading Mixed Effects Models...' },
+  { path: '/modules/causal-inference', component: CausalInferenceModule, loadingMessage: 'Loading Causal Inference Toolkit...' },
+  { path: '/modules/multiplicity', component: MultiplicityCorrectionPanel, loadingMessage: 'Loading Multiplicity Correction...' },
+
+  // Authentication
+  { path: '/login', component: LoginPage, loadingMessage: 'Loading login...' },
+  { path: '/register', component: RegisterPage, loadingMessage: 'Loading registration...' },
+  { path: '/debug-login', component: DebugLoginPage, loadingMessage: 'Loading debug login...' },
+
+  // Protected module routes
+  { path: '/statistics/*', component: StatisticsPage, loadingMessage: 'Loading Statistics Module...', protected: true },
+  { path: '/advanced-statistics/*', component: AdvancedStatisticsPage, loadingMessage: 'Loading Advanced Statistics Module...', protected: true },
+  { path: '/visualization-studio/*', component: VisualizationStudioPage, loadingMessage: 'Loading Visualization Studio...', protected: true },
+  { path: '/workflows/*', component: WorkflowManagementPage, loadingMessage: 'Loading Workflow Management Module...', protected: true },
+  { path: '/reports/*', component: ReportManagementPage, loadingMessage: 'Loading Report Management Module...', protected: true },
+  { path: '/reporting-studio/*', component: ReportingStudioPage, loadingMessage: 'Loading Reporting Studio...', protected: true },
+  { path: '/enterprise', component: EnterpriseDashboard, loadingMessage: 'Loading Enterprise Dashboard...', protected: true },
+
+  // Analysis pages (not protected)
+  { path: '/sqc-analysis/*', component: SQCAnalysisPage, loadingMessage: 'Loading SQC Analysis Module...' },
+  { path: '/doe-analysis/*', component: DOEAnalysisPage, loadingMessage: 'Loading DOE Analysis Module...' },
+  { path: '/pca-analysis/*', component: PCAAnalysisPage, loadingMessage: 'Loading PCA Analysis Module...' },
+  { path: '/survival-analysis/*', component: SurvivalAnalysisPage, loadingMessage: 'Loading Survival Analysis Module...' },
+  { path: '/factor-analysis/*', component: FactorAnalysisPage, loadingMessage: 'Loading Factor Analysis Module...' },
+  { path: '/meta-analysis', component: MetaAnalysisHub, loadingMessage: 'Loading Meta-Analysis...' },
+  { path: '/publication-plots', component: PublicationPlotsPage, loadingMessage: 'Loading Publication Plot Builder...' },
+  { path: '/paper-parser', component: PaperParserHub, loadingMessage: 'Loading Paper Parser...' },
+  { path: '/statistical-analysis-tools', component: StatisticalAnalysisHub, loadingMessage: 'Loading Statistical Analysis Platform...' },
+  { path: '/probability-distributions/*', component: ProbabilityDistributionsPage, loadingMessage: 'Loading Probability Distributions Module...' },
+  { path: '/confidence-intervals/*', component: ConfidenceIntervalsPage, loadingMessage: 'Loading Confidence Intervals Module...' },
+
+  // Education hubs
+  { path: '/learn', component: LearningHub, loadingMessage: 'Loading Learning Hub...' },
+  { path: '/pca-learn', component: PCAEducationHub, loadingMessage: 'Loading PCA Education...' },
+  { path: '/ci-learn', component: CIEducationHub, loadingMessage: 'Loading CI Education...' },
+  { path: '/doe-learn', component: DOEEducationHub, loadingMessage: 'Loading DOE Education...' },
+  { path: '/probability-learn', component: ProbabilityEducationHub, loadingMessage: 'Loading Probability Education...' },
+  { path: '/sqc-learn', component: SQCEducationHub, loadingMessage: 'Loading SQC Education...' },
+  { path: '/power-learn', component: PowerAnalysisEducationHub, loadingMessage: 'Loading Power Analysis Education...' },
+  { path: '/biophysics-learn', component: BiophysicsLearningHub, loadingMessage: 'Loading Biophysics Education...' },
+
+  // Test & dev routes
+  { path: '/test/calculator', component: TestCalculator, loadingMessage: 'Loading Test Calculator...' },
+  { path: '/test/performance', component: PerformanceTestDashboard, loadingMessage: 'Loading Performance Test Dashboard...' },
+  { path: '/testing/browser-compatibility', component: BrowserCompatibilityTestPage, loadingMessage: 'Loading Browser Compatibility Testing...' },
+
+  // Admin routes (require admin role)
+  { path: '/security', component: SecurityDashboardPage, loadingMessage: 'Loading Security Dashboard...', protected: true, requiredRole: 'admin' },
+  { path: '/monitoring/websocket', component: WebSocketMonitoringPage, loadingMessage: 'Loading WebSocket Monitoring...', protected: true, requiredRole: 'admin' },
+  { path: '/monitoring/rag-performance', component: RAGPerformanceMonitoringPage, loadingMessage: 'Loading RAG Performance Monitoring...', protected: true, requiredRole: 'admin' },
+  { path: '/admin/branding', component: BrandingManager, loadingMessage: 'Loading Branding Manager...', protected: true, requiredRole: 'admin' },
+
+  // Utility pages
+  { path: '/shortcuts', component: KeyboardShortcutsPage, loadingMessage: 'Loading Keyboard Shortcuts...' },
+  { path: '/search', component: SearchResultsPage, loadingMessage: 'Loading Search Results...' },
+
+  // v2.0 platform pages
+  { path: '/privacy', component: PrivacyDashboardPage, loadingMessage: 'Loading Privacy Dashboard...' },
+  { path: '/marketplace', component: MarketplacePage, loadingMessage: 'Loading Plugin Marketplace...' },
+  { path: '/certification', component: CertificationPage, loadingMessage: 'Loading Certification Program...' },
+  { path: '/api-docs', component: APIDocsPage, loadingMessage: 'Loading API Documentation...' },
+];
+
+export default ROUTE_CONFIG;

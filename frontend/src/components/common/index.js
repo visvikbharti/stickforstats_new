@@ -9,3 +9,4 @@ export { default as CodeExportPanel, CodeExportButton } from './CodeExportPanel'
 export { default as LanguageSelector } from './LanguageSelector';
 export { default as DarkModeToggle } from './DarkModeToggle';
 export { default as PWAInstallPrompt } from './PWAInstallPrompt';
+export { default as LoadingFallback } from './LoadingFallback';
