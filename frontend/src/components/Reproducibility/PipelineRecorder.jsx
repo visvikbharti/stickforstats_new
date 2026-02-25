@@ -204,7 +204,7 @@ const PipelineRecorder = () => {
     );
     
     if (hasDependents) {
-      if (!confirm('This step has dependents. Deleting it may break the pipeline. Continue?')) {
+      if (!window.confirm('This step has dependents. Deleting it may break the pipeline. Continue?')) {
         return;
       }
     }

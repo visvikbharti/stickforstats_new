@@ -43,12 +43,13 @@ import {
 import Plot from 'react-plotly.js';
 import { useTheme } from '@mui/material/styles';
 
-const ANOVAVisualization = ({ result, showFullPrecision = false }) => {
+const ANOVAVisualization = ({ result, showFullPrecision: initialShowFullPrecision = false }) => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedPostHoc, setSelectedPostHoc] = useState('all');
   const [showAssumptions, setShowAssumptions] = useState(true);
   const [plotSize, setPlotSize] = useState({ width: 600, height: 400 });
+  const [showFullPrecision, setShowFullPrecision] = useState(initialShowFullPrecision);
 
   // Color scheme for groups
   const groupColors = [

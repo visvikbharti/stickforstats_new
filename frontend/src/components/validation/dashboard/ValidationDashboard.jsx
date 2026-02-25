@@ -68,6 +68,15 @@ import {
   getPerformanceMetrics,
   getComplianceStatus
 } from '../../../utils/validation/monitoring';
+import {
+  ComplianceCard,
+  AuditTrailSummary,
+  ComplianceChecklist,
+  DataIntegrityMetrics,
+  ResourceUsageCard,
+  CachePerformanceCard
+} from './ComplianceComponents';
+import AuditLogViewer from './AuditLogViewer';
 
 /**
  * Main dashboard component

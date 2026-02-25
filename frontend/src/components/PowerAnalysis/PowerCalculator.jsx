@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import jStat from 'jstat';
 import './PowerCalculator.scss';
 
-const PowerCalculator = ({ 
-  testType = 't_test',
-  calculationMode = 'power',
+const PowerCalculator = ({
+  testType: initialTestType = 't_test',
+  calculationMode: initialCalcMode = 'power',
   onCalculation,
-  validationMode = true,
-  className = '' 
+  validationMode: initialValidationMode = true,
+  className = ''
 }) => {
+  const [testType, setTestType] = useState(initialTestType);
+  const [calculationMode, setCalculationMode] = useState(initialCalcMode);
+  const [validationMode, setValidationMode] = useState(initialValidationMode);
+
   // Core calculation parameters
   const [parameters, setParameters] = useState({
     alpha: 0.05,

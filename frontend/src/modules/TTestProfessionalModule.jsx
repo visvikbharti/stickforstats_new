@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import jStat from 'jstat';
 import {
   Container, Box, Paper, Typography, Grid, Card, CardContent, CardActions,
   Button, IconButton, Chip, Tabs, Tab, Divider, Alert, AlertTitle,
@@ -447,7 +448,7 @@ const TTestProfessionalModule = () => {
                   <Box>
                     <Typography variant="h6">Small Sample Theory</Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      Works with n < 30
+                      Works with n {'<'} 30
                     </Typography>
                   </Box>
                 </Box>

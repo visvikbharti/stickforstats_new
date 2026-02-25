@@ -32,6 +32,22 @@ import DownloadIcon from '@mui/icons-material/Download';
 
 import { getMetrics, getPerformanceSummary, clearMetrics } from '../../utils/performanceMonitoring';
 
+// Helper: format milliseconds for display
+const formatTime = (ms) => {
+  if (ms == null || isNaN(ms)) return 'N/A';
+  if (ms < 1) return `${(ms * 1000).toFixed(0)}µs`;
+  if (ms < 1000) return `${ms.toFixed(1)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+};
+
+// Helper: format bytes for display
+const formatSize = (bytes) => {
+  if (bytes == null || isNaN(bytes)) return 'N/A';
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
+};
+
 /**
  * Performance monitoring dashboard component
  * Displays Web Vitals and other performance metrics

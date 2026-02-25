@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './SampleSizeDeterminer.scss';
 
-const SampleSizeDeterminer = ({ 
-  testType = 't_test',
+const SampleSizeDeterminer = ({
+  testType: initialTestType = 't_test',
   onDetermination,
   initialParameters = {},
-  className = '' 
+  className = ''
 }) => {
+  const [testType, setTestType] = useState(initialTestType);
   // Core parameters
   const [parameters, setParameters] = useState({
     alpha: 0.05,

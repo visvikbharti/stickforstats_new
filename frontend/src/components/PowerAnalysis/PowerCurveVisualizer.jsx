@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './PowerCurveVisualizer.scss';
 
-const PowerCurveVisualizer = ({ 
-  testType = 't_test',
+const PowerCurveVisualizer = ({
+  testType: initialTestType = 't_test',
   initialParameters = {},
   onExport,
-  className = '' 
+  className = ''
 }) => {
+  const [testType, setTestType] = useState(initialTestType);
+
   // Visualization parameters
   const [parameters, setParameters] = useState({
     alpha: 0.05,

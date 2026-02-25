@@ -86,21 +86,20 @@ const BootstrapMethodsInfo = React.memo(() => (
 
 // Data Summary component
 const DataSummary = React.memo(({ data, label = 'Data Summary' }) => {
-  if (!data || data.length === 0) return null;
-  
   const stats = useMemo(() => {
+    if (!data || data.length === 0) return null;
     const count = data.length;
     const sum = data.reduce((acc, val) => acc + val, 0);
     const mean = sum / count;
-    const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / count;
-    const std = Math.sqrt(variance);
     const sampStd = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (count - 1));
     const min = Math.min(...data);
     const max = Math.max(...data);
-    
+
     return { count, mean, sampStd, min, max };
   }, [data]);
-  
+
+  if (!stats) return null;
+
   return (
     <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
       <Typography variant="subtitle2" gutterBottom>{label}:</Typography>

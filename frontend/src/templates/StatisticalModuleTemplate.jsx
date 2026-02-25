@@ -148,7 +148,7 @@ const StatisticalModuleTemplate = ({
   moduleCategory = "general",
 
   // Module Configuration
-  moduleConfig = {},
+  moduleConfig: initialModuleConfig = {},
 
   // Educational Content
   mathematicalContent = {},
@@ -178,6 +178,9 @@ const StatisticalModuleTemplate = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Module Configuration State
+  const [moduleConfig, setModuleConfig] = useState(initialModuleConfig);
 
   // Core State Management
   const [activeTab, setActiveTab] = useState(0);
@@ -1021,7 +1024,7 @@ const StatisticalModuleTemplate = ({
               <Button
                 fullWidth
                 variant="contained"
-                startIcon={<WorkspacePremium />}
+                startIcon={<PremiumIcon />}
                 sx={{ background: gradients.gold }}
               >
                 Get Certificate

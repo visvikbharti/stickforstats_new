@@ -79,9 +79,9 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
   const autoSaveTimerRef = useRef(null);
   const wsRef = useRef(null);
 
-  // Redux integration (if available)
-  const dispatch = useDispatch ? useDispatch() : null;
-  const reduxState = useSelector ? useSelector(state => state.workflow) : null;
+  // Redux integration
+  const dispatch = useDispatch();
+  const reduxState = useSelector(state => state.workflow);
 
   /**
    * Initialize navigation controller
