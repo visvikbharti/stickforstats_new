@@ -23,6 +23,25 @@ pingouin>=0.5.3  # ANOVA, post-hoc tests, effect sizes
 scikit-posthocs>=0.9.0  # Non-parametric post-hoc pairwise tests
 pmdarima>=2.0.0  # Auto-ARIMA time series forecasting
 prince>=0.13.0  # PCA, MCA, CA dimensionality reduction
+networkx>=3.0  # Graph/DAG algorithms for causal analysis
+
+# Visualization
+plotly>=5.0.0  # Interactive charts and statistical visualizations
+
+# PDF generation and parsing
+reportlab>=4.0.0  # Guardian PDF report generation
+PyPDF2>=3.0.0  # PDF text extraction
+pdfplumber>=0.10.0  # Advanced PDF parsing
+
+# API documentation
+drf-spectacular>=0.27.0  # OpenAPI 3.0 schema generation
+drf-yasg>=1.21.0  # Swagger/OpenAPI 2.0 schema
+
+# DRF extensions
+drf-nested-routers>=0.94.0  # Nested resource routing
+
+# HTTP client
+requests>=2.31.0  # Webhook delivery and external API calls
 
 # Data validation and processing
 pydantic>=2.0.0
