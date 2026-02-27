@@ -28,11 +28,39 @@ xlrd==2.0.1
 pyyaml==6.0.1
 python-dotenv==1.0.0
 
+# Data import (SPSS/SAS/Stata)
+pyreadstat==1.2.7
+
 # File handling
 Pillow==10.1.0
+python-docx==1.1.0
+lxml==4.9.3
 
 # AI Integration (optional)
 anthropic==0.39.0
+
+# Async task processing
+celery==5.3.6
+redis==5.0.1
+django-celery-beat==2.5.0
+django-celery-results==2.5.1
+django-redis==5.4.0
+
+# Real-time communication
+channels==4.0.0
+channels-redis==4.1.0
+
+# Authentication
+djangorestframework-simplejwt==5.3.0
+
+# PostgreSQL adapter
+psycopg2-binary==2.9.9
+
+# Static file serving
+whitenoise==6.6.0
+
+# Billing
+stripe==10.1.0
 
 # Production server
 gunicorn==21.2.0

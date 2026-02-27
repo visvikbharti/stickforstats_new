@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 120
+exclude =
+    migrations,
+    __pycache__,
+    .git,
+    .venv,
+    venv,
+    node_modules,
+    static,
+    media
+extend-ignore =
+    # line too long — let Black handle formatting
+    E501,
+    # whitespace before ':' — conflicts with Black
+    E203,
+    # line break before binary operator — conflicts with Black
+    W503
+per-file-ignores =
+    # imported but unused in __init__.py (re-exports)
+    */__init__.py:F401
+    # module level import not at top of file (conditional imports)
+    */settings.py:E402
