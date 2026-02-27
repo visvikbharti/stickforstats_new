@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gfortran \
     libopenblas-dev \
     liblapack-dev \
+    zlib1g-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
