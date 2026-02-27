@@ -105,7 +105,7 @@ jobs:
         run: python manage.py migrate --run-syncdb
 
       - name: Run tests
-        run: python manage.py test --parallel --verbosity 2
+        run: python manage.py test --verbosity 2
 
   frontend-test:
     name: Frontend Test
