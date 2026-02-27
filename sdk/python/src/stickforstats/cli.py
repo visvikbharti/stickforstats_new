@@ -13,17 +13,16 @@ Then invoke via::
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 try:
     import click
+    from rich import print as rprint
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
-    from rich import print as rprint
 except ImportError:
     _cli_available = False
 else:

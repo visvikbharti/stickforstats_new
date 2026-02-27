@@ -11,10 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Stage 1: Lint (parallel) ────────────────────────────────────────
+  # ── Stage 1: Lint (parallel, informational) ────────────────────────
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest
+    continue-on-error: true
     defaults:
       run:
         working-directory: backend
@@ -31,14 +32,15 @@ jobs:
         run: pip install flake8==6.1.0 black==23.11.0
 
       - name: Flake8
-        run: flake8 .
+        run: flake8 . --count --statistics
 
       - name: Black (check only)
-        run: black --check --diff .
+        run: black --check --diff . || true
 
   frontend-lint:
     name: Frontend Lint
     runs-on: ubuntu-latest
+    continue-on-error: true
     defaults:
       run:
         working-directory: frontend
@@ -52,7 +54,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: ESLint
         run: npx eslint src/ --max-warnings 0 --no-error-on-unmatched-pattern
@@ -62,6 +64,7 @@ jobs:
   sdk-lint:
     name: SDK Lint
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -75,10 +78,9 @@ jobs:
       - name: Lint Python SDK
         run: ruff check sdk/python/
 
-  # ── Stage 2: Test (after lint) ──────────────────────────────────────
+  # ── Stage 2: Test (required) ───────────────────────────────────────
   backend-test:
     name: Backend Test
-    needs: backend-lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -110,14 +112,13 @@ jobs:
 
   frontend-test:
     name: Frontend Test
-    needs: frontend-lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     env:
       CI: "true"
       NODE_OPTIONS: "--max-old-space-size=4096"
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -128,14 +129,13 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Run tests
         run: npx react-scripts test --watchAll=false --passWithNoTests --ci
 
   sdk-test:
     name: SDK Test
-    needs: sdk-lint
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

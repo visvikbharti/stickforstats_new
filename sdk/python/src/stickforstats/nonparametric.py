@@ -19,7 +19,7 @@ class NonparametricModule:
     Accessed via ``client.nonparametric``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     def mann_whitney(

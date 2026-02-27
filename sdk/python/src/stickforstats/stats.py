@@ -25,7 +25,7 @@ class StatsModule:
     Accessed via ``client.stats``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     # ------------------------------------------------------------------

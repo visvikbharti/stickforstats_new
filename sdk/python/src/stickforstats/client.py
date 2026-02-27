@@ -8,6 +8,8 @@ from typing import Any, Dict, Optional
 
 import httpx
 
+from stickforstats.autonomous import AutonomousModule
+from stickforstats.categorical import CategoricalModule
 from stickforstats.exceptions import (
     APIError,
     AuthenticationError,
@@ -15,15 +17,13 @@ from stickforstats.exceptions import (
     TimeoutError,
     ValidationError,
 )
+from stickforstats.manuscript import ManuscriptModule
+from stickforstats.nonparametric import NonparametricModule
+from stickforstats.platform import PlatformModule
+from stickforstats.power import PowerModule
 
 # Submodule imports (lazy-friendly but we import eagerly for simplicity)
 from stickforstats.stats import StatsModule
-from stickforstats.power import PowerModule
-from stickforstats.nonparametric import NonparametricModule
-from stickforstats.categorical import CategoricalModule
-from stickforstats.autonomous import AutonomousModule
-from stickforstats.manuscript import ManuscriptModule
-from stickforstats.platform import PlatformModule
 
 
 class StickForStats:
@@ -95,7 +95,7 @@ class StickForStats:
     # Context manager
     # ------------------------------------------------------------------
 
-    def __enter__(self) -> "StickForStats":
+    def __enter__(self) -> StickForStats:
         return self
 
     def __exit__(self, *exc: Any) -> None:

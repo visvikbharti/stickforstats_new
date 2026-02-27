@@ -4,7 +4,7 @@ Categorical tests module — wraps ``/api/v1/categorical/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from stickforstats.models import CategoricalResult
 
@@ -19,7 +19,7 @@ class CategoricalModule:
     Accessed via ``client.categorical``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     def chi_square_independence(

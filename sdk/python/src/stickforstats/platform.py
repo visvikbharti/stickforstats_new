@@ -4,7 +4,7 @@ Platform module — wraps ``/api/v1/platform/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, List
 
 from stickforstats.models import TierInfo, UsageSummary
 
@@ -19,7 +19,7 @@ class PlatformModule:
     Accessed via ``client.platform``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     def usage(self) -> UsageSummary:

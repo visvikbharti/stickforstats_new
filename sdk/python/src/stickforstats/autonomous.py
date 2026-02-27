@@ -4,7 +4,7 @@ Autonomous Intelligence module — wraps ``/api/v1/autonomous/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from stickforstats.models import CascadeResult, ProfileResult, QueryResult, TranslateResult
 
@@ -20,7 +20,7 @@ class AutonomousModule:
     Accessed via ``client.autonomous``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     def profile(

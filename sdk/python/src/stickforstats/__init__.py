@@ -15,11 +15,11 @@ Quick start::
 
 from stickforstats.client import StickForStats
 from stickforstats.exceptions import (
-    StickForStatsError,
     APIError,
     AuthenticationError,
-    ValidationError,
+    StickForStatsError,
     TimeoutError,
+    ValidationError,
 )
 
 __version__ = "0.1.0"

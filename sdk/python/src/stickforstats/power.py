@@ -19,7 +19,7 @@ class PowerModule:
     Accessed via ``client.power``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     # ------------------------------------------------------------------

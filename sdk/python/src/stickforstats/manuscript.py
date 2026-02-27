@@ -5,7 +5,7 @@ Manuscript review module — wraps ``/api/v1/manuscript/*`` endpoints.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict
 
 from stickforstats.models import ConsistencyReport, ManuscriptReport, ParseResult
 
@@ -38,7 +38,7 @@ class ManuscriptModule:
     Accessed via ``client.manuscript``.
     """
 
-    def __init__(self, client: "StickForStats") -> None:
+    def __init__(self, client: StickForStats) -> None:
         self._client = client
 
     def analyze(
