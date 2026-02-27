@@ -18,6 +18,7 @@ from decimal import Decimal, getcontext
 import mpmath as mp
 from scipy import stats
 from sklearn.impute import KNNImputer
+from sklearn.experimental import enable_iterative_imputer  # noqa: F401
 from sklearn.impute import IterativeImputer
 from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass, field
