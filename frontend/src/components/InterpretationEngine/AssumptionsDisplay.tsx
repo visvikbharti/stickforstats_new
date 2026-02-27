@@ -21,7 +21,6 @@ import {
 import {
   CheckCircle as MetIcon,
   Cancel as NotMetIcon,
-  Warning as WarningIcon,
 } from '@mui/icons-material';
 
 import { AssumptionsDisplayProps } from './InterpretationEngine.types';

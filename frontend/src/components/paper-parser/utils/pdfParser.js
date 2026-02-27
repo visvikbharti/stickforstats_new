@@ -142,6 +142,7 @@ function cleanText(text) {
     .replace(/ﬃ/g, 'ffi')
     .replace(/ﬄ/g, 'ffl')
     // Remove null characters
+    // eslint-disable-next-line no-control-regex
     .replace(/\x00/g, '')
     // Trim each line
     .split('\n')
@@ -287,9 +288,11 @@ export function formatFileSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-export default {
+const pdfParser = {
   extractTextFromPDF,
   extractSections,
   isValidPDF,
   formatFileSize
 };
+
+export default pdfParser;

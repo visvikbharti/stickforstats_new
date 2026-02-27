@@ -57,9 +57,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "webhook_url",
-                    models.URLField(
-                        blank=True, help_text="URL for report delivery callbacks"
-                    ),
+                    models.URLField(blank=True, help_text="URL for report delivery callbacks"),
                 ),
                 ("webhook_secret", models.CharField(blank=True, max_length=255)),
                 ("contact_email", models.EmailField(blank=True, max_length=254)),
@@ -113,9 +111,7 @@ class Migration(migrations.Migration):
                 ("file_size_bytes", models.IntegerField(default=0)),
                 (
                     "file_hash",
-                    models.CharField(
-                        blank=True, help_text="SHA-256 of uploaded file", max_length=128
-                    ),
+                    models.CharField(blank=True, help_text="SHA-256 of uploaded file", max_length=128),
                 ),
                 ("word_count", models.IntegerField(blank=True, null=True)),
                 (
@@ -152,9 +148,7 @@ class Migration(migrations.Migration):
                 ("claims_inconsistent", models.IntegerField(default=0)),
                 (
                     "consistency_rate",
-                    models.DecimalField(
-                        blank=True, decimal_places=4, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=4, max_digits=5, null=True),
                 ),
                 ("decision_errors", models.IntegerField(default=0)),
                 ("gross_errors", models.IntegerField(default=0)),
@@ -167,9 +161,7 @@ class Migration(migrations.Migration):
                 ("warnings", models.JSONField(blank=True, default=list)),
                 (
                     "submitted_at",
-                    models.DateTimeField(
-                        db_index=True, default=django.utils.timezone.now
-                    ),
+                    models.DateTimeField(db_index=True, default=django.utils.timezone.now),
                 ),
                 ("completed_at", models.DateTimeField(blank=True, null=True)),
                 (
@@ -204,21 +196,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "key_prefix",
-                    models.CharField(
-                        help_text="First 8 chars for identification", max_length=8
-                    ),
+                    models.CharField(help_text="First 8 chars for identification", max_length=8),
                 ),
                 (
                     "key_hash",
-                    models.CharField(
-                        help_text="SHA-256 hash of full key", max_length=128
-                    ),
+                    models.CharField(help_text="SHA-256 hash of full key", max_length=128),
                 ),
                 (
                     "name",
-                    models.CharField(
-                        help_text="Descriptive name for this key", max_length=100
-                    ),
+                    models.CharField(help_text="Descriptive name for this key", max_length=100),
                 ),
                 ("can_submit", models.BooleanField(default=True)),
                 ("can_batch_submit", models.BooleanField(default=False)),
@@ -292,21 +278,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "positive_findings",
-                    models.JSONField(
-                        default=list, help_text="Good practices identified"
-                    ),
+                    models.JSONField(default=list, help_text="Good practices identified"),
                 ),
                 (
                     "sqs_score",
-                    models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True),
                 ),
                 (
                     "consistency_score",
-                    models.DecimalField(
-                        blank=True, decimal_places=4, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=4, max_digits=5, null=True),
                 ),
                 ("methodology_assessment", models.TextField(blank=True)),
                 ("statistical_claims_review", models.TextField(blank=True)),
@@ -359,8 +339,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="manuscriptsubmission",
-            index=models.Index(
-                fields=["manuscript_id"], name="core_manusc_manuscr_35445c_idx"
-            ),
+            index=models.Index(fields=["manuscript_id"], name="core_manusc_manuscr_35445c_idx"),
         ),
     ]

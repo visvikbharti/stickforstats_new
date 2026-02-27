@@ -94,7 +94,7 @@ export {
 };
 
 // Default export
-export default {
+const lazySimulations = {
   getLazySimulationComponent,
   LazyEmailArrivalsD3,
   LazyQualityControlD3,
@@ -102,3 +102,5 @@ export default {
   LazyNetworkTrafficD3,
   LazyManufacturingDefectsD3
 };
+
+export default lazySimulations;

@@ -94,10 +94,12 @@ export const preloadBasedOnRoute = (route) => {
   }
 };
 
-export default {
+const preload = {
   preloadProbabilityCalculator,
   preloadPopularSimulations,
   preloadComponents,
   setupPreloadOnHover,
   preloadBasedOnRoute
 };
+
+export default preload;

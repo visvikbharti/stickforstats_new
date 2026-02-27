@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ("session_id", models.CharField(blank=True, max_length=100, null=True)),
                 (
                     "timestamp",
-                    models.DateTimeField(
-                        db_index=True, default=django.utils.timezone.now
-                    ),
+                    models.DateTimeField(db_index=True, default=django.utils.timezone.now),
                 ),
                 ("analysis_date", models.DateField(auto_now_add=True, db_index=True)),
                 ("test_type", models.CharField(db_index=True, max_length=100)),
@@ -92,9 +90,7 @@ class Migration(migrations.Migration):
                 ("confidence_interval", models.JSONField(blank=True, default=dict)),
                 (
                     "statistical_power",
-                    models.DecimalField(
-                        blank=True, decimal_places=4, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=4, max_digits=5, null=True),
                 ),
                 (
                     "minimum_detectable_effect",
@@ -126,9 +122,7 @@ class Migration(migrations.Migration):
                 ("computation_time_ms", models.IntegerField(blank=True, null=True)),
                 (
                     "memory_usage_mb",
-                    models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=10, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True),
                 ),
                 ("full_analysis_data", models.JSONField(blank=True, default=dict)),
                 (
@@ -201,21 +195,15 @@ class Migration(migrations.Migration):
                 ("total_alternatives_recommended", models.IntegerField(default=0)),
                 (
                     "avg_methodology_score",
-                    models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True),
                 ),
                 (
                     "avg_reproducibility_score",
-                    models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True),
                 ),
                 (
                     "avg_guardian_score",
-                    models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=5, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True),
                 ),
                 ("field_breakdown", models.JSONField(blank=True, default=dict)),
                 ("test_type_breakdown", models.JSONField(blank=True, default=dict)),

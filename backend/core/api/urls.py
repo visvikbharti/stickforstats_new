@@ -23,14 +23,14 @@ from .views import (
     InterpretationViewSet,
     AssumptionCheckingViewSet,
     HealthCheckView,
-    StatisticsView
+    StatisticsView,
 )
 
 # API Documentation Schema
 schema_view = get_schema_view(
     openapi.Info(
         title="StickForStats Core API",
-        default_version='v1',
+        default_version="v1",
         description="""
         Comprehensive statistical analysis API with intelligent profiling,
         test recommendations, assumption checking, and interpretation.
@@ -69,110 +69,199 @@ schema_view = get_schema_view(
 router = DefaultRouter(trailing_slash=True)
 
 # Register ViewSets
-router.register(
-    r'profile',
-    DataProfilingViewSet,
-    basename='profile'
-)
+router.register(r"profile", DataProfilingViewSet, basename="profile")
 
 # URL patterns
 urlpatterns = [
     # API Documentation
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('openapi/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    
+    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path("openapi/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
     # ViewSet routes
-    path('', include(router.urls)),
-    
+    path("", include(router.urls)),
     # Data Profiling endpoints
-    path('profile/', DataProfilingViewSet.as_view({
-        'post': 'create',  # Upload and profile dataset
-    }), name='profile-upload'),
-    
-    path('profile/<str:pk>/', DataProfilingViewSet.as_view({
-        'get': 'retrieve',  # Get profile by ID
-    }), name='profile-detail'),
-    
-    path('profile/<str:pk>/recommendations/', DataProfilingViewSet.as_view({
-        'get': 'recommendations',  # Get test recommendations
-    }), name='profile-recommendations'),
-    
-    path('profile/<str:pk>/check-assumptions/', DataProfilingViewSet.as_view({
-        'post': 'check_assumptions',  # Check assumptions for specific test
-    }), name='profile-check-assumptions'),
-    
-    path('profile/<str:pk>/export/', DataProfilingViewSet.as_view({
-        'post': 'export_report',  # Export report in various formats
-    }), name='profile-export'),
-    
-    path('profile/batch/', DataProfilingViewSet.as_view({
-        'post': 'batch_profile',  # Profile multiple datasets
-    }), name='profile-batch'),
-    
+    path(
+        "profile/",
+        DataProfilingViewSet.as_view(
+            {
+                "post": "create",  # Upload and profile dataset
+            }
+        ),
+        name="profile-upload",
+    ),
+    path(
+        "profile/<str:pk>/",
+        DataProfilingViewSet.as_view(
+            {
+                "get": "retrieve",  # Get profile by ID
+            }
+        ),
+        name="profile-detail",
+    ),
+    path(
+        "profile/<str:pk>/recommendations/",
+        DataProfilingViewSet.as_view(
+            {
+                "get": "recommendations",  # Get test recommendations
+            }
+        ),
+        name="profile-recommendations",
+    ),
+    path(
+        "profile/<str:pk>/check-assumptions/",
+        DataProfilingViewSet.as_view(
+            {
+                "post": "check_assumptions",  # Check assumptions for specific test
+            }
+        ),
+        name="profile-check-assumptions",
+    ),
+    path(
+        "profile/<str:pk>/export/",
+        DataProfilingViewSet.as_view(
+            {
+                "post": "export_report",  # Export report in various formats
+            }
+        ),
+        name="profile-export",
+    ),
+    path(
+        "profile/batch/",
+        DataProfilingViewSet.as_view(
+            {
+                "post": "batch_profile",  # Profile multiple datasets
+            }
+        ),
+        name="profile-batch",
+    ),
     # Interpretation endpoints
-    path('interpret/', InterpretationViewSet.as_view({
-        'get': 'list',  # List available interpretation types
-    }), name='interpret-list'),
-    
-    path('interpret/t-test/', InterpretationViewSet.as_view({
-        'post': 'interpret_t_test',
-    }), name='interpret-t-test'),
-    
-    path('interpret/anova/', InterpretationViewSet.as_view({
-        'post': 'interpret_anova',
-    }), name='interpret-anova'),
-    
-    path('interpret/correlation/', InterpretationViewSet.as_view({
-        'post': 'interpret_correlation',
-    }), name='interpret-correlation'),
-    
-    path('interpret/regression/', InterpretationViewSet.as_view({
-        'post': 'interpret_regression',
-    }), name='interpret-regression'),
-    
-    path('interpret/chi-square/', InterpretationViewSet.as_view({
-        'post': 'interpret_chi_square',
-    }), name='interpret-chi-square'),
-    
-    path('interpret/apa-format/', InterpretationViewSet.as_view({
-        'post': 'format_apa',
-    }), name='interpret-apa-format'),
-    
+    path(
+        "interpret/",
+        InterpretationViewSet.as_view(
+            {
+                "get": "list",  # List available interpretation types
+            }
+        ),
+        name="interpret-list",
+    ),
+    path(
+        "interpret/t-test/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "interpret_t_test",
+            }
+        ),
+        name="interpret-t-test",
+    ),
+    path(
+        "interpret/anova/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "interpret_anova",
+            }
+        ),
+        name="interpret-anova",
+    ),
+    path(
+        "interpret/correlation/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "interpret_correlation",
+            }
+        ),
+        name="interpret-correlation",
+    ),
+    path(
+        "interpret/regression/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "interpret_regression",
+            }
+        ),
+        name="interpret-regression",
+    ),
+    path(
+        "interpret/chi-square/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "interpret_chi_square",
+            }
+        ),
+        name="interpret-chi-square",
+    ),
+    path(
+        "interpret/apa-format/",
+        InterpretationViewSet.as_view(
+            {
+                "post": "format_apa",
+            }
+        ),
+        name="interpret-apa-format",
+    ),
     # Assumption Checking endpoints
-    path('assumptions/', AssumptionCheckingViewSet.as_view({
-        'get': 'list',  # List available assumption checks
-    }), name='assumptions-list'),
-    
-    path('assumptions/normality/', AssumptionCheckingViewSet.as_view({
-        'post': 'check_normality',
-    }), name='assumptions-normality'),
-    
-    path('assumptions/homogeneity/', AssumptionCheckingViewSet.as_view({
-        'post': 'check_homogeneity',
-    }), name='assumptions-homogeneity'),
-    
-    path('assumptions/independence/', AssumptionCheckingViewSet.as_view({
-        'post': 'check_independence',
-    }), name='assumptions-independence'),
-    
-    path('assumptions/linearity/', AssumptionCheckingViewSet.as_view({
-        'post': 'check_linearity',
-    }), name='assumptions-linearity'),
-    
-    path('assumptions/check-all/', AssumptionCheckingViewSet.as_view({
-        'post': 'check_all',
-    }), name='assumptions-check-all'),
-    
+    path(
+        "assumptions/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "get": "list",  # List available assumption checks
+            }
+        ),
+        name="assumptions-list",
+    ),
+    path(
+        "assumptions/normality/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "post": "check_normality",
+            }
+        ),
+        name="assumptions-normality",
+    ),
+    path(
+        "assumptions/homogeneity/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "post": "check_homogeneity",
+            }
+        ),
+        name="assumptions-homogeneity",
+    ),
+    path(
+        "assumptions/independence/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "post": "check_independence",
+            }
+        ),
+        name="assumptions-independence",
+    ),
+    path(
+        "assumptions/linearity/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "post": "check_linearity",
+            }
+        ),
+        name="assumptions-linearity",
+    ),
+    path(
+        "assumptions/check-all/",
+        AssumptionCheckingViewSet.as_view(
+            {
+                "post": "check_all",
+            }
+        ),
+        name="assumptions-check-all",
+    ),
     # Utility endpoints
-    path('health/', HealthCheckView.as_view(), name='health-check'),
-    path('stats/', StatisticsView.as_view(), name='usage-stats'),
+    path("health/", HealthCheckView.as_view(), name="health-check"),
+    path("stats/", StatisticsView.as_view(), name="usage-stats"),
 ]
 
 # API versioning support
-app_name = 'core_api_v1'
+app_name = "core_api_v1"
 
 # Export URL patterns for inclusion in main URLs
 api_v1_patterns = [
-    path('v1/core/', include(urlpatterns)),
+    path("v1/core/", include(urlpatterns)),
 ]

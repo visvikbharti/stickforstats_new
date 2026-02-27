@@ -15,11 +15,10 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import click
-    from rich import print as rprint
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
@@ -36,7 +35,7 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 # Configuration helpers
 # ---------------------------------------------------------------------------
 
-def _load_config() -> Dict[str, Any]:
+def _load_config() -> dict[str, Any]:
     """Load saved configuration from disk."""
     if CONFIG_FILE.exists():
         with open(CONFIG_FILE) as f:
@@ -44,7 +43,7 @@ def _load_config() -> Dict[str, Any]:
     return {}
 
 
-def _save_config(cfg: Dict[str, Any]) -> None:
+def _save_config(cfg: dict[str, Any]) -> None:
     """Persist configuration to disk."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, "w") as f:
@@ -63,7 +62,7 @@ def _make_client(**overrides: Any) -> Any:
     )
 
 
-def _read_data_file(file_path: str) -> Dict[str, List[float]]:
+def _read_data_file(file_path: str) -> dict[str, list[float]]:
     """
     Read a CSV or JSON file into a column-oriented dict.
 
@@ -87,7 +86,7 @@ def _read_data_file(file_path: str) -> Dict[str, List[float]]:
         with open(path, newline="") as f:
             reader = csv.reader(f, delimiter=delimiter)
             headers = next(reader)
-            columns: Dict[str, List[float]] = {h.strip(): [] for h in headers}
+            columns: dict[str, list[float]] = {h.strip(): [] for h in headers}
             for row in reader:
                 for h, val in zip(headers, row):
                     h = h.strip()
@@ -124,9 +123,9 @@ if _cli_available:
     @click.option("--timeout", default=None, type=float, help="Request timeout in seconds.")
     @click.option("--show", is_flag=True, help="Display current configuration.")
     def config(
-        api_key: Optional[str],
-        base_url: Optional[str],
-        timeout: Optional[float],
+        api_key: str | None,
+        base_url: str | None,
+        timeout: float | None,
         show: bool,
     ) -> None:
         """Configure API connection settings (saved to ~/.stickforstats/config.json)."""
@@ -177,15 +176,18 @@ if _cli_available:
     @click.option("--groups", default=None, help="Comma-separated group column names.")
     @click.option("--method", default="pearson", help="Correlation method.")
     @click.option("--dependent", default=None, help="Dependent variable (regression).")
-    @click.option("--predictors", default=None, help="Comma-separated predictor names (regression).")
+    @click.option(
+        "--predictors", default=None,
+        help="Comma-separated predictor names (regression).",
+    )
     def analyze(
         file_path: str,
         test_name: str,
         alpha: float,
-        groups: Optional[str],
+        groups: str | None,
         method: str,
-        dependent: Optional[str],
-        predictors: Optional[str],
+        dependent: str | None,
+        predictors: str | None,
     ) -> None:
         """Run a statistical test on a data file."""
         client = _make_client()
@@ -269,7 +271,10 @@ if _cli_available:
     # ------------------------------------------------------------------
 
     @main.command()
-    @click.option("--file", "-f", "file_path", required=True, help="Path to manuscript (PDF/DOCX/TeX).")
+    @click.option(
+        "--file", "-f", "file_path", required=True,
+        help="Path to manuscript (PDF/DOCX/TeX).",
+    )
     @click.option("--field", default="general", help="Research field (e.g. psychology, medicine).")
     @click.option("--alpha", default=0.05, type=float, help="Significance level.")
     @click.option(
@@ -317,10 +322,12 @@ if _cli_available:
             table.add_row("Tier", summary.tier or "N/A")
             table.add_row("Total Requests", str(summary.total_requests))
             table.add_row("Requests Today", str(summary.requests_today))
-            table.add_row(
-                "Remaining Quota",
-                str(summary.remaining_quota) if summary.remaining_quota is not None else "Unlimited",
+            remaining = (
+                str(summary.remaining_quota)
+                if summary.remaining_quota is not None
+                else "Unlimited"
             )
+            table.add_row("Remaining Quota", remaining)
             if summary.period_start:
                 table.add_row("Period", f"{summary.period_start} -- {summary.period_end}")
             console.print(table)

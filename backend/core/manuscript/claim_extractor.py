@@ -36,7 +36,7 @@ from __future__ import annotations
 import re
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -47,74 +47,73 @@ logger = logging.getLogger(__name__)
 # t-test patterns
 # Matches: t(24) = 2.45, p = .013; t(24)=2.45, p<.001
 T_TEST_PATTERN = re.compile(
-    r't\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
-    re.IGNORECASE
+    r"t\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)", re.IGNORECASE
 )
 
 # F-test patterns
 # Matches: F(2, 45) = 3.67, p = .034
 F_TEST_PATTERN = re.compile(
-    r'F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # Chi-square patterns
 # Matches: chi2(2) = 5.99, p = .050; chi2(2, N = 100) = 8.4, p = .015
 # Handles both Unicode superscript (squared) and ASCII "2"
 CHI_SQUARE_PATTERN = re.compile(
-    r'(?:\u03c7[\u00b2\u00322]|chi[- ]?square[d]?)\s*'
-    r'\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"(?:\u03c7[\u00b2\u00322]|chi[- ]?square[d]?)\s*"
+    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # Correlation patterns
 # Matches: r = .45, p < .001; r(48) = .67, p = .002
 CORRELATION_PATTERN = re.compile(
-    r'(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # Spearman rho pattern
 # Matches: rho = .52, p = .003; rho(30) = .41, p < .05
 SPEARMAN_PATTERN = re.compile(
-    r'(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
-    re.IGNORECASE
+    r"(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
+    re.IGNORECASE,
 )
 
 # z-test pattern
 # Matches: z = 2.58, p < .01; Z = -1.96, p = .050
 Z_TEST_PATTERN = re.compile(
-    r'(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # Regression: beta / B coefficient
 # Matches: beta = 0.34, SE = 0.12, p = .005; B = -1.23, p < .001
 BETA_PATTERN = re.compile(
-    r'(?:\u03b2|[Bb]eta|(?<![A-Za-z])[Bb](?![A-Za-z]))\s*=\s*(-?\d+\.?\d*)'
-    r'\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"(?:\u03b2|[Bb]eta|(?<![A-Za-z])[Bb](?![A-Za-z]))\s*=\s*(-?\d+\.?\d*)"
+    r"\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*,?\s*p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # R-squared
 # Matches: R2 = .34; R-squared = 0.28; Adjusted R2 = .31
 R_SQUARED_PATTERN = re.compile(
-    r'(?:[Aa]djusted\s+)?R[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*)',
+    r"(?:[Aa]djusted\s+)?R[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*)",
 )
 
 # Odds ratio
 # Matches: OR = 2.45, 95% CI [1.23, 4.56]; odds ratio = 1.82
 OR_PATTERN = re.compile(
-    r'(?:OR|[Oo]dds\s+[Rr]atio)\s*=\s*(\d+\.?\d*)'
-    r'\s*(?:,?\s*(?:95%?\s*)?CI\s*[=:]?\s*[\[\(]\s*(\d+\.?\d*)\s*[,\u2013-]\s*(\d+\.?\d*)\s*[\]\)])?',
+    r"(?:OR|[Oo]dds\s+[Rr]atio)\s*=\s*(\d+\.?\d*)"
+    r"\s*(?:,?\s*(?:95%?\s*)?CI\s*[=:]?\s*[\[\(]\s*(\d+\.?\d*)\s*[,\u2013-]\s*(\d+\.?\d*)\s*[\]\)])?",
 )
 
 # Hazard ratio
 # Matches: HR = 1.87, 95% CI [1.12, 3.14]; hazard ratio = 0.65
 HR_PATTERN = re.compile(
-    r'(?:HR|[Hh]azard\s+[Rr]atio)\s*=\s*(\d+\.?\d*)'
-    r'\s*(?:,?\s*(?:95%?\s*)?CI\s*[=:]?\s*[\[\(]\s*(\d+\.?\d*)\s*[,\u2013-]\s*(\d+\.?\d*)\s*[\]\)])?',
+    r"(?:HR|[Hh]azard\s+[Rr]atio)\s*=\s*(\d+\.?\d*)"
+    r"\s*(?:,?\s*(?:95%?\s*)?CI\s*[=:]?\s*[\[\(]\s*(\d+\.?\d*)\s*[,\u2013-]\s*(\d+\.?\d*)\s*[\]\)])?",
 )
 
 # Confidence intervals (standalone)
 # Matches: 95% CI [0.45, 0.89]; 90% CI = (1.2, 3.4)
 CI_PATTERN = re.compile(
-    r'(\d+)%?\s*CI\s*[=:]?\s*[\[\(]\s*(-?\d+\.?\d*)\s*[,\u2013-]\s*(-?\d+\.?\d*)\s*[\]\)]',
+    r"(\d+)%?\s*CI\s*[=:]?\s*[\[\(]\s*(-?\d+\.?\d*)\s*[,\u2013-]\s*(-?\d+\.?\d*)\s*[\]\)]",
 )
 
 # Effect sizes
@@ -123,16 +122,14 @@ COHENS_D_PATTERN = re.compile(
 )
 
 ETA_SQUARED_PATTERN = re.compile(
-    r'(?:\u03b7[\u00b2\u00322]p?\s*=\s*\.?(\d+\.?\d*))'
-    r'|(?:[Pp]artial\s+\u03b7[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*))'
-    r'|(?:eta[- ]?squared\s*=\s*\.?(\d+\.?\d*))',
-    re.IGNORECASE
+    r"(?:\u03b7[\u00b2\u00322]p?\s*=\s*\.?(\d+\.?\d*))"
+    r"|(?:[Pp]artial\s+\u03b7[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*))"
+    r"|(?:eta[- ]?squared\s*=\s*\.?(\d+\.?\d*))",
+    re.IGNORECASE,
 )
 
 OMEGA_SQUARED_PATTERN = re.compile(
-    r'(?:\u03c9[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*))'
-    r'|(?:omega[- ]?squared\s*=\s*\.?(\d+\.?\d*))',
-    re.IGNORECASE
+    r"(?:\u03c9[\u00b2\u00322]\s*=\s*\.?(\d+\.?\d*))" r"|(?:omega[- ]?squared\s*=\s*\.?(\d+\.?\d*))", re.IGNORECASE
 )
 
 HEDGES_G_PATTERN = re.compile(
@@ -146,49 +143,51 @@ GLASS_DELTA_PATTERN = re.compile(
 # Sample sizes
 # Matches: N = 120; n = 45; sample size of 200; 150 participants
 SAMPLE_SIZE_PATTERN = re.compile(
-    r'(?<![A-Za-z])[Nn]\s*=\s*(\d+)'
-    r'|sample\s+(?:size|of)\s*(?:=\s*|of\s+|was\s+)?(\d+)'
-    r'|(\d+)\s+participants',
-    re.IGNORECASE
+    r"(?<![A-Za-z])[Nn]\s*=\s*(\d+)" r"|sample\s+(?:size|of)\s*(?:=\s*|of\s+|was\s+)?(\d+)" r"|(\d+)\s+participants",
+    re.IGNORECASE,
 )
 
 # Standalone p-value (not attached to a test statistic)
 STANDALONE_P_PATTERN = re.compile(
-    r'(?<![A-Za-z])p\s*([=<>])\s*\.?(\d+\.?\d*)',
+    r"(?<![A-Za-z])p\s*([=<>])\s*\.?(\d+\.?\d*)",
 )
 
 # Non-significant marker
-NS_PATTERN = re.compile(
-    r'(?<![A-Za-z])(?:ns|n\.s\.|non[- ]?significant)',
-    re.IGNORECASE
-)
+NS_PATTERN = re.compile(r"(?<![A-Za-z])(?:ns|n\.s\.|non[- ]?significant)", re.IGNORECASE)
 
 # =============================================================================
 # CLAIM TYPE CONSTANTS
 # =============================================================================
 
-CLAIM_TYPE_T = 't_statistic'
-CLAIM_TYPE_F = 'f_statistic'
-CLAIM_TYPE_CHI2 = 'chi_square'
-CLAIM_TYPE_Z = 'z_statistic'
-CLAIM_TYPE_R = 'r_value'
-CLAIM_TYPE_BETA = 'beta'
-CLAIM_TYPE_OR = 'odds_ratio'
-CLAIM_TYPE_HR = 'hazard_ratio'
+CLAIM_TYPE_T = "t_statistic"
+CLAIM_TYPE_F = "f_statistic"
+CLAIM_TYPE_CHI2 = "chi_square"
+CLAIM_TYPE_Z = "z_statistic"
+CLAIM_TYPE_R = "r_value"
+CLAIM_TYPE_BETA = "beta"
+CLAIM_TYPE_OR = "odds_ratio"
+CLAIM_TYPE_HR = "hazard_ratio"
 
 VALID_CLAIM_TYPES = {
-    CLAIM_TYPE_T, CLAIM_TYPE_F, CLAIM_TYPE_CHI2, CLAIM_TYPE_Z,
-    CLAIM_TYPE_R, CLAIM_TYPE_BETA, CLAIM_TYPE_OR, CLAIM_TYPE_HR,
+    CLAIM_TYPE_T,
+    CLAIM_TYPE_F,
+    CLAIM_TYPE_CHI2,
+    CLAIM_TYPE_Z,
+    CLAIM_TYPE_R,
+    CLAIM_TYPE_BETA,
+    CLAIM_TYPE_OR,
+    CLAIM_TYPE_HR,
 }
 
-P_COMPARISON_EQUALS = 'equals'
-P_COMPARISON_LESS = 'less_than'
-P_COMPARISON_GREATER = 'greater_than'
+P_COMPARISON_EQUALS = "equals"
+P_COMPARISON_LESS = "less_than"
+P_COMPARISON_GREATER = "greater_than"
 
 
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
+
 
 @dataclass
 class StatisticalClaim:
@@ -198,9 +197,9 @@ class StatisticalClaim:
     p-value, effect size, confidence interval, and provenance metadata.
     """
 
-    claim_id: str = ''
-    claim_type: str = ''
-    test_name: str = ''
+    claim_id: str = ""
+    claim_type: str = ""
+    test_name: str = ""
     statistic_value: Optional[float] = None
     p_value: Optional[float] = None
     p_comparison: str = P_COMPARISON_EQUALS
@@ -211,8 +210,8 @@ class StatisticalClaim:
     effect_size_value: Optional[float] = None
     sample_size: Optional[int] = None
     group_sizes: Optional[List[int]] = None
-    raw_text: str = ''
-    location: str = 'unknown'
+    raw_text: str = ""
+    location: str = "unknown"
     position: int = 0
     confidence: float = 0.5
 
@@ -220,7 +219,8 @@ class StatisticalClaim:
         if self.claim_type and self.claim_type not in VALID_CLAIM_TYPES:
             logger.warning(
                 "Unrecognized claim_type '%s' for claim %s",
-                self.claim_type, self.claim_id,
+                self.claim_type,
+                self.claim_id,
             )
 
 
@@ -242,11 +242,12 @@ class ExtractionSummary:
 # HELPERS
 # =============================================================================
 
+
 def _parse_p_comparison(symbol: str) -> str:
     """Convert a comparison symbol to a named constant."""
-    if symbol == '<':
+    if symbol == "<":
         return P_COMPARISON_LESS
-    if symbol == '>':
+    if symbol == ">":
         return P_COMPARISON_GREATER
     return P_COMPARISON_EQUALS
 
@@ -258,10 +259,10 @@ def _parse_p_value(raw: str) -> float:
     The regex groups already strip the leading dot in many cases, so we
     normalise here.
     """
-    if '.' in raw:
+    if "." in raw:
         return float(raw)
     # Raw digits only — treat as a decimal fraction (e.g. "03" -> 0.03)
-    return float(f'0.{raw}')
+    return float(f"0.{raw}")
 
 
 def _safe_float(value: Optional[str]) -> Optional[float]:
@@ -277,6 +278,7 @@ def _safe_float(value: Optional[str]) -> Optional[float]:
 # =============================================================================
 # MAIN EXTRACTOR CLASS
 # =============================================================================
+
 
 class StatisticalClaimExtractor:
     """Extract statistical claims from manuscript text.
@@ -298,7 +300,7 @@ class StatisticalClaimExtractor:
     # Public API
     # ------------------------------------------------------------------
 
-    def extract(self, text: str, section: str = 'unknown') -> List[StatisticalClaim]:
+    def extract(self, text: str, section: str = "unknown") -> List[StatisticalClaim]:
         """Extract all statistical claims from *text*.
 
         Parameters
@@ -319,7 +321,8 @@ class StatisticalClaimExtractor:
 
         logger.info(
             "Extracting statistical claims from section '%s' (%d chars)",
-            section, len(text),
+            section,
+            len(text),
         )
 
         claims: List[StatisticalClaim] = []
@@ -341,7 +344,11 @@ class StatisticalClaimExtractor:
 
         # Merge standalone fragments into the nearest primary claim
         claims = self._merge_claims(
-            claims, standalone_p, standalone_ci, standalone_es, standalone_n,
+            claims,
+            standalone_p,
+            standalone_ci,
+            standalone_es,
+            standalone_n,
         )
 
         # Sort by position in text
@@ -354,7 +361,8 @@ class StatisticalClaimExtractor:
         return claims
 
     def extract_from_sections(
-        self, sections: List,
+        self,
+        sections: List,
     ) -> List[StatisticalClaim]:
         """Extract claims from multiple ParsedManuscript sections.
 
@@ -373,8 +381,8 @@ class StatisticalClaimExtractor:
         all_claims: List[StatisticalClaim] = []
 
         for sec in sections:
-            name = getattr(sec, 'name', 'unknown')
-            text = getattr(sec, 'text', '')
+            name = getattr(sec, "name", "unknown")
+            text = getattr(sec, "text", "")
             if not text:
                 continue
             sec_claims = self.extract(text, section=name)
@@ -385,7 +393,8 @@ class StatisticalClaimExtractor:
 
         logger.info(
             "Extracted %d total claims across %d sections.",
-            len(all_claims), len(sections),
+            len(all_claims),
+            len(sections),
         )
         return all_claims
 
@@ -433,8 +442,7 @@ class StatisticalClaimExtractor:
             )
         if claims and with_ci == 0:
             warnings_list.append(
-                "No confidence intervals detected. Reporting CIs is strongly "
-                "recommended for transparency."
+                "No confidence intervals detected. Reporting CIs is strongly " "recommended for transparency."
             )
         if claims and with_df < len(claims) * 0.5:
             warnings_list.append(
@@ -458,7 +466,9 @@ class StatisticalClaimExtractor:
     # ------------------------------------------------------------------
 
     def _extract_t_tests(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract t-test claims: t(df) = value, p = value."""
         claims: List[StatisticalClaim] = []
@@ -472,27 +482,33 @@ class StatisticalClaimExtractor:
             if df_val != int(df_val):
                 test_name = "Welch's t-test"
             else:
-                test_name = 'independent t-test'
+                test_name = "independent t-test"
 
             confidence = self._score_confidence(
-                has_statistic=True, has_df=True, has_p=True,
+                has_statistic=True,
+                has_df=True,
+                has_p=True,
             )
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_T,
-                test_name=test_name,
-                statistic_value=stat_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                df=(int(df_val) if df_val == int(df_val) else df_val,),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=confidence,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_T,
+                    test_name=test_name,
+                    statistic_value=stat_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    df=(int(df_val) if df_val == int(df_val) else df_val,),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=confidence,
+                )
+            )
         return claims
 
     def _extract_f_tests(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract F-test claims: F(df1, df2) = value, p = value."""
         claims: List[StatisticalClaim] = []
@@ -505,26 +521,32 @@ class StatisticalClaimExtractor:
             p_val = _parse_p_value(m.group(5))
 
             # Heuristic: df1 == 1 might be regression F-test
-            test_name = 'one-way ANOVA' if df1 > 1 else 'F-test'
+            test_name = "one-way ANOVA" if df1 > 1 else "F-test"
 
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_F,
-                test_name=test_name,
-                statistic_value=stat_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                df=(df1, df2),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=True, has_df=True, has_p=True,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_F,
+                    test_name=test_name,
+                    statistic_value=stat_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    df=(df1, df2),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=True,
+                        has_p=True,
+                    ),
+                )
+            )
         return claims
 
     def _extract_chi_square(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract chi-square claims: chi2(df) = value, p = value."""
         claims: List[StatisticalClaim] = []
@@ -537,7 +559,7 @@ class StatisticalClaimExtractor:
 
             claim = StatisticalClaim(
                 claim_type=CLAIM_TYPE_CHI2,
-                test_name='chi-square test',
+                test_name="chi-square test",
                 statistic_value=stat_val,
                 p_value=p_val,
                 p_comparison=p_comp,
@@ -546,7 +568,9 @@ class StatisticalClaimExtractor:
                 location=section,
                 position=m.start(),
                 confidence=self._score_confidence(
-                    has_statistic=True, has_df=True, has_p=True,
+                    has_statistic=True,
+                    has_df=True,
+                    has_p=True,
                 ),
             )
             if n_val is not None:
@@ -555,7 +579,9 @@ class StatisticalClaimExtractor:
         return claims
 
     def _extract_correlations(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract correlation claims: r = value, p = value; rho = value."""
         claims: List[StatisticalClaim] = []
@@ -568,22 +594,26 @@ class StatisticalClaimExtractor:
             p_val = _parse_p_value(m.group(4))
 
             has_df = df_val is not None
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_R,
-                test_name='Pearson correlation',
-                statistic_value=r_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                df=(df_val,) if has_df else None,
-                effect_size_type='r',
-                effect_size_value=abs(r_val),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=True, has_df=has_df, has_p=True,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_R,
+                    test_name="Pearson correlation",
+                    statistic_value=r_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    df=(df_val,) if has_df else None,
+                    effect_size_type="r",
+                    effect_size_value=abs(r_val),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=has_df,
+                        has_p=True,
+                    ),
+                )
+            )
 
         # Spearman rho
         for m in SPEARMAN_PATTERN.finditer(text):
@@ -593,26 +623,32 @@ class StatisticalClaimExtractor:
             p_val = _parse_p_value(m.group(4))
 
             has_df = df_val is not None
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_R,
-                test_name='Spearman correlation',
-                statistic_value=rho_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                df=(df_val,) if has_df else None,
-                effect_size_type='rho',
-                effect_size_value=abs(rho_val),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=True, has_df=has_df, has_p=True,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_R,
+                    test_name="Spearman correlation",
+                    statistic_value=rho_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    df=(df_val,) if has_df else None,
+                    effect_size_type="rho",
+                    effect_size_value=abs(rho_val),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=has_df,
+                        has_p=True,
+                    ),
+                )
+            )
         return claims
 
     def _extract_z_tests(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract z-test claims: z = value, p = value."""
         claims: List[StatisticalClaim] = []
@@ -621,23 +657,29 @@ class StatisticalClaimExtractor:
             p_comp = _parse_p_comparison(m.group(2))
             p_val = _parse_p_value(m.group(3))
 
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_Z,
-                test_name='z-test',
-                statistic_value=stat_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=True, has_df=False, has_p=True,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_Z,
+                    test_name="z-test",
+                    statistic_value=stat_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=False,
+                        has_p=True,
+                    ),
+                )
+            )
         return claims
 
     def _extract_regression(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract regression claims: beta, B, R-squared."""
         claims: List[StatisticalClaim] = []
@@ -649,19 +691,23 @@ class StatisticalClaimExtractor:
             p_comp = _parse_p_comparison(m.group(3))
             p_val = _parse_p_value(m.group(4))
 
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_BETA,
-                test_name='regression coefficient',
-                statistic_value=coef_val,
-                p_value=p_val,
-                p_comparison=p_comp,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=True, has_df=False, has_p=True,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_BETA,
+                    test_name="regression coefficient",
+                    statistic_value=coef_val,
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=False,
+                        has_p=True,
+                    ),
+                )
+            )
 
         # R-squared (standalone, no p-value attached)
         for m in R_SQUARED_PATTERN.finditer(text):
@@ -670,22 +716,28 @@ class StatisticalClaimExtractor:
             if r2_val > 1.0:
                 r2_val = r2_val / 100.0
 
-            claims.append(StatisticalClaim(
-                claim_type=CLAIM_TYPE_BETA,
-                test_name='R-squared',
-                effect_size_type="R\u00b2",
-                effect_size_value=r2_val,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=self._score_confidence(
-                    has_statistic=False, has_df=False, has_p=False,
-                ),
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type=CLAIM_TYPE_BETA,
+                    test_name="R-squared",
+                    effect_size_type="R\u00b2",
+                    effect_size_value=r2_val,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=False,
+                        has_df=False,
+                        has_p=False,
+                    ),
+                )
+            )
         return claims
 
     def _extract_odds_ratios(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract odds ratios and hazard ratios with optional CIs."""
         claims: List[StatisticalClaim] = []
@@ -698,16 +750,18 @@ class StatisticalClaimExtractor:
 
             claim = StatisticalClaim(
                 claim_type=CLAIM_TYPE_OR,
-                test_name='odds ratio',
+                test_name="odds ratio",
                 statistic_value=or_val,
-                effect_size_type='OR',
+                effect_size_type="OR",
                 effect_size_value=or_val,
                 raw_text=m.group(0),
                 location=section,
                 position=m.start(),
                 confidence=self._score_confidence(
-                    has_statistic=True, has_df=False,
-                    has_p=False, has_ci=(ci_lo is not None),
+                    has_statistic=True,
+                    has_df=False,
+                    has_p=False,
+                    has_ci=(ci_lo is not None),
                 ),
             )
             if ci_lo is not None and ci_hi is not None:
@@ -723,16 +777,18 @@ class StatisticalClaimExtractor:
 
             claim = StatisticalClaim(
                 claim_type=CLAIM_TYPE_HR,
-                test_name='hazard ratio',
+                test_name="hazard ratio",
                 statistic_value=hr_val,
-                effect_size_type='HR',
+                effect_size_type="HR",
                 effect_size_value=hr_val,
                 raw_text=m.group(0),
                 location=section,
                 position=m.start(),
                 confidence=self._score_confidence(
-                    has_statistic=True, has_df=False,
-                    has_p=False, has_ci=(ci_lo is not None),
+                    has_statistic=True,
+                    has_df=False,
+                    has_p=False,
+                    has_ci=(ci_lo is not None),
                 ),
             )
             if ci_lo is not None and ci_hi is not None:
@@ -747,7 +803,9 @@ class StatisticalClaimExtractor:
     # ------------------------------------------------------------------
 
     def _extract_p_values(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract standalone p-values not already captured by test patterns.
 
@@ -762,34 +820,40 @@ class StatisticalClaimExtractor:
             p_comp = _parse_p_comparison(m.group(1))
             p_val = _parse_p_value(m.group(2))
 
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                p_value=p_val,
-                p_comparison=p_comp,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.4,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    p_value=p_val,
+                    p_comparison=p_comp,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.4,
+                )
+            )
 
         # Non-significant markers
         for m in NS_PATTERN.finditer(text):
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                p_value=None,
-                p_comparison=P_COMPARISON_GREATER,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.3,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    p_value=None,
+                    p_comparison=P_COMPARISON_GREATER,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.3,
+                )
+            )
 
         return claims
 
     def _extract_confidence_intervals(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract standalone confidence intervals."""
         claims: List[StatisticalClaim] = []
@@ -798,36 +862,42 @@ class StatisticalClaimExtractor:
             ci_lo = float(m.group(2))
             ci_hi = float(m.group(3))
 
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                confidence_interval=(ci_lo, ci_hi),
-                ci_level=ci_level,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.4,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    confidence_interval=(ci_lo, ci_hi),
+                    ci_level=ci_level,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.4,
+                )
+            )
         return claims
 
     def _extract_effect_sizes(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract standalone effect size reports."""
         claims: List[StatisticalClaim] = []
 
         # Cohen's d
         for m in COHENS_D_PATTERN.finditer(text):
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                effect_size_type="Cohen's d",
-                effect_size_value=float(m.group(1)),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.5,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    effect_size_type="Cohen's d",
+                    effect_size_value=float(m.group(1)),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.5,
+                )
+            )
 
         # Eta-squared / partial eta-squared
         for m in ETA_SQUARED_PATTERN.finditer(text):
@@ -837,17 +907,19 @@ class StatisticalClaimExtractor:
             es_val = float(val)
             if es_val > 1.0:
                 es_val = es_val / 100.0
-            label = 'partial eta-squared' if m.group(2) else 'eta-squared'
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                effect_size_type=label,
-                effect_size_value=es_val,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.5,
-            ))
+            label = "partial eta-squared" if m.group(2) else "eta-squared"
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    effect_size_type=label,
+                    effect_size_value=es_val,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.5,
+                )
+            )
 
         # Omega-squared
         for m in OMEGA_SQUARED_PATTERN.finditer(text):
@@ -857,47 +929,55 @@ class StatisticalClaimExtractor:
             es_val = float(val)
             if es_val > 1.0:
                 es_val = es_val / 100.0
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                effect_size_type='omega-squared',
-                effect_size_value=es_val,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.5,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    effect_size_type="omega-squared",
+                    effect_size_value=es_val,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.5,
+                )
+            )
 
         # Hedges' g
         for m in HEDGES_G_PATTERN.finditer(text):
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                effect_size_type="Hedges' g",
-                effect_size_value=float(m.group(1)),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.5,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    effect_size_type="Hedges' g",
+                    effect_size_value=float(m.group(1)),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.5,
+                )
+            )
 
         # Glass's delta
         for m in GLASS_DELTA_PATTERN.finditer(text):
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                effect_size_type="Glass's delta",
-                effect_size_value=float(m.group(1)),
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.5,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    effect_size_type="Glass's delta",
+                    effect_size_value=float(m.group(1)),
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.5,
+                )
+            )
 
         return claims
 
     def _extract_sample_sizes(
-        self, text: str, section: str,
+        self,
+        text: str,
+        section: str,
     ) -> List[StatisticalClaim]:
         """Extract sample size reports: N = value, n = value, participants."""
         claims: List[StatisticalClaim] = []
@@ -910,15 +990,17 @@ class StatisticalClaimExtractor:
             if n_val < 2:
                 continue
 
-            claims.append(StatisticalClaim(
-                claim_type='',
-                test_name='',
-                sample_size=n_val,
-                raw_text=m.group(0),
-                location=section,
-                position=m.start(),
-                confidence=0.4,
-            ))
+            claims.append(
+                StatisticalClaim(
+                    claim_type="",
+                    test_name="",
+                    sample_size=n_val,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=0.4,
+                )
+            )
         return claims
 
     # ------------------------------------------------------------------
@@ -958,7 +1040,8 @@ class StatisticalClaimExtractor:
             return fragment.position in covered
 
         def _nearest_primary(
-            position: int, candidates: List[StatisticalClaim],
+            position: int,
+            candidates: List[StatisticalClaim],
         ) -> Optional[StatisticalClaim]:
             if not candidates:
                 return None
@@ -1025,11 +1108,12 @@ class StatisticalClaimExtractor:
         return all_claims
 
     def _assign_ids(
-        self, claims: List[StatisticalClaim],
+        self,
+        claims: List[StatisticalClaim],
     ) -> List[StatisticalClaim]:
         """Assign sequential IDs (C001, C002, ...) to claims."""
         for idx, claim in enumerate(claims, start=1):
-            claim.claim_id = f'C{idx:03d}'
+            claim.claim_id = f"C{idx:03d}"
         return claims
 
     # ------------------------------------------------------------------

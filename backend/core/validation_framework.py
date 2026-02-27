@@ -13,20 +13,17 @@ Performance Target: <100ms per test
 """
 
 import numpy as np
-import pandas as pd
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import logging
 import subprocess
-import json
 import tempfile
 import os
 from scipy import stats
-import statsmodels.api as sm
-from statsmodels.stats import weightstats, proportion
+from statsmodels.stats import weightstats
 import time
-from decimal import Decimal, getcontext
+from decimal import getcontext
 
 # Set high precision for validation
 getcontext().prec = 50
@@ -36,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class ValidationStatus(Enum):
     """Status of validation test"""
+
     PASSED = "passed"
     FAILED = "failed"
     SKIPPED = "skipped"
@@ -45,6 +43,7 @@ class ValidationStatus(Enum):
 @dataclass
 class ValidationResult:
     """Result of a single validation test"""
+
     test_name: str
     method: str
     status: ValidationStatus
@@ -69,6 +68,7 @@ class ValidationResult:
 @dataclass
 class ValidationSuite:
     """Complete validation suite results"""
+
     suite_name: str
     total_tests: int
     passed: int
@@ -106,8 +106,7 @@ class StatisticalValidator:
     def _check_r_availability(self) -> bool:
         """Check if R is available for validation"""
         try:
-            result = subprocess.run(['R', '--version'],
-                                  capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["R", "--version"], capture_output=True, text=True, timeout=5)
             return result.returncode == 0
         except:
             logger.warning("R not available for validation")
@@ -118,8 +117,9 @@ class StatisticalValidator:
         # SAS is typically not available in most environments
         return False
 
-    def validate_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray] = None,
-                       test_type: str = 'two_sample', **kwargs) -> ValidationSuite:
+    def validate_t_test(
+        self, data1: np.ndarray, data2: Optional[np.ndarray] = None, test_type: str = "two_sample", **kwargs
+    ) -> ValidationSuite:
         """
         Validate t-test calculations
 
@@ -141,17 +141,17 @@ class StatisticalValidator:
 
         # Python scipy validation
         scipy_result = self._validate_with_scipy_t_test(data1, data2, test_type, **kwargs)
-        results.append(self._compare_results('scipy', our_result, scipy_result))
+        results.append(self._compare_results("scipy", our_result, scipy_result))
 
         # R validation (if available)
         if self.r_available:
             r_result = self._validate_with_r_t_test(data1, data2, test_type, **kwargs)
-            results.append(self._compare_results('R', our_result, r_result))
+            results.append(self._compare_results("R", our_result, r_result))
 
         # Statsmodels validation
         sm_result = self._validate_with_statsmodels_t_test(data1, data2, test_type, **kwargs)
         if sm_result:
-            results.append(self._compare_results('statsmodels', our_result, sm_result))
+            results.append(self._compare_results("statsmodels", our_result, sm_result))
 
         # Create suite
         total_time = time.time() - start_time
@@ -167,90 +167,90 @@ class StatisticalValidator:
             errors=sum(1 for r in results if r.status == ValidationStatus.ERROR),
             total_execution_time=total_time,
             average_accuracy=np.mean([r.decimal_places_matched for r in results]),
-            results=results
+            results=results,
         )
 
         return suite
 
-    def _calculate_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray],
-                         test_type: str, **kwargs) -> Dict[str, float]:
+    def _calculate_t_test(
+        self, data1: np.ndarray, data2: Optional[np.ndarray], test_type: str, **kwargs
+    ) -> Dict[str, float]:
         """Calculate t-test using our implementation"""
         # StickForStats delegates to scipy for t-test computation
-        if test_type == 'one_sample':
-            mu = kwargs.get('mu', 0)
+        if test_type == "one_sample":
+            mu = kwargs.get("mu", 0)
             statistic, pvalue = stats.ttest_1samp(data1, mu)
-        elif test_type == 'two_sample':
-            equal_var = kwargs.get('equal_var', True)
+        elif test_type == "two_sample":
+            equal_var = kwargs.get("equal_var", True)
             statistic, pvalue = stats.ttest_ind(data1, data2, equal_var=equal_var)
-        elif test_type == 'paired':
+        elif test_type == "paired":
             statistic, pvalue = stats.ttest_rel(data1, data2)
         else:
             raise ValueError(f"Unknown test type: {test_type}")
 
         return {
-            't_statistic': float(statistic),
-            'p_value': float(pvalue),
-            'df': len(data1) - 1 if test_type == 'one_sample' else len(data1) + len(data2) - 2
+            "t_statistic": float(statistic),
+            "p_value": float(pvalue),
+            "df": len(data1) - 1 if test_type == "one_sample" else len(data1) + len(data2) - 2,
         }
 
-    def _validate_with_scipy_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray],
-                                   test_type: str, **kwargs) -> Dict[str, float]:
+    def _validate_with_scipy_t_test(
+        self, data1: np.ndarray, data2: Optional[np.ndarray], test_type: str, **kwargs
+    ) -> Dict[str, float]:
         """Validate using scipy"""
         try:
-            if test_type == 'one_sample':
-                mu = kwargs.get('mu', 0)
+            if test_type == "one_sample":
+                mu = kwargs.get("mu", 0)
                 statistic, pvalue = stats.ttest_1samp(data1, mu)
-            elif test_type == 'two_sample':
-                equal_var = kwargs.get('equal_var', True)
+            elif test_type == "two_sample":
+                equal_var = kwargs.get("equal_var", True)
                 statistic, pvalue = stats.ttest_ind(data1, data2, equal_var=equal_var)
-            elif test_type == 'paired':
+            elif test_type == "paired":
                 statistic, pvalue = stats.ttest_rel(data1, data2)
             else:
                 return None
 
-            return {
-                't_statistic': float(statistic),
-                'p_value': float(pvalue)
-            }
+            return {"t_statistic": float(statistic), "p_value": float(pvalue)}
         except Exception as e:
             logger.error(f"Scipy validation error: {e}")
             return None
 
-    def _validate_with_r_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray],
-                               test_type: str, **kwargs) -> Dict[str, float]:
+    def _validate_with_r_t_test(
+        self, data1: np.ndarray, data2: Optional[np.ndarray], test_type: str, **kwargs
+    ) -> Dict[str, float]:
         """Validate using R"""
         if not self.r_available:
             return None
 
         try:
             # Create temporary files for data
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f1:
-                np.savetxt(f1, data1, delimiter=',')
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f1:
+                np.savetxt(f1, data1, delimiter=",")
                 file1 = f1.name
 
             if data2 is not None:
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f2:
-                    np.savetxt(f2, data2, delimiter=',')
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f2:
+                    np.savetxt(f2, data2, delimiter=",")
                     file2 = f2.name
 
             # Create R script
-            if test_type == 'one_sample':
-                mu = kwargs.get('mu', 0)
+            if test_type == "one_sample":
+                mu = kwargs.get("mu", 0)
                 r_script = f"""
                 data1 <- read.csv("{file1}", header=FALSE)$V1
                 result <- t.test(data1, mu={mu})
                 cat(result$statistic, result$p.value, sep=",")
                 """
-            elif test_type == 'two_sample':
-                equal_var = kwargs.get('equal_var', True)
-                var_equal = 'TRUE' if equal_var else 'FALSE'
+            elif test_type == "two_sample":
+                equal_var = kwargs.get("equal_var", True)
+                var_equal = "TRUE" if equal_var else "FALSE"
                 r_script = f"""
                 data1 <- read.csv("{file1}", header=FALSE)$V1
                 data2 <- read.csv("{file2}", header=FALSE)$V1
                 result <- t.test(data1, data2, var.equal={var_equal})
                 cat(result$statistic, result$p.value, sep=",")
                 """
-            elif test_type == 'paired':
+            elif test_type == "paired":
                 r_script = f"""
                 data1 <- read.csv("{file1}", header=FALSE)$V1
                 data2 <- read.csv("{file2}", header=FALSE)$V1
@@ -259,60 +259,49 @@ class StatisticalValidator:
                 """
 
             # Run R script
-            result = subprocess.run(['R', '--slave', '--no-restore'],
-                                  input=r_script, capture_output=True, text=True)
+            result = subprocess.run(["R", "--slave", "--no-restore"], input=r_script, capture_output=True, text=True)
 
             # Parse output
-            output = result.stdout.strip().split(',')
+            output = result.stdout.strip().split(",")
 
             # Clean up temp files
             os.unlink(file1)
             if data2 is not None:
                 os.unlink(file2)
 
-            return {
-                't_statistic': float(output[0]),
-                'p_value': float(output[1])
-            }
+            return {"t_statistic": float(output[0]), "p_value": float(output[1])}
 
         except Exception as e:
             logger.error(f"R validation error: {e}")
             return None
 
-    def _validate_with_statsmodels_t_test(self, data1: np.ndarray, data2: Optional[np.ndarray],
-                                         test_type: str, **kwargs) -> Dict[str, float]:
+    def _validate_with_statsmodels_t_test(
+        self, data1: np.ndarray, data2: Optional[np.ndarray], test_type: str, **kwargs
+    ) -> Dict[str, float]:
         """Validate using statsmodels"""
         try:
-            if test_type == 'one_sample':
-                mu = kwargs.get('mu', 0)
+            if test_type == "one_sample":
+                mu = kwargs.get("mu", 0)
                 test = weightstats.DescrStatsW(data1)
                 statistic, pvalue, df = test.ttest_mean(mu)
-                return {
-                    't_statistic': float(statistic),
-                    'p_value': float(pvalue)
-                }
-            elif test_type == 'two_sample':
-                test = weightstats.CompareMeans(
-                    weightstats.DescrStatsW(data1),
-                    weightstats.DescrStatsW(data2)
-                )
+                return {"t_statistic": float(statistic), "p_value": float(pvalue)}
+            elif test_type == "two_sample":
+                test = weightstats.CompareMeans(weightstats.DescrStatsW(data1), weightstats.DescrStatsW(data2))
                 statistic, pvalue, df = test.ttest_ind()
-                return {
-                    't_statistic': float(statistic),
-                    'p_value': float(pvalue)
-                }
+                return {"t_statistic": float(statistic), "p_value": float(pvalue)}
             else:
                 return None
         except Exception as e:
             logger.error(f"Statsmodels validation error: {e}")
             return None
 
-    def _compare_results(self, method: str, our_result: Dict[str, float],
-                        ref_result: Dict[str, float]) -> ValidationResult:
+    def _compare_results(
+        self, method: str, our_result: Dict[str, float], ref_result: Dict[str, float]
+    ) -> ValidationResult:
         """Compare our results with reference implementation"""
         if ref_result is None:
             return ValidationResult(
-                test_name='t_test',
+                test_name="t_test",
                 method=method,
                 status=ValidationStatus.SKIPPED,
                 our_value=0,
@@ -322,12 +311,12 @@ class StatisticalValidator:
                 execution_time=0,
                 decimal_places_matched=0,
                 tolerance_used=self.tolerance,
-                error_message="Reference implementation not available"
+                error_message="Reference implementation not available",
             )
 
         # Compare t-statistic
-        our_t = our_result.get('t_statistic', 0)
-        ref_t = ref_result.get('t_statistic', 0)
+        our_t = our_result.get("t_statistic", 0)
+        ref_t = ref_result.get("t_statistic", 0)
         abs_diff = abs(our_t - ref_t)
         rel_diff = abs_diff / abs(ref_t) if ref_t != 0 else abs_diff
 
@@ -338,7 +327,7 @@ class StatisticalValidator:
         status = ValidationStatus.PASSED if abs_diff < self.tolerance else ValidationStatus.FAILED
 
         return ValidationResult(
-            test_name='t_test_statistic',
+            test_name="t_test_statistic",
             method=method,
             status=status,
             our_value=our_t,
@@ -347,7 +336,7 @@ class StatisticalValidator:
             relative_difference=rel_diff,
             execution_time=0,  # Would be tracked in actual implementation
             decimal_places_matched=decimal_places,
-            tolerance_used=self.tolerance
+            tolerance_used=self.tolerance,
         )
 
     def _count_matching_decimals(self, val1: float, val2: float) -> int:
@@ -382,15 +371,17 @@ class StatisticalValidator:
 
         # Scipy validation
         scipy_result = stats.f_oneway(*groups)
-        results.append(self._compare_anova_results('scipy', our_result,
-                                                  {'f_statistic': scipy_result[0],
-                                                   'p_value': scipy_result[1]}))
+        results.append(
+            self._compare_anova_results(
+                "scipy", our_result, {"f_statistic": scipy_result[0], "p_value": scipy_result[1]}
+            )
+        )
 
         # R validation if available
         if self.r_available:
             r_result = self._validate_anova_with_r(*groups, **kwargs)
             if r_result:
-                results.append(self._compare_anova_results('R', our_result, r_result))
+                results.append(self._compare_anova_results("R", our_result, r_result))
 
         # Create suite
         total_time = time.time() - start_time
@@ -406,29 +397,27 @@ class StatisticalValidator:
             errors=sum(1 for r in results if r.status == ValidationStatus.ERROR),
             total_execution_time=total_time,
             average_accuracy=np.mean([r.decimal_places_matched for r in results]),
-            results=results
+            results=results,
         )
 
     def _calculate_anova(self, *groups, **kwargs) -> Dict[str, float]:
         """Calculate ANOVA using our implementation"""
         # StickForStats delegates to scipy for ANOVA computation
         f_stat, p_value = stats.f_oneway(*groups)
-        return {
-            'f_statistic': float(f_stat),
-            'p_value': float(p_value)
-        }
+        return {"f_statistic": float(f_stat), "p_value": float(p_value)}
 
     def _validate_anova_with_r(self, *groups, **kwargs) -> Dict[str, float]:
         """Validate ANOVA using R"""
         # Implementation would be similar to t-test validation
         return None  # Return None for now to skip R validation
 
-    def _compare_anova_results(self, method: str, our_result: Dict[str, float],
-                              ref_result: Dict[str, float]) -> ValidationResult:
+    def _compare_anova_results(
+        self, method: str, our_result: Dict[str, float], ref_result: Dict[str, float]
+    ) -> ValidationResult:
         """Compare ANOVA results"""
         if ref_result is None:
             return ValidationResult(
-                test_name='anova',
+                test_name="anova",
                 method=method,
                 status=ValidationStatus.SKIPPED,
                 our_value=0,
@@ -438,12 +427,12 @@ class StatisticalValidator:
                 execution_time=0,
                 decimal_places_matched=0,
                 tolerance_used=self.tolerance,
-                error_message="Reference implementation not available"
+                error_message="Reference implementation not available",
             )
 
         # Compare F-statistic
-        our_f = our_result.get('f_statistic', 0)
-        ref_f = ref_result.get('f_statistic', 0)
+        our_f = our_result.get("f_statistic", 0)
+        ref_f = ref_result.get("f_statistic", 0)
         abs_diff = abs(our_f - ref_f)
         rel_diff = abs_diff / abs(ref_f) if ref_f != 0 else abs_diff
 
@@ -454,7 +443,7 @@ class StatisticalValidator:
         status = ValidationStatus.PASSED if abs_diff < self.tolerance else ValidationStatus.FAILED
 
         return ValidationResult(
-            test_name='anova_f_statistic',
+            test_name="anova_f_statistic",
             method=method,
             status=status,
             our_value=our_f,
@@ -463,7 +452,7 @@ class StatisticalValidator:
             relative_difference=rel_diff,
             execution_time=0,
             decimal_places_matched=decimal_places,
-            tolerance_used=self.tolerance
+            tolerance_used=self.tolerance,
         )
 
     def generate_validation_report(self, suites: List[ValidationSuite]) -> str:
@@ -532,8 +521,7 @@ class TestDataGenerator:
     """Generate test data for validation"""
 
     @staticmethod
-    def generate_normal_data(n: int = 100, mean: float = 0, std: float = 1,
-                            seed: Optional[int] = None) -> np.ndarray:
+    def generate_normal_data(n: int = 100, mean: float = 0, std: float = 1, seed: Optional[int] = None) -> np.ndarray:
         """Generate normal distribution data"""
         if seed:
             np.random.seed(seed)
@@ -543,15 +531,12 @@ class TestDataGenerator:
     def generate_test_datasets() -> Dict[str, np.ndarray]:
         """Generate standard test datasets for validation"""
         return {
-            'normal_small': TestDataGenerator.generate_normal_data(10, seed=42),
-            'normal_medium': TestDataGenerator.generate_normal_data(100, seed=42),
-            'normal_large': TestDataGenerator.generate_normal_data(1000, seed=42),
-            'skewed': np.random.gamma(2, 2, 100),
-            'uniform': np.random.uniform(-1, 1, 100),
-            'with_outliers': np.concatenate([
-                np.random.normal(0, 1, 95),
-                np.array([10, -10, 15, -12, 8])  # Outliers
-            ])
+            "normal_small": TestDataGenerator.generate_normal_data(10, seed=42),
+            "normal_medium": TestDataGenerator.generate_normal_data(100, seed=42),
+            "normal_large": TestDataGenerator.generate_normal_data(1000, seed=42),
+            "skewed": np.random.gamma(2, 2, 100),
+            "uniform": np.random.uniform(-1, 1, 100),
+            "with_outliers": np.concatenate([np.random.normal(0, 1, 95), np.array([10, -10, 15, -12, 8])]),  # Outliers
         }
 
 
@@ -567,27 +552,19 @@ def run_comprehensive_validation():
     print("Running t-test validations...")
 
     # One-sample t-test
-    suite = validator.validate_t_test(
-        test_data['normal_medium'],
-        test_type='one_sample',
-        mu=0
-    )
+    suite = validator.validate_t_test(test_data["normal_medium"], test_type="one_sample", mu=0)
     suites.append(suite)
 
     # Two-sample t-test
     suite = validator.validate_t_test(
-        test_data['normal_medium'][:50],
-        test_data['normal_medium'][50:],
-        test_type='two_sample'
+        test_data["normal_medium"][:50], test_data["normal_medium"][50:], test_type="two_sample"
     )
     suites.append(suite)
 
     # ANOVA
     print("Running ANOVA validations...")
     suite = validator.validate_anova(
-        test_data['normal_medium'][:33],
-        test_data['normal_medium'][33:66],
-        test_data['normal_medium'][66:]
+        test_data["normal_medium"][:33], test_data["normal_medium"][33:66], test_data["normal_medium"][66:]
     )
     suites.append(suite)
 
@@ -596,7 +573,7 @@ def run_comprehensive_validation():
     print(report)
 
     # Save report
-    with open('validation_report.txt', 'w') as f:
+    with open("validation_report.txt", "w") as f:
         f.write(report)
 
     print("\nValidation complete. Report saved to validation_report.txt")

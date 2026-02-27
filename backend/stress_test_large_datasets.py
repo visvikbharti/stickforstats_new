@@ -15,14 +15,11 @@ from datetime import datetime
 import gc
 import sys
 
+
 class StressTestLargeDatasets:
     def __init__(self):
         self.base_url = "http://localhost:8000/api/v1"
-        self.results = {
-            'timestamp': datetime.now().isoformat(),
-            'stress_tests': {},
-            'summary': {}
-        }
+        self.results = {"timestamp": datetime.now().isoformat(), "stress_tests": {}, "summary": {}}
 
     def generate_large_dataset(self, size, seed=42):
         """Generate large realistic datasets"""
@@ -65,14 +62,12 @@ class StressTestLargeDatasets:
 
         try:
             response = requests.post(
-                f"{self.base_url}/{endpoint}",
-                json=payload,
-                timeout=300  # 5 minute timeout for very large datasets
+                f"{self.base_url}/{endpoint}", json=payload, timeout=300  # 5 minute timeout for very large datasets
             )
             status_code = response.status_code
             if status_code == 200:
                 result = response.json()
-                has_high_precision = 'high_precision_result' in result
+                has_high_precision = "high_precision_result" in result
             else:
                 has_high_precision = False
                 error = f"Status {status_code}: {response.text[:100]}"
@@ -98,19 +93,19 @@ class StressTestLargeDatasets:
         gc.collect()
 
         return {
-            'label': label,
-            'response_time_ms': response_time,
-            'memory_used_mb': memory_used,
-            'status_code': status_code,
-            'has_high_precision': has_high_precision,
-            'error': error
+            "label": label,
+            "response_time_ms": response_time,
+            "memory_used_mb": memory_used,
+            "status_code": status_code,
+            "has_high_precision": has_high_precision,
+            "error": error,
         }
 
     def run_stress_tests(self):
         """Run comprehensive stress tests"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("STICKFORSTATS v1.0 - STRESS TEST WITH LARGE DATASETS")
-        print("="*80)
+        print("=" * 80)
 
         # Test sizes - from small to very large
         test_sizes = [
@@ -118,88 +113,80 @@ class StressTestLargeDatasets:
             (1000, "Medium (1,000 rows)"),
             (5000, "Large (5,000 rows)"),
             (10000, "Very Large (10,000 rows)"),
-            (25000, "Extreme (25,000 rows)")
+            (25000, "Extreme (25,000 rows)"),
         ]
 
         # Working endpoints from our previous test
         endpoints = {
-            'stats/ttest/': {
-                'name': 'T-Test',
-                'generator': lambda data: {
-                    'data1': data[:len(data)//2],
-                    'data2': data[len(data)//2:],
-                    'test_type': 'two_sample'
-                }
+            "stats/ttest/": {
+                "name": "T-Test",
+                "generator": lambda data: {
+                    "data1": data[: len(data) // 2],
+                    "data2": data[len(data) // 2 :],
+                    "test_type": "two_sample",
+                },
             },
-            'stats/correlation/': {
-                'name': 'Correlation',
-                'generator': lambda data: {
-                    'x': data[:len(data)//2],
-                    'y': data[len(data)//2:],
-                    'method': 'pearson'
-                }
+            "stats/correlation/": {
+                "name": "Correlation",
+                "generator": lambda data: {
+                    "x": data[: len(data) // 2],
+                    "y": data[len(data) // 2 :],
+                    "method": "pearson",
+                },
             },
-            'stats/descriptive/': {
-                'name': 'Descriptive Statistics',
-                'generator': lambda data: {
-                    'data': data
-                }
+            "stats/descriptive/": {"name": "Descriptive Statistics", "generator": lambda data: {"data": data}},
+            "nonparametric/mann-whitney/": {
+                "name": "Mann-Whitney U Test",
+                "generator": lambda data: {"group1": data[: len(data) // 2], "group2": data[len(data) // 2 :]},
             },
-            'nonparametric/mann-whitney/': {
-                'name': 'Mann-Whitney U Test',
-                'generator': lambda data: {
-                    'group1': data[:len(data)//2],
-                    'group2': data[len(data)//2:]
-                }
-            },
-            'categorical/chi-square/goodness/': {
-                'name': 'Chi-Square Goodness of Fit',
-                'generator': lambda data: {
+            "categorical/chi-square/goodness/": {
+                "name": "Chi-Square Goodness of Fit",
+                "generator": lambda data: {
                     # Convert to frequency counts for chi-square
-                    'observed': [int(abs(x)) % 100 + 1 for x in data[:100]],
-                    'expected': [int(abs(x)) % 100 + 1 for x in data[100:200]]
-                }
-            }
+                    "observed": [int(abs(x)) % 100 + 1 for x in data[:100]],
+                    "expected": [int(abs(x)) % 100 + 1 for x in data[100:200]],
+                },
+            },
         }
 
         # Run stress tests
         for endpoint, config in endpoints.items():
             print(f"\n📊 STRESS TESTING: {config['name']}")
-            print("="*60)
+            print("=" * 60)
 
             endpoint_results = []
 
             for size, size_label in test_sizes:
                 # Skip extremely large datasets for non-parametric tests
-                if 'nonparametric' in endpoint and size > 10000:
+                if "nonparametric" in endpoint and size > 10000:
                     print(f"  ⚠️  Skipping {size_label} - Too large for non-parametric test")
                     continue
 
                 # Skip large datasets for chi-square (uses fixed 100 elements)
-                if 'chi-square' in endpoint and size > 1000:
+                if "chi-square" in endpoint and size > 1000:
                     continue
 
                 # Generate dataset
                 data = self.generate_large_dataset(size)
-                payload = config['generator'](data)
+                payload = config["generator"](data)
 
                 # Measure performance
                 result = self.measure_performance(endpoint, payload, size_label)
 
                 # Print results
-                if result['error']:
+                if result["error"]:
                     print(f"    ❌ Error: {result['error']}")
                 else:
                     print(f"    ✅ Response Time: {result['response_time_ms']:.2f}ms")
                     print(f"    💾 Memory Used: {result['memory_used_mb']:.2f}MB")
-                    if result['has_high_precision']:
-                        print(f"    🎯 50-Decimal Precision: Maintained")
+                    if result["has_high_precision"]:
+                        print("    🎯 50-Decimal Precision: Maintained")
                     else:
-                        print(f"    ⚠️  No high-precision result")
+                        print("    ⚠️  No high-precision result")
 
                 endpoint_results.append(result)
 
-            self.results['stress_tests'][endpoint] = endpoint_results
+            self.results["stress_tests"][endpoint] = endpoint_results
 
         # Calculate summary
         self.calculate_summary()
@@ -217,29 +204,29 @@ class StressTestLargeDatasets:
         failed_tests = 0
         high_precision_count = 0
 
-        for endpoint, tests in self.results['stress_tests'].items():
+        for endpoint, tests in self.results["stress_tests"].items():
             for test in tests:
-                if test['error'] is None:
-                    all_response_times.append(test['response_time_ms'])
-                    all_memory.append(test['memory_used_mb'])
+                if test["error"] is None:
+                    all_response_times.append(test["response_time_ms"])
+                    all_memory.append(test["memory_used_mb"])
                     successful_tests += 1
-                    if test['has_high_precision']:
+                    if test["has_high_precision"]:
                         high_precision_count += 1
                 else:
                     failed_tests += 1
 
         if all_response_times:
-            self.results['summary'] = {
-                'total_tests': successful_tests + failed_tests,
-                'successful_tests': successful_tests,
-                'failed_tests': failed_tests,
-                'high_precision_maintained': high_precision_count,
-                'avg_response_time_ms': np.mean(all_response_times),
-                'max_response_time_ms': np.max(all_response_times),
-                'min_response_time_ms': np.min(all_response_times),
-                'avg_memory_mb': np.mean(all_memory),
-                'max_memory_mb': np.max(all_memory),
-                'performance_rating': self.calculate_rating(all_response_times)
+            self.results["summary"] = {
+                "total_tests": successful_tests + failed_tests,
+                "successful_tests": successful_tests,
+                "failed_tests": failed_tests,
+                "high_precision_maintained": high_precision_count,
+                "avg_response_time_ms": np.mean(all_response_times),
+                "max_response_time_ms": np.max(all_response_times),
+                "min_response_time_ms": np.min(all_response_times),
+                "avg_memory_mb": np.mean(all_memory),
+                "max_memory_mb": np.max(all_memory),
+                "performance_rating": self.calculate_rating(all_response_times),
             }
 
     def calculate_rating(self, response_times):
@@ -261,19 +248,19 @@ class StressTestLargeDatasets:
         """Save stress test results"""
         filename = f"stress_test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self.results, f, indent=2, default=str)
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("STRESS TEST SUMMARY")
-        print("="*80)
+        print("=" * 80)
 
-        summary = self.results['summary']
+        summary = self.results["summary"]
         print(f"Total Tests Run: {summary['total_tests']}")
         print(f"Successful: {summary['successful_tests']}")
         print(f"Failed: {summary['failed_tests']}")
         print(f"High Precision Maintained: {summary['high_precision_maintained']}")
-        print(f"\nPerformance Metrics:")
+        print("\nPerformance Metrics:")
         print(f"  Average Response Time: {summary['avg_response_time_ms']:.2f}ms")
         print(f"  Max Response Time: {summary['max_response_time_ms']:.2f}ms")
         print(f"  Min Response Time: {summary['min_response_time_ms']:.2f}ms")
@@ -284,29 +271,30 @@ class StressTestLargeDatasets:
         # Performance targets analysis
         print("\n📈 TARGET ANALYSIS:")
 
-        if summary['avg_response_time_ms'] < 1000:
+        if summary["avg_response_time_ms"] < 1000:
             print("✅ Average response < 1 second - TARGET MET")
         else:
             print("⚠️  Average response > 1 second - Optimization needed")
 
-        if summary['max_response_time_ms'] < 5000:
+        if summary["max_response_time_ms"] < 5000:
             print("✅ Max response < 5 seconds - TARGET MET")
         else:
             print("⚠️  Max response > 5 seconds - Optimization needed")
 
-        if summary['avg_memory_mb'] < 100:
+        if summary["avg_memory_mb"] < 100:
             print("✅ Average memory < 100MB - EFFICIENT")
         else:
             print("⚠️  Average memory > 100MB - Consider optimization")
 
-        precision_rate = (summary['high_precision_maintained'] / summary['successful_tests'] * 100)
+        precision_rate = summary["high_precision_maintained"] / summary["successful_tests"] * 100
         if precision_rate > 90:
             print(f"✅ High precision rate: {precision_rate:.1f}% - EXCELLENT")
         else:
             print(f"⚠️  High precision rate: {precision_rate:.1f}% - Needs improvement")
 
         print(f"\n✅ Results saved to: {filename}")
-        print("="*80)
+        print("=" * 80)
+
 
 if __name__ == "__main__":
     print("\n🚀 Starting StickForStats Stress Test with Large Datasets...")

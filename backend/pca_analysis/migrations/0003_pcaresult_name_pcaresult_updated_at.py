@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pca_analysis", "0002_gene_description_pcaresult_group_centroids_and_more"),
     ]

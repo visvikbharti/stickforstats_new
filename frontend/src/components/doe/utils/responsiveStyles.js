@@ -260,7 +260,7 @@ export const getOverlayElevation = (theme, elevation = 1, color = 'black') => {
   return `0px ${elevation}px ${elevation * 2}px rgba(0, 0, 0, 0.1), 0px ${elevation / 2}px ${elevation}px ${alpha(theme.palette.augmentColor({color}).main, overlayAlpha)}`;
 };
 
-export default {
+const responsiveStyles = {
   responsiveSpacing,
   responsivePadding,
   responsiveTypography,
@@ -271,3 +271,5 @@ export default {
   responsivePaper,
   getOverlayElevation
 };
+
+export default responsiveStyles;

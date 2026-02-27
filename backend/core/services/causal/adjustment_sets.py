@@ -21,16 +21,16 @@ References:
 Created: December 26, 2025
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Set, List, Dict, Any, Optional, Tuple
 from itertools import combinations
-from .dag import CausalDAG, NodeType
-from .d_separation import is_d_separated
+from .dag import CausalDAG
 
 
 @dataclass
 class AdjustmentSetResult:
     """Result of adjustment set calculation."""
+
     exposure: str
     outcome: str
     valid_adjustment_sets: List[Set[str]]
@@ -43,23 +43,19 @@ class AdjustmentSetResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'exposure': self.exposure,
-            'outcome': self.outcome,
-            'valid_adjustment_sets': [list(s) for s in self.valid_adjustment_sets],
-            'minimal_adjustment_set': list(self.minimal_adjustment_set) if self.minimal_adjustment_set else None,
-            'confounders': list(self.confounders),
-            'forbidden_nodes': list(self.forbidden_nodes),
-            'backdoor_paths': self.backdoor_paths,
-            'identifiable': self.identifiable,
-            'explanation': self.explanation
+            "exposure": self.exposure,
+            "outcome": self.outcome,
+            "valid_adjustment_sets": [list(s) for s in self.valid_adjustment_sets],
+            "minimal_adjustment_set": list(self.minimal_adjustment_set) if self.minimal_adjustment_set else None,
+            "confounders": list(self.confounders),
+            "forbidden_nodes": list(self.forbidden_nodes),
+            "backdoor_paths": self.backdoor_paths,
+            "identifiable": self.identifiable,
+            "explanation": self.explanation,
         }
 
 
-def find_backdoor_paths(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str
-) -> List[List[str]]:
+def find_backdoor_paths(dag: CausalDAG, exposure: str, outcome: str) -> List[List[str]]:
     """
     Find all backdoor paths from exposure to outcome.
 
@@ -92,12 +88,7 @@ def find_backdoor_paths(
     return backdoor_paths
 
 
-def is_valid_adjustment_set(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str,
-    adjustment_set: Set[str]
-) -> Tuple[bool, str]:
+def is_valid_adjustment_set(dag: CausalDAG, exposure: str, outcome: str, adjustment_set: Set[str]) -> Tuple[bool, str]:
     """
     Check if a set is a valid adjustment set for causal effect estimation.
 
@@ -154,11 +145,7 @@ def is_valid_adjustment_set(
     return True, "Valid adjustment set"
 
 
-def _is_path_blocked_by_set(
-    dag: CausalDAG,
-    path: List[str],
-    conditioning_set: Set[str]
-) -> bool:
+def _is_path_blocked_by_set(dag: CausalDAG, path: List[str], conditioning_set: Set[str]) -> bool:
     """Check if a path is blocked by a conditioning set."""
     if len(path) < 3:
         return False
@@ -186,11 +173,7 @@ def _is_path_blocked_by_set(
     return False
 
 
-def identify_confounders(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str
-) -> Set[str]:
+def identify_confounders(dag: CausalDAG, exposure: str, outcome: str) -> Set[str]:
     """
     Identify all confounders between exposure and outcome.
 
@@ -241,7 +224,7 @@ def find_adjustment_sets(
     outcome: str,
     max_size: Optional[int] = None,
     required_nodes: Optional[Set[str]] = None,
-    forbidden_nodes: Optional[Set[str]] = None
+    forbidden_nodes: Optional[Set[str]] = None,
 ) -> AdjustmentSetResult:
     """
     Find all valid adjustment sets for estimating causal effect.
@@ -340,15 +323,12 @@ def find_adjustment_sets(
         forbidden_nodes=auto_forbidden,
         backdoor_paths=backdoor_paths,
         identifiable=identifiable,
-        explanation=explanation
+        explanation=explanation,
     )
 
 
 def minimal_adjustment_set(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str,
-    prefer_observed: bool = True
+    dag: CausalDAG, exposure: str, outcome: str, prefer_observed: bool = True
 ) -> Optional[Set[str]]:
     """
     Find the smallest valid adjustment set.
@@ -367,10 +347,7 @@ def minimal_adjustment_set(
 
 
 def suggest_variables_to_measure(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str,
-    measured_variables: Set[str]
+    dag: CausalDAG, exposure: str, outcome: str, measured_variables: Set[str]
 ) -> Dict[str, Any]:
     """
     Suggest additional variables to measure for identification.
@@ -389,8 +366,7 @@ def suggest_variables_to_measure(
     """
     # Find adjustment sets using only measured variables
     result_measured = find_adjustment_sets(
-        dag, exposure, outcome,
-        forbidden_nodes=set(dag.nodes) - measured_variables - {exposure, outcome}
+        dag, exposure, outcome, forbidden_nodes=set(dag.nodes) - measured_variables - {exposure, outcome}
     )
 
     # Find adjustment sets using all variables
@@ -400,18 +376,18 @@ def suggest_variables_to_measure(
 
     if result_measured.identifiable:
         return {
-            'status': 'identifiable',
-            'message': 'Causal effect is already identifiable with measured variables',
-            'suggested_variables': [],
-            'current_adjustment_set': result_measured.minimal_adjustment_set
+            "status": "identifiable",
+            "message": "Causal effect is already identifiable with measured variables",
+            "suggested_variables": [],
+            "current_adjustment_set": result_measured.minimal_adjustment_set,
         }
 
     if not result_all.identifiable:
         return {
-            'status': 'not_identifiable',
-            'message': 'Causal effect is not identifiable even with all variables',
-            'suggested_variables': [],
-            'reason': 'Unblocked confounding exists that cannot be adjusted for'
+            "status": "not_identifiable",
+            "message": "Causal effect is not identifiable even with all variables",
+            "suggested_variables": [],
+            "reason": "Unblocked confounding exists that cannot be adjusted for",
         }
 
     # Find which unmeasured variables would help
@@ -421,22 +397,23 @@ def suggest_variables_to_measure(
         # Check if measuring this variable enables identification
         new_measured = measured_variables | {var}
         result_new = find_adjustment_sets(
-            dag, exposure, outcome,
-            forbidden_nodes=set(dag.nodes) - new_measured - {exposure, outcome}
+            dag, exposure, outcome, forbidden_nodes=set(dag.nodes) - new_measured - {exposure, outcome}
         )
 
         if result_new.identifiable:
-            suggestions.append({
-                'variable': var,
-                'role': _get_variable_role(dag, var, exposure, outcome),
-                'enables_identification': True
-            })
+            suggestions.append(
+                {
+                    "variable": var,
+                    "role": _get_variable_role(dag, var, exposure, outcome),
+                    "enables_identification": True,
+                }
+            )
 
     return {
-        'status': 'need_additional_measurements',
-        'message': 'Additional measurements needed for identification',
-        'suggested_variables': suggestions,
-        'confounders': list(result_all.confounders)
+        "status": "need_additional_measurements",
+        "message": "Additional measurements needed for identification",
+        "suggested_variables": suggestions,
+        "confounders": list(result_all.confounders),
     }
 
 
@@ -447,26 +424,23 @@ def _get_variable_role(dag: CausalDAG, var: str, exposure: str, outcome: str) ->
     is_descendant_exposure = dag.is_descendant(var, exposure)
 
     if is_ancestor_exposure and is_ancestor_outcome:
-        return 'confounder'
+        return "confounder"
     elif is_ancestor_exposure:
-        return 'cause of exposure only'
+        return "cause of exposure only"
     elif is_ancestor_outcome and not is_descendant_exposure:
-        return 'cause of outcome only'
+        return "cause of outcome only"
     elif is_descendant_exposure:
         causal_paths = dag.directed_paths(exposure, outcome)
         for path in causal_paths:
             if var in path:
-                return 'mediator'
-        return 'descendant of exposure'
+                return "mediator"
+        return "descendant of exposure"
     else:
-        return 'other'
+        return "other"
 
 
 def analyze_adjustment_strategy(
-    dag: CausalDAG,
-    exposure: str,
-    outcome: str,
-    proposed_adjustment: Set[str]
+    dag: CausalDAG, exposure: str, outcome: str, proposed_adjustment: Set[str]
 ) -> Dict[str, Any]:
     """
     Analyze a proposed adjustment strategy.
@@ -486,11 +460,11 @@ def analyze_adjustment_strategy(
     is_valid, reason = is_valid_adjustment_set(dag, exposure, outcome, proposed_adjustment)
 
     analysis = {
-        'is_valid': is_valid,
-        'reason': reason,
-        'proposed_set': list(proposed_adjustment),
-        'issues': [],
-        'recommendations': []
+        "is_valid": is_valid,
+        "reason": reason,
+        "proposed_set": list(proposed_adjustment),
+        "issues": [],
+        "recommendations": [],
     }
 
     # Check for specific issues
@@ -498,28 +472,28 @@ def analyze_adjustment_strategy(
     included_descendants = proposed_adjustment & exposure_descendants
 
     if included_descendants:
-        analysis['issues'].append({
-            'type': 'descendant_of_treatment',
-            'variables': list(included_descendants),
-            'message': 'Including descendants of treatment biases the estimate'
-        })
-        analysis['recommendations'].append(
-            f"Remove {included_descendants} from adjustment set"
+        analysis["issues"].append(
+            {
+                "type": "descendant_of_treatment",
+                "variables": list(included_descendants),
+                "message": "Including descendants of treatment biases the estimate",
+            }
         )
+        analysis["recommendations"].append(f"Remove {included_descendants} from adjustment set")
 
     # Check if mediators are included
     mediators = dag.identify_mediators(exposure, outcome)
     included_mediators = proposed_adjustment & mediators
 
     if included_mediators:
-        analysis['issues'].append({
-            'type': 'mediator_adjustment',
-            'variables': list(included_mediators),
-            'message': 'Adjusting for mediators blocks part of the causal effect'
-        })
-        analysis['recommendations'].append(
-            f"Remove mediator(s) {included_mediators} to estimate total effect"
+        analysis["issues"].append(
+            {
+                "type": "mediator_adjustment",
+                "variables": list(included_mediators),
+                "message": "Adjusting for mediators blocks part of the causal effect",
+            }
         )
+        analysis["recommendations"].append(f"Remove mediator(s) {included_mediators} to estimate total effect")
 
     # Check for missing confounders
     confounders = identify_confounders(dag, exposure, outcome)
@@ -528,22 +502,20 @@ def analyze_adjustment_strategy(
     if missing_confounders:
         # Check if still valid despite missing
         if is_valid:
-            analysis['notes'] = [
-                f"Confounders {missing_confounders} not included but set is still valid"
-            ]
+            analysis["notes"] = [f"Confounders {missing_confounders} not included but set is still valid"]
         else:
-            analysis['issues'].append({
-                'type': 'missing_confounder',
-                'variables': list(missing_confounders),
-                'message': 'Not all confounders are adjusted for'
-            })
+            analysis["issues"].append(
+                {
+                    "type": "missing_confounder",
+                    "variables": list(missing_confounders),
+                    "message": "Not all confounders are adjusted for",
+                }
+            )
 
     # Compare to optimal
     result = find_adjustment_sets(dag, exposure, outcome)
     if result.minimal_adjustment_set:
         if proposed_adjustment != result.minimal_adjustment_set:
-            analysis['recommendations'].append(
-                f"Consider minimal adjustment set: {result.minimal_adjustment_set}"
-            )
+            analysis["recommendations"].append(f"Consider minimal adjustment set: {result.minimal_adjustment_set}")
 
     return analysis

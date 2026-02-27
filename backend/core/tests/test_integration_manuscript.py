@@ -16,7 +16,6 @@ Created: February 2026
 from __future__ import annotations
 
 import unittest
-from unittest.mock import patch, MagicMock
 
 from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -25,20 +24,17 @@ from rest_framework import status as http_status
 
 try:
     from scipy import stats as scipy_stats
+
     SCIPY_AVAILABLE = True
 except ImportError:
     scipy_stats = None
     SCIPY_AVAILABLE = False
 
-from core.manuscript.parser import ManuscriptParser, ParsedManuscript
+from core.manuscript.parser import ParsedManuscript
 from core.manuscript.claim_extractor import (
     StatisticalClaimExtractor,
-    StatisticalClaim,
     ExtractionSummary,
     CLAIM_TYPE_T,
-    CLAIM_TYPE_F,
-    CLAIM_TYPE_CHI2,
-    CLAIM_TYPE_R,
 )
 from core.manuscript.consistency_validator import (
     ConsistencyValidator,
@@ -51,13 +47,15 @@ from core.manuscript.manuscript_guardian import (
 )
 
 try:
-    from core.manuscript.advanced_validators import run_all_validators, ValidatorFinding
+    pass
+
     VALIDATORS_AVAILABLE = True
 except ImportError:
     VALIDATORS_AVAILABLE = False
 
 try:
-    from core.sqs_scoring import SQSScorer, SQSReport
+    pass
+
     SQS_AVAILABLE = True
 except ImportError:
     SQS_AVAILABLE = False
@@ -243,12 +241,13 @@ Braun, V. (2006). Using thematic analysis. Qualitative Research, 3, 77-101.
 # TEST CLASS 1: Full Manuscript Pipeline Integration
 # ===================================================================
 
+
 class TestFullManuscriptPipelineIntegration(TestCase):
     """End-to-end manuscript review pipeline tests."""
 
     def test_psychology_manuscript_review(self):
         """Full review of psychology manuscript: claims found, consistency, assessment."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
@@ -257,7 +256,7 @@ class TestFullManuscriptPipelineIntegration(TestCase):
         # Consistency should be checked
         self.assertIsNotNone(report.consistency_rate)
         # Overall assessment should not be critical for well-reported stats
-        self.assertIn(report.overall_assessment, ['pass', 'minor_issues', 'major_issues'])
+        self.assertIn(report.overall_assessment, ["pass", "minor_issues", "major_issues"])
         # Should detect sections
         self.assertGreater(len(report.sections_found), 0)
         # Processing time should be recorded
@@ -266,7 +265,7 @@ class TestFullManuscriptPipelineIntegration(TestCase):
 
     def test_multi_test_manuscript_review(self):
         """Manuscript with 3+ claim types extracted and validated."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_MULTI_TEST)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
@@ -282,7 +281,7 @@ class TestFullManuscriptPipelineIntegration(TestCase):
 
     def test_review_report_has_all_fields(self):
         """Verify ManuscriptReviewReport structure completeness."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
 
         # Core fields
@@ -309,37 +308,42 @@ class TestFullManuscriptPipelineIntegration(TestCase):
         self.assertIsInstance(report.positive_findings, list)
 
         # Overall assessment
-        self.assertIn(report.overall_assessment, [
-            'pass', 'minor_issues', 'major_issues', 'critical',
-        ])
+        self.assertIn(
+            report.overall_assessment,
+            [
+                "pass",
+                "minor_issues",
+                "major_issues",
+                "critical",
+            ],
+        )
 
         # Serialization
         d = report.to_dict()
-        self.assertIn('claims_found', d)
-        self.assertIn('findings', d)
-        self.assertIn('consistency_results', d)
-        self.assertIn('overall_assessment', d)
+        self.assertIn("claims_found", d)
+        self.assertIn("findings", d)
+        self.assertIn("consistency_results", d)
+        self.assertIn("overall_assessment", d)
 
     def test_findings_categorized_correctly(self):
         """Severity and category values are from valid sets."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_MULTI_TEST)
 
-        valid_severities = {'blocking', 'major', 'moderate', 'minor', 'positive'}
-        valid_categories = {'consistency', 'reporting', 'methodology', 'sqs'}
+        valid_severities = {"blocking", "major", "moderate", "minor", "positive"}
+        valid_categories = {"consistency", "reporting", "methodology", "sqs"}
 
         all_findings = report.findings + report.positive_findings
         for f in all_findings:
             self.assertIsInstance(f, ReviewFinding)
-            self.assertIn(f.severity, valid_severities,
-                          f"Invalid severity: {f.severity}")
-            self.assertIn(f.category, valid_categories,
-                          f"Invalid category: {f.category}")
+            self.assertIn(f.severity, valid_severities, f"Invalid severity: {f.severity}")
+            self.assertIn(f.category, valid_categories, f"Invalid category: {f.category}")
 
 
 # ===================================================================
 # TEST CLASS 2: Claim Validation Chain Integration
 # ===================================================================
+
 
 @unittest.skipUnless(SCIPY_AVAILABLE, "scipy required for consistency checks")
 class TestClaimValidationChainIntegration(TestCase):
@@ -358,7 +362,7 @@ class TestClaimValidationChainIntegration(TestCase):
     def test_consistent_ttest_passes_validation(self):
         """t(118)=2.87 with p=.005 should be approximately consistent."""
         text = "t(118) = 2.87, p = .005, Cohen's d = 0.53"
-        claims = self.extractor.extract(text, section='results')
+        claims = self.extractor.extract(text, section="results")
 
         t_claims = [c for c in claims if c.claim_type == CLAIM_TYPE_T]
         self.assertGreater(len(t_claims), 0, "Expected t-test claim to be extracted")
@@ -377,7 +381,7 @@ class TestClaimValidationChainIntegration(TestCase):
     def test_inconsistent_claim_flagged_as_gross_error(self):
         """t(30)=0.50 with p=.001 → gross_error (actual p ≈ 0.621)."""
         text = "t(30) = 0.50, p = .001"
-        claims = self.extractor.extract(text, section='results')
+        claims = self.extractor.extract(text, section="results")
 
         t_claims = [c for c in claims if c.claim_type == CLAIM_TYPE_T]
         self.assertGreater(len(t_claims), 0, "Expected t-test claim to be extracted")
@@ -386,7 +390,8 @@ class TestClaimValidationChainIntegration(TestCase):
 
         self.assertFalse(result.is_consistent)
         self.assertEqual(
-            result.severity, 'gross_error',
+            result.severity,
+            "gross_error",
             f"Expected gross_error but got severity={result.severity}, "
             f"computed_p={result.computed_p}, note={result.note}",
         )
@@ -394,19 +399,12 @@ class TestClaimValidationChainIntegration(TestCase):
 
     def test_multiple_claim_types_batch_validated(self):
         """F, chi2, r claims all checked in batch."""
-        text = (
-            "F(2, 87) = 4.23, p = .018. "
-            "chi-square(2) = 9.87, p = .007. "
-            "r = .48, p < .001."
-        )
-        claims = self.extractor.extract(text, section='results')
+        text = "F(2, 87) = 4.23, p = .018. " "chi-square(2) = 9.87, p = .007. " "r = .48, p < .001."
+        claims = self.extractor.extract(text, section="results")
         self.assertGreaterEqual(len(claims), 2)
 
         # Filter to checkable claims (validator handles type mapping internally)
-        checkable = [
-            c for c in claims
-            if c.claim_type and c.statistic_value is not None and c.p_value is not None
-        ]
+        checkable = [c for c in claims if c.claim_type and c.statistic_value is not None and c.p_value is not None]
         summary = self.validator.validate(checkable)
 
         self.assertIsInstance(summary, ValidationSummary)
@@ -414,12 +412,8 @@ class TestClaimValidationChainIntegration(TestCase):
 
     def test_extraction_summary_matches_claims(self):
         """total_claims count in summary matches extracted claims."""
-        text = (
-            "t(30) = 2.50, p = .018. "
-            "F(2, 45) = 3.67, p = .034. "
-            "r = .42, p = .003."
-        )
-        claims = self.extractor.extract(text, section='results')
+        text = "t(30) = 2.50, p = .018. " "F(2, 45) = 3.67, p = .034. " "r = .42, p = .003."
+        claims = self.extractor.extract(text, section="results")
         summary = self.extractor.summarize(claims)
 
         self.assertIsInstance(summary, ExtractionSummary)
@@ -431,13 +425,14 @@ class TestClaimValidationChainIntegration(TestCase):
 # TEST CLASS 3: SQS Scoring Integration
 # ===================================================================
 
+
 @unittest.skipUnless(SQS_AVAILABLE, "SQS scorer not available")
 class TestSQSScoringIntegration(TestCase):
     """Test SQS scoring through the ManuscriptGuardian pipeline."""
 
     def test_perfect_reporting_high_score(self):
         """Well-reported manuscript should score higher than minimal reporting."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report_good = guardian.review_text(MANUSCRIPT_PERFECT_REPORTING)
         report_bad = guardian.review_text(MANUSCRIPT_MINIMAL_REPORTING)
 
@@ -450,7 +445,7 @@ class TestSQSScoringIntegration(TestCase):
 
     def test_minimal_reporting_low_score(self):
         """Minimally reported manuscript should get a low SQS score."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_MINIMAL_REPORTING)
 
         self.assertIsNotNone(report.sqs_score)
@@ -458,7 +453,7 @@ class TestSQSScoringIntegration(TestCase):
 
     def test_sqs_categories_present(self):
         """All 6 SQS scoring categories should be in the report."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
 
         self.assertIsNotNone(report.sqs_report)
@@ -472,12 +467,13 @@ class TestSQSScoringIntegration(TestCase):
 # TEST CLASS 4: Manuscript Edge Cases
 # ===================================================================
 
+
 class TestManuscriptEdgeCases(TestCase):
     """Edge case handling in the manuscript pipeline."""
 
     def test_empty_text(self):
         """Empty text: no crash, claims_found=0, warnings populated."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_EMPTY)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
@@ -489,7 +485,7 @@ class TestManuscriptEdgeCases(TestCase):
 
     def test_no_statistical_content(self):
         """Qualitative paper: review completes, claims=0."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_NO_STATS)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
@@ -499,13 +495,13 @@ class TestManuscriptEdgeCases(TestCase):
 
     def test_all_inconsistent_claims(self):
         """Grossly inconsistent claims → overall_assessment is critical/major_issues."""
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(MANUSCRIPT_INCONSISTENT)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
         # t(30)=0.50 with p=.001 is a gross error → critical assessment
         if report.claims_found > 0 and report.gross_errors > 0:
-            self.assertIn(report.overall_assessment, ['critical', 'major_issues'])
+            self.assertIn(report.overall_assessment, ["critical", "major_issues"])
 
     def test_long_manuscript_completes(self):
         """5000-word text with 20+ claims finishes within reasonable time."""
@@ -515,24 +511,24 @@ class TestManuscriptEdgeCases(TestCase):
             t_stat = 2.0 + i * 0.1
             df = 30 + i * 2
             p_val = f".{max(1, 50 - i * 2):03d}"
-            results_section += (
-                f"Hypothesis {i+1}: The analysis revealed "
-                f"t({df}) = {t_stat:.2f}, p = {p_val}. "
-            )
+            results_section += f"Hypothesis {i+1}: The analysis revealed " f"t({df}) = {t_stat:.2f}, p = {p_val}. "
         results_section += "\n"
 
         long_text = (
             "Title of a Very Comprehensive Study\n\n"
             "Abstract\n" + "Background context. " * 50 + "\n\n"
             "Introduction\n" + "Literature review content. " * 100 + "\n\n"
-            "Methods\n" + "Methodological details. " * 80 +
-            " Independent samples t-tests were used.\n\n"
-            + results_section +
-            "Discussion\n" + "Discussion of findings. " * 80 + "\n\n"
+            "Methods\n"
+            + "Methodological details. " * 80
+            + " Independent samples t-tests were used.\n\n"
+            + results_section
+            + "Discussion\n"
+            + "Discussion of findings. " * 80
+            + "\n\n"
             "References\n" + "Reference entry. " * 30 + "\n"
         )
 
-        guardian = ManuscriptGuardian(field='general')
+        guardian = ManuscriptGuardian(field="general")
         report = guardian.review_text(long_text)
 
         self.assertIsInstance(report, ManuscriptReviewReport)
@@ -544,11 +540,12 @@ class TestManuscriptEdgeCases(TestCase):
 # TEST CLASS 5: Manuscript API Integration
 # ===================================================================
 
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class TestManuscriptAPIIntegration(APITestCase):
     """HTTP endpoint tests for manuscript review API."""
 
-    def _make_text_file(self, text, name='manuscript.tex'):
+    def _make_text_file(self, text, name="manuscript.tex"):
         """Create a SimpleUploadedFile from text with .tex extension.
 
         Uses .tex extension because the ManuscriptParser only auto-detects
@@ -556,59 +553,68 @@ class TestManuscriptAPIIntegration(APITestCase):
         """
         return SimpleUploadedFile(
             name=name,
-            content=text.encode('utf-8'),
-            content_type='application/x-tex',
+            content=text.encode("utf-8"),
+            content_type="application/x-tex",
         )
 
     def test_analyze_endpoint_with_text_file(self):
         """POST text file to /api/v1/manuscript/analyze/."""
         f = self._make_text_file(MANUSCRIPT_PSYCHOLOGY)
         response = self.client.post(
-            '/api/v1/manuscript/analyze/',
-            {'file': f, 'field': 'general'},
-            format='multipart',
+            "/api/v1/manuscript/analyze/",
+            {"file": f, "field": "general"},
+            format="multipart",
         )
 
-        self.assertIn(response.status_code, [
-            http_status.HTTP_200_OK,
-            http_status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                http_status.HTTP_200_OK,
+                http_status.HTTP_201_CREATED,
+            ],
+        )
         data = response.json()
-        self.assertIn('claims_found', data)
-        self.assertIn('overall_assessment', data)
+        self.assertIn("claims_found", data)
+        self.assertIn("overall_assessment", data)
 
     def test_claims_endpoint_with_text_file(self):
         """POST text file to /api/v1/manuscript/claims/."""
         f = self._make_text_file(MANUSCRIPT_MULTI_TEST)
         response = self.client.post(
-            '/api/v1/manuscript/claims/',
-            {'file': f},
-            format='multipart',
+            "/api/v1/manuscript/claims/",
+            {"file": f},
+            format="multipart",
         )
 
-        self.assertIn(response.status_code, [
-            http_status.HTTP_200_OK,
-            http_status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                http_status.HTTP_200_OK,
+                http_status.HTTP_201_CREATED,
+            ],
+        )
         data = response.json()
-        self.assertIn('claims', data)
+        self.assertIn("claims", data)
 
     def test_consistency_endpoint_with_text_file(self):
         """POST text file to /api/v1/manuscript/consistency/."""
         f = self._make_text_file(MANUSCRIPT_PSYCHOLOGY)
         response = self.client.post(
-            '/api/v1/manuscript/consistency/',
-            {'file': f},
-            format='multipart',
+            "/api/v1/manuscript/consistency/",
+            {"file": f},
+            format="multipart",
         )
 
-        self.assertIn(response.status_code, [
-            http_status.HTTP_200_OK,
-            http_status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                http_status.HTTP_200_OK,
+                http_status.HTTP_201_CREATED,
+            ],
+        )
         data = response.json()
         # Should contain consistency results
         self.assertTrue(
-            'results' in data or 'summary' in data or 'consistency' in data,
+            "results" in data or "summary" in data or "consistency" in data,
             f"Response missing expected keys: {list(data.keys())}",
         )

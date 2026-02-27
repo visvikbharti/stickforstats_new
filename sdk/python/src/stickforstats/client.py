@@ -4,7 +4,7 @@ Core client for the StickForStats API.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -57,7 +57,7 @@ class StickForStats:
     def __init__(
         self,
         base_url: str = "http://localhost:8000/api/v1",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         timeout: float = 60.0,
         platform_key: bool = False,
     ) -> None:
@@ -66,7 +66,7 @@ class StickForStats:
         self.timeout = timeout
         self.platform_key = platform_key
 
-        headers: Dict[str, str] = {
+        headers: dict[str, str] = {
             "Accept": "application/json",
             "User-Agent": "stickforstats-python/0.1.0",
         }
@@ -114,11 +114,11 @@ class StickForStats:
         method: str,
         path: str,
         *,
-        json: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        files: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        json: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Send an HTTP request and return the parsed JSON body.
 
@@ -150,7 +150,7 @@ class StickForStats:
 
         return self._handle_response(response)
 
-    def _handle_response(self, response: httpx.Response) -> Dict[str, Any]:
+    def _handle_response(self, response: httpx.Response) -> dict[str, Any]:
         """Parse the response, raising typed exceptions for error status codes."""
         if response.status_code in (401, 403):
             body = self._safe_json(response)
@@ -181,7 +181,7 @@ class StickForStats:
         return response.json()
 
     @staticmethod
-    def _safe_json(response: httpx.Response) -> Dict[str, Any]:
+    def _safe_json(response: httpx.Response) -> dict[str, Any]:
         """Attempt to parse JSON; return empty dict on failure."""
         try:
             return response.json()
@@ -192,19 +192,19 @@ class StickForStats:
     # Convenience HTTP verbs
     # ------------------------------------------------------------------
 
-    def get(self, path: str, **kwargs: Any) -> Dict[str, Any]:
+    def get(self, path: str, **kwargs: Any) -> dict[str, Any]:
         """Send a GET request."""
         return self._request("GET", path, **kwargs)
 
-    def post(self, path: str, **kwargs: Any) -> Dict[str, Any]:
+    def post(self, path: str, **kwargs: Any) -> dict[str, Any]:
         """Send a POST request."""
         return self._request("POST", path, **kwargs)
 
-    def put(self, path: str, **kwargs: Any) -> Dict[str, Any]:
+    def put(self, path: str, **kwargs: Any) -> dict[str, Any]:
         """Send a PUT request."""
         return self._request("PUT", path, **kwargs)
 
-    def delete(self, path: str, **kwargs: Any) -> Dict[str, Any]:
+    def delete(self, path: str, **kwargs: Any) -> dict[str, Any]:
         """Send a DELETE request."""
         return self._request("DELETE", path, **kwargs)
 

@@ -4,4 +4,4 @@ from .data_validator import DataValidator
 from .enhanced_validation import EnhancedDataValidator
 from .statistical_utils import StatisticalUtilsService
 
-__all__ = ['DataValidator', 'EnhancedDataValidator', 'StatisticalUtilsService']
+__all__ = ["DataValidator", "EnhancedDataValidator", "StatisticalUtilsService"]

@@ -336,7 +336,7 @@ export function fitSecondOrderModel(data, factors, responseKey = 'Y') {
   const Y = data.map(row => row[responseKey]);
 
   // Terms: 1, x1, x2, x1², x2², x1*x2
-  const XMatrix = data.map(row => [
+  const _XMatrix = data.map(row => [
     1,
     row[X1],
     row[X2],

@@ -18,7 +18,7 @@ sys.path.insert(0, backend_dir)
 sys.path.insert(0, project_root)
 
 # Configure Django settings before any imports
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stickforstats.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "stickforstats.settings")
 django.setup()
 
 print("=" * 70)
@@ -32,6 +32,7 @@ print("-" * 70)
 try:
     from lifelines import KaplanMeierFitter, CoxPHFitter
     from lifelines.statistics import logrank_test
+
     print("✅ lifelines library imported successfully")
     print(f"   - KaplanMeierFitter: {KaplanMeierFitter}")
     print(f"   - CoxPHFitter: {CoxPHFitter}")
@@ -46,6 +47,7 @@ print("TEST 2: Survival Analysis - Service Import")
 print("-" * 70)
 try:
     from core.services.analytics.survival import get_survival_service
+
     survival_service = get_survival_service()
     print("✅ SurvivalService imported successfully")
 
@@ -56,6 +58,7 @@ try:
 except Exception as e:
     print(f"❌ SurvivalService import FAILED: {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 print()
@@ -66,6 +69,7 @@ print("-" * 70)
 try:
     from factor_analyzer import FactorAnalyzer
     from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity, calculate_kmo
+
     print("✅ factor_analyzer library imported successfully")
     print(f"   - FactorAnalyzer: {FactorAnalyzer}")
     print(f"   - calculate_bartlett_sphericity: {calculate_bartlett_sphericity}")
@@ -80,6 +84,7 @@ print("TEST 4: Factor Analysis - Service Import")
 print("-" * 70)
 try:
     from core.services.analytics.factor import get_factor_service
+
     factor_service = get_factor_service()
     print("✅ FactorAnalysisService imported successfully")
 
@@ -91,6 +96,7 @@ try:
 except Exception as e:
     print(f"❌ FactorAnalysisService import FAILED: {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 print()
@@ -104,19 +110,12 @@ try:
 
     # Generate simple test data
     np.random.seed(42)
-    data = pd.DataFrame({
-        'duration': [5, 6, 10, 12, 15, 20, 25, 30, 35, 40],
-        'event': [1, 1, 0, 1, 1, 0, 1, 1, 0, 1]
-    })
+    data = pd.DataFrame({"duration": [5, 6, 10, 12, 15, 20, 25, 30, 35, 40], "event": [1, 1, 0, 1, 1, 0, 1, 1, 0, 1]})
 
     # Test Kaplan-Meier
-    result = survival_service.kaplan_meier_analysis(
-        data=data,
-        duration_col='duration',
-        event_col='event'
-    )
+    result = survival_service.kaplan_meier_analysis(data=data, duration_col="duration", event_col="event")
 
-    print(f"✅ Kaplan-Meier analysis executed successfully")
+    print("✅ Kaplan-Meier analysis executed successfully")
     print(f"   - Subjects: {result['n_subjects']}")
     print(f"   - Events: {result['n_events']}")
     print(f"   - Censored: {result['n_censored']}")
@@ -125,6 +124,7 @@ try:
 except Exception as e:
     print(f"❌ Survival functional test FAILED: {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 print()
@@ -141,34 +141,33 @@ try:
     factor1 = np.random.normal(0, 1, 100)
     factor2 = np.random.normal(0, 1, 100)
 
-    data = pd.DataFrame({
-        'var1': factor1 + np.random.normal(0, 0.3, 100),
-        'var2': factor1 + np.random.normal(0, 0.3, 100),
-        'var3': factor2 + np.random.normal(0, 0.3, 100),
-        'var4': factor2 + np.random.normal(0, 0.3, 100),
-        'var5': np.random.normal(0, 1, 100)  # noise variable
-    })
+    data = pd.DataFrame(
+        {
+            "var1": factor1 + np.random.normal(0, 0.3, 100),
+            "var2": factor1 + np.random.normal(0, 0.3, 100),
+            "var3": factor2 + np.random.normal(0, 0.3, 100),
+            "var4": factor2 + np.random.normal(0, 0.3, 100),
+            "var5": np.random.normal(0, 1, 100),  # noise variable
+        }
+    )
 
     # Test adequacy
     adequacy = factor_service.test_adequacy(data)
-    print(f"✅ Adequacy testing executed successfully")
+    print("✅ Adequacy testing executed successfully")
     print(f"   - N observations: {adequacy['n_observations']}")
     print(f"   - N variables: {adequacy['n_variables']}")
     print(f"   - Adequacy status: {adequacy['adequacy_status']}")
 
     # Test EFA
-    efa_result = factor_service.exploratory_factor_analysis(
-        data=data,
-        n_factors=2,
-        rotation='varimax'
-    )
-    print(f"✅ EFA executed successfully")
+    efa_result = factor_service.exploratory_factor_analysis(data=data, n_factors=2, rotation="varimax")
+    print("✅ EFA executed successfully")
     print(f"   - Factors extracted: {efa_result['n_factors']}")
     print(f"   - Variance explained: {efa_result['variance_explained']['total_variance_explained']:.2%}")
 
 except Exception as e:
     print(f"❌ Factor functional test FAILED: {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 print()
@@ -178,6 +177,7 @@ print("TEST 7: High-Precision Arithmetic")
 print("-" * 70)
 try:
     import mpmath as mp
+
     mp.mp.dps = 50
     print("✅ mpmath library imported successfully")
     print(f"   - Precision set to: {mp.mp.dps} decimal places")

@@ -7,13 +7,12 @@ RESTful API endpoints for the Statistical Guardian system.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.http import HttpResponse
 import numpy as np
-import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 import traceback
 
 from .guardian_core import GuardianCore, GuardianReport
@@ -27,6 +26,7 @@ class GuardianCheckView(APIView):
 
     POST /api/guardian/check/
     """
+
     permission_classes = [AllowAny]  # Public endpoint - Guardian is freely accessible
 
     def post(self, request):
@@ -42,21 +42,17 @@ class GuardianCheckView(APIView):
         """
         try:
             # Extract parameters
-            data = request.data.get('data')
-            test_type = request.data.get('test_type', 't_test')
-            alpha = request.data.get('alpha', 0.05)
+            data = request.data.get("data")
+            test_type = request.data.get("test_type", "t_test")
+            alpha = request.data.get("alpha", 0.05)
 
             # Validate input
             if not data:
-                return Response(
-                    {'error': 'Data is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not isinstance(data, (list, dict)):
                 return Response(
-                    {'error': 'Data must be a list or dictionary of lists'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Data must be a list or dictionary of lists"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             # Initialize Guardian
@@ -73,35 +69,32 @@ class GuardianCheckView(APIView):
         except Exception as e:
             print(f"Guardian error: {str(e)}")
             print(traceback.format_exc())
-            return Response(
-                {'error': f'Guardian check failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"Guardian check failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _serialize_report(self, report: GuardianReport) -> Dict[str, Any]:
         """Convert GuardianReport to JSON-serializable dictionary"""
         return {
-            'test_type': report.test_type,
-            'data_summary': report.data_summary,
-            'assumptions_checked': report.assumptions_checked,
-            'violations': [
+            "test_type": report.test_type,
+            "data_summary": report.data_summary,
+            "assumptions_checked": report.assumptions_checked,
+            "violations": [
                 {
-                    'assumption': v.assumption,
-                    'test_name': v.test_name,
-                    'severity': v.severity,
-                    'p_value': v.p_value,
-                    'statistic': v.statistic,
-                    'message': v.message,
-                    'recommendation': v.recommendation,
-                    'visual_evidence': v.visual_evidence
+                    "assumption": v.assumption,
+                    "test_name": v.test_name,
+                    "severity": v.severity,
+                    "p_value": v.p_value,
+                    "statistic": v.statistic,
+                    "message": v.message,
+                    "recommendation": v.recommendation,
+                    "visual_evidence": v.visual_evidence,
                 }
                 for v in report.violations
             ],
-            'can_proceed': report.can_proceed,
-            'alternative_tests': report.alternative_tests,
-            'confidence_score': report.confidence_score,
-            'visual_evidence': report.visual_evidence,
-            'guardian_status': self._get_status_message(report)
+            "can_proceed": report.can_proceed,
+            "alternative_tests": report.alternative_tests,
+            "confidence_score": report.confidence_score,
+            "visual_evidence": report.visual_evidence,
+            "guardian_status": self._get_status_message(report),
         }
 
     def _get_status_message(self, report: GuardianReport) -> Dict[str, str]:
@@ -109,26 +102,27 @@ class GuardianCheckView(APIView):
         if report.can_proceed:
             if not report.violations:
                 return {
-                    'level': 'success',
-                    'message': '✅ All assumptions satisfied. Safe to proceed with analysis.',
-                    'emoji': '🛡️'
+                    "level": "success",
+                    "message": "✅ All assumptions satisfied. Safe to proceed with analysis.",
+                    "emoji": "🛡️",
                 }
             else:
                 return {
-                    'level': 'warning',
-                    'message': '⚠️ Minor violations detected but analysis can proceed with caution.',
-                    'emoji': '🔍'
+                    "level": "warning",
+                    "message": "⚠️ Minor violations detected but analysis can proceed with caution.",
+                    "emoji": "🔍",
                 }
         else:
             return {
-                'level': 'danger',
-                'message': '🚫 Critical assumption violations detected. Analysis results may be invalid.',
-                'emoji': '⛔'
+                "level": "danger",
+                "message": "🚫 Critical assumption violations detected. Analysis results may be invalid.",
+                "emoji": "⛔",
             }
 
 
 class GuardianValidateNormalityView(APIView):
     """Dedicated endpoint for normality checking"""
+
     permission_classes = [AllowAny]  # ✅ FIXED: Allow public access like other Guardian endpoints
 
     def post(self, request):
@@ -138,37 +132,30 @@ class GuardianValidateNormalityView(APIView):
         POST /api/guardian/validate/normality/
         """
         try:
-            data = request.data.get('data', [])
-            alpha = request.data.get('alpha', 0.05)
+            data = request.data.get("data", [])
+            alpha = request.data.get("alpha", 0.05)
 
             if not data:
-                return Response(
-                    {'error': 'Data is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Convert to numpy array
             arr = np.array(data)
 
             # Check normality
             from .guardian_core import NormalityValidator
+
             validator = NormalityValidator()
             result = validator.validate([arr], alpha)
 
-            return Response({
-                'is_normal': not result['violated'],
-                'details': result
-            }, status=status.HTTP_200_OK)
+            return Response({"is_normal": not result["violated"], "details": result}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class GuardianDetectOutliersView(APIView):
     """Dedicated endpoint for outlier detection"""
+
     permission_classes = [AllowAny]  # ✅ FIXED: Allow public access like other Guardian endpoints
 
     def post(self, request):
@@ -178,32 +165,24 @@ class GuardianDetectOutliersView(APIView):
         POST /api/guardian/detect/outliers/
         """
         try:
-            data = request.data.get('data', [])
+            data = request.data.get("data", [])
 
             if not data:
-                return Response(
-                    {'error': 'Data is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Convert to numpy array
             arr = np.array(data)
 
             # Detect outliers
             from .guardian_core import OutlierDetector
+
             detector = OutlierDetector()
             result = detector.validate([arr])
 
-            return Response({
-                'has_outliers': result['violated'],
-                'details': result
-            }, status=status.HTTP_200_OK)
+            return Response({"has_outliers": result["violated"], "details": result}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class GuardianTestRequirementsView(APIView):
@@ -221,39 +200,43 @@ class GuardianTestRequirementsView(APIView):
         if test_type:
             requirements = guardian.test_requirements.get(test_type)
             if not requirements:
-                return Response(
-                    {'error': f'Unknown test type: {test_type}'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({"error": f"Unknown test type: {test_type}"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response({
-                'test_type': test_type,
-                'requirements': requirements,
-                'description': self._get_test_description(test_type)
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "test_type": test_type,
+                    "requirements": requirements,
+                    "description": self._get_test_description(test_type),
+                },
+                status=status.HTTP_200_OK,
+            )
         else:
             # Return all test requirements
-            return Response({
-                'available_tests': list(guardian.test_requirements.keys()),
-                'requirements': guardian.test_requirements
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "available_tests": list(guardian.test_requirements.keys()),
+                    "requirements": guardian.test_requirements,
+                },
+                status=status.HTTP_200_OK,
+            )
 
     def _get_test_description(self, test_type: str) -> str:
         """Get human-readable description of test"""
         descriptions = {
-            't_test': 'Compare means between two groups',
-            'anova': 'Compare means across multiple groups',
-            'pearson': 'Measure linear correlation between variables',
-            'regression': 'Model relationship between variables',
-            'chi_square': 'Test independence of categorical variables',
-            'mann_whitney': 'Non-parametric alternative to t-test',
-            'kruskal_wallis': 'Non-parametric alternative to ANOVA'
+            "t_test": "Compare means between two groups",
+            "anova": "Compare means across multiple groups",
+            "pearson": "Measure linear correlation between variables",
+            "regression": "Model relationship between variables",
+            "chi_square": "Test independence of categorical variables",
+            "mann_whitney": "Non-parametric alternative to t-test",
+            "kruskal_wallis": "Non-parametric alternative to ANOVA",
         }
-        return descriptions.get(test_type, 'Statistical test')
+        return descriptions.get(test_type, "Statistical test")
 
 
 class GuardianHealthCheckView(APIView):
     """Health check endpoint for Guardian system"""
+
     permission_classes = [AllowAny]  # Allow public access to health check
 
     def get(self, request):
@@ -266,21 +249,21 @@ class GuardianHealthCheckView(APIView):
             # Test Guardian with sample data
             guardian = GuardianCore()
             test_data = [1, 2, 3, 4, 5]
-            report = guardian.check(test_data, 't_test')
+            guardian.check(test_data, "t_test")
 
-            return Response({
-                'status': 'operational',
-                'message': 'Guardian system is protecting your statistics',
-                'golden_ratio': '1.618033988749895',
-                'validators_available': list(guardian.validators.keys()),
-                'tests_supported': list(guardian.test_requirements.keys())
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "status": "operational",
+                    "message": "Guardian system is protecting your statistics",
+                    "golden_ratio": "1.618033988749895",
+                    "validators_available": list(guardian.validators.keys()),
+                    "tests_supported": list(guardian.test_requirements.keys()),
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
-            return Response({
-                'status': 'error',
-                'message': str(e)
-            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 class GuardianExportPDFView(APIView):
@@ -289,6 +272,7 @@ class GuardianExportPDFView(APIView):
 
     POST /api/guardian/export/pdf/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -306,16 +290,13 @@ class GuardianExportPDFView(APIView):
         """
         try:
             # Extract parameters
-            data = request.data.get('data')
-            test_type = request.data.get('test_type', 't_test')
-            alpha = request.data.get('alpha', 0.05)
+            data = request.data.get("data")
+            test_type = request.data.get("test_type", "t_test")
+            alpha = request.data.get("alpha", 0.05)
 
             # Validate input
             if not data:
-                return Response(
-                    {'error': 'Data is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Initialize Guardian and perform check
             guardian = GuardianCore()
@@ -326,19 +307,16 @@ class GuardianExportPDFView(APIView):
             pdf_bytes = report_generator.generate_pdf(report)
 
             # Create HTTP response with PDF
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="guardian_validation_report_{test_type}.pdf"'
-            response['Content-Length'] = len(pdf_bytes)
+            response = HttpResponse(pdf_bytes, content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="guardian_validation_report_{test_type}.pdf"'
+            response["Content-Length"] = len(pdf_bytes)
 
             return response
 
         except Exception as e:
             print(f"PDF export error: {str(e)}")
             print(traceback.format_exc())
-            return Response(
-                {'error': f'PDF generation failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"PDF generation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class GuardianExportJSONView(APIView):
@@ -347,6 +325,7 @@ class GuardianExportJSONView(APIView):
 
     POST /api/guardian/export/json/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -364,16 +343,13 @@ class GuardianExportJSONView(APIView):
         """
         try:
             # Extract parameters
-            data = request.data.get('data')
-            test_type = request.data.get('test_type', 't_test')
-            alpha = request.data.get('alpha', 0.05)
+            data = request.data.get("data")
+            test_type = request.data.get("test_type", "t_test")
+            alpha = request.data.get("alpha", 0.05)
 
             # Validate input
             if not data:
-                return Response(
-                    {'error': 'Data is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Data is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Initialize Guardian and perform check
             guardian = GuardianCore()
@@ -389,8 +365,7 @@ class GuardianExportJSONView(APIView):
             print(f"JSON export error: {str(e)}")
             print(traceback.format_exc())
             return Response(
-                {'error': f'JSON generation failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": f"JSON generation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -398,12 +373,14 @@ class GuardianExportJSONView(APIView):
 # TRANSFORMATION WIZARD ENDPOINTS
 # ============================================================================
 
+
 class TransformationSuggestView(APIView):
     """
     Suggest best transformation for data with assumption violations
 
     POST /api/guardian/transformation/suggest/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -426,14 +403,11 @@ class TransformationSuggestView(APIView):
         }
         """
         try:
-            data = request.data.get('data')
-            violation_type = request.data.get('violation_type', 'normality')
+            data = request.data.get("data")
+            violation_type = request.data.get("violation_type", "normality")
 
             if not data:
-                return Response(
-                    {'error': 'No data provided'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "No data provided"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Convert to numpy array
             data_array = np.array(data, dtype=float)
@@ -447,10 +421,7 @@ class TransformationSuggestView(APIView):
         except Exception as e:
             print(f"Transformation suggestion error: {str(e)}")
             print(traceback.format_exc())
-            return Response(
-                {'error': f'Suggestion failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"Suggestion failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TransformationApplyView(APIView):
@@ -459,6 +430,7 @@ class TransformationApplyView(APIView):
 
     POST /api/guardian/transformation/apply/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -482,15 +454,12 @@ class TransformationApplyView(APIView):
         }
         """
         try:
-            data = request.data.get('data')
-            transformation = request.data.get('transformation')
-            parameters = request.data.get('parameters', {})
+            data = request.data.get("data")
+            transformation = request.data.get("transformation")
+            parameters = request.data.get("parameters", {})
 
             if not data or not transformation:
-                return Response(
-                    {'error': 'Missing data or transformation type'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Missing data or transformation type"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Convert to numpy array
             data_array = np.array(data, dtype=float)
@@ -500,18 +469,15 @@ class TransformationApplyView(APIView):
             result = engine.apply_transformation(data_array, transformation, **parameters)
 
             # Convert numpy array to list for JSON serialization
-            if result['success']:
-                result['transformed_data'] = result['transformed_data'].tolist()
+            if result["success"]:
+                result["transformed_data"] = result["transformed_data"].tolist()
 
             return Response(result, status=status.HTTP_200_OK)
 
         except Exception as e:
             print(f"Transformation apply error: {str(e)}")
             print(traceback.format_exc())
-            return Response(
-                {'error': f'Transformation failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"Transformation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TransformationValidateView(APIView):
@@ -520,6 +486,7 @@ class TransformationValidateView(APIView):
 
     POST /api/guardian/transformation/validate/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -542,14 +509,11 @@ class TransformationValidateView(APIView):
         }
         """
         try:
-            original_data = request.data.get('original_data')
-            transformed_data = request.data.get('transformed_data')
+            original_data = request.data.get("original_data")
+            transformed_data = request.data.get("transformed_data")
 
             if not original_data or not transformed_data:
-                return Response(
-                    {'error': 'Missing original or transformed data'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Missing original or transformed data"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Convert to numpy arrays
             original_array = np.array(original_data, dtype=float)
@@ -564,10 +528,7 @@ class TransformationValidateView(APIView):
         except Exception as e:
             print(f"Transformation validation error: {str(e)}")
             print(traceback.format_exc())
-            return Response(
-                {'error': f'Validation failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": f"Validation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TransformationCodeExportView(APIView):
@@ -576,6 +537,7 @@ class TransformationCodeExportView(APIView):
 
     POST /api/guardian/transformation/export-code/
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -596,29 +558,22 @@ class TransformationCodeExportView(APIView):
         }
         """
         try:
-            transformation = request.data.get('transformation')
-            parameters = request.data.get('parameters', {})
-            language = request.data.get('language', 'python')
+            transformation = request.data.get("transformation")
+            parameters = request.data.get("parameters", {})
+            language = request.data.get("language", "python")
 
             if not transformation:
-                return Response(
-                    {'error': 'No transformation specified'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "No transformation specified"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Generate code
             engine = TransformationEngine()
             code = engine.generate_code(transformation, parameters, language)
 
-            return Response(
-                {'code': code, 'language': language},
-                status=status.HTTP_200_OK
-            )
+            return Response({"code": code, "language": language}, status=status.HTTP_200_OK)
 
         except Exception as e:
             print(f"Code export error: {str(e)}")
             print(traceback.format_exc())
             return Response(
-                {'error': f'Code generation failed: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": f"Code generation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

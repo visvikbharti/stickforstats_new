@@ -287,10 +287,9 @@ describe('Performance Tests - High Volume Operations', () => {
       const lastSnapshot = memorySnapshots[memorySnapshots.length - 1];
 
       // Memory growth should be less than 50% over 1000 validations
-      if (firstSnapshot > 0) {
-        const growth = (lastSnapshot - firstSnapshot) / firstSnapshot;
-        expect(growth).toBeLessThan(0.5);
-      }
+      // If firstSnapshot is 0, growth is trivially acceptable
+      const growth = firstSnapshot > 0 ? (lastSnapshot - firstSnapshot) / firstSnapshot : 0;
+      expect(growth).toBeLessThan(0.5);
     });
 
     test('should clean up validation cache appropriately', async () => {
@@ -332,10 +331,9 @@ describe('Performance Tests - High Volume Operations', () => {
       const afterLogging = process.memoryUsage?.().heapUsed || 0;
 
       // Memory increase should be reasonable (< 100MB)
-      if (initialMemory > 0) {
-        const increase = afterLogging - initialMemory;
-        expect(increase).toBeLessThan(100 * 1024 * 1024); // 100 MB
-      }
+      // If initialMemory is 0, increase is trivially acceptable
+      const increase = initialMemory > 0 ? afterLogging - initialMemory : 0;
+      expect(increase).toBeLessThan(100 * 1024 * 1024); // 100 MB
     });
   });
 
@@ -504,7 +502,7 @@ describe('Performance Tests - Stress Conditions', () => {
 
   describe('Error Recovery Performance', () => {
     test('should recover quickly from validation errors', async () => {
-      const recoveryManager = new ErrorRecoveryManager({
+      const _recoveryManager = new ErrorRecoveryManager({
         maxRetryAttempts: 3,
         initialRetryDelay: 10
       });
@@ -523,7 +521,7 @@ describe('Performance Tests - Stress Conditions', () => {
 
         const startTime = performance.now();
 
-        const result = await executeWithRecovery(operation, {
+        const _result = await executeWithRecovery(operation, {
           maxRetries: 3
         });
 

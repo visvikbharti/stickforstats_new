@@ -7,11 +7,10 @@ Validates assumptions before analysis and provides actionable recommendations.
 
 import numpy as np
 from scipy import stats
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
-from decimal import Decimal, getcontext
+from decimal import getcontext
 import warnings
-import json
 
 # Import visualization and effect size modules
 from .visualization_generator import VisualizationGenerator
@@ -24,15 +23,16 @@ getcontext().prec = 50
 # Critical violations are penalized 3x, warnings 2x, minor issues 1x
 # This reflects the relative impact of each violation type on analysis validity
 SEVERITY_WEIGHTS = {
-    'critical': 3.0,  # Severe violations that invalidate results
-    'warning': 2.0,   # Moderate issues requiring attention
-    'minor': 1.0      # Small concerns, usually acceptable
+    "critical": 3.0,  # Severe violations that invalidate results
+    "warning": 2.0,  # Moderate issues requiring attention
+    "minor": 1.0,  # Small concerns, usually acceptable
 }
 
 
 @dataclass
 class AssumptionViolation:
     """Represents a violation of statistical assumptions"""
+
     assumption: str
     test_name: str
     severity: str  # 'critical', 'warning', 'minor'
@@ -46,6 +46,7 @@ class AssumptionViolation:
 @dataclass
 class GuardianReport:
     """Complete Guardian assessment report"""
+
     test_type: str
     data_summary: Dict[str, Any]
     assumptions_checked: List[str]
@@ -68,58 +69,52 @@ class GuardianCore:
 
     def __init__(self):
         self.validators = {
-            'normality': NormalityValidator(),
-            'variance_homogeneity': VarianceHomogeneityValidator(),
-            'independence': IndependenceValidator(),
-            'outliers': OutlierDetector(),
-            'sample_size': SampleSizeValidator(),
-            'modality': ModalityDetector(),
-            'linearity': LinearityValidator(),
-            'homoscedasticity': HomoscedasticityValidator()
+            "normality": NormalityValidator(),
+            "variance_homogeneity": VarianceHomogeneityValidator(),
+            "independence": IndependenceValidator(),
+            "outliers": OutlierDetector(),
+            "sample_size": SampleSizeValidator(),
+            "modality": ModalityDetector(),
+            "linearity": LinearityValidator(),
+            "homoscedasticity": HomoscedasticityValidator(),
         }
 
         # Test requirements mapping
         # Each test type maps to its required assumptions for Guardian validation
         self.test_requirements = {
             # Parametric tests
-            't_test': ['normality', 'variance_homogeneity', 'independence', 'outliers'],
-            'anova': ['normality', 'variance_homogeneity', 'independence'],
-            'pearson': ['normality', 'linearity', 'outliers'],
-            'regression': ['normality', 'independence', 'homoscedasticity', 'linearity'],
-
+            "t_test": ["normality", "variance_homogeneity", "independence", "outliers"],
+            "anova": ["normality", "variance_homogeneity", "independence"],
+            "pearson": ["normality", "linearity", "outliers"],
+            "regression": ["normality", "independence", "homoscedasticity", "linearity"],
             # Non-parametric tests
-            'chi_square': ['expected_frequencies', 'independence'],
-            'mann_whitney': ['independence', 'similar_shapes'],
-            'kruskal_wallis': ['independence', 'similar_shapes'],
-
+            "chi_square": ["expected_frequencies", "independence"],
+            "mann_whitney": ["independence", "similar_shapes"],
+            "kruskal_wallis": ["independence", "similar_shapes"],
             # Mixed Models (NEW)
             # Reference: Snijders & Bosker (2012), Hox (2010)
-            'mixed_model': ['normality', 'independence', 'homoscedasticity'],
-            'lmm': ['normality', 'independence', 'homoscedasticity'],  # Linear Mixed Model
-            'hlm': ['normality', 'independence', 'homoscedasticity'],  # Hierarchical Linear Model
-            'multilevel': ['normality', 'independence', 'homoscedasticity'],
-
+            "mixed_model": ["normality", "independence", "homoscedasticity"],
+            "lmm": ["normality", "independence", "homoscedasticity"],  # Linear Mixed Model
+            "hlm": ["normality", "independence", "homoscedasticity"],  # Hierarchical Linear Model
+            "multilevel": ["normality", "independence", "homoscedasticity"],
             # Causal Inference (NEW)
             # Reference: Angrist & Pischke (2009), Imbens & Rubin (2015)
-            'difference_in_differences': ['independence'],  # Parallel trends checked separately
-            'did': ['independence'],  # Alias
-            'propensity_score': ['independence'],  # Overlap checked in matching
-            'psm': ['independence'],  # Alias for propensity score matching
-            'mediation': ['normality', 'independence', 'linearity'],
-            'iv': ['independence'],  # Instrumental variables
-
+            "difference_in_differences": ["independence"],  # Parallel trends checked separately
+            "did": ["independence"],  # Alias
+            "propensity_score": ["independence"],  # Overlap checked in matching
+            "psm": ["independence"],  # Alias for propensity score matching
+            "mediation": ["normality", "independence", "linearity"],
+            "iv": ["independence"],  # Instrumental variables
             # Bayesian tests
-            'bayesian_t_test': ['normality', 'independence'],
-            'bayesian_anova': ['normality', 'independence'],
-            'bayesian_correlation': ['independence'],
-
+            "bayesian_t_test": ["normality", "independence"],
+            "bayesian_anova": ["normality", "independence"],
+            "bayesian_correlation": ["independence"],
             # Survival analysis
-            'survival': ['independence'],
-            'cox_regression': ['independence'],
-
+            "survival": ["independence"],
+            "cox_regression": ["independence"],
             # Factor analysis
-            'factor_analysis': ['normality', 'sample_size'],
-            'pca': ['sample_size'],
+            "factor_analysis": ["normality", "sample_size"],
+            "pca": ["sample_size"],
         }
 
         # Initialize visualization and effect size calculators
@@ -159,23 +154,25 @@ class GuardianCore:
                 validator = self.validators[req]
                 result = validator.validate(data_arrays, alpha)
 
-                if result['violated']:
-                    violations.append(AssumptionViolation(
-                        assumption=req,
-                        test_name=result['test_name'],
-                        severity=result['severity'],
-                        p_value=result.get('p_value'),
-                        statistic=result.get('statistic'),
-                        message=result['message'],
-                        recommendation=result['recommendation'],
-                        visual_evidence=result.get('visual_data')
-                    ))
+                if result["violated"]:
+                    violations.append(
+                        AssumptionViolation(
+                            assumption=req,
+                            test_name=result["test_name"],
+                            severity=result["severity"],
+                            p_value=result.get("p_value"),
+                            statistic=result.get("statistic"),
+                            message=result["message"],
+                            recommendation=result["recommendation"],
+                            visual_evidence=result.get("visual_data"),
+                        )
+                    )
 
-                if result.get('visual_data'):
-                    visual_evidence[req] = result['visual_data']
+                if result.get("visual_data"):
+                    visual_evidence[req] = result["visual_data"]
 
         # Determine if we can proceed
-        critical_violations = [v for v in violations if v.severity == 'critical']
+        critical_violations = [v for v in violations if v.severity == "critical"]
         can_proceed = len(critical_violations) == 0
 
         # Get alternative tests if needed
@@ -191,28 +188,19 @@ class GuardianCore:
 
             # Convert violations to dict format for visualization generator
             violation_dicts = [
-                {
-                    'assumption': v.assumption,
-                    'severity': v.severity,
-                    'test_name': v.test_name
-                }
-                for v in violations
+                {"assumption": v.assumption, "severity": v.severity, "test_name": v.test_name} for v in violations
             ]
 
-            visual_plots = self.viz_generator.generate_all_diagnostics(
-                viz_data, violation_dicts, test_type
-            )
+            visual_plots = self.viz_generator.generate_all_diagnostics(viz_data, violation_dicts, test_type)
             visual_evidence.update(visual_plots)
         except Exception as e:
             warnings.warn(f"Failed to generate visualizations: {str(e)}")
-            visual_evidence['error'] = str(e)
+            visual_evidence["error"] = str(e)
 
         # Calculate effect sizes
         effect_size_report = None
         try:
-            effect_size_report = self.effect_calculator.generate_effect_size_report(
-                test_type, data_arrays
-            )
+            effect_size_report = self.effect_calculator.generate_effect_size_report(test_type, data_arrays)
         except Exception as e:
             warnings.warn(f"Failed to calculate effect sizes: {str(e)}")
 
@@ -225,7 +213,7 @@ class GuardianCore:
             alternative_tests=alternatives,
             confidence_score=confidence,
             visual_evidence=visual_evidence,
-            effect_size_report=effect_size_report
+            effect_size_report=effect_size_report,
         )
 
     def _prepare_data(self, data) -> List[np.ndarray]:
@@ -243,14 +231,14 @@ class GuardianCore:
         for i, arr in enumerate(data_arrays):
             key = f"group_{i+1}" if len(data_arrays) > 1 else "data"
             summary[key] = {
-                'n': len(arr),
-                'mean': float(np.mean(arr)),
-                'std': float(np.std(arr, ddof=1)),
-                'median': float(np.median(arr)),
-                'min': float(np.min(arr)),
-                'max': float(np.max(arr)),
-                'skewness': float(stats.skew(arr)),
-                'kurtosis': float(stats.kurtosis(arr))
+                "n": len(arr),
+                "mean": float(np.mean(arr)),
+                "std": float(np.std(arr, ddof=1)),
+                "median": float(np.median(arr)),
+                "min": float(np.min(arr)),
+                "max": float(np.max(arr)),
+                "skewness": float(stats.skew(arr)),
+                "kurtosis": float(stats.kurtosis(arr)),
             }
         return summary
 
@@ -260,21 +248,21 @@ class GuardianCore:
 
         # Map parametric to non-parametric alternatives
         alternatives_map = {
-            't_test': ['mann_whitney', 'permutation_test', 'bootstrap'],
-            'anova': ['kruskal_wallis', 'friedman', 'permutation_anova'],
-            'pearson': ['spearman', 'kendall', 'distance_correlation'],
-            'regression': ['robust_regression', 'quantile_regression', 'gam']
+            "t_test": ["mann_whitney", "permutation_test", "bootstrap"],
+            "anova": ["kruskal_wallis", "friedman", "permutation_anova"],
+            "pearson": ["spearman", "kendall", "distance_correlation"],
+            "regression": ["robust_regression", "quantile_regression", "gam"],
         }
 
         if test_type in alternatives_map:
             # Check which assumptions are violated
             violated_assumptions = {v.assumption for v in violations}
 
-            if 'normality' in violated_assumptions:
+            if "normality" in violated_assumptions:
                 alternatives.extend(alternatives_map[test_type])
 
-            if 'variance_homogeneity' in violated_assumptions and test_type == 't_test':
-                alternatives.append('welch_t_test')
+            if "variance_homogeneity" in violated_assumptions and test_type == "t_test":
+                alternatives.append("welch_t_test")
 
         return list(set(alternatives))  # Remove duplicates
 
@@ -297,12 +285,10 @@ class GuardianCore:
             return 1.0
 
         # Calculate total penalty from all violations
-        total_penalty = sum(
-            SEVERITY_WEIGHTS.get(v.severity, 1.0) for v in violations
-        )
+        total_penalty = sum(SEVERITY_WEIGHTS.get(v.severity, 1.0) for v in violations)
 
         # Maximum possible penalty if all were critical
-        max_possible_penalty = len(violations) * SEVERITY_WEIGHTS['critical']
+        max_possible_penalty = len(violations) * SEVERITY_WEIGHTS["critical"]
 
         # Confidence decreases proportionally to penalty accumulation
         # Scale so that all-critical gives ~50%, mixed gives 60-80%, all-minor gives ~85%
@@ -321,54 +307,50 @@ class NormalityValidator:
         for arr in data_arrays:
             if len(arr) < 3:
                 return {
-                    'violated': True,
-                    'test_name': 'Sample Size Check',
-                    'severity': 'critical',
-                    'message': 'Sample size too small for normality testing',
-                    'recommendation': 'Collect more data (n ≥ 30) or use non-parametric tests'
+                    "violated": True,
+                    "test_name": "Sample Size Check",
+                    "severity": "critical",
+                    "message": "Sample size too small for normality testing",
+                    "recommendation": "Collect more data (n ≥ 30) or use non-parametric tests",
                 }
 
             # Shapiro-Wilk test (best for small samples)
             if len(arr) <= 5000:
                 stat, p_value = stats.shapiro(arr)
-                test_name = 'Shapiro-Wilk'
+                test_name = "Shapiro-Wilk"
             else:
                 # Anderson-Darling for large samples
-                result = stats.anderson(arr, dist='norm')
+                result = stats.anderson(arr, dist="norm")
                 stat = result.statistic
                 # Get p-value for 5% significance level
                 critical_value = result.critical_values[2]
                 p_value = 0.05 if stat > critical_value else 0.10
-                test_name = 'Anderson-Darling'
+                test_name = "Anderson-Darling"
 
-            results.append({
-                'p_value': p_value,
-                'statistic': stat,
-                'test_name': test_name
-            })
+            results.append({"p_value": p_value, "statistic": stat, "test_name": test_name})
 
         # Check if any group violates normality
-        violations = [r for r in results if r['p_value'] < alpha]
+        violations = [r for r in results if r["p_value"] < alpha]
 
         if violations:
-            severity = 'critical' if all(r['p_value'] < alpha/10 for r in results) else 'warning'
+            severity = "critical" if all(r["p_value"] < alpha / 10 for r in results) else "warning"
             return {
-                'violated': True,
-                'test_name': violations[0]['test_name'],
-                'severity': severity,
-                'p_value': min(r['p_value'] for r in violations),
-                'statistic': violations[0]['statistic'],
-                'message': f'Normality assumption violated (p={violations[0]["p_value"]:.4f})',
-                'recommendation': 'Consider transformation (log, sqrt) or use non-parametric tests',
-                'visual_data': self._generate_visual_data(data_arrays)
+                "violated": True,
+                "test_name": violations[0]["test_name"],
+                "severity": severity,
+                "p_value": min(r["p_value"] for r in violations),
+                "statistic": violations[0]["statistic"],
+                "message": f'Normality assumption violated (p={violations[0]["p_value"]:.4f})',
+                "recommendation": "Consider transformation (log, sqrt) or use non-parametric tests",
+                "visual_data": self._generate_visual_data(data_arrays),
             }
 
         # Return test statistics even when assumption is satisfied
         return {
-            'violated': False,
-            'test_name': results[0]['test_name'] if results else 'Shapiro-Wilk',
-            'p_value': max(r['p_value'] for r in results) if results else None,
-            'statistic': results[0]['statistic'] if results else None
+            "violated": False,
+            "test_name": results[0]["test_name"] if results else "Shapiro-Wilk",
+            "p_value": max(r["p_value"] for r in results) if results else None,
+            "statistic": results[0]["statistic"] if results else None,
         }
 
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
@@ -380,15 +362,9 @@ class NormalityValidator:
             theoretical_quantiles = stats.norm.ppf(np.linspace(0.01, 0.99, len(arr)))
             sample_quantiles = np.sort(arr)
 
-            visual_data[f'group_{i+1}'] = {
-                'qq_plot': {
-                    'theoretical': theoretical_quantiles.tolist(),
-                    'sample': sample_quantiles.tolist()
-                },
-                'histogram': {
-                    'values': arr.tolist(),
-                    'bins': 30
-                }
+            visual_data[f"group_{i+1}"] = {
+                "qq_plot": {"theoretical": theoretical_quantiles.tolist(), "sample": sample_quantiles.tolist()},
+                "histogram": {"values": arr.tolist(), "bins": 30}
                 # KDE removed for performance - can be generated client-side if needed
             }
 
@@ -402,10 +378,10 @@ class VarianceHomogeneityValidator:
         """Check variance homogeneity using Levene's test"""
 
         if len(data_arrays) < 2:
-            return {'violated': False}  # Cannot check with single group
+            return {"violated": False}  # Cannot check with single group
 
         # Levene's test (robust to non-normality)
-        stat, p_value = stats.levene(*data_arrays, center='median')
+        stat, p_value = stats.levene(*data_arrays, center="median")
 
         if p_value < alpha:
             # Calculate variance ratio
@@ -416,37 +392,32 @@ class VarianceHomogeneityValidator:
             # Reference: Box (1954) suggests ANOVA is robust when variance ratio < 4
             # Commonly used thresholds in statistical software: 4 (critical), 2 (warning)
             if ratio > 4.0:
-                severity = 'critical'
+                severity = "critical"
             elif ratio > 2.0:
-                severity = 'warning'
+                severity = "warning"
             else:
-                severity = 'minor'
+                severity = "minor"
 
             return {
-                'violated': True,
-                'test_name': "Levene's Test",
-                'severity': severity,
-                'p_value': p_value,
-                'statistic': stat,
-                'message': f'Variance homogeneity violated (ratio={ratio:.2f}, p={p_value:.4f})',
-                'recommendation': "Use Welch's t-test or non-parametric alternatives",
-                'visual_data': self._generate_visual_data(data_arrays)
+                "violated": True,
+                "test_name": "Levene's Test",
+                "severity": severity,
+                "p_value": p_value,
+                "statistic": stat,
+                "message": f"Variance homogeneity violated (ratio={ratio:.2f}, p={p_value:.4f})",
+                "recommendation": "Use Welch's t-test or non-parametric alternatives",
+                "visual_data": self._generate_visual_data(data_arrays),
             }
 
         # Return test statistics even when assumption is satisfied
-        return {
-            'violated': False,
-            'test_name': "Levene's Test",
-            'p_value': p_value,
-            'statistic': stat
-        }
+        return {"violated": False, "test_name": "Levene's Test", "p_value": p_value, "statistic": stat}
 
     def _generate_visual_data(self, data_arrays: List[np.ndarray]) -> Dict:
         """Generate variance comparison visualization data"""
         return {
-            'variances': [float(np.var(arr, ddof=1)) for arr in data_arrays],
-            'std_devs': [float(np.std(arr, ddof=1)) for arr in data_arrays],
-            'group_sizes': [len(arr) for arr in data_arrays]
+            "variances": [float(np.var(arr, ddof=1)) for arr in data_arrays],
+            "std_devs": [float(np.std(arr, ddof=1)) for arr in data_arrays],
+            "group_sizes": [len(arr) for arr in data_arrays],
         }
 
 
@@ -466,24 +437,24 @@ class IndependenceValidator:
             max_autocorr = max(abs(max_autocorr), abs(autocorr))
 
             if abs(autocorr) > 0.3:  # Threshold based on practical significance
-                severity = 'critical' if abs(autocorr) > 0.5 else 'warning'
+                severity = "critical" if abs(autocorr) > 0.5 else "warning"
 
                 return {
-                    'violated': True,
-                    'test_name': 'Autocorrelation Test',
-                    'severity': severity,
-                    'statistic': autocorr,
-                    'p_value': None,
-                    'message': f'Independence assumption violated (autocorr={autocorr:.3f})',
-                    'recommendation': 'Check for time-series structure or repeated measures'
+                    "violated": True,
+                    "test_name": "Autocorrelation Test",
+                    "severity": severity,
+                    "statistic": autocorr,
+                    "p_value": None,
+                    "message": f"Independence assumption violated (autocorr={autocorr:.3f})",
+                    "recommendation": "Check for time-series structure or repeated measures",
                 }
 
         # Return autocorrelation statistic even when assumption is satisfied
         return {
-            'violated': False,
-            'test_name': 'Autocorrelation Test',
-            'statistic': max_autocorr if max_autocorr > 0 else None,
-            'p_value': None
+            "violated": False,
+            "test_name": "Autocorrelation Test",
+            "statistic": max_autocorr if max_autocorr > 0 else None,
+            "p_value": None,
         }
 
 
@@ -512,34 +483,36 @@ class OutlierDetector:
             outliers = np.unique(np.concatenate([outliers_iqr, outliers_z]))
 
             if len(outliers) > 0:
-                all_outliers.append({
-                    'group': i + 1,
-                    'count': len(outliers),
-                    'percentage': len(outliers) / len(arr) * 100,
-                    'values': outliers.tolist()
-                })
+                all_outliers.append(
+                    {
+                        "group": i + 1,
+                        "count": len(outliers),
+                        "percentage": len(outliers) / len(arr) * 100,
+                        "values": outliers.tolist(),
+                    }
+                )
 
         if all_outliers:
-            total_percentage = np.mean([o['percentage'] for o in all_outliers])
+            total_percentage = np.mean([o["percentage"] for o in all_outliers])
 
             # Severity based on percentage of outliers
             if total_percentage > 10:
-                severity = 'critical'
+                severity = "critical"
             elif total_percentage > 5:
-                severity = 'warning'
+                severity = "warning"
             else:
-                severity = 'minor'
+                severity = "minor"
 
             return {
-                'violated': True,
-                'test_name': 'Outlier Detection (IQR + Z-score)',
-                'severity': severity,
-                'message': f'{total_percentage:.1f}% of data are outliers',
-                'recommendation': 'Investigate outliers, consider robust methods or transformation',
-                'visual_data': {'outliers': all_outliers}
+                "violated": True,
+                "test_name": "Outlier Detection (IQR + Z-score)",
+                "severity": severity,
+                "message": f"{total_percentage:.1f}% of data are outliers",
+                "recommendation": "Investigate outliers, consider robust methods or transformation",
+                "visual_data": {"outliers": all_outliers},
             }
 
-        return {'violated': False}
+        return {"violated": False}
 
 
 class SampleSizeValidator:
@@ -558,22 +531,22 @@ class SampleSizeValidator:
 
         if min_size < 3:
             return {
-                'violated': True,
-                'test_name': 'Sample Size Check',
-                'severity': 'critical',
-                'message': f'Sample size too small (n={min_size})',
-                'recommendation': 'Minimum n=3 required, n≥20 recommended for parametric tests'
+                "violated": True,
+                "test_name": "Sample Size Check",
+                "severity": "critical",
+                "message": f"Sample size too small (n={min_size})",
+                "recommendation": "Minimum n=3 required, n≥20 recommended for parametric tests",
             }
         elif min_size < 20:
             return {
-                'violated': True,
-                'test_name': 'Sample Size Check',
-                'severity': 'warning',
-                'message': f'Small sample size (n={min_size}) may affect test validity',
-                'recommendation': 'Consider non-parametric tests or collect more data'
+                "violated": True,
+                "test_name": "Sample Size Check",
+                "severity": "warning",
+                "message": f"Small sample size (n={min_size}) may affect test validity",
+                "recommendation": "Consider non-parametric tests or collect more data",
             }
 
-        return {'violated': False}
+        return {"violated": False}
 
 
 class ModalityDetector:
@@ -595,7 +568,7 @@ class ModalityDetector:
             # Find peaks
             peaks = []
             for i in range(1, len(density) - 1):
-                if density[i] > density[i-1] and density[i] > density[i+1]:
+                if density[i] > density[i - 1] and density[i] > density[i + 1]:
                     peaks.append(i)
 
             if len(peaks) > 1:
@@ -606,19 +579,15 @@ class ModalityDetector:
 
                 if len(significant_peaks) > 1:
                     return {
-                        'violated': True,
-                        'test_name': 'Modality Detection',
-                        'severity': 'warning',
-                        'message': f'Distribution appears multimodal ({len(significant_peaks)} modes)',
-                        'recommendation': 'Consider analyzing subgroups separately',
-                        'visual_data': {
-                            'kde_x': x_range.tolist(),
-                            'kde_y': density.tolist(),
-                            'peaks': peaks
-                        }
+                        "violated": True,
+                        "test_name": "Modality Detection",
+                        "severity": "warning",
+                        "message": f"Distribution appears multimodal ({len(significant_peaks)} modes)",
+                        "recommendation": "Consider analyzing subgroups separately",
+                        "visual_data": {"kde_x": x_range.tolist(), "kde_y": density.tolist(), "peaks": peaks},
                     }
 
-        return {'violated': False}
+        return {"violated": False}
 
 
 class LinearityValidator:
@@ -640,18 +609,18 @@ class LinearityValidator:
         """
 
         if len(data_arrays) != 2:
-            return {'violated': False}  # Not applicable
+            return {"violated": False}  # Not applicable
 
         x = data_arrays[0]
         y = data_arrays[1]
 
         if len(x) < 3:
             return {
-                'violated': True,
-                'test_name': 'Linearity Check',
-                'severity': 'critical',
-                'message': 'Insufficient data for linearity assessment',
-                'recommendation': 'Collect more data points (n ≥ 10)'
+                "violated": True,
+                "test_name": "Linearity Check",
+                "severity": "critical",
+                "message": "Insufficient data for linearity assessment",
+                "recommendation": "Collect more data points (n ≥ 10)",
             }
 
         # Fit linear regression
@@ -705,12 +674,12 @@ class LinearityValidator:
         # - We do NOT lower thresholds to compensate - that would be statistically unsound
 
         violated = False
-        severity = 'minor'
+        severity = "minor"
 
         # Runs test is primary indicator of non-linearity (reliable for n ≥ 20)
-        if runs_test_result['pattern_detected']:
+        if runs_test_result["pattern_detected"]:
             violated = True
-            severity = 'critical'  # Pattern in residuals is serious
+            severity = "critical"  # Pattern in residuals is serious
 
         # R² improvement provides additional evidence
         # Thresholds based on standard statistical practice:
@@ -718,58 +687,55 @@ class LinearityValidator:
         # - 5-10% improvement: Moderate evidence (warning level)
         if r2_improvement > 0.10:  # Polynomial explains 10%+ more variance
             violated = True
-            severity = 'critical'
+            severity = "critical"
         elif r2_improvement > 0.05:  # Polynomial explains 5-10% more variance
             violated = True
-            if severity != 'critical':  # Don't downgrade if runs test already critical
-                severity = 'warning'
+            if severity != "critical":  # Don't downgrade if runs test already critical
+                severity = "warning"
 
         if violated:
             # Build message with low power warning if applicable
-            base_message = f'Linearity violated (R² improvement with polynomial: {r2_improvement:.3f})'
+            base_message = f"Linearity violated (R² improvement with polynomial: {r2_improvement:.3f})"
             if low_power_warning:
-                message = f'{base_message}. NOTE: {low_power_warning}'
+                message = f"{base_message}. NOTE: {low_power_warning}"
             else:
                 message = base_message
 
             return {
-                'violated': True,
-                'test_name': 'Linearity Check (Residual Analysis)',
-                'severity': severity,
-                'p_value': runs_test_result.get('p_value'),
-                'statistic': r2_improvement,
-                'message': message,
-                'recommendation': 'Consider polynomial regression, transformation (log, sqrt), or GAM',
-                'visual_data': {
-                    'x': x.tolist(),
-                    'y': y.tolist(),
-                    'y_pred_linear': y_pred_linear.tolist(),
-                    'y_pred_poly': y_pred_poly.tolist(),
-                    'residuals': residuals.tolist(),
-                    'r2_linear': float(r2_linear),
-                    'r2_poly': float(r2_poly),
-                    'r2_improvement': float(r2_improvement),
-                    'sample_size': n,
-                    'runs_test_p_value': runs_test_result.get('p_value')
-                }
+                "violated": True,
+                "test_name": "Linearity Check (Residual Analysis)",
+                "severity": severity,
+                "p_value": runs_test_result.get("p_value"),
+                "statistic": r2_improvement,
+                "message": message,
+                "recommendation": "Consider polynomial regression, transformation (log, sqrt), or GAM",
+                "visual_data": {
+                    "x": x.tolist(),
+                    "y": y.tolist(),
+                    "y_pred_linear": y_pred_linear.tolist(),
+                    "y_pred_poly": y_pred_poly.tolist(),
+                    "residuals": residuals.tolist(),
+                    "r2_linear": float(r2_linear),
+                    "r2_poly": float(r2_poly),
+                    "r2_improvement": float(r2_improvement),
+                    "sample_size": n,
+                    "runs_test_p_value": runs_test_result.get("p_value"),
+                },
             }
 
         # No violation detected, but still warn about low power if applicable
-        base_message = f'Linearity assumption satisfied (R² linear: {r2_linear:.3f})'
+        base_message = f"Linearity assumption satisfied (R² linear: {r2_linear:.3f})"
         if low_power_warning:
-            message = f'{base_message}. NOTE: {low_power_warning}'
+            message = f"{base_message}. NOTE: {low_power_warning}"
         else:
             message = base_message
 
         return {
-            'violated': False,
-            'test_name': 'Linearity Check (Residual Analysis)',
-            'statistic': r2_improvement,
-            'message': message,
-            'visual_data': {
-                'sample_size': n,
-                'runs_test_p_value': runs_test_result.get('p_value')
-            }
+            "violated": False,
+            "test_name": "Linearity Check (Residual Analysis)",
+            "statistic": r2_improvement,
+            "message": message,
+            "visual_data": {"sample_size": n, "runs_test_p_value": runs_test_result.get("p_value")},
         }
 
     def _runs_test(self, residuals: np.ndarray) -> Dict:
@@ -788,7 +754,7 @@ class LinearityValidator:
         # Count runs
         runs = 1
         for i in range(1, len(binary)):
-            if binary[i] != binary[i-1]:
+            if binary[i] != binary[i - 1]:
                 runs += 1
 
         # Expected runs under null hypothesis (random)
@@ -797,13 +763,13 @@ class LinearityValidator:
         n = len(binary)
 
         if n1 == 0 or n2 == 0:
-            return {'pattern_detected': True, 'p_value': 0.0}
+            return {"pattern_detected": True, "p_value": 0.0}
 
         expected_runs = (2 * n1 * n2) / n + 1
         variance_runs = (2 * n1 * n2 * (2 * n1 * n2 - n)) / (n**2 * (n - 1))
 
         if variance_runs == 0:
-            return {'pattern_detected': False, 'p_value': 1.0}
+            return {"pattern_detected": False, "p_value": 1.0}
 
         # Z-score
         z_score = (runs - expected_runs) / np.sqrt(variance_runs)
@@ -815,10 +781,10 @@ class LinearityValidator:
         pattern_detected = p_value < 0.05
 
         return {
-            'pattern_detected': pattern_detected,
-            'p_value': float(p_value),
-            'runs': runs,
-            'expected_runs': float(expected_runs)
+            "pattern_detected": pattern_detected,
+            "p_value": float(p_value),
+            "runs": runs,
+            "expected_runs": float(expected_runs),
         }
 
 
@@ -837,13 +803,13 @@ class HomoscedasticityValidator:
         """
 
         if len(data_arrays) != 2:
-            return {'violated': False}  # Not applicable
+            return {"violated": False}  # Not applicable
 
         x = data_arrays[0]
         y = data_arrays[1]
 
         if len(x) < 10:
-            return {'violated': False}  # Skip for small samples
+            return {"violated": False}  # Skip for small samples
 
         # Fit linear regression
         from sklearn.linear_model import LinearRegression
@@ -856,7 +822,7 @@ class HomoscedasticityValidator:
 
         # Breusch-Pagan test
         # Regress squared residuals on X to test for heteroscedasticity
-        residuals_squared = residuals ** 2
+        residuals_squared = residuals**2
 
         bp_model = LinearRegression()
         bp_model.fit(X, residuals_squared)
@@ -872,8 +838,8 @@ class HomoscedasticityValidator:
         if p_value < alpha:
             # Check variance ratio across fitted values
             sorted_indices = np.argsort(y_pred)
-            first_half = residuals[sorted_indices[:n//2]]
-            second_half = residuals[sorted_indices[n//2:]]
+            first_half = residuals[sorted_indices[: n // 2]]
+            second_half = residuals[sorted_indices[n // 2 :]]
 
             var_ratio = np.var(second_half, ddof=1) / (np.var(first_half, ddof=1) + 1e-10)
 
@@ -882,30 +848,30 @@ class HomoscedasticityValidator:
             # Variance ratio > 2 or < 0.5 indicates moderate heteroscedasticity
             # Reference: Consistent with Box (1954) and standard regression diagnostics
             if var_ratio > 4.0 or var_ratio < 0.25:
-                severity = 'critical'
+                severity = "critical"
             elif var_ratio > 2.0 or var_ratio < 0.5:
-                severity = 'warning'
+                severity = "warning"
             else:
-                severity = 'minor'
+                severity = "minor"
 
             return {
-                'violated': True,
-                'test_name': 'Breusch-Pagan Test',
-                'severity': severity,
-                'p_value': float(p_value),
-                'statistic': float(bp_statistic),
-                'message': f'Homoscedasticity violated (BP test p={p_value:.4f}, variance ratio={var_ratio:.2f})',
-                'recommendation': 'Consider weighted least squares, robust regression, or transformation',
-                'visual_data': {
-                    'fitted_values': y_pred.tolist(),
-                    'residuals': residuals.tolist(),
-                    'variance_ratio': float(var_ratio)
-                }
+                "violated": True,
+                "test_name": "Breusch-Pagan Test",
+                "severity": severity,
+                "p_value": float(p_value),
+                "statistic": float(bp_statistic),
+                "message": f"Homoscedasticity violated (BP test p={p_value:.4f}, variance ratio={var_ratio:.2f})",
+                "recommendation": "Consider weighted least squares, robust regression, or transformation",
+                "visual_data": {
+                    "fitted_values": y_pred.tolist(),
+                    "residuals": residuals.tolist(),
+                    "variance_ratio": float(var_ratio),
+                },
             }
 
         return {
-            'violated': False,
-            'test_name': 'Breusch-Pagan Test',
-            'p_value': float(p_value),
-            'statistic': float(bp_statistic)
+            "violated": False,
+            "test_name": "Breusch-Pagan Test",
+            "p_value": float(p_value),
+            "statistic": float(bp_statistic),
         }

@@ -20,7 +20,19 @@ class Migration(migrations.Migration):
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ("name", models.CharField(max_length=200)),
                 ("slug", models.SlugField(max_length=100, unique=True)),
-                ("plugin_type", models.CharField(choices=[("statistical_test", "Statistical Test"), ("sqs_rule_pack", "SQS Rule Pack"), ("visualization", "Visualization Template"), ("data_connector", "Data Connector"), ("report_template", "Report Template")], max_length=30)),
+                (
+                    "plugin_type",
+                    models.CharField(
+                        choices=[
+                            ("statistical_test", "Statistical Test"),
+                            ("sqs_rule_pack", "SQS Rule Pack"),
+                            ("visualization", "Visualization Template"),
+                            ("data_connector", "Data Connector"),
+                            ("report_template", "Report Template"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
                 ("description", models.TextField()),
                 ("version", models.CharField(default="1.0.0", max_length=20)),
                 ("author_name", models.CharField(max_length=200)),
@@ -28,7 +40,10 @@ class Migration(migrations.Migration):
                 ("homepage_url", models.URLField(blank=True)),
                 ("repository_url", models.URLField(blank=True)),
                 ("icon_url", models.URLField(blank=True)),
-                ("config_schema", models.JSONField(blank=True, default=dict, help_text="JSON Schema for plugin configuration")),
+                (
+                    "config_schema",
+                    models.JSONField(blank=True, default=dict, help_text="JSON Schema for plugin configuration"),
+                ),
                 ("entry_point", models.JSONField(default=dict, help_text="Plugin entry point definition")),
                 ("dependencies", models.JSONField(blank=True, default=list)),
                 ("is_official", models.BooleanField(default=False)),
@@ -52,9 +67,26 @@ class Migration(migrations.Migration):
                 ("config", models.JSONField(blank=True, default=dict)),
                 ("is_active", models.BooleanField(default=True)),
                 ("installed_at", models.DateTimeField(default=django.utils.timezone.now)),
-                ("installed_by", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ("organization", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="installed_plugins", to="core.organization")),
-                ("plugin", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="installations", to="core.plugin")),
+                (
+                    "installed_by",
+                    models.ForeignKey(
+                        blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "organization",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="installed_plugins",
+                        to="core.organization",
+                    ),
+                ),
+                (
+                    "plugin",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="installations", to="core.plugin"
+                    ),
+                ),
             ],
             options={
                 "ordering": ["-installed_at"],
@@ -69,7 +101,12 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=200)),
                 ("body", models.TextField(blank=True)),
                 ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
-                ("plugin", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="reviews", to="core.plugin")),
+                (
+                    "plugin",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="reviews", to="core.plugin"
+                    ),
+                ),
                 ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={

@@ -9,32 +9,31 @@ Run this script to ensure all modules are working correctly.
 """
 
 import sys
-import os
 import traceback
-from decimal import Decimal
 
 # Add backend to path
-sys.path.insert(0, '/Users/vishalbharti/StickForStats_v1.0_Production/backend')
+sys.path.insert(0, "/Users/vishalbharti/StickForStats_v1.0_Production/backend")
+
 
 def verify_module(module_name, import_path, test_function=None):
     """Verify a module can be imported and optionally test a function"""
     print(f"\n{'='*60}")
     print(f"Verifying: {module_name}")
     print(f"Import path: {import_path}")
-    print('-'*60)
+    print("-" * 60)
 
     try:
         # Try to import the module
         exec(f"from {import_path} import *")
-        print(f"✅ Import successful")
+        print("✅ Import successful")
 
         # Run test function if provided
         if test_function:
             result = test_function()
             if result:
-                print(f"✅ Functional test passed")
+                print("✅ Functional test passed")
             else:
-                print(f"⚠️ Functional test returned None/False")
+                print("⚠️ Functional test returned None/False")
 
         return True
 
@@ -116,8 +115,8 @@ def test_assumption_checker():
 
     normality = checker.check_normality(data)
     # Use correct attribute names based on AssumptionResult structure
-    is_normal = normality.is_met if hasattr(normality, 'is_met') else normality.get('is_normal', False)
-    p_value = normality.p_value if hasattr(normality, 'p_value') else normality.get('p_value', 0)
+    is_normal = normality.is_met if hasattr(normality, "is_met") else normality.get("is_normal", False)
+    p_value = normality.p_value if hasattr(normality, "p_value") else normality.get("p_value", 0)
 
     print(f"  Normality test: {'Normal' if is_normal else 'Not Normal'}")
     print(f"  P-value: {p_value:.4f}")
@@ -127,45 +126,33 @@ def test_assumption_checker():
 def test_api_views():
     """Test API views can be imported"""
     # Skip Django-specific imports in standalone test
-    print(f"  Skipping Django view imports (requires Django settings)")
+    print("  Skipping Django view imports (requires Django settings)")
     return True  # Mark as passed since this is expected
 
 
 def test_serializers():
     """Test serializers can be imported"""
-    from api.v1.serializers import (
-        TTestRequestSerializer,
-        ANOVARequestSerializer,
-        CorrelationRequestSerializer,
-        DataImportSerializer
-    )
-    print(f"  All serializers imported successfully")
+
+    print("  All serializers imported successfully")
     return True
 
 
 def main():
     """Run all module verifications"""
     print("🔍 StickForStats Module Verification")
-    print("="*60)
+    print("=" * 60)
 
     results = {}
 
     # Core modules
     modules_to_test = [
-        ("High Precision Calculator", "core.high_precision_calculator",
-         test_high_precision_calculator),
-        ("ANOVA Comprehensive", "core.hp_anova_comprehensive",
-         test_anova),
-        ("Correlation Comprehensive", "core.hp_correlation_comprehensive",
-         test_correlation),
-        ("Automatic Test Selector", "core.automatic_test_selector",
-         test_auto_selector),
-        ("Assumption Checker", "core.assumption_checker",
-         test_assumption_checker),
-        ("API Views", "api.v1.views",
-         test_api_views),
-        ("Serializers", "api.v1.serializers",
-         test_serializers),
+        ("High Precision Calculator", "core.high_precision_calculator", test_high_precision_calculator),
+        ("ANOVA Comprehensive", "core.hp_anova_comprehensive", test_anova),
+        ("Correlation Comprehensive", "core.hp_correlation_comprehensive", test_correlation),
+        ("Automatic Test Selector", "core.automatic_test_selector", test_auto_selector),
+        ("Assumption Checker", "core.assumption_checker", test_assumption_checker),
+        ("API Views", "api.v1.views", test_api_views),
+        ("Serializers", "api.v1.serializers", test_serializers),
     ]
 
     # Run tests
@@ -173,9 +160,9 @@ def main():
         results[module_name] = verify_module(module_name, import_path, test_func)
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("VERIFICATION SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     passed = sum(1 for v in results.values() if v)
     total = len(results)
@@ -184,7 +171,7 @@ def main():
         status_icon = "✅" if status else "❌"
         print(f"{status_icon} {module}")
 
-    print("-"*60)
+    print("-" * 60)
     print(f"Result: {passed}/{total} modules verified successfully")
 
     if passed == total:

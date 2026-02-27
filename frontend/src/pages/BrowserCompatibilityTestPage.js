@@ -108,8 +108,8 @@ const BrowserCompatibilityTestPage = () => {
       test: () => {
         try {
           // Test ES6 support without eval
-          const test = (() => {})();
-          const x = 1;
+          const _test = (() => {})();
+          const _x = 1;
           return true;
         } catch {
           return false;

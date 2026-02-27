@@ -21,7 +21,7 @@ from .query_parser import (
     ExtractedVariable,
     QueryCondition,
     QueryStep,
-    get_query_parser
+    get_query_parser,
 )
 
 from .plan_generator import (
@@ -31,7 +31,7 @@ from .plan_generator import (
     AssumptionCheckStep,
     AssumptionCheck,
     StepStatus,
-    get_plan_generator
+    get_plan_generator,
 )
 
 from .report_generator import (
@@ -40,36 +40,34 @@ from .report_generator import (
     ReportSection,
     StatisticalResult,
     StatisticalTest,
-    get_report_generator
+    get_report_generator,
 )
 
 __all__ = [
     # Query Parser
-    'QueryParser',
-    'ParsedQuery',
-    'QueryIntent',
-    'AnalysisType',
-    'ExtractedVariable',
-    'QueryCondition',
-    'QueryStep',
-    'get_query_parser',
-
+    "QueryParser",
+    "ParsedQuery",
+    "QueryIntent",
+    "AnalysisType",
+    "ExtractedVariable",
+    "QueryCondition",
+    "QueryStep",
+    "get_query_parser",
     # Plan Generator
-    'AnalysisPlanGenerator',
-    'AnalysisPlan',
-    'AnalysisStep',
-    'AssumptionCheckStep',
-    'AssumptionCheck',
-    'StepStatus',
-    'get_plan_generator',
-
+    "AnalysisPlanGenerator",
+    "AnalysisPlan",
+    "AnalysisStep",
+    "AssumptionCheckStep",
+    "AssumptionCheck",
+    "StepStatus",
+    "get_plan_generator",
     # Report Generator
-    'APAReportGenerator',
-    'ReportContent',
-    'ReportSection',
-    'StatisticalResult',
-    'StatisticalTest',
-    'get_report_generator'
+    "APAReportGenerator",
+    "ReportContent",
+    "ReportSection",
+    "StatisticalResult",
+    "StatisticalTest",
+    "get_report_generator",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

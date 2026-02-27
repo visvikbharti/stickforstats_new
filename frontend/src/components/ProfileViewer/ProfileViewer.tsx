@@ -22,8 +22,6 @@ import {
   Tab,
   Chip,
   Button,
-  IconButton,
-  Tooltip,
   Alert,
   LinearProgress,
   Table,
@@ -32,13 +30,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Badge,
-  CircularProgress,
   Skeleton,
   ToggleButton,
   ToggleButtonGroup,
@@ -53,18 +44,10 @@ import {
   Lightbulb as LightbulbIcon,
   Search as SearchIcon,
   Download as DownloadIcon,
-  FilterList as FilterIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
-  Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  BarChart as BarChartIcon,
-  ScatterPlot as ScatterPlotIcon,
-  ShowChart as ShowChartIcon,
   PieChart as PieChartIcon,
   BubbleChart as BubbleChartIcon,
   Assessment as AssessmentIcon,
@@ -81,15 +64,10 @@ import {
   ViewMode,
   ViewConfig,
   InteractionState,
-  FilterOptions,
-  SortOptions,
   SummaryStatistics,
-  QualityIssue,
 } from './ProfileViewer.types';
 import {
-  VariableProfile,
   VariableType,
-  DatasetProfile,
 } from '../../types/api.types';
 
 // Component imports
@@ -112,7 +90,7 @@ const ProfileViewer: React.FC<ProfileViewerProps> = ({
   enableExport = true,
   compact = false,
 }) => {
-  const dispatch = useAppDispatch();
+  const _dispatch = useAppDispatch();
   const globalShowEducational = useAppSelector(selectShowEducationalContent);
   const showEducational = propShowEducational ?? globalShowEducational;
 

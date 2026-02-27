@@ -34,15 +34,15 @@ from .serialization import BundleSerializer
 from .verification import ReproducibilityVerifier
 
 __all__ = [
-    'ReproducibilityBundle',
-    'DataFingerprinter',
-    'PipelineTracker',
-    'StateCapture',
-    'SeedManager',
-    'MethodsGenerator',
-    'BundleSerializer',
-    'ReproducibilityVerifier'
+    "ReproducibilityBundle",
+    "DataFingerprinter",
+    "PipelineTracker",
+    "StateCapture",
+    "SeedManager",
+    "MethodsGenerator",
+    "BundleSerializer",
+    "ReproducibilityVerifier",
 ]
 
 # Version information
-__version__ = '1.5.0'
+__version__ = "1.5.0"

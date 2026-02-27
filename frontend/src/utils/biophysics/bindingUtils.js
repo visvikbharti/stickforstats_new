@@ -348,7 +348,7 @@ export function analyzeDoseResponse(concentration, response, options = {}) {
 
   // Determine if inhibition or stimulation
   const isInhibition = Top > Bottom;
-  const parameterName = isInhibition ? 'IC50' : 'EC50';
+  const _parameterName = isInhibition ? 'IC50' : 'EC50';
 
   return {
     success: true,
@@ -936,7 +936,7 @@ function lgamma(x) {
 // EXPORT
 // ============================================================================
 
-export default {
+const bindingUtils = {
   analyzeSaturationBinding,
   analyzeDoseResponse,
   analyzeCompetitionBinding,
@@ -949,3 +949,5 @@ export default {
   validateDoseResponseData,
   AFFINITY_CLASSIFICATION
 };
+
+export default bindingUtils;

@@ -263,10 +263,10 @@ export async function runPerformanceTest(name, type, component, testFn, config =
  * @returns {any} Return value from the function
  */
 export function timeFunction(fn, name = 'Function timing') {
-  const start = performance.now();
+  const _start = performance.now();
   const result = fn();
-  const duration = performance.now() - start;
-  
+  const _duration = performance.now() - _start;
+
   return result;
 }
 
@@ -277,10 +277,10 @@ export function timeFunction(fn, name = 'Function timing') {
  * @returns {Promise<any>} Promise that resolves to the function's return value
  */
 export async function timeAsyncFunction(fn, name = 'Async function timing') {
-  const start = performance.now();
+  const _start = performance.now();
   const result = await fn();
-  const duration = performance.now() - start;
-  
+  const _duration = performance.now() - _start;
+
   return result;
 }
 
@@ -294,8 +294,8 @@ export function timed(name = null) {
     const originalMethod = descriptor.value;
     
     descriptor.value = function(...args) {
-      const timingName = name || `${target.constructor.name}.${propertyKey}`;
-      const start = performance.now();
+      const _timingName = name || `${target.constructor.name}.${propertyKey}`;
+      const _start = performance.now();
       const result = originalMethod.apply(this, args);
       
       if (result instanceof Promise) {
@@ -475,7 +475,7 @@ export function exportPerformanceReport() {
 }
 
 // Export all functions
-export default {
+const manualPerformanceTesting = {
   createPerformanceTest,
   runPerformanceTest,
   timeFunction,
@@ -492,3 +492,5 @@ export default {
   generatePerformanceReport,
   exportPerformanceReport
 };
+
+export default manualPerformanceTesting;

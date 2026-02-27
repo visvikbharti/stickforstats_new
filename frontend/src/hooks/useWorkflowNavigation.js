@@ -22,7 +22,7 @@ const NavigationMode = {
 };
 
 // Step types matching backend
-const StepType = {
+const _StepType = {
   DATA_UPLOAD: 'data_upload',
   DATA_PROFILING: 'data_profiling',
   DATA_CLEANING: 'data_cleaning',
@@ -81,7 +81,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
 
   // Redux integration
   const dispatch = useDispatch();
-  const reduxState = useSelector(state => state.workflow);
+  const _reduxState = useSelector(state => state.workflow);
 
   /**
    * Initialize navigation controller
@@ -187,6 +187,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
       }));
       return false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workflowId, navigationState.currentStep, context, apiBaseUrl, dispatch]);
 
   /**
@@ -246,6 +247,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
 
       return newContext;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoSave]);
 
   /**
@@ -458,6 +460,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
         wsRef.current.close();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -484,6 +487,7 @@ export const useWorkflowNavigation = (workflowId, options = {}) => {
     };
 
     fetchRecommendations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigationState.currentStep, context]);
 
   // Public API

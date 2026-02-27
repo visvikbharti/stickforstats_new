@@ -22,13 +22,13 @@ import logging
 from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 
 class ReportSection(Enum):
     """Types of report sections."""
+
     METHODS = "methods"
     RESULTS = "results"
     DISCUSSION = "discussion"
@@ -39,6 +39,7 @@ class ReportSection(Enum):
 
 class StatisticalTest(Enum):
     """Supported statistical tests for reporting."""
+
     T_TEST_INDEPENDENT = "independent_t_test"
     T_TEST_PAIRED = "paired_t_test"
     T_TEST_ONE_SAMPLE = "one_sample_t_test"
@@ -61,6 +62,7 @@ class StatisticalTest(Enum):
 @dataclass
 class StatisticalResult:
     """Represents a statistical result for reporting."""
+
     test_type: StatisticalTest
     test_statistic: float
     test_statistic_name: str  # e.g., "t", "F", "r", "χ²"
@@ -84,6 +86,7 @@ class StatisticalResult:
 @dataclass
 class ReportContent:
     """Generated report content."""
+
     section_type: ReportSection
     content: str
     raw_stats: Optional[Dict[str, Any]] = None
@@ -109,47 +112,47 @@ class APAReportGenerator:
         StatisticalTest.T_TEST_INDEPENDENT: {
             "notation": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}",
             "with_effect": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}",
-            "full": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]"
+            "full": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]",
         },
         StatisticalTest.T_TEST_PAIRED: {
             "notation": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}",
             "with_effect": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}",
-            "full": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]"
+            "full": "t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, d = {d:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]",
         },
         StatisticalTest.ANOVA_ONE_WAY: {
             "notation": "F({df1}, {df2}) = {F:.2f}, p {p_symbol} {p:.3f}",
             "with_effect": "F({df1}, {df2}) = {F:.2f}, p {p_symbol} {p:.3f}, η² = {eta:.2f}",
-            "full": "F({df1}, {df2}) = {F:.2f}, p {p_symbol} {p:.3f}, η² = {eta:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]"
+            "full": "F({df1}, {df2}) = {F:.2f}, p {p_symbol} {p:.3f}, η² = {eta:.2f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]",
         },
         StatisticalTest.CORRELATION_PEARSON: {
             "notation": "r({df}) = {r:.2f}, p {p_symbol} {p:.3f}",
             "with_effect": "r({df}) = {r:.2f}, p {p_symbol} {p:.3f}",
-            "full": "r({df}) = {r:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]"
+            "full": "r({df}) = {r:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]",
         },
         StatisticalTest.REGRESSION_LINEAR: {
             "notation": "β = {beta:.2f}, t({df}) = {t:.2f}, p {p_symbol} {p:.3f}",
             "model": "R² = {r2:.2f}, F({df1}, {df2}) = {F:.2f}, p {p_symbol} {p:.3f}",
-            "full": "β = {beta:.2f}, t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]"
+            "full": "β = {beta:.2f}, t({df}) = {t:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.2f}, {ci_u:.2f}]",
         },
         StatisticalTest.CHI_SQUARE: {
             "notation": "χ²({df}) = {chi2:.2f}, p {p_symbol} {p:.3f}",
             "with_effect": "χ²({df}) = {chi2:.2f}, p {p_symbol} {p:.3f}, V = {V:.2f}",
-            "full": "χ²({df}) = {chi2:.2f}, p {p_symbol} {p:.3f}, V = {V:.2f}"
+            "full": "χ²({df}) = {chi2:.2f}, p {p_symbol} {p:.3f}, V = {V:.2f}",
         },
         StatisticalTest.MANN_WHITNEY: {
             "notation": "U = {U:.0f}, p {p_symbol} {p:.3f}",
             "with_effect": "U = {U:.0f}, p {p_symbol} {p:.3f}, r = {r:.2f}",
-            "full": "U = {U:.0f}, p {p_symbol} {p:.3f}, r = {r:.2f}"
+            "full": "U = {U:.0f}, p {p_symbol} {p:.3f}, r = {r:.2f}",
         },
         StatisticalTest.MEDIATION: {
             "indirect": "indirect effect = {indirect:.3f}, 95% CI [{ci_l:.3f}, {ci_u:.3f}]",
             "sobel": "Sobel z = {z:.2f}, p {p_symbol} {p:.3f}",
-            "full": "a = {a:.3f}, b = {b:.3f}, c' = {c_prime:.3f}, indirect = {indirect:.3f}, 95% CI [{ci_l:.3f}, {ci_u:.3f}]"
+            "full": "a = {a:.3f}, b = {b:.3f}, c' = {c_prime:.3f}, indirect = {indirect:.3f}, 95% CI [{ci_l:.3f}, {ci_u:.3f}]",
         },
         StatisticalTest.DID: {
             "notation": "DiD = {did:.3f}, SE = {se:.3f}, t = {t:.2f}, p {p_symbol} {p:.3f}",
-            "full": "DiD = {did:.3f}, SE = {se:.3f}, t = {t:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.3f}, {ci_u:.3f}]"
-        }
+            "full": "DiD = {did:.3f}, SE = {se:.3f}, t = {t:.2f}, p {p_symbol} {p:.3f}, 95% CI [{ci_l:.3f}, {ci_u:.3f}]",
+        },
     }
 
     # Effect size interpretation benchmarks (Cohen, 1988)
@@ -163,13 +166,9 @@ class APAReportGenerator:
 
     def __init__(self):
         """Initialize the APA report generator."""
-        pass
 
     def format_statistic(
-        self,
-        result: StatisticalResult,
-        include_effect_size: bool = True,
-        include_ci: bool = True
+        self, result: StatisticalResult, include_effect_size: bool = True, include_ci: bool = True
     ) -> str:
         """
         Format a statistical result in APA style.
@@ -191,10 +190,7 @@ class APAReportGenerator:
         p_symbol = self._get_p_symbol(result.p_value)
 
         # Build format parameters
-        params = {
-            "p": result.p_value if result.p_value >= 0.001 else 0.001,
-            "p_symbol": p_symbol
-        }
+        params = {"p": result.p_value if result.p_value >= 0.001 else 0.001, "p_symbol": p_symbol}
 
         # Add test-specific parameters
         if result.test_type in [StatisticalTest.T_TEST_INDEPENDENT, StatisticalTest.T_TEST_PAIRED]:
@@ -267,12 +263,7 @@ class APAReportGenerator:
             logger.warning(f"Template formatting failed: {e}")
             return self._format_generic(result, include_effect_size, include_ci)
 
-    def _format_generic(
-        self,
-        result: StatisticalResult,
-        include_effect_size: bool,
-        include_ci: bool
-    ) -> str:
+    def _format_generic(self, result: StatisticalResult, include_effect_size: bool, include_ci: bool) -> str:
         """Generic formatting for unrecognized test types."""
         parts = []
 
@@ -309,11 +300,7 @@ class APAReportGenerator:
         else:
             return "="
 
-    def interpret_effect_size(
-        self,
-        effect_size: float,
-        effect_type: str = "d"
-    ) -> str:
+    def interpret_effect_size(self, effect_size: float, effect_type: str = "d") -> str:
         """
         Interpret effect size magnitude.
 
@@ -343,7 +330,7 @@ class APAReportGenerator:
         sample_info: Dict[str, Any],
         variables: Dict[str, str],
         assumptions_checked: List[str],
-        alpha: float = 0.05
+        alpha: float = 0.05,
     ) -> ReportContent:
         """
         Generate a Methods section paragraph.
@@ -417,15 +404,12 @@ class APAReportGenerator:
             formatting_notes=[
                 "Use italics for statistical symbols (t, F, p, etc.)",
                 "Report exact p-values to three decimal places",
-                "Include effect sizes with confidence intervals"
-            ]
+                "Include effect sizes with confidence intervals",
+            ],
         )
 
     def generate_results_section(
-        self,
-        result: StatisticalResult,
-        descriptives: Optional[Dict[str, Any]] = None,
-        hypothesis: Optional[str] = None
+        self, result: StatisticalResult, descriptives: Optional[Dict[str, Any]] = None, hypothesis: Optional[str] = None
     ) -> ReportContent:
         """
         Generate a Results section paragraph.
@@ -468,19 +452,14 @@ class APAReportGenerator:
 
         # Effect size interpretation
         if result.effect_size:
-            effect_interp = self.interpret_effect_size(
-                result.effect_size,
-                result.effect_size_name or "d"
-            )
+            effect_interp = self.interpret_effect_size(result.effect_size, result.effect_size_name or "d")
             effect_phrase = f", with a {effect_interp} effect size"
         else:
             effect_phrase = ""
 
         # Build the main sentence based on test type
         if result.test_type in [StatisticalTest.T_TEST_INDEPENDENT, StatisticalTest.T_TEST_PAIRED]:
-            content_parts.append(
-                f"{sig_phrase} difference between the groups{effect_phrase}, {stat_string}."
-            )
+            content_parts.append(f"{sig_phrase} difference between the groups{effect_phrase}, {stat_string}.")
         elif result.test_type == StatisticalTest.CORRELATION_PEARSON:
             if result.p_value < 0.05:
                 direction = "positive" if result.test_statistic > 0 else "negative"
@@ -489,13 +468,9 @@ class APAReportGenerator:
                     f"There was a statistically significant {strength} {direction} correlation, {stat_string}."
                 )
             else:
-                content_parts.append(
-                    f"The correlation was not statistically significant, {stat_string}."
-                )
+                content_parts.append(f"The correlation was not statistically significant, {stat_string}.")
         elif result.test_type in [StatisticalTest.ANOVA_ONE_WAY, StatisticalTest.ANOVA_TWO_WAY]:
-            content_parts.append(
-                f"{sig_phrase} effect{effect_phrase}, {stat_string}."
-            )
+            content_parts.append(f"{sig_phrase} effect{effect_phrase}, {stat_string}.")
         elif result.test_type == StatisticalTest.MEDIATION:
             indirect = result.test_statistic
             if result.ci_lower is not None and result.ci_upper is not None:
@@ -526,21 +501,16 @@ class APAReportGenerator:
                 "test_type": result.test_type.value,
                 "statistic": result.test_statistic,
                 "p_value": result.p_value,
-                "effect_size": result.effect_size
+                "effect_size": result.effect_size,
             },
             formatting_notes=[
                 "Italicize statistical symbols",
                 "Report means and SDs in parentheses",
-                "Include exact p-values (p < .001 for very small values)"
-            ]
+                "Include exact p-values (p < .001 for very small values)",
+            ],
         )
 
-    def generate_table(
-        self,
-        data: List[Dict[str, Any]],
-        title: str,
-        note: Optional[str] = None
-    ) -> ReportContent:
+    def generate_table(self, data: List[Dict[str, Any]], title: str, note: Optional[str] = None) -> ReportContent:
         """
         Generate an APA-formatted table.
 
@@ -554,9 +524,7 @@ class APAReportGenerator:
         """
         if not data:
             return ReportContent(
-                section_type=ReportSection.TABLE,
-                content="No data provided for table.",
-                formatting_notes=[]
+                section_type=ReportSection.TABLE, content="No data provided for table.", formatting_notes=[]
             )
 
         # Get column headers
@@ -564,7 +532,7 @@ class APAReportGenerator:
 
         # Build table
         lines = []
-        lines.append(f"Table X")
+        lines.append("Table X")
         lines.append(f"{title}")
         lines.append("")
 
@@ -596,8 +564,8 @@ class APAReportGenerator:
             formatting_notes=[
                 "Use horizontal lines only at top, below header, and at bottom",
                 "Italicize statistical symbols in headers",
-                "Left-align text, right-align numbers"
-            ]
+                "Left-align text, right-align numbers",
+            ],
         )
 
     def generate_full_report(
@@ -606,7 +574,7 @@ class APAReportGenerator:
         sample_info: Dict[str, Any],
         variables: Dict[str, str],
         assumptions_checked: List[str],
-        descriptives: Optional[Dict[str, Any]] = None
+        descriptives: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, ReportContent]:
         """
         Generate a complete report with Methods and Results sections.
@@ -626,10 +594,7 @@ class APAReportGenerator:
         # Methods section (based on first result type)
         main_test = results[0].test_type if results else StatisticalTest.T_TEST_INDEPENDENT
         report["methods"] = self.generate_methods_section(
-            test_type=main_test,
-            sample_info=sample_info,
-            variables=variables,
-            assumptions_checked=assumptions_checked
+            test_type=main_test, sample_info=sample_info, variables=variables, assumptions_checked=assumptions_checked
         )
 
         # Results sections
@@ -643,8 +608,8 @@ class APAReportGenerator:
             content="\n\n".join(results_content),
             formatting_notes=[
                 "Each analysis should be a separate paragraph",
-                "Maintain consistent formatting throughout"
-            ]
+                "Maintain consistent formatting throughout",
+            ],
         )
 
         return report

@@ -17,13 +17,11 @@ These tests verify:
 @date 2026-01-26
 """
 
-import pytest
 import numpy as np
 import pandas as pd
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from django.test import TestCase, RequestFactory
 from rest_framework.test import APITestCase
-from rest_framework import status
 
 # Import Guardian components
 from core.guardian import (
@@ -33,7 +31,6 @@ from core.guardian import (
     guardian_protected,
     resolve_test_type,
 )
-from core.guardian.service_integration import TEST_TYPE_ALIASES
 
 
 class TestGuardianEnrichedResult(TestCase):
@@ -42,14 +39,14 @@ class TestGuardianEnrichedResult(TestCase):
     def test_enriched_result_has_required_fields(self):
         """Verify EnrichedResult contains all Design Contract required fields."""
         result = GuardianEnrichedResult(
-            statistical_results={'t_statistic': 2.5, 'p_value': 0.01},
-            guardian_report={'test_type': 't_test'},
-            assumptions_checked=['normality', 'homogeneity'],
+            statistical_results={"t_statistic": 2.5, "p_value": 0.01},
+            guardian_report={"test_type": "t_test"},
+            assumptions_checked=["normality", "homogeneity"],
             violations=[],
             confidence_score=85.0,
             can_proceed=True,
-            alternative_tests=['welch_t_test'],
-            expert_mode_override=False
+            alternative_tests=["welch_t_test"],
+            expert_mode_override=False,
         )
 
         # Verify all required fields are present
@@ -64,57 +61,57 @@ class TestGuardianEnrichedResult(TestCase):
     def test_enriched_result_to_dict(self):
         """Verify to_dict() includes all Guardian context fields."""
         result = GuardianEnrichedResult(
-            statistical_results={'t_statistic': 2.5},
-            guardian_report={'test_type': 't_test'},
-            assumptions_checked=['normality'],
-            violations=[{'assumption': 'normality', 'severity': 'warning'}],
+            statistical_results={"t_statistic": 2.5},
+            guardian_report={"test_type": "t_test"},
+            assumptions_checked=["normality"],
+            violations=[{"assumption": "normality", "severity": "warning"}],
             confidence_score=75.0,
             can_proceed=True,
-            alternative_tests=['mann_whitney'],
-            expert_mode_override=False
+            alternative_tests=["mann_whitney"],
+            expert_mode_override=False,
         )
 
         result_dict = result.to_dict()
 
         # Design Contract required fields
-        self.assertIn('guardian_report', result_dict)
-        self.assertIn('assumptions_checked', result_dict)
-        self.assertIn('violations', result_dict)
-        self.assertIn('confidence_score', result_dict)
-        self.assertIn('can_proceed', result_dict)
-        self.assertIn('alternative_tests', result_dict)
-        self.assertIn('_guardian_context', result_dict)
-        self.assertIn('_contract_compliant', result_dict)
+        self.assertIn("guardian_report", result_dict)
+        self.assertIn("assumptions_checked", result_dict)
+        self.assertIn("violations", result_dict)
+        self.assertIn("confidence_score", result_dict)
+        self.assertIn("can_proceed", result_dict)
+        self.assertIn("alternative_tests", result_dict)
+        self.assertIn("_guardian_context", result_dict)
+        self.assertIn("_contract_compliant", result_dict)
 
         # Verify compliance flags
-        self.assertTrue(result_dict['_guardian_context'])
-        self.assertTrue(result_dict['_contract_compliant'])
+        self.assertTrue(result_dict["_guardian_context"])
+        self.assertTrue(result_dict["_contract_compliant"])
 
     def test_enriched_result_with_violations(self):
         """Verify violations are properly included."""
         violations = [
             {
-                'assumption': 'normality',
-                'severity': 'critical',
-                'message': 'Data is not normally distributed',
-                'p_value': 0.001,
-                'recommendation': 'Use non-parametric test'
+                "assumption": "normality",
+                "severity": "critical",
+                "message": "Data is not normally distributed",
+                "p_value": 0.001,
+                "recommendation": "Use non-parametric test",
             }
         ]
 
         result = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality'],
+            assumptions_checked=["normality"],
             violations=violations,
             confidence_score=45.0,
             can_proceed=False,
-            alternative_tests=['mann_whitney'],
-            expert_mode_override=False
+            alternative_tests=["mann_whitney"],
+            expert_mode_override=False,
         )
 
         self.assertEqual(len(result.violations), 1)
-        self.assertEqual(result.violations[0]['severity'], 'critical')
+        self.assertEqual(result.violations[0]["severity"], "critical")
         self.assertFalse(result.can_proceed)
 
     def test_expert_mode_override(self):
@@ -122,16 +119,16 @@ class TestGuardianEnrichedResult(TestCase):
         result = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality'],
-            violations=[{'severity': 'critical'}],
+            assumptions_checked=["normality"],
+            violations=[{"severity": "critical"}],
             confidence_score=45.0,
             can_proceed=False,  # Would normally be blocked
             alternative_tests=[],
-            expert_mode_override=True  # Expert override
+            expert_mode_override=True,  # Expert override
         )
 
         result_dict = result.to_dict()
-        self.assertTrue(result_dict['expert_mode_override'])
+        self.assertTrue(result_dict["expert_mode_override"])
 
 
 class TestGuardianServiceWrapper(TestCase):
@@ -153,13 +150,10 @@ class TestGuardianServiceWrapper(TestCase):
 
         # Mock compute function
         def mock_compute(d):
-            return {'t_statistic': 2.5, 'p_value': 0.015}
+            return {"t_statistic": 2.5, "p_value": 0.015}
 
         result = self.wrapper.execute_with_guardian(
-            test_type='t_test',
-            data=data,
-            compute_function=mock_compute,
-            expert_mode=False
+            test_type="t_test", data=data, compute_function=mock_compute, expert_mode=False
         )
 
         # Verify result type
@@ -172,22 +166,19 @@ class TestGuardianServiceWrapper(TestCase):
 
     def test_execute_with_guardian_calls_guardian_check(self):
         """Verify Guardian check is called before computation."""
-        data = pd.DataFrame({'value': [1, 2, 3, 4, 5]})
+        data = pd.DataFrame({"value": [1, 2, 3, 4, 5]})
 
-        with patch.object(self.wrapper.guardian, 'check') as mock_check:
+        with patch.object(self.wrapper.guardian, "check") as mock_check:
             mock_check.return_value = Mock(
-                assumptions_checked=['normality'],
+                assumptions_checked=["normality"],
                 violations=[],
                 confidence_score=90.0,
                 can_proceed=True,
-                alternative_tests=[]
+                alternative_tests=[],
             )
 
             self.wrapper.execute_with_guardian(
-                test_type='t_test',
-                data=data,
-                compute_function=lambda d: {'result': 1},
-                expert_mode=False
+                test_type="t_test", data=data, compute_function=lambda d: {"result": 1}, expert_mode=False
             )
 
             # Verify check was called
@@ -200,20 +191,20 @@ class TestResolveTestType(TestCase):
     def test_resolve_known_aliases(self):
         """Verify known aliases resolve correctly."""
         # Test aliases that ARE in TEST_TYPE_ALIASES
-        self.assertEqual(resolve_test_type('independent_t'), 't_test')
-        self.assertEqual(resolve_test_type('one_sample_t'), 't_test')
-        self.assertEqual(resolve_test_type('paired_t'), 't_test')
-        self.assertEqual(resolve_test_type('one_way_anova'), 'anova')
+        self.assertEqual(resolve_test_type("independent_t"), "t_test")
+        self.assertEqual(resolve_test_type("one_sample_t"), "t_test")
+        self.assertEqual(resolve_test_type("paired_t"), "t_test")
+        self.assertEqual(resolve_test_type("one_way_anova"), "anova")
 
     def test_resolve_normalizes_hyphens_and_spaces(self):
         """Verify hyphens and spaces are normalized to underscores."""
         # t-test becomes t_test (normalization)
-        self.assertEqual(resolve_test_type('t-test'), 't_test')
-        self.assertEqual(resolve_test_type('chi square'), 'chi_square')
+        self.assertEqual(resolve_test_type("t-test"), "t_test")
+        self.assertEqual(resolve_test_type("chi square"), "chi_square")
 
     def test_resolve_preserves_valid_types(self):
         """Verify valid types pass through unchanged."""
-        valid_types = ['t_test', 'anova', 'chi_square', 'pearson']
+        valid_types = ["t_test", "anova", "chi_square", "pearson"]
         for test_type in valid_types:
             # Should return the type (possibly normalized)
             result = resolve_test_type(test_type)
@@ -221,10 +212,7 @@ class TestResolveTestType(TestCase):
 
     def test_resolve_handles_case_insensitivity(self):
         """Verify case-insensitive resolution."""
-        self.assertEqual(
-            resolve_test_type('T_TEST'),
-            resolve_test_type('t_test')
-        )
+        self.assertEqual(resolve_test_type("T_TEST"), resolve_test_type("t_test"))
 
 
 class TestGuardianProtectedDecorator(TestCase):
@@ -232,11 +220,12 @@ class TestGuardianProtectedDecorator(TestCase):
 
     def test_decorator_wraps_method(self):
         """Verify decorator properly wraps class method."""
+
         # The decorator is designed for class methods (requires self)
         class TestService:
-            @guardian_protected(test_type='t_test')
+            @guardian_protected(test_type="t_test")
             def sample_test(self, data):
-                return {'t_statistic': 2.5, 'p_value': 0.01}
+                return {"t_statistic": 2.5, "p_value": 0.01}
 
         service = TestService()
         data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -247,15 +236,16 @@ class TestGuardianProtectedDecorator(TestCase):
 
     def test_decorator_preserves_function_name(self):
         """Verify decorator preserves function metadata."""
+
         class TestService:
-            @guardian_protected(test_type='anova')
+            @guardian_protected(test_type="anova")
             def my_anova_test(self, data):
                 """My ANOVA test docstring."""
                 return {}
 
         # Check the wrapped method name is preserved
         service = TestService()
-        self.assertEqual(service.my_anova_test.__name__, 'my_anova_test')
+        self.assertEqual(service.my_anova_test.__name__, "my_anova_test")
 
 
 class TestGuardianAPICompliance(APITestCase):
@@ -271,27 +261,27 @@ class TestGuardianAPICompliance(APITestCase):
         # For now, verify the expected response structure
 
         expected_fields = [
-            'guardian_report',
-            'assumptions_checked',
-            'violations',
-            'confidence_score',
-            'can_proceed',
-            'alternative_tests',
-            '_guardian_context',
-            '_contract_compliant'
+            "guardian_report",
+            "assumptions_checked",
+            "violations",
+            "confidence_score",
+            "can_proceed",
+            "alternative_tests",
+            "_guardian_context",
+            "_contract_compliant",
         ]
 
         # Mock response structure
         mock_response = {
-            'statistical_results': {'t': 2.5, 'p': 0.01},
-            'guardian_report': {'test_type': 't_test'},
-            'assumptions_checked': ['normality'],
-            'violations': [],
-            'confidence_score': 85.0,
-            'can_proceed': True,
-            'alternative_tests': [],
-            '_guardian_context': True,
-            '_contract_compliant': True
+            "statistical_results": {"t": 2.5, "p": 0.01},
+            "guardian_report": {"test_type": "t_test"},
+            "assumptions_checked": ["normality"],
+            "violations": [],
+            "confidence_score": 85.0,
+            "can_proceed": True,
+            "alternative_tests": [],
+            "_guardian_context": True,
+            "_contract_compliant": True,
         }
 
         for field in expected_fields:
@@ -306,12 +296,12 @@ class TestGuardianViolationSeverity(TestCase):
         result = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality'],
-            violations=[{'severity': 'critical', 'assumption': 'normality'}],
+            assumptions_checked=["normality"],
+            violations=[{"severity": "critical", "assumption": "normality"}],
             confidence_score=30.0,
             can_proceed=False,  # Blocked due to critical
-            alternative_tests=['mann_whitney'],
-            expert_mode_override=False
+            alternative_tests=["mann_whitney"],
+            expert_mode_override=False,
         )
 
         self.assertFalse(result.can_proceed)
@@ -321,12 +311,12 @@ class TestGuardianViolationSeverity(TestCase):
         result = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality'],
-            violations=[{'severity': 'warning', 'assumption': 'normality'}],
+            assumptions_checked=["normality"],
+            violations=[{"severity": "warning", "assumption": "normality"}],
             confidence_score=70.0,
             can_proceed=True,  # Allowed with warning
             alternative_tests=[],
-            expert_mode_override=False
+            expert_mode_override=False,
         )
 
         self.assertTrue(result.can_proceed)
@@ -337,12 +327,12 @@ class TestGuardianViolationSeverity(TestCase):
         result = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality'],
-            violations=[{'severity': 'critical'}],
+            assumptions_checked=["normality"],
+            violations=[{"severity": "critical"}],
             confidence_score=30.0,
             can_proceed=True,  # Expert override
             alternative_tests=[],
-            expert_mode_override=True
+            expert_mode_override=True,
         )
 
         self.assertTrue(result.can_proceed)
@@ -365,7 +355,7 @@ class TestGuardianConfidenceScore(TestCase):
                 confidence_score=score,
                 can_proceed=True,
                 alternative_tests=[],
-                expert_mode_override=False
+                expert_mode_override=False,
             )
 
             self.assertGreaterEqual(result.confidence_score, 0)
@@ -377,33 +367,30 @@ class TestGuardianConfidenceScore(TestCase):
         result_clean = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality', 'homogeneity'],
+            assumptions_checked=["normality", "homogeneity"],
             violations=[],
             confidence_score=95.0,
             can_proceed=True,
             alternative_tests=[],
-            expert_mode_override=False
+            expert_mode_override=False,
         )
 
         # With violations = lower confidence
         result_violations = GuardianEnrichedResult(
             statistical_results={},
             guardian_report={},
-            assumptions_checked=['normality', 'homogeneity'],
+            assumptions_checked=["normality", "homogeneity"],
             violations=[
-                {'severity': 'warning', 'assumption': 'normality'},
-                {'severity': 'warning', 'assumption': 'homogeneity'}
+                {"severity": "warning", "assumption": "normality"},
+                {"severity": "warning", "assumption": "homogeneity"},
             ],
             confidence_score=65.0,
             can_proceed=True,
-            alternative_tests=['welch_t_test'],
-            expert_mode_override=False
+            alternative_tests=["welch_t_test"],
+            expert_mode_override=False,
         )
 
-        self.assertGreater(
-            result_clean.confidence_score,
-            result_violations.confidence_score
-        )
+        self.assertGreater(result_clean.confidence_score, result_violations.confidence_score)
 
 
 class TestDesignContractCompliance(TestCase):
@@ -416,32 +403,28 @@ class TestDesignContractCompliance(TestCase):
         """
         # A compliant result MUST have these fields
         required_context_fields = [
-            'guardian_report',
-            'assumptions_checked',
-            'violations',
-            'confidence_score',
-            'can_proceed',
+            "guardian_report",
+            "assumptions_checked",
+            "violations",
+            "confidence_score",
+            "can_proceed",
         ]
 
         result = GuardianEnrichedResult(
-            statistical_results={'t': 2.5},
-            guardian_report={'test_type': 't_test'},
-            assumptions_checked=['normality'],
+            statistical_results={"t": 2.5},
+            guardian_report={"test_type": "t_test"},
+            assumptions_checked=["normality"],
             violations=[],
             confidence_score=90.0,
             can_proceed=True,
             alternative_tests=[],
-            expert_mode_override=False
+            expert_mode_override=False,
         )
 
         result_dict = result.to_dict()
 
         for field in required_context_fields:
-            self.assertIn(
-                field,
-                result_dict,
-                f"Design Contract violation: missing required field '{field}'"
-            )
+            self.assertIn(field, result_dict, f"Design Contract violation: missing required field '{field}'")
 
     def test_guardian_context_flag_present(self):
         """Verify _guardian_context flag is present and True."""
@@ -453,13 +436,13 @@ class TestDesignContractCompliance(TestCase):
             confidence_score=0,
             can_proceed=True,
             alternative_tests=[],
-            expert_mode_override=False
+            expert_mode_override=False,
         )
 
         result_dict = result.to_dict()
 
-        self.assertIn('_guardian_context', result_dict)
-        self.assertTrue(result_dict['_guardian_context'])
+        self.assertIn("_guardian_context", result_dict)
+        self.assertTrue(result_dict["_guardian_context"])
 
     def test_contract_compliant_flag_present(self):
         """Verify _contract_compliant flag is present and True."""
@@ -471,13 +454,13 @@ class TestDesignContractCompliance(TestCase):
             confidence_score=0,
             can_proceed=True,
             alternative_tests=[],
-            expert_mode_override=False
+            expert_mode_override=False,
         )
 
         result_dict = result.to_dict()
 
-        self.assertIn('_contract_compliant', result_dict)
-        self.assertTrue(result_dict['_contract_compliant'])
+        self.assertIn("_contract_compliant", result_dict)
+        self.assertTrue(result_dict["_contract_compliant"])
 
 
 # Run with: python manage.py test core.guardian.tests.test_guardian_integration

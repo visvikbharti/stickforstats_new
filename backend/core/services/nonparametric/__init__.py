@@ -20,4 +20,4 @@ Version: 1.0.0
 
 from .nonparametric_service import NonParametricService
 
-__all__ = ['NonParametricService']
+__all__ = ["NonParametricService"]

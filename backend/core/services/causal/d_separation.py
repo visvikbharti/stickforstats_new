@@ -30,6 +30,7 @@ from .dag import CausalDAG
 @dataclass
 class DSeparationResult:
     """Result of d-separation test."""
+
     source: str
     target: str
     conditioning_set: Set[str]
@@ -40,21 +41,17 @@ class DSeparationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'source': self.source,
-            'target': self.target,
-            'conditioning_set': list(self.conditioning_set),
-            'd_separated': self.d_separated,
-            'blocked_paths': self.blocked_paths,
-            'open_paths': self.open_paths,
-            'explanation': self.explanation
+            "source": self.source,
+            "target": self.target,
+            "conditioning_set": list(self.conditioning_set),
+            "d_separated": self.d_separated,
+            "blocked_paths": self.blocked_paths,
+            "open_paths": self.open_paths,
+            "explanation": self.explanation,
         }
 
 
-def is_path_blocked(
-    dag: CausalDAG,
-    path: List[str],
-    conditioning_set: Set[str]
-) -> Tuple[bool, str]:
+def is_path_blocked(dag: CausalDAG, path: List[str], conditioning_set: Set[str]) -> Tuple[bool, str]:
     """
     Check if a path is blocked by a conditioning set.
 
@@ -82,8 +79,8 @@ def is_path_blocked(
 
         # Determine the type of triple
         prev_to_curr = dag.has_edge(prev_node, curr_node)
-        curr_to_prev = dag.has_edge(curr_node, prev_node)
-        curr_to_next = dag.has_edge(curr_node, next_node)
+        dag.has_edge(curr_node, prev_node)
+        dag.has_edge(curr_node, next_node)
         next_to_curr = dag.has_edge(next_node, curr_node)
 
         # Check for collider: -> curr <-
@@ -106,10 +103,7 @@ def is_path_blocked(
 
 
 def is_d_separated(
-    dag: CausalDAG,
-    source: str,
-    target: str,
-    conditioning_set: Optional[Set[str]] = None
+    dag: CausalDAG, source: str, target: str, conditioning_set: Optional[Set[str]] = None
 ) -> DSeparationResult:
     """
     Test if source and target are d-separated given conditioning set.
@@ -185,7 +179,7 @@ def is_d_separated(
         d_separated=d_separated,
         blocked_paths=blocked_paths,
         open_paths=open_paths,
-        explanation=explanation
+        explanation=explanation,
     )
 
 
@@ -195,7 +189,7 @@ def find_d_separating_sets(
     target: str,
     max_size: Optional[int] = None,
     required_nodes: Optional[Set[str]] = None,
-    forbidden_nodes: Optional[Set[str]] = None
+    forbidden_nodes: Optional[Set[str]] = None,
 ) -> List[Set[str]]:
     """
     Find all minimal d-separating sets between source and target.
@@ -257,17 +251,13 @@ def find_d_separating_sets(
 
                 if is_minimal:
                     # Remove any supersets
-                    d_sep_sets = [s for s in d_sep_sets
-                                  if not conditioning_set < s]
+                    d_sep_sets = [s for s in d_sep_sets if not conditioning_set < s]
                     d_sep_sets.append(conditioning_set)
 
     return d_sep_sets
 
 
-def identify_conditional_independencies(
-    dag: CausalDAG,
-    max_conditioning_size: int = 3
-) -> List[Dict[str, Any]]:
+def identify_conditional_independencies(dag: CausalDAG, max_conditioning_size: int = 3) -> List[Dict[str, Any]]:
     """
     Identify all conditional independencies implied by the DAG.
 
@@ -296,19 +286,15 @@ def identify_conditional_independencies(
 
     # Check all pairs of nodes
     for i, node1 in enumerate(nodes):
-        for node2 in nodes[i + 1:]:
+        for node2 in nodes[i + 1 :]:
             other_nodes = [n for n in nodes if n not in [node1, node2]]
 
             # Check marginal independence
             result = is_d_separated(dag, node1, node2, set())
             if result.d_separated:
-                independencies.append({
-                    'X': node1,
-                    'Y': node2,
-                    'given': set(),
-                    'type': 'marginal',
-                    'explanation': result.explanation
-                })
+                independencies.append(
+                    {"X": node1, "Y": node2, "given": set(), "type": "marginal", "explanation": result.explanation}
+                )
             else:
                 # Check conditional independencies
                 for size in range(1, min(max_conditioning_size + 1, len(other_nodes) + 1)):
@@ -317,20 +303,21 @@ def identify_conditional_independencies(
                         result = is_d_separated(dag, node1, node2, conditioning_set)
 
                         if result.d_separated:
-                            independencies.append({
-                                'X': node1,
-                                'Y': node2,
-                                'given': conditioning_set,
-                                'type': 'conditional',
-                                'explanation': result.explanation
-                            })
+                            independencies.append(
+                                {
+                                    "X": node1,
+                                    "Y": node2,
+                                    "given": conditioning_set,
+                                    "type": "conditional",
+                                    "explanation": result.explanation,
+                                }
+                            )
 
     return independencies
 
 
 def test_d_separation_all_pairs(
-    dag: CausalDAG,
-    conditioning_set: Optional[Set[str]] = None
+    dag: CausalDAG, conditioning_set: Optional[Set[str]] = None
 ) -> Dict[Tuple[str, str], bool]:
     """
     Test d-separation for all pairs of nodes.
@@ -352,7 +339,7 @@ def test_d_separation_all_pairs(
     nodes = dag.nodes
 
     for i, node1 in enumerate(nodes):
-        for node2 in nodes[i + 1:]:
+        for node2 in nodes[i + 1 :]:
             if node1 in conditioning_set or node2 in conditioning_set:
                 continue
 
@@ -363,10 +350,7 @@ def test_d_separation_all_pairs(
 
 
 def explain_d_connection(
-    dag: CausalDAG,
-    source: str,
-    target: str,
-    conditioning_set: Optional[Set[str]] = None
+    dag: CausalDAG, source: str, target: str, conditioning_set: Optional[Set[str]] = None
 ) -> Dict[str, Any]:
     """
     Provide detailed explanation of why two nodes are d-connected.
@@ -390,10 +374,10 @@ def explain_d_connection(
 
     if result.d_separated:
         return {
-            'status': 'd-separated',
-            'message': f'{source} and {target} are d-separated given {{{", ".join(conditioning_set) if conditioning_set else "nothing"}}}',
-            'open_paths': [],
-            'suggestions': []
+            "status": "d-separated",
+            "message": f'{source} and {target} are d-separated given {{{", ".join(conditioning_set) if conditioning_set else "nothing"}}}',
+            "open_paths": [],
+            "suggestions": [],
         }
 
     # Analyze open paths
@@ -402,10 +386,10 @@ def explain_d_connection(
 
     for path in result.open_paths:
         analysis = {
-            'path': ' - '.join(path),
-            'type': _classify_path(dag, path, source),
-            'non_colliders': [],
-            'activated_colliders': []
+            "path": " - ".join(path),
+            "type": _classify_path(dag, path, source),
+            "non_colliders": [],
+            "activated_colliders": [],
         }
 
         # Find non-colliders that could block the path
@@ -419,29 +403,28 @@ def explain_d_connection(
             is_collider = prev_to_curr and next_to_curr
 
             if is_collider:
-                if curr_node in conditioning_set or \
-                   dag.descendants(curr_node) & conditioning_set:
-                    analysis['activated_colliders'].append(curr_node)
+                if curr_node in conditioning_set or dag.descendants(curr_node) & conditioning_set:
+                    analysis["activated_colliders"].append(curr_node)
             else:
                 if curr_node not in conditioning_set:
-                    analysis['non_colliders'].append(curr_node)
+                    analysis["non_colliders"].append(curr_node)
                     suggestions.add(f"Condition on {curr_node} to block path")
 
         path_analyses.append(analysis)
 
     return {
-        'status': 'd-connected',
-        'message': f'{source} and {target} are d-connected (NOT independent)',
-        'n_open_paths': len(result.open_paths),
-        'path_analyses': path_analyses,
-        'suggestions': list(suggestions)
+        "status": "d-connected",
+        "message": f"{source} and {target} are d-connected (NOT independent)",
+        "n_open_paths": len(result.open_paths),
+        "path_analyses": path_analyses,
+        "suggestions": list(suggestions),
     }
 
 
 def _classify_path(dag: CausalDAG, path: List[str], exposure: str) -> str:
     """Classify a path as causal, backdoor, or front-door."""
     if len(path) < 2:
-        return 'trivial'
+        return "trivial"
 
     # Check first edge direction
     first_edge_from_exposure = dag.has_edge(path[0], path[1])
@@ -454,8 +437,8 @@ def _classify_path(dag: CausalDAG, path: List[str], exposure: str) -> str:
             break
 
     if path[0] == exposure and all_forward:
-        return 'causal (front-door)'
+        return "causal (front-door)"
     elif path[0] == exposure and not first_edge_from_exposure:
-        return 'backdoor'
+        return "backdoor"
     else:
-        return 'non-causal'
+        return "non-causal"

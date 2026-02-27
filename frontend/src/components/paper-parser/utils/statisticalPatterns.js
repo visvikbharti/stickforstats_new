@@ -99,7 +99,7 @@ export const CI_PATTERNS = {
   standard: /\d{2,3}\s*%?\s*CI\s*[=:]?\s*\[?\s*[-−]?\d+\.?\d*\s*[,;to−-]\s*[-−]?\d+\.?\d*\s*\]?/gi,
 
   // CI: 0.23-0.67, CI: (1.2, 3.4)
-  bracketed: /CI\s*[:=]?\s*[\[(]?\s*[-−]?\d+\.?\d*\s*[,;to−-]\s*[-−]?\d+\.?\d*\s*[\])]?/gi,
+  bracketed: /CI\s*[:=]?\s*[[(]?\s*[-−]?\d+\.?\d*\s*[,;to−-]\s*[-−]?\d+\.?\d*\s*[\])]?/gi,
 
   // Any percentage CI
   anyPercent: /\d{2,3}\s*%\s*confidence\s*interval/gi
@@ -420,7 +420,7 @@ export function getPrimarySampleSize(sampleSizes) {
   return Math.max(...sampleSizes.map(s => s.value));
 }
 
-export default {
+const statisticalPatterns = {
   P_VALUE_PATTERNS,
   TEST_STATISTIC_PATTERNS,
   SAMPLE_SIZE_PATTERNS,
@@ -434,3 +434,5 @@ export default {
   categorizePValue,
   getPrimarySampleSize
 };
+
+export default statisticalPatterns;

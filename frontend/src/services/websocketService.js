@@ -373,6 +373,8 @@ class WebSocketService extends EventEmitter {
         case MessageType.ERROR:
           this.handleServerError(data);
           return;
+        default:
+          break;
       }
     }
     

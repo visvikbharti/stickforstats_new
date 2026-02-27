@@ -33,7 +33,6 @@ const translations = {
     'common.info': 'Info',
     
     // App
-    'app.name': 'StickForStats',
     'app.title': 'StickForStats',
     'app.tagline': 'Statistical Analysis Made Simple',
     'app.welcome': 'Welcome to StickForStats',
@@ -47,22 +46,6 @@ const translations = {
     'feature.export': 'Export Results',
     'feature.automation': 'Workflow Automation',
     
-    // Modules
-    'modules.title': 'Available Modules',
-    'modules.description': 'Choose from our comprehensive suite of statistical analysis tools',
-    'modules.confidenceIntervals.title': 'Confidence Intervals',
-    'modules.confidenceIntervals.description': 'Calculate and visualize confidence intervals for your data',
-    'modules.probability.title': 'Probability Distributions',
-    'modules.probability.description': 'Explore and analyze various probability distributions',
-    'modules.pca.title': 'PCA Analysis',
-    'modules.pca.description': 'Principal Component Analysis for dimensionality reduction',
-    'modules.doe.title': 'DOE Analysis',
-    'modules.doe.description': 'Design of Experiments for systematic investigation',
-    'modules.sqc.title': 'SQC Analysis',
-    'modules.sqc.description': 'Statistical Quality Control for process monitoring',
-    'modules.statistics.description': 'Access comprehensive statistical analysis tools for complex data analysis',
-    'modules.categories.advanced': 'Advanced Statistics',
-    
     // Analysis
     'analysis.confidence': 'Confidence Intervals',
     'analysis.doe': 'Design of Experiments',
@@ -70,15 +53,6 @@ const translations = {
     'analysis.probability': 'Probability Distributions',
     'analysis.sqc': 'Statistical Quality Control',
     'analysis.regression': 'Regression Analysis',
-    
-    // Common messages and labels
-    'common.messages.welcome': 'Welcome back, {{name}}!',
-    'common.labels.researcher': 'Researcher',
-    
-    // Home page specific
-    'home.readyToContinue': 'Ready to continue your analysis?',
-    'home.openStatistics': 'Open Statistics',
-    'home.myWorkflows': 'My Workflows',
     
     // Actions
     'action.startAnalysis': 'Start Analysis',

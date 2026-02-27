@@ -92,6 +92,7 @@ const RAGWebSocketStatus = ({
         ...prev.slice(0, 9), // Keep last 10 entries
       ]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wsConnection?.status]);
 
   const getStatusColor = () => {

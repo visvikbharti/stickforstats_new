@@ -2,9 +2,9 @@ from django.apps import AppConfig
 
 
 class SQCAnalysisConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'sqc_analysis'
-    verbose_name = 'Statistical Quality Control Analysis'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "sqc_analysis"
+    verbose_name = "Statistical Quality Control Analysis"
 
     # Temporarily commented out - registry module doesn't exist
     # def ready(self):

@@ -14,20 +14,18 @@ The SQS ranges from 0-100 and evaluates:
 """
 
 import re
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
 
-from .sqs_rules import (
-    ALL_RULES, CATEGORIES, FIELD_WEIGHTS,
-    get_rules_by_category, RULE_SUMMARY
-)
+from .sqs_rules import ALL_RULES, CATEGORIES, FIELD_WEIGHTS
 
 
 @dataclass
 class Finding:
     """Represents a single rule finding."""
+
     rule_id: str
     rule_name: str
     category: str
@@ -44,6 +42,7 @@ class Finding:
 @dataclass
 class CategoryScore:
     """Represents the score for a single category."""
+
     category: str
     name: str
     score: float
@@ -67,6 +66,7 @@ class CategoryScore:
 @dataclass
 class SQSReport:
     """Complete SQS analysis report."""
+
     total_score: float
     max_score: float
     percentage: float
@@ -82,35 +82,32 @@ class SQSReport:
     def to_dict(self) -> Dict[str, Any]:
         """Convert report to dictionary for JSON serialization."""
         return {
-            'total_score': round(self.total_score, 2),
-            'max_score': self.max_score,
-            'percentage': round(self.percentage, 1),
-            'grade': self.grade,
-            'percentile': self.percentile,
-            'category_scores': {
+            "total_score": round(self.total_score, 2),
+            "max_score": self.max_score,
+            "percentage": round(self.percentage, 1),
+            "grade": self.grade,
+            "percentile": self.percentile,
+            "category_scores": {
                 cat: {
-                    'name': score.name,
-                    'score': round(score.score, 2),
-                    'max_score': score.max_score,
-                    'percentage': round(score.percentage, 1),
-                    'status': score.status,
-                    'findings_count': len(score.findings)
+                    "name": score.name,
+                    "score": round(score.score, 2),
+                    "max_score": score.max_score,
+                    "percentage": round(score.percentage, 1),
+                    "status": score.status,
+                    "findings_count": len(score.findings),
                 }
                 for cat, score in self.category_scores.items()
             },
-            'findings_summary': {
-                'total': len(self.all_findings),
-                'found': len([f for f in self.all_findings if f.found]),
-                'missing': len([f for f in self.all_findings if not f.found]),
-                'critical_missing': len([
-                    f for f in self.all_findings
-                    if not f.found and f.severity == 'critical'
-                ])
+            "findings_summary": {
+                "total": len(self.all_findings),
+                "found": len([f for f in self.all_findings if f.found]),
+                "missing": len([f for f in self.all_findings if not f.found]),
+                "critical_missing": len([f for f in self.all_findings if not f.found and f.severity == "critical"]),
             },
-            'top_recommendations': self.recommendations[:10],
-            'field': self.field,
-            'analyzed_at': self.analyzed_at.isoformat(),
-            'manuscript_stats': self.manuscript_stats
+            "top_recommendations": self.recommendations[:10],
+            "field": self.field,
+            "analyzed_at": self.analyzed_at.isoformat(),
+            "manuscript_stats": self.manuscript_stats,
         }
 
     def to_json(self) -> str:
@@ -126,14 +123,14 @@ class SQSScorer:
     statistical reporting quality criteria.
     """
 
-    def __init__(self, field: str = 'general'):
+    def __init__(self, field: str = "general"):
         """
         Initialize scorer with field-specific weights.
 
         Args:
             field: Research field for weight adjustments
         """
-        self.field = field if field in FIELD_WEIGHTS else 'general'
+        self.field = field if field in FIELD_WEIGHTS else "general"
         self.weights = FIELD_WEIGHTS[self.field]
 
     def analyze(self, text: str, title: Optional[str] = None) -> SQSReport:
@@ -160,14 +157,14 @@ class SQSScorer:
         for rule in ALL_RULES:
             finding = self._evaluate_rule(rule, processed_text)
             all_findings.append(finding)
-            category_findings[rule['category']].append(finding)
+            category_findings[rule["category"]].append(finding)
 
         # Calculate category scores
         category_scores = {}
         for cat, cat_info in CATEGORIES.items():
             findings = category_findings[cat]
             raw_score = sum(f.points_awarded for f in findings)
-            max_score = cat_info['max_points']
+            max_score = cat_info["max_points"]
 
             # Apply field weight
             weighted_score = raw_score * self.weights.get(cat, 1.0)
@@ -180,11 +177,11 @@ class SQSScorer:
 
             category_scores[cat] = CategoryScore(
                 category=cat,
-                name=cat_info['name'],
+                name=cat_info["name"],
                 score=final_score,
                 max_score=weighted_max,
                 percentage=percentage,
-                findings=findings
+                findings=findings,
             )
 
         # Calculate total score
@@ -207,7 +204,7 @@ class SQSScorer:
             recommendations=recommendations,
             field=self.field,
             analyzed_at=datetime.now(),
-            manuscript_stats=manuscript_stats
+            manuscript_stats=manuscript_stats,
         )
 
     def _preprocess_text(self, text: str) -> str:
@@ -221,19 +218,19 @@ class SQSScorer:
             Cleaned and normalized text
         """
         # Normalize whitespace
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r"\s+", " ", text)
 
         # Normalize common statistical symbols
-        text = re.sub(r'η2', 'η²', text)
-        text = re.sub(r'χ2', 'χ²', text)
-        text = re.sub(r'ω2', 'ω²', text)
+        text = re.sub(r"η2", "η²", text)
+        text = re.sub(r"χ2", "χ²", text)
+        text = re.sub(r"ω2", "ω²", text)
 
         # Normalize quotes
-        text = re.sub(r'[''´`]', "'", text)
+        text = re.sub(r"[" "´`]", "'", text)
         text = re.sub(r'[""„]', '"', text)
 
         # Normalize dashes for ranges
-        text = re.sub(r'[–—]', '-', text)
+        text = re.sub(r"[–—]", "-", text)
 
         return text
 
@@ -251,13 +248,13 @@ class SQSScorer:
 
         # Count statistical tests mentioned
         test_patterns = {
-            't-test': r't[- ]?test|independent\s+samples?\s+t',
-            'ANOVA': r'ANOVA|analysis\s+of\s+variance',
-            'regression': r'regression|linear\s+model',
-            'correlation': r'correlation|Pearson|Spearman',
-            'chi-square': r'chi[- ]?square|χ²',
-            'mann-whitney': r'Mann[- ]?Whitney|Wilcoxon',
-            'mixed-model': r'mixed[- ]?(?:model|effects?)|multilevel|HLM'
+            "t-test": r"t[- ]?test|independent\s+samples?\s+t",
+            "ANOVA": r"ANOVA|analysis\s+of\s+variance",
+            "regression": r"regression|linear\s+model",
+            "correlation": r"correlation|Pearson|Spearman",
+            "chi-square": r"chi[- ]?square|χ²",
+            "mann-whitney": r"Mann[- ]?Whitney|Wilcoxon",
+            "mixed-model": r"mixed[- ]?(?:model|effects?)|multilevel|HLM",
         }
 
         tests_found = {}
@@ -267,17 +264,13 @@ class SQSScorer:
                 tests_found[test_name] = len(matches)
 
         return {
-            'word_count': len(words),
-            'character_count': len(text),
-            'statistical_tests_mentioned': tests_found,
-            'has_methods_section': bool(re.search(
-                r'(?:method|methodology|materials?\s+and\s+methods?|procedure)',
-                text, re.IGNORECASE
-            )),
-            'has_results_section': bool(re.search(
-                r'(?:result|finding)',
-                text, re.IGNORECASE
-            ))
+            "word_count": len(words),
+            "character_count": len(text),
+            "statistical_tests_mentioned": tests_found,
+            "has_methods_section": bool(
+                re.search(r"(?:method|methodology|materials?\s+and\s+methods?|procedure)", text, re.IGNORECASE)
+            ),
+            "has_results_section": bool(re.search(r"(?:result|finding)", text, re.IGNORECASE)),
         }
 
     def _evaluate_rule(self, rule: Dict[str, Any], text: str) -> Finding:
@@ -291,8 +284,8 @@ class SQSScorer:
         Returns:
             Finding object with evaluation results
         """
-        pattern = rule['pattern']
-        is_penalty = rule.get('is_penalty', False)
+        pattern = rule["pattern"]
+        is_penalty = rule.get("is_penalty", False)
 
         try:
             matches = re.findall(pattern, text, re.IGNORECASE)
@@ -300,9 +293,9 @@ class SQSScorer:
 
             # For penalties, finding the pattern is bad
             if is_penalty:
-                points_awarded = rule['points'] if found else 0  # Negative points
+                points_awarded = rule["points"] if found else 0  # Negative points
             else:
-                points_awarded = rule['points'] if found else 0
+                points_awarded = rule["points"] if found else 0
 
             # Get evidence (first match, truncated)
             evidence = None
@@ -316,30 +309,30 @@ class SQSScorer:
                     evidence = "..." + text[start:end] + "..."
 
             return Finding(
-                rule_id=rule['id'],
-                rule_name=rule['name'],
-                category=rule['category'],
+                rule_id=rule["id"],
+                rule_name=rule["name"],
+                category=rule["category"],
                 found=found,
-                severity=rule['severity'],
+                severity=rule["severity"],
                 points_awarded=points_awarded,
-                points_possible=rule['points'] if not is_penalty else 0,
+                points_possible=rule["points"] if not is_penalty else 0,
                 evidence=evidence,
-                recommendation=rule['recommendation'] if not found else "",
-                is_penalty=is_penalty
+                recommendation=rule["recommendation"] if not found else "",
+                is_penalty=is_penalty,
             )
 
         except re.error as e:
             # Handle regex errors gracefully
             return Finding(
-                rule_id=rule['id'],
-                rule_name=rule['name'],
-                category=rule['category'],
+                rule_id=rule["id"],
+                rule_name=rule["name"],
+                category=rule["category"],
                 found=False,
-                severity=rule['severity'],
+                severity=rule["severity"],
                 points_awarded=0,
-                points_possible=rule['points'] if not is_penalty else 0,
+                points_possible=rule["points"] if not is_penalty else 0,
                 recommendation=f"Error evaluating rule: {str(e)}",
-                is_penalty=is_penalty
+                is_penalty=is_penalty,
             )
 
     def _score_to_grade(self, percentage: float) -> str:
@@ -353,15 +346,15 @@ class SQSScorer:
             Letter grade (A, B, C, D, F)
         """
         if percentage >= 90:
-            return 'A'
+            return "A"
         elif percentage >= 80:
-            return 'B'
+            return "B"
         elif percentage >= 70:
-            return 'C'
+            return "C"
         elif percentage >= 60:
-            return 'D'
+            return "D"
         else:
-            return 'F'
+            return "F"
 
     def _generate_recommendations(self, findings: List[Finding]) -> List[str]:
         """
@@ -376,12 +369,10 @@ class SQSScorer:
         recommendations = []
 
         # Sort by severity (critical first) and then by points possible
-        severity_order = {'critical': 0, 'important': 1, 'suggested': 2}
+        severity_order = {"critical": 0, "important": 1, "suggested": 2}
 
         missing_findings = [f for f in findings if not f.found and f.recommendation]
-        missing_findings.sort(
-            key=lambda f: (severity_order.get(f.severity, 3), -f.points_possible)
-        )
+        missing_findings.sort(key=lambda f: (severity_order.get(f.severity, 3), -f.points_possible))
 
         for finding in missing_findings:
             rec = f"[{finding.severity.upper()}] {finding.recommendation}"
@@ -422,14 +413,11 @@ class SQSReportGenerator:
         lines.append("-" * 60)
 
         for cat, score in report.category_scores.items():
-            status_icon = {
-                'excellent': '✓',
-                'good': '○',
-                'needs_improvement': '⚠',
-                'poor': '✗'
-            }.get(score.status, '?')
+            status_icon = {"excellent": "✓", "good": "○", "needs_improvement": "⚠", "poor": "✗"}.get(score.status, "?")
 
-            lines.append(f"{status_icon} {score.name}: {score.score:.1f}/{score.max_score:.0f} ({score.percentage:.0f}%)")
+            lines.append(
+                f"{status_icon} {score.name}: {score.score:.1f}/{score.max_score:.0f} ({score.percentage:.0f}%)"
+            )
 
         lines.append("")
         lines.append("-" * 60)
@@ -455,15 +443,9 @@ class SQSReportGenerator:
         Returns:
             HTML formatted report
         """
-        grade_colors = {
-            'A': '#28a745',
-            'B': '#5cb85c',
-            'C': '#ffc107',
-            'D': '#fd7e14',
-            'F': '#dc3545'
-        }
+        grade_colors = {"A": "#28a745", "B": "#5cb85c", "C": "#ffc107", "D": "#fd7e14", "F": "#dc3545"}
 
-        grade_color = grade_colors.get(report.grade, '#6c757d')
+        grade_color = grade_colors.get(report.grade, "#6c757d")
 
         html = f"""
 <!DOCTYPE html>
@@ -516,11 +498,11 @@ class SQSReportGenerator:
         html += "<h2>Recommendations</h2>"
 
         for rec in report.recommendations[:10]:
-            severity = 'suggested'
-            if '[CRITICAL]' in rec:
-                severity = 'critical'
-            elif '[IMPORTANT]' in rec:
-                severity = 'important'
+            severity = "suggested"
+            if "[CRITICAL]" in rec:
+                severity = "critical"
+            elif "[IMPORTANT]" in rec:
+                severity = "important"
 
             html += f'<div class="recommendation {severity}">{rec}</div>\n'
 
@@ -541,10 +523,7 @@ class SQSReportGenerator:
         Returns:
             Brief summary text
         """
-        critical_missing = len([
-            f for f in report.all_findings
-            if not f.found and f.severity == 'critical'
-        ])
+        critical_missing = len([f for f in report.all_findings if not f.found and f.severity == "critical"])
 
         summary = f"""
 Statistical Quality Score: {report.total_score:.0f}/100 (Grade: {report.grade})
@@ -560,13 +539,15 @@ Category Summary:
         if report.recommendations:
             summary += "\nKey Recommendations:\n"
             for rec in report.recommendations[:5]:
-                summary += f"• {rec.replace('[CRITICAL] ', '').replace('[IMPORTANT] ', '').replace('[SUGGESTED] ', '')}\n"
+                summary += (
+                    f"• {rec.replace('[CRITICAL] ', '').replace('[IMPORTANT] ', '').replace('[SUGGESTED] ', '')}\n"
+                )
 
         return summary.strip()
 
 
 # Convenience function for quick analysis
-def analyze_manuscript(text: str, field: str = 'general') -> SQSReport:
+def analyze_manuscript(text: str, field: str = "general") -> SQSReport:
     """
     Convenience function to analyze a manuscript.
 
@@ -581,7 +562,7 @@ def analyze_manuscript(text: str, field: str = 'general') -> SQSReport:
     return scorer.analyze(text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Test with sample text
     sample_text = """
     Methods: Participants (N = 120) were randomly assigned to treatment (n = 60)
@@ -598,5 +579,5 @@ if __name__ == '__main__':
     using R version 4.2.1 with the car package.
     """
 
-    report = analyze_manuscript(sample_text, field='psychology')
+    report = analyze_manuscript(sample_text, field="psychology")
     print(SQSReportGenerator.generate_text_report(report))

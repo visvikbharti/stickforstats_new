@@ -417,7 +417,7 @@ export const enableAutoOptimization = () => {
 };
 
 // Export optimized validation API
-export default {
+const optimizedValidation = {
   validateParams: validateParamsOptimized,
   validateArray: validateArrayOptimized,
   checkBounds: checkBoundsOptimized,
@@ -431,3 +431,5 @@ export default {
   getStats: getOptimizationStats,
   enableAutoOptimization
 };
+
+export default optimizedValidation;

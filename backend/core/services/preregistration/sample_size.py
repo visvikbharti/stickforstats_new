@@ -20,6 +20,7 @@ import numpy as np
 
 class JustificationStrategy(Enum):
     """Strategies for justifying sample size."""
+
     POWER_ANALYSIS = "power_analysis"
     PRECISION = "precision"
     RESOURCE_CONSTRAINTS = "resource_constraints"
@@ -36,6 +37,7 @@ JUSTIFICATION_STRATEGIES = {e.name: e.value for e in JustificationStrategy}
 @dataclass
 class PowerAnalysisSpec:
     """Specification for power analysis."""
+
     effect_size: float
     effect_size_type: str  # cohen_d, r, f, eta_squared, etc.
     alpha: float = 0.05
@@ -49,6 +51,7 @@ class PowerAnalysisSpec:
 @dataclass
 class SampleSizeJustification:
     """Complete sample size justification."""
+
     target_n: int
     strategy: JustificationStrategy
     rationale: str
@@ -61,7 +64,7 @@ class SampleSizeJustification:
 
     def to_dict(self) -> Dict[str, Any]:
         result = asdict(self)
-        result['strategy'] = self.strategy.value
+        result["strategy"] = self.strategy.value
         return result
 
     def generate_text(self) -> str:
@@ -122,7 +125,7 @@ def create_sample_size_justification(
     constraints: Dict[str, Any] = None,
     stopping_rule: str = "",
     minimum_n: int = None,
-    maximum_n: int = None
+    maximum_n: int = None,
 ) -> SampleSizeJustification:
     """
     Create a sample size justification.
@@ -159,7 +162,7 @@ def create_sample_size_justification(
             test_type=test_type,
             alternative=alternative,
             n_groups=n_groups,
-            effect_size_rationale=effect_size_rationale
+            effect_size_rationale=effect_size_rationale,
         )
 
     return SampleSizeJustification(
@@ -170,7 +173,7 @@ def create_sample_size_justification(
         constraints=constraints,
         stopping_rule=stopping_rule,
         minimum_n=minimum_n,
-        maximum_n=maximum_n
+        maximum_n=maximum_n,
     )
 
 
@@ -182,7 +185,7 @@ def compute_required_sample_size(
     test_type: str = "t-test",
     alternative: str = "two-sided",
     n_groups: int = 2,
-    allocation_ratio: float = 1.0
+    allocation_ratio: float = 1.0,
 ) -> Dict[str, Any]:
     """
     Compute required sample size using power analysis.
@@ -222,12 +225,12 @@ def compute_required_sample_size(
         total_n = n_per_group * 2
 
         return {
-            'n_per_group': n_per_group,
-            'total_n': total_n,
-            'effect_size': effect_size,
-            'alpha': alpha,
-            'power': power,
-            'test_type': test_type
+            "n_per_group": n_per_group,
+            "total_n": total_n,
+            "effect_size": effect_size,
+            "alpha": alpha,
+            "power": power,
+            "test_type": test_type,
         }
 
     elif test_type.lower() in ["paired_t", "one_sample_t"]:
@@ -242,12 +245,12 @@ def compute_required_sample_size(
         n = int(np.ceil(n))
 
         return {
-            'n': n,
-            'total_n': n,
-            'effect_size': effect_size,
-            'alpha': alpha,
-            'power': power,
-            'test_type': test_type
+            "n": n,
+            "total_n": n,
+            "effect_size": effect_size,
+            "alpha": alpha,
+            "power": power,
+            "test_type": test_type,
         }
 
     elif test_type.lower() in ["anova", "one_way_anova"]:
@@ -270,13 +273,13 @@ def compute_required_sample_size(
         total_n = n_per_group * n_groups
 
         return {
-            'n_per_group': n_per_group,
-            'total_n': total_n,
-            'n_groups': n_groups,
-            'effect_size_f': f,
-            'alpha': alpha,
-            'power': power,
-            'test_type': test_type
+            "n_per_group": n_per_group,
+            "total_n": total_n,
+            "n_groups": n_groups,
+            "effect_size_f": f,
+            "alpha": alpha,
+            "power": power,
+            "test_type": test_type,
         }
 
     elif test_type.lower() in ["correlation", "pearson"]:
@@ -294,26 +297,23 @@ def compute_required_sample_size(
         n = int(np.ceil(n))
 
         return {
-            'n': n,
-            'total_n': n,
-            'effect_size_r': effect_size,
-            'alpha': alpha,
-            'power': power,
-            'test_type': test_type
+            "n": n,
+            "total_n": n,
+            "effect_size_r": effect_size,
+            "alpha": alpha,
+            "power": power,
+            "test_type": test_type,
         }
 
     else:
         return {
-            'error': f"Power calculation not implemented for {test_type}",
-            'suggestion': "Use specialized power analysis software"
+            "error": f"Power calculation not implemented for {test_type}",
+            "suggestion": "Use specialized power analysis software",
         }
 
 
 def sensitivity_analysis(
-    n_range: List[int],
-    effect_size: float,
-    alpha: float = 0.05,
-    test_type: str = "t-test"
+    n_range: List[int], effect_size: float, alpha: float = 0.05, test_type: str = "t-test"
 ) -> List[Dict[str, Any]]:
     """
     Perform sensitivity analysis across sample sizes.
@@ -341,10 +341,6 @@ def sensitivity_analysis(
             # Power = P(reject H0 | H1 is true)
             power = 1 - stats.nct.cdf(critical_t, df, ncp) + stats.nct.cdf(-critical_t, df, ncp)
 
-            results.append({
-                'n_per_group': n,
-                'total_n': 2 * n,
-                'power': round(power, 3)
-            })
+            results.append({"n_per_group": n, "total_n": 2 * n, "power": round(power, 3)})
 
     return results

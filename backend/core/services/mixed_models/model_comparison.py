@@ -20,7 +20,7 @@ Created: December 26, 2025
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 import numpy as np
 from scipy import stats
 
@@ -28,6 +28,7 @@ from scipy import stats
 @dataclass
 class ModelComparisonResult:
     """Result of model comparison."""
+
     models: List[str]
     comparison_type: str
 
@@ -58,39 +59,35 @@ class ModelComparisonResult:
         model_stats = {}
         for i, name in enumerate(self.models):
             model_stats[name] = {
-                'log_likelihood': round(self.log_likelihoods[i], 4),
-                'aic': round(self.aics[i], 4),
-                'bic': round(self.bics[i], 4),
-                'deviance': round(self.deviances[i], 4),
-                'n_parameters': self.n_parameters[i]
+                "log_likelihood": round(self.log_likelihoods[i], 4),
+                "aic": round(self.aics[i], 4),
+                "bic": round(self.bics[i], 4),
+                "deviance": round(self.deviances[i], 4),
+                "n_parameters": self.n_parameters[i],
             }
 
         result = {
-            'model_statistics': model_stats,
-            'n_observations': self.n_observations,
-            'comparison_type': self.comparison_type,
-            'preferred_model': self.preferred_model,
-            'preference_criterion': self.preference_criterion,
-            'interpretation': self.interpretation
+            "model_statistics": model_stats,
+            "n_observations": self.n_observations,
+            "comparison_type": self.comparison_type,
+            "preferred_model": self.preferred_model,
+            "preference_criterion": self.preference_criterion,
+            "interpretation": self.interpretation,
         }
 
         if self.lrt_statistic is not None:
-            result['likelihood_ratio_test'] = {
-                'statistic': round(self.lrt_statistic, 4),
-                'df': self.lrt_df,
-                'p_value': round(self.lrt_p_value, 6),
-                'significant': self.lrt_p_value < 0.05
+            result["likelihood_ratio_test"] = {
+                "statistic": round(self.lrt_statistic, 4),
+                "df": self.lrt_df,
+                "p_value": round(self.lrt_p_value, 6),
+                "significant": self.lrt_p_value < 0.05,
             }
 
         return result
 
 
 def compare_models(
-    model1,
-    model2,
-    model1_name: str = 'Model 1',
-    model2_name: str = 'Model 2',
-    nested: bool = True
+    model1, model2, model1_name: str = "Model 1", model2_name: str = "Model 2", nested: bool = True
 ) -> ModelComparisonResult:
     """
     Compare two mixed models.
@@ -150,25 +147,22 @@ def compare_models(
     # Determine preferred model
     if nested and lrt_p is not None and lrt_p < 0.05:
         preferred = model2_name
-        criterion = 'LRT (p < 0.05)'
+        criterion = "LRT (p < 0.05)"
     elif aic1 < aic2:
         preferred = model1_name
-        criterion = f'Lower AIC (Δ = {round(aic2 - aic1, 2)})'
+        criterion = f"Lower AIC (Δ = {round(aic2 - aic1, 2)})"
     else:
         preferred = model2_name
-        criterion = f'Lower AIC (Δ = {round(aic1 - aic2, 2)})'
+        criterion = f"Lower AIC (Δ = {round(aic1 - aic2, 2)})"
 
     # Generate interpretation
     interpretation = _generate_comparison_interpretation(
-        model1_name, model2_name,
-        aic1, aic2, bic1, bic2,
-        lrt_stat, lrt_df, lrt_p,
-        n_params1, n_params2
+        model1_name, model2_name, aic1, aic2, bic1, bic2, lrt_stat, lrt_df, lrt_p, n_params1, n_params2
     )
 
     return ModelComparisonResult(
         models=[model1_name, model2_name],
-        comparison_type='nested (LRT)' if nested else 'non-nested (AIC/BIC)',
+        comparison_type="nested (LRT)" if nested else "non-nested (AIC/BIC)",
         log_likelihoods=[ll1, ll2],
         aics=[aic1, aic2],
         bics=[bic1, bic2],
@@ -180,15 +174,11 @@ def compare_models(
         n_observations=n_obs,
         preferred_model=preferred,
         preference_criterion=criterion,
-        interpretation=interpretation
+        interpretation=interpretation,
     )
 
 
-def likelihood_ratio_test(
-    model_null,
-    model_alt,
-    boundary_correction: bool = True
-) -> Dict[str, Any]:
+def likelihood_ratio_test(model_null, model_alt, boundary_correction: bool = True) -> Dict[str, Any]:
     """
     Perform Likelihood Ratio Test for nested models.
 
@@ -225,9 +215,9 @@ def likelihood_ratio_test(
 
     if df <= 0:
         return {
-            'error': 'Alternative model must have more parameters than null model',
-            'n_params_null': n_params_null,
-            'n_params_alt': n_params_alt
+            "error": "Alternative model must have more parameters than null model",
+            "n_params_null": n_params_null,
+            "n_params_alt": n_params_alt,
         }
 
     # P-value
@@ -239,35 +229,29 @@ def likelihood_ratio_test(
 
     # Interpretation
     if p_value < 0.001:
-        sig_level = 'highly significant (p < 0.001)'
-        conclusion = 'Strong evidence for the more complex model'
+        sig_level = "highly significant (p < 0.001)"
+        conclusion = "Strong evidence for the more complex model"
     elif p_value < 0.01:
-        sig_level = 'very significant (p < 0.01)'
-        conclusion = 'Evidence for the more complex model'
+        sig_level = "very significant (p < 0.01)"
+        conclusion = "Evidence for the more complex model"
     elif p_value < 0.05:
-        sig_level = 'significant (p < 0.05)'
-        conclusion = 'Some evidence for the more complex model'
+        sig_level = "significant (p < 0.05)"
+        conclusion = "Some evidence for the more complex model"
     else:
-        sig_level = 'not significant (p >= 0.05)'
-        conclusion = 'No significant improvement from the more complex model'
+        sig_level = "not significant (p >= 0.05)"
+        conclusion = "No significant improvement from the more complex model"
 
     return {
-        'test': 'Likelihood Ratio Test',
-        'statistic': round(lrt, 4),
-        'df': df,
-        'p_value': round(p_value, 6),
-        'significance': sig_level,
-        'conclusion': conclusion,
-        'null_model': {
-            'log_likelihood': round(ll_null, 4),
-            'n_parameters': n_params_null
-        },
-        'alternative_model': {
-            'log_likelihood': round(ll_alt, 4),
-            'n_parameters': n_params_alt
-        },
-        'boundary_correction': boundary_correction,
-        'prefer_complex': p_value < 0.05
+        "test": "Likelihood Ratio Test",
+        "statistic": round(lrt, 4),
+        "df": df,
+        "p_value": round(p_value, 6),
+        "significance": sig_level,
+        "conclusion": conclusion,
+        "null_model": {"log_likelihood": round(ll_null, 4), "n_parameters": n_params_null},
+        "alternative_model": {"log_likelihood": round(ll_alt, 4), "n_parameters": n_params_alt},
+        "boundary_correction": boundary_correction,
+        "prefer_complex": p_value < 0.05,
     }
 
 
@@ -293,7 +277,7 @@ def aic_comparison(models: List, model_names: List[str] = None) -> Dict[str, Any
         Dictionary with AIC comparison
     """
     if model_names is None:
-        model_names = [f'Model {i+1}' for i in range(len(models))]
+        model_names = [f"Model {i+1}" for i in range(len(models))]
 
     aics = [m.aic for m in models]
     min_aic = min(aics)
@@ -304,32 +288,34 @@ def aic_comparison(models: List, model_names: List[str] = None) -> Dict[str, Any
         # Akaike weights
         weight = np.exp(-0.5 * delta_aic)
 
-        results.append({
-            'model': name,
-            'aic': round(aics[i], 4),
-            'delta_aic': round(delta_aic, 4),
-            'weight_numerator': round(weight, 6),
-            'n_parameters': len(model.fixed_effects) + len(model.random_effects_variance) + 1,
-            'support': _aic_support(delta_aic)
-        })
+        results.append(
+            {
+                "model": name,
+                "aic": round(aics[i], 4),
+                "delta_aic": round(delta_aic, 4),
+                "weight_numerator": round(weight, 6),
+                "n_parameters": len(model.fixed_effects) + len(model.random_effects_variance) + 1,
+                "support": _aic_support(delta_aic),
+            }
+        )
 
     # Normalize weights
-    total_weight = sum(r['weight_numerator'] for r in results)
+    total_weight = sum(r["weight_numerator"] for r in results)
     for r in results:
-        r['akaike_weight'] = round(r['weight_numerator'] / total_weight, 4)
-        del r['weight_numerator']
+        r["akaike_weight"] = round(r["weight_numerator"] / total_weight, 4)
+        del r["weight_numerator"]
 
     # Sort by AIC
-    results.sort(key=lambda x: x['aic'])
+    results.sort(key=lambda x: x["aic"])
 
     return {
-        'criterion': 'AIC (Akaike Information Criterion)',
-        'models': results,
-        'best_model': results[0]['model'],
-        'interpretation': (
+        "criterion": "AIC (Akaike Information Criterion)",
+        "models": results,
+        "best_model": results[0]["model"],
+        "interpretation": (
             f"Best model: {results[0]['model']} (AIC = {results[0]['aic']}). "
             f"Second best differs by Δ = {results[1]['delta_aic'] if len(results) > 1 else 0}"
-        )
+        ),
     }
 
 
@@ -350,7 +336,7 @@ def bic_comparison(models: List, model_names: List[str] = None) -> Dict[str, Any
         Dictionary with BIC comparison
     """
     if model_names is None:
-        model_names = [f'Model {i+1}' for i in range(len(models))]
+        model_names = [f"Model {i+1}" for i in range(len(models))]
 
     bics = [m.bic for m in models]
     min_bic = min(bics)
@@ -359,52 +345,54 @@ def bic_comparison(models: List, model_names: List[str] = None) -> Dict[str, Any
     for i, (name, model) in enumerate(zip(model_names, models)):
         delta_bic = bics[i] - min_bic
 
-        results.append({
-            'model': name,
-            'bic': round(bics[i], 4),
-            'delta_bic': round(delta_bic, 4),
-            'n_parameters': len(model.fixed_effects) + len(model.random_effects_variance) + 1,
-            'support': _bic_support(delta_bic)
-        })
+        results.append(
+            {
+                "model": name,
+                "bic": round(bics[i], 4),
+                "delta_bic": round(delta_bic, 4),
+                "n_parameters": len(model.fixed_effects) + len(model.random_effects_variance) + 1,
+                "support": _bic_support(delta_bic),
+            }
+        )
 
     # Sort by BIC
-    results.sort(key=lambda x: x['bic'])
+    results.sort(key=lambda x: x["bic"])
 
     return {
-        'criterion': 'BIC (Bayesian Information Criterion)',
-        'models': results,
-        'best_model': results[0]['model'],
-        'interpretation': (
+        "criterion": "BIC (Bayesian Information Criterion)",
+        "models": results,
+        "best_model": results[0]["model"],
+        "interpretation": (
             f"Best model: {results[0]['model']} (BIC = {results[0]['bic']}). "
             f"BIC penalizes complexity more than AIC."
-        )
+        ),
     }
 
 
 def _aic_support(delta: float) -> str:
     """Interpret delta AIC value."""
     if delta < 2:
-        return 'Substantial support'
+        return "Substantial support"
     elif delta < 4:
-        return 'Some support'
+        return "Some support"
     elif delta < 7:
-        return 'Little support'
+        return "Little support"
     elif delta < 10:
-        return 'Very little support'
+        return "Very little support"
     else:
-        return 'No support'
+        return "No support"
 
 
 def _bic_support(delta: float) -> str:
     """Interpret delta BIC value (Raftery, 1995)."""
     if delta < 2:
-        return 'Weak evidence against'
+        return "Weak evidence against"
     elif delta < 6:
-        return 'Positive evidence against'
+        return "Positive evidence against"
     elif delta < 10:
-        return 'Strong evidence against'
+        return "Strong evidence against"
     else:
-        return 'Very strong evidence against'
+        return "Very strong evidence against"
 
 
 def _generate_comparison_interpretation(
@@ -418,7 +406,7 @@ def _generate_comparison_interpretation(
     lrt_df: Optional[int],
     lrt_p: Optional[float],
     n_params1: int,
-    n_params2: int
+    n_params2: int,
 ) -> str:
     """Generate human-readable comparison interpretation."""
     parts = []
@@ -441,16 +429,12 @@ def _generate_comparison_interpretation(
     # AIC comparison
     delta_aic = abs(aic1 - aic2)
     better_aic = model1_name if aic1 < aic2 else model2_name
-    parts.append(
-        f"By AIC, {better_aic} is preferred (Δ = {delta_aic:.2f})."
-    )
+    parts.append(f"By AIC, {better_aic} is preferred (Δ = {delta_aic:.2f}).")
 
     # BIC comparison
     delta_bic = abs(bic1 - bic2)
     better_bic = model1_name if bic1 < bic2 else model2_name
-    parts.append(
-        f"By BIC, {better_bic} is preferred (Δ = {delta_bic:.2f})."
-    )
+    parts.append(f"By BIC, {better_bic} is preferred (Δ = {delta_bic:.2f}).")
 
     # Complexity note
     if n_params1 != n_params2:
@@ -460,16 +444,16 @@ def _generate_comparison_interpretation(
             f"{max(n_params1, n_params2)} parameters)."
         )
 
-    return ' '.join(parts)
+    return " ".join(parts)
 
 
 def build_model_hierarchy(
     base_result,
     random_intercept_result,
     random_slope_result=None,
-    base_name: str = 'No random effects',
-    ri_name: str = 'Random intercept',
-    rs_name: str = 'Random slope'
+    base_name: str = "No random effects",
+    ri_name: str = "Random intercept",
+    rs_name: str = "Random slope",
 ) -> Dict[str, Any]:
     """
     Compare a hierarchy of increasingly complex models.
@@ -492,41 +476,45 @@ def build_model_hierarchy(
 
     # Compare base to random intercept
     comp1 = likelihood_ratio_test(base_result, random_intercept_result)
-    comparisons.append({
-        'comparison': f'{base_name} vs {ri_name}',
-        'test': comp1,
-        'conclusion': 'Random intercept justified' if comp1['p_value'] < 0.05 else 'Random intercept not needed'
-    })
+    comparisons.append(
+        {
+            "comparison": f"{base_name} vs {ri_name}",
+            "test": comp1,
+            "conclusion": "Random intercept justified" if comp1["p_value"] < 0.05 else "Random intercept not needed",
+        }
+    )
 
     # Compare random intercept to random slope (if provided)
     if random_slope_result is not None:
         comp2 = likelihood_ratio_test(random_intercept_result, random_slope_result)
-        comparisons.append({
-            'comparison': f'{ri_name} vs {rs_name}',
-            'test': comp2,
-            'conclusion': 'Random slope justified' if comp2['p_value'] < 0.05 else 'Random slope not needed'
-        })
+        comparisons.append(
+            {
+                "comparison": f"{ri_name} vs {rs_name}",
+                "test": comp2,
+                "conclusion": "Random slope justified" if comp2["p_value"] < 0.05 else "Random slope not needed",
+            }
+        )
 
     # Determine final recommendation
     if len(comparisons) == 1:
-        if comparisons[0]['test']['p_value'] < 0.05:
+        if comparisons[0]["test"]["p_value"] < 0.05:
             recommended = ri_name
         else:
             recommended = base_name
     else:
-        if comparisons[1]['test']['p_value'] < 0.05:
+        if comparisons[1]["test"]["p_value"] < 0.05:
             recommended = rs_name
-        elif comparisons[0]['test']['p_value'] < 0.05:
+        elif comparisons[0]["test"]["p_value"] < 0.05:
             recommended = ri_name
         else:
             recommended = base_name
 
     return {
-        'hierarchy': [base_name, ri_name] + ([rs_name] if random_slope_result else []),
-        'comparisons': comparisons,
-        'recommended_model': recommended,
-        'interpretation': (
+        "hierarchy": [base_name, ri_name] + ([rs_name] if random_slope_result else []),
+        "comparisons": comparisons,
+        "recommended_model": recommended,
+        "interpretation": (
             f"Based on the model hierarchy, {recommended} is recommended. "
             "More complex random effects should only be included if justified by LRT."
-        )
+        ),
     }

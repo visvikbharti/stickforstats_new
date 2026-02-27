@@ -16,7 +16,6 @@ Mount these in ``urls.py`` like::
     path('schema/redoc/',   ReDocView.as_view(),       name='redoc'),
 """
 
-import json
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -27,6 +26,7 @@ from django.http import HttpResponse
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _ref(name: str) -> dict:
     """Shortcut for a JSON-Schema $ref."""
@@ -120,7 +120,6 @@ COMPONENT_SCHEMAS = {
             "results": {"type": "array", "items": {"type": "object"}},
         },
     },
-
     # -- statistical tests ----------------------------------------------
     "TTestRequest": {
         "type": "object",
@@ -205,7 +204,11 @@ COMPONENT_SCHEMAS = {
                 "type": "object",
                 "properties": {
                     "check_assumptions": {"type": "boolean", "default": True},
-                    "post_hoc": {"type": "string", "enum": ["tukey", "bonferroni", "scheffe", "none"], "default": "tukey"},
+                    "post_hoc": {
+                        "type": "string",
+                        "enum": ["tukey", "bonferroni", "scheffe", "none"],
+                        "default": "tukey",
+                    },
                 },
             },
         },
@@ -259,7 +262,6 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- power analysis -------------------------------------------------
     "PowerTTestRequest": {
         "type": "object",
@@ -283,7 +285,6 @@ COMPONENT_SCHEMAS = {
             "interpretation": {"type": "string"},
         },
     },
-
     # -- categorical ----------------------------------------------------
     "ChiSquareRequest": {
         "type": "object",
@@ -313,7 +314,6 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- nonparametric --------------------------------------------------
     "MannWhitneyRequest": {
         "type": "object",
@@ -324,7 +324,6 @@ COMPONENT_SCHEMAS = {
             "alternative": {"type": "string", "enum": ["two-sided", "greater", "less"], "default": "two-sided"},
         },
     },
-
     # -- missing data ---------------------------------------------------
     "MissingDataDetectRequest": {
         "type": "object",
@@ -337,18 +336,24 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- survival -------------------------------------------------------
     "KaplanMeierRequest": {
         "type": "object",
         "required": ["times", "events"],
         "properties": {
             "times": {"type": "array", "items": {"type": "number"}, "description": "Observed survival times."},
-            "events": {"type": "array", "items": {"type": "integer", "enum": [0, 1]}, "description": "Event indicator (1 = event, 0 = censored)."},
-            "groups": {"type": "array", "items": {"type": "string"}, "description": "Optional group labels for comparison."},
+            "events": {
+                "type": "array",
+                "items": {"type": "integer", "enum": [0, 1]},
+                "description": "Event indicator (1 = event, 0 = censored).",
+            },
+            "groups": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional group labels for comparison.",
+            },
         },
     },
-
     # -- factor analysis ------------------------------------------------
     "FactorAdequacyRequest": {
         "type": "object",
@@ -361,7 +366,6 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- meta-analysis --------------------------------------------------
     "MetaAnalysisRequest": {
         "type": "object",
@@ -402,7 +406,6 @@ COMPONENT_SCHEMAS = {
             "weights": {"type": "array", "items": {"type": "number"}},
         },
     },
-
     # -- causal inference -----------------------------------------------
     "DAGCreateRequest": {
         "type": "object",
@@ -422,7 +425,6 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- mixed models ---------------------------------------------------
     "ICCRequest": {
         "type": "object",
@@ -431,10 +433,13 @@ COMPONENT_SCHEMAS = {
             "data": {"type": "object", "additionalProperties": {"type": "array", "items": {}}},
             "group_col": {"type": "string"},
             "value_col": {"type": "string"},
-            "icc_type": {"type": "string", "enum": ["ICC1", "ICC2", "ICC3", "ICC1k", "ICC2k", "ICC3k"], "default": "ICC1"},
+            "icc_type": {
+                "type": "string",
+                "enum": ["ICC1", "ICC2", "ICC3", "ICC1k", "ICC2k", "ICC3k"],
+                "default": "ICC1",
+            },
         },
     },
-
     # -- AI advisor -----------------------------------------------------
     "AIAdvisorChatRequest": {
         "type": "object",
@@ -458,14 +463,17 @@ COMPONENT_SCHEMAS = {
             "recommended_tests": {"type": "array", "items": {"type": "string"}},
         },
     },
-
     # -- SQS ------------------------------------------------------------
     "SQSAnalyzeRequest": {
         "type": "object",
         "description": "Upload a PDF manuscript for SQS analysis. Use multipart/form-data with a 'file' field.",
         "properties": {
             "file": {"type": "string", "format": "binary"},
-            "field": {"type": "string", "description": "Research field (e.g. psychology, medicine).", "example": "psychology"},
+            "field": {
+                "type": "string",
+                "description": "Research field (e.g. psychology, medicine).",
+                "example": "psychology",
+            },
         },
     },
     "SQSAnalyzeResponse": {
@@ -487,7 +495,6 @@ COMPONENT_SCHEMAS = {
             "recommendations": {"type": "array", "items": {"type": "string"}},
         },
     },
-
     # -- autonomous intelligence ----------------------------------------
     "AutonomousProfileRequest": {
         "type": "object",
@@ -512,7 +519,6 @@ COMPONENT_SCHEMAS = {
             },
         },
     },
-
     # -- manuscript review ----------------------------------------------
     "ManuscriptAnalyzeRequest": {
         "type": "object",
@@ -531,7 +537,6 @@ COMPONENT_SCHEMAS = {
             "recommendations": {"type": "array", "items": {"type": "string"}},
         },
     },
-
     # -- reports --------------------------------------------------------
     "ReportGenerateRequest": {
         "type": "object",
@@ -551,7 +556,6 @@ COMPONENT_SCHEMAS = {
             "format": {"type": "string"},
         },
     },
-
     # -- audit ----------------------------------------------------------
     "AuditSummary": {
         "type": "object",
@@ -576,6 +580,7 @@ COMPONENT_SCHEMAS = {
 # ---------------------------------------------------------------------------
 # Paths — organised by tag
 # ---------------------------------------------------------------------------
+
 
 def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness)
     """Return the ``paths`` object of the OpenAPI spec."""
@@ -623,7 +628,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "runANCOVA",
             "summary": "High-precision ANCOVA with covariate adjustment",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -634,21 +642,23 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Pearson / Spearman / Kendall correlation with CI",
             "requestBody": _json_body(_ref("CorrelationRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "r": _ref("HighPrecisionNumber"),
-                        "p_value": _ref("HighPrecisionNumber"),
-                        "method": {"type": "string"},
-                        "confidence_interval": {
-                            "type": "object",
-                            "properties": {
-                                "lower": {"type": "number"},
-                                "upper": {"type": "number"},
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "r": _ref("HighPrecisionNumber"),
+                            "p_value": _ref("HighPrecisionNumber"),
+                            "method": {"type": "string"},
+                            "confidence_interval": {
+                                "type": "object",
+                                "properties": {
+                                    "lower": {"type": "number"},
+                                    "upper": {"type": "number"},
+                                },
                             },
                         },
-                    },
-                }),
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -660,7 +670,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "runRegression",
             "summary": "Regression analysis (linear, multiple, polynomial, logistic, ridge, lasso)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -671,23 +684,28 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Descriptive statistics with normality tests",
             "requestBody": _json_body(_ref("DescriptiveRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "mean": _ref("HighPrecisionNumber"),
-                        "median": _ref("HighPrecisionNumber"),
-                        "std_dev": _ref("HighPrecisionNumber"),
-                        "variance": _ref("HighPrecisionNumber"),
-                        "skewness": {"type": "number"},
-                        "kurtosis": {"type": "number"},
-                        "normality": {
-                            "type": "object",
-                            "properties": {
-                                "shapiro_wilk": {"type": "object", "properties": {"statistic": {"type": "number"}, "p_value": {"type": "number"}}},
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "mean": _ref("HighPrecisionNumber"),
+                            "median": _ref("HighPrecisionNumber"),
+                            "std_dev": _ref("HighPrecisionNumber"),
+                            "variance": _ref("HighPrecisionNumber"),
+                            "skewness": {"type": "number"},
+                            "kurtosis": {"type": "number"},
+                            "normality": {
+                                "type": "object",
+                                "properties": {
+                                    "shapiro_wilk": {
+                                        "type": "object",
+                                        "properties": {"statistic": {"type": "number"}, "p_value": {"type": "number"}},
+                                    },
+                                },
                             },
                         },
-                    },
-                }),
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -699,7 +717,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "runComparison",
             "summary": "Compare standard vs high-precision results",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -723,15 +744,17 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "powerANOVA",
             "summary": "Statistical power for ANOVA designs",
-            "requestBody": _json_body({
-                "type": "object",
-                "properties": {
-                    "effect_size": {"type": "number", "description": "Cohen's f"},
-                    "alpha": {"type": "number", "default": 0.05},
-                    "n_per_group": {"type": "integer"},
-                    "n_groups": {"type": "integer"},
-                },
-            }),
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "properties": {
+                        "effect_size": {"type": "number", "description": "Cohen's f"},
+                        "alpha": {"type": "number", "default": 0.05},
+                        "n_per_group": {"type": "integer"},
+                        "n_groups": {"type": "integer"},
+                    },
+                }
+            ),
             "responses": {"200": _json_response(_ref("PowerResponse")), **_error_responses()},
         },
     }
@@ -741,14 +764,16 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "powerCorrelation",
             "summary": "Statistical power for correlation tests",
-            "requestBody": _json_body({
-                "type": "object",
-                "properties": {
-                    "r": {"type": "number", "description": "Expected correlation coefficient."},
-                    "alpha": {"type": "number", "default": 0.05},
-                    "n": {"type": "integer"},
-                },
-            }),
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "properties": {
+                        "r": {"type": "number", "description": "Expected correlation coefficient."},
+                        "alpha": {"type": "number", "default": 0.05},
+                        "n": {"type": "integer"},
+                    },
+                }
+            ),
             "responses": {"200": _json_response(_ref("PowerResponse")), **_error_responses()},
         },
     }
@@ -769,7 +794,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "powerCurves",
             "summary": "Generate power curves over a range of parameters",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -779,7 +807,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "powerReport",
             "summary": "Comprehensive power analysis report",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -803,14 +834,16 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "chiSquareGoodness",
             "summary": "Chi-square goodness-of-fit test",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["observed"],
-                "properties": {
-                    "observed": {"type": "array", "items": {"type": "number"}},
-                    "expected": {"type": "array", "items": {"type": "number"}},
-                },
-            }),
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["observed"],
+                    "properties": {
+                        "observed": {"type": "array", "items": {"type": "number"}},
+                        "expected": {"type": "array", "items": {"type": "number"}},
+                    },
+                }
+            ),
             "responses": {"200": _json_response(_ref("ChiSquareResponse")), **_error_responses()},
         },
     }
@@ -820,14 +853,23 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "fisherExactTest",
             "summary": "Fisher's exact test for 2x2 tables",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["table"],
-                "properties": {
-                    "table": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}}, "example": [[10, 20], [30, 40]]},
-                },
-            }),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["table"],
+                    "properties": {
+                        "table": {
+                            "type": "array",
+                            "items": {"type": "array", "items": {"type": "integer"}},
+                            "example": [[10, 20], [30, 40]],
+                        },
+                    },
+                }
+            ),
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -837,7 +879,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "mcnemarTest",
             "summary": "McNemar's test for paired nominal data",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -847,7 +892,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "cochranQTest",
             "summary": "Cochran's Q test for related binary outcomes",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -857,7 +905,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "gTest",
             "summary": "G-test (log-likelihood ratio test)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -866,16 +917,21 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "binomialTest",
             "summary": "Exact binomial test",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["successes", "n"],
-                "properties": {
-                    "successes": {"type": "integer"},
-                    "n": {"type": "integer"},
-                    "p": {"type": "number", "default": 0.5},
-                },
-            }),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["successes", "n"],
+                    "properties": {
+                        "successes": {"type": "integer"},
+                        "n": {"type": "integer"},
+                        "p": {"type": "number", "default": 0.5},
+                    },
+                }
+            ),
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -885,7 +941,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "multinomialTest",
             "summary": "Multinomial test",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -901,14 +960,16 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Mann-Whitney U test for two independent groups",
             "requestBody": _json_body(_ref("MannWhitneyRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "U_statistic": _ref("HighPrecisionNumber"),
-                        "p_value": _ref("HighPrecisionNumber"),
-                        "effect_size": {"type": "object", "properties": {"rank_biserial": {"type": "number"}}},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "U_statistic": _ref("HighPrecisionNumber"),
+                            "p_value": _ref("HighPrecisionNumber"),
+                            "effect_size": {"type": "object", "properties": {"rank_biserial": {"type": "number"}}},
+                        },
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -920,7 +981,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "wilcoxonSignedRank",
             "summary": "Wilcoxon signed-rank test for paired data",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -930,7 +994,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "kruskalWallis",
             "summary": "Kruskal-Wallis H test for k independent groups",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -940,7 +1007,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "friedmanTest",
             "summary": "Friedman test for repeated measures (nonparametric)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -950,7 +1020,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "signTest",
             "summary": "Sign test for paired data",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -960,7 +1033,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "moodMedianTest",
             "summary": "Mood's median test",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -970,7 +1046,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "jonckheere",
             "summary": "Jonckheere-Terpstra trend test",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -980,7 +1059,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "pageTrendTest",
             "summary": "Page's trend test for ordered alternatives",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -996,15 +1078,17 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Detect missing data patterns",
             "requestBody": _json_body(_ref("MissingDataDetectRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "total_missing": {"type": "integer"},
-                        "percent_missing": {"type": "number"},
-                        "pattern": {"type": "string", "enum": ["MCAR", "MAR", "MNAR", "unknown"]},
-                        "by_column": {"type": "object", "additionalProperties": {"type": "object"}},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "total_missing": {"type": "integer"},
+                            "percent_missing": {"type": "number"},
+                            "pattern": {"type": "string", "enum": ["MCAR", "MAR", "MNAR", "unknown"]},
+                            "by_column": {"type": "object", "additionalProperties": {"type": "object"}},
+                        },
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -1016,7 +1100,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "imputeMissing",
             "summary": "Impute missing data (mean, median, mode, regression, etc.)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1026,7 +1113,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "littleMCARTest",
             "summary": "Little's MCAR test",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1036,7 +1126,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "compareImputation",
             "summary": "Compare multiple imputation methods",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1046,7 +1139,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "visualizeMissing",
             "summary": "Generate missing data visualisation data",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1056,7 +1152,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "multipleImputation",
             "summary": "Multiple imputation with pooled estimates",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1066,7 +1165,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "knnImputation",
             "summary": "K-nearest neighbours imputation",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1076,7 +1178,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "emImputation",
             "summary": "Expectation-Maximisation imputation",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1092,14 +1197,19 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Kaplan-Meier survival analysis with optional log-rank test",
             "requestBody": _json_body(_ref("KaplanMeierRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "survival_table": {"type": "array", "items": {"type": "object"}},
-                        "median_survival": {"type": "number", "nullable": True},
-                        "log_rank": {"type": "object", "properties": {"chi_square": {"type": "number"}, "p_value": {"type": "number"}}},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "survival_table": {"type": "array", "items": {"type": "object"}},
+                            "median_survival": {"type": "number", "nullable": True},
+                            "log_rank": {
+                                "type": "object",
+                                "properties": {"chi_square": {"type": "number"}, "p_value": {"type": "number"}},
+                            },
+                        },
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -1111,7 +1221,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "coxRegression",
             "summary": "Cox proportional hazards regression",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1121,7 +1234,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "predictSurvival",
             "summary": "Predict survival probabilities for new observations",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1137,15 +1253,17 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "KMO and Bartlett's test of sampling adequacy",
             "requestBody": _json_body(_ref("FactorAdequacyRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "kmo": {"type": "number"},
-                        "bartlett_chi_square": {"type": "number"},
-                        "bartlett_p_value": {"type": "number"},
-                        "adequate": {"type": "boolean"},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "kmo": {"type": "number"},
+                            "bartlett_chi_square": {"type": "number"},
+                            "bartlett_p_value": {"type": "number"},
+                            "adequate": {"type": "boolean"},
+                        },
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -1157,7 +1275,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "determineFactor",
             "summary": "Determine optimal number of factors (parallel analysis, scree)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1167,7 +1288,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "exploratoryFA",
             "summary": "Exploratory factor analysis with rotation",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1177,7 +1301,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "transformFactors",
             "summary": "Apply factor transformations (rotation, scoring)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1201,16 +1328,21 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "convertEffectSize",
             "summary": "Convert between effect size metrics (d, r, OR, etc.)",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["value", "from_type", "to_type"],
-                "properties": {
-                    "value": {"type": "number"},
-                    "from_type": {"type": "string", "enum": ["d", "r", "OR", "RR", "eta_squared"]},
-                    "to_type": {"type": "string", "enum": ["d", "r", "OR", "RR", "eta_squared"]},
-                },
-            }),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["value", "from_type", "to_type"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "from_type": {"type": "string", "enum": ["d", "r", "OR", "RR", "eta_squared"]},
+                        "to_type": {"type": "string", "enum": ["d", "r", "OR", "RR", "eta_squared"]},
+                    },
+                }
+            ),
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1220,7 +1352,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "publicationBias",
             "summary": "Funnel plot asymmetry and trim-and-fill analysis",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1235,7 +1370,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "createDAG",
             "summary": "Create a directed acyclic graph (DAG)",
             "requestBody": _json_body(_ref("DAGCreateRequest")),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1245,7 +1383,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "analyzeDAG",
             "summary": "Analyze DAG for d-separation and paths",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1255,7 +1396,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "propensityScores",
             "summary": "Estimate propensity scores",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1265,7 +1409,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "propensityMatching",
             "summary": "Propensity score matching",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1275,7 +1422,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "treatmentEffects",
             "summary": "Estimate ATE / ATT / ATC treatment effects",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1285,7 +1435,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "mediationBaronKenny",
             "summary": "Baron-Kenny mediation analysis",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1295,7 +1448,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "differenceInDifferences",
             "summary": "Difference-in-differences analysis",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1311,15 +1467,23 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Intraclass correlation coefficient (ICC)",
             "requestBody": _json_body(_ref("ICCRequest")),
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "icc": {"type": "number"},
-                        "icc_type": {"type": "string"},
-                        "confidence_interval": {"type": "object", "properties": {"lower": {"type": "number"}, "upper": {"type": "number"}}},
-                        "f_test": {"type": "object", "properties": {"F": {"type": "number"}, "p_value": {"type": "number"}}},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "icc": {"type": "number"},
+                            "icc_type": {"type": "string"},
+                            "confidence_interval": {
+                                "type": "object",
+                                "properties": {"lower": {"type": "number"}, "upper": {"type": "number"}},
+                            },
+                            "f_test": {
+                                "type": "object",
+                                "properties": {"F": {"type": "number"}, "p_value": {"type": "number"}},
+                            },
+                        },
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -1331,7 +1495,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "fitLMM",
             "summary": "Fit a linear mixed model",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1341,7 +1508,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "randomEffects",
             "summary": "Extract random effects from a fitted LMM",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1351,7 +1521,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "compareModels",
             "summary": "Compare nested mixed models (LRT, AIC, BIC)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1361,7 +1534,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "lmmDiagnostics",
             "summary": "Residual and influence diagnostics for LMM",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1385,14 +1561,19 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "quickRecommend",
             "summary": "Quick test recommendation from data description",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["description"],
-                "properties": {
-                    "description": {"type": "string", "example": "I have two groups and want to compare means."},
-                },
-            }),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["description"],
+                    "properties": {
+                        "description": {"type": "string", "example": "I have two groups and want to compare means."},
+                    },
+                }
+            ),
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1402,7 +1583,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "interpretResults",
             "summary": "Plain-language interpretation of statistical output",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1412,7 +1596,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "methodsSection",
             "summary": "Generate a methods section paragraph",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1421,12 +1608,17 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "parseQuery",
             "summary": "NLP-enhanced query parsing",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["query"],
-                "properties": {"query": {"type": "string"}},
-            }),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["query"],
+                    "properties": {"query": {"type": "string"}},
+                }
+            ),
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1436,7 +1628,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "analysisPlan",
             "summary": "Generate a full analysis plan from a research question",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1446,7 +1641,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "apaReport",
             "summary": "Generate an APA-style results report",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1476,14 +1674,16 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "sqsAnalyzeText",
             "summary": "Analyze raw text for statistical quality",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["text"],
-                "properties": {
-                    "text": {"type": "string"},
-                    "field": {"type": "string"},
-                },
-            }),
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["text"],
+                    "properties": {
+                        "text": {"type": "string"},
+                        "field": {"type": "string"},
+                    },
+                }
+            ),
             "responses": {"200": _json_response(_ref("SQSAnalyzeResponse")), **_error_responses()},
         },
     }
@@ -1521,7 +1721,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "sqsQuickCheck",
             "summary": "Quick SQS check for a single statistical claim",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1537,7 +1740,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "summary": "Smart data profiling — automatic variable typing and recommendations",
             "description": "Accepts CSV/Excel file upload or JSON data body.",
             "requestBody": _json_body(_ref("AutonomousProfileRequest")),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1547,7 +1753,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "autonomousQuery",
             "summary": "Natural-language autonomous analysis pipeline",
             "requestBody": _json_body(_ref("AutonomousQueryRequest")),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1557,7 +1766,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "cascadeExecute",
             "summary": "Guardian-protected cascade execution",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1567,7 +1779,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "translateResults",
             "summary": "Translate statistical results into plain language",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1577,7 +1792,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "nextStep",
             "summary": "Suggest next analysis step based on current results",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1613,7 +1831,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
                     "multipart/form-data": {"schema": _ref("ManuscriptAnalyzeRequest")},
                 },
             },
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1628,7 +1849,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
                     "multipart/form-data": {"schema": _ref("ManuscriptAnalyzeRequest")},
                 },
             },
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1643,7 +1867,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
                     "multipart/form-data": {"schema": _ref("ManuscriptAnalyzeRequest")},
                 },
             },
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1652,13 +1879,18 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "manuscriptReport",
             "summary": "Retrieve a stored manuscript review report",
-            "parameters": [{
-                "name": "submission_id",
-                "in": "path",
-                "required": True,
-                "schema": {"type": "string", "format": "uuid"},
-            }],
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "parameters": [
+                {
+                    "name": "submission_id",
+                    "in": "path",
+                    "required": True,
+                    "schema": {"type": "string", "format": "uuid"},
+                }
+            ],
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1668,7 +1900,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "journalSubmit",
             "summary": "Submit manuscript to a journal (requires review pass)",
             "requestBody": _json_body({"type": "object", "additionalProperties": True}),
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1691,7 +1926,10 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
                 "operationId": op,
                 "summary": summary,
                 "security": [{"TokenAuth": []}, {"APIKeyAuth": []}],
-                "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+                "responses": {
+                    "200": _json_response({"type": "object", "additionalProperties": True}),
+                    **_error_responses(),
+                },
             },
         }
 
@@ -1706,10 +1944,12 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "listReports",
             "summary": "List generated reports",
             "responses": {
-                "200": _json_response({
-                    "type": "array",
-                    "items": _ref("ReportSummary"),
-                }),
+                "200": _json_response(
+                    {
+                        "type": "array",
+                        "items": _ref("ReportSummary"),
+                    }
+                ),
                 **_error_responses(),
             },
         },
@@ -1730,13 +1970,18 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "getReport",
             "summary": "Retrieve a specific report",
-            "parameters": [{
-                "name": "report_id",
-                "in": "path",
-                "required": True,
-                "schema": {"type": "string", "format": "uuid"},
-            }],
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "parameters": [
+                {
+                    "name": "report_id",
+                    "in": "path",
+                    "required": True,
+                    "schema": {"type": "string", "format": "uuid"},
+                }
+            ],
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1787,15 +2032,20 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "auditRecord",
             "summary": "Record an audit event",
-            "requestBody": _json_body({
-                "type": "object",
-                "required": ["action", "details"],
-                "properties": {
-                    "action": {"type": "string"},
-                    "details": {"type": "object", "additionalProperties": True},
-                },
-            }),
-            "responses": {"201": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "requestBody": _json_body(
+                {
+                    "type": "object",
+                    "required": ["action", "details"],
+                    "properties": {
+                        "action": {"type": "string"},
+                        "details": {"type": "object", "additionalProperties": True},
+                    },
+                }
+            ),
+            "responses": {
+                "201": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1804,13 +2054,18 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "tags": [_tag],
             "operationId": "auditMetrics",
             "summary": "Retrieve audit metrics by type",
-            "parameters": [{
-                "name": "metric_type",
-                "in": "path",
-                "required": True,
-                "schema": {"type": "string", "enum": ["usage", "performance", "errors", "guardian"]},
-            }],
-            "responses": {"200": _json_response({"type": "object", "additionalProperties": True}), **_error_responses()},
+            "parameters": [
+                {
+                    "name": "metric_type",
+                    "in": "path",
+                    "required": True,
+                    "schema": {"type": "string", "enum": ["usage", "performance", "errors", "guardian"]},
+                }
+            ],
+            "responses": {
+                "200": _json_response({"type": "object", "additionalProperties": True}),
+                **_error_responses(),
+            },
         },
     }
 
@@ -1824,13 +2079,15 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
             "operationId": "healthCheck",
             "summary": "Health check for container orchestration",
             "responses": {
-                "200": _json_response({
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string", "example": "ok"},
-                        "version": {"type": "string"},
-                    },
-                }),
+                "200": _json_response(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "status": {"type": "string", "example": "ok"},
+                            "version": {"type": "string"},
+                        },
+                    }
+                ),
             },
         },
     }
@@ -1841,6 +2098,7 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
 # ---------------------------------------------------------------------------
 # Top-level OpenAPI document
 # ---------------------------------------------------------------------------
+
 
 def build_openapi_spec() -> dict:
     """Build and return the complete OpenAPI 3.0.3 specification dict."""
@@ -1880,20 +2138,56 @@ def build_openapi_spec() -> dict:
             },
         ],
         "tags": [
-            {"name": "Statistical Tests", "description": "Core parametric tests (t-test, ANOVA, ANCOVA, correlation, regression, descriptive)"},
-            {"name": "Power Analysis", "description": "Power, sample size, and effect size calculations (50-digit precision)"},
-            {"name": "Categorical Analysis", "description": "Chi-square, Fisher, McNemar, Cochran Q, G-test, binomial, multinomial"},
-            {"name": "Nonparametric Tests", "description": "Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, Sign, Mood, Jonckheere, Page"},
-            {"name": "Missing Data", "description": "Detection, imputation (mean/KNN/EM/multiple), and Little's MCAR test"},
+            {
+                "name": "Statistical Tests",
+                "description": "Core parametric tests (t-test, ANOVA, ANCOVA, correlation, regression, descriptive)",
+            },
+            {
+                "name": "Power Analysis",
+                "description": "Power, sample size, and effect size calculations (50-digit precision)",
+            },
+            {
+                "name": "Categorical Analysis",
+                "description": "Chi-square, Fisher, McNemar, Cochran Q, G-test, binomial, multinomial",
+            },
+            {
+                "name": "Nonparametric Tests",
+                "description": "Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, Sign, Mood, Jonckheere, Page",
+            },
+            {
+                "name": "Missing Data",
+                "description": "Detection, imputation (mean/KNN/EM/multiple), and Little's MCAR test",
+            },
             {"name": "Survival Analysis", "description": "Kaplan-Meier, Cox regression, and survival prediction"},
             {"name": "Factor Analysis", "description": "KMO/Bartlett adequacy, parallel analysis, EFA with rotation"},
-            {"name": "Meta-Analysis", "description": "Fixed/random-effects meta-analysis, effect size conversion, publication bias"},
-            {"name": "Causal Inference", "description": "DAGs, propensity scores, matching, treatment effects, mediation, DiD"},
-            {"name": "Mixed Models", "description": "ICC, linear mixed models, random effects, model comparison, diagnostics"},
-            {"name": "AI Advisor", "description": "Claude-powered statistical guidance, NLP query parsing, APA report generation"},
-            {"name": "SQS", "description": "Statistical Quality Score — 45 rules across 6 categories for manuscript evaluation"},
-            {"name": "Autonomous Intelligence", "description": "Natural-language analysis pipeline: profile, query, cascade, translate, next-step"},
-            {"name": "Manuscript Review", "description": "Automated manuscript review: parsing, claim extraction, consistency checking"},
+            {
+                "name": "Meta-Analysis",
+                "description": "Fixed/random-effects meta-analysis, effect size conversion, publication bias",
+            },
+            {
+                "name": "Causal Inference",
+                "description": "DAGs, propensity scores, matching, treatment effects, mediation, DiD",
+            },
+            {
+                "name": "Mixed Models",
+                "description": "ICC, linear mixed models, random effects, model comparison, diagnostics",
+            },
+            {
+                "name": "AI Advisor",
+                "description": "Claude-powered statistical guidance, NLP query parsing, APA report generation",
+            },
+            {
+                "name": "SQS",
+                "description": "Statistical Quality Score — 45 rules across 6 categories for manuscript evaluation",
+            },
+            {
+                "name": "Autonomous Intelligence",
+                "description": "Natural-language analysis pipeline: profile, query, cascade, translate, next-step",
+            },
+            {
+                "name": "Manuscript Review",
+                "description": "Automated manuscript review: parsing, claim extraction, consistency checking",
+            },
             {"name": "Platform", "description": "Organisations, members, usage, billing, API keys, subscription tiers"},
             {"name": "Reports", "description": "Generate, list, retrieve, and export analysis reports"},
             {"name": "Audit", "description": "Audit trail: summary, event recording, and metrics"},
@@ -1927,6 +2221,7 @@ def build_openapi_spec() -> dict:
 # Views
 # ---------------------------------------------------------------------------
 
+
 class OpenAPISchemaView(APIView):
     """
     Serve the OpenAPI 3.0.3 specification as JSON (default) or YAML.
@@ -1934,20 +2229,21 @@ class OpenAPISchemaView(APIView):
     Query parameter ``?format=yaml`` or ``Accept: application/x-yaml`` header
     switches to YAML output.
     """
+
     permission_classes = [AllowAny]
     authentication_classes = []  # No auth required to read schema
 
     def get(self, request):
         spec = build_openapi_spec()
 
-        want_yaml = (
-            request.query_params.get("format", "").lower() == "yaml"
-            or "yaml" in request.META.get("HTTP_ACCEPT", "")
+        want_yaml = request.query_params.get("format", "").lower() == "yaml" or "yaml" in request.META.get(
+            "HTTP_ACCEPT", ""
         )
 
         if want_yaml:
             try:
                 import yaml
+
                 content = yaml.dump(spec, default_flow_style=False, allow_unicode=True, sort_keys=False)
                 return HttpResponse(content, content_type="application/x-yaml; charset=utf-8")
             except ImportError:
@@ -1967,6 +2263,7 @@ class SwaggerUIView(APIView):
     The page fetches the schema from the sibling ``../`` endpoint
     (i.e. ``OpenAPISchemaView``).
     """
+
     permission_classes = [AllowAny]
     authentication_classes = []
 
@@ -2028,6 +2325,7 @@ class ReDocView(APIView):
 
     The page fetches the schema from the sibling ``../`` endpoint.
     """
+
     permission_classes = [AllowAny]
     authentication_classes = []
 

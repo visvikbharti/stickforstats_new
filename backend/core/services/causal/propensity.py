@@ -29,8 +29,8 @@ References:
 Created: December 26, 2025
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import List, Dict, Any, Tuple
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -41,6 +41,7 @@ from sklearn.preprocessing import StandardScaler
 @dataclass
 class PropensityScoreResult:
     """Result of propensity score estimation."""
+
     scores: np.ndarray
     treatment: np.ndarray
     model_coefficients: Dict[str, float]
@@ -52,18 +53,12 @@ class PropensityScoreResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'scores': self.scores.tolist(),
-            'treatment': self.treatment.tolist(),
-            'model': {
-                'coefficients': self.model_coefficients,
-                'intercept': self.model_intercept
-            },
-            'diagnostics': {
-                'auc': self.auc,
-                'overlap': self.overlap
-            },
-            'balance_before': self.balance_before,
-            'warnings': self.warnings
+            "scores": self.scores.tolist(),
+            "treatment": self.treatment.tolist(),
+            "model": {"coefficients": self.model_coefficients, "intercept": self.model_intercept},
+            "diagnostics": {"auc": self.auc, "overlap": self.overlap},
+            "balance_before": self.balance_before,
+            "warnings": self.warnings,
         }
 
 
@@ -71,9 +66,9 @@ def estimate_propensity_scores(
     data: pd.DataFrame,
     treatment: str,
     covariates: List[str],
-    method: str = 'logistic',
+    method: str = "logistic",
     regularization: float = 0.0,
-    standardize: bool = True
+    standardize: bool = True,
 ) -> PropensityScoreResult:
     """
     Estimate propensity scores using logistic regression.
@@ -139,16 +134,11 @@ def estimate_propensity_scores(
         X = scaler.fit_transform(X)
 
     # Fit propensity score model
-    if method == 'logistic':
+    if method == "logistic":
         # Regularization: C = 1/regularization (sklearn convention)
         C = 1.0 / regularization if regularization > 0 else 1e10
 
-        model = LogisticRegression(
-            penalty='l2' if regularization > 0 else None,
-            C=C,
-            max_iter=1000,
-            solver='lbfgs'
-        )
+        model = LogisticRegression(penalty="l2" if regularization > 0 else None, C=C, max_iter=1000, solver="lbfgs")
         model.fit(X, T)
 
         # Get propensity scores
@@ -178,7 +168,7 @@ def estimate_propensity_scores(
     # Assess overlap
     overlap = assess_overlap(scores, T)
 
-    if overlap['violation_rate'] > 0.10:
+    if overlap["violation_rate"] > 0.10:
         warnings.append(f"Overlap violation: {overlap['violation_rate']:.1%} of observations")
 
     # Calculate balance before adjustment
@@ -192,7 +182,7 @@ def estimate_propensity_scores(
         auc=auc,
         overlap=overlap,
         balance_before=balance_before,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -200,6 +190,7 @@ def _calculate_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
     """Calculate Area Under the ROC Curve."""
     try:
         from sklearn.metrics import roc_auc_score
+
         return float(roc_auc_score(y_true, y_score))
     except Exception:
         # Fallback: simple AUC calculation
@@ -212,11 +203,7 @@ def _calculate_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
         return (sum_ranks - n1 * (n1 + 1) / 2) / (n1 * n0)
 
 
-def assess_overlap(
-    scores: np.ndarray,
-    treatment: np.ndarray,
-    threshold: float = 0.1
-) -> Dict[str, Any]:
+def assess_overlap(scores: np.ndarray, treatment: np.ndarray, threshold: float = 0.1) -> Dict[str, Any]:
     """
     Assess overlap (positivity) assumption.
 
@@ -241,48 +228,43 @@ def assess_overlap(
     violations = too_low | too_high
 
     result = {
-        'treated': {
-            'n': len(treated_scores),
-            'mean': float(np.mean(treated_scores)),
-            'std': float(np.std(treated_scores, ddof=1)),
-            'min': float(np.min(treated_scores)),
-            'max': float(np.max(treated_scores)),
-            'median': float(np.median(treated_scores)),
-            'iqr': [float(np.percentile(treated_scores, 25)),
-                    float(np.percentile(treated_scores, 75))]
+        "treated": {
+            "n": len(treated_scores),
+            "mean": float(np.mean(treated_scores)),
+            "std": float(np.std(treated_scores, ddof=1)),
+            "min": float(np.min(treated_scores)),
+            "max": float(np.max(treated_scores)),
+            "median": float(np.median(treated_scores)),
+            "iqr": [float(np.percentile(treated_scores, 25)), float(np.percentile(treated_scores, 75))],
         },
-        'control': {
-            'n': len(control_scores),
-            'mean': float(np.mean(control_scores)),
-            'std': float(np.std(control_scores, ddof=1)),
-            'min': float(np.min(control_scores)),
-            'max': float(np.max(control_scores)),
-            'median': float(np.median(control_scores)),
-            'iqr': [float(np.percentile(control_scores, 25)),
-                    float(np.percentile(control_scores, 75))]
+        "control": {
+            "n": len(control_scores),
+            "mean": float(np.mean(control_scores)),
+            "std": float(np.std(control_scores, ddof=1)),
+            "min": float(np.min(control_scores)),
+            "max": float(np.max(control_scores)),
+            "median": float(np.median(control_scores)),
+            "iqr": [float(np.percentile(control_scores, 25)), float(np.percentile(control_scores, 75))],
         },
-        'common_support': {
-            'min': float(max(np.min(treated_scores), np.min(control_scores))),
-            'max': float(min(np.max(treated_scores), np.max(control_scores)))
+        "common_support": {
+            "min": float(max(np.min(treated_scores), np.min(control_scores))),
+            "max": float(min(np.max(treated_scores), np.max(control_scores))),
         },
-        'violations': {
-            'n_too_low': int(np.sum(too_low)),
-            'n_too_high': int(np.sum(too_high)),
-            'n_total': int(np.sum(violations))
+        "violations": {
+            "n_too_low": int(np.sum(too_low)),
+            "n_too_high": int(np.sum(too_high)),
+            "n_total": int(np.sum(violations)),
         },
-        'violation_rate': float(np.mean(violations)),
-        'threshold': threshold,
-        'overlap_adequate': np.mean(violations) < 0.1
+        "violation_rate": float(np.mean(violations)),
+        "threshold": threshold,
+        "overlap_adequate": np.mean(violations) < 0.1,
     }
 
     return result
 
 
 def trim_propensity_scores(
-    scores: np.ndarray,
-    treatment: np.ndarray,
-    method: str = 'symmetric',
-    threshold: float = 0.1
+    scores: np.ndarray, treatment: np.ndarray, method: str = "symmetric", threshold: float = 0.1
 ) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
     """
     Trim observations with extreme propensity scores.
@@ -299,9 +281,9 @@ def trim_propensity_scores(
     Returns:
         Tuple of (trimmed_scores, trimmed_treatment, info)
     """
-    if method == 'symmetric':
+    if method == "symmetric":
         keep = (scores >= threshold) & (scores <= 1 - threshold)
-    elif method == 'asymmetric':
+    elif method == "asymmetric":
         treated_scores = scores[treatment == 1]
         control_scores = scores[treatment == 0]
 
@@ -315,22 +297,18 @@ def trim_propensity_scores(
     n_dropped = len(scores) - np.sum(keep)
 
     info = {
-        'method': method,
-        'threshold': threshold if method == 'symmetric' else (lower, upper),
-        'n_original': len(scores),
-        'n_kept': int(np.sum(keep)),
-        'n_dropped': n_dropped,
-        'proportion_dropped': float(n_dropped / len(scores))
+        "method": method,
+        "threshold": threshold if method == "symmetric" else (lower, upper),
+        "n_original": len(scores),
+        "n_kept": int(np.sum(keep)),
+        "n_dropped": n_dropped,
+        "proportion_dropped": float(n_dropped / len(scores)),
     }
 
     return scores[keep], treatment[keep], info
 
 
-def _calculate_balance(
-    data: pd.DataFrame,
-    treatment: str,
-    covariates: List[str]
-) -> Dict[str, Any]:
+def _calculate_balance(data: pd.DataFrame, treatment: str, covariates: List[str]) -> Dict[str, Any]:
     """Calculate covariate balance between treatment groups."""
     treated = data[data[treatment] == 1]
     control = data[data[treatment] == 0]
@@ -343,16 +321,12 @@ def _calculate_balance(
             c_values = control[cov].dropna().values
 
             # Check if categorical
-            if data[cov].dtype == 'object' or data[cov].nunique() <= 5:
+            if data[cov].dtype == "object" or data[cov].nunique() <= 5:
                 # Categorical: compare proportions
                 t_props = pd.Series(t_values).value_counts(normalize=True)
                 c_props = pd.Series(c_values).value_counts(normalize=True)
 
-                balance[cov] = {
-                    'type': 'categorical',
-                    'treated': t_props.to_dict(),
-                    'control': c_props.to_dict()
-                }
+                balance[cov] = {"type": "categorical", "treated": t_props.to_dict(), "control": c_props.to_dict()}
             else:
                 # Continuous: standardized mean difference
                 t_mean = np.mean(t_values)
@@ -362,37 +336,33 @@ def _calculate_balance(
                 smd = (t_mean - c_mean) / pooled_std if pooled_std > 0 else 0
 
                 balance[cov] = {
-                    'type': 'continuous',
-                    'treated_mean': float(t_mean),
-                    'control_mean': float(c_mean),
-                    'standardized_mean_diff': float(smd),
-                    'balanced': abs(smd) < 0.1  # Standard threshold
+                    "type": "continuous",
+                    "treated_mean": float(t_mean),
+                    "control_mean": float(c_mean),
+                    "standardized_mean_diff": float(smd),
+                    "balanced": abs(smd) < 0.1,  # Standard threshold
                 }
         except Exception as e:
-            balance[cov] = {'error': str(e)}
+            balance[cov] = {"error": str(e)}
 
     # Overall balance summary
     imbalanced = []
     for cov, info in balance.items():
-        if info.get('type') == 'continuous':
-            if abs(info.get('standardized_mean_diff', 0)) >= 0.1:
+        if info.get("type") == "continuous":
+            if abs(info.get("standardized_mean_diff", 0)) >= 0.1:
                 imbalanced.append(cov)
 
-    balance['_summary'] = {
-        'n_covariates': len(covariates),
-        'n_imbalanced': len(imbalanced),
-        'imbalanced_covariates': imbalanced
+    balance["_summary"] = {
+        "n_covariates": len(covariates),
+        "n_imbalanced": len(imbalanced),
+        "imbalanced_covariates": imbalanced,
     }
 
     return balance
 
 
 def calculate_ipw_weights(
-    scores: np.ndarray,
-    treatment: np.ndarray,
-    estimand: str = 'ate',
-    stabilized: bool = True,
-    normalize: bool = True
+    scores: np.ndarray, treatment: np.ndarray, estimand: str = "ate", stabilized: bool = True, normalize: bool = True
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     """
     Calculate Inverse Probability Weights (IPW).
@@ -417,7 +387,7 @@ def calculate_ipw_weights(
     """
     scores = np.clip(scores, 0.001, 0.999)  # Avoid division by zero
 
-    if estimand == 'ate':
+    if estimand == "ate":
         # ATE weights
         weights_treated = 1.0 / scores
         weights_control = 1.0 / (1 - scores)
@@ -425,9 +395,9 @@ def calculate_ipw_weights(
         if stabilized:
             p_treated = np.mean(treatment)
             weights_treated *= p_treated
-            weights_control *= (1 - p_treated)
+            weights_control *= 1 - p_treated
 
-    elif estimand == 'att':
+    elif estimand == "att":
         # ATT weights
         weights_treated = np.ones_like(scores)
         weights_control = scores / (1 - scores)
@@ -450,44 +420,37 @@ def calculate_ipw_weights(
         n_control = np.sum(treatment == 0)
 
         weights = np.where(
-            treatment == 1,
-            weights * n_treated / weights_treated_sum,
-            weights * n_control / weights_control_sum
+            treatment == 1, weights * n_treated / weights_treated_sum, weights * n_control / weights_control_sum
         )
 
     # Diagnostics
     info = {
-        'estimand': estimand,
-        'stabilized': stabilized,
-        'normalized': normalize,
-        'weights_treated': {
-            'mean': float(np.mean(weights[treatment == 1])),
-            'std': float(np.std(weights[treatment == 1], ddof=1)),
-            'min': float(np.min(weights[treatment == 1])),
-            'max': float(np.max(weights[treatment == 1]))
+        "estimand": estimand,
+        "stabilized": stabilized,
+        "normalized": normalize,
+        "weights_treated": {
+            "mean": float(np.mean(weights[treatment == 1])),
+            "std": float(np.std(weights[treatment == 1], ddof=1)),
+            "min": float(np.min(weights[treatment == 1])),
+            "max": float(np.max(weights[treatment == 1])),
         },
-        'weights_control': {
-            'mean': float(np.mean(weights[treatment == 0])),
-            'std': float(np.std(weights[treatment == 0], ddof=1)),
-            'min': float(np.min(weights[treatment == 0])),
-            'max': float(np.max(weights[treatment == 0]))
+        "weights_control": {
+            "mean": float(np.mean(weights[treatment == 0])),
+            "std": float(np.std(weights[treatment == 0], ddof=1)),
+            "min": float(np.min(weights[treatment == 0])),
+            "max": float(np.max(weights[treatment == 0])),
         },
-        'effective_sample_size': {
-            'treated': float(np.sum(weights[treatment == 1]) ** 2 /
-                            np.sum(weights[treatment == 1] ** 2)),
-            'control': float(np.sum(weights[treatment == 0]) ** 2 /
-                            np.sum(weights[treatment == 0] ** 2))
-        }
+        "effective_sample_size": {
+            "treated": float(np.sum(weights[treatment == 1]) ** 2 / np.sum(weights[treatment == 1] ** 2)),
+            "control": float(np.sum(weights[treatment == 0]) ** 2 / np.sum(weights[treatment == 0] ** 2)),
+        },
     }
 
     return weights, info
 
 
 def propensity_score_stratification(
-    scores: np.ndarray,
-    treatment: np.ndarray,
-    outcome: np.ndarray,
-    n_strata: int = 5
+    scores: np.ndarray, treatment: np.ndarray, outcome: np.ndarray, n_strata: int = 5
 ) -> Dict[str, Any]:
     """
     Estimate treatment effects using propensity score stratification.
@@ -515,11 +478,7 @@ def propensity_score_stratification(
         n_in_stratum = np.sum(mask)
 
         if n_in_stratum < 10:
-            stratum_results.append({
-                'stratum': s,
-                'n': n_in_stratum,
-                'warning': 'Too few observations'
-            })
+            stratum_results.append({"stratum": s, "n": n_in_stratum, "warning": "Too few observations"})
             continue
 
         t_mask = mask & (treatment == 1)
@@ -529,13 +488,15 @@ def propensity_score_stratification(
         n_control = np.sum(c_mask)
 
         if n_treated < 2 or n_control < 2:
-            stratum_results.append({
-                'stratum': s,
-                'n': n_in_stratum,
-                'n_treated': n_treated,
-                'n_control': n_control,
-                'warning': 'Insufficient treatment/control'
-            })
+            stratum_results.append(
+                {
+                    "stratum": s,
+                    "n": n_in_stratum,
+                    "n_treated": n_treated,
+                    "n_control": n_control,
+                    "warning": "Insufficient treatment/control",
+                }
+            )
             continue
 
         y_treated = outcome[t_mask]
@@ -544,41 +505,45 @@ def propensity_score_stratification(
         effect = np.mean(y_treated) - np.mean(y_control)
         se = np.sqrt(np.var(y_treated, ddof=1) / n_treated + np.var(y_control, ddof=1) / n_control)
 
-        stratum_results.append({
-            'stratum': s,
-            'ps_range': [float(quantiles[s]), float(quantiles[s + 1])],
-            'n': n_in_stratum,
-            'n_treated': n_treated,
-            'n_control': n_control,
-            'effect': float(effect),
-            'se': float(se),
-            'ci_lower': float(effect - stats.norm.ppf(0.975) * se),
-            'ci_upper': float(effect + stats.norm.ppf(0.975) * se),
-            'mean_treated': float(np.mean(y_treated)),
-            'mean_control': float(np.mean(y_control))
-        })
+        stratum_results.append(
+            {
+                "stratum": s,
+                "ps_range": [float(quantiles[s]), float(quantiles[s + 1])],
+                "n": n_in_stratum,
+                "n_treated": n_treated,
+                "n_control": n_control,
+                "effect": float(effect),
+                "se": float(se),
+                "ci_lower": float(effect - stats.norm.ppf(0.975) * se),
+                "ci_upper": float(effect + stats.norm.ppf(0.975) * se),
+                "mean_treated": float(np.mean(y_treated)),
+                "mean_control": float(np.mean(y_control)),
+            }
+        )
 
     # Calculate overall effect (weighted average)
-    valid_strata = [s for s in stratum_results if 'effect' in s]
+    valid_strata = [s for s in stratum_results if "effect" in s]
 
     if valid_strata:
-        total_n = sum(s['n'] for s in valid_strata)
-        overall_effect = sum(s['effect'] * s['n'] for s in valid_strata) / total_n
+        total_n = sum(s["n"] for s in valid_strata)
+        overall_effect = sum(s["effect"] * s["n"] for s in valid_strata) / total_n
 
         # SE via delta method (simplified)
-        overall_se = np.sqrt(sum((s['se'] * s['n'] / total_n) ** 2 for s in valid_strata))
+        overall_se = np.sqrt(sum((s["se"] * s["n"] / total_n) ** 2 for s in valid_strata))
     else:
         overall_effect = None
         overall_se = None
 
     z_crit = stats.norm.ppf(0.975)
     return {
-        'n_strata': n_strata,
-        'strata': stratum_results,
-        'overall': {
-            'effect': overall_effect,
-            'se': overall_se,
-            'ci_lower': overall_effect - z_crit * overall_se if overall_effect else None,
-            'ci_upper': overall_effect + z_crit * overall_se if overall_effect else None
-        } if overall_effect else None
+        "n_strata": n_strata,
+        "strata": stratum_results,
+        "overall": {
+            "effect": overall_effect,
+            "se": overall_se,
+            "ci_lower": overall_effect - z_crit * overall_se if overall_effect else None,
+            "ci_upper": overall_effect + z_crit * overall_se if overall_effect else None,
+        }
+        if overall_effect
+        else None,
     }

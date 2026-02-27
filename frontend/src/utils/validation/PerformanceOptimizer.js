@@ -322,7 +322,7 @@ class LazyLoader {
    * Preload multiple resources
    */
   async preloadMultiple(resources) {
-    const promises = resources.map(({ key, loader, priority = 'low' }) =>
+    const _promises = resources.map(({ key, loader, priority = 'low' }) =>
       this.load(key, loader, { preload: true, priority })
     );
 

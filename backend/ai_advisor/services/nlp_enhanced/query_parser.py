@@ -26,24 +26,26 @@ logger = logging.getLogger(__name__)
 
 class QueryIntent(Enum):
     """Primary intent categories for statistical queries."""
-    COMPARISON = "comparison"           # Compare groups/conditions
-    RELATIONSHIP = "relationship"       # Correlation, association
-    PREDICTION = "prediction"           # Regression, forecasting
-    DIFFERENCE = "difference"           # Test for differences
-    DISTRIBUTION = "distribution"       # Describe/test distribution
-    EFFECT_SIZE = "effect_size"         # Calculate effect magnitude
-    POWER = "power"                     # Power analysis
-    ASSUMPTION = "assumption"           # Check assumptions
-    INTERPRETATION = "interpretation"   # Interpret results
-    RECOMMENDATION = "recommendation"   # Test recommendation
-    REPORT = "report"                   # Generate report
-    MULTI_STEP = "multi_step"           # Complex multi-analysis
-    CLARIFICATION = "clarification"     # Need more info
+
+    COMPARISON = "comparison"  # Compare groups/conditions
+    RELATIONSHIP = "relationship"  # Correlation, association
+    PREDICTION = "prediction"  # Regression, forecasting
+    DIFFERENCE = "difference"  # Test for differences
+    DISTRIBUTION = "distribution"  # Describe/test distribution
+    EFFECT_SIZE = "effect_size"  # Calculate effect magnitude
+    POWER = "power"  # Power analysis
+    ASSUMPTION = "assumption"  # Check assumptions
+    INTERPRETATION = "interpretation"  # Interpret results
+    RECOMMENDATION = "recommendation"  # Test recommendation
+    REPORT = "report"  # Generate report
+    MULTI_STEP = "multi_step"  # Complex multi-analysis
+    CLARIFICATION = "clarification"  # Need more info
     UNKNOWN = "unknown"
 
 
 class AnalysisType(Enum):
     """Types of statistical analyses."""
+
     T_TEST = "t_test"
     ANOVA = "anova"
     CORRELATION = "correlation"
@@ -61,6 +63,7 @@ class AnalysisType(Enum):
 @dataclass
 class ExtractedVariable:
     """Represents an extracted variable from query."""
+
     name: str
     role: str = "unknown"  # dependent, independent, grouping, covariate, mediator
     data_type: Optional[str] = None  # continuous, categorical, ordinal, binary
@@ -70,6 +73,7 @@ class ExtractedVariable:
 @dataclass
 class QueryCondition:
     """Represents a conditional clause in the query."""
+
     condition_type: str  # "if", "when", "given", "assuming"
     condition: str
     consequence: str
@@ -78,6 +82,7 @@ class QueryCondition:
 @dataclass
 class QueryStep:
     """Represents a single step in a multi-step query."""
+
     step_number: int
     description: str
     intent: QueryIntent
@@ -89,6 +94,7 @@ class QueryStep:
 @dataclass
 class ParsedQuery:
     """Complete parsed query with all extracted information."""
+
     original_query: str
     primary_intent: QueryIntent
     secondary_intents: List[QueryIntent]
@@ -114,20 +120,11 @@ class ParsedQuery:
             "secondary_intents": [i.value for i in self.secondary_intents],
             "analysis_types": [a.value for a in self.analysis_types],
             "variables": [
-                {
-                    "name": v.name,
-                    "role": v.role,
-                    "data_type": v.data_type,
-                    "mentioned_values": v.mentioned_values
-                }
+                {"name": v.name, "role": v.role, "data_type": v.data_type, "mentioned_values": v.mentioned_values}
                 for v in self.variables
             ],
             "conditions": [
-                {
-                    "type": c.condition_type,
-                    "condition": c.condition,
-                    "consequence": c.consequence
-                }
+                {"type": c.condition_type, "condition": c.condition, "consequence": c.consequence}
                 for c in self.conditions
             ],
             "steps": [
@@ -137,7 +134,7 @@ class ParsedQuery:
                     "intent": s.intent.value,
                     "analysis_type": s.analysis_type.value if s.analysis_type else None,
                     "variables": [v.name for v in s.variables],
-                    "depends_on": s.depends_on
+                    "depends_on": s.depends_on,
                 }
                 for s in self.steps
             ],
@@ -149,7 +146,7 @@ class ParsedQuery:
             "is_multi_step": self.is_multi_step,
             "requires_clarification": self.requires_clarification,
             "clarification_questions": self.clarification_questions,
-            "confidence_score": self.confidence_score
+            "confidence_score": self.confidence_score,
         }
 
 
@@ -168,161 +165,161 @@ class QueryParser:
     # Intent patterns with regex
     INTENT_PATTERNS = {
         QueryIntent.COMPARISON: [
-            r'\b(?:compare|comparing|comparison|differ(?:ence|ent)?|between\s+groups?)\b',
-            r'\b(?:vs\.?|versus|against)\b',
-            r'\b(?:which\s+(?:group|condition)\s+(?:is|has))\b',
+            r"\b(?:compare|comparing|comparison|differ(?:ence|ent)?|between\s+groups?)\b",
+            r"\b(?:vs\.?|versus|against)\b",
+            r"\b(?:which\s+(?:group|condition)\s+(?:is|has))\b",
         ],
         QueryIntent.RELATIONSHIP: [
-            r'\b(?:correlat(?:e|ion|ed)|associat(?:e|ion|ed)|relationship)\b',
-            r'\b(?:related?\s+to|linked?\s+to|connected?\s+to)\b',
-            r'\b(?:how\s+(?:does|do)\s+\w+\s+relate)\b',
+            r"\b(?:correlat(?:e|ion|ed)|associat(?:e|ion|ed)|relationship)\b",
+            r"\b(?:related?\s+to|linked?\s+to|connected?\s+to)\b",
+            r"\b(?:how\s+(?:does|do)\s+\w+\s+relate)\b",
         ],
         QueryIntent.PREDICTION: [
-            r'\b(?:predict(?:s|ing|ion)?|forecast(?:ing)?|model(?:ing)?)\b',
-            r'\b(?:regression|dependent\s+variable|outcome)\b',
-            r'\b(?:what\s+(?:predicts|determines|influences))\b',
+            r"\b(?:predict(?:s|ing|ion)?|forecast(?:ing)?|model(?:ing)?)\b",
+            r"\b(?:regression|dependent\s+variable|outcome)\b",
+            r"\b(?:what\s+(?:predicts|determines|influences))\b",
         ],
         QueryIntent.DIFFERENCE: [
-            r'\b(?:significant(?:ly)?\s+different|statistically\s+different)\b',
-            r'\b(?:test\s+(?:for\s+)?difference|difference\s+test)\b',
-            r'\b(?:is\s+there\s+a\s+difference)\b',
+            r"\b(?:significant(?:ly)?\s+different|statistically\s+different)\b",
+            r"\b(?:test\s+(?:for\s+)?difference|difference\s+test)\b",
+            r"\b(?:is\s+there\s+a\s+difference)\b",
         ],
         QueryIntent.DISTRIBUTION: [
-            r'\b(?:distribut(?:ion|ed)|normal(?:ity)?|skew(?:ness)?|kurtosis)\b',
-            r'\b(?:histogram|density|shape\s+of)\b',
+            r"\b(?:distribut(?:ion|ed)|normal(?:ity)?|skew(?:ness)?|kurtosis)\b",
+            r"\b(?:histogram|density|shape\s+of)\b",
         ],
         QueryIntent.EFFECT_SIZE: [
-            r'\b(?:effect\s+size|cohen[\'s]?\s*d|eta[- ]?squared|omega[- ]?squared)\b',
-            r'\b(?:practical\s+significance|magnitude\s+of)\b',
-            r'\b(?:how\s+(?:large|big|strong)\s+(?:is|are))\b',
+            r"\b(?:effect\s+size|cohen[\'s]?\s*d|eta[- ]?squared|omega[- ]?squared)\b",
+            r"\b(?:practical\s+significance|magnitude\s+of)\b",
+            r"\b(?:how\s+(?:large|big|strong)\s+(?:is|are))\b",
         ],
         QueryIntent.POWER: [
-            r'\b(?:power\s+analysis|sample\s+size|statistical\s+power)\b',
-            r'\b(?:how\s+many\s+(?:subjects?|participants?|samples?))\b',
-            r'\b(?:minimum\s+(?:sample|n)|detect(?:able)?\s+effect)\b',
+            r"\b(?:power\s+analysis|sample\s+size|statistical\s+power)\b",
+            r"\b(?:how\s+many\s+(?:subjects?|participants?|samples?))\b",
+            r"\b(?:minimum\s+(?:sample|n)|detect(?:able)?\s+effect)\b",
         ],
         QueryIntent.ASSUMPTION: [
-            r'\b(?:assumption(?:s)?|normality|homogeneity|independence)\b',
-            r'\b(?:check(?:ing)?\s+assumptions?|violat(?:e|ion|ed))\b',
-            r'\b(?:levene|shapiro|bartlett)\b',
+            r"\b(?:assumption(?:s)?|normality|homogeneity|independence)\b",
+            r"\b(?:check(?:ing)?\s+assumptions?|violat(?:e|ion|ed))\b",
+            r"\b(?:levene|shapiro|bartlett)\b",
         ],
         QueryIntent.INTERPRETATION: [
-            r'\b(?:interpret(?:ation)?|what\s+does\s+(?:this|it)\s+mean)\b',
-            r'\b(?:explain\s+(?:the\s+)?results?|understand(?:ing)?)\b',
-            r'\b(?:p[- ]?value\s+(?:of|means?|interpretation))\b',
+            r"\b(?:interpret(?:ation)?|what\s+does\s+(?:this|it)\s+mean)\b",
+            r"\b(?:explain\s+(?:the\s+)?results?|understand(?:ing)?)\b",
+            r"\b(?:p[- ]?value\s+(?:of|means?|interpretation))\b",
         ],
         QueryIntent.RECOMMENDATION: [
-            r'\b(?:recommend(?:ation)?|suggest(?:ion)?|which\s+test)\b',
-            r'\b(?:what\s+(?:test|analysis)\s+should)\b',
-            r'\b(?:appropriate\s+(?:test|analysis|method))\b',
+            r"\b(?:recommend(?:ation)?|suggest(?:ion)?|which\s+test)\b",
+            r"\b(?:what\s+(?:test|analysis)\s+should)\b",
+            r"\b(?:appropriate\s+(?:test|analysis|method))\b",
         ],
         QueryIntent.REPORT: [
-            r'\b(?:report|write[- ]?up|methods?\s+section|results?\s+section)\b',
-            r'\b(?:apa\s+(?:format|style)|publication)\b',
-            r'\b(?:generate\s+(?:a\s+)?report)\b',
+            r"\b(?:report|write[- ]?up|methods?\s+section|results?\s+section)\b",
+            r"\b(?:apa\s+(?:format|style)|publication)\b",
+            r"\b(?:generate\s+(?:a\s+)?report)\b",
         ],
     }
 
     # Analysis type patterns
     ANALYSIS_PATTERNS = {
         AnalysisType.T_TEST: [
-            r'\bt[- ]?test\b',
-            r'\b(?:compare\s+)?two\s+(?:groups?|means?|samples?)\b',
-            r'\b(?:independent|paired|one[- ]?sample)\s+(?:samples?)?\s*t\b',
+            r"\bt[- ]?test\b",
+            r"\b(?:compare\s+)?two\s+(?:groups?|means?|samples?)\b",
+            r"\b(?:independent|paired|one[- ]?sample)\s+(?:samples?)?\s*t\b",
         ],
         AnalysisType.ANOVA: [
-            r'\banova\b',
-            r'\b(?:compare\s+)?(?:three|multiple|several)\s+(?:groups?|means?)\b',
-            r'\b(?:one[- ]?way|two[- ]?way|factorial|repeated\s+measures)\b',
+            r"\banova\b",
+            r"\b(?:compare\s+)?(?:three|multiple|several)\s+(?:groups?|means?)\b",
+            r"\b(?:one[- ]?way|two[- ]?way|factorial|repeated\s+measures)\b",
         ],
         AnalysisType.CORRELATION: [
-            r'\b(?:pearson|spearman|kendall)\s*(?:correlation|r|rho)?\b',
-            r'\bcorrelation\s+(?:coefficient|analysis|between)\b',
-            r'\bbivariate\s+relationship\b',
+            r"\b(?:pearson|spearman|kendall)\s*(?:correlation|r|rho)?\b",
+            r"\bcorrelation\s+(?:coefficient|analysis|between)\b",
+            r"\bbivariate\s+relationship\b",
         ],
         AnalysisType.REGRESSION: [
-            r'\b(?:linear|logistic|multiple|simple)\s+regression\b',
-            r'\bregression\s+(?:analysis|model|equation)\b',
-            r'\bpredict(?:or|ing)?\s+(?:variable|outcome)\b',
+            r"\b(?:linear|logistic|multiple|simple)\s+regression\b",
+            r"\bregression\s+(?:analysis|model|equation)\b",
+            r"\bpredict(?:or|ing)?\s+(?:variable|outcome)\b",
         ],
         AnalysisType.CHI_SQUARE: [
-            r'\bchi[- ]?square\b',
-            r'\b(?:categorical|contingency)\s+(?:data|table|analysis)\b',
-            r'\bfisher[\'s]?\s+exact\b',
+            r"\bchi[- ]?square\b",
+            r"\b(?:categorical|contingency)\s+(?:data|table|analysis)\b",
+            r"\bfisher[\'s]?\s+exact\b",
         ],
         AnalysisType.NON_PARAMETRIC: [
-            r'\b(?:mann[- ]?whitney|wilcoxon|kruskal[- ]?wallis|friedman)\b',
-            r'\bnon[- ]?parametric\b',
-            r'\b(?:rank|ordinal)\s+(?:test|data)\b',
+            r"\b(?:mann[- ]?whitney|wilcoxon|kruskal[- ]?wallis|friedman)\b",
+            r"\bnon[- ]?parametric\b",
+            r"\b(?:rank|ordinal)\s+(?:test|data)\b",
         ],
         AnalysisType.MIXED_MODEL: [
-            r'\b(?:mixed|multilevel|hierarchical)\s+(?:model|effects?)\b',
-            r'\b(?:random\s+(?:effects?|intercepts?|slopes?))\b',
-            r'\bicc\b',
+            r"\b(?:mixed|multilevel|hierarchical)\s+(?:model|effects?)\b",
+            r"\b(?:random\s+(?:effects?|intercepts?|slopes?))\b",
+            r"\bicc\b",
         ],
         AnalysisType.CAUSAL: [
-            r'\b(?:causal|causation|causality)\b',
-            r'\b(?:propensity|matching|treatment\s+effect)\b',
-            r'\b(?:dag|confound(?:er|ing)?)\b',
+            r"\b(?:causal|causation|causality)\b",
+            r"\b(?:propensity|matching|treatment\s+effect)\b",
+            r"\b(?:dag|confound(?:er|ing)?)\b",
         ],
         AnalysisType.MEDIATION: [
-            r'\b(?:mediat(?:ion|or|ing)|indirect\s+effect)\b',
-            r'\b(?:baron[- ]?kenny|sobel)\b',
-            r'\b(?:path\s+(?:a|b|c)|direct\s+effect)\b',
+            r"\b(?:mediat(?:ion|or|ing)|indirect\s+effect)\b",
+            r"\b(?:baron[- ]?kenny|sobel)\b",
+            r"\b(?:path\s+(?:a|b|c)|direct\s+effect)\b",
         ],
         AnalysisType.DID: [
-            r'\b(?:difference[- ]?in[- ]?differences?|did|diff[- ]?in[- ]?diff)\b',
-            r'\b(?:event\s+study|parallel\s+trends?)\b',
-            r'\b(?:treatment\s+(?:group|effect)\s+(?:before|after))\b',
+            r"\b(?:difference[- ]?in[- ]?differences?|did|diff[- ]?in[- ]?diff)\b",
+            r"\b(?:event\s+study|parallel\s+trends?)\b",
+            r"\b(?:treatment\s+(?:group|effect)\s+(?:before|after))\b",
         ],
         AnalysisType.POWER_ANALYSIS: [
-            r'\bpower\s+(?:analysis|calculation|curve)\b',
-            r'\bsample\s+size\s+(?:calculation|determination)\b',
-            r'\b(?:g[*\s]?power|minimum\s+n)\b',
+            r"\bpower\s+(?:analysis|calculation|curve)\b",
+            r"\bsample\s+size\s+(?:calculation|determination)\b",
+            r"\b(?:g[*\s]?power|minimum\s+n)\b",
         ],
     }
 
     # Variable role indicators
     VARIABLE_ROLE_PATTERNS = {
         "dependent": [
-            r'\b(?:dependent|outcome|response|target|dv|y)\s+variable\b',
-            r'\b(?:measure|measuring)\s+(\w+)\b',
-            r'\beffect\s+on\s+(\w+)\b',
+            r"\b(?:dependent|outcome|response|target|dv|y)\s+variable\b",
+            r"\b(?:measure|measuring)\s+(\w+)\b",
+            r"\beffect\s+on\s+(\w+)\b",
         ],
         "independent": [
-            r'\b(?:independent|predictor|explanatory|iv|x)\s+variable\b',
-            r'\b(?:effect\s+of|impact\s+of)\s+(\w+)\b',
-            r'\bfactor[s]?\s+(?:is|are)\s+(\w+)\b',
+            r"\b(?:independent|predictor|explanatory|iv|x)\s+variable\b",
+            r"\b(?:effect\s+of|impact\s+of)\s+(\w+)\b",
+            r"\bfactor[s]?\s+(?:is|are)\s+(\w+)\b",
         ],
         "grouping": [
-            r'\b(?:group(?:ing)?|condition|treatment)\s+(?:variable|factor)\b',
-            r'\b(?:by|across|between)\s+(\w+)\b',
+            r"\b(?:group(?:ing)?|condition|treatment)\s+(?:variable|factor)\b",
+            r"\b(?:by|across|between)\s+(\w+)\b",
         ],
         "covariate": [
-            r'\b(?:covariate|control(?:ling)?\s+for|adjust(?:ing)?\s+for)\b',
+            r"\b(?:covariate|control(?:ling)?\s+for|adjust(?:ing)?\s+for)\b",
         ],
         "mediator": [
-            r'\b(?:mediator|mediat(?:es|ing)|through)\s+(\w+)\b',
+            r"\b(?:mediator|mediat(?:es|ing)|through)\s+(\w+)\b",
         ],
     }
 
     # Step indicators for multi-step queries
     STEP_INDICATORS = [
-        r'\b(?:first|1st|step\s*1)',
-        r'\b(?:then|next|second|2nd|step\s*2)',
-        r'\b(?:after\s+that|third|3rd|step\s*3)',
-        r'\b(?:finally|fourth|4th|last(?:ly)?|step\s*4)',
-        r'\band\s+then\b',
-        r'\bfollowed\s+by\b',
+        r"\b(?:first|1st|step\s*1)",
+        r"\b(?:then|next|second|2nd|step\s*2)",
+        r"\b(?:after\s+that|third|3rd|step\s*3)",
+        r"\b(?:finally|fourth|4th|last(?:ly)?|step\s*4)",
+        r"\band\s+then\b",
+        r"\bfollowed\s+by\b",
     ]
 
     # Conditional patterns
     CONDITIONAL_PATTERNS = [
-        (r'if\s+(.+?),?\s+(?:then\s+)?(.+)', "if"),
-        (r'when\s+(.+?),?\s+(.+)', "when"),
-        (r'given\s+(?:that\s+)?(.+?),?\s+(.+)', "given"),
-        (r'assuming\s+(.+?),?\s+(.+)', "assuming"),
-        (r'in\s+case\s+(?:of\s+)?(.+?),?\s+(.+)', "in_case"),
+        (r"if\s+(.+?),?\s+(?:then\s+)?(.+)", "if"),
+        (r"when\s+(.+?),?\s+(.+)", "when"),
+        (r"given\s+(?:that\s+)?(.+?),?\s+(.+)", "given"),
+        (r"assuming\s+(.+?),?\s+(.+)", "assuming"),
+        (r"in\s+case\s+(?:of\s+)?(.+?),?\s+(.+)", "in_case"),
     ]
 
     def __init__(self):
@@ -343,10 +340,7 @@ class QueryParser:
 
         self._step_compiled = [re.compile(p, re.IGNORECASE) for p in self.STEP_INDICATORS]
 
-        self._conditional_compiled = [
-            (re.compile(p, re.IGNORECASE), ctype)
-            for p, ctype in self.CONDITIONAL_PATTERNS
-        ]
+        self._conditional_compiled = [(re.compile(p, re.IGNORECASE), ctype) for p, ctype in self.CONDITIONAL_PATTERNS]
 
     def parse(self, query: str, data_context: Optional[Dict[str, Any]] = None) -> ParsedQuery:
         """
@@ -397,9 +391,7 @@ class QueryParser:
         )
 
         # Calculate confidence score
-        confidence_score = self._calculate_confidence(
-            primary_intent, analysis_types, variables, is_multi_step
-        )
+        confidence_score = self._calculate_confidence(primary_intent, analysis_types, variables, is_multi_step)
 
         return ParsedQuery(
             original_query=query,
@@ -417,14 +409,14 @@ class QueryParser:
             is_multi_step=is_multi_step,
             requires_clarification=requires_clarification,
             clarification_questions=clarification_questions,
-            confidence_score=confidence_score
+            confidence_score=confidence_score,
         )
 
     def _normalize_query(self, query: str) -> str:
         """Normalize query text for processing."""
         # Basic normalization
         query = query.strip()
-        query = re.sub(r'\s+', ' ', query)  # Normalize whitespace
+        query = re.sub(r"\s+", " ", query)  # Normalize whitespace
         return query
 
     def _identify_intents(self, query: str) -> Tuple[QueryIntent, List[QueryIntent]]:
@@ -459,27 +451,19 @@ class QueryParser:
 
         return found
 
-    def _extract_variables(
-        self,
-        query: str,
-        data_context: Optional[Dict[str, Any]] = None
-    ) -> List[ExtractedVariable]:
+    def _extract_variables(self, query: str, data_context: Optional[Dict[str, Any]] = None) -> List[ExtractedVariable]:
         """Extract mentioned variables from query."""
         variables = []
 
         # Try to match against data context if available
         if data_context and "variables" in data_context:
-            context_vars = {v.get("name", "").lower() for v in data_context["variables"]}
+            {v.get("name", "").lower() for v in data_context["variables"]}
 
             # Find mentions of known variables
             for var_info in data_context["variables"]:
                 var_name = var_info.get("name", "")
-                if var_name and re.search(rf'\b{re.escape(var_name)}\b', query, re.IGNORECASE):
-                    variables.append(ExtractedVariable(
-                        name=var_name,
-                        role="unknown",
-                        data_type=var_info.get("type")
-                    ))
+                if var_name and re.search(rf"\b{re.escape(var_name)}\b", query, re.IGNORECASE):
+                    variables.append(ExtractedVariable(name=var_name, role="unknown", data_type=var_info.get("type")))
 
         # Extract role assignments
         for role, patterns in self.VARIABLE_ROLE_PATTERNS.items():
@@ -507,11 +491,9 @@ class QueryParser:
             matches = pattern.findall(query)
             for match in matches:
                 if len(match) >= 2:
-                    conditions.append(QueryCondition(
-                        condition_type=ctype,
-                        condition=match[0].strip(),
-                        consequence=match[1].strip()
-                    ))
+                    conditions.append(
+                        QueryCondition(condition_type=ctype, condition=match[0].strip(), consequence=match[1].strip())
+                    )
 
         return conditions
 
@@ -521,46 +503,33 @@ class QueryParser:
         step_count = sum(1 for p in self._step_compiled if p.search(query))
 
         # Check for multiple analysis types
-        analysis_mentions = sum(
-            1 for patterns in self._analysis_compiled.values()
-            for p in patterns if p.search(query)
-        )
+        analysis_mentions = sum(1 for patterns in self._analysis_compiled.values() for p in patterns if p.search(query))
 
         # Check for conjunctions suggesting sequence
         sequence_patterns = [
-            r'\band\s+then\b',
-            r'\bafter\s+(?:that|which)\b',
-            r'\bfollowed\s+by\b',
-            r'\b(?:first|second|third|finally)\b',
+            r"\band\s+then\b",
+            r"\bafter\s+(?:that|which)\b",
+            r"\bfollowed\s+by\b",
+            r"\b(?:first|second|third|finally)\b",
         ]
-        sequence_count = sum(
-            1 for p in sequence_patterns
-            if re.search(p, query, re.IGNORECASE)
-        )
+        sequence_count = sum(1 for p in sequence_patterns if re.search(p, query, re.IGNORECASE))
 
         return step_count >= 2 or (analysis_mentions >= 2 and sequence_count >= 1)
 
     def _decompose_steps(
-        self,
-        query: str,
-        primary_intent: QueryIntent,
-        analysis_types: List[AnalysisType]
+        self, query: str, primary_intent: QueryIntent, analysis_types: List[AnalysisType]
     ) -> List[QueryStep]:
         """Decompose a multi-step query into individual steps."""
         steps = []
 
         # Try to split by step indicators
-        step_splits = re.split(
-            r'(?:first|then|next|after\s+that|finally|and\s+then)',
-            query,
-            flags=re.IGNORECASE
-        )
+        step_splits = re.split(r"(?:first|then|next|after\s+that|finally|and\s+then)", query, flags=re.IGNORECASE)
 
         step_splits = [s.strip() for s in step_splits if s.strip()]
 
         if len(step_splits) <= 1:
             # Try splitting by sentence
-            step_splits = re.split(r'[.;]', query)
+            step_splits = re.split(r"[.;]", query)
             step_splits = [s.strip() for s in step_splits if s.strip() and len(s) > 10]
 
         for i, split in enumerate(step_splits):
@@ -571,13 +540,15 @@ class QueryParser:
             if step_intent == QueryIntent.UNKNOWN:
                 step_intent = primary_intent
 
-            steps.append(QueryStep(
-                step_number=i + 1,
-                description=split,
-                intent=step_intent,
-                analysis_type=step_analysis[0] if step_analysis else None,
-                depends_on=[i] if i > 0 else []
-            ))
+            steps.append(
+                QueryStep(
+                    step_number=i + 1,
+                    description=split,
+                    intent=step_intent,
+                    analysis_type=step_analysis[0] if step_analysis else None,
+                    depends_on=[i] if i > 0 else [],
+                )
+            )
 
         return steps
 
@@ -585,10 +556,10 @@ class QueryParser:
         """Extract the core research question."""
         # Look for question patterns
         question_patterns = [
-            r'(?:research\s+question[:\s]+)(.+?)(?:\?|$)',
-            r'(?:trying\s+to\s+(?:find\s+out|determine|test)[:\s]+)(.+?)(?:\?|$)',
-            r'(?:want\s+to\s+know[:\s]+)(.+?)(?:\?|$)',
-            r'^(.+\?)$',  # Query ending with question mark
+            r"(?:research\s+question[:\s]+)(.+?)(?:\?|$)",
+            r"(?:trying\s+to\s+(?:find\s+out|determine|test)[:\s]+)(.+?)(?:\?|$)",
+            r"(?:want\s+to\s+know[:\s]+)(.+?)(?:\?|$)",
+            r"^(.+\?)$",  # Query ending with question mark
         ]
 
         for pattern in question_patterns:
@@ -604,9 +575,9 @@ class QueryParser:
 
         # Patterns for group mentions
         group_patterns = [
-            r'(?:compare|between)\s+(\w+)\s+(?:and|vs\.?|versus)\s+(\w+)',
-            r'(\w+)\s+group\s+(?:and|vs\.?|versus)\s+(\w+)\s+group',
-            r'(?:treatment|experimental)\s+(?:and|vs\.?)\s+(?:control|placebo)',
+            r"(?:compare|between)\s+(\w+)\s+(?:and|vs\.?|versus)\s+(\w+)",
+            r"(\w+)\s+group\s+(?:and|vs\.?|versus)\s+(\w+)\s+group",
+            r"(?:treatment|experimental)\s+(?:and|vs\.?)\s+(?:control|placebo)",
         ]
 
         for pattern in group_patterns:
@@ -622,9 +593,9 @@ class QueryParser:
     def _extract_sample_size(self, query: str) -> Optional[int]:
         """Extract mentioned sample size."""
         patterns = [
-            r'n\s*=\s*(\d+)',
-            r'sample\s+(?:size\s+)?(?:of\s+)?(\d+)',
-            r'(\d+)\s+(?:participants?|subjects?|observations?|samples?)',
+            r"n\s*=\s*(\d+)",
+            r"sample\s+(?:size\s+)?(?:of\s+)?(\d+)",
+            r"(\d+)\s+(?:participants?|subjects?|observations?|samples?)",
         ]
 
         for pattern in patterns:
@@ -641,9 +612,9 @@ class QueryParser:
         """Extract mentioned effect size."""
         patterns = [
             r"(?:cohen['\s]*s?\s*)?d\s*=\s*([\d.]+)",
-            r'effect\s+size\s+(?:of\s+)?([\d.]+)',
-            r'r\s*=\s*([\d.]+)',
-            r'eta[- ]?squared?\s*=?\s*([\d.]+)',
+            r"effect\s+size\s+(?:of\s+)?([\d.]+)",
+            r"r\s*=\s*([\d.]+)",
+            r"eta[- ]?squared?\s*=?\s*([\d.]+)",
         ]
 
         for pattern in patterns:
@@ -659,9 +630,9 @@ class QueryParser:
     def _extract_alpha(self, query: str) -> float:
         """Extract alpha level (significance level)."""
         patterns = [
-            r'alpha\s*=\s*([\d.]+)',
-            r'significance\s+level\s+(?:of\s+)?([\d.]+)',
-            r'p\s*[<>]\s*([\d.]+)',
+            r"alpha\s*=\s*([\d.]+)",
+            r"significance\s+level\s+(?:of\s+)?([\d.]+)",
+            r"p\s*[<>]\s*([\d.]+)",
         ]
 
         for pattern in patterns:
@@ -681,14 +652,16 @@ class QueryParser:
         query: str,
         intent: QueryIntent,
         variables: List[ExtractedVariable],
-        data_context: Optional[Dict[str, Any]]
+        data_context: Optional[Dict[str, Any]],
     ) -> Tuple[bool, List[str]]:
         """Check if clarification is needed and generate questions."""
         questions = []
 
         # Check for ambiguous intent
         if intent == QueryIntent.UNKNOWN:
-            questions.append("What is the main goal of your analysis? (compare groups, find relationships, make predictions, etc.)")
+            questions.append(
+                "What is the main goal of your analysis? (compare groups, find relationships, make predictions, etc.)"
+            )
 
         # Check for missing variable roles
         if intent in [QueryIntent.COMPARISON, QueryIntent.PREDICTION]:
@@ -719,7 +692,7 @@ class QueryParser:
         intent: QueryIntent,
         analysis_types: List[AnalysisType],
         variables: List[ExtractedVariable],
-        is_multi_step: bool
+        is_multi_step: bool,
     ) -> float:
         """Calculate confidence score for the parse."""
         score = 0.5  # Base score

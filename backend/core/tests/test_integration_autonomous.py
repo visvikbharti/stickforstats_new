@@ -13,27 +13,19 @@ Run with: python manage.py test core.tests.test_integration_autonomous -v2
 Created: February 2026
 """
 
-import io
 import numpy as np
 import pandas as pd
-from scipy import stats
 from django.test import TestCase, override_settings
-from django.contrib.auth.models import User
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from rest_framework import status as http_status
-from unittest.mock import patch, MagicMock
 
 from core.services.smart_profiler import (
     SmartProfiler,
-    SmartProfileResult,
     InferredQuestionType,
-    DataHealthCard,
 )
 from core.services.cascade_engine import (
     AutonomousCascadeEngine,
-    CascadeResult,
     CascadeStep,
-    TestResult,
 )
 from core.services.plain_language_translator import (
     PlainLanguageTranslator,
@@ -50,28 +42,35 @@ from core.data_profiler import VariableType
 # Data Fixtures: deterministic datasets with known statistical properties
 # ---------------------------------------------------------------------------
 
+
 def _normal_two_group_df(seed=42):
     """Two groups, each N=50, drawn from normals with Cohen's d ≈ 1.0."""
     rng = np.random.RandomState(seed)
-    group = np.array(['A'] * 50 + ['B'] * 50)
-    score = np.concatenate([
-        rng.normal(loc=10, scale=2, size=50),
-        rng.normal(loc=12, scale=2, size=50),
-    ])
-    return pd.DataFrame({'group': group, 'score': score})
+    group = np.array(["A"] * 50 + ["B"] * 50)
+    score = np.concatenate(
+        [
+            rng.normal(loc=10, scale=2, size=50),
+            rng.normal(loc=12, scale=2, size=50),
+        ]
+    )
+    return pd.DataFrame({"group": group, "score": score})
 
 
 def _skewed_two_group_df(seed=42):
     """Exponentially distributed data — triggers normality violation → cascade."""
     rng = np.random.RandomState(seed)
     n = 50
-    return pd.DataFrame({
-        'group': np.array(['X'] * n + ['Y'] * n),
-        'outcome': np.concatenate([
-            rng.exponential(scale=5, size=n),
-            rng.exponential(scale=12, size=n),
-        ]),
-    })
+    return pd.DataFrame(
+        {
+            "group": np.array(["X"] * n + ["Y"] * n),
+            "outcome": np.concatenate(
+                [
+                    rng.exponential(scale=5, size=n),
+                    rng.exponential(scale=12, size=n),
+                ]
+            ),
+        }
+    )
 
 
 def _correlation_df(seed=42):
@@ -81,7 +80,7 @@ def _correlation_df(seed=42):
     x = rng.normal(0, 1, n)
     noise = rng.normal(0, 1, n)
     y = 0.7 * x + np.sqrt(1 - 0.49) * noise
-    return pd.DataFrame({'x': x, 'y': y})
+    return pd.DataFrame({"x": x, "y": y})
 
 
 def _multi_group_df(seed=42):
@@ -89,23 +88,23 @@ def _multi_group_df(seed=42):
     rng = np.random.RandomState(seed)
     groups, scores = [], []
     for i in range(3):
-        groups.extend([f'G{i + 1}'] * 30)
+        groups.extend([f"G{i + 1}"] * 30)
         scores.extend(rng.normal(loc=5 + i * 2, scale=1.5, size=30).tolist())
-    return pd.DataFrame({'category': groups, 'value': scores})
+    return pd.DataFrame({"category": groups, "value": scores})
 
 
 def _categorical_2x2_df(seed=42):
     """Two categorical columns with strong association (OR ≈ 5)."""
     rng = np.random.RandomState(seed)
     n = 120
-    gender = rng.choice(['M', 'F'], size=n)
+    gender = rng.choice(["M", "F"], size=n)
     pref = []
     for g in gender:
-        if g == 'M':
-            pref.append(rng.choice(['A', 'B'], p=[0.8, 0.2]))
+        if g == "M":
+            pref.append(rng.choice(["A", "B"], p=[0.8, 0.2]))
         else:
-            pref.append(rng.choice(['A', 'B'], p=[0.3, 0.7]))
-    return pd.DataFrame({'gender': gender, 'preference': pref})
+            pref.append(rng.choice(["A", "B"], p=[0.3, 0.7]))
+    return pd.DataFrame({"gender": gender, "preference": pref})
 
 
 def _paired_prepost_df(seed=42):
@@ -113,51 +112,60 @@ def _paired_prepost_df(seed=42):
     rng = np.random.RandomState(seed)
     n = 40
     baseline = rng.normal(loc=50, scale=10, size=n)
-    return pd.DataFrame({
-        'score_pre': baseline,
-        'score_post': baseline + rng.normal(loc=3.0, scale=3, size=n),
-    })
+    return pd.DataFrame(
+        {
+            "score_pre": baseline,
+            "score_post": baseline + rng.normal(loc=3.0, scale=3, size=n),
+        }
+    )
 
 
 def _all_nan_df():
     """DataFrame where all values are NaN."""
-    return pd.DataFrame({
-        'group': [np.nan] * 10,
-        'value': [np.nan] * 10,
-    })
+    return pd.DataFrame(
+        {
+            "group": [np.nan] * 10,
+            "value": [np.nan] * 10,
+        }
+    )
 
 
 def _single_value_df():
     """DataFrame where one column is constant."""
-    return pd.DataFrame({
-        'group': ['A'] * 20 + ['B'] * 20,
-        'score': [5.0] * 40,
-    })
+    return pd.DataFrame(
+        {
+            "group": ["A"] * 20 + ["B"] * 20,
+            "score": [5.0] * 40,
+        }
+    )
 
 
 def _single_row_df():
     """DataFrame with only one row."""
-    return pd.DataFrame({'group': ['A'], 'score': [10.0]})
+    return pd.DataFrame({"group": ["A"], "score": [10.0]})
 
 
 def _empty_df():
     """Empty DataFrame with columns but no rows."""
-    return pd.DataFrame({'group': pd.Series(dtype=str), 'score': pd.Series(dtype=float)})
+    return pd.DataFrame({"group": pd.Series(dtype=str), "score": pd.Series(dtype=float)})
 
 
 def _mixed_types_df():
     """DataFrame with numeric, string, and boolean columns."""
-    return pd.DataFrame({
-        'name': ['Alice', 'Bob', 'Carol', 'Dave'] * 5,
-        'score': np.random.RandomState(42).normal(50, 10, 20),
-        'passed': [True, False, True, False] * 5,
-        'grade': ['A', 'B', 'C', 'D'] * 5,
-    })
+    return pd.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Carol", "Dave"] * 5,
+            "score": np.random.RandomState(42).normal(50, 10, 20),
+            "passed": [True, False, True, False] * 5,
+            "grade": ["A", "B", "C", "D"] * 5,
+        }
+    )
 
 
 # ===================================================================
 # TEST CLASS 1: Full Pipeline Integration
 # ===================================================================
+
 
 class TestFullPipelineIntegration(TestCase):
     """Feed data + query through AutonomousQueryHandler.handle_query() end-to-end."""
@@ -175,15 +183,15 @@ class TestFullPipelineIntegration(TestCase):
         )
 
         self.assertIsInstance(result, AutonomousResult)
-        self.assertIn('summary', result.translation)
-        self.assertNotEqual(result.translation['summary'], '')
+        self.assertIn("summary", result.translation)
+        self.assertNotEqual(result.translation["summary"], "")
         self.assertGreater(result.confidence, 0)
         self.assertIsNotNone(result.cascade_result)
         # Should have detected the group comparison question
         self.assertGreater(len(result.inferred_questions), 0)
         # Profile should report correct shape
-        self.assertEqual(result.profile_summary['n_rows'], 100)
-        self.assertEqual(result.profile_summary['n_columns'], 2)
+        self.assertEqual(result.profile_summary["n_rows"], 100)
+        self.assertEqual(result.profile_summary["n_columns"], 2)
 
     def test_correlation_pipeline(self):
         """Correlation data → pearson/spearman → relationship summary."""
@@ -195,9 +203,9 @@ class TestFullPipelineIntegration(TestCase):
         )
 
         self.assertIsInstance(result, AutonomousResult)
-        self.assertIn('summary', result.translation)
+        self.assertIn("summary", result.translation)
         # Should detect relationship question
-        q_types = [q['type'] for q in result.inferred_questions]
+        q_types = [q["type"] for q in result.inferred_questions]
         self.assertIn(InferredQuestionType.RELATIONSHIP.value, q_types)
 
     def test_anova_pipeline(self):
@@ -210,7 +218,7 @@ class TestFullPipelineIntegration(TestCase):
         )
 
         self.assertIsInstance(result, AutonomousResult)
-        self.assertIn('summary', result.translation)
+        self.assertIn("summary", result.translation)
         self.assertGreater(result.confidence, 0)
 
     def test_chi_square_pipeline(self):
@@ -223,7 +231,7 @@ class TestFullPipelineIntegration(TestCase):
         )
 
         self.assertIsInstance(result, AutonomousResult)
-        self.assertIn('summary', result.translation)
+        self.assertIn("summary", result.translation)
 
     def test_paired_pipeline(self):
         """Pre/post data → paired_t/wilcoxon → change detected."""
@@ -235,7 +243,7 @@ class TestFullPipelineIntegration(TestCase):
         )
 
         self.assertIsInstance(result, AutonomousResult)
-        self.assertIn('summary', result.translation)
+        self.assertIn("summary", result.translation)
 
     def test_all_output_modes(self):
         """Same data through plain_english, researcher, and apa_format modes."""
@@ -245,19 +253,21 @@ class TestFullPipelineIntegration(TestCase):
         results = {}
         for mode in [OutputMode.PLAIN_ENGLISH, OutputMode.RESEARCHER, OutputMode.APA_FORMAT]:
             results[mode] = self.handler.handle_query(
-                query_text=query, df=df, mode=mode,
+                query_text=query,
+                df=df,
+                mode=mode,
             )
 
         # All should produce valid results
         for mode, result in results.items():
             self.assertIsInstance(result, AutonomousResult, f"Failed for mode {mode}")
-            self.assertIn('summary', result.translation, f"No summary for mode {mode}")
-            self.assertNotEqual(result.translation['summary'], '', f"Empty summary for mode {mode}")
+            self.assertIn("summary", result.translation, f"No summary for mode {mode}")
+            self.assertNotEqual(result.translation["summary"], "", f"Empty summary for mode {mode}")
 
         # APA format should include parenthetical notation
-        apa_summary = results[OutputMode.APA_FORMAT].translation['summary']
+        apa_summary = results[OutputMode.APA_FORMAT].translation["summary"]
         self.assertTrue(
-            any(c in apa_summary for c in ['t(', 'U(', 'p =', 'p <']),
+            any(c in apa_summary for c in ["t(", "U(", "p =", "p <"]),
             f"APA summary missing statistical notation: {apa_summary}",
         )
 
@@ -265,6 +275,7 @@ class TestFullPipelineIntegration(TestCase):
 # ===================================================================
 # TEST CLASS 2: Data Flow Contract Integration
 # ===================================================================
+
 
 class TestDataFlowContractIntegration(TestCase):
     """Verify output of each service matches input contract of the next."""
@@ -299,26 +310,29 @@ class TestDataFlowContractIntegration(TestCase):
         g2 = rng.normal(12, 2, 50)
 
         cascade_result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
         self.assertIsNotNone(cascade_result.result)
         result_dict = {
-            'statistic': cascade_result.result.statistic,
-            'p_value': cascade_result.result.p_value,
-            'effect_size': cascade_result.result.effect_size,
-            'effect_size_name': cascade_result.result.effect_size_name,
-            'degrees_of_freedom': cascade_result.result.degrees_of_freedom,
-            'additional': cascade_result.result.additional,
+            "statistic": cascade_result.result.statistic,
+            "p_value": cascade_result.result.p_value,
+            "effect_size": cascade_result.result.effect_size,
+            "effect_size_name": cascade_result.result.effect_size_name,
+            "degrees_of_freedom": cascade_result.result.degrees_of_freedom,
+            "additional": cascade_result.result.additional,
         }
 
         translation = self.translator.translate(
-            cascade_result.result.test_name, result_dict, OutputMode.PLAIN_ENGLISH,
+            cascade_result.result.test_name,
+            result_dict,
+            OutputMode.PLAIN_ENGLISH,
         )
 
-        self.assertIn('summary', translation)
-        self.assertNotEqual(translation['summary'], '')
-        self.assertIn('is_significant', translation)
+        self.assertIn("summary", translation)
+        self.assertNotEqual(translation["summary"], "")
+        self.assertIn("is_significant", translation)
 
     def test_variable_types_are_valid_enum_values(self):
         """All profiled variable types should be valid VariableType enum values."""
@@ -328,7 +342,8 @@ class TestDataFlowContractIntegration(TestCase):
         valid_types = {vt.value for vt in VariableType}
         for var_name, var_info in profile_result.variable_summary.items():
             self.assertIn(
-                var_info['type'], valid_types,
+                var_info["type"],
+                valid_types,
                 f"Variable '{var_name}' has invalid type: {var_info['type']}",
             )
 
@@ -339,7 +354,8 @@ class TestDataFlowContractIntegration(TestCase):
         g2 = rng.normal(12, 2, 40)
 
         result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
         self.assertIsInstance(result.cascade_path, list)
@@ -377,6 +393,7 @@ class TestDataFlowContractIntegration(TestCase):
 # TEST CLASS 3: Cascade Chain Integration
 # ===================================================================
 
+
 class TestCascadeChainIntegration(TestCase):
     """Test Guardian violation → cascade with real data."""
 
@@ -390,17 +407,23 @@ class TestCascadeChainIntegration(TestCase):
         g2 = rng.exponential(scale=20, size=50)
 
         result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
         self.assertIsNotNone(result.result)
-        self.assertEqual(result.original_test, 'independent_t')
+        self.assertEqual(result.original_test, "independent_t")
         # Should cascade to nonparametric
         if result.n_cascades > 0:
-            self.assertNotEqual(result.final_test, 'independent_t')
-            self.assertIn(result.final_test, [
-                'welch_t', 'mann_whitney_u', 'permutation_test',
-            ])
+            self.assertNotEqual(result.final_test, "independent_t")
+            self.assertIn(
+                result.final_test,
+                [
+                    "welch_t",
+                    "mann_whitney_u",
+                    "permutation_test",
+                ],
+            )
 
     def test_normal_data_no_cascade(self):
         """Well-behaved normal data should pass without cascading."""
@@ -409,14 +432,15 @@ class TestCascadeChainIntegration(TestCase):
         g2 = rng.normal(12, 2, 50)
 
         result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
         self.assertIsNotNone(result.result)
-        self.assertEqual(result.original_test, 'independent_t')
+        self.assertEqual(result.original_test, "independent_t")
         # Normal data with equal variance should not cascade
         # (or may cascade to welch_t if Levene's marginal)
-        self.assertIn(result.final_test, ['independent_t', 'welch_t'])
+        self.assertIn(result.final_test, ["independent_t", "welch_t"])
 
     def test_max_cascades_respected(self):
         """Cascade count should not exceed the engine's max_cascades limit."""
@@ -425,10 +449,11 @@ class TestCascadeChainIntegration(TestCase):
         g2 = rng.exponential(scale=20, size=50)
 
         result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
-        max_allowed = getattr(self.engine, 'max_cascades', 5)
+        max_allowed = getattr(self.engine, "max_cascades", 5)
         self.assertLessEqual(result.n_cascades, max_allowed)
 
     def test_guardian_report_schema(self):
@@ -438,7 +463,8 @@ class TestCascadeChainIntegration(TestCase):
         g2 = rng.normal(12, 2, 40)
 
         result = self.engine.execute_with_cascade(
-            {'group1': g1, 'group2': g2}, 'independent_t',
+            {"group1": g1, "group2": g2},
+            "independent_t",
         )
 
         if result.guardian_report is not None:
@@ -446,7 +472,7 @@ class TestCascadeChainIntegration(TestCase):
             # Guardian report should be a dict with expected keys
             self.assertIsInstance(report, dict)
             # Check common keys
-            expected_keys = {'confidence', 'violations', 'passed'}
+            expected_keys = {"confidence", "violations", "passed"}
             present_keys = set(report.keys())
             self.assertTrue(
                 expected_keys.issubset(present_keys) or len(present_keys) > 0,
@@ -457,6 +483,7 @@ class TestCascadeChainIntegration(TestCase):
 # ===================================================================
 # TEST CLASS 4: Edge Case Integration
 # ===================================================================
+
 
 class TestEdgeCaseIntegration(TestCase):
     """Pathological data through the pipeline."""
@@ -501,8 +528,10 @@ class TestEdgeCaseIntegration(TestCase):
         # The health card or issues should flag zero variance
         health = profile.data_health
         has_issue = (
-            any('constant' in str(i).lower() or 'variance' in str(i).lower()
-                or 'zero' in str(i).lower() for i in health.issues)
+            any(
+                "constant" in str(i).lower() or "variance" in str(i).lower() or "zero" in str(i).lower()
+                for i in health.issues
+            )
             or health.suitability_score < 80
         )
         self.assertTrue(has_issue, "Should flag constant column as issue")
@@ -515,8 +544,10 @@ class TestEdgeCaseIntegration(TestCase):
 
         health = profile.data_health
         has_small_sample = (
-            any('small' in str(i).lower() or 'sample' in str(i).lower()
-                or 'insufficient' in str(i).lower() for i in health.issues)
+            any(
+                "small" in str(i).lower() or "sample" in str(i).lower() or "insufficient" in str(i).lower()
+                for i in health.issues
+            )
             or health.suitability_score < 50
         )
         self.assertTrue(has_small_sample, "Should flag single-row data")
@@ -531,13 +562,14 @@ class TestEdgeCaseIntegration(TestCase):
 
         self.assertIsInstance(result, AutonomousResult)
         # Should not crash and should report at least the profile
-        self.assertIn('n_rows', result.profile_summary)
-        self.assertEqual(result.profile_summary['n_rows'], 20)
+        self.assertIn("n_rows", result.profile_summary)
+        self.assertEqual(result.profile_summary["n_rows"], 20)
 
 
 # ===================================================================
 # TEST CLASS 5: Autonomous API Integration
 # ===================================================================
+
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class TestAutonomousAPIIntegration(APITestCase):
@@ -546,59 +578,65 @@ class TestAutonomousAPIIntegration(APITestCase):
     def test_profile_endpoint_with_json_data(self):
         """POST to /api/v1/autonomous/profile/ with JSON data."""
         payload = {
-            'data': [
-                {'group': 'A', 'score': 85, 'age': 25},
-                {'group': 'A', 'score': 90, 'age': 30},
-                {'group': 'A', 'score': 88, 'age': 35},
-                {'group': 'B', 'score': 78, 'age': 22},
-                {'group': 'B', 'score': 82, 'age': 28},
-                {'group': 'B', 'score': 75, 'age': 24},
+            "data": [
+                {"group": "A", "score": 85, "age": 25},
+                {"group": "A", "score": 90, "age": 30},
+                {"group": "A", "score": 88, "age": 35},
+                {"group": "B", "score": 78, "age": 22},
+                {"group": "B", "score": 82, "age": 28},
+                {"group": "B", "score": 75, "age": 24},
             ],
         }
 
         response = self.client.post(
-            '/api/v1/autonomous/profile/',
+            "/api/v1/autonomous/profile/",
             payload,
-            format='json',
+            format="json",
         )
 
-        self.assertIn(response.status_code, [
-            http_status.HTTP_200_OK,
-            http_status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                http_status.HTTP_200_OK,
+                http_status.HTTP_201_CREATED,
+            ],
+        )
         data = response.json()
-        self.assertIn('profile', data)
+        self.assertIn("profile", data)
 
     def test_query_endpoint_with_json_data(self):
         """POST to /api/v1/autonomous/query/ with query + data."""
         payload = {
-            'query': 'Is there a difference in score between groups?',
-            'data': [
-                {'group': 'A', 'score': 85},
-                {'group': 'A', 'score': 90},
-                {'group': 'A', 'score': 88},
-                {'group': 'A', 'score': 92},
-                {'group': 'B', 'score': 78},
-                {'group': 'B', 'score': 82},
-                {'group': 'B', 'score': 75},
-                {'group': 'B', 'score': 80},
+            "query": "Is there a difference in score between groups?",
+            "data": [
+                {"group": "A", "score": 85},
+                {"group": "A", "score": 90},
+                {"group": "A", "score": 88},
+                {"group": "A", "score": 92},
+                {"group": "B", "score": 78},
+                {"group": "B", "score": 82},
+                {"group": "B", "score": 75},
+                {"group": "B", "score": 80},
             ],
-            'mode': 'plain_english',
+            "mode": "plain_english",
         }
 
         response = self.client.post(
-            '/api/v1/autonomous/query/',
+            "/api/v1/autonomous/query/",
             payload,
-            format='json',
+            format="json",
         )
 
-        self.assertIn(response.status_code, [
-            http_status.HTTP_200_OK,
-            http_status.HTTP_201_CREATED,
-        ])
+        self.assertIn(
+            response.status_code,
+            [
+                http_status.HTTP_200_OK,
+                http_status.HTTP_201_CREATED,
+            ],
+        )
         data = response.json()
         # Should contain analysis result fields
         self.assertTrue(
-            'translation' in data or 'result' in data or 'profile' in data,
+            "translation" in data or "result" in data or "profile" in data,
             f"Response missing expected keys: {list(data.keys())}",
         )

@@ -9,9 +9,7 @@ Version: 1.0.0
 """
 
 import os
-import json
 import logging
-import hashlib
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
@@ -22,6 +20,7 @@ import threading
 # Anthropic SDK
 try:
     import anthropic
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
@@ -32,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class MessageRole(Enum):
     """Message roles in conversation."""
+
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
@@ -40,6 +40,7 @@ class MessageRole(Enum):
 @dataclass
 class Message:
     """Represents a single message in conversation."""
+
     role: MessageRole
     content: str
     timestamp: datetime = field(default_factory=datetime.now)
@@ -47,10 +48,7 @@ class Message:
 
     def to_api_format(self) -> Dict[str, str]:
         """Convert to Anthropic API format."""
-        return {
-            "role": self.role.value if self.role != MessageRole.SYSTEM else "user",
-            "content": self.content
-        }
+        return {"role": self.role.value if self.role != MessageRole.SYSTEM else "user", "content": self.content}
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -58,13 +56,14 @@ class Message:
             "role": self.role.value,
             "content": self.content,
             "timestamp": self.timestamp.isoformat(),
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class Conversation:
     """Manages a single conversation thread."""
+
     conversation_id: str
     messages: List[Message] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
@@ -81,11 +80,7 @@ class Conversation:
 
     def get_messages_for_api(self) -> List[Dict[str, str]]:
         """Get messages in Anthropic API format (excludes system)."""
-        return [
-            msg.to_api_format()
-            for msg in self.messages
-            if msg.role != MessageRole.SYSTEM
-        ]
+        return [msg.to_api_format() for msg in self.messages if msg.role != MessageRole.SYSTEM]
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize conversation."""
@@ -95,7 +90,7 @@ class Conversation:
             "created_at": self.created_at.isoformat(),
             "last_activity": self.last_activity.isoformat(),
             "data_context": self.data_context,
-            "total_tokens_used": self.total_tokens_used
+            "total_tokens_used": self.total_tokens_used,
         }
 
 
@@ -161,25 +156,17 @@ class ConversationManager:
             if conversation_id not in self.conversations:
                 if len(self.conversations) >= self.max_conversations:
                     # Remove oldest conversation
-                    oldest_id = min(
-                        self.conversations.keys(),
-                        key=lambda k: self.conversations[k].last_activity
-                    )
+                    oldest_id = min(self.conversations.keys(), key=lambda k: self.conversations[k].last_activity)
                     del self.conversations[oldest_id]
 
-                self.conversations[conversation_id] = Conversation(
-                    conversation_id=conversation_id
-                )
+                self.conversations[conversation_id] = Conversation(conversation_id=conversation_id)
 
             return self.conversations[conversation_id]
 
     def _cleanup_old_conversations(self):
         """Remove conversations older than TTL."""
         now = datetime.now()
-        expired = [
-            cid for cid, conv in self.conversations.items()
-            if now - conv.last_activity > self.conversation_ttl
-        ]
+        expired = [cid for cid, conv in self.conversations.items() if now - conv.last_activity > self.conversation_ttl]
         for cid in expired:
             del self.conversations[cid]
 
@@ -282,12 +269,11 @@ class AIAdvisorService:
 
     def __init__(self):
         """Initialize the AI Advisor Service."""
-        self.api_key = os.environ.get('ANTHROPIC_API_KEY')
+        self.api_key = os.environ.get("ANTHROPIC_API_KEY")
         self.client = None
         self.conversation_manager = ConversationManager()
         self.rate_limiter = RateLimiter(
-            requests_per_minute=30,  # Generous for single-user development
-            tokens_per_minute=150000
+            requests_per_minute=30, tokens_per_minute=150000  # Generous for single-user development
         )
 
         if ANTHROPIC_AVAILABLE and self.api_key:
@@ -308,12 +294,7 @@ class AIAdvisorService:
         """Check if AI service is available."""
         return self.client is not None
 
-    def chat(
-        self,
-        message: str,
-        conversation_id: str,
-        data_context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def chat(self, message: str, conversation_id: str, data_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Send a message and get AI response.
 
@@ -332,12 +313,7 @@ class AIAdvisorService:
         # Check rate limits
         can_proceed, error_msg = self.rate_limiter.can_make_request(estimated_tokens=2000)
         if not can_proceed:
-            return {
-                "success": False,
-                "error": error_msg,
-                "error_type": "rate_limit",
-                "retry_after_seconds": 60
-            }
+            return {"success": False, "error": error_msg, "error_type": "rate_limit", "retry_after_seconds": 60}
 
         # Get or create conversation
         conversation = self.conversation_manager.get_or_create(conversation_id)
@@ -361,7 +337,7 @@ class AIAdvisorService:
                 max_tokens=self.MAX_TOKENS,
                 temperature=self.TEMPERATURE,
                 system=SYSTEM_PROMPT,
-                messages=conversation.get_messages_for_api()
+                messages=conversation.get_messages_for_api(),
             )
 
             elapsed_time = time.time() - start_time
@@ -385,8 +361,8 @@ class AIAdvisorService:
                     "model": response.model,
                     "input_tokens": input_tokens,
                     "output_tokens": output_tokens,
-                    "response_time_ms": int(elapsed_time * 1000)
-                }
+                    "response_time_ms": int(elapsed_time * 1000),
+                },
             )
 
             # Parse for recommendations
@@ -403,8 +379,8 @@ class AIAdvisorService:
                     "output_tokens": output_tokens,
                     "total_tokens": total_tokens,
                     "response_time_ms": int(elapsed_time * 1000),
-                    "conversation_length": len(conversation.messages)
-                }
+                    "conversation_length": len(conversation.messages),
+                },
             }
 
         except anthropic.APIConnectionError as e:
@@ -412,7 +388,7 @@ class AIAdvisorService:
             return {
                 "success": False,
                 "error": "Unable to connect to AI service. Please check your internet connection.",
-                "error_type": "connection"
+                "error_type": "connection",
             }
         except anthropic.RateLimitError as e:
             logger.error(f"Rate Limit Error: {e}")
@@ -420,28 +396,20 @@ class AIAdvisorService:
                 "success": False,
                 "error": "AI service rate limit reached. Please try again in a few minutes.",
                 "error_type": "rate_limit",
-                "retry_after_seconds": 60
+                "retry_after_seconds": 60,
             }
         except anthropic.APIStatusError as e:
             logger.error(f"API Status Error: {e}")
-            return {
-                "success": False,
-                "error": f"AI service error: {e.message}",
-                "error_type": "api_error"
-            }
+            return {"success": False, "error": f"AI service error: {e.message}", "error_type": "api_error"}
         except Exception as e:
             logger.exception(f"Unexpected error in AI chat: {e}")
             return {
                 "success": False,
                 "error": "An unexpected error occurred. Please try again.",
-                "error_type": "unknown"
+                "error_type": "unknown",
             }
 
-    def _build_enriched_message(
-        self,
-        message: str,
-        data_context: Optional[Dict[str, Any]]
-    ) -> str:
+    def _build_enriched_message(self, message: str, data_context: Optional[Dict[str, Any]]) -> str:
         """Build message with data context if available."""
         if not data_context:
             return message
@@ -453,9 +421,9 @@ class AIAdvisorService:
             vars_info = []
             for var in data_context["variables"]:
                 var_str = f"- {var.get('name', 'Unknown')}: {var.get('type', 'unknown')} type"
-                if var.get('n'):
+                if var.get("n"):
                     var_str += f", n={var['n']}"
-                if var.get('missing'):
+                if var.get("missing"):
                     var_str += f", {var['missing']} missing values"
                 vars_info.append(var_str)
 
@@ -502,91 +470,54 @@ class AIAdvisorService:
 
         # Pattern matching for common test mentions
         test_patterns = {
-            'independent-t-test': [
-                r'independent[- ]?samples?\s*t[- ]?test',
-                r'two[- ]?sample\s*t[- ]?test',
-                r'unpaired\s*t[- ]?test'
+            "independent-t-test": [
+                r"independent[- ]?samples?\s*t[- ]?test",
+                r"two[- ]?sample\s*t[- ]?test",
+                r"unpaired\s*t[- ]?test",
             ],
-            'paired-t-test': [
-                r'paired[- ]?samples?\s*t[- ]?test',
-                r'dependent\s*t[- ]?test',
-                r'repeated\s*measures\s*t[- ]?test'
+            "paired-t-test": [
+                r"paired[- ]?samples?\s*t[- ]?test",
+                r"dependent\s*t[- ]?test",
+                r"repeated\s*measures\s*t[- ]?test",
             ],
-            'one-sample-t-test': [
-                r'one[- ]?sample\s*t[- ]?test',
-                r'single[- ]?sample\s*t[- ]?test'
-            ],
-            'mann-whitney': [
-                r'mann[- ]?whitney',
-                r'wilcoxon\s*rank[- ]?sum'
-            ],
-            'wilcoxon': [
-                r'wilcoxon\s*signed[- ]?rank',
-                r'wilcoxon\s*test'  # Be more specific in context
-            ],
-            'one-way-anova': [
-                r'one[- ]?way\s*anova',
-                r'single[- ]?factor\s*anova'
-            ],
-            'two-way-anova': [
-                r'two[- ]?way\s*anova',
-                r'factorial\s*anova'
-            ],
-            'repeated-measures-anova': [
-                r'repeated[- ]?measures\s*anova',
-                r'within[- ]?subjects?\s*anova'
-            ],
-            'kruskal-wallis': [
-                r'kruskal[- ]?wallis'
-            ],
-            'friedman': [
-                r'friedman\s*test'
-            ],
-            'pearson-correlation': [
-                r'pearson[\'s]?\s*(?:correlation|r)',
-                r'pearson\s*product[- ]?moment'
-            ],
-            'spearman-correlation': [
-                r'spearman[\'s]?\s*(?:correlation|rho|ρ)'
-            ],
-            'chi-square': [
-                r'chi[- ]?square',
-                r'χ²\s*test'
-            ],
-            'fisher-exact': [
-                r'fisher[\'s]?\s*exact'
-            ],
-            'linear-regression': [
-                r'(?:simple|linear)\s*regression',
-                r'ols\s*regression'
-            ],
-            'logistic-regression': [
-                r'logistic\s*regression',
-                r'binary\s*logistic'
-            ]
+            "one-sample-t-test": [r"one[- ]?sample\s*t[- ]?test", r"single[- ]?sample\s*t[- ]?test"],
+            "mann-whitney": [r"mann[- ]?whitney", r"wilcoxon\s*rank[- ]?sum"],
+            "wilcoxon": [r"wilcoxon\s*signed[- ]?rank", r"wilcoxon\s*test"],  # Be more specific in context
+            "one-way-anova": [r"one[- ]?way\s*anova", r"single[- ]?factor\s*anova"],
+            "two-way-anova": [r"two[- ]?way\s*anova", r"factorial\s*anova"],
+            "repeated-measures-anova": [r"repeated[- ]?measures\s*anova", r"within[- ]?subjects?\s*anova"],
+            "kruskal-wallis": [r"kruskal[- ]?wallis"],
+            "friedman": [r"friedman\s*test"],
+            "pearson-correlation": [r"pearson[\'s]?\s*(?:correlation|r)", r"pearson\s*product[- ]?moment"],
+            "spearman-correlation": [r"spearman[\'s]?\s*(?:correlation|rho|ρ)"],
+            "chi-square": [r"chi[- ]?square", r"χ²\s*test"],
+            "fisher-exact": [r"fisher[\'s]?\s*exact"],
+            "linear-regression": [r"(?:simple|linear)\s*regression", r"ols\s*regression"],
+            "logistic-regression": [r"logistic\s*regression", r"binary\s*logistic"],
         }
 
         import re
+
         content_lower = content.lower()
 
         # Test name to display name mapping
         display_names = {
-            'independent-t-test': 'Independent Samples t-test',
-            'paired-t-test': 'Paired Samples t-test',
-            'one-sample-t-test': 'One-Sample t-test',
-            'mann-whitney': 'Mann-Whitney U Test',
-            'wilcoxon': 'Wilcoxon Signed-Rank Test',
-            'one-way-anova': 'One-Way ANOVA',
-            'two-way-anova': 'Two-Way ANOVA',
-            'repeated-measures-anova': 'Repeated Measures ANOVA',
-            'kruskal-wallis': 'Kruskal-Wallis H Test',
-            'friedman': 'Friedman Test',
-            'pearson-correlation': 'Pearson Correlation',
-            'spearman-correlation': 'Spearman Correlation',
-            'chi-square': 'Chi-Square Test',
-            'fisher-exact': "Fisher's Exact Test",
-            'linear-regression': 'Linear Regression',
-            'logistic-regression': 'Logistic Regression'
+            "independent-t-test": "Independent Samples t-test",
+            "paired-t-test": "Paired Samples t-test",
+            "one-sample-t-test": "One-Sample t-test",
+            "mann-whitney": "Mann-Whitney U Test",
+            "wilcoxon": "Wilcoxon Signed-Rank Test",
+            "one-way-anova": "One-Way ANOVA",
+            "two-way-anova": "Two-Way ANOVA",
+            "repeated-measures-anova": "Repeated Measures ANOVA",
+            "kruskal-wallis": "Kruskal-Wallis H Test",
+            "friedman": "Friedman Test",
+            "pearson-correlation": "Pearson Correlation",
+            "spearman-correlation": "Spearman Correlation",
+            "chi-square": "Chi-Square Test",
+            "fisher-exact": "Fisher's Exact Test",
+            "linear-regression": "Linear Regression",
+            "logistic-regression": "Logistic Regression",
         }
 
         found_tests = set()
@@ -596,24 +527,26 @@ class AIAdvisorService:
                 if re.search(pattern, content_lower):
                     if test_id not in found_tests:
                         found_tests.add(test_id)
-                        recommendations.append({
-                            'test_id': test_id,
-                            'name': display_names.get(test_id, test_id),
-                            'confidence': 80  # Default confidence
-                        })
+                        recommendations.append(
+                            {
+                                "test_id": test_id,
+                                "name": display_names.get(test_id, test_id),
+                                "confidence": 80,  # Default confidence
+                            }
+                        )
                     break
 
         # Boost confidence for tests mentioned with "recommend" or "suggest"
         recommend_patterns = [
-            r'(?:recommend|suggest|use)\s+(?:an?\s+)?(\w+[- ]?\w*\s*(?:t[- ]?test|anova|test|correlation|regression))',
+            r"(?:recommend|suggest|use)\s+(?:an?\s+)?(\w+[- ]?\w*\s*(?:t[- ]?test|anova|test|correlation|regression))",
         ]
 
         for pattern in recommend_patterns:
             matches = re.findall(pattern, content_lower)
             for match in matches:
                 for rec in recommendations:
-                    if match in rec['name'].lower():
-                        rec['confidence'] = min(95, rec['confidence'] + 15)
+                    if match in rec["name"].lower():
+                        rec["confidence"] = min(95, rec["confidence"] + 15)
 
         return recommendations[:5]  # Limit to top 5 recommendations
 
@@ -634,7 +567,7 @@ class AIAdvisorService:
 - Use our statistical test selector wizard
 - Check our educational modules for guidance
 - Review the Power Analysis learning hub
-- Consult our assumption checking tools"""
+- Consult our assumption checking tools""",
         }
 
     def get_conversation_history(self, conversation_id: str) -> Optional[Dict[str, Any]]:
@@ -662,8 +595,8 @@ class AIAdvisorService:
             "active_conversations": len(self.conversation_manager.conversations),
             "rate_limit": {
                 "requests_per_minute": self.rate_limiter.requests_per_minute,
-                "tokens_per_minute": self.rate_limiter.tokens_per_minute
-            }
+                "tokens_per_minute": self.rate_limiter.tokens_per_minute,
+            },
         }
 
 

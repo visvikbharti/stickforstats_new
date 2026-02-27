@@ -187,7 +187,7 @@ export const levenesTest = (groups, center = 'median', alpha = 0.05) => {
 
   // Perform one-way ANOVA on deviations
   const allDeviations = deviations.flat();
-  const groupLabels = deviations.map((group, i) =>
+  const _groupLabels = deviations.map((group, i) =>
     new Array(group.length).fill(i)
   ).flat();
 
@@ -243,7 +243,7 @@ export const levenesTest = (groups, center = 'median', alpha = 0.05) => {
  */
 export const detectOutliers = (data) => {
   const sorted = [...data].sort((a, b) => a - b);
-  const n = sorted.length;
+  const _n = sorted.length;
 
   // Method 1: IQR method (Tukey's fences)
   const q1 = jStat.percentile(sorted, 0.25);

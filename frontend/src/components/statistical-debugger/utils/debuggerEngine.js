@@ -433,7 +433,7 @@ function analyzeDataQuality(data, testType) {
   }
 
   // Check for restricted range
-  const range = Math.max(...values) - Math.min(...values);
+  const _range = Math.max(...values) - Math.min(...values);
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const cv = (Math.sqrt(values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length)) / Math.abs(mean);
 

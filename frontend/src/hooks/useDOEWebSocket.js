@@ -44,8 +44,8 @@ const useDOEWebSocket = (analysisId, options = {}) => {
     try {
       updateStatus('connecting');
       const wsUrl = secureWebSocketUrl(`/doe/analysis/${analysisId}`);
-      const wsOptions = createWebSocketOptions();
-      
+      const _wsOptions = createWebSocketOptions();
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 

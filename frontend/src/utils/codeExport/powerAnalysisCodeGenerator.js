@@ -1313,9 +1313,11 @@ export async function copyToClipboard(code) {
   }
 }
 
-export default {
+const powerAnalysisCodeGenerator = {
   generateRCode,
   generatePythonCode,
   downloadCode,
   copyToClipboard
 };
+
+export default powerAnalysisCodeGenerator;

@@ -766,13 +766,13 @@ export class AuditLogger {
    * @private
    */
   async rotate() {
-    const entriesToArchive = this.entries.splice(0, this.config.rotationSize);
+    const _entriesToArchive = this.entries.splice(0, this.config.rotationSize);
 
     // Archive to IndexedDB with different store
     if (this.db) {
       try {
         // Create archive store if needed
-        const archiveStoreName = `${this.storeName}_archive`;
+        const _archiveStoreName = `${this.storeName}_archive`;
         // Note: In production, we'd need to handle schema upgrades properly
 
         // For now, just log that rotation occurred
@@ -1082,7 +1082,7 @@ export class AuditLogger {
 }
 
 // Export singleton instance for convenience
-export default new AuditLogger({
+const auditLogger = new AuditLogger({
   enabled: true,
   level: 'info',
   persistToIndexedDB: true,
@@ -1090,3 +1090,5 @@ export default new AuditLogger({
   encryptLogs: false, // Enable in production with proper key management
   retentionDays: 2555 // 7 years for regulatory compliance
 });
+
+export default auditLogger;

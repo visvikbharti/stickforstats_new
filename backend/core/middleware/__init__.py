@@ -9,7 +9,7 @@ from .guardian_middleware import GuardianComplianceMiddleware
 from .tenant_middleware import TenantContextMiddleware, UsageMeteringMiddleware
 
 __all__ = [
-    'GuardianComplianceMiddleware',
-    'TenantContextMiddleware',
-    'UsageMeteringMiddleware',
+    "GuardianComplianceMiddleware",
+    "TenantContextMiddleware",
+    "UsageMeteringMiddleware",
 ]

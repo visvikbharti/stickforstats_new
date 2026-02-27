@@ -18,12 +18,10 @@ from decimal import Decimal, getcontext
 import mpmath as mp
 from scipy import stats
 from sklearn.impute import KNNImputer
-from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import warnings
 
 # Set precision for high-precision calculations
 getcontext().prec = 50
@@ -32,6 +30,7 @@ mp.mp.dps = 50
 
 class MissingPattern(Enum):
     """Types of missing data patterns."""
+
     MCAR = "Missing Completely At Random"
     MAR = "Missing At Random"
     MNAR = "Missing Not At Random"
@@ -40,6 +39,7 @@ class MissingPattern(Enum):
 
 class ImputationMethod(Enum):
     """Available imputation methods."""
+
     DROP = "drop"  # Listwise deletion
     MEAN = "mean"
     MEDIAN = "median"
@@ -60,6 +60,7 @@ class ImputationMethod(Enum):
 @dataclass
 class MissingDataAnalysis:
     """Results of missing data analysis."""
+
     total_missing: int
     total_observations: int
     missing_percentage: Decimal
@@ -76,6 +77,7 @@ class MissingDataAnalysis:
 @dataclass
 class ImputationResult:
     """Results of data imputation."""
+
     imputed_data: np.ndarray
     method_used: ImputationMethod
     imputation_details: Dict[str, Any]
@@ -101,7 +103,7 @@ class MissingDataHandler:
         self,
         data: Union[np.ndarray, pd.DataFrame],
         column_names: Optional[List[str]] = None,
-        perform_tests: bool = True
+        perform_tests: bool = True,
     ) -> MissingDataAnalysis:
         """
         Analyze missing data patterns and provide recommendations.
@@ -139,11 +141,11 @@ class MissingDataHandler:
             col_pct = (col_missing / len(df)) * 100
 
             missing_by_col[col] = {
-                'count': int(col_missing),
-                'percentage': Decimal(str(col_pct)),
-                'dtype': str(df[col].dtype),
-                'first_missing_index': int(df[col].isnull().idxmax()) if col_missing > 0 else None,
-                'pattern': self._analyze_column_pattern(df[col])
+                "count": int(col_missing),
+                "percentage": Decimal(str(col_pct)),
+                "dtype": str(df[col].dtype),
+                "first_missing_index": int(df[col].isnull().idxmax()) if col_missing > 0 else None,
+                "pattern": self._analyze_column_pattern(df[col]),
             }
 
         # Determine missing pattern
@@ -161,9 +163,7 @@ class MissingDataHandler:
         missing_heatmap = df.isnull().astype(int).values
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            pattern, missing_pct, missing_by_col
-        )
+        recommendations = self._generate_recommendations(pattern, missing_pct, missing_by_col)
 
         # Generate warnings
         warnings_list = self._generate_warnings(missing_pct, pattern, missing_by_col)
@@ -179,7 +179,7 @@ class MissingDataHandler:
             missing_correlations=missing_corr,
             missing_heatmap_data=missing_heatmap,
             recommendations=recommendations,
-            warnings=warnings_list
+            warnings=warnings_list,
         )
 
     def impute_data(
@@ -187,7 +187,7 @@ class MissingDataHandler:
         data: Union[np.ndarray, pd.DataFrame],
         method: Union[ImputationMethod, str] = ImputationMethod.MEAN,
         column_strategies: Optional[Dict[str, Union[ImputationMethod, str]]] = None,
-        **kwargs
+        **kwargs,
     ) -> ImputationResult:
         """
         Impute missing data using specified method.
@@ -209,36 +209,36 @@ class MissingDataHandler:
         # Convert string method to enum if necessary
         if isinstance(method, str):
             method_map = {
-                'mean': ImputationMethod.MEAN,
-                'median': ImputationMethod.MEDIAN,
-                'mode': ImputationMethod.MODE,
-                'drop': ImputationMethod.DROP,
-                'forward_fill': ImputationMethod.FORWARD_FILL,
-                'backward_fill': ImputationMethod.BACKWARD_FILL,
-                'linear_interpolation': ImputationMethod.LINEAR_INTERPOLATION,
-                'knn': ImputationMethod.KNN,
-                'mice': ImputationMethod.MICE,
-                'regression': ImputationMethod.REGRESSION,
-                'hot_deck': ImputationMethod.HOT_DECK,
-                'constant': ImputationMethod.CONSTANT
+                "mean": ImputationMethod.MEAN,
+                "median": ImputationMethod.MEDIAN,
+                "mode": ImputationMethod.MODE,
+                "drop": ImputationMethod.DROP,
+                "forward_fill": ImputationMethod.FORWARD_FILL,
+                "backward_fill": ImputationMethod.BACKWARD_FILL,
+                "linear_interpolation": ImputationMethod.LINEAR_INTERPOLATION,
+                "knn": ImputationMethod.KNN,
+                "mice": ImputationMethod.MICE,
+                "regression": ImputationMethod.REGRESSION,
+                "hot_deck": ImputationMethod.HOT_DECK,
+                "constant": ImputationMethod.CONSTANT,
             }
             method = method_map.get(method.lower(), ImputationMethod.MEAN)
 
         # Convert string column_strategies to enum if necessary
         if column_strategies:
             method_map = {
-                'mean': ImputationMethod.MEAN,
-                'median': ImputationMethod.MEDIAN,
-                'mode': ImputationMethod.MODE,
-                'drop': ImputationMethod.DROP,
-                'forward_fill': ImputationMethod.FORWARD_FILL,
-                'backward_fill': ImputationMethod.BACKWARD_FILL,
-                'linear_interpolation': ImputationMethod.LINEAR_INTERPOLATION,
-                'knn': ImputationMethod.KNN,
-                'mice': ImputationMethod.MICE,
-                'regression': ImputationMethod.REGRESSION,
-                'hot_deck': ImputationMethod.HOT_DECK,
-                'constant': ImputationMethod.CONSTANT
+                "mean": ImputationMethod.MEAN,
+                "median": ImputationMethod.MEDIAN,
+                "mode": ImputationMethod.MODE,
+                "drop": ImputationMethod.DROP,
+                "forward_fill": ImputationMethod.FORWARD_FILL,
+                "backward_fill": ImputationMethod.BACKWARD_FILL,
+                "linear_interpolation": ImputationMethod.LINEAR_INTERPOLATION,
+                "knn": ImputationMethod.KNN,
+                "mice": ImputationMethod.MICE,
+                "regression": ImputationMethod.REGRESSION,
+                "hot_deck": ImputationMethod.HOT_DECK,
+                "constant": ImputationMethod.CONSTANT,
             }
             column_strategies = {
                 col: method_map.get(strat.lower(), ImputationMethod.MEAN) if isinstance(strat, str) else strat
@@ -287,7 +287,7 @@ class MissingDataHandler:
         elif method == ImputationMethod.HOT_DECK:
             imputed_df = self._impute_hot_deck(df, **kwargs)
         elif method == ImputationMethod.CONSTANT:
-            imputed_df = self._impute_constant(df, kwargs.get('constant_value', 0))
+            imputed_df = self._impute_constant(df, kwargs.get("constant_value", 0))
         else:
             raise ValueError(f"Unknown imputation method: {method}")
 
@@ -311,30 +311,24 @@ class MissingDataHandler:
             imputed_data = imputed_df
 
         # Calculate quality metrics
-        quality_metrics = self._calculate_imputation_quality(
-            df.values, imputed_df.values, missing_mask
-        )
+        quality_metrics = self._calculate_imputation_quality(df.values, imputed_df.values, missing_mask)
 
         # Create result
         return ImputationResult(
             imputed_data=imputed_data,
             method_used=method,
             imputation_details={
-                'rows_before': len(df),
-                'rows_after': len(imputed_df),
-                'columns_affected': list(df.columns[df.isnull().any()]),
-                'total_values_imputed': int(missing_mask.sum())
+                "rows_before": len(df),
+                "rows_after": len(imputed_df),
+                "columns_affected": list(df.columns[df.isnull().any()]),
+                "total_values_imputed": int(missing_mask.sum()),
             },
             quality_metrics=quality_metrics,
-            original_missing_mask=missing_mask
+            original_missing_mask=missing_mask,
         )
 
     def validate_imputation(
-        self,
-        original_data: np.ndarray,
-        imputed_data: np.ndarray,
-        method: ImputationMethod,
-        test_size: float = 0.2
+        self, original_data: np.ndarray, imputed_data: np.ndarray, method: ImputationMethod, test_size: float = 0.2
     ) -> Dict[str, Decimal]:
         """
         Validate imputation quality using cross-validation.
@@ -359,7 +353,7 @@ class MissingDataHandler:
         complete_data = original_data[complete_mask]
 
         if len(complete_data) < 10:
-            return {'error': Decimal('1'), 'message': 'Insufficient complete cases'}
+            return {"error": Decimal("1"), "message": "Insufficient complete cases"}
 
         # Randomly introduce missing values
         n_test = int(len(complete_data) * test_size)
@@ -377,8 +371,8 @@ class MissingDataHandler:
         imputed_test = result.imputed_data
 
         # Calculate errors
-        mae = Decimal('0')
-        rmse = Decimal('0')
+        mae = Decimal("0")
+        rmse = Decimal("0")
         count = 0
 
         for idx in test_indices:
@@ -386,28 +380,25 @@ class MissingDataHandler:
                 if np.isnan(test_data[idx, col]) and not np.isnan(complete_data[idx, col]):
                     error = abs(imputed_test[idx, col] - complete_data[idx, col])
                     mae += Decimal(str(error))
-                    rmse += Decimal(str(error ** 2))
+                    rmse += Decimal(str(error**2))
                     count += 1
 
         if count > 0:
             mae /= count
             rmse = (rmse / count).sqrt()
         else:
-            mae = Decimal('0')
-            rmse = Decimal('0')
+            mae = Decimal("0")
+            rmse = Decimal("0")
 
         return {
-            'mae': mae,
-            'rmse': rmse,
-            'n_validated': Decimal(str(count)),
-            'validation_method': 'artificial_missingness'
+            "mae": mae,
+            "rmse": rmse,
+            "n_validated": Decimal(str(count)),
+            "validation_method": "artificial_missingness",
         }
 
     def handle_missing_for_statistics(
-        self,
-        data: np.ndarray,
-        test_type: str,
-        strategy: str = 'auto'
+        self, data: np.ndarray, test_type: str, strategy: str = "auto"
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
         Handle missing data specifically for statistical tests.
@@ -429,20 +420,19 @@ class MissingDataHandler:
         analysis = self.analyze_missing_data(data)
 
         # Determine strategy based on test type and missing pattern
-        if strategy == 'auto':
+        if strategy == "auto":
             strategy = self._determine_strategy_for_test(
-                test_type, analysis.missing_pattern,
-                analysis.missing_percentage
+                test_type, analysis.missing_pattern, analysis.missing_percentage
             )
 
         # Apply strategy
-        if strategy == 'drop':
+        if strategy == "drop":
             method = ImputationMethod.DROP
-        elif strategy == 'mean':
+        elif strategy == "mean":
             method = ImputationMethod.MEAN
-        elif strategy == 'median':
+        elif strategy == "median":
             method = ImputationMethod.MEDIAN
-        elif strategy == 'mice':
+        elif strategy == "mice":
             method = ImputationMethod.MICE
         else:
             method = ImputationMethod.MEAN  # Default
@@ -452,13 +442,13 @@ class MissingDataHandler:
 
         # Create handling info
         handling_info = {
-            'original_missing_pct': float(analysis.missing_percentage),
-            'pattern': analysis.missing_pattern.value,
-            'method_used': method.value,
-            'rows_removed': len(data) - len(result.imputed_data) if method == ImputationMethod.DROP else 0,
-            'values_imputed': int(analysis.total_missing),
-            'quality_metrics': result.quality_metrics,
-            'warnings': analysis.warnings
+            "original_missing_pct": float(analysis.missing_percentage),
+            "pattern": analysis.missing_pattern.value,
+            "method_used": method.value,
+            "rows_removed": len(data) - len(result.imputed_data) if method == ImputationMethod.DROP else 0,
+            "values_imputed": int(analysis.total_missing),
+            "quality_metrics": result.quality_metrics,
+            "warnings": analysis.warnings,
         }
 
         return result.imputed_data, handling_info
@@ -489,7 +479,7 @@ class MissingDataHandler:
     def _determine_missing_pattern(self, df: pd.DataFrame) -> Tuple[MissingPattern, Decimal]:
         """Determine the type of missing data pattern."""
         if df.isnull().sum().sum() == 0:
-            return MissingPattern.NO_MISSING, Decimal('1.0')
+            return MissingPattern.NO_MISSING, Decimal("1.0")
 
         # Create missing indicator matrix
         missing_indicator = df.isnull().astype(int)
@@ -506,8 +496,7 @@ class MissingDataHandler:
                         if mask.sum() > 10:
                             try:
                                 corr = stats.pointbiserialr(
-                                    missing_indicator[col][mask],
-                                    pd.to_numeric(df[other_col][mask], errors='coerce')
+                                    missing_indicator[col][mask], pd.to_numeric(df[other_col][mask], errors="coerce")
                                 )[0]
                                 if not np.isnan(corr):
                                     correlations.append(abs(corr))
@@ -515,7 +504,7 @@ class MissingDataHandler:
                                 pass
 
         if not correlations:
-            return MissingPattern.MCAR, Decimal('0.5')
+            return MissingPattern.MCAR, Decimal("0.5")
 
         # Calculate average correlation
         avg_corr = np.mean(correlations)
@@ -537,7 +526,7 @@ class MissingDataHandler:
         # Full implementation would use EM algorithm for parameter estimation
 
         n = len(df)
-        n_vars = df.shape[1]
+        df.shape[1]
         n_patterns = df.isnull().value_counts().shape[0]
 
         # Calculate test statistic (simplified)
@@ -551,10 +540,10 @@ class MissingDataHandler:
         p_value = 1 - stats.chi2.cdf(chi2_stat, df_val)
 
         return {
-            'chi2_statistic': Decimal(str(chi2_stat)),
-            'degrees_of_freedom': Decimal(str(df_val)),
-            'p_value': Decimal(str(p_value)),
-            'is_mcar': Decimal(str(p_value)) > Decimal('0.05')
+            "chi2_statistic": Decimal(str(chi2_stat)),
+            "degrees_of_freedom": Decimal(str(df_val)),
+            "p_value": Decimal(str(p_value)),
+            "is_mcar": Decimal(str(p_value)) > Decimal("0.05"),
         }
 
     def _calculate_missing_correlations(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -563,21 +552,20 @@ class MissingDataHandler:
         return missing_df.corr()
 
     def _generate_recommendations(
-        self,
-        pattern: MissingPattern,
-        missing_pct: Decimal,
-        missing_by_col: Dict
+        self, pattern: MissingPattern, missing_pct: Decimal, missing_by_col: Dict
     ) -> List[str]:
         """Generate recommendations based on missing data analysis."""
         recommendations = []
 
         # Based on percentage
-        if missing_pct < Decimal('5'):
+        if missing_pct < Decimal("5"):
             recommendations.append("Low missing data (<5%): Listwise deletion may be acceptable")
-        elif missing_pct < Decimal('20'):
+        elif missing_pct < Decimal("20"):
             recommendations.append("Moderate missing data (5-20%): Consider mean/median imputation or KNN")
         else:
-            recommendations.append("High missing data (>20%): Use advanced methods like MICE or consider data collection issues")
+            recommendations.append(
+                "High missing data (>20%): Use advanced methods like MICE or consider data collection issues"
+            )
 
         # Based on pattern
         if pattern == MissingPattern.MCAR:
@@ -589,21 +577,16 @@ class MissingDataHandler:
 
         # Column-specific recommendations
         for col, info in missing_by_col.items():
-            if info['percentage'] > Decimal('50'):
+            if info["percentage"] > Decimal("50"):
                 recommendations.append(f"Consider dropping column '{col}' (>50% missing)")
 
         return recommendations
 
-    def _generate_warnings(
-        self,
-        missing_pct: Decimal,
-        pattern: MissingPattern,
-        missing_by_col: Dict
-    ) -> List[str]:
+    def _generate_warnings(self, missing_pct: Decimal, pattern: MissingPattern, missing_by_col: Dict) -> List[str]:
         """Generate warnings about missing data."""
         warnings_list = []
 
-        if missing_pct > Decimal('30'):
+        if missing_pct > Decimal("30"):
             warnings_list.append("High proportion of missing data may affect result validity")
 
         if pattern == MissingPattern.MNAR:
@@ -611,50 +594,45 @@ class MissingDataHandler:
 
         # Check for columns with all missing
         for col, info in missing_by_col.items():
-            if info['percentage'] == Decimal('100'):
+            if info["percentage"] == Decimal("100"):
                 warnings_list.append(f"Column '{col}' has no valid data")
 
         return warnings_list
 
-    def _determine_strategy_for_test(
-        self,
-        test_type: str,
-        pattern: MissingPattern,
-        missing_pct: Decimal
-    ) -> str:
+    def _determine_strategy_for_test(self, test_type: str, pattern: MissingPattern, missing_pct: Decimal) -> str:
         """Determine best strategy for specific statistical test."""
         # Test-specific strategies
-        if 'regression' in test_type.lower():
-            if missing_pct < Decimal('5'):
-                return 'drop'
+        if "regression" in test_type.lower():
+            if missing_pct < Decimal("5"):
+                return "drop"
             elif pattern == MissingPattern.MCAR:
-                return 'mean'
+                return "mean"
             else:
-                return 'mice'
+                return "mice"
 
-        elif 't-test' in test_type.lower() or 'anova' in test_type.lower():
-            if missing_pct < Decimal('10'):
-                return 'drop'
+        elif "t-test" in test_type.lower() or "anova" in test_type.lower():
+            if missing_pct < Decimal("10"):
+                return "drop"
             else:
-                return 'median'
+                return "median"
 
-        elif 'correlation' in test_type.lower():
-            if pattern == MissingPattern.MCAR and missing_pct < Decimal('20'):
-                return 'mean'
+        elif "correlation" in test_type.lower():
+            if pattern == MissingPattern.MCAR and missing_pct < Decimal("20"):
+                return "mean"
             else:
-                return 'mice'
+                return "mice"
 
-        elif 'chi' in test_type.lower():
-            return 'drop'  # Chi-square typically requires complete cases
+        elif "chi" in test_type.lower():
+            return "drop"  # Chi-square typically requires complete cases
 
         else:
             # Default strategy
-            if missing_pct < Decimal('5'):
-                return 'drop'
-            elif missing_pct < Decimal('20'):
-                return 'median'
+            if missing_pct < Decimal("5"):
+                return "drop"
+            elif missing_pct < Decimal("20"):
+                return "median"
             else:
-                return 'mice'
+                return "mice"
 
     # Imputation methods
     def _impute_drop(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -665,7 +643,7 @@ class MissingDataHandler:
         """Impute with column means."""
         result = df.copy()
         for col in df.columns:
-            if df[col].dtype in ['float64', 'int64']:
+            if df[col].dtype in ["float64", "int64"]:
                 mean_val = df[col].mean()
                 if not pd.isna(mean_val):
                     result[col].fillna(mean_val, inplace=True)
@@ -675,7 +653,7 @@ class MissingDataHandler:
         """Impute with column medians."""
         result = df.copy()
         for col in df.columns:
-            if df[col].dtype in ['float64', 'int64']:
+            if df[col].dtype in ["float64", "int64"]:
                 median_val = df[col].median()
                 if not pd.isna(median_val):
                     result[col].fillna(median_val, inplace=True)
@@ -692,18 +670,18 @@ class MissingDataHandler:
 
     def _impute_forward_fill(self, df: pd.DataFrame) -> pd.DataFrame:
         """Forward fill missing values."""
-        return df.fillna(method='ffill')
+        return df.fillna(method="ffill")
 
     def _impute_backward_fill(self, df: pd.DataFrame) -> pd.DataFrame:
         """Backward fill missing values."""
-        return df.fillna(method='bfill')
+        return df.fillna(method="bfill")
 
     def _impute_linear_interpolation(self, df: pd.DataFrame) -> pd.DataFrame:
         """Linear interpolation for missing values."""
         result = df.copy()
         for col in df.columns:
-            if df[col].dtype in ['float64', 'int64']:
-                result[col] = result[col].interpolate(method='linear')
+            if df[col].dtype in ["float64", "int64"]:
+                result[col] = result[col].interpolate(method="linear")
         return result
 
     def _impute_knn(self, df: pd.DataFrame, n_neighbors: int = 5) -> pd.DataFrame:
@@ -735,7 +713,7 @@ class MissingDataHandler:
     def _impute_regression(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Regression-based imputation."""
         # Use IterativeImputer with linear regression
-        return self._impute_mice(df, max_iter=kwargs.get('max_iter', 10))
+        return self._impute_mice(df, max_iter=kwargs.get("max_iter", 10))
 
     def _impute_hot_deck(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Hot deck imputation - use values from similar records."""
@@ -771,10 +749,7 @@ class MissingDataHandler:
         return df.fillna(constant_value)
 
     def _calculate_imputation_quality(
-        self,
-        original: np.ndarray,
-        imputed: np.ndarray,
-        missing_mask: np.ndarray
+        self, original: np.ndarray, imputed: np.ndarray, missing_mask: np.ndarray
     ) -> Dict[str, Decimal]:
         """Calculate quality metrics for imputation."""
         metrics = {}
@@ -788,21 +763,20 @@ class MissingDataHandler:
                 # Compare means
                 orig_mean = np.mean(orig_col)
                 imp_mean = np.mean(imp_col)
-                metrics[f'mean_shift_col_{i}'] = Decimal(str(abs(orig_mean - imp_mean)))
+                metrics[f"mean_shift_col_{i}"] = Decimal(str(abs(orig_mean - imp_mean)))
 
                 # Compare standard deviations
                 if len(orig_col) > 1:
                     orig_std = np.std(orig_col, ddof=1)
                     imp_std = np.std(imp_col, ddof=1)
-                    metrics[f'std_shift_col_{i}'] = Decimal(str(abs(orig_std - imp_std)))
+                    metrics[f"std_shift_col_{i}"] = Decimal(str(abs(orig_std - imp_std)))
 
         # Overall quality score
-        mean_shifts = [v for k, v in metrics.items() if 'mean_shift' in k]
+        mean_shifts = [v for k, v in metrics.items() if "mean_shift" in k]
         if mean_shifts:
-            metrics['overall_quality'] = Decimal('1') - min(Decimal('1'),
-                                                           sum(mean_shifts) / len(mean_shifts))
+            metrics["overall_quality"] = Decimal("1") - min(Decimal("1"), sum(mean_shifts) / len(mean_shifts))
         else:
-            metrics['overall_quality'] = Decimal('1')
+            metrics["overall_quality"] = Decimal("1")
 
         return metrics
 
@@ -813,21 +787,18 @@ class MissingDataHandler:
         """
         analysis = self.analyze_missing_data(df, perform_tests=perform_tests)
         return {
-            'total_observations': analysis.total_observations,
-            'total_missing': analysis.total_missing,
-            'missing_percentage': float(analysis.missing_percentage),
-            'pattern': analysis.missing_pattern.value,
-            'pattern_confidence': float(analysis.pattern_confidence),
-            'missing_by_column': {
-                col: {
-                    'count': info['count'],
-                    'percentage': float(info['percentage'])
-                }
+            "total_observations": analysis.total_observations,
+            "total_missing": analysis.total_missing,
+            "missing_percentage": float(analysis.missing_percentage),
+            "pattern": analysis.missing_pattern.value,
+            "pattern_confidence": float(analysis.pattern_confidence),
+            "missing_by_column": {
+                col: {"count": info["count"], "percentage": float(info["percentage"])}
                 for col, info in analysis.missing_by_column.items()
             },
-            'little_test_result': analysis.little_mcar_test,
-            'recommendations': analysis.recommendations,
-            'warnings': analysis.warnings
+            "little_test_result": analysis.little_mcar_test,
+            "recommendations": analysis.recommendations,
+            "warnings": analysis.warnings,
         }
 
     def littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -837,11 +808,7 @@ class MissingDataHandler:
         return self._littles_mcar_test(df)
 
     def mice_imputation(
-        self,
-        df: pd.DataFrame,
-        n_imputations: int = 5,
-        max_iter: int = 10,
-        random_state: Optional[int] = None
+        self, df: pd.DataFrame, n_imputations: int = 5, max_iter: int = 10, random_state: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Perform Multiple Imputation by Chained Equations (MICE).
@@ -855,31 +822,22 @@ class MissingDataHandler:
             imputed_dfs.append(imputed_df.values.tolist())
 
         return {
-            'imputations': imputed_dfs,
-            'n_imputations': n_imputations,
-            'method': 'MICE',
-            'converged': True,
-            'iterations': max_iter
+            "imputations": imputed_dfs,
+            "n_imputations": n_imputations,
+            "method": "MICE",
+            "converged": True,
+            "iterations": max_iter,
         }
 
     def knn_imputation(
-        self,
-        df: pd.DataFrame,
-        n_neighbors: int = 5,
-        weights: str = 'uniform',
-        metric: str = 'euclidean'
+        self, df: pd.DataFrame, n_neighbors: int = 5, weights: str = "uniform", metric: str = "euclidean"
     ) -> pd.DataFrame:
         """
         Perform K-Nearest Neighbors imputation.
         """
         return self._impute_knn(df, n_neighbors=n_neighbors)
 
-    def em_imputation(
-        self,
-        df: pd.DataFrame,
-        max_iter: int = 100,
-        tol: float = 1e-4
-    ) -> Dict[str, Any]:
+    def em_imputation(self, df: pd.DataFrame, max_iter: int = 100, tol: float = 1e-4) -> Dict[str, Any]:
         """
         Perform Expectation-Maximization algorithm for imputation.
         Simple implementation using iterative imputation.
@@ -888,69 +846,55 @@ class MissingDataHandler:
         imputed_df = self._impute_mice(df, max_iter=max_iter)
 
         return {
-            'imputed_data': imputed_df.values.tolist(),
-            'method': 'EM Algorithm',
-            'iterations': max_iter,
-            'converged': True,
-            'tolerance': tol
+            "imputed_data": imputed_df.values.tolist(),
+            "method": "EM Algorithm",
+            "iterations": max_iter,
+            "converged": True,
+            "tolerance": tol,
         }
 
-    def visualize_missing(
-        self,
-        df: pd.DataFrame,
-        visualization_types: List[str] = None
-    ) -> Dict[str, Any]:
+    def visualize_missing(self, df: pd.DataFrame, visualization_types: List[str] = None) -> Dict[str, Any]:
         """
         Generate visualization data for missing patterns.
         """
         if visualization_types is None:
-            visualization_types = ['matrix', 'bar']
+            visualization_types = ["matrix", "bar"]
 
         result = {}
 
-        if 'matrix' in visualization_types:
+        if "matrix" in visualization_types:
             # Missing data matrix (1 = missing, 0 = present)
-            result['matrix'] = df.isnull().astype(int).values.tolist()
+            result["matrix"] = df.isnull().astype(int).values.tolist()
 
-        if 'bar' in visualization_types:
+        if "bar" in visualization_types:
             # Missing counts by column
             missing_counts = df.isnull().sum()
-            result['bar'] = {
-                'columns': missing_counts.index.tolist(),
-                'counts': missing_counts.values.tolist()
-            }
+            result["bar"] = {"columns": missing_counts.index.tolist(), "counts": missing_counts.values.tolist()}
 
-        if 'heatmap' in visualization_types:
+        if "heatmap" in visualization_types:
             # Correlation of missingness
             missing_corr = df.isnull().astype(int).corr()
-            result['heatmap'] = {
-                'data': missing_corr.values.tolist(),
-                'columns': missing_corr.columns.tolist()
-            }
+            result["heatmap"] = {"data": missing_corr.values.tolist(), "columns": missing_corr.columns.tolist()}
 
-        if 'dendrogram' in visualization_types:
+        if "dendrogram" in visualization_types:
             # Hierarchical clustering of missing patterns
             from scipy.cluster.hierarchy import linkage
+
             missing_matrix = df.isnull().astype(int)
             if missing_matrix.shape[1] > 1:
-                linkage_matrix = linkage(missing_matrix.T, method='complete')
-                result['dendrogram'] = linkage_matrix.tolist()
+                linkage_matrix = linkage(missing_matrix.T, method="complete")
+                result["dendrogram"] = linkage_matrix.tolist()
 
         return result
 
-    def compare_methods(
-        self,
-        df: pd.DataFrame,
-        methods: List[str] = None,
-        metrics: List[str] = None
-    ) -> Dict[str, Any]:
+    def compare_methods(self, df: pd.DataFrame, methods: List[str] = None, metrics: List[str] = None) -> Dict[str, Any]:
         """
         Compare different imputation methods.
         """
         if methods is None:
-            methods = ['mean', 'median', 'knn']
+            methods = ["mean", "median", "knn"]
         if metrics is None:
-            metrics = ['rmse', 'mae']
+            metrics = ["rmse", "mae"]
 
         # Create test set by artificially removing some values
         test_df = df.copy()
@@ -962,13 +906,13 @@ class MissingDataHandler:
 
         for method in methods:
             try:
-                if method == 'mean':
+                if method == "mean":
                     imputed = self._impute_mean(test_df)
-                elif method == 'median':
+                elif method == "median":
                     imputed = self._impute_median(test_df)
-                elif method == 'knn':
+                elif method == "knn":
                     imputed = self._impute_knn(test_df)
-                elif method == 'mice':
+                elif method == "mice":
                     imputed = self._impute_mice(test_df)
                 else:
                     continue
@@ -977,24 +921,24 @@ class MissingDataHandler:
                 method_metrics = {}
                 imputed_values = imputed[mask]
 
-                if 'rmse' in metrics:
+                if "rmse" in metrics:
                     rmse = np.sqrt(np.mean((imputed_values - test_values) ** 2))
-                    method_metrics['rmse'] = float(rmse)
+                    method_metrics["rmse"] = float(rmse)
 
-                if 'mae' in metrics:
+                if "mae" in metrics:
                     mae = np.mean(np.abs(imputed_values - test_values))
-                    method_metrics['mae'] = float(mae)
+                    method_metrics["mae"] = float(mae)
 
                 results[method] = method_metrics
 
             except Exception as e:
-                results[method] = {'error': str(e)}
+                results[method] = {"error": str(e)}
 
         return {
-            'comparison': results,
-            'best_method': min(results.keys(), key=lambda x: results[x].get('rmse', float('inf'))),
-            'methods_tested': methods,
-            'metrics_used': metrics
+            "comparison": results,
+            "best_method": min(results.keys(), key=lambda x: results[x].get("rmse", float("inf"))),
+            "methods_tested": methods,
+            "metrics_used": metrics,
         }
 
     def get_imputation_summary(self) -> Dict[str, Any]:
@@ -1002,13 +946,21 @@ class MissingDataHandler:
         Get summary of the last imputation operation.
         """
         return {
-            'last_method': 'Multiple methods available',
-            'available_methods': [
-                'mean', 'median', 'mode', 'forward_fill', 'backward_fill',
-                'linear_interpolation', 'knn', 'mice', 'regression', 'hot_deck'
+            "last_method": "Multiple methods available",
+            "available_methods": [
+                "mean",
+                "median",
+                "mode",
+                "forward_fill",
+                "backward_fill",
+                "linear_interpolation",
+                "knn",
+                "mice",
+                "regression",
+                "hot_deck",
             ],
-            'precision': self.precision,
-            'status': 'Ready'
+            "precision": self.precision,
+            "status": "Ready",
         }
 
 
@@ -1042,10 +994,7 @@ def demonstrate_missing_data_handler():
 
     print("\n1. MISSING DATA ANALYSIS")
     print("-" * 40)
-    analysis = handler.analyze_missing_data(
-        data_with_missing,
-        column_names=['Var1', 'Var2', 'Var3', 'Var4', 'Var5']
-    )
+    analysis = handler.analyze_missing_data(data_with_missing, column_names=["Var1", "Var2", "Var3", "Var4", "Var5"])
 
     print(f"Total missing: {analysis.total_missing}/{analysis.total_observations}")
     print(f"Missing percentage: {analysis.missing_percentage:.2f}%")
@@ -1064,12 +1013,7 @@ def demonstrate_missing_data_handler():
     print("-" * 40)
 
     # Test different imputation methods
-    methods = [
-        ImputationMethod.MEAN,
-        ImputationMethod.MEDIAN,
-        ImputationMethod.KNN,
-        ImputationMethod.MICE
-    ]
+    methods = [ImputationMethod.MEAN, ImputationMethod.MEDIAN, ImputationMethod.KNN, ImputationMethod.MICE]
 
     for method in methods:
         print(f"\n{method.value.upper()} Imputation:")
@@ -1079,20 +1023,14 @@ def demonstrate_missing_data_handler():
 
     print("\n3. IMPUTATION VALIDATION")
     print("-" * 40)
-    validation = handler.validate_imputation(
-        data_with_missing,
-        result.imputed_data,
-        ImputationMethod.MICE
-    )
+    validation = handler.validate_imputation(data_with_missing, result.imputed_data, ImputationMethod.MICE)
     print(f"Mean Absolute Error: {validation['mae']:.6f}")
     print(f"Root Mean Squared Error: {validation['rmse']:.6f}")
 
     print("\n4. INTEGRATION WITH STATISTICAL TESTS")
     print("-" * 40)
     processed_data, info = handler.handle_missing_for_statistics(
-        data_with_missing,
-        test_type='regression',
-        strategy='auto'
+        data_with_missing, test_type="regression", strategy="auto"
     )
     print(f"Strategy used: {info['method_used']}")
     print(f"Values imputed: {info['values_imputed']}")

@@ -707,10 +707,12 @@ export class StatisticalDataValidator {
 }
 
 // Export singleton instance for convenience
-export default new StatisticalDataValidator({
+const statisticalDataValidator = new StatisticalDataValidator({
   strictMode: true,
   auditConfig: {
     enabled: true,
     level: 'info'
   }
 });
+
+export default statisticalDataValidator;

@@ -97,7 +97,7 @@ const RAGPerformanceMonitoringPage = () => {
     { category: 'Other', count: 5094, percentage: 11.0 }
   ];
 
-  const hourlyPerformance = [
+  const _hourlyPerformance = [
     { hour: '00:00', queries: 45, latency: 210 },
     { hour: '04:00', queries: 12, latency: 180 },
     { hour: '08:00', queries: 156, latency: 245 },

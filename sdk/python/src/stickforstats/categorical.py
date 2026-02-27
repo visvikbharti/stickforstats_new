@@ -4,7 +4,7 @@ Categorical tests module — wraps ``/api/v1/categorical/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import CategoricalResult
 
@@ -24,7 +24,7 @@ class CategoricalModule:
 
     def chi_square_independence(
         self,
-        observed: List[List[int]],
+        observed: list[list[int]],
         *,
         alpha: float = 0.05,
         **kwargs: Any,
@@ -43,13 +43,13 @@ class CategoricalModule:
         -------
         CategoricalResult
         """
-        payload: Dict[str, Any] = {"observed": observed, "alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"observed": observed, "alpha": alpha, **kwargs}
         resp = self._client.post("categorical/chi-square/independence/", json=payload)
         return CategoricalResult.model_validate(resp)
 
     def fishers_exact(
         self,
-        table: List[List[int]],
+        table: list[list[int]],
         *,
         alternative: str = "two-sided",
         **kwargs: Any,
@@ -68,13 +68,13 @@ class CategoricalModule:
         -------
         CategoricalResult
         """
-        payload: Dict[str, Any] = {"table": table, "alternative": alternative, **kwargs}
+        payload: dict[str, Any] = {"table": table, "alternative": alternative, **kwargs}
         resp = self._client.post("categorical/fishers/", json=payload)
         return CategoricalResult.model_validate(resp)
 
     def mcnemar(
         self,
-        table: List[List[int]],
+        table: list[list[int]],
         *,
         correction: bool = True,
         **kwargs: Any,
@@ -93,6 +93,6 @@ class CategoricalModule:
         -------
         CategoricalResult
         """
-        payload: Dict[str, Any] = {"table": table, "correction": correction, **kwargs}
+        payload: dict[str, Any] = {"table": table, "correction": correction, **kwargs}
         resp = self._client.post("categorical/mcnemar/", json=payload)
         return CategoricalResult.model_validate(resp)

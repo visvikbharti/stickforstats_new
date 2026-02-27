@@ -15,7 +15,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-import uuid
 
 from core.models import Analysis
 
@@ -27,15 +26,16 @@ class ReportListView(APIView):
     GET: List all reports with pagination
     POST: Create a new report from analysis results
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request):
         """List all reports."""
         try:
             # Get query parameters
-            limit = int(request.query_params.get('limit', 50))
-            offset = int(request.query_params.get('offset', 0))
-            analysis_type = request.query_params.get('type', None)
+            limit = int(request.query_params.get("limit", 50))
+            offset = int(request.query_params.get("offset", 0))
+            analysis_type = request.query_params.get("type", None)
 
             # Build query
             queryset = Analysis.objects.all()
@@ -46,34 +46,35 @@ class ReportListView(APIView):
             total_count = queryset.count()
 
             # Apply pagination
-            reports = queryset[offset:offset + limit]
+            reports = queryset[offset : offset + limit]
 
             # Serialize
             results = []
             for report in reports:
-                results.append({
-                    'id': str(report.id),
-                    'name': report.name,
-                    'description': report.description,
-                    'analysis_type': report.analysis_type,
-                    'created_at': report.created_at.isoformat(),
-                    'updated_at': report.updated_at.isoformat(),
-                    'parameters': report.parameters,
-                })
+                results.append(
+                    {
+                        "id": str(report.id),
+                        "name": report.name,
+                        "description": report.description,
+                        "analysis_type": report.analysis_type,
+                        "created_at": report.created_at.isoformat(),
+                        "updated_at": report.updated_at.isoformat(),
+                        "parameters": report.parameters,
+                    }
+                )
 
-            return Response({
-                'success': True,
-                'results': results,
-                'total': total_count,
-                'limit': limit,
-                'offset': offset,
-            })
+            return Response(
+                {
+                    "success": True,
+                    "results": results,
+                    "total": total_count,
+                    "limit": limit,
+                    "offset": offset,
+                }
+            )
 
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
         """Create a new report."""
@@ -81,36 +82,35 @@ class ReportListView(APIView):
             data = request.data
 
             # Validate required fields
-            name = data.get('name')
+            name = data.get("name")
             if not name:
-                return Response({
-                    'success': False,
-                    'error': 'Report name is required'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"success": False, "error": "Report name is required"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Create report
             report = Analysis.objects.create(
                 name=name,
-                description=data.get('description', ''),
-                analysis_type=data.get('analysis_type', 'general'),
-                parameters=data.get('parameters', {}),
+                description=data.get("description", ""),
+                analysis_type=data.get("analysis_type", "general"),
+                parameters=data.get("parameters", {}),
             )
 
-            return Response({
-                'success': True,
-                'id': str(report.id),
-                'name': report.name,
-                'description': report.description,
-                'analysis_type': report.analysis_type,
-                'created_at': report.created_at.isoformat(),
-                'message': 'Report created successfully'
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "success": True,
+                    "id": str(report.id),
+                    "name": report.name,
+                    "description": report.description,
+                    "analysis_type": report.analysis_type,
+                    "created_at": report.created_at.isoformat(),
+                    "message": "Report created successfully",
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ReportDetailView(APIView):
@@ -121,6 +121,7 @@ class ReportDetailView(APIView):
     PUT: Update report
     DELETE: Delete report
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request, report_id):
@@ -128,27 +129,23 @@ class ReportDetailView(APIView):
         try:
             report = get_object_or_404(Analysis, id=report_id)
 
-            return Response({
-                'success': True,
-                'id': str(report.id),
-                'name': report.name,
-                'description': report.description,
-                'analysis_type': report.analysis_type,
-                'created_at': report.created_at.isoformat(),
-                'updated_at': report.updated_at.isoformat(),
-                'parameters': report.parameters,
-            })
+            return Response(
+                {
+                    "success": True,
+                    "id": str(report.id),
+                    "name": report.name,
+                    "description": report.description,
+                    "analysis_type": report.analysis_type,
+                    "created_at": report.created_at.isoformat(),
+                    "updated_at": report.updated_at.isoformat(),
+                    "parameters": report.parameters,
+                }
+            )
 
         except Analysis.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Report not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response({"success": False, "error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, report_id):
         """Update a report."""
@@ -157,34 +154,25 @@ class ReportDetailView(APIView):
             data = request.data
 
             # Update fields
-            if 'name' in data:
-                report.name = data['name']
-            if 'description' in data:
-                report.description = data['description']
-            if 'analysis_type' in data:
-                report.analysis_type = data['analysis_type']
-            if 'parameters' in data:
-                report.parameters = data['parameters']
+            if "name" in data:
+                report.name = data["name"]
+            if "description" in data:
+                report.description = data["description"]
+            if "analysis_type" in data:
+                report.analysis_type = data["analysis_type"]
+            if "parameters" in data:
+                report.parameters = data["parameters"]
 
             report.save()
 
-            return Response({
-                'success': True,
-                'id': str(report.id),
-                'name': report.name,
-                'message': 'Report updated successfully'
-            })
+            return Response(
+                {"success": True, "id": str(report.id), "name": report.name, "message": "Report updated successfully"}
+            )
 
         except Analysis.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Report not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response({"success": False, "error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, report_id):
         """Delete a report."""
@@ -193,24 +181,15 @@ class ReportDetailView(APIView):
             report_name = report.name
             report.delete()
 
-            return Response({
-                'success': True,
-                'message': f'Report "{report_name}" deleted successfully'
-            })
+            return Response({"success": True, "message": f'Report "{report_name}" deleted successfully'})
 
         except Analysis.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Report not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response({"success": False, "error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def generate_report(request):
     """
@@ -222,45 +201,48 @@ def generate_report(request):
         data = request.data
 
         # Validate required fields
-        name = data.get('name', f"Report_{timezone.now().strftime('%Y%m%d_%H%M%S')}")
-        analysis_type = data.get('analysis_type', 'statistical_analysis')
+        name = data.get("name", f"Report_{timezone.now().strftime('%Y%m%d_%H%M%S')}")
+        analysis_type = data.get("analysis_type", "statistical_analysis")
 
         # Store the full analysis data in parameters
         parameters = {
-            'results': data.get('results', {}),
-            'settings': data.get('settings', {}),
-            'metadata': {
-                'generated_at': timezone.now().isoformat(),
-                'format': data.get('format', 'json'),
-                'version': '1.0'
-            }
+            "results": data.get("results", {}),
+            "settings": data.get("settings", {}),
+            "metadata": {
+                "generated_at": timezone.now().isoformat(),
+                "format": data.get("format", "json"),
+                "version": "1.0",
+            },
         }
 
         # Create the report
         report = Analysis.objects.create(
             name=name,
-            description=data.get('description', f'{analysis_type} report'),
+            description=data.get("description", f"{analysis_type} report"),
             analysis_type=analysis_type,
             parameters=parameters,
         )
 
-        return Response({
-            'success': True,
-            'id': str(report.id),
-            'name': report.name,
-            'analysis_type': report.analysis_type,
-            'created_at': report.created_at.isoformat(),
-            'message': 'Report generated successfully'
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "success": True,
+                "id": str(report.id),
+                "name": report.name,
+                "analysis_type": report.analysis_type,
+                "created_at": report.created_at.isoformat(),
+                "message": "Report generated successfully",
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': f'Failed to generate report: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"success": False, "error": f"Failed to generate report: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def export_report(request, report_id):
     """
@@ -270,26 +252,28 @@ def export_report(request, report_id):
     """
     try:
         report = get_object_or_404(Analysis, id=report_id)
-        export_format = request.query_params.get('format', 'json')
+        export_format = request.query_params.get("format", "json")
 
-        if export_format == 'json':
+        if export_format == "json":
             # Return full JSON data
-            return Response({
-                'success': True,
-                'report': {
-                    'id': str(report.id),
-                    'name': report.name,
-                    'description': report.description,
-                    'analysis_type': report.analysis_type,
-                    'created_at': report.created_at.isoformat(),
-                    'updated_at': report.updated_at.isoformat(),
-                    'data': report.parameters,
-                },
-                'export_format': 'json',
-                'exported_at': timezone.now().isoformat()
-            })
+            return Response(
+                {
+                    "success": True,
+                    "report": {
+                        "id": str(report.id),
+                        "name": report.name,
+                        "description": report.description,
+                        "analysis_type": report.analysis_type,
+                        "created_at": report.created_at.isoformat(),
+                        "updated_at": report.updated_at.isoformat(),
+                        "data": report.parameters,
+                    },
+                    "export_format": "json",
+                    "exported_at": timezone.now().isoformat(),
+                }
+            )
 
-        elif export_format == 'html':
+        elif export_format == "html":
             # Generate basic HTML report
             html_content = f"""
             <!DOCTYPE html>
@@ -324,23 +308,18 @@ def export_report(request, report_id):
             """
 
             from django.http import HttpResponse
-            response = HttpResponse(html_content, content_type='text/html')
-            response['Content-Disposition'] = f'attachment; filename="{report.name}.html"'
+
+            response = HttpResponse(html_content, content_type="text/html")
+            response["Content-Disposition"] = f'attachment; filename="{report.name}.html"'
             return response
 
         else:
-            return Response({
-                'success': False,
-                'error': f'Export format "{export_format}" not supported. Use "json" or "html".'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "error": f'Export format "{export_format}" not supported. Use "json" or "html".'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     except Analysis.DoesNotExist:
-        return Response({
-            'success': False,
-            'error': 'Report not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        return Response({"success": False, "error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

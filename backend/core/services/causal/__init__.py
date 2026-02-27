@@ -34,20 +34,9 @@ Created: December 26, 2025
 Author: StickForStats Team
 """
 
-from .dag import (
-    CausalDAG,
-    DAGNode,
-    DAGEdge,
-    create_dag_from_edges,
-    NodeType
-)
+from .dag import CausalDAG, DAGNode, DAGEdge, create_dag_from_edges, NodeType
 
-from .d_separation import (
-    is_d_separated,
-    find_d_separating_sets,
-    identify_conditional_independencies,
-    DSeparationResult
-)
+from .d_separation import is_d_separated, find_d_separating_sets, identify_conditional_independencies, DSeparationResult
 
 from .adjustment_sets import (
     find_adjustment_sets,
@@ -55,31 +44,20 @@ from .adjustment_sets import (
     find_backdoor_paths,
     is_valid_adjustment_set,
     identify_confounders,
-    AdjustmentSetResult
+    AdjustmentSetResult,
 )
 
-from .propensity import (
-    estimate_propensity_scores,
-    PropensityScoreResult,
-    assess_overlap,
-    trim_propensity_scores
-)
+from .propensity import estimate_propensity_scores, PropensityScoreResult, assess_overlap, trim_propensity_scores
 
 from .matching import (
     propensity_score_matching,
     nearest_neighbor_matching,
     optimal_matching,
     MatchingResult,
-    assess_balance
+    assess_balance,
 )
 
-from .effects import (
-    estimate_ate,
-    estimate_att,
-    estimate_effects_ipw,
-    doubly_robust_estimator,
-    TreatmentEffectResult
-)
+from .effects import estimate_ate, estimate_att, estimate_effects_ipw, doubly_robust_estimator, TreatmentEffectResult
 
 from .mediation import (
     baron_kenny_mediation,
@@ -87,7 +65,7 @@ from .mediation import (
     mediation_sensitivity_analysis,
     multiple_mediator_analysis,
     MediationResult,
-    CausalMediationResult
+    CausalMediationResult,
 )
 
 from .did import (
@@ -96,66 +74,59 @@ from .did import (
     test_parallel_trends_simple,
     staggered_did,
     DiDResult,
-    EventStudyResult
+    EventStudyResult,
 )
 
 __all__ = [
     # DAG
-    'CausalDAG',
-    'DAGNode',
-    'DAGEdge',
-    'create_dag_from_edges',
-    'NodeType',
-
+    "CausalDAG",
+    "DAGNode",
+    "DAGEdge",
+    "create_dag_from_edges",
+    "NodeType",
     # D-Separation
-    'is_d_separated',
-    'find_d_separating_sets',
-    'identify_conditional_independencies',
-    'DSeparationResult',
-
+    "is_d_separated",
+    "find_d_separating_sets",
+    "identify_conditional_independencies",
+    "DSeparationResult",
     # Adjustment Sets
-    'find_adjustment_sets',
-    'minimal_adjustment_set',
-    'find_backdoor_paths',
-    'is_valid_adjustment_set',
-    'identify_confounders',
-    'AdjustmentSetResult',
-
+    "find_adjustment_sets",
+    "minimal_adjustment_set",
+    "find_backdoor_paths",
+    "is_valid_adjustment_set",
+    "identify_confounders",
+    "AdjustmentSetResult",
     # Propensity Scores
-    'estimate_propensity_scores',
-    'PropensityScoreResult',
-    'assess_overlap',
-    'trim_propensity_scores',
-
+    "estimate_propensity_scores",
+    "PropensityScoreResult",
+    "assess_overlap",
+    "trim_propensity_scores",
     # Matching
-    'propensity_score_matching',
-    'nearest_neighbor_matching',
-    'optimal_matching',
-    'MatchingResult',
-    'assess_balance',
-
+    "propensity_score_matching",
+    "nearest_neighbor_matching",
+    "optimal_matching",
+    "MatchingResult",
+    "assess_balance",
     # Treatment Effects
-    'estimate_ate',
-    'estimate_att',
-    'estimate_effects_ipw',
-    'doubly_robust_estimator',
-    'TreatmentEffectResult',
-
+    "estimate_ate",
+    "estimate_att",
+    "estimate_effects_ipw",
+    "doubly_robust_estimator",
+    "TreatmentEffectResult",
     # Mediation Analysis
-    'baron_kenny_mediation',
-    'causal_mediation_analysis',
-    'mediation_sensitivity_analysis',
-    'multiple_mediator_analysis',
-    'MediationResult',
-    'CausalMediationResult',
-
+    "baron_kenny_mediation",
+    "causal_mediation_analysis",
+    "mediation_sensitivity_analysis",
+    "multiple_mediator_analysis",
+    "MediationResult",
+    "CausalMediationResult",
     # Difference-in-Differences
-    'difference_in_differences',
-    'event_study',
-    'test_parallel_trends_simple',
-    'staggered_did',
-    'DiDResult',
-    'EventStudyResult'
+    "difference_in_differences",
+    "event_study",
+    "test_parallel_trends_simple",
+    "staggered_did",
+    "DiDResult",
+    "EventStudyResult",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

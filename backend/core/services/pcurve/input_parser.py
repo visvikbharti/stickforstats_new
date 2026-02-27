@@ -26,6 +26,7 @@ from scipy import stats
 @dataclass
 class PCurveInput:
     """Parsed input for p-curve analysis."""
+
     study_id: str
     test_type: str  # t, F, chi2, z, r, p
     statistic: float
@@ -74,23 +75,18 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
     input_string = input_string.replace(" ", "").lower()
 
     # Pattern for t-test: t(df) = value
-    t_pattern = r't\((\d+\.?\d*)\)\s*=\s*(-?\d+\.?\d*)'
+    t_pattern = r"t\((\d+\.?\d*)\)\s*=\s*(-?\d+\.?\d*)"
     t_match = re.search(t_pattern, input_string)
     if t_match:
         df = float(t_match.group(1))
         t_stat = float(t_match.group(2))
         p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))  # Two-tailed
         return PCurveInput(
-            study_id=study_id,
-            test_type='t',
-            statistic=t_stat,
-            df1=df,
-            p_value=float(p_value),
-            original_string=original
+            study_id=study_id, test_type="t", statistic=t_stat, df1=df, p_value=float(p_value), original_string=original
         )
 
     # Pattern for F-test: F(df1, df2) = value
-    f_pattern = r'f\((\d+\.?\d*)\s*,\s*(\d+\.?\d*)\)\s*=\s*(\d+\.?\d*)'
+    f_pattern = r"f\((\d+\.?\d*)\s*,\s*(\d+\.?\d*)\)\s*=\s*(\d+\.?\d*)"
     f_match = re.search(f_pattern, input_string)
     if f_match:
         df1 = float(f_match.group(1))
@@ -99,16 +95,16 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
         p_value = 1 - stats.f.cdf(f_stat, df1, df2)
         return PCurveInput(
             study_id=study_id,
-            test_type='F',
+            test_type="F",
             statistic=f_stat,
             df1=df1,
             df2=df2,
             p_value=float(p_value),
-            original_string=original
+            original_string=original,
         )
 
     # Pattern for chi-square: chi2(df) = value or x2(df) = value
-    chi2_pattern = r'(?:chi2|x2|χ2)\((\d+\.?\d*)\)\s*=\s*(\d+\.?\d*)'
+    chi2_pattern = r"(?:chi2|x2|χ2)\((\d+\.?\d*)\)\s*=\s*(\d+\.?\d*)"
     chi2_match = re.search(chi2_pattern, input_string)
     if chi2_match:
         df = float(chi2_match.group(1))
@@ -116,29 +112,25 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
         p_value = 1 - stats.chi2.cdf(chi2_stat, df)
         return PCurveInput(
             study_id=study_id,
-            test_type='chi2',
+            test_type="chi2",
             statistic=chi2_stat,
             df1=df,
             p_value=float(p_value),
-            original_string=original
+            original_string=original,
         )
 
     # Pattern for z-test: z = value
-    z_pattern = r'z\s*=\s*(-?\d+\.?\d*)'
+    z_pattern = r"z\s*=\s*(-?\d+\.?\d*)"
     z_match = re.search(z_pattern, input_string)
     if z_match:
         z_stat = float(z_match.group(1))
         p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))  # Two-tailed
         return PCurveInput(
-            study_id=study_id,
-            test_type='z',
-            statistic=z_stat,
-            p_value=float(p_value),
-            original_string=original
+            study_id=study_id, test_type="z", statistic=z_stat, p_value=float(p_value), original_string=original
         )
 
     # Pattern for correlation: r(n) = value or r(df) = value
-    r_pattern = r'r\((\d+)\)\s*=\s*(-?\d*\.?\d+)'
+    r_pattern = r"r\((\d+)\)\s*=\s*(-?\d*\.?\d+)"
     r_match = re.search(r_pattern, input_string)
     if r_match:
         n_or_df = int(r_match.group(1))
@@ -151,36 +143,32 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
         p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
         return PCurveInput(
             study_id=study_id,
-            test_type='r',
+            test_type="r",
             statistic=r_stat,
             df1=df,
             n=n,
             p_value=float(p_value),
-            original_string=original
+            original_string=original,
         )
 
     # Pattern for direct p-value: p = value or p < value
-    p_pattern = r'p\s*[=<]\s*(\d*\.?\d+)'
+    p_pattern = r"p\s*[=<]\s*(\d*\.?\d+)"
     p_match = re.search(p_pattern, input_string)
     if p_match:
         p_value = float(p_match.group(1))
         return PCurveInput(
-            study_id=study_id,
-            test_type='p',
-            statistic=p_value,
-            p_value=float(p_value),
-            original_string=original
+            study_id=study_id, test_type="p", statistic=p_value, p_value=float(p_value), original_string=original
         )
 
     # Could not parse
     return PCurveInput(
         study_id=study_id,
-        test_type='unknown',
+        test_type="unknown",
         statistic=0,
         p_value=None,
         original_string=original,
         is_valid=False,
-        error_message=f"Could not parse: {original}"
+        error_message=f"Could not parse: {original}",
     )
 
 
@@ -190,7 +178,7 @@ def convert_to_pvalue(
     df1: float = None,
     df2: float = None,
     n: int = None,
-    alternative: str = "two-sided"
+    alternative: str = "two-sided",
 ) -> float:
     """
     Convert a test statistic to a p-value.
@@ -206,7 +194,7 @@ def convert_to_pvalue(
     Returns:
         P-value
     """
-    if test_type.lower() == 't':
+    if test_type.lower() == "t":
         if df1 is None:
             raise ValueError("df1 required for t-test")
         if alternative == "two-sided":
@@ -217,17 +205,17 @@ def convert_to_pvalue(
             p = stats.t.cdf(statistic, df1)
         return float(p)
 
-    elif test_type.lower() == 'f':
+    elif test_type.lower() == "f":
         if df1 is None or df2 is None:
             raise ValueError("df1 and df2 required for F-test")
         return float(1 - stats.f.cdf(statistic, df1, df2))
 
-    elif test_type.lower() in ['chi2', 'x2']:
+    elif test_type.lower() in ["chi2", "x2"]:
         if df1 is None:
             raise ValueError("df required for chi-square test")
         return float(1 - stats.chi2.cdf(statistic, df1))
 
-    elif test_type.lower() == 'z':
+    elif test_type.lower() == "z":
         if alternative == "two-sided":
             p = 2 * (1 - stats.norm.cdf(abs(statistic)))
         elif alternative == "greater":
@@ -236,7 +224,7 @@ def convert_to_pvalue(
             p = stats.norm.cdf(statistic)
         return float(p)
 
-    elif test_type.lower() == 'r':
+    elif test_type.lower() == "r":
         if n is None and df1 is None:
             raise ValueError("n or df required for correlation")
         df = df1 if df1 is not None else n - 2
@@ -257,9 +245,7 @@ def convert_to_pvalue(
         raise ValueError(f"Unknown test type: {test_type}")
 
 
-def parse_multiple_studies(
-    inputs: List[Union[str, Dict[str, Any]]]
-) -> Tuple[List[PCurveInput], List[str]]:
+def parse_multiple_studies(inputs: List[Union[str, Dict[str, Any]]]) -> Tuple[List[PCurveInput], List[str]]:
     """
     Parse multiple study inputs for p-curve analysis.
 
@@ -288,44 +274,44 @@ def parse_multiple_studies(
         elif isinstance(inp, dict):
             # Direct specification
             try:
-                if 'p_value' in inp:
-                    p_val = inp['p_value']
+                if "p_value" in inp:
+                    p_val = inp["p_value"]
                 else:
                     p_val = convert_to_pvalue(
-                        test_type=inp['test_type'],
-                        statistic=inp['statistic'],
-                        df1=inp.get('df1'),
-                        df2=inp.get('df2'),
-                        n=inp.get('n'),
-                        alternative=inp.get('alternative', 'two-sided')
+                        test_type=inp["test_type"],
+                        statistic=inp["statistic"],
+                        df1=inp.get("df1"),
+                        df2=inp.get("df2"),
+                        n=inp.get("n"),
+                        alternative=inp.get("alternative", "two-sided"),
                     )
                 result = PCurveInput(
-                    study_id=inp.get('study_id', study_id),
-                    test_type=inp['test_type'],
-                    statistic=inp['statistic'],
-                    df1=inp.get('df1'),
-                    df2=inp.get('df2'),
-                    n=inp.get('n'),
+                    study_id=inp.get("study_id", study_id),
+                    test_type=inp["test_type"],
+                    statistic=inp["statistic"],
+                    df1=inp.get("df1"),
+                    df2=inp.get("df2"),
+                    n=inp.get("n"),
                     p_value=p_val,
-                    original_string=str(inp)
+                    original_string=str(inp),
                 )
             except Exception as e:
                 result = PCurveInput(
                     study_id=study_id,
-                    test_type='error',
+                    test_type="error",
                     statistic=0,
                     is_valid=False,
                     error_message=str(e),
-                    original_string=str(inp)
+                    original_string=str(inp),
                 )
         else:
             result = PCurveInput(
                 study_id=study_id,
-                test_type='error',
+                test_type="error",
                 statistic=0,
                 is_valid=False,
                 error_message=f"Invalid input type: {type(inp)}",
-                original_string=str(inp)
+                original_string=str(inp),
             )
 
         if result.is_valid and result.p_value is not None:

@@ -33,81 +33,59 @@ Created: December 26, 2025
 Author: StickForStats Team
 """
 
-from .icc import (
-    calculate_icc,
-    icc_one_way_random,
-    icc_two_way_random,
-    icc_two_way_mixed,
-    ICCResult,
-    ICC_TYPES
-)
+from .icc import calculate_icc, icc_one_way_random, icc_two_way_random, icc_two_way_mixed, ICCResult, ICC_TYPES
 
-from .lmm import (
-    fit_linear_mixed_model,
-    LMMResult,
-    LMMSpecification,
-    RandomEffect,
-    COVARIANCE_STRUCTURES
-)
+from .lmm import fit_linear_mixed_model, LMMResult, LMMSpecification, RandomEffect, COVARIANCE_STRUCTURES
 
 from .model_comparison import (
     compare_models,
     likelihood_ratio_test,
     aic_comparison,
     bic_comparison,
-    ModelComparisonResult
+    ModelComparisonResult,
 )
 
-from .random_effects import (
-    extract_random_effects,
-    random_effects_variance,
-    caterpillar_plot_data,
-    RandomEffectsResult
-)
+from .random_effects import extract_random_effects, random_effects_variance, caterpillar_plot_data, RandomEffectsResult
 
 from .diagnostics import (
     check_convergence,
     residual_diagnostics,
     influence_diagnostics,
     full_diagnostics,
-    LMMDiagnostics
+    LMMDiagnostics,
 )
 
 __all__ = [
     # ICC
-    'calculate_icc',
-    'icc_one_way_random',
-    'icc_two_way_random',
-    'icc_two_way_mixed',
-    'ICCResult',
-    'ICC_TYPES',
-
+    "calculate_icc",
+    "icc_one_way_random",
+    "icc_two_way_random",
+    "icc_two_way_mixed",
+    "ICCResult",
+    "ICC_TYPES",
     # LMM
-    'fit_linear_mixed_model',
-    'LMMResult',
-    'LMMSpecification',
-    'RandomEffect',
-    'COVARIANCE_STRUCTURES',
-
+    "fit_linear_mixed_model",
+    "LMMResult",
+    "LMMSpecification",
+    "RandomEffect",
+    "COVARIANCE_STRUCTURES",
     # Model Comparison
-    'compare_models',
-    'likelihood_ratio_test',
-    'aic_comparison',
-    'bic_comparison',
-    'ModelComparisonResult',
-
+    "compare_models",
+    "likelihood_ratio_test",
+    "aic_comparison",
+    "bic_comparison",
+    "ModelComparisonResult",
     # Random Effects
-    'extract_random_effects',
-    'random_effects_variance',
-    'caterpillar_plot_data',
-    'RandomEffectsResult',
-
+    "extract_random_effects",
+    "random_effects_variance",
+    "caterpillar_plot_data",
+    "RandomEffectsResult",
     # Diagnostics
-    'check_convergence',
-    'residual_diagnostics',
-    'influence_diagnostics',
-    'full_diagnostics',
-    'LMMDiagnostics'
+    "check_convergence",
+    "residual_diagnostics",
+    "influence_diagnostics",
+    "full_diagnostics",
+    "LMMDiagnostics",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

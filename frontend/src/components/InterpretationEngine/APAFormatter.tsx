@@ -24,7 +24,6 @@ import {
   ContentCopy as CopyIcon,
   FormatQuote as QuoteIcon,
   TableChart as TableIcon,
-  Code as InlineIcon,
 } from '@mui/icons-material';
 
 import { APAFormatterProps } from './InterpretationEngine.types';
@@ -185,7 +184,7 @@ const APAFormatter: React.FC<APAFormatterProps> = ({
         </Typography>
         <Typography variant="body2">
           • Report exact p-values to three decimal places (p = .034)<br />
-          • Report p < .001 for very small p-values<br />
+          • Report p {'<'} .001 for very small p-values<br />
           • Include effect sizes for primary outcomes<br />
           • Include confidence intervals when relevant<br />
           • Use italics for statistical symbols (in actual documents)

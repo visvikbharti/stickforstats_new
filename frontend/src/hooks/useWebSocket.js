@@ -168,8 +168,9 @@ export const useWebSocket = (endpoint, options = {}) => {
         websocketService.disconnect();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpoint, getEnhancedOptions]);
-  
+
   /**
    * Send a message through the WebSocket with improved queuing
    * 

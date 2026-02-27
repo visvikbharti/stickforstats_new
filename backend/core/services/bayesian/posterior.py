@@ -18,15 +18,16 @@ References:
 Created: December 26, 2025
 """
 
-from typing import Tuple, Dict, Any, List, Optional
+from typing import Tuple, Dict, Any
 import numpy as np
-from scipy import stats, integrate
+from scipy import stats
 from dataclasses import dataclass
 
 
 @dataclass
 class PosteriorSummary:
     """Summary statistics for a posterior distribution."""
+
     mean: float
     median: float
     mode: float
@@ -41,6 +42,7 @@ class PosteriorSummary:
 @dataclass
 class ROPEResult:
     """Result of ROPE (Region of Practical Equivalence) analysis."""
+
     rope_low: float
     rope_high: float
     percentage_in_rope: float
@@ -51,11 +53,7 @@ class ROPEResult:
 
 
 def compute_posterior_ttest(
-    data: np.ndarray,
-    mu: float = 0,
-    prior_scale: float = 0.707,
-    delta_range: np.ndarray = None,
-    n_points: int = 1000
+    data: np.ndarray, mu: float = 0, prior_scale: float = 0.707, delta_range: np.ndarray = None, n_points: int = 1000
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute posterior distribution for effect size in one-sample t-test.
@@ -98,9 +96,7 @@ def compute_posterior_ttest(
     ncp = delta_range * np.sqrt(n)  # Non-centrality parameters
 
     # Likelihood: probability of observing t_obs given each delta
-    likelihood = np.array([
-        stats.nct.pdf(t_obs, df, nc) for nc in ncp
-    ])
+    likelihood = np.array([stats.nct.pdf(t_obs, df, nc) for nc in ncp])
 
     # Posterior (unnormalized)
     posterior_unnorm = prior * likelihood
@@ -121,7 +117,7 @@ def compute_posterior_two_sample(
     group2: np.ndarray,
     prior_scale: float = 0.707,
     delta_range: np.ndarray = None,
-    n_points: int = 1000
+    n_points: int = 1000,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute posterior for effect size in two-sample t-test.
@@ -151,7 +147,7 @@ def compute_posterior_two_sample(
     d_obs = (np.mean(group1) - np.mean(group2)) / sp
 
     # Observed t-statistic
-    se = sp * np.sqrt(1/n1 + 1/n2)
+    se = sp * np.sqrt(1 / n1 + 1 / n2)
     t_obs = (np.mean(group1) - np.mean(group2)) / se
     df = n - 2
 
@@ -167,9 +163,7 @@ def compute_posterior_two_sample(
 
     # Likelihood
     ncp = delta_range * np.sqrt(n_eff)
-    likelihood = np.array([
-        stats.nct.pdf(t_obs, df, nc) for nc in ncp
-    ])
+    likelihood = np.array([stats.nct.pdf(t_obs, df, nc) for nc in ncp])
 
     # Posterior
     posterior_unnorm = prior * likelihood
@@ -186,7 +180,7 @@ def compute_posterior_two_sample(
 def compute_hdi(
     posterior_samples: np.ndarray = None,
     posterior_density: Tuple[np.ndarray, np.ndarray] = None,
-    credible_mass: float = 0.95
+    credible_mass: float = 0.95,
 ) -> Tuple[float, float]:
     """
     Compute Highest Density Interval (HDI).
@@ -253,7 +247,7 @@ def rope_analysis(
     posterior_samples: np.ndarray = None,
     posterior_density: Tuple[np.ndarray, np.ndarray] = None,
     rope_low: float = -0.1,
-    rope_high: float = 0.1
+    rope_high: float = 0.1,
 ) -> ROPEResult:
     """
     Perform ROPE (Region of Practical Equivalence) analysis.
@@ -303,23 +297,23 @@ def rope_analysis(
 
     # Decision
     if in_rope > 95:
-        decision = 'accept_null'
-        decision_confidence = 'high'
+        decision = "accept_null"
+        decision_confidence = "high"
     elif in_rope > 90:
-        decision = 'accept_null'
-        decision_confidence = 'moderate'
+        decision = "accept_null"
+        decision_confidence = "moderate"
     elif in_rope < 5:
-        decision = 'reject_null'
-        decision_confidence = 'high'
+        decision = "reject_null"
+        decision_confidence = "high"
     elif in_rope < 10:
-        decision = 'reject_null'
-        decision_confidence = 'moderate'
+        decision = "reject_null"
+        decision_confidence = "moderate"
     else:
-        decision = 'undecided'
+        decision = "undecided"
         if in_rope < 25 or in_rope > 75:
-            decision_confidence = 'moderate'
+            decision_confidence = "moderate"
         else:
-            decision_confidence = 'low'
+            decision_confidence = "low"
 
     return ROPEResult(
         rope_low=rope_low,
@@ -328,14 +322,14 @@ def rope_analysis(
         percentage_below_rope=below_rope,
         percentage_above_rope=above_rope,
         decision=decision,
-        decision_confidence=decision_confidence
+        decision_confidence=decision_confidence,
     )
 
 
 def posterior_summary(
     posterior_samples: np.ndarray = None,
     posterior_density: Tuple[np.ndarray, np.ndarray] = None,
-    credible_mass: float = 0.95
+    credible_mass: float = 0.95,
 ) -> PosteriorSummary:
     """
     Compute summary statistics for posterior distribution.
@@ -378,12 +372,12 @@ def posterior_summary(
         median = x[median_idx] if median_idx < len(x) else x[-1]
 
         # Variance and SD
-        variance = np.sum((x - mean)**2 * y_norm) * dx
+        variance = np.sum((x - mean) ** 2 * y_norm) * dx
         sd = np.sqrt(variance)
 
         # Skewness and kurtosis (approximations)
-        skewness = np.sum(((x - mean) / sd)**3 * y_norm) * dx
-        kurtosis = np.sum(((x - mean) / sd)**4 * y_norm) * dx - 3
+        skewness = np.sum(((x - mean) / sd) ** 3 * y_norm) * dx
+        kurtosis = np.sum(((x - mean) / sd) ** 4 * y_norm) * dx - 3
 
         # HDI
         hdi_low, hdi_high = compute_hdi(posterior_density=(x, y), credible_mass=credible_mass)
@@ -400,14 +394,11 @@ def posterior_summary(
         hdi_high=float(hdi_high),
         credible_mass=credible_mass,
         skewness=float(skewness),
-        kurtosis=float(kurtosis)
+        kurtosis=float(kurtosis),
     )
 
 
-def generate_posterior_samples(
-    posterior_density: Tuple[np.ndarray, np.ndarray],
-    n_samples: int = 10000
-) -> np.ndarray:
+def generate_posterior_samples(posterior_density: Tuple[np.ndarray, np.ndarray], n_samples: int = 10000) -> np.ndarray:
     """
     Generate samples from a posterior distribution using inverse CDF.
 
@@ -437,10 +428,7 @@ def generate_posterior_samples(
 
 
 def posterior_predictive_check(
-    data: np.ndarray,
-    posterior_samples: np.ndarray,
-    n_simulations: int = 1000,
-    test_statistic: callable = None
+    data: np.ndarray, posterior_samples: np.ndarray, n_simulations: int = 1000, test_statistic: callable = None
 ) -> Dict[str, Any]:
     """
     Perform posterior predictive check.
@@ -479,9 +467,9 @@ def posterior_predictive_check(
     ppp = np.mean(simulated_stats >= observed_stat)
 
     return {
-        'observed_statistic': observed_stat,
-        'simulated_statistics': simulated_stats.tolist(),
-        'posterior_predictive_p': ppp,
-        'mean_simulated': np.mean(simulated_stats),
-        'sd_simulated': np.std(simulated_stats, ddof=1)
+        "observed_statistic": observed_stat,
+        "simulated_statistics": simulated_stats.tolist(),
+        "posterior_predictive_p": ppp,
+        "mean_simulated": np.mean(simulated_stats),
+        "sd_simulated": np.std(simulated_stats, ddof=1),
     }

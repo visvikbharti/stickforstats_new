@@ -5,4 +5,4 @@ try:
 except (ImportError, Exception):
     pass
 
-__all__ = ['MLService', 'get_ml_service']
+__all__ = ["MLService", "get_ml_service"]

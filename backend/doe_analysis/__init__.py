@@ -5,4 +5,4 @@ This module provides comprehensive functionality for designing, analyzing, and o
 experiments using Design of Experiments (DOE) methodology.
 """
 
-default_app_config = 'doe_analysis.apps.DOEAnalysisConfig'
+default_app_config = "doe_analysis.apps.DOEAnalysisConfig"

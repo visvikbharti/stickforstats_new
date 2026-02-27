@@ -40,7 +40,7 @@ import { normalPDF, normalQuantile, tPDF } from './distributionFunctions';
  * @returns {Object} { bf10, bf01, interpretation }
  */
 export function bayesFactorTTest(t, n1, n2 = 0, r = Math.SQRT2 / 2) {
-  const n = n2 === 0 ? n1 : n1 + n2;
+  const _n = n2 === 0 ? n1 : n1 + n2;
   const df = n2 === 0 ? n1 - 1 : n1 + n2 - 2;
 
   // Effective sample size
@@ -49,7 +49,7 @@ export function bayesFactorTTest(t, n1, n2 = 0, r = Math.SQRT2 / 2) {
   // JZS Bayes Factor (Rouder et al., 2009)
   // Using approximation for computational efficiency
   const v = df;
-  const tSquared = t * t;
+  const _tSquared = t * t;
 
   // Savage-Dickey density ratio approximation
   // For small effect sizes, BF ≈ √(1 + nEff * r²) / (1 + tSquared / v)^((v+1)/2)

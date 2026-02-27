@@ -22,16 +22,12 @@ Version: 1.0.0
 """
 
 from decimal import Decimal, getcontext
-from typing import Dict, List, Tuple, Optional, Union, Any, Callable
+from typing import Dict, List, Tuple, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from scipy import stats
-from scipy.special import comb, factorial
-import itertools
-import warnings
 import logging
-from math import log
 
 # Configure high precision
 getcontext().prec = 50
@@ -41,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class CategoricalTest(Enum):
     """Types of categorical tests"""
+
     CHI_SQUARE_INDEPENDENCE = "chi_square_independence"
     CHI_SQUARE_GOODNESS = "chi_square_goodness"
     FISHER_EXACT = "fisher_exact"
@@ -58,6 +55,7 @@ class CategoricalTest(Enum):
 @dataclass
 class CategoricalResult:
     """Comprehensive result for categorical tests"""
+
     test_name: str
     test_statistic: Decimal
     p_value: Decimal
@@ -99,57 +97,57 @@ class CategoricalResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to JSON-serializable dictionary"""
         result = {
-            'test_name': self.test_name,
-            'test_statistic': str(self.test_statistic) if self.test_statistic else None,
-            'p_value': str(self.p_value) if self.p_value else None,
-            'degrees_of_freedom': self.degrees_of_freedom,
-            'yates_correction': self.yates_correction,
-            'interpretation': self.interpretation,
-            'recommendations': self.recommendations,
-            'assumptions_met': self.assumptions_met
+            "test_name": self.test_name,
+            "test_statistic": str(self.test_statistic) if self.test_statistic else None,
+            "p_value": str(self.p_value) if self.p_value else None,
+            "degrees_of_freedom": self.degrees_of_freedom,
+            "yates_correction": self.yates_correction,
+            "interpretation": self.interpretation,
+            "recommendations": self.recommendations,
+            "assumptions_met": self.assumptions_met,
         }
 
         # Convert numpy arrays to lists
         if self.observed_frequencies is not None:
-            result['observed_frequencies'] = self.observed_frequencies.tolist()
+            result["observed_frequencies"] = self.observed_frequencies.tolist()
         if self.expected_frequencies is not None:
-            result['expected_frequencies'] = self.expected_frequencies.tolist()
+            result["expected_frequencies"] = self.expected_frequencies.tolist()
         if self.residuals is not None:
-            result['residuals'] = self.residuals.tolist()
+            result["residuals"] = self.residuals.tolist()
         if self.standardized_residuals is not None:
-            result['standardized_residuals'] = self.standardized_residuals.tolist()
+            result["standardized_residuals"] = self.standardized_residuals.tolist()
 
         # Add effect sizes
         if self.cramers_v is not None:
-            result['cramers_v'] = str(self.cramers_v)
+            result["cramers_v"] = str(self.cramers_v)
         if self.phi_coefficient is not None:
-            result['phi_coefficient'] = str(self.phi_coefficient)
+            result["phi_coefficient"] = str(self.phi_coefficient)
         if self.contingency_coefficient is not None:
-            result['contingency_coefficient'] = str(self.contingency_coefficient)
+            result["contingency_coefficient"] = str(self.contingency_coefficient)
         if self.odds_ratio is not None:
-            result['odds_ratio'] = str(self.odds_ratio)
+            result["odds_ratio"] = str(self.odds_ratio)
         if self.relative_risk is not None:
-            result['relative_risk'] = str(self.relative_risk)
+            result["relative_risk"] = str(self.relative_risk)
         if self.risk_difference is not None:
-            result['risk_difference'] = str(self.risk_difference)
+            result["risk_difference"] = str(self.risk_difference)
 
         # Add confidence intervals
         if self.odds_ratio_ci is not None:
-            result['odds_ratio_ci'] = [str(self.odds_ratio_ci[0]), str(self.odds_ratio_ci[1])]
+            result["odds_ratio_ci"] = [str(self.odds_ratio_ci[0]), str(self.odds_ratio_ci[1])]
         if self.relative_risk_ci is not None:
-            result['relative_risk_ci'] = [str(self.relative_risk_ci[0]), str(self.relative_risk_ci[1])]
+            result["relative_risk_ci"] = [str(self.relative_risk_ci[0]), str(self.relative_risk_ci[1])]
         if self.risk_difference_ci is not None:
-            result['risk_difference_ci'] = [str(self.risk_difference_ci[0]), str(self.risk_difference_ci[1])]
+            result["risk_difference_ci"] = [str(self.risk_difference_ci[0]), str(self.risk_difference_ci[1])]
 
         # Add test-specific results
         if self.exact_p_value is not None:
-            result['exact_p_value'] = str(self.exact_p_value)
+            result["exact_p_value"] = str(self.exact_p_value)
         if self.mid_p_value is not None:
-            result['mid_p_value'] = str(self.mid_p_value)
+            result["mid_p_value"] = str(self.mid_p_value)
         if self.power is not None:
-            result['power'] = str(self.power)
+            result["power"] = str(self.power)
         if self.required_sample_size is not None:
-            result['required_sample_size'] = self.required_sample_size
+            result["required_sample_size"] = self.required_sample_size
 
         return result
 
@@ -169,9 +167,9 @@ class HighPrecisionCategorical:
         """Convert to high-precision Decimal"""
         return Decimal(str(value))
 
-    def chi_square_independence(self, observed: Union[List[List], np.ndarray],
-                               correction: bool = True,
-                               lambda_: Optional[float] = None) -> CategoricalResult:
+    def chi_square_independence(
+        self, observed: Union[List[List], np.ndarray], correction: bool = True, lambda_: Optional[float] = None
+    ) -> CategoricalResult:
         """
         High-precision Chi-square test of independence.
 
@@ -217,7 +215,7 @@ class HighPrecisionCategorical:
                     o = self._to_decimal(observed[i, j])
                     e = self._to_decimal(expected[i, j])
                     if e > 0:
-                        chi2_stat += (abs(o - e) - self._to_decimal(0.5))**2 / e
+                        chi2_stat += (abs(o - e) - self._to_decimal(0.5)) ** 2 / e
         else:
             yates_correction = False
             for i in range(rows):
@@ -225,7 +223,7 @@ class HighPrecisionCategorical:
                     o = self._to_decimal(observed[i, j])
                     e = self._to_decimal(expected[i, j])
                     if e > 0:
-                        chi2_stat += (o - e)**2 / e
+                        chi2_stat += (o - e) ** 2 / e
 
         # Degrees of freedom
         df = (rows - 1) * (cols - 1)
@@ -264,18 +262,18 @@ class HighPrecisionCategorical:
         # For 2x2 tables, calculate odds ratio
         if rows == 2 and cols == 2:
             odds_ratio_result = self._calculate_odds_ratio(observed)
-            odds_ratio = odds_ratio_result['odds_ratio']
-            odds_ratio_ci = odds_ratio_result['confidence_interval']
+            odds_ratio = odds_ratio_result["odds_ratio"]
+            odds_ratio_ci = odds_ratio_result["confidence_interval"]
 
             # Relative risk
             rr_result = self._calculate_relative_risk(observed)
-            relative_risk = rr_result['relative_risk']
-            relative_risk_ci = rr_result['confidence_interval']
+            relative_risk = rr_result["relative_risk"]
+            relative_risk_ci = rr_result["confidence_interval"]
 
             # Risk difference
             rd_result = self._calculate_risk_difference(observed)
-            risk_difference = rd_result['risk_difference']
-            risk_difference_ci = rd_result['confidence_interval']
+            risk_difference = rd_result["risk_difference"]
+            risk_difference_ci = rd_result["confidence_interval"]
         else:
             odds_ratio = None
             odds_ratio_ci = None
@@ -286,9 +284,9 @@ class HighPrecisionCategorical:
 
         # Check assumptions
         assumptions_met = {
-            'expected_frequencies_ge_5': low_expected == 0,
-            'independence': True,  # Assumed unless proven otherwise
-            'random_sampling': True  # Assumed
+            "expected_frequencies_ge_5": low_expected == 0,
+            "independence": True,  # Assumed unless proven otherwise
+            "random_sampling": True,  # Assumed
         }
 
         # Create result
@@ -313,14 +311,14 @@ class HighPrecisionCategorical:
             yates_correction=yates_correction,
             assumptions_met=assumptions_met,
             interpretation=self._interpret_chi_square(chi2_stat, p_value, cramers_v, df),
-            recommendations=self._generate_recommendations(assumptions_met, rows, cols, n)
+            recommendations=self._generate_recommendations(assumptions_met, rows, cols, n),
         )
 
         return result
 
-    def chi_square_goodness_of_fit(self, observed: Union[List, np.ndarray],
-                                  expected: Optional[Union[List, np.ndarray]] = None,
-                                  ddof: int = 0) -> CategoricalResult:
+    def chi_square_goodness_of_fit(
+        self, observed: Union[List, np.ndarray], expected: Optional[Union[List, np.ndarray]] = None, ddof: int = 0
+    ) -> CategoricalResult:
         """
         High-precision Chi-square goodness of fit test.
 
@@ -355,7 +353,7 @@ class HighPrecisionCategorical:
             o = self._to_decimal(observed[i])
             e = self._to_decimal(expected[i])
             if e > 0:
-                chi2_stat += (o - e)**2 / e
+                chi2_stat += (o - e) ** 2 / e
 
         # Degrees of freedom
         df = n_categories - 1 - ddof
@@ -377,9 +375,9 @@ class HighPrecisionCategorical:
         # Check assumptions
         low_expected = np.sum(expected < 5)
         assumptions_met = {
-            'expected_frequencies_ge_5': low_expected == 0,
-            'independence': True,
-            'random_sampling': True
+            "expected_frequencies_ge_5": low_expected == 0,
+            "independence": True,
+            "random_sampling": True,
         }
 
         # Create result
@@ -394,13 +392,14 @@ class HighPrecisionCategorical:
             standardized_residuals=standardized_residuals,
             cramers_v=cohen_w,  # Cohen's w for goodness of fit
             assumptions_met=assumptions_met,
-            interpretation=self._interpret_goodness_of_fit(chi2_stat, p_value, cohen_w, df)
+            interpretation=self._interpret_goodness_of_fit(chi2_stat, p_value, cohen_w, df),
         )
 
         return result
 
-    def fisher_exact_test(self, observed: Union[List[List], np.ndarray],
-                         alternative: str = 'two-sided') -> CategoricalResult:
+    def fisher_exact_test(
+        self, observed: Union[List[List], np.ndarray], alternative: str = "two-sided"
+    ) -> CategoricalResult:
         """
         High-precision Fisher's exact test.
 
@@ -421,7 +420,7 @@ class HighPrecisionCategorical:
         # Extract cell values
         a, b = observed[0, 0], observed[0, 1]
         c, d = observed[1, 0], observed[1, 1]
-        n = a + b + c + d
+        a + b + c + d
 
         # Calculate exact p-value using hypergeometric distribution
         # P(X = a) = C(a+b, a) * C(c+d, c) / C(n, a+c)
@@ -429,43 +428,44 @@ class HighPrecisionCategorical:
         # Calculate odds ratio
         if b * c == 0:
             if a * d == 0:
-                odds_ratio = self._to_decimal('nan')
+                odds_ratio = self._to_decimal("nan")
             else:
-                odds_ratio = self._to_decimal('inf')
+                odds_ratio = self._to_decimal("inf")
         else:
             odds_ratio = self._to_decimal(a * d) / self._to_decimal(b * c)
 
         # Calculate exact p-value
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             # Sum probabilities of tables as or more extreme
             p_value = self._to_decimal(0)
-            p_observed = self._hypergeometric_pmf(a, a+b, c+d, a+c)
+            p_observed = self._hypergeometric_pmf(a, a + b, c + d, a + c)
 
-            for x in range(min(a+b, a+c) + 1):
-                p_x = self._hypergeometric_pmf(x, a+b, c+d, a+c)
-                if p_x <= p_observed + self._to_decimal('1e-10'):
+            for x in range(min(a + b, a + c) + 1):
+                p_x = self._hypergeometric_pmf(x, a + b, c + d, a + c)
+                if p_x <= p_observed + self._to_decimal("1e-10"):
                     p_value += p_x
 
-        elif alternative == 'greater':
+        elif alternative == "greater":
             # P(X >= a)
             p_value = self._to_decimal(0)
-            for x in range(a, min(a+b, a+c) + 1):
-                p_value += self._hypergeometric_pmf(x, a+b, c+d, a+c)
+            for x in range(a, min(a + b, a + c) + 1):
+                p_value += self._hypergeometric_pmf(x, a + b, c + d, a + c)
 
         else:  # less
             # P(X <= a)
             p_value = self._to_decimal(0)
             for x in range(a + 1):
-                p_value += self._hypergeometric_pmf(x, a+b, c+d, a+c)
+                p_value += self._hypergeometric_pmf(x, a + b, c + d, a + c)
 
         # Calculate mid-P value (less conservative)
-        mid_p = p_value - self._hypergeometric_pmf(a, a+b, c+d, a+c) / 2
+        mid_p = p_value - self._hypergeometric_pmf(a, a + b, c + d, a + c) / 2
 
         # Calculate confidence interval for odds ratio
-        if odds_ratio != self._to_decimal('inf') and odds_ratio != self._to_decimal('nan'):
+        if odds_ratio != self._to_decimal("inf") and odds_ratio != self._to_decimal("nan"):
             log_or = odds_ratio.ln()
-            se_log_or = (1/self._to_decimal(a) + 1/self._to_decimal(b) +
-                        1/self._to_decimal(c) + 1/self._to_decimal(d)).sqrt()
+            se_log_or = (
+                1 / self._to_decimal(a) + 1 / self._to_decimal(b) + 1 / self._to_decimal(c) + 1 / self._to_decimal(d)
+            ).sqrt()
             z_alpha = self._to_decimal(stats.norm.ppf(0.975))
 
             ci_lower = (log_or - z_alpha * se_log_or).exp()
@@ -484,13 +484,12 @@ class HighPrecisionCategorical:
             odds_ratio_ci=odds_ratio_ci,
             exact_p_value=p_value,
             mid_p_value=mid_p,
-            interpretation=self._interpret_fisher(odds_ratio, p_value)
+            interpretation=self._interpret_fisher(odds_ratio, p_value),
         )
 
         return result
 
-    def mcnemar_test(self, observed: Union[List[List], np.ndarray],
-                    correction: bool = True) -> CategoricalResult:
+    def mcnemar_test(self, observed: Union[List[List], np.ndarray], correction: bool = True) -> CategoricalResult:
         """
         High-precision McNemar's test.
 
@@ -520,10 +519,10 @@ class HighPrecisionCategorical:
         else:
             if correction and b + c >= 10:
                 # With continuity correction
-                chi2_stat = self._to_decimal((abs(b - c) - 1)**2) / self._to_decimal(b + c)
+                chi2_stat = self._to_decimal((abs(b - c) - 1) ** 2) / self._to_decimal(b + c)
             else:
                 # Without correction or for small samples
-                chi2_stat = self._to_decimal((b - c)**2) / self._to_decimal(b + c)
+                chi2_stat = self._to_decimal((b - c) ** 2) / self._to_decimal(b + c)
 
             # Calculate p-value
             p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), 1))
@@ -531,14 +530,12 @@ class HighPrecisionCategorical:
             # For small samples, use exact binomial test
             if b + c < 25:
                 # Exact test
-                p_exact = self._to_decimal(
-                    stats.binom_test(min(b, c), b + c, 0.5, alternative='two-sided')
-                )
+                p_exact = self._to_decimal(stats.binom_test(min(b, c), b + c, 0.5, alternative="two-sided"))
                 p_value = p_exact
 
         # Calculate odds ratio for paired data
         if c == 0:
-            odds_ratio = self._to_decimal('inf') if b > 0 else self._to_decimal(1)
+            odds_ratio = self._to_decimal("inf") if b > 0 else self._to_decimal(1)
         else:
             odds_ratio = self._to_decimal(b) / self._to_decimal(c)
 
@@ -550,7 +547,7 @@ class HighPrecisionCategorical:
             degrees_of_freedom=1,
             observed_frequencies=observed,
             odds_ratio=odds_ratio,
-            interpretation=self._interpret_mcnemar(chi2_stat, p_value, b, c)
+            interpretation=self._interpret_mcnemar(chi2_stat, p_value, b, c),
         )
 
         return result
@@ -586,9 +583,9 @@ class HighPrecisionCategorical:
 
         # Calculate Q statistic
         k = self._to_decimal(k_treatments)
-        sum_col_sq = sum(self._to_decimal(c)**2 for c in col_totals)
+        sum_col_sq = sum(self._to_decimal(c) ** 2 for c in col_totals)
         sum_row = sum(self._to_decimal(r) for r in row_totals)
-        sum_row_sq = sum(self._to_decimal(r)**2 for r in row_totals)
+        sum_row_sq = sum(self._to_decimal(r) ** 2 for r in row_totals)
 
         numerator = k * (k * sum_col_sq - sum_row**2)
         denominator = k * sum_row - sum_row_sq
@@ -612,7 +609,7 @@ class HighPrecisionCategorical:
             p_value=p_value,
             degrees_of_freedom=df,
             cramers_v=w,  # Using as effect size
-            interpretation=self._interpret_cochrans_q(q_stat, p_value, k_treatments)
+            interpretation=self._interpret_cochrans_q(q_stat, p_value, k_treatments),
         )
 
         return result
@@ -680,13 +677,14 @@ class HighPrecisionCategorical:
             degrees_of_freedom=df,
             observed_frequencies=observed,
             expected_frequencies=expected,
-            interpretation=self._interpret_g_test(g_stat, p_value, df)
+            interpretation=self._interpret_g_test(g_stat, p_value, df),
         )
 
         return result
 
-    def binomial_test(self, successes: int, n: int, p: float = 0.5,
-                     alternative: str = 'two-sided') -> CategoricalResult:
+    def binomial_test(
+        self, successes: int, n: int, p: float = 0.5, alternative: str = "two-sided"
+    ) -> CategoricalResult:
         """
         High-precision binomial test.
 
@@ -708,17 +706,17 @@ class HighPrecisionCategorical:
         k = successes
 
         # Calculate exact p-value
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             # Sum probabilities as or more extreme
             p_observed = self._binomial_pmf(k, n, p_dec)
             p_value = self._to_decimal(0)
 
             for i in range(n + 1):
                 p_i = self._binomial_pmf(i, n, p_dec)
-                if p_i <= p_observed + self._to_decimal('1e-10'):
+                if p_i <= p_observed + self._to_decimal("1e-10"):
                     p_value += p_i
 
-        elif alternative == 'greater':
+        elif alternative == "greater":
             # P(X >= k)
             p_value = self._to_decimal(0)
             for i in range(k, n + 1):
@@ -747,14 +745,17 @@ class HighPrecisionCategorical:
             test_name="Binomial Test",
             test_statistic=prop,
             p_value=p_value,
-            interpretation=self._interpret_binomial(successes, n, p, p_value)
+            interpretation=self._interpret_binomial(successes, n, p, p_value),
         )
 
         return result
 
-    def multinomial_test(self, observed: Union[List, np.ndarray],
-                         expected_probs: Optional[Union[List, np.ndarray]] = None,
-                         alpha: float = 0.05) -> CategoricalResult:
+    def multinomial_test(
+        self,
+        observed: Union[List, np.ndarray],
+        expected_probs: Optional[Union[List, np.ndarray]] = None,
+        alpha: float = 0.05,
+    ) -> CategoricalResult:
         """
         High-precision multinomial test.
 
@@ -785,29 +786,32 @@ class HighPrecisionCategorical:
         expected = n * expected_probs
 
         # Chi-square statistic (for large sample approximation)
-        chi2_stat = sum((self._to_decimal(observed[i]) - self._to_decimal(expected[i]))**2 /
-                       self._to_decimal(expected[i]) for i in range(k))
+        chi2_stat = sum(
+            (self._to_decimal(observed[i]) - self._to_decimal(expected[i])) ** 2 / self._to_decimal(expected[i])
+            for i in range(k)
+        )
 
         # Calculate p-value using chi-square distribution
         df = k - 1
         p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), df))
 
         # Calculate effect size (Cramér's V for goodness of fit)
-        cramers_v = (chi2_stat / self._to_decimal(n))**(self._to_decimal(1) / self._to_decimal(2))
+        cramers_v = (chi2_stat / self._to_decimal(n)) ** (self._to_decimal(1) / self._to_decimal(2))
 
         # Calculate probability of observed configuration under multinomial
         log_prob = self._to_decimal(0)
         # log(n!) - sum(log(obs_i!)) + sum(obs_i * log(p_i))
         try:
             from scipy.special import gammaln
+
             log_prob = self._to_decimal(gammaln(n + 1))
             for i in range(k):
                 log_prob -= self._to_decimal(gammaln(observed[i] + 1))
                 if expected_probs[i] > 0:
                     log_prob += self._to_decimal(observed[i]) * self._to_decimal(np.log(expected_probs[i]))
-            exact_prob = self._to_decimal(np.exp(float(log_prob)))
+            self._to_decimal(np.exp(float(log_prob)))
         except:
-            exact_prob = self._to_decimal(0)
+            self._to_decimal(0)
 
         # Interpretation
         interpretation = f"Multinomial test: χ²={float(chi2_stat):.4f}, p={float(p_value):.4f}. "
@@ -823,7 +827,7 @@ class HighPrecisionCategorical:
             p_value=p_value,
             degrees_of_freedom=df,
             cramers_v=cramers_v,
-            interpretation=interpretation
+            interpretation=interpretation,
         )
 
         return result
@@ -882,13 +886,14 @@ class HighPrecisionCategorical:
             test_statistic=z_stat,
             p_value=p_value,
             observed_frequencies=table,
-            interpretation=self._interpret_cochran_armitage(z_stat, p_value)
+            interpretation=self._interpret_cochran_armitage(z_stat, p_value),
         )
 
         return result
 
-    def calculate_effect_sizes(self, table: Union[List[List], np.ndarray],
-                               requested_sizes: Optional[List[str]] = None) -> Dict[str, Decimal]:
+    def calculate_effect_sizes(
+        self, table: Union[List[List], np.ndarray], requested_sizes: Optional[List[str]] = None
+    ) -> Dict[str, Decimal]:
         """
         Calculate comprehensive effect sizes for categorical data.
 
@@ -914,52 +919,60 @@ class HighPrecisionCategorical:
                 expected = self._to_decimal(row_totals[i] * col_totals[j]) / n
                 if expected > 0:
                     observed = self._to_decimal(table[i, j])
-                    chi2 += (observed - expected)**2 / expected
+                    chi2 += (observed - expected) ** 2 / expected
 
         # Cramér's V
         min_dim = min(n_rows, n_cols)
         if min_dim > 1:
-            cramers_v = (chi2 / (n * self._to_decimal(min_dim - 1)))**(self._to_decimal(1) / self._to_decimal(2))
+            cramers_v = (chi2 / (n * self._to_decimal(min_dim - 1))) ** (self._to_decimal(1) / self._to_decimal(2))
         else:
-            cramers_v = (chi2 / n)**(self._to_decimal(1) / self._to_decimal(2))
-        effect_sizes['cramers_v'] = cramers_v
+            cramers_v = (chi2 / n) ** (self._to_decimal(1) / self._to_decimal(2))
+        effect_sizes["cramers_v"] = cramers_v
 
         # Phi coefficient (for 2x2 tables)
         if n_rows == 2 and n_cols == 2:
-            phi = (chi2 / n)**(self._to_decimal(1) / self._to_decimal(2))
+            phi = (chi2 / n) ** (self._to_decimal(1) / self._to_decimal(2))
             # Adjust sign based on association direction
-            a, b, c, d = table[0,0], table[0,1], table[1,0], table[1,1]
+            a, b, c, d = table[0, 0], table[0, 1], table[1, 0], table[1, 1]
             if (a * d) < (b * c):
                 phi = -phi
-            effect_sizes['phi'] = phi
+            effect_sizes["phi"] = phi
 
             # Odds ratio
             if b > 0 and c > 0:
                 or_result = self._calculate_odds_ratio(table)
-                effect_sizes['odds_ratio'] = or_result['odds_ratio']
-                effect_sizes['log_odds_ratio'] = or_result['log_odds_ratio']
+                effect_sizes["odds_ratio"] = or_result["odds_ratio"]
+                effect_sizes["log_odds_ratio"] = or_result["log_odds_ratio"]
 
             # Relative risk
             if row_totals[0] > 0 and row_totals[1] > 0:
                 rr_result = self._calculate_relative_risk(table)
-                effect_sizes['relative_risk'] = rr_result['relative_risk']
+                effect_sizes["relative_risk"] = rr_result["relative_risk"]
 
             # Risk difference
             rd_result = self._calculate_risk_difference(table)
-            effect_sizes['risk_difference'] = rd_result['risk_difference']
+            effect_sizes["risk_difference"] = rd_result["risk_difference"]
 
         # Contingency coefficient C
-        contingency_c = (chi2 / (chi2 + n))**(self._to_decimal(1) / self._to_decimal(2))
-        effect_sizes['contingency_coefficient'] = contingency_c
+        contingency_c = (chi2 / (chi2 + n)) ** (self._to_decimal(1) / self._to_decimal(2))
+        effect_sizes["contingency_coefficient"] = contingency_c
 
         # Tschuprow's T (alternative to Cramér's V)
-        tschuprows_t = (chi2 / (n * ((self._to_decimal(n_rows - 1) * self._to_decimal(n_cols - 1))**
-                       (self._to_decimal(1) / self._to_decimal(2)))))**(self._to_decimal(1) / self._to_decimal(2))
-        effect_sizes['tschuprows_t'] = tschuprows_t
+        tschuprows_t = (
+            chi2
+            / (
+                n
+                * (
+                    (self._to_decimal(n_rows - 1) * self._to_decimal(n_cols - 1))
+                    ** (self._to_decimal(1) / self._to_decimal(2))
+                )
+            )
+        ) ** (self._to_decimal(1) / self._to_decimal(2))
+        effect_sizes["tschuprows_t"] = tschuprows_t
 
         # Cohen's w (effect size for chi-square test)
-        cohens_w = (chi2 / n)**(self._to_decimal(1) / self._to_decimal(2))
-        effect_sizes['cohens_w'] = cohens_w
+        cohens_w = (chi2 / n) ** (self._to_decimal(1) / self._to_decimal(2))
+        effect_sizes["cohens_w"] = cohens_w
 
         # Filter by requested sizes if specified
         if requested_sizes:
@@ -983,7 +996,7 @@ class HighPrecisionCategorical:
         if k < 0 or k > n:
             return self._to_decimal(0)
 
-        return self._combination(n, k) * p**k * (1 - p)**(n - k)
+        return self._combination(n, k) * p**k * (1 - p) ** (n - k)
 
     def _combination(self, n: int, k: int) -> Decimal:
         """Calculate combination C(n, k) with high precision"""
@@ -1006,27 +1019,32 @@ class HighPrecisionCategorical:
         c, d = table[1, 0], table[1, 1]
 
         # Add small constant to avoid division by zero
-        epsilon = self._to_decimal('1e-10')
+        epsilon = self._to_decimal("1e-10")
 
-        odds_ratio = (self._to_decimal(a) + epsilon) * (self._to_decimal(d) + epsilon) / \
-                    ((self._to_decimal(b) + epsilon) * (self._to_decimal(c) + epsilon))
+        odds_ratio = (
+            (self._to_decimal(a) + epsilon)
+            * (self._to_decimal(d) + epsilon)
+            / ((self._to_decimal(b) + epsilon) * (self._to_decimal(c) + epsilon))
+        )
 
         # Log odds ratio for CI
         log_or = odds_ratio.ln()
-        se_log_or = ((1 / (self._to_decimal(a) + epsilon)) +
-                    (1 / (self._to_decimal(b) + epsilon)) +
-                    (1 / (self._to_decimal(c) + epsilon)) +
-                    (1 / (self._to_decimal(d) + epsilon))).sqrt()
+        se_log_or = (
+            (1 / (self._to_decimal(a) + epsilon))
+            + (1 / (self._to_decimal(b) + epsilon))
+            + (1 / (self._to_decimal(c) + epsilon))
+            + (1 / (self._to_decimal(d) + epsilon))
+        ).sqrt()
 
         z_alpha = self._to_decimal(stats.norm.ppf(0.975))
         ci_lower = (log_or - z_alpha * se_log_or).exp()
         ci_upper = (log_or + z_alpha * se_log_or).exp()
 
         return {
-            'odds_ratio': odds_ratio,
-            'confidence_interval': (ci_lower, ci_upper),
-            'log_odds_ratio': log_or,
-            'standard_error': se_log_or
+            "odds_ratio": odds_ratio,
+            "confidence_interval": (ci_lower, ci_upper),
+            "log_odds_ratio": log_or,
+            "standard_error": se_log_or,
         }
 
     def _calculate_relative_risk(self, table: np.ndarray) -> Dict[str, Any]:
@@ -1043,13 +1061,15 @@ class HighPrecisionCategorical:
         if risk2 > 0:
             rr = risk1 / risk2
         else:
-            rr = self._to_decimal('inf') if risk1 > 0 else self._to_decimal(1)
+            rr = self._to_decimal("inf") if risk1 > 0 else self._to_decimal(1)
 
         # Confidence interval (log scale)
-        if rr > 0 and rr != self._to_decimal('inf'):
+        if rr > 0 and rr != self._to_decimal("inf"):
             log_rr = rr.ln()
-            se_log_rr = ((1 - risk1) / (self._to_decimal(a) + self._to_decimal('1e-10')) +
-                        (1 - risk2) / (self._to_decimal(c) + self._to_decimal('1e-10'))).sqrt()
+            se_log_rr = (
+                (1 - risk1) / (self._to_decimal(a) + self._to_decimal("1e-10"))
+                + (1 - risk2) / (self._to_decimal(c) + self._to_decimal("1e-10"))
+            ).sqrt()
 
             z_alpha = self._to_decimal(stats.norm.ppf(0.975))
             ci_lower = (log_rr - z_alpha * se_log_rr).exp()
@@ -1057,10 +1077,7 @@ class HighPrecisionCategorical:
         else:
             ci_lower = ci_upper = None
 
-        return {
-            'relative_risk': rr,
-            'confidence_interval': (ci_lower, ci_upper) if ci_lower else None
-        }
+        return {"relative_risk": rr, "confidence_interval": (ci_lower, ci_upper) if ci_lower else None}
 
     def _calculate_risk_difference(self, table: np.ndarray) -> Dict[str, Any]:
         """Calculate risk difference for 2x2 table"""
@@ -1076,26 +1093,22 @@ class HighPrecisionCategorical:
         rd = risk1 - risk2
 
         # Standard error
-        se_rd = ((risk1 * (1 - risk1)) / self._to_decimal(a + b) +
-                (risk2 * (1 - risk2)) / self._to_decimal(c + d)).sqrt()
+        se_rd = (
+            (risk1 * (1 - risk1)) / self._to_decimal(a + b) + (risk2 * (1 - risk2)) / self._to_decimal(c + d)
+        ).sqrt()
 
         # Confidence interval
         z_alpha = self._to_decimal(stats.norm.ppf(0.975))
         ci_lower = rd - z_alpha * se_rd
         ci_upper = rd + z_alpha * se_rd
 
-        return {
-            'risk_difference': rd,
-            'confidence_interval': (ci_lower, ci_upper),
-            'standard_error': se_rd
-        }
+        return {"risk_difference": rd, "confidence_interval": (ci_lower, ci_upper), "standard_error": se_rd}
 
-    def _generate_recommendations(self, assumptions_met: Dict[str, bool],
-                                 rows: int, cols: int, n: int) -> List[str]:
+    def _generate_recommendations(self, assumptions_met: Dict[str, bool], rows: int, cols: int, n: int) -> List[str]:
         """Generate recommendations based on test results"""
         recommendations = []
 
-        if not assumptions_met.get('expected_frequencies_ge_5', True):
+        if not assumptions_met.get("expected_frequencies_ge_5", True):
             if rows == 2 and cols == 2:
                 recommendations.append("Consider Fisher's exact test for small expected frequencies")
             else:
@@ -1109,34 +1122,32 @@ class HighPrecisionCategorical:
 
         return recommendations
 
-    def _interpret_chi_square(self, chi2: Decimal, p_value: Decimal,
-                             cramers_v: Decimal, df: int) -> str:
+    def _interpret_chi_square(self, chi2: Decimal, p_value: Decimal, cramers_v: Decimal, df: int) -> str:
         """Generate interpretation for chi-square test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         # Effect size interpretation
-        if cramers_v < self._to_decimal('0.1'):
+        if cramers_v < self._to_decimal("0.1"):
             effect = "negligible"
-        elif cramers_v < self._to_decimal('0.3'):
+        elif cramers_v < self._to_decimal("0.3"):
             effect = "small"
-        elif cramers_v < self._to_decimal('0.5'):
+        elif cramers_v < self._to_decimal("0.5"):
             effect = "medium"
         else:
             effect = "large"
 
         return f"The chi-square test is {sig} (χ²({df}) = {chi2:.2f}, p = {p_value:.4f}) with a {effect} effect size (V = {cramers_v:.3f})"
 
-    def _interpret_goodness_of_fit(self, chi2: Decimal, p_value: Decimal,
-                                  cohen_w: Decimal, df: int) -> str:
+    def _interpret_goodness_of_fit(self, chi2: Decimal, p_value: Decimal, cohen_w: Decimal, df: int) -> str:
         """Generate interpretation for goodness of fit test"""
-        sig = "reject" if p_value < self._to_decimal('0.05') else "fail to reject"
+        sig = "reject" if p_value < self._to_decimal("0.05") else "fail to reject"
 
         # Effect size interpretation (Cohen's w)
-        if cohen_w < self._to_decimal('0.1'):
+        if cohen_w < self._to_decimal("0.1"):
             effect = "negligible"
-        elif cohen_w < self._to_decimal('0.3'):
+        elif cohen_w < self._to_decimal("0.3"):
             effect = "small"
-        elif cohen_w < self._to_decimal('0.5'):
+        elif cohen_w < self._to_decimal("0.5"):
             effect = "medium"
         else:
             effect = "large"
@@ -1145,11 +1156,11 @@ class HighPrecisionCategorical:
 
     def _interpret_fisher(self, odds_ratio: Decimal, p_value: Decimal) -> str:
         """Generate interpretation for Fisher's exact test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
-        if odds_ratio == self._to_decimal('inf'):
+        if odds_ratio == self._to_decimal("inf"):
             or_text = "infinite (perfect association)"
-        elif odds_ratio == self._to_decimal('nan'):
+        elif odds_ratio == self._to_decimal("nan"):
             or_text = "undefined"
         else:
             or_text = f"{odds_ratio:.2f}"
@@ -1158,31 +1169,33 @@ class HighPrecisionCategorical:
 
     def _interpret_mcnemar(self, chi2: Decimal, p_value: Decimal, b: int, c: int) -> str:
         """Generate interpretation for McNemar's test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"McNemar's test shows {sig} change (χ² = {chi2:.2f}, p = {p_value:.4f}). Changes: {b} → positive, {c} → negative"
 
     def _interpret_cochrans_q(self, q: Decimal, p_value: Decimal, k: int) -> str:
         """Generate interpretation for Cochran's Q test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"Cochran's Q test comparing {k} treatments is {sig} (Q = {q:.2f}, p = {p_value:.4f})"
 
     def _interpret_g_test(self, g: Decimal, p_value: Decimal, df: int) -> str:
         """Generate interpretation for G-test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"The G-test is {sig} (G({df}) = {g:.2f}, p = {p_value:.4f})"
 
     def _interpret_binomial(self, k: int, n: int, p: float, p_value: Decimal) -> str:
         """Generate interpretation for binomial test"""
         observed_prop = k / n
-        sig = "significantly different from" if p_value < self._to_decimal('0.05') else "not significantly different from"
+        sig = (
+            "significantly different from" if p_value < self._to_decimal("0.05") else "not significantly different from"
+        )
 
         return f"Observed proportion ({observed_prop:.3f}) is {sig} expected ({p:.3f}), p = {p_value:.4f}"
 
     def _interpret_cochran_armitage(self, z: Decimal, p_value: Decimal) -> str:
         """Generate interpretation for Cochran-Armitage trend test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"The test for trend is {sig} (Z = {z:.2f}, p = {p_value:.4f})"

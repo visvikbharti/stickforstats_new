@@ -13,8 +13,6 @@ import {
   Typography,
   Tooltip,
   IconButton,
-  ToggleButton,
-  ToggleButtonGroup,
   Slider,
   FormControlLabel,
   Switch,
@@ -24,7 +22,6 @@ import {
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
   Refresh as RefreshIcon,
-  Info as InfoIcon,
 } from '@mui/icons-material';
 
 import { CorrelationMatrixProps } from './ProfileViewer.types';

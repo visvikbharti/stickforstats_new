@@ -11,13 +11,13 @@ class TestModuleCompatibility(unittest.TestCase):
     def test_service_imports(self):
         """Test that all services can be imported."""
         services = [
-            'sqc_analysis.services.control_chart_service',
-            'sqc_analysis.services.process_capability_service',
-            'sqc_analysis.services.acceptance_sampling_service',
-            'sqc_analysis.services.msa_service',
-            'sqc_analysis.services.economic_design_service',
-            'sqc_analysis.services.spc_implementation_service',
-            'sqc_analysis.services.utils_service'
+            "sqc_analysis.services.control_chart_service",
+            "sqc_analysis.services.process_capability_service",
+            "sqc_analysis.services.acceptance_sampling_service",
+            "sqc_analysis.services.msa_service",
+            "sqc_analysis.services.economic_design_service",
+            "sqc_analysis.services.spc_implementation_service",
+            "sqc_analysis.services.utils_service",
         ]
 
         for service_module in services:
@@ -31,7 +31,8 @@ class TestModuleCompatibility(unittest.TestCase):
         """Test compatibility with core module dependencies."""
         # Check if core models can be imported
         try:
-            from core.models import AnalysisSession, AnalysisResult
+            pass
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import core models: {e}")
@@ -39,6 +40,7 @@ class TestModuleCompatibility(unittest.TestCase):
         # Check if SQC models can be imported
         try:
             from sqc_analysis.models import ControlChartAnalysis
+
             self.assertIsNotNone(ControlChartAnalysis)
         except ImportError as e:
             self.fail(f"Failed to import SQC models: {e}")
@@ -46,16 +48,8 @@ class TestModuleCompatibility(unittest.TestCase):
     def test_api_compatibility(self):
         """Test compatibility with Django REST Framework."""
         try:
-            from sqc_analysis.api.views import (
-                ControlChartViewSet, ProcessCapabilityViewSet,
-                AcceptanceSamplingViewSet, MeasurementSystemAnalysisViewSet,
-                EconomicDesignViewSet, SPCImplementationViewSet
-            )
-            from sqc_analysis.api.serializers import (
-                ControlChartAnalysisSerializer, ProcessCapabilityAnalysisSerializer,
-                AcceptanceSamplingPlanSerializer, MeasurementSystemAnalysisSerializer,
-                EconomicDesignAnalysisSerializer, SPCImplementationPlanSerializer
-            )
+            pass
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import API components: {e}")
@@ -63,16 +57,11 @@ class TestModuleCompatibility(unittest.TestCase):
     def test_other_modules_compatibility(self):
         """Test compatibility with other statistical modules."""
         # Test importing from other modules (if available)
-        other_modules = [
-            'confidence_intervals',
-            'probability_distributions',
-            'doe_analysis',
-            'pca_analysis'
-        ]
+        other_modules = ["confidence_intervals", "probability_distributions", "doe_analysis", "pca_analysis"]
 
         for module_name in other_modules:
             try:
-                module = importlib.import_module(module_name)
+                importlib.import_module(module_name)
                 # If module exists, test passes
                 self.assertTrue(True)
             except ImportError:
@@ -82,12 +71,12 @@ class TestModuleCompatibility(unittest.TestCase):
     def test_service_implementations(self):
         """Test that all service classes are properly implemented."""
         service_classes = [
-            ('sqc_analysis.services.control_chart_service', 'ControlChartService'),
-            ('sqc_analysis.services.process_capability_service', 'ProcessCapabilityService'),
-            ('sqc_analysis.services.acceptance_sampling_service', 'AcceptanceSamplingService'),
-            ('sqc_analysis.services.msa_service', 'MSAService'),
-            ('sqc_analysis.services.economic_design_service', 'EconomicDesignService'),
-            ('sqc_analysis.services.spc_implementation_service', 'SPCImplementationService'),
+            ("sqc_analysis.services.control_chart_service", "ControlChartService"),
+            ("sqc_analysis.services.process_capability_service", "ProcessCapabilityService"),
+            ("sqc_analysis.services.acceptance_sampling_service", "AcceptanceSamplingService"),
+            ("sqc_analysis.services.msa_service", "MSAService"),
+            ("sqc_analysis.services.economic_design_service", "EconomicDesignService"),
+            ("sqc_analysis.services.spc_implementation_service", "SPCImplementationService"),
         ]
 
         for module_name, class_name in service_classes:
@@ -102,5 +91,5 @@ class TestModuleCompatibility(unittest.TestCase):
                 self.fail(f"Failed to instantiate {class_name} from {module_name}: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

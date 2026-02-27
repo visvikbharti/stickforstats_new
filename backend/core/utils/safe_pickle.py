@@ -20,7 +20,6 @@ Usage:
 Author: StickForStats Development Team
 """
 
-import io
 import pickle
 
 
@@ -28,21 +27,30 @@ class SafeUnpickler(pickle.Unpickler):
     """Restricted unpickler that only allows safe types from trusted modules."""
 
     SAFE_MODULES = {
-        'numpy', 'numpy.core', 'numpy.core.multiarray',
-        'scipy', 'scipy.stats', 'scipy.special',
-        'sklearn', 'statsmodels', 'pandas',
-        'collections', 'builtins', 'datetime',
-        'copyreg', '_codecs', 'codecs',
+        "numpy",
+        "numpy.core",
+        "numpy.core.multiarray",
+        "scipy",
+        "scipy.stats",
+        "scipy.special",
+        "sklearn",
+        "statsmodels",
+        "pandas",
+        "collections",
+        "builtins",
+        "datetime",
+        "copyreg",
+        "_codecs",
+        "codecs",
     }
 
     def find_class(self, module, name):
         # Allow any submodule of a safe top-level package
-        top_level = module.split('.')[0]
+        top_level = module.split(".")[0]
         if top_level in self.SAFE_MODULES or module in self.SAFE_MODULES:
             return super().find_class(module, name)
         raise pickle.UnpicklingError(
-            f"Forbidden class: {module}.{name}. "
-            f"Only classes from trusted scientific modules are allowed."
+            f"Forbidden class: {module}.{name}. " f"Only classes from trusted scientific modules are allowed."
         )
 
 

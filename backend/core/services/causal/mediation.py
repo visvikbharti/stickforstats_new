@@ -42,17 +42,18 @@ References:
 Created: December 27, 2025
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
 from scipy import stats
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression
 
 
 @dataclass
 class MediationResult:
     """Result of mediation analysis."""
+
     # Effects
     total_effect: float
     direct_effect: float
@@ -94,49 +95,36 @@ class MediationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'effects': {
-                'total': self.total_effect,
-                'direct': self.direct_effect,
-                'indirect': self.indirect_effect,
-                'proportion_mediated': self.proportion_mediated
+            "effects": {
+                "total": self.total_effect,
+                "direct": self.direct_effect,
+                "indirect": self.indirect_effect,
+                "proportion_mediated": self.proportion_mediated,
             },
-            'standard_errors': {
-                'total': self.total_effect_se,
-                'direct': self.direct_effect_se,
-                'indirect': self.indirect_effect_se
+            "standard_errors": {
+                "total": self.total_effect_se,
+                "direct": self.direct_effect_se,
+                "indirect": self.indirect_effect_se,
             },
-            'confidence_intervals': {
-                'indirect': {
-                    'lower': self.indirect_effect_ci[0],
-                    'upper': self.indirect_effect_ci[1]
-                },
-                'direct': {
-                    'lower': self.direct_effect_ci[0],
-                    'upper': self.direct_effect_ci[1]
-                }
+            "confidence_intervals": {
+                "indirect": {"lower": self.indirect_effect_ci[0], "upper": self.indirect_effect_ci[1]},
+                "direct": {"lower": self.direct_effect_ci[0], "upper": self.direct_effect_ci[1]},
             },
-            'path_coefficients': {
-                'a': self.path_a,
-                'b': self.path_b,
-                'c': self.path_c,
-                'c_prime': self.path_c_prime
-            },
-            'sobel_test': self.sobel_test,
-            'model_fit': {
-                'r_squared_mediator': self.r_squared_m,
-                'r_squared_outcome': self.r_squared_y
-            },
-            'sample_size': self.n,
-            'method': self.method,
-            'bootstrap_samples': self.bootstrap_samples,
-            'interpretation': self.interpretation,
-            'warnings': self.warnings
+            "path_coefficients": {"a": self.path_a, "b": self.path_b, "c": self.path_c, "c_prime": self.path_c_prime},
+            "sobel_test": self.sobel_test,
+            "model_fit": {"r_squared_mediator": self.r_squared_m, "r_squared_outcome": self.r_squared_y},
+            "sample_size": self.n,
+            "method": self.method,
+            "bootstrap_samples": self.bootstrap_samples,
+            "interpretation": self.interpretation,
+            "warnings": self.warnings,
         }
 
 
 @dataclass
 class CausalMediationResult:
     """Result of causal mediation analysis (Imai et al.)."""
+
     # Average causal mediation effect
     acme: float  # Average Causal Mediation Effect
     acme_ci: Tuple[float, float]
@@ -167,36 +155,28 @@ class CausalMediationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'acme': {
-                'estimate': self.acme,
-                'ci_lower': self.acme_ci[0],
-                'ci_upper': self.acme_ci[1]
+            "acme": {"estimate": self.acme, "ci_lower": self.acme_ci[0], "ci_upper": self.acme_ci[1]},
+            "ade": {"estimate": self.ade, "ci_lower": self.ade_ci[0], "ci_upper": self.ade_ci[1]},
+            "total_effect": {
+                "estimate": self.total_effect,
+                "ci_lower": self.total_effect_ci[0],
+                "ci_upper": self.total_effect_ci[1],
             },
-            'ade': {
-                'estimate': self.ade,
-                'ci_lower': self.ade_ci[0],
-                'ci_upper': self.ade_ci[1]
+            "proportion_mediated": {
+                "estimate": self.prop_mediated,
+                "ci_lower": self.prop_mediated_ci[0],
+                "ci_upper": self.prop_mediated_ci[1],
             },
-            'total_effect': {
-                'estimate': self.total_effect,
-                'ci_lower': self.total_effect_ci[0],
-                'ci_upper': self.total_effect_ci[1]
+            "by_treatment_status": {
+                "acme_treated": self.acme_treated,
+                "acme_control": self.acme_control,
+                "ade_treated": self.ade_treated,
+                "ade_control": self.ade_control,
             },
-            'proportion_mediated': {
-                'estimate': self.prop_mediated,
-                'ci_lower': self.prop_mediated_ci[0],
-                'ci_upper': self.prop_mediated_ci[1]
-            },
-            'by_treatment_status': {
-                'acme_treated': self.acme_treated,
-                'acme_control': self.acme_control,
-                'ade_treated': self.ade_treated,
-                'ade_control': self.ade_control
-            },
-            'sample_size': self.n,
-            'n_simulations': self.n_simulations,
-            'interpretation': self.interpretation,
-            'warnings': self.warnings
+            "sample_size": self.n,
+            "n_simulations": self.n_simulations,
+            "interpretation": self.interpretation,
+            "warnings": self.warnings,
         }
 
 
@@ -208,7 +188,7 @@ def baron_kenny_mediation(
     covariates: Optional[List[str]] = None,
     bootstrap: bool = True,
     n_bootstrap: int = 5000,
-    confidence_level: float = 0.95
+    confidence_level: float = 0.95,
 ) -> MediationResult:
     """
     Perform Baron-Kenny mediation analysis.
@@ -265,7 +245,7 @@ def baron_kenny_mediation(
 
     residuals_total = Y - model_total.predict(X_design)
     se_c = _robust_se(X_design, residuals_total)[1]
-    r_sq_total = 1 - np.sum(residuals_total**2) / np.sum((Y - np.mean(Y))**2)
+    1 - np.sum(residuals_total**2) / np.sum((Y - np.mean(Y)) ** 2)
 
     # Step 2: X → M (path a)
     X_design_m = _add_intercept(X.reshape(-1, 1))
@@ -278,7 +258,7 @@ def baron_kenny_mediation(
 
     residuals_m = M - model_m.predict(X_design_m)
     se_a = _robust_se(X_design_m, residuals_m)[1]
-    r_sq_m = 1 - np.sum(residuals_m**2) / np.sum((M - np.mean(M))**2)
+    r_sq_m = 1 - np.sum(residuals_m**2) / np.sum((M - np.mean(M)) ** 2)
 
     # Step 3 & 4: Y ~ X + M (paths b and c')
     XM_design = _add_intercept(np.column_stack([X, M]))
@@ -294,7 +274,7 @@ def baron_kenny_mediation(
     se_full = _robust_se(XM_design, residuals_full)
     se_c_prime = se_full[1]
     se_b = se_full[2]
-    r_sq_y = 1 - np.sum(residuals_full**2) / np.sum((Y - np.mean(Y))**2)
+    r_sq_y = 1 - np.sum(residuals_full**2) / np.sum((Y - np.mean(Y)) ** 2)
 
     # Calculate indirect effect
     indirect_effect = path_a * path_b
@@ -306,11 +286,7 @@ def baron_kenny_mediation(
     sobel_z = indirect_effect / sobel_se
     sobel_p = 2 * (1 - stats.norm.cdf(abs(sobel_z)))
 
-    sobel_test = {
-        'z': float(sobel_z),
-        'p_value': float(sobel_p),
-        'se': float(sobel_se)
-    }
+    sobel_test = {"z": float(sobel_z), "p_value": float(sobel_p), "se": float(sobel_se)}
 
     # Bootstrap CI for indirect effect (recommended)
     if bootstrap:
@@ -353,12 +329,12 @@ def baron_kenny_mediation(
 
         alpha = 1 - confidence_level
         indirect_ci = (
-            float(np.percentile(boot_indirect, alpha/2 * 100)),
-            float(np.percentile(boot_indirect, (1 - alpha/2) * 100))
+            float(np.percentile(boot_indirect, alpha / 2 * 100)),
+            float(np.percentile(boot_indirect, (1 - alpha / 2) * 100)),
         )
         direct_ci = (
-            float(np.percentile(boot_direct, alpha/2 * 100)),
-            float(np.percentile(boot_direct, (1 - alpha/2) * 100))
+            float(np.percentile(boot_direct, alpha / 2 * 100)),
+            float(np.percentile(boot_direct, (1 - alpha / 2) * 100)),
         )
         indirect_se = float(np.std(boot_indirect, ddof=1))
         direct_se = float(np.std(boot_direct, ddof=1))
@@ -366,14 +342,8 @@ def baron_kenny_mediation(
         # Use Sobel SE
         indirect_se = sobel_se
         z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        indirect_ci = (
-            float(indirect_effect - z_crit * indirect_se),
-            float(indirect_effect + z_crit * indirect_se)
-        )
-        direct_ci = (
-            float(direct_effect - z_crit * se_c_prime),
-            float(direct_effect + z_crit * se_c_prime)
-        )
+        indirect_ci = (float(indirect_effect - z_crit * indirect_se), float(indirect_effect + z_crit * indirect_se))
+        direct_ci = (float(direct_effect - z_crit * se_c_prime), float(direct_effect + z_crit * se_c_prime))
         direct_se = se_c_prime
 
     # Proportion mediated
@@ -393,8 +363,7 @@ def baron_kenny_mediation(
 
     # Interpretation
     interpretation = _interpret_mediation(
-        indirect_effect, indirect_ci, direct_effect, direct_ci,
-        prop_mediated, total_effect
+        indirect_effect, indirect_ci, direct_effect, direct_ci, prop_mediated, total_effect
     )
 
     return MediationResult(
@@ -415,10 +384,10 @@ def baron_kenny_mediation(
         r_squared_m=float(r_sq_m),
         r_squared_y=float(r_sq_y),
         n=n,
-        method='baron_kenny' + ('_bootstrap' if bootstrap else '_sobel'),
+        method="baron_kenny" + ("_bootstrap" if bootstrap else "_sobel"),
         bootstrap_samples=n_bootstrap if bootstrap else None,
         interpretation=interpretation,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -431,7 +400,7 @@ def causal_mediation_analysis(
     n_simulations: int = 1000,
     confidence_level: float = 0.95,
     treat_value: int = 1,
-    control_value: int = 0
+    control_value: int = 0,
 ) -> CausalMediationResult:
     """
     Causal mediation analysis following Imai, Keele, & Tingley (2010).
@@ -512,13 +481,21 @@ def causal_mediation_analysis(
 
         # Simulate Y under different combinations
         # Y(1, M(1))
-        Y_1_M1 = beta_y[0] + beta_y[1] * treat_value + beta_y[2] * M_1 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        Y_1_M1 = (
+            beta_y[0] + beta_y[1] * treat_value + beta_y[2] * M_1 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        )
         # Y(1, M(0))
-        Y_1_M0 = beta_y[0] + beta_y[1] * treat_value + beta_y[2] * M_0 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        Y_1_M0 = (
+            beta_y[0] + beta_y[1] * treat_value + beta_y[2] * M_0 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        )
         # Y(0, M(1))
-        Y_0_M1 = beta_y[0] + beta_y[1] * control_value + beta_y[2] * M_1 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        Y_0_M1 = (
+            beta_y[0] + beta_y[1] * control_value + beta_y[2] * M_1 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        )
         # Y(0, M(0))
-        Y_0_M0 = beta_y[0] + beta_y[1] * control_value + beta_y[2] * M_0 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        Y_0_M0 = (
+            beta_y[0] + beta_y[1] * control_value + beta_y[2] * M_0 + C @ beta_y[3:] + np.random.normal(0, sigma_y, n)
+        )
 
         # ACME (indirect effect)
         acme_1 = np.mean(Y_1_M1 - Y_1_M0)  # Under treatment
@@ -548,28 +525,19 @@ def causal_mediation_analysis(
     alpha = 1 - confidence_level
 
     acme_est = float(np.mean(acme_sim))
-    acme_ci = (
-        float(np.percentile(acme_sim, alpha/2 * 100)),
-        float(np.percentile(acme_sim, (1 - alpha/2) * 100))
-    )
+    acme_ci = (float(np.percentile(acme_sim, alpha / 2 * 100)), float(np.percentile(acme_sim, (1 - alpha / 2) * 100)))
 
     ade_est = float(np.mean(ade_sim))
-    ade_ci = (
-        float(np.percentile(ade_sim, alpha/2 * 100)),
-        float(np.percentile(ade_sim, (1 - alpha/2) * 100))
-    )
+    ade_ci = (float(np.percentile(ade_sim, alpha / 2 * 100)), float(np.percentile(ade_sim, (1 - alpha / 2) * 100)))
 
     total_est = float(np.mean(total_sim))
     total_ci = (
-        float(np.percentile(total_sim, alpha/2 * 100)),
-        float(np.percentile(total_sim, (1 - alpha/2) * 100))
+        float(np.percentile(total_sim, alpha / 2 * 100)),
+        float(np.percentile(total_sim, (1 - alpha / 2) * 100)),
     )
 
     prop_est = float(np.mean(prop_sim))
-    prop_ci = (
-        float(np.percentile(prop_sim, alpha/2 * 100)),
-        float(np.percentile(prop_sim, (1 - alpha/2) * 100))
-    )
+    prop_ci = (float(np.percentile(prop_sim, alpha / 2 * 100)), float(np.percentile(prop_sim, (1 - alpha / 2) * 100)))
 
     # Interpretation
     interpretation = _interpret_causal_mediation(acme_est, acme_ci, ade_est, ade_ci, prop_est)
@@ -590,7 +558,7 @@ def causal_mediation_analysis(
         n=n,
         n_simulations=n_simulations,
         interpretation=interpretation,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -601,7 +569,7 @@ def mediation_sensitivity_analysis(
     outcome: str,
     covariates: Optional[List[str]] = None,
     rho_range: Tuple[float, float] = (-0.9, 0.9),
-    n_points: int = 19
+    n_points: int = 19,
 ) -> Dict[str, Any]:
     """
     Sensitivity analysis for the sequential ignorability assumption.
@@ -669,29 +637,27 @@ def mediation_sensitivity_analysis(
         adjustment = rho * sigma_m * sigma_y
         acme_adjusted = acme_original - adjustment
 
-        results.append({
-            'rho': float(rho),
-            'acme': float(acme_adjusted),
-            'acme_changes_sign': (acme_adjusted * acme_original) < 0
-        })
+        results.append(
+            {"rho": float(rho), "acme": float(acme_adjusted), "acme_changes_sign": (acme_adjusted * acme_original) < 0}
+        )
 
     # Find critical rho (where ACME = 0)
     rho_crit = None
     for i in range(len(results) - 1):
-        if results[i]['acme'] * results[i+1]['acme'] < 0:
+        if results[i]["acme"] * results[i + 1]["acme"] < 0:
             # Linear interpolation
-            r1, a1 = results[i]['rho'], results[i]['acme']
-            r2, a2 = results[i+1]['rho'], results[i+1]['acme']
+            r1, a1 = results[i]["rho"], results[i]["acme"]
+            r2, a2 = results[i + 1]["rho"], results[i + 1]["acme"]
             rho_crit = r1 - a1 * (r2 - r1) / (a2 - a1)
             break
 
     return {
-        'original_acme': float(acme_original),
-        'sensitivity_results': results,
-        'rho_critical': float(rho_crit) if rho_crit else None,
-        'interpretation': _interpret_sensitivity(rho_crit),
-        'sigma_m': float(sigma_m),
-        'sigma_y': float(sigma_y)
+        "original_acme": float(acme_original),
+        "sensitivity_results": results,
+        "rho_critical": float(rho_crit) if rho_crit else None,
+        "interpretation": _interpret_sensitivity(rho_crit),
+        "sigma_m": float(sigma_m),
+        "sigma_y": float(sigma_y),
     }
 
 
@@ -702,7 +668,7 @@ def multiple_mediator_analysis(
     outcome: str,
     covariates: Optional[List[str]] = None,
     bootstrap: bool = True,
-    n_bootstrap: int = 5000
+    n_bootstrap: int = 5000,
 ) -> Dict[str, Any]:
     """
     Analyze multiple mediators simultaneously.
@@ -743,8 +709,7 @@ def multiple_mediator_analysis(
     # Analyze each mediator separately (for comparison)
     for med in mediators:
         result = baron_kenny_mediation(
-            data, treatment, med, outcome, covariates,
-            bootstrap=bootstrap, n_bootstrap=n_bootstrap
+            data, treatment, med, outcome, covariates, bootstrap=bootstrap, n_bootstrap=n_bootstrap
         )
         results_per_mediator[med] = result.to_dict()
 
@@ -833,34 +798,34 @@ def multiple_mediator_analysis(
                 continue
 
     # Calculate CIs
-    alpha = 0.05
     ci_specific = {}
     for med in mediators:
         if boot_specific[med]:
             ci_specific[med] = {
-                'estimate': specific_indirect[med],
-                'ci_lower': float(np.percentile(boot_specific[med], 2.5)),
-                'ci_upper': float(np.percentile(boot_specific[med], 97.5))
+                "estimate": specific_indirect[med],
+                "ci_lower": float(np.percentile(boot_specific[med], 2.5)),
+                "ci_upper": float(np.percentile(boot_specific[med], 97.5)),
             }
         else:
-            ci_specific[med] = {'estimate': specific_indirect[med]}
+            ci_specific[med] = {"estimate": specific_indirect[med]}
 
     return {
-        'total_effect': float(total_effect),
-        'direct_effect': float(direct_effect),
-        'total_indirect_effect': float(total_indirect),
-        'specific_indirect_effects': ci_specific,
-        'individual_analyses': results_per_mediator,
-        'path_coefficients': {
-            'a': {k: float(v) for k, v in path_a.items()},
-            'b': {k: float(v) for k, v in path_b.items()}
+        "total_effect": float(total_effect),
+        "direct_effect": float(direct_effect),
+        "total_indirect_effect": float(total_indirect),
+        "specific_indirect_effects": ci_specific,
+        "individual_analyses": results_per_mediator,
+        "path_coefficients": {
+            "a": {k: float(v) for k, v in path_a.items()},
+            "b": {k: float(v) for k, v in path_b.items()},
         },
-        'n': n,
-        'n_mediators': len(mediators)
+        "n": n,
+        "n_mediators": len(mediators),
     }
 
 
 # ==================== Helper Functions ====================
+
 
 def _add_intercept(X: np.ndarray) -> np.ndarray:
     """Add intercept column to design matrix."""
@@ -869,8 +834,8 @@ def _add_intercept(X: np.ndarray) -> np.ndarray:
 
 def _robust_se(X: np.ndarray, residuals: np.ndarray) -> np.ndarray:
     """Calculate heteroskedasticity-robust standard errors (HC0)."""
-    n = len(residuals)
-    k = X.shape[1]
+    len(residuals)
+    X.shape[1]
 
     # Bread: (X'X)^-1
     XtX_inv = np.linalg.inv(X.T @ X)
@@ -890,7 +855,7 @@ def _interpret_mediation(
     direct: float,
     direct_ci: Tuple[float, float],
     prop_med: float,
-    total: float
+    total: float,
 ) -> str:
     """Generate interpretation of mediation results."""
     parts = []
@@ -915,11 +880,7 @@ def _interpret_mediation(
 
 
 def _interpret_causal_mediation(
-    acme: float,
-    acme_ci: Tuple[float, float],
-    ade: float,
-    ade_ci: Tuple[float, float],
-    prop: float
+    acme: float, acme_ci: Tuple[float, float], ade: float, ade_ci: Tuple[float, float], prop: float
 ) -> str:
     """Interpret causal mediation results."""
     parts = []

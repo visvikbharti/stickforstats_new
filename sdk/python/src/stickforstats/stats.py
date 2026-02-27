@@ -4,7 +4,7 @@ Statistics module — wraps ``/api/v1/stats/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import (
     ANOVAResult,
@@ -34,9 +34,9 @@ class StatsModule:
 
     def ttest(
         self,
-        data: Dict[str, List[float]],
+        data: dict[str, list[float]],
         *,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         paired: bool = False,
         alpha: float = 0.05,
         alternative: str = "two-sided",
@@ -64,7 +64,7 @@ class StatsModule:
         -------
         TTestResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "data": data,
             "paired": paired,
             "alpha": alpha,
@@ -83,9 +83,9 @@ class StatsModule:
 
     def anova(
         self,
-        data: Dict[str, List[float]],
+        data: dict[str, list[float]],
         *,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         alpha: float = 0.05,
         anova_type: str = "one-way",
         post_hoc: str = "tukey",
@@ -111,7 +111,7 @@ class StatsModule:
         -------
         ANOVAResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "data": data,
             "alpha": alpha,
             "anova_type": anova_type,
@@ -130,14 +130,14 @@ class StatsModule:
 
     def ancova(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         *,
         dependent: str,
         factor: str,
-        covariates: Optional[List[str]] = None,
+        covariates: list[str] | None = None,
         alpha: float = 0.05,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform an Analysis of Covariance.
 
@@ -159,7 +159,7 @@ class StatsModule:
         dict
             Raw API response.
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "data": data,
             "dependent": dependent,
             "factor": factor,
@@ -177,8 +177,8 @@ class StatsModule:
 
     def correlation(
         self,
-        x: List[float],
-        y: List[float],
+        x: list[float],
+        y: list[float],
         *,
         method: str = "pearson",
         alpha: float = 0.05,
@@ -200,7 +200,7 @@ class StatsModule:
         -------
         CorrelationResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "x": x,
             "y": y,
             "method": method,
@@ -216,10 +216,10 @@ class StatsModule:
 
     def regression(
         self,
-        data: Dict[str, List[float]],
+        data: dict[str, list[float]],
         *,
         dependent: str,
-        predictors: List[str],
+        predictors: list[str],
         regression_type: str = "linear",
         alpha: float = 0.05,
         **kwargs: Any,
@@ -245,7 +245,7 @@ class StatsModule:
         -------
         RegressionResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "data": data,
             "dependent": dependent,
             "predictors": predictors,
@@ -262,7 +262,7 @@ class StatsModule:
 
     def descriptive(
         self,
-        data: Union[List[float], Dict[str, List[float]]],
+        data: list[float] | dict[str, list[float]],
         **kwargs: Any,
     ) -> DescriptiveResult:
         """
@@ -277,6 +277,6 @@ class StatsModule:
         -------
         DescriptiveResult
         """
-        payload: Dict[str, Any] = {"data": data, **kwargs}
+        payload: dict[str, Any] = {"data": data, **kwargs}
         resp = self._client.post("stats/descriptive/", json=payload)
         return DescriptiveResult.model_validate(resp)

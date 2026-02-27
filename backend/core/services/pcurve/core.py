@@ -17,6 +17,7 @@ from scipy import stats
 @dataclass
 class PCurveResult:
     """Complete result from p-curve analysis."""
+
     # Input summary
     n_studies: int
     n_significant: int
@@ -95,23 +96,19 @@ def stouffer_test(pp_values: List[float]) -> Dict[str, Any]:
         Dictionary with Z statistic and p-value
     """
     if not pp_values:
-        return {'z': 0, 'p': 1.0, 'significant': False}
+        return {"z": 0, "p": 1.0, "significant": False}
 
     # Convert pp-values to Z scores
     z_scores = [stats.norm.ppf(1 - pp) for pp in pp_values if 0 < pp < 1]
 
     if not z_scores:
-        return {'z': 0, 'p': 1.0, 'significant': False}
+        return {"z": 0, "p": 1.0, "significant": False}
 
     # Combined Z using Stouffer's method
     z_combined = np.sum(z_scores) / np.sqrt(len(z_scores))
     p_combined = 1 - stats.norm.cdf(z_combined)
 
-    return {
-        'z': float(z_combined),
-        'p': float(p_combined),
-        'significant': p_combined < 0.05
-    }
+    return {"z": float(z_combined), "p": float(p_combined), "significant": p_combined < 0.05}
 
 
 def binomial_test_33(p_values: List[float]) -> Dict[str, Any]:
@@ -132,7 +129,7 @@ def binomial_test_33(p_values: List[float]) -> Dict[str, Any]:
     n_below_025 = sum(1 for p in p_values if p < 0.025)
 
     if n_total == 0:
-        return {'n_below': 0, 'n_total': 0, 'prop': 0, 'p': 1.0, 'significant': False}
+        return {"n_below": 0, "n_total": 0, "prop": 0, "p": 1.0, "significant": False}
 
     # Under 33% power null, P(p < .025 | p < .05) = 0.5
     # (because low-powered studies should have uniform p-curve)
@@ -143,15 +140,15 @@ def binomial_test_33(p_values: List[float]) -> Dict[str, Any]:
     prop_observed = n_below_025 / n_total
 
     # One-sided test: more than 1/3?
-    p_value = 1 - stats.binom.cdf(n_below_025 - 1, n_total, 1/3)
+    p_value = 1 - stats.binom.cdf(n_below_025 - 1, n_total, 1 / 3)
 
     return {
-        'n_below': n_below_025,
-        'n_total': n_total,
-        'prop': float(prop_observed),
-        'expected_prop': 1/3,
-        'p': float(p_value),
-        'significant': p_value < 0.05
+        "n_below": n_below_025,
+        "n_total": n_total,
+        "prop": float(prop_observed),
+        "expected_prop": 1 / 3,
+        "p": float(p_value),
+        "significant": p_value < 0.05,
     }
 
 
@@ -172,18 +169,18 @@ def binomial_test_half(p_values: List[float]) -> Dict[str, Any]:
     n_below_025 = sum(1 for p in p_values if p < 0.025)
 
     if n_total == 0:
-        return {'n_below': 0, 'n_total': 0, 'prop': 0, 'p': 1.0, 'significant': False}
+        return {"n_below": 0, "n_total": 0, "prop": 0, "p": 1.0, "significant": False}
 
     # One-sided binomial test: more than 50%?
     p_value = 1 - stats.binom.cdf(n_below_025 - 1, n_total, 0.5)
 
     return {
-        'n_below': n_below_025,
-        'n_total': n_total,
-        'prop': float(n_below_025 / n_total),
-        'expected_prop': 0.5,
-        'p': float(p_value),
-        'significant': p_value < 0.05
+        "n_below": n_below_025,
+        "n_total": n_total,
+        "prop": float(n_below_025 / n_total),
+        "expected_prop": 0.5,
+        "p": float(p_value),
+        "significant": p_value < 0.05,
     }
 
 
@@ -206,7 +203,7 @@ def estimate_power(p_values: List[float]) -> Tuple[Optional[float], Optional[Tup
     # Simple power estimation based on p-value distribution
     # The proportion of p-values < .01 is related to power
     n_total = len(p_values)
-    n_below_01 = sum(1 for p in p_values if p < 0.01)
+    sum(1 for p in p_values if p < 0.01)
     n_below_025 = sum(1 for p in p_values if p < 0.025)
 
     # Under different power levels, the p-curve has different shapes
@@ -264,10 +261,14 @@ def compute_pcurve(p_values: List[float]) -> PCurveResult:
             n_studies=n_studies,
             n_significant=n_significant,
             p_values=sig_pvalues,
-            right_skew_test={'z': 0, 'p': 1.0, 'significant': False,
-                            'note': 'Insufficient significant p-values for analysis'},
-            flat_test={'z': 0, 'p': 1.0, 'significant': False},
-            half_test={'n_below': 0, 'n_total': n_significant, 'prop': 0, 'p': 1.0, 'significant': False},
+            right_skew_test={
+                "z": 0,
+                "p": 1.0,
+                "significant": False,
+                "note": "Insufficient significant p-values for analysis",
+            },
+            flat_test={"z": 0, "p": 1.0, "significant": False},
+            half_test={"n_below": 0, "n_total": n_significant, "prop": 0, "p": 1.0, "significant": False},
             has_evidential_value=False,
             inadequate_evidence=True,
             interpretation="Insufficient data: Need at least 3 significant p-values for p-curve analysis.",
@@ -277,8 +278,8 @@ def compute_pcurve(p_values: List[float]) -> PCurveResult:
             power_ci=None,
             histogram_bins=[0.01, 0.02, 0.03, 0.04, 0.05],
             histogram_counts=[0, 0, 0, 0, 0],
-            expected_null=[n_significant/5] * 5,
-            expected_33=[n_significant/5] * 5
+            expected_null=[n_significant / 5] * 5,
+            expected_33=[n_significant / 5] * 5,
         )
 
     # Compute PP-values
@@ -287,20 +288,20 @@ def compute_pcurve(p_values: List[float]) -> PCurveResult:
 
     # Right-skew test (evidential value)
     right_skew_test = stouffer_test(pp_values_full)
-    right_skew_test['test_name'] = 'Right-skew test for evidential value'
+    right_skew_test["test_name"] = "Right-skew test for evidential value"
 
     # Binomial test for right-skew
     half_test = binomial_test_half(sig_pvalues)
-    half_test['test_name'] = 'Binomial test for right-skew'
+    half_test["test_name"] = "Binomial test for right-skew"
 
     # Flat test (33% power null) - tests for inadequate evidence
     # For this, we need to compute pp-values under 33% power null
     # Simplified: use binomial test
     flat_test = binomial_test_33(sig_pvalues)
-    flat_test['test_name'] = 'Test against 33% power (flat p-curve)'
+    flat_test["test_name"] = "Test against 33% power (flat p-curve)"
 
     # Determine conclusions
-    has_evidential_value = right_skew_test['significant'] or half_test['significant']
+    has_evidential_value = right_skew_test["significant"] or half_test["significant"]
 
     # Inadequate evidence if p-curve is flat or left-skewed
     # This happens if few p-values are below .025
@@ -312,8 +313,7 @@ def compute_pcurve(p_values: List[float]) -> PCurveResult:
 
     # Generate interpretation
     interpretation = get_pcurve_interpretation(
-        has_evidential_value, inadequate_evidence, estimated_power,
-        n_significant, prop_below_025
+        has_evidential_value, inadequate_evidence, estimated_power, n_significant, prop_below_025
     )
 
     # Create histogram data
@@ -349,7 +349,7 @@ def compute_pcurve(p_values: List[float]) -> PCurveResult:
         histogram_bins=bins,
         histogram_counts=counts,
         expected_null=expected_null,
-        expected_33=expected_33
+        expected_33=expected_33,
     )
 
 
@@ -358,7 +358,7 @@ def get_pcurve_interpretation(
     inadequate_evidence: bool,
     estimated_power: Optional[float],
     n_significant: int,
-    prop_below_025: float
+    prop_below_025: float,
 ) -> str:
     """
     Generate human-readable interpretation of p-curve results.

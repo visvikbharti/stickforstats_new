@@ -4,7 +4,7 @@ Power analysis module — wraps ``/api/v1/power/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import PowerReport, PowerResult
 
@@ -29,10 +29,10 @@ class PowerModule:
     def ttest(
         self,
         *,
-        effect_size: Optional[float] = None,
-        n: Optional[int] = None,
+        effect_size: float | None = None,
+        n: int | None = None,
         alpha: float = 0.05,
-        power: Optional[float] = None,
+        power: float | None = None,
         alternative: str = "two-sided",
         **kwargs: Any,
     ) -> PowerResult:
@@ -46,7 +46,7 @@ class PowerModule:
         -------
         PowerResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "alpha": alpha,
             "alternative": alternative,
             **kwargs,
@@ -68,11 +68,11 @@ class PowerModule:
     def anova(
         self,
         *,
-        effect_size: Optional[float] = None,
-        k: Optional[int] = None,
-        n: Optional[int] = None,
+        effect_size: float | None = None,
+        k: int | None = None,
+        n: int | None = None,
         alpha: float = 0.05,
-        power: Optional[float] = None,
+        power: float | None = None,
         **kwargs: Any,
     ) -> PowerResult:
         """
@@ -95,7 +95,7 @@ class PowerModule:
         -------
         PowerResult
         """
-        payload: Dict[str, Any] = {"alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"alpha": alpha, **kwargs}
         if effect_size is not None:
             payload["effect_size"] = effect_size
         if k is not None:
@@ -115,10 +115,10 @@ class PowerModule:
     def correlation(
         self,
         *,
-        r: Optional[float] = None,
-        n: Optional[int] = None,
+        r: float | None = None,
+        n: int | None = None,
         alpha: float = 0.05,
-        power: Optional[float] = None,
+        power: float | None = None,
         **kwargs: Any,
     ) -> PowerResult:
         """
@@ -128,7 +128,7 @@ class PowerModule:
         -------
         PowerResult
         """
-        payload: Dict[str, Any] = {"alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"alpha": alpha, **kwargs}
         if r is not None:
             payload["r"] = r
         if n is not None:
@@ -146,11 +146,11 @@ class PowerModule:
     def chi_square(
         self,
         *,
-        effect_size: Optional[float] = None,
-        n: Optional[int] = None,
-        df: Optional[int] = None,
+        effect_size: float | None = None,
+        n: int | None = None,
+        df: int | None = None,
         alpha: float = 0.05,
-        power: Optional[float] = None,
+        power: float | None = None,
         **kwargs: Any,
     ) -> PowerResult:
         """
@@ -160,7 +160,7 @@ class PowerModule:
         -------
         PowerResult
         """
-        payload: Dict[str, Any] = {"alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"alpha": alpha, **kwargs}
         if effect_size is not None:
             payload["effect_size"] = effect_size
         if n is not None:
@@ -180,8 +180,8 @@ class PowerModule:
     def report(
         self,
         *,
-        data: Optional[Dict[str, Any]] = None,
-        tests: Optional[List[str]] = None,
+        data: dict[str, Any] | None = None,
+        tests: list[str] | None = None,
         alpha: float = 0.05,
         **kwargs: Any,
     ) -> PowerReport:
@@ -201,7 +201,7 @@ class PowerModule:
         -------
         PowerReport
         """
-        payload: Dict[str, Any] = {"alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"alpha": alpha, **kwargs}
         if data is not None:
             payload["data"] = data
         if tests is not None:

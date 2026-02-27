@@ -7,7 +7,7 @@ from sqc_analysis.models.models import (
     ProcessCapabilityAnalysis,
     AcceptanceSamplingPlan,
     MeasurementSystemAnalysis,
-    SPCImplementationPlan
+    SPCImplementationPlan,
 )
 
 from sqc_analysis.models.economic_design import EconomicDesignAnalysis

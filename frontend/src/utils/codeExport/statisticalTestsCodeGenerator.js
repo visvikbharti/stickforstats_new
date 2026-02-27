@@ -1157,7 +1157,7 @@ print("the linearity assumption may be violated.\\n")
 
 function generatePythonTestCode(testType, data, options, results) {
   const alpha = options.alpha || 0.05;
-  const alternative = options.alternative || 'two-sided';
+  const _alternative = options.alternative || 'two-sided';
 
   let code = `# ============================================================================
 # STATISTICAL TEST
@@ -1851,9 +1851,11 @@ export async function copyToClipboard(code) {
   }
 }
 
-export default {
+const statisticalTestsCodeGenerator = {
   generateRCode,
   generatePythonCode,
   downloadCode,
   copyToClipboard
 };
+
+export default statisticalTestsCodeGenerator;

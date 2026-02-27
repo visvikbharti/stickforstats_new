@@ -37,12 +37,10 @@ from decimal import Decimal, getcontext
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Optional, Union, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 import mpmath
-from itertools import combinations
 import scipy.stats as stats
-from scipy.special import betainc
 import logging
 
 # Set high precision
@@ -54,6 +52,7 @@ logger = logging.getLogger(__name__)
 
 class AnovaType(Enum):
     """Types of ANOVA analyses"""
+
     ONE_WAY = "one_way"
     TWO_WAY = "two_way"
     THREE_WAY = "three_way"
@@ -65,6 +64,7 @@ class AnovaType(Enum):
 
 class PostHocTest(Enum):
     """Available post-hoc tests"""
+
     TUKEY_HSD = "tukey_hsd"
     BONFERRONI = "bonferroni"
     SCHEFFE = "scheffe"
@@ -77,6 +77,7 @@ class PostHocTest(Enum):
 
 class MultipleComparisonCorrection(Enum):
     """Multiple comparison correction methods"""
+
     BONFERRONI = "bonferroni"
     HOLM = "holm"
     BENJAMINI_HOCHBERG = "benjamini_hochberg"  # FDR
@@ -88,6 +89,7 @@ class MultipleComparisonCorrection(Enum):
 @dataclass
 class AnovaResult:
     """Complete ANOVA results with high precision"""
+
     anova_type: AnovaType
 
     # Main ANOVA table
@@ -143,6 +145,7 @@ class AnovaResult:
 @dataclass
 class ManovaResult:
     """MANOVA results with multiple dependent variables"""
+
     test_statistics: Dict[str, Decimal]  # Wilks, Pillai, Hotelling, Roy
     f_statistics: Dict[str, Decimal]
     p_values: Dict[str, Decimal]
@@ -172,8 +175,9 @@ class HighPrecisionANOVA:
         """Convert array to Decimal list"""
         return [HighPrecisionANOVA._to_decimal(x) for x in data]
 
-    def one_way_anova(self, *groups, post_hoc: Optional[PostHocTest] = None,
-                      correction: Optional[MultipleComparisonCorrection] = None) -> AnovaResult:
+    def one_way_anova(
+        self, *groups, post_hoc: Optional[PostHocTest] = None, correction: Optional[MultipleComparisonCorrection] = None
+    ) -> AnovaResult:
         """
         Perform one-way ANOVA with high precision
 
@@ -219,7 +223,7 @@ class HighPrecisionANOVA:
         # Calculate Sum of Squares
         ss_total = sum((x - grand_mean) ** 2 for x in all_data)
 
-        ss_between = Decimal('0')
+        ss_between = Decimal("0")
         for i, group in enumerate(decimal_groups):
             group_mean = group_means[f"Group_{i+1}"]
             n_group = Decimal(str(len(group)))
@@ -250,11 +254,10 @@ class HighPrecisionANOVA:
         partial_eta_squared = ss_between / (ss_between + ss_within)
 
         # Omega squared (less biased than eta squared)
-        omega_squared = (ss_between - Decimal(str(df_between)) * ms_within) / \
-                       (ss_total + ms_within)
+        omega_squared = (ss_between - Decimal(str(df_between)) * ms_within) / (ss_total + ms_within)
 
         # Cohen's f
-        cohen_f = Decimal(str(mpmath.sqrt(float(eta_squared / (Decimal('1') - eta_squared)))))
+        cohen_f = Decimal(str(mpmath.sqrt(float(eta_squared / (Decimal("1") - eta_squared)))))
 
         # Check assumptions
         levene_stat, levene_p = self._levene_test(*decimal_groups)
@@ -289,31 +292,26 @@ class HighPrecisionANOVA:
             shapiro_p_values=shapiro_p_values,
             grand_mean=grand_mean,
             r_squared=eta_squared,
-            adjusted_r_squared=Decimal('1') - (Decimal('1') - eta_squared) * \
-                               (Decimal(str(df_total)) / Decimal(str(df_within)))
+            adjusted_r_squared=Decimal("1")
+            - (Decimal("1") - eta_squared) * (Decimal(str(df_total)) / Decimal(str(df_within))),
         )
 
         # Perform post-hoc tests if requested
-        if post_hoc and p_value < Decimal('0.05'):
-            result.post_hoc_results = self._perform_post_hoc(
-                decimal_groups, ms_within, df_within, post_hoc
-            )
+        if post_hoc and p_value < Decimal("0.05"):
+            result.post_hoc_results = self._perform_post_hoc(decimal_groups, ms_within, df_within, post_hoc)
 
         # Apply multiple comparison corrections if requested
         if correction and result.post_hoc_results:
-            result.adjusted_p_values = self._apply_correction(
-                result.post_hoc_results, correction
-            )
+            result.adjusted_p_values = self._apply_correction(result.post_hoc_results, correction)
 
         # Calculate observed power
-        result.observed_power = self._calculate_power(
-            f_statistic, df_between, df_within, alpha=Decimal('0.05')
-        )
+        result.observed_power = self._calculate_power(f_statistic, df_between, df_within, alpha=Decimal("0.05"))
 
         return result
 
-    def two_way_anova(self, data: pd.DataFrame, factor1: str, factor2: str,
-                      dependent: str, interaction: bool = True) -> AnovaResult:
+    def two_way_anova(
+        self, data: pd.DataFrame, factor1: str, factor2: str, dependent: str, interaction: bool = True
+    ) -> AnovaResult:
         """
         Perform two-way ANOVA with optional interaction
 
@@ -333,10 +331,8 @@ class HighPrecisionANOVA:
         # - Interaction effect if requested
         # - Partial eta squared for each effect
         # - Post-hoc tests for significant effects
-        pass
 
-    def repeated_measures_anova(self, data: np.ndarray,
-                                subject_factor: Optional[np.ndarray] = None) -> AnovaResult:
+    def repeated_measures_anova(self, data: np.ndarray, subject_factor: Optional[np.ndarray] = None) -> AnovaResult:
         """
         Perform repeated measures ANOVA
 
@@ -351,10 +347,8 @@ class HighPrecisionANOVA:
         # - Mauchly's test for sphericity
         # - Greenhouse-Geisser correction
         # - Huynh-Feldt correction
-        pass
 
-    def manova(self, data: pd.DataFrame, factors: List[str],
-               dependents: List[str]) -> ManovaResult:
+    def manova(self, data: pd.DataFrame, factors: List[str], dependents: List[str]) -> ManovaResult:
         """
         Perform MANOVA (Multivariate ANOVA)
 
@@ -371,15 +365,15 @@ class HighPrecisionANOVA:
         # - Pillai's trace
         # - Hotelling-Lawley trace
         # - Roy's largest root
-        pass
 
-    def _perform_post_hoc(self, groups: List[List[Decimal]], ms_within: Decimal,
-                         df_within: int, test_type: PostHocTest) -> Dict[str, Any]:
+    def _perform_post_hoc(
+        self, groups: List[List[Decimal]], ms_within: Decimal, df_within: int, test_type: PostHocTest
+    ) -> Dict[str, Any]:
         """
         Perform post-hoc tests for pairwise comparisons
         """
         results = {}
-        k = len(groups)
+        len(groups)
 
         if test_type == PostHocTest.TUKEY_HSD:
             results = self._tukey_hsd(groups, ms_within, df_within)
@@ -393,8 +387,7 @@ class HighPrecisionANOVA:
 
         return results
 
-    def _tukey_hsd(self, groups: List[List[Decimal]], ms_within: Decimal,
-                   df_within: int) -> Dict[str, Any]:
+    def _tukey_hsd(self, groups: List[List[Decimal]], ms_within: Decimal, df_within: int) -> Dict[str, Any]:
         """
         Tukey's Honestly Significant Difference test
         """
@@ -402,19 +395,18 @@ class HighPrecisionANOVA:
         k = len(groups)
 
         # Calculate critical value (studentized range)
-        alpha = Decimal('0.05')
+        Decimal("0.05")
 
         # Pairwise comparisons
         for i in range(k):
             for j in range(i + 1, k):
-                mean_diff = abs(self._calculate_mean(groups[i]) -
-                              self._calculate_mean(groups[j]))
+                mean_diff = abs(self._calculate_mean(groups[i]) - self._calculate_mean(groups[j]))
 
                 n_i = len(groups[i])
                 n_j = len(groups[j])
 
                 # Standard error
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal('1')/n_i + Decimal('1')/n_j) / 2))))
+                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j) / 2))))
 
                 # Calculate q-statistic
                 q_stat = mean_diff / se
@@ -422,23 +414,22 @@ class HighPrecisionANOVA:
                 # Store result
                 comparison = f"Group_{i+1}_vs_Group_{j+1}"
                 results[comparison] = {
-                    'mean_difference': mean_diff,
-                    'standard_error': se,
-                    'q_statistic': q_stat,
-                    'significant': None  # Would need studentized range distribution
+                    "mean_difference": mean_diff,
+                    "standard_error": se,
+                    "q_statistic": q_stat,
+                    "significant": None,  # Would need studentized range distribution
                 }
 
         return results
 
-    def _bonferroni(self, groups: List[List[Decimal]], ms_within: Decimal,
-                    df_within: int) -> Dict[str, Any]:
+    def _bonferroni(self, groups: List[List[Decimal]], ms_within: Decimal, df_within: int) -> Dict[str, Any]:
         """
         Bonferroni correction for multiple comparisons
         """
         results = {}
         k = len(groups)
         n_comparisons = k * (k - 1) // 2
-        adjusted_alpha = Decimal('0.05') / Decimal(str(n_comparisons))
+        adjusted_alpha = Decimal("0.05") / Decimal(str(n_comparisons))
 
         for i in range(k):
             for j in range(i + 1, k):
@@ -451,7 +442,7 @@ class HighPrecisionANOVA:
                 n_j = len(groups[j])
 
                 # Pooled standard error
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal('1')/n_i + Decimal('1')/n_j)))))
+                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j)))))
 
                 # t-statistic
                 t_stat = mean_diff / se
@@ -461,17 +452,16 @@ class HighPrecisionANOVA:
 
                 comparison = f"Group_{i+1}_vs_Group_{j+1}"
                 results[comparison] = {
-                    'mean_difference': mean_diff,
-                    't_statistic': t_stat,
-                    'p_value': p_value,
-                    'adjusted_p_value': p_value * Decimal(str(n_comparisons)),
-                    'significant': p_value < adjusted_alpha
+                    "mean_difference": mean_diff,
+                    "t_statistic": t_stat,
+                    "p_value": p_value,
+                    "adjusted_p_value": p_value * Decimal(str(n_comparisons)),
+                    "significant": p_value < adjusted_alpha,
                 }
 
         return results
 
-    def _scheffe(self, groups: List[List[Decimal]], ms_within: Decimal,
-                 df_within: int) -> Dict[str, Any]:
+    def _scheffe(self, groups: List[List[Decimal]], ms_within: Decimal, df_within: int) -> Dict[str, Any]:
         """
         Scheffe's test for all possible contrasts
         """
@@ -480,29 +470,28 @@ class HighPrecisionANOVA:
         df_between = k - 1
 
         # Critical value
-        f_critical = self._get_f_critical(Decimal('0.05'), df_between, df_within)
+        f_critical = self._get_f_critical(Decimal("0.05"), df_between, df_within)
         scheffe_critical = Decimal(str(mpmath.sqrt(float((k - 1) * f_critical))))
 
         for i in range(k):
             for j in range(i + 1, k):
-                mean_diff = abs(self._calculate_mean(groups[i]) -
-                              self._calculate_mean(groups[j]))
+                mean_diff = abs(self._calculate_mean(groups[i]) - self._calculate_mean(groups[j]))
 
                 n_i = len(groups[i])
                 n_j = len(groups[j])
 
                 # Standard error for contrast
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal('1')/n_i + Decimal('1')/n_j)))))
+                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j)))))
 
                 # Test statistic
                 test_stat = mean_diff / se
 
                 comparison = f"Group_{i+1}_vs_Group_{j+1}"
                 results[comparison] = {
-                    'mean_difference': mean_diff,
-                    'test_statistic': test_stat,
-                    'critical_value': scheffe_critical,
-                    'significant': test_stat > scheffe_critical
+                    "mean_difference": mean_diff,
+                    "test_statistic": test_stat,
+                    "critical_value": scheffe_critical,
+                    "significant": test_stat > scheffe_critical,
                 }
 
         return results
@@ -526,27 +515,29 @@ class HighPrecisionANOVA:
                 mean_diff = abs(mean_i - mean_j)
 
                 # Standard error (unequal variances)
-                se = Decimal(str(mpmath.sqrt(float(var_i/n_i + var_j/n_j))))
+                se = Decimal(str(mpmath.sqrt(float(var_i / n_i + var_j / n_j))))
 
                 # Welch's degrees of freedom
-                df = (var_i/n_i + var_j/n_j)**2 / \
-                     ((var_i/n_i)**2/(n_i-1) + (var_j/n_j)**2/(n_j-1))
+                df = (var_i / n_i + var_j / n_j) ** 2 / (
+                    (var_i / n_i) ** 2 / (n_i - 1) + (var_j / n_j) ** 2 / (n_j - 1)
+                )
 
                 # t-statistic
                 t_stat = mean_diff / se
 
                 comparison = f"Group_{i+1}_vs_Group_{j+1}"
                 results[comparison] = {
-                    'mean_difference': mean_diff,
-                    't_statistic': t_stat,
-                    'df': float(df),
-                    'standard_error': se
+                    "mean_difference": mean_diff,
+                    "t_statistic": t_stat,
+                    "df": float(df),
+                    "standard_error": se,
                 }
 
         return results
 
-    def _apply_correction(self, p_values: Dict[str, Decimal],
-                         method: MultipleComparisonCorrection) -> Dict[str, Decimal]:
+    def _apply_correction(
+        self, p_values: Dict[str, Decimal], method: MultipleComparisonCorrection
+    ) -> Dict[str, Decimal]:
         """
         Apply multiple comparison corrections to p-values
         """
@@ -570,7 +561,7 @@ class HighPrecisionANOVA:
         adjusted = {}
         for i, (key, p) in enumerate(sorted_pairs, 1):
             adjusted_p = p * Decimal(str(n)) / Decimal(str(i))
-            adjusted[key] = min(adjusted_p, Decimal('1'))
+            adjusted[key] = min(adjusted_p, Decimal("1"))
 
         return adjusted
 
@@ -584,7 +575,7 @@ class HighPrecisionANOVA:
         adjusted = {}
         for i, (key, p) in enumerate(sorted_pairs):
             adjusted_p = p * Decimal(str(n - i))
-            adjusted[key] = min(adjusted_p, Decimal('1'))
+            adjusted[key] = min(adjusted_p, Decimal("1"))
 
         return adjusted
 
@@ -596,7 +587,7 @@ class HighPrecisionANOVA:
         adjusted = {}
 
         for key, p in p_values.items():
-            adjusted_p = Decimal('1') - (Decimal('1') - p) ** Decimal(str(n))
+            adjusted_p = Decimal("1") - (Decimal("1") - p) ** Decimal(str(n))
             adjusted[key] = adjusted_p
 
         return adjusted
@@ -604,13 +595,13 @@ class HighPrecisionANOVA:
     def _calculate_mean(self, data: List[Decimal]) -> Decimal:
         """Calculate mean with high precision"""
         if not data:
-            return Decimal('0')
+            return Decimal("0")
         return sum(data) / Decimal(str(len(data)))
 
     def _calculate_variance(self, data: List[Decimal]) -> Decimal:
         """Calculate variance with high precision"""
         if len(data) < 2:
-            return Decimal('0')
+            return Decimal("0")
         mean = self._calculate_mean(data)
         return sum((x - mean) ** 2 for x in data) / Decimal(str(len(data) - 1))
 
@@ -623,7 +614,7 @@ class HighPrecisionANOVA:
         """Perform Levene's test for equal variances"""
         # Convert to float for scipy
         float_groups = [[float(x) for x in g] for g in groups]
-        stat, p = stats.levene(*float_groups, center='median')
+        stat, p = stats.levene(*float_groups, center="median")
         return Decimal(str(stat)), Decimal(str(p))
 
     def _calculate_f_p_value(self, f_stat: Decimal, df1: int, df2: int) -> Decimal:
@@ -633,10 +624,20 @@ class HighPrecisionANOVA:
         df2_float = float(df2)
 
         # Use mpmath for high precision
-        p_value = Decimal(str(1 - float(mpmath.betainc(
-            df1_float/2, df2_float/2, 0,
-            df1_float * f_float / (df1_float * f_float + df2_float),
-            regularized=True))))
+        p_value = Decimal(
+            str(
+                1
+                - float(
+                    mpmath.betainc(
+                        df1_float / 2,
+                        df2_float / 2,
+                        0,
+                        df1_float * f_float / (df1_float * f_float + df2_float),
+                        regularized=True,
+                    )
+                )
+            )
+        )
 
         return p_value
 
@@ -655,20 +656,20 @@ class HighPrecisionANOVA:
         # This would need the inverse F-distribution
         # For now, use scipy approximation
         from scipy.stats import f
+
         f_crit = f.ppf(1 - float(alpha), df1, df2)
         return Decimal(str(f_crit))
 
-    def _calculate_power(self, f_stat: Decimal, df1: int, df2: int,
-                        alpha: Decimal = Decimal('0.05')) -> Decimal:
+    def _calculate_power(self, f_stat: Decimal, df1: int, df2: int, alpha: Decimal = Decimal("0.05")) -> Decimal:
         """Calculate observed power for ANOVA"""
         # This requires non-central F-distribution
         # Simplified approximation for now
         if f_stat > self._get_f_critical(alpha, df1, df2):
             # Rough approximation
             effect_size = Decimal(str(mpmath.sqrt(float(f_stat * df1 / (df1 + df2)))))
-            power = Decimal('0.8') + effect_size * Decimal('0.1')
-            return min(power, Decimal('0.99'))
-        return Decimal('0.5')
+            power = Decimal("0.8") + effect_size * Decimal("0.1")
+            return min(power, Decimal("0.99"))
+        return Decimal("0.5")
 
 
 def generate_anova_report(result: AnovaResult) -> str:
@@ -684,8 +685,10 @@ def generate_anova_report(result: AnovaResult) -> str:
     # ANOVA Table
     report.append("ANOVA TABLE")
     report.append("-" * 40)
-    report.append(f"Source          SS              df    MS              F         p-value")
-    report.append(f"Between  {result.ss_between:15.10f}  {result.df_between:3}  {result.ms_between:15.10f}  {result.f_statistic:8.4f}  {result.p_value:.6f}")
+    report.append("Source          SS              df    MS              F         p-value")
+    report.append(
+        f"Between  {result.ss_between:15.10f}  {result.df_between:3}  {result.ms_between:15.10f}  {result.f_statistic:8.4f}  {result.p_value:.6f}"
+    )
     report.append(f"Within   {result.ss_within:15.10f}  {result.df_within:3}  {result.ms_within:15.10f}")
     report.append(f"Total    {result.ss_total:15.10f}  {result.df_total:3}")
     report.append("")
@@ -706,7 +709,9 @@ def generate_anova_report(result: AnovaResult) -> str:
     report.append("-" * 40)
     report.append("Group      N     Mean           Std Dev")
     for group in result.group_means:
-        report.append(f"{group:10} {result.group_ns[group]:3}   {result.group_means[group]:12.6f}   {result.group_stds[group]:12.6f}")
+        report.append(
+            f"{group:10} {result.group_ns[group]:3}   {result.group_means[group]:12.6f}   {result.group_stds[group]:12.6f}"
+        )
     report.append(f"Grand Mean: {result.grand_mean:.6f}")
     report.append("")
 
@@ -714,7 +719,7 @@ def generate_anova_report(result: AnovaResult) -> str:
     report.append("ASSUMPTION CHECKS")
     report.append("-" * 40)
     report.append(f"Levene's Test: F = {result.levene_statistic:.4f}, p = {result.levene_p_value:.6f}")
-    if result.levene_p_value < Decimal('0.05'):
+    if result.levene_p_value < Decimal("0.05"):
         report.append("  ⚠ Warning: Variances are not equal")
     else:
         report.append("  ✓ Variances are equal")
@@ -722,7 +727,7 @@ def generate_anova_report(result: AnovaResult) -> str:
     if result.shapiro_p_values:
         report.append("\nShapiro-Wilk Normality Tests:")
         for group, p in result.shapiro_p_values.items():
-            if p < Decimal('0.05'):
+            if p < Decimal("0.05"):
                 report.append(f"  {group}: p = {p:.6f} ⚠ Not normal")
             else:
                 report.append(f"  {group}: p = {p:.6f} ✓ Normal")
@@ -732,9 +737,9 @@ def generate_anova_report(result: AnovaResult) -> str:
     if result.post_hoc_results:
         report.append("POST-HOC TESTS")
         report.append("-" * 40)
-        for comparison, stats in result.post_hoc_results.items():
+        for comparison, comp_stats in result.post_hoc_results.items():
             report.append(f"{comparison}:")
-            for key, value in stats.items():
+            for key, value in comp_stats.items():
                 if isinstance(value, Decimal):
                     report.append(f"  {key}: {value:.6f}")
                 else:
@@ -746,7 +751,9 @@ def generate_anova_report(result: AnovaResult) -> str:
         report.append("ADJUSTED P-VALUES (Multiple Comparisons)")
         report.append("-" * 40)
         for comparison, p in result.adjusted_p_values.items():
-            sig = "***" if p < Decimal('0.001') else "**" if p < Decimal('0.01') else "*" if p < Decimal('0.05') else "ns"
+            sig = (
+                "***" if p < Decimal("0.001") else "**" if p < Decimal("0.01") else "*" if p < Decimal("0.05") else "ns"
+            )
             report.append(f"{comparison}: {p:.6f} {sig}")
         report.append("")
 
@@ -773,9 +780,12 @@ if __name__ == "__main__":
 
     # Perform one-way ANOVA with Tukey post-hoc
     result = anova.one_way_anova(
-        group1, group2, group3, group4,
+        group1,
+        group2,
+        group3,
+        group4,
         post_hoc=PostHocTest.BONFERRONI,
-        correction=MultipleComparisonCorrection.BENJAMINI_HOCHBERG
+        correction=MultipleComparisonCorrection.BENJAMINI_HOCHBERG,
     )
 
     # Generate report

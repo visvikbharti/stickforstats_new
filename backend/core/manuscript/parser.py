@@ -19,7 +19,6 @@ downstream components (SQSScorer, Guardian) can consume directly.
 
 from __future__ import annotations
 
-import io
 import os
 import re
 import logging
@@ -32,18 +31,21 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import pdfplumber
+
     PDFPLUMBER_AVAILABLE = True
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
 
 try:
     import PyPDF2
+
     PYPDF2_AVAILABLE = True
 except ImportError:
     PYPDF2_AVAILABLE = False
 
 try:
     import docx as python_docx
+
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
@@ -56,37 +58,37 @@ logger = logging.getLogger(__name__)
 
 SECTION_PATTERNS: List[Tuple[str, str]] = [
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:abstract)\s*\n',
-        'abstract',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:abstract)\s*\n",
+        "abstract",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:introduction|background)\s*\n',
-        'introduction',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:introduction|background)\s*\n",
+        "introduction",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:methods?|materials?\s+and\s+methods?'
-        r'|methodology|experimental\s+(?:design|methods?|procedures?))\s*\n',
-        'methods',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:methods?|materials?\s+and\s+methods?"
+        r"|methodology|experimental\s+(?:design|methods?|procedures?))\s*\n",
+        "methods",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:results?|findings?)\s*\n',
-        'results',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:results?|findings?)\s*\n",
+        "results",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:discussion|interpretation)\s*\n',
-        'discussion',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:discussion|interpretation)\s*\n",
+        "discussion",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:conclusions?|summary)\s*\n',
-        'conclusion',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:conclusions?|summary)\s*\n",
+        "conclusion",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:references?|bibliography)\s*\n',
-        'references',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:references?|bibliography)\s*\n",
+        "references",
     ),
     (
-        r'(?:^|\n)\s*(?:\d+\.?\s+)?(?:supplementary|appendix|appendices)\s*\n',
-        'supplementary',
+        r"(?:^|\n)\s*(?:\d+\.?\s+)?(?:supplementary|appendix|appendices)\s*\n",
+        "supplementary",
     ),
 ]
 
@@ -95,25 +97,22 @@ SECTION_PATTERNS: List[Tuple[str, str]] = [
 # ===========================================================================
 
 TEST_PATTERNS: Dict[str, str] = {
-    't-test': r"t[\s\-]?test|student'?s?\s+t",
-    'ANOVA': r'ANOVA|analysis\s+of\s+variance',
-    'chi-square': r'chi[\s\-]?square|\u03c7\u00b2|\u03c72',
-    'regression': r'(?:linear|logistic|multiple)\s+regression',
-    'correlation': r'(?:Pearson|Spearman|Kendall)\s+correlation',
-    'Mann-Whitney': r'Mann[\s\-]?Whitney',
-    'Kruskal-Wallis': r'Kruskal[\s\-]?Wallis',
-    'Wilcoxon': r'Wilcoxon',
-    'Fisher': r"Fisher'?s?\s+exact",
-    'McNemar': r'McNemar',
-    'Friedman': r'Friedman',
-    'mixed-effects': r'mixed[\s\-]?(?:effects?|model)',
-    'Bayesian': r'Bayesian\s+(?:analysis|inference|statistics)',
-    'survival': (
-        r'(?:Cox|Kaplan[\s\-]?Meier|survival)'
-        r'\s+(?:analysis|regression|model)'
-    ),
-    'SEM': r'structural\s+equation\s+model',
-    'factor-analysis': r'(?:exploratory|confirmatory)\s+factor\s+analysis',
+    "t-test": r"t[\s\-]?test|student'?s?\s+t",
+    "ANOVA": r"ANOVA|analysis\s+of\s+variance",
+    "chi-square": r"chi[\s\-]?square|\u03c7\u00b2|\u03c72",
+    "regression": r"(?:linear|logistic|multiple)\s+regression",
+    "correlation": r"(?:Pearson|Spearman|Kendall)\s+correlation",
+    "Mann-Whitney": r"Mann[\s\-]?Whitney",
+    "Kruskal-Wallis": r"Kruskal[\s\-]?Wallis",
+    "Wilcoxon": r"Wilcoxon",
+    "Fisher": r"Fisher'?s?\s+exact",
+    "McNemar": r"McNemar",
+    "Friedman": r"Friedman",
+    "mixed-effects": r"mixed[\s\-]?(?:effects?|model)",
+    "Bayesian": r"Bayesian\s+(?:analysis|inference|statistics)",
+    "survival": (r"(?:Cox|Kaplan[\s\-]?Meier|survival)" r"\s+(?:analysis|regression|model)"),
+    "SEM": r"structural\s+equation\s+model",
+    "factor-analysis": r"(?:exploratory|confirmatory)\s+factor\s+analysis",
 }
 
 # ===========================================================================
@@ -121,16 +120,15 @@ TEST_PATTERNS: Dict[str, str] = {
 # ===========================================================================
 
 _JOURNAL_FORMAT_PATTERNS: Dict[str, str] = {
-    'APA': (
-        r'APA\s+(?:style|format|guidelines|7th|6th)'
-        r'|[Ff]\s*\(\s*\d+\s*,\s*\d+\s*\)\s*=\s*[\d.]+\s*,\s*p\s*[=<]'
+    "APA": (
+        r"APA\s+(?:style|format|guidelines|7th|6th)" r"|[Ff]\s*\(\s*\d+\s*,\s*\d+\s*\)\s*=\s*[\d.]+\s*,\s*p\s*[=<]"
     ),
-    'CONSORT': r'CONSORT|flow\s+diagram',
-    'STROBE': r'STROBE',
-    'PRISMA': r'PRISMA',
-    'JARS-Quant': r'JARS|Journal\s+Article\s+Reporting\s+Standards',
-    'ARRIVE': r'ARRIVE\s+guidelines?',
-    'EQUATOR': r'EQUATOR',
+    "CONSORT": r"CONSORT|flow\s+diagram",
+    "STROBE": r"STROBE",
+    "PRISMA": r"PRISMA",
+    "JARS-Quant": r"JARS|Journal\s+Article\s+Reporting\s+Standards",
+    "ARRIVE": r"ARRIVE\s+guidelines?",
+    "EQUATOR": r"EQUATOR",
 }
 
 # ===========================================================================
@@ -138,57 +136,56 @@ _JOURNAL_FORMAT_PATTERNS: Dict[str, str] = {
 # ===========================================================================
 
 # Commands whose single brace-delimited argument should be kept as plain text
-_LATEX_UNWRAP_COMMANDS = re.compile(
-    r'\\(?:textbf|textit|texttt|emph|underline|textsc|textrm|textsf)\{([^}]*)\}'
-)
+_LATEX_UNWRAP_COMMANDS = re.compile(r"\\(?:textbf|textit|texttt|emph|underline|textsc|textrm|textsf)\{([^}]*)\}")
 
 # Commands that should be replaced with a readable token
-_LATEX_CITE = re.compile(r'\\(?:cite[tp]?|citep|citet|citeauthor)\{[^}]*\}')
+_LATEX_CITE = re.compile(r"\\(?:cite[tp]?|citep|citet|citeauthor)\{[^}]*\}")
 
 # Whole-line comment
-_LATEX_COMMENT = re.compile(r'(?m)^\s*%.*$')
+_LATEX_COMMENT = re.compile(r"(?m)^\s*%.*$")
 
 # Inline comment (not preceded by backslash)
-_LATEX_INLINE_COMMENT = re.compile(r'(?<!\\)%.*$', re.MULTILINE)
+_LATEX_INLINE_COMMENT = re.compile(r"(?<!\\)%.*$", re.MULTILINE)
 
 # Environment markers — keep math, strip the rest
-_LATEX_ENV_BEGIN = re.compile(r'\\begin\{(?!(?:equation|align|math|eqnarray|gather|multline)\*?\})[^}]*\}')
-_LATEX_ENV_END = re.compile(r'\\end\{(?!(?:equation|align|math|eqnarray|gather|multline)\*?\})[^}]*\}')
+_LATEX_ENV_BEGIN = re.compile(r"\\begin\{(?!(?:equation|align|math|eqnarray|gather|multline)\*?\})[^}]*\}")
+_LATEX_ENV_END = re.compile(r"\\end\{(?!(?:equation|align|math|eqnarray|gather|multline)\*?\})[^}]*\}")
 
 # Generic remaining commands (e.g. \label{...}, \ref{...}, \usepackage{...})
-_LATEX_GENERIC_CMD = re.compile(r'\\(?:label|ref|usepackage|bibliographystyle|bibliography|documentclass'
-                                r'|author|date|maketitle|tableofcontents|newcommand|renewcommand'
-                                r'|include|input|vspace|hspace|noindent|centering|pagestyle'
-                                r'|setlength|addtolength)\b(?:\[[^\]]*\])?(?:\{[^}]*\})*')
-
-# Section-like commands for heading extraction
-_LATEX_SECTION_CMD = re.compile(
-    r'\\(?:section|subsection|subsubsection|chapter|paragraph|subparagraph)\*?\{([^}]*)\}'
+_LATEX_GENERIC_CMD = re.compile(
+    r"\\(?:label|ref|usepackage|bibliographystyle|bibliography|documentclass"
+    r"|author|date|maketitle|tableofcontents|newcommand|renewcommand"
+    r"|include|input|vspace|hspace|noindent|centering|pagestyle"
+    r"|setlength|addtolength)\b(?:\[[^\]]*\])?(?:\{[^}]*\})*"
 )
 
+# Section-like commands for heading extraction
+_LATEX_SECTION_CMD = re.compile(r"\\(?:section|subsection|subsubsection|chapter|paragraph|subparagraph)\*?\{([^}]*)\}")
+
 # \title{...} extraction
-_LATEX_TITLE_CMD = re.compile(r'\\title\{([^}]*)\}')
+_LATEX_TITLE_CMD = re.compile(r"\\title\{([^}]*)\}")
 
 # \author{...} extraction
-_LATEX_AUTHOR_CMD = re.compile(r'\\author\{([^}]*)\}')
+_LATEX_AUTHOR_CMD = re.compile(r"\\author\{([^}]*)\}")
 
 # \keywords{...} extraction
-_LATEX_KEYWORDS_CMD = re.compile(r'\\keywords\{([^}]*)\}')
+_LATEX_KEYWORDS_CMD = re.compile(r"\\keywords\{([^}]*)\}")
 
 
 # ===========================================================================
 # Data classes
 # ===========================================================================
 
+
 @dataclass
 class ManuscriptSection:
     """A single logical section extracted from a manuscript."""
 
-    section_type: str       # abstract, introduction, methods, results, ...
-    title: str              # detected heading text
-    content: str            # full text content of the section
-    start_pos: int          # character position in full text
-    end_pos: int            # character position in full text
+    section_type: str  # abstract, introduction, methods, results, ...
+    title: str  # detected heading text
+    content: str  # full text content of the section
+    start_pos: int  # character position in full text
+    end_pos: int  # character position in full text
     tables: List[Dict[str, Any]] = field(default_factory=list)
     figures_mentioned: List[str] = field(default_factory=list)
 
@@ -221,15 +218,16 @@ class ParsedManuscript:
     metadata: ManuscriptMetadata
     sections: List[ManuscriptSection]
     full_text: str
-    methods_text: str       # convenience: extracted methods section (empty if absent)
-    results_text: str       # convenience: extracted results section (empty if absent)
-    parse_quality: float    # 0-1, how well we could parse the document
-    warnings: List[str]     # parsing issues encountered
+    methods_text: str  # convenience: extracted methods section (empty if absent)
+    results_text: str  # convenience: extracted results section (empty if absent)
+    parse_quality: float  # 0-1, how well we could parse the document
+    warnings: List[str]  # parsing issues encountered
 
 
 # ===========================================================================
 # Main parser
 # ===========================================================================
+
 
 class ManuscriptParser:
     """
@@ -253,11 +251,11 @@ class ManuscriptParser:
 
     # Supported file extensions mapped to canonical type key
     _EXT_MAP: Dict[str, str] = {
-        '.pdf': 'pdf',
-        '.tex': 'latex',
-        '.latex': 'latex',
-        '.docx': 'docx',
-        '.txt': 'latex',
+        ".pdf": "pdf",
+        ".tex": "latex",
+        ".latex": "latex",
+        ".docx": "docx",
+        ".txt": "latex",
     }
 
     def __init__(self) -> None:
@@ -269,7 +267,7 @@ class ManuscriptParser:
     # Public API
     # ------------------------------------------------------------------
 
-    def parse(self, file: Any, file_type: str = 'auto') -> ParsedManuscript:
+    def parse(self, file: Any, file_type: str = "auto") -> ParsedManuscript:
         """
         Parse a manuscript file and return structured content.
 
@@ -292,24 +290,17 @@ class ManuscriptParser:
         warnings: List[str] = []
 
         # 1. Determine file type
-        if file_type == 'auto':
+        if file_type == "auto":
             file_type = self._detect_file_type(file)
-            if file_type == 'unknown':
-                raise ValueError(
-                    'Could not determine file type. '
-                    'Please specify file_type explicitly.'
-                )
+            if file_type == "unknown":
+                raise ValueError("Could not determine file type. " "Please specify file_type explicitly.")
 
         # 2. Extract raw text
-        text, page_count, extract_warnings = self._extract_text(
-            file, file_type
-        )
+        text, page_count, extract_warnings = self._extract_text(file, file_type)
         warnings.extend(extract_warnings)
 
         if not text or len(text.strip()) < 50:
-            warnings.append(
-                'Extracted text is very short; parsing quality will be low.'
-            )
+            warnings.append("Extracted text is very short; parsing quality will be low.")
 
         # 3. Segment into sections
         sections = self._segment_sections(text)
@@ -317,20 +308,18 @@ class ManuscriptParser:
         # 4. Enrich sections with tables and figure references
         for section in sections:
             section.tables = self._extract_tables_from_section(section.content)
-            section.figures_mentioned = self._detect_figure_references(
-                section.content
-            )
+            section.figures_mentioned = self._detect_figure_references(section.content)
 
         # 5. Extract metadata
         metadata = self._extract_metadata(text, sections, page_count)
 
         # 6. Convenience accessors
-        methods_text = ''
-        results_text = ''
+        methods_text = ""
+        results_text = ""
         for sec in sections:
-            if sec.section_type == 'methods' and not methods_text:
+            if sec.section_type == "methods" and not methods_text:
                 methods_text = sec.content
-            elif sec.section_type == 'results' and not results_text:
+            elif sec.section_type == "results" and not results_text:
                 results_text = sec.content
 
         # 7. Compute parse quality (0-1)
@@ -361,7 +350,7 @@ class ManuscriptParser:
             One of ``'pdf'``, ``'latex'``, ``'docx'``, or ``'unknown'``.
         """
         # Try extension first
-        name = getattr(file, 'name', '') or ''
+        name = getattr(file, "name", "") or ""
         if name:
             ext = os.path.splitext(name)[1].lower()
             if ext in self._EXT_MAP:
@@ -374,40 +363,38 @@ class ManuscriptParser:
             file.seek(pos)
 
             if isinstance(header, str):
-                header = header.encode('utf-8', errors='ignore')
+                header = header.encode("utf-8", errors="ignore")
 
             # PDF magic: %PDF
-            if header[:4] == b'%PDF':
-                return 'pdf'
+            if header[:4] == b"%PDF":
+                return "pdf"
 
             # DOCX (ZIP with PK signature)
-            if header[:2] == b'PK':
-                return 'docx'
+            if header[:2] == b"PK":
+                return "docx"
 
             # LaTeX heuristic: starts with \ or %
-            if header[:1] in (b'\\', b'%'):
-                return 'latex'
+            if header[:1] in (b"\\", b"%"):
+                return "latex"
 
         except Exception:
             pass
 
-        return 'unknown'
+        return "unknown"
 
     # ------------------------------------------------------------------
     # Text extraction dispatchers
     # ------------------------------------------------------------------
 
-    def _extract_text(
-        self, file: Any, file_type: str
-    ) -> Tuple[str, int, List[str]]:
+    def _extract_text(self, file: Any, file_type: str) -> Tuple[str, int, List[str]]:
         """
         Dispatch to the correct extractor and return ``(text, page_count, warnings)``.
         """
-        if file_type == 'pdf':
+        if file_type == "pdf":
             return self._extract_text_pdf(file)
-        elif file_type == 'latex':
+        elif file_type == "latex":
             return self._extract_text_latex(file)
-        elif file_type == 'docx':
+        elif file_type == "docx":
             return self._extract_text_docx(file)
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
@@ -429,7 +416,7 @@ class ManuscriptParser:
         Returns:
             Tuple of ``(text, page_count, warnings)``.
         """
-        text = ''
+        text = ""
         page_count = 0
         warnings: List[str] = []
 
@@ -442,12 +429,12 @@ class ManuscriptParser:
                     for page in pdf.pages:
                         page_text = page.extract_text()
                         if page_text:
-                            text += page_text + '\n'
+                            text += page_text + "\n"
                 if text.strip():
                     return text, page_count, warnings
             except Exception as exc:
-                logger.warning('pdfplumber extraction failed: %s', exc)
-                warnings.append(f'pdfplumber extraction failed: {exc}')
+                logger.warning("pdfplumber extraction failed: %s", exc)
+                warnings.append(f"pdfplumber extraction failed: {exc}")
 
         # --- PyPDF2 fallback ---
         if PYPDF2_AVAILABLE:
@@ -458,17 +445,16 @@ class ManuscriptParser:
                 for page in reader.pages:
                     page_text = page.extract_text()
                     if page_text:
-                        text += page_text + '\n'
+                        text += page_text + "\n"
                 if text.strip():
                     return text, page_count, warnings
             except Exception as exc:
-                logger.warning('PyPDF2 extraction failed: %s', exc)
-                warnings.append(f'PyPDF2 extraction failed: {exc}')
+                logger.warning("PyPDF2 extraction failed: %s", exc)
+                warnings.append(f"PyPDF2 extraction failed: {exc}")
 
         if not text.strip():
             warnings.append(
-                'No PDF extraction library available or extraction produced '
-                'no text. Install pdfplumber or PyPDF2.'
+                "No PDF extraction library available or extraction produced " "no text. Install pdfplumber or PyPDF2."
             )
 
         return text, page_count, warnings
@@ -497,11 +483,11 @@ class ManuscriptParser:
             file.seek(0)
             raw = file.read()
             if isinstance(raw, bytes):
-                raw = raw.decode('utf-8', errors='replace')
+                raw = raw.decode("utf-8", errors="replace")
         except Exception as exc:
-            logger.warning('LaTeX read failed: %s', exc)
-            warnings.append(f'Could not read LaTeX file: {exc}')
-            return '', 0, warnings
+            logger.warning("LaTeX read failed: %s", exc)
+            warnings.append(f"Could not read LaTeX file: {exc}")
+            return "", 0, warnings
 
         # Extract metadata from raw source *before* stripping commands,
         # because \title{}, \author{}, \keywords{} will be removed.
@@ -525,18 +511,16 @@ class ManuscriptParser:
 
         m = _LATEX_TITLE_CMD.search(raw)
         if m:
-            meta['title'] = m.group(1).strip()
+            meta["title"] = m.group(1).strip()
 
         m = _LATEX_AUTHOR_CMD.search(raw)
         if m:
-            parts = re.split(r'\\and|,\s*|\s+and\s+', m.group(1))
-            meta['authors'] = [p.strip() for p in parts if p.strip()]
+            parts = re.split(r"\\and|,\s*|\s+and\s+", m.group(1))
+            meta["authors"] = [p.strip() for p in parts if p.strip()]
 
         m = _LATEX_KEYWORDS_CMD.search(raw)
         if m:
-            meta['keywords'] = [
-                kw.strip() for kw in re.split(r'[;,]', m.group(1)) if kw.strip()
-            ]
+            meta["keywords"] = [kw.strip() for kw in re.split(r"[;,]", m.group(1)) if kw.strip()]
 
         return meta
 
@@ -556,35 +540,35 @@ class ManuscriptParser:
         text = raw
 
         # Strip comments
-        text = _LATEX_INLINE_COMMENT.sub('', text)
+        text = _LATEX_INLINE_COMMENT.sub("", text)
 
         # Convert section commands to headings
-        text = _LATEX_SECTION_CMD.sub(r'\n\1\n', text)
+        text = _LATEX_SECTION_CMD.sub(r"\n\1\n", text)
 
         # Unwrap formatting commands
-        text = _LATEX_UNWRAP_COMMANDS.sub(r'\1', text)
+        text = _LATEX_UNWRAP_COMMANDS.sub(r"\1", text)
 
         # Replace citations
-        text = _LATEX_CITE.sub('[citation]', text)
+        text = _LATEX_CITE.sub("[citation]", text)
 
         # Remove non-math environments
-        text = _LATEX_ENV_BEGIN.sub('', text)
-        text = _LATEX_ENV_END.sub('', text)
+        text = _LATEX_ENV_BEGIN.sub("", text)
+        text = _LATEX_ENV_END.sub("", text)
 
         # Remove generic commands
-        text = _LATEX_GENERIC_CMD.sub('', text)
+        text = _LATEX_GENERIC_CMD.sub("", text)
 
         # Remove remaining simple commands (e.g. \\ , \newline, \item)
-        text = re.sub(r'\\(?:newline|item|\\)\b', '\n', text)
+        text = re.sub(r"\\(?:newline|item|\\)\b", "\n", text)
 
         # Remove leftover backslash-commands that were not caught above,
         # but do NOT touch math ($...$).  We keep it simple: remove
         # \command{arg} and bare \command sequences outside math.
-        text = re.sub(r'\\[a-zA-Z]+\*?(?:\[[^\]]*\])?(?:\{[^}]*\})*', '', text)
+        text = re.sub(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?(?:\{[^}]*\})*", "", text)
 
         # Collapse whitespace (preserve paragraph breaks)
-        text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r'\n{3,}', '\n\n', text)
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
         text = text.strip()
 
         return text
@@ -607,11 +591,8 @@ class ManuscriptParser:
         warnings: List[str] = []
 
         if not DOCX_AVAILABLE:
-            warnings.append(
-                'python-docx is not installed. '
-                'Install it with: pip install python-docx'
-            )
-            return '', 0, warnings
+            warnings.append("python-docx is not installed. " "Install it with: pip install python-docx")
+            return "", 0, warnings
 
         try:
             file.seek(0)
@@ -623,7 +604,7 @@ class ManuscriptParser:
                 if text:
                     paragraphs.append(text)
 
-            full_text = '\n'.join(paragraphs)
+            full_text = "\n".join(paragraphs)
 
             # Rough page estimate
             word_count = len(full_text.split())
@@ -632,9 +613,9 @@ class ManuscriptParser:
             return full_text, page_count, warnings
 
         except Exception as exc:
-            logger.warning('DOCX extraction failed: %s', exc)
-            warnings.append(f'DOCX extraction failed: {exc}')
-            return '', 0, warnings
+            logger.warning("DOCX extraction failed: %s", exc)
+            warnings.append(f"DOCX extraction failed: {exc}")
+            return "", 0, warnings
 
     # ------------------------------------------------------------------
     # Section segmentation
@@ -674,8 +655,8 @@ class ManuscriptParser:
             # No recognised sections -- return the whole document as one block
             return [
                 ManuscriptSection(
-                    section_type='unknown',
-                    title='',
+                    section_type="unknown",
+                    title="",
                     content=text,
                     start_pos=0,
                     end_pos=len(text),
@@ -695,8 +676,8 @@ class ManuscriptParser:
             if preamble_text:
                 sections.append(
                     ManuscriptSection(
-                        section_type='unknown',
-                        title='',
+                        section_type="unknown",
+                        title="",
                         content=preamble_text,
                         start_pos=0,
                         end_pos=first_start,
@@ -777,8 +758,8 @@ class ManuscriptParser:
         non-empty line.
         """
         # Pre-extracted from raw LaTeX source (before stripping)
-        if self._latex_metadata.get('title'):
-            return self._latex_metadata['title']
+        if self._latex_metadata.get("title"):
+            return self._latex_metadata["title"]
 
         # LaTeX title in text (may still work for non-stripped input)
         m = _LATEX_TITLE_CMD.search(text)
@@ -786,11 +767,11 @@ class ManuscriptParser:
             return m.group(1).strip()
 
         # Heuristic: first non-empty line (often the title in extracted PDFs)
-        for line in text.split('\n'):
+        for line in text.split("\n"):
             line = line.strip()
             if line and len(line) > 5:
                 # Avoid picking up boilerplate / page numbers
-                if not re.match(r'^\d+$', line):
+                if not re.match(r"^\d+$", line):
                     return line
         return None
 
@@ -803,8 +784,8 @@ class ManuscriptParser:
         name detection near the top of the document.
         """
         # Pre-extracted from raw LaTeX source
-        if self._latex_metadata.get('authors'):
-            return self._latex_metadata['authors']
+        if self._latex_metadata.get("authors"):
+            return self._latex_metadata["authors"]
 
         authors: List[str] = []
 
@@ -813,7 +794,7 @@ class ManuscriptParser:
         if m:
             raw = m.group(1)
             # Split on \\and, commas, or "and"
-            parts = re.split(r'\\and|,\s*|\s+and\s+', raw)
+            parts = re.split(r"\\and|,\s*|\s+and\s+", raw)
             for part in parts:
                 name = part.strip()
                 if name and len(name) > 1:
@@ -824,9 +805,7 @@ class ManuscriptParser:
         # Heuristic: look in the first ~500 chars for name-like patterns
         # (two or more capitalised words separated by commas or "and")
         header = text[:500]
-        name_pattern = re.compile(
-            r'([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)'
-        )
+        name_pattern = re.compile(r"([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)")
         found = name_pattern.findall(header)
         if found:
             # Deduplicate while preserving order
@@ -839,17 +818,15 @@ class ManuscriptParser:
 
         return authors
 
-    def _extract_abstract(
-        self, text: str, sections: List[ManuscriptSection]
-    ) -> Optional[str]:
+    def _extract_abstract(self, text: str, sections: List[ManuscriptSection]) -> Optional[str]:
         """Return the abstract text if an abstract section was found."""
         for sec in sections:
-            if sec.section_type == 'abstract':
+            if sec.section_type == "abstract":
                 return sec.content
 
         # Fallback: look for "Abstract" keyword followed by text
         m = re.search(
-            r'(?:^|\n)\s*abstract[:\s]*\n?(.*?)(?=\n\s*(?:introduction|background|keywords?|1[\.\s]))',
+            r"(?:^|\n)\s*abstract[:\s]*\n?(.*?)(?=\n\s*(?:introduction|background|keywords?|1[\.\s]))",
             text,
             re.IGNORECASE | re.DOTALL,
         )
@@ -866,8 +843,8 @@ class ManuscriptParser:
         ``\\keywords{...}`` in the text, then plain-text patterns.
         """
         # Pre-extracted from raw LaTeX source
-        if self._latex_metadata.get('keywords'):
-            return self._latex_metadata['keywords']
+        if self._latex_metadata.get("keywords"):
+            return self._latex_metadata["keywords"]
 
         # LaTeX command in text
         m = _LATEX_KEYWORDS_CMD.search(text)
@@ -876,7 +853,7 @@ class ManuscriptParser:
         else:
             # Plain text: "Keywords: word1, word2, ..."
             m = re.search(
-                r'(?:keywords?|key\s+words?)\s*[:\-]\s*(.+?)(?:\n\n|\n[A-Z1-9])',
+                r"(?:keywords?|key\s+words?)\s*[:\-]\s*(.+?)(?:\n\n|\n[A-Z1-9])",
                 text,
                 re.IGNORECASE,
             )
@@ -886,7 +863,7 @@ class ManuscriptParser:
                 return []
 
         # Split on commas or semicolons
-        keywords = [kw.strip() for kw in re.split(r'[;,]', raw) if kw.strip()]
+        keywords = [kw.strip() for kw in re.split(r"[;,]", raw) if kw.strip()]
         return keywords
 
     # ------------------------------------------------------------------
@@ -930,9 +907,7 @@ class ManuscriptParser:
     # Table extraction from section text
     # ------------------------------------------------------------------
 
-    def _extract_tables_from_section(
-        self, section_text: str
-    ) -> List[Dict[str, Any]]:
+    def _extract_tables_from_section(self, section_text: str) -> List[Dict[str, Any]]:
         """
         Detect table-like structures in a section's text.
 
@@ -949,9 +924,7 @@ class ManuscriptParser:
         tables: List[Dict[str, Any]] = []
 
         # Detect "Table N" captions
-        caption_pattern = re.compile(
-            r'(Table\s+\d+[.:]\s*.+?)(?:\n|$)', re.IGNORECASE
-        )
+        caption_pattern = re.compile(r"(Table\s+\d+[.:]\s*.+?)(?:\n|$)", re.IGNORECASE)
 
         for cap_match in caption_pattern.finditer(section_text):
             caption = cap_match.group(1).strip()
@@ -961,8 +934,8 @@ class ManuscriptParser:
             start = cap_match.end()
             rows: List[List[str]] = []
 
-            remaining = section_text[start:start + 2000]  # limit scan
-            for line in remaining.split('\n'):
+            remaining = section_text[start : start + 2000]  # limit scan
+            for line in remaining.split("\n"):
                 line = line.strip()
                 if not line:
                     if rows:
@@ -970,16 +943,18 @@ class ManuscriptParser:
                     continue
 
                 # Split on two-or-more spaces or tabs
-                cols = re.split(r'\t|  +', line)
+                cols = re.split(r"\t|  +", line)
                 if len(cols) >= 2:
                     rows.append(cols)
                 elif rows:
                     break  # non-tabular line after rows → end of table
 
-            tables.append({
-                'caption': caption,
-                'rows': rows,
-            })
+            tables.append(
+                {
+                    "caption": caption,
+                    "rows": rows,
+                }
+            )
 
         return tables
 
@@ -999,7 +974,7 @@ class ManuscriptParser:
             Sorted list of unique reference strings.
         """
         pattern = re.compile(
-            r'(?:Figure|Fig\.?|Table|Appendix)\s+[A-Z]?\d+',
+            r"(?:Figure|Fig\.?|Table|Appendix)\s+[A-Z]?\d+",
             re.IGNORECASE,
         )
         matches = pattern.findall(text)
@@ -1055,21 +1030,19 @@ class ManuscriptParser:
 
         # 2. Recognised sections (up to 0.3)
         max_score += 0.3
-        known_types = {
-            s.section_type for s in sections if s.section_type != 'unknown'
-        }
+        known_types = {s.section_type for s in sections if s.section_type != "unknown"}
         # Typical paper has 5-7 recognised sections
         section_ratio = min(len(known_types) / 5.0, 1.0)
         score += 0.3 * section_ratio
 
         # 3. Methods section present (0.15)
         max_score += 0.15
-        if any(s.section_type == 'methods' for s in sections):
+        if any(s.section_type == "methods" for s in sections):
             score += 0.15
 
         # 4. Results section present (0.15)
         max_score += 0.15
-        if any(s.section_type == 'results' for s in sections):
+        if any(s.section_type == "results" for s in sections):
             score += 0.15
 
         # 5. No warnings penalty (up to 0.2)

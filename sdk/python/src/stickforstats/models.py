@@ -7,7 +7,7 @@ fields returned by newer API versions do not break deserialization.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -23,7 +23,7 @@ class GuardianViolation(BaseModel):
     code: str = ""
     severity: str = ""
     message: str = ""
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
 
 
 class GuardianReport(BaseModel):
@@ -32,9 +32,9 @@ class GuardianReport(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     confidence: float = 1.0
-    violations: List[GuardianViolation] = Field(default_factory=list)
+    violations: list[GuardianViolation] = Field(default_factory=list)
     passed: bool = True
-    recommendation: Optional[str] = None
+    recommendation: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -47,13 +47,13 @@ class TTestResult(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     test_type: str = ""
-    t_statistic: Optional[float] = None
-    p_value: Optional[float] = None
-    degrees_of_freedom: Optional[float] = None
-    effect_size: Optional[float] = None
-    confidence_interval: Optional[Dict[str, float]] = None
-    means: Optional[Dict[str, float]] = None
-    guardian: Optional[GuardianReport] = None
+    t_statistic: float | None = None
+    p_value: float | None = None
+    degrees_of_freedom: float | None = None
+    effect_size: float | None = None
+    confidence_interval: dict[str, float] | None = None
+    means: dict[str, float] | None = None
+    guardian: GuardianReport | None = None
 
 
 class ANOVAResult(BaseModel):
@@ -61,14 +61,14 @@ class ANOVAResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    f_statistic: Optional[float] = None
-    p_value: Optional[float] = None
-    degrees_of_freedom_between: Optional[float] = None
-    degrees_of_freedom_within: Optional[float] = None
-    effect_size: Optional[float] = None
-    eta_squared: Optional[float] = None
-    post_hoc: Optional[Dict[str, Any]] = None
-    guardian: Optional[GuardianReport] = None
+    f_statistic: float | None = None
+    p_value: float | None = None
+    degrees_of_freedom_between: float | None = None
+    degrees_of_freedom_within: float | None = None
+    effect_size: float | None = None
+    eta_squared: float | None = None
+    post_hoc: dict[str, Any] | None = None
+    guardian: GuardianReport | None = None
 
 
 class CorrelationResult(BaseModel):
@@ -77,12 +77,12 @@ class CorrelationResult(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     method: str = ""
-    correlation: Optional[float] = None
-    p_value: Optional[float] = None
-    confidence_interval: Optional[Dict[str, float]] = None
-    r_squared: Optional[float] = None
-    sample_size: Optional[int] = None
-    guardian: Optional[GuardianReport] = None
+    correlation: float | None = None
+    p_value: float | None = None
+    confidence_interval: dict[str, float] | None = None
+    r_squared: float | None = None
+    sample_size: int | None = None
+    guardian: GuardianReport | None = None
 
 
 class RegressionCoefficient(BaseModel):
@@ -91,10 +91,10 @@ class RegressionCoefficient(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     variable: str = ""
-    coefficient: Optional[float] = None
-    std_error: Optional[float] = None
-    t_statistic: Optional[float] = None
-    p_value: Optional[float] = None
+    coefficient: float | None = None
+    std_error: float | None = None
+    t_statistic: float | None = None
+    p_value: float | None = None
 
 
 class RegressionResult(BaseModel):
@@ -103,13 +103,13 @@ class RegressionResult(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     regression_type: str = ""
-    r_squared: Optional[float] = None
-    adjusted_r_squared: Optional[float] = None
-    f_statistic: Optional[float] = None
-    p_value: Optional[float] = None
-    coefficients: List[RegressionCoefficient] = Field(default_factory=list)
-    residual_std_error: Optional[float] = None
-    guardian: Optional[GuardianReport] = None
+    r_squared: float | None = None
+    adjusted_r_squared: float | None = None
+    f_statistic: float | None = None
+    p_value: float | None = None
+    coefficients: list[RegressionCoefficient] = Field(default_factory=list)
+    residual_std_error: float | None = None
+    guardian: GuardianReport | None = None
 
 
 class DescriptiveResult(BaseModel):
@@ -117,16 +117,16 @@ class DescriptiveResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    count: Optional[int] = None
-    mean: Optional[float] = None
-    median: Optional[float] = None
-    std_dev: Optional[float] = None
-    variance: Optional[float] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    skewness: Optional[float] = None
-    kurtosis: Optional[float] = None
-    quartiles: Optional[Dict[str, float]] = None
+    count: int | None = None
+    mean: float | None = None
+    median: float | None = None
+    std_dev: float | None = None
+    variance: float | None = None
+    min: float | None = None
+    max: float | None = None
+    skewness: float | None = None
+    kurtosis: float | None = None
+    quartiles: dict[str, float] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -138,10 +138,10 @@ class PowerResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    power: Optional[float] = None
-    sample_size: Optional[int] = None
-    effect_size: Optional[float] = None
-    alpha: Optional[float] = None
+    power: float | None = None
+    sample_size: int | None = None
+    effect_size: float | None = None
+    alpha: float | None = None
     test_type: str = ""
 
 
@@ -150,9 +150,9 @@ class PowerReport(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    summary: Optional[str] = None
-    recommendations: List[str] = Field(default_factory=list)
-    analyses: List[Dict[str, Any]] = Field(default_factory=list)
+    summary: str | None = None
+    recommendations: list[str] = Field(default_factory=list)
+    analyses: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -165,11 +165,11 @@ class NonparametricResult(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     test_name: str = ""
-    statistic: Optional[float] = None
-    p_value: Optional[float] = None
-    effect_size: Optional[float] = None
-    sample_sizes: Optional[Dict[str, int]] = None
-    guardian: Optional[GuardianReport] = None
+    statistic: float | None = None
+    p_value: float | None = None
+    effect_size: float | None = None
+    sample_sizes: dict[str, int] | None = None
+    guardian: GuardianReport | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -182,12 +182,12 @@ class CategoricalResult(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     test_name: str = ""
-    statistic: Optional[float] = None
-    p_value: Optional[float] = None
-    degrees_of_freedom: Optional[int] = None
-    effect_size: Optional[float] = None
-    contingency_table: Optional[Dict[str, Any]] = None
-    guardian: Optional[GuardianReport] = None
+    statistic: float | None = None
+    p_value: float | None = None
+    degrees_of_freedom: int | None = None
+    effect_size: float | None = None
+    contingency_table: dict[str, Any] | None = None
+    guardian: GuardianReport | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -199,11 +199,11 @@ class ProfileResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    summary: Optional[Dict[str, Any]] = None
-    variable_types: Optional[Dict[str, str]] = None
-    distributions: Optional[Dict[str, Any]] = None
-    recommendations: List[str] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
+    summary: dict[str, Any] | None = None
+    variable_types: dict[str, str] | None = None
+    distributions: dict[str, Any] | None = None
+    recommendations: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class QueryResult(BaseModel):
@@ -211,10 +211,10 @@ class QueryResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    interpretation: Optional[str] = None
-    test_used: Optional[str] = None
-    results: Optional[Dict[str, Any]] = None
-    narrative: Optional[str] = None
+    interpretation: str | None = None
+    test_used: str | None = None
+    results: dict[str, Any] | None = None
+    narrative: str | None = None
 
 
 class CascadeResult(BaseModel):
@@ -222,11 +222,11 @@ class CascadeResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    guardian_report: Optional[GuardianReport] = None
-    original_test: Optional[str] = None
-    executed_test: Optional[str] = None
+    guardian_report: GuardianReport | None = None
+    original_test: str | None = None
+    executed_test: str | None = None
     fallback_used: bool = False
-    results: Optional[Dict[str, Any]] = None
+    results: dict[str, Any] | None = None
 
 
 class TranslateResult(BaseModel):
@@ -234,9 +234,9 @@ class TranslateResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    plain_language: Optional[str] = None
-    technical_summary: Optional[str] = None
-    apa_formatted: Optional[str] = None
+    plain_language: str | None = None
+    technical_summary: str | None = None
+    apa_formatted: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -249,11 +249,11 @@ class ManuscriptClaim(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     text: str = ""
-    test_type: Optional[str] = None
-    reported_statistic: Optional[str] = None
-    reported_p_value: Optional[float] = None
-    verified: Optional[bool] = None
-    issue: Optional[str] = None
+    test_type: str | None = None
+    reported_statistic: str | None = None
+    reported_p_value: float | None = None
+    verified: bool | None = None
+    issue: str | None = None
 
 
 class ManuscriptReport(BaseModel):
@@ -261,10 +261,10 @@ class ManuscriptReport(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    overall_score: Optional[float] = None
-    claims: List[ManuscriptClaim] = Field(default_factory=list)
-    issues: List[Dict[str, Any]] = Field(default_factory=list)
-    summary: Optional[str] = None
+    overall_score: float | None = None
+    claims: list[ManuscriptClaim] = Field(default_factory=list)
+    issues: list[dict[str, Any]] = Field(default_factory=list)
+    summary: str | None = None
     field: str = ""
 
 
@@ -273,10 +273,10 @@ class ParseResult(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    sections: List[Dict[str, Any]] = Field(default_factory=list)
-    tables: List[Dict[str, Any]] = Field(default_factory=list)
-    figures: List[Dict[str, Any]] = Field(default_factory=list)
-    references: List[str] = Field(default_factory=list)
+    sections: list[dict[str, Any]] = Field(default_factory=list)
+    tables: list[dict[str, Any]] = Field(default_factory=list)
+    figures: list[dict[str, Any]] = Field(default_factory=list)
+    references: list[str] = Field(default_factory=list)
 
 
 class ConsistencyReport(BaseModel):
@@ -285,8 +285,8 @@ class ConsistencyReport(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     consistent: bool = True
-    inconsistencies: List[Dict[str, Any]] = Field(default_factory=list)
-    summary: Optional[str] = None
+    inconsistencies: list[dict[str, Any]] = Field(default_factory=list)
+    summary: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -300,10 +300,10 @@ class UsageSummary(BaseModel):
 
     total_requests: int = 0
     requests_today: int = 0
-    remaining_quota: Optional[int] = None
+    remaining_quota: int | None = None
     tier: str = ""
-    period_start: Optional[str] = None
-    period_end: Optional[str] = None
+    period_start: str | None = None
+    period_end: str | None = None
 
 
 class TierInfo(BaseModel):
@@ -312,7 +312,7 @@ class TierInfo(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     name: str = ""
-    monthly_requests: Optional[int] = None
-    rate_limit_per_minute: Optional[int] = None
-    features: List[str] = Field(default_factory=list)
-    price: Optional[str] = None
+    monthly_requests: int | None = None
+    rate_limit_per_minute: int | None = None
+    features: list[str] = Field(default_factory=list)
+    price: str | None = None

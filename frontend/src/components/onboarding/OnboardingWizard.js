@@ -32,7 +32,7 @@ const OnboardingWizard = () => {
     previousStep,
     skipOnboarding,
     completeOnboarding,
-    currentStepData
+    currentStepData: _currentStepData
   } = useOnboarding();
 
   if (!isOnboardingActive) {

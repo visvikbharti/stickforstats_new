@@ -957,10 +957,12 @@ export class ErrorRecoveryManager {
 }
 
 // Export singleton instance
-export default new ErrorRecoveryManager({
+const errorRecoveryManager = new ErrorRecoveryManager({
   maxRetryAttempts: 3,
   initialRetryDelay: 1000,
   maxRetryDelay: 10000,
   backoffMultiplier: 2,
   retryJitter: true
 });
+
+export default errorRecoveryManager;

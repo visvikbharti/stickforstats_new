@@ -8,7 +8,7 @@ import jStat from 'jstat';
 export const calculateDescriptiveStats = (data) => {
   if (!data || data.length === 0) return null;
 
-  const sorted = [...data].sort((a, b) => a - b);
+  const _sorted = [...data].sort((a, b) => a - b);
   const mean = ss.mean(data);
   const median = ss.median(data);
   const std = ss.standardDeviation(data);

@@ -18,13 +18,11 @@ Version: 1.0.0
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.views.decorators.csrf import csrf_exempt
 import numpy as np
 import pandas as pd
 import logging
-from typing import Dict, Any, List, Optional
 
 # Import our factor analysis service
 from core.services.analytics.factor import get_factor_service
@@ -59,7 +57,7 @@ def sanitize_for_json(obj):
         return obj
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def check_factor_availability(request):
     """
@@ -70,23 +68,14 @@ def check_factor_availability(request):
     try:
         result = factor_service.check_availability()
 
-        return Response({
-            'success': True,
-            'availability': result
-        }, status=status.HTTP_200_OK)
+        return Response({"success": True, "availability": result}, status=status.HTTP_200_OK)
 
     except Exception as e:
         logger.error(f"Error checking factor availability: {str(e)}")
-        return Response(
-            {
-                'success': False,
-                'error': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def test_adequacy(request):
     """
@@ -115,17 +104,12 @@ def test_adequacy(request):
         data = request.data
 
         # Validate required parameters
-        if 'data' not in data:
-            return Response(
-                {
-                    'error': 'Missing required parameter: data'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if "data" not in data:
+            return Response({"error": "Missing required parameter: data"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Extract parameters
-        raw_data = data['data']
-        column_names = data.get('column_names')
+        raw_data = data["data"]
+        column_names = data.get("column_names")
 
         # Convert to DataFrame
         if column_names:
@@ -141,47 +125,32 @@ def test_adequacy(request):
         # Sanitize results for JSON serialization (handle NaN/inf values)
         sanitized_results = sanitize_for_json(results)
 
-        return Response({
-            'success': True,
-            'results': sanitized_results,
-            'method': 'adequacy_testing'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"success": True, "results": sanitized_results, "method": "adequacy_testing"}, status=status.HTTP_200_OK
+        )
 
     except ValueError as e:
         logger.error(f"Validation error in adequacy testing: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'validation_error'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"success": False, "error": str(e), "error_type": "validation_error"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     except RuntimeError as e:
         logger.error(f"Runtime error in adequacy testing: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'runtime_error'
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": str(e), "error_type": "runtime_error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     except Exception as e:
         logger.error(f"Unexpected error in adequacy testing: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'An unexpected error occurred',
-                'details': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": "An unexpected error occurred", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def determine_factors(request):
     """
@@ -215,18 +184,13 @@ def determine_factors(request):
         data = request.data
 
         # Validate required parameters
-        if 'data' not in data:
-            return Response(
-                {
-                    'error': 'Missing required parameter: data'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if "data" not in data:
+            return Response({"error": "Missing required parameter: data"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Extract parameters
-        raw_data = data['data']
-        column_names = data.get('column_names')
-        methods = data.get('methods', ['kaiser', 'scree', 'parallel'])
+        raw_data = data["data"]
+        column_names = data.get("column_names")
+        methods = data.get("methods", ["kaiser", "scree", "parallel"])
 
         # Convert to DataFrame
         if column_names:
@@ -237,52 +201,39 @@ def determine_factors(request):
         # Determine factors
         results = factor_service.determine_n_factors(df, methods=methods)
 
-        logger.info(f"Factor determination completed: {results['consensus']['recommended_n_factors']} factors recommended")
+        logger.info(
+            f"Factor determination completed: {results['consensus']['recommended_n_factors']} factors recommended"
+        )
 
         # Sanitize results for JSON serialization (handle NaN/inf values)
         sanitized_results = sanitize_for_json(results)
 
-        return Response({
-            'success': True,
-            'results': sanitized_results,
-            'method': 'factor_determination'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"success": True, "results": sanitized_results, "method": "factor_determination"}, status=status.HTTP_200_OK
+        )
 
     except ValueError as e:
         logger.error(f"Validation error in factor determination: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'validation_error'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"success": False, "error": str(e), "error_type": "validation_error"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     except RuntimeError as e:
         logger.error(f"Runtime error in factor determination: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'runtime_error'
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": str(e), "error_type": "runtime_error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     except Exception as e:
         logger.error(f"Unexpected error in factor determination: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'An unexpected error occurred',
-                'details': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": "An unexpected error occurred", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def exploratory_factor_analysis(request):
     """
@@ -314,20 +265,15 @@ def exploratory_factor_analysis(request):
         data = request.data
 
         # Validate required parameters
-        if 'data' not in data:
-            return Response(
-                {
-                    'error': 'Missing required parameter: data'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if "data" not in data:
+            return Response({"error": "Missing required parameter: data"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Extract parameters
-        raw_data = data['data']
-        column_names = data.get('column_names')
-        n_factors = data.get('n_factors')
-        rotation = data.get('rotation', 'varimax')
-        method = data.get('method', 'minres')
+        raw_data = data["data"]
+        column_names = data.get("column_names")
+        n_factors = data.get("n_factors")
+        rotation = data.get("rotation", "varimax")
+        method = data.get("method", "minres")
 
         # Convert to DataFrame
         if column_names:
@@ -337,10 +283,7 @@ def exploratory_factor_analysis(request):
 
         # Perform EFA
         results = factor_service.exploratory_factor_analysis(
-            data=df,
-            n_factors=n_factors,
-            rotation=rotation,
-            method=method
+            data=df, n_factors=n_factors, rotation=rotation, method=method
         )
 
         logger.info(f"EFA completed: {results['n_factors']} factors extracted from {len(df)} observations")
@@ -348,47 +291,33 @@ def exploratory_factor_analysis(request):
         # Sanitize results for JSON serialization (handle NaN/inf values)
         sanitized_results = sanitize_for_json(results)
 
-        return Response({
-            'success': True,
-            'results': sanitized_results,
-            'method': 'exploratory_factor_analysis'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"success": True, "results": sanitized_results, "method": "exploratory_factor_analysis"},
+            status=status.HTTP_200_OK,
+        )
 
     except ValueError as e:
         logger.error(f"Validation error in EFA: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'validation_error'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"success": False, "error": str(e), "error_type": "validation_error"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     except RuntimeError as e:
         logger.error(f"Runtime error in EFA: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'runtime_error'
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": str(e), "error_type": "runtime_error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     except Exception as e:
         logger.error(f"Unexpected error in EFA: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'An unexpected error occurred',
-                'details': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": "An unexpected error occurred", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def transform_factors(request):
     """
@@ -416,18 +345,15 @@ def transform_factors(request):
         data = request.data
 
         # Validate required parameters
-        if 'model_id' not in data or 'data' not in data:
+        if "model_id" not in data or "data" not in data:
             return Response(
-                {
-                    'error': 'Missing required parameters: model_id, data'
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Missing required parameters: model_id, data"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Extract parameters
-        model_id = data['model_id']
-        raw_data = data['data']
-        column_names = data.get('column_names')
+        model_id = data["model_id"]
+        raw_data = data["data"]
+        column_names = data.get("column_names")
 
         # Convert to DataFrame
         if column_names:
@@ -436,57 +362,39 @@ def transform_factors(request):
             df = pd.DataFrame(raw_data)
 
         # Transform to factors
-        results = factor_service.transform_to_factors(
-            model_id=model_id,
-            new_data=df
-        )
+        results = factor_service.transform_to_factors(model_id=model_id, new_data=df)
 
         logger.info(f"Factor transformation completed for {len(df)} observations using model {model_id}")
 
         # Sanitize results for JSON serialization (handle NaN/inf values)
         sanitized_results = sanitize_for_json(results)
 
-        return Response({
-            'success': True,
-            'results': sanitized_results,
-            'method': 'factor_transformation'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"success": True, "results": sanitized_results, "method": "factor_transformation"},
+            status=status.HTTP_200_OK,
+        )
 
     except FileNotFoundError as e:
         logger.error(f"Model not found: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'Model not found',
-                'details': str(e)
-            },
-            status=status.HTTP_404_NOT_FOUND
+            {"success": False, "error": "Model not found", "details": str(e)}, status=status.HTTP_404_NOT_FOUND
         )
 
     except ValueError as e:
         logger.error(f"Validation error in transformation: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': str(e),
-                'error_type': 'validation_error'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"success": False, "error": str(e), "error_type": "validation_error"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     except Exception as e:
         logger.error(f"Unexpected error in transformation: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'An unexpected error occurred',
-                'details': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": "An unexpected error occurred", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def factor_tutorial(request):
     """
@@ -512,29 +420,29 @@ def factor_tutorial(request):
         items = {}
 
         # Extraversion items
-        items['Sociable'] = extraversion + np.random.normal(0, 0.3, n)
-        items['Talkative'] = extraversion + np.random.normal(0, 0.3, n)
-        items['Energetic'] = extraversion + np.random.normal(0, 0.3, n)
+        items["Sociable"] = extraversion + np.random.normal(0, 0.3, n)
+        items["Talkative"] = extraversion + np.random.normal(0, 0.3, n)
+        items["Energetic"] = extraversion + np.random.normal(0, 0.3, n)
 
         # Agreeableness items
-        items['Kind'] = agreeableness + np.random.normal(0, 0.3, n)
-        items['Cooperative'] = agreeableness + np.random.normal(0, 0.3, n)
-        items['Trusting'] = agreeableness + np.random.normal(0, 0.3, n)
+        items["Kind"] = agreeableness + np.random.normal(0, 0.3, n)
+        items["Cooperative"] = agreeableness + np.random.normal(0, 0.3, n)
+        items["Trusting"] = agreeableness + np.random.normal(0, 0.3, n)
 
         # Conscientiousness items
-        items['Organized'] = conscientiousness + np.random.normal(0, 0.3, n)
-        items['Reliable'] = conscientiousness + np.random.normal(0, 0.3, n)
-        items['Disciplined'] = conscientiousness + np.random.normal(0, 0.3, n)
+        items["Organized"] = conscientiousness + np.random.normal(0, 0.3, n)
+        items["Reliable"] = conscientiousness + np.random.normal(0, 0.3, n)
+        items["Disciplined"] = conscientiousness + np.random.normal(0, 0.3, n)
 
         # Neuroticism items
-        items['Anxious'] = neuroticism + np.random.normal(0, 0.3, n)
-        items['Moody'] = neuroticism + np.random.normal(0, 0.3, n)
-        items['Stressed'] = neuroticism + np.random.normal(0, 0.3, n)
+        items["Anxious"] = neuroticism + np.random.normal(0, 0.3, n)
+        items["Moody"] = neuroticism + np.random.normal(0, 0.3, n)
+        items["Stressed"] = neuroticism + np.random.normal(0, 0.3, n)
 
         # Openness items
-        items['Creative'] = openness + np.random.normal(0, 0.3, n)
-        items['Curious'] = openness + np.random.normal(0, 0.3, n)
-        items['Imaginative'] = openness + np.random.normal(0, 0.3, n)
+        items["Creative"] = openness + np.random.normal(0, 0.3, n)
+        items["Curious"] = openness + np.random.normal(0, 0.3, n)
+        items["Imaginative"] = openness + np.random.normal(0, 0.3, n)
 
         example_data = pd.DataFrame(items)
 
@@ -542,45 +450,44 @@ def factor_tutorial(request):
         adequacy_results = factor_service.test_adequacy(example_data)
 
         # Determine number of factors
-        factor_determination = factor_service.determine_n_factors(
-            example_data,
-            methods=['kaiser', 'scree', 'parallel']
-        )
+        factor_determination = factor_service.determine_n_factors(example_data, methods=["kaiser", "scree", "parallel"])
 
         # Perform EFA with 5 factors (we know the true structure)
         efa_results = factor_service.exploratory_factor_analysis(
-            data=example_data,
-            n_factors=5,
-            rotation='varimax',
-            method='minres'
+            data=example_data, n_factors=5, rotation="varimax", method="minres"
         )
 
         logger.info("Factor analysis tutorial completed successfully")
 
-        return Response({
-            'success': True,
-            'tutorial': {
-                'description': 'Example factor analysis with simulated personality questionnaire data (Big Five)',
-                'sample_data': example_data.head(10).to_dict('records'),
-                'data_description': {
-                    'n_respondents': n,
-                    'n_items': len(items),
-                    'true_factors': ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Neuroticism', 'Openness'],
-                    'items_per_factor': 3
+        return Response(
+            {
+                "success": True,
+                "tutorial": {
+                    "description": "Example factor analysis with simulated personality questionnaire data (Big Five)",
+                    "sample_data": example_data.head(10).to_dict("records"),
+                    "data_description": {
+                        "n_respondents": n,
+                        "n_items": len(items),
+                        "true_factors": [
+                            "Extraversion",
+                            "Agreeableness",
+                            "Conscientiousness",
+                            "Neuroticism",
+                            "Openness",
+                        ],
+                        "items_per_factor": 3,
+                    },
+                    "adequacy_results": adequacy_results,
+                    "factor_determination": factor_determination,
+                    "efa_results": efa_results,
                 },
-                'adequacy_results': adequacy_results,
-                'factor_determination': factor_determination,
-                'efa_results': efa_results
-            }
-        }, status=status.HTTP_200_OK)
+            },
+            status=status.HTTP_200_OK,
+        )
 
     except Exception as e:
         logger.error(f"Error in factor tutorial: {str(e)}")
         return Response(
-            {
-                'success': False,
-                'error': 'An error occurred generating tutorial',
-                'details': str(e)
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"success": False, "error": "An error occurred generating tutorial", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

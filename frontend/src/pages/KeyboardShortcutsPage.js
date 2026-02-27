@@ -88,7 +88,7 @@ const KeyboardShortcutsPage = () => {
     }
   ];
 
-  const platformShortcuts = {
+  const _platformShortcuts = {
     windows: {
       modifier: 'Ctrl',
       special: {

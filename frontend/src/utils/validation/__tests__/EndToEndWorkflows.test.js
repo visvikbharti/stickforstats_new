@@ -948,21 +948,20 @@ describe('End-to-End Workflow Tests', () => {
           { standardDeviation: { required: true } }
         );
 
-        if (!step2.valid) {
-          // Recover with default value
-          const recovered = { standardDeviation: 1 };
+        // step2 should be invalid for negative standardDeviation
+        expect(step2.valid).toBe(false);
 
-          // Step 3: Continue with recovered value
-          const step3 = await validateStatisticalParams(
-            recovered,
-            { standardDeviation: { required: true } }
-          );
+        // Recover with default value
+        const recovered = { standardDeviation: 1 };
 
-          expect(step3.valid).toBe(true);
-          return { recovered: true, step3 };
-        }
+        // Step 3: Continue with recovered value
+        const step3 = await validateStatisticalParams(
+          recovered,
+          { standardDeviation: { required: true } }
+        );
 
-        return step2;
+        expect(step3.valid).toBe(true);
+        return { recovered: true, step3 };
       };
 
       const result = await workflow();

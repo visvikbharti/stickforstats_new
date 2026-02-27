@@ -33,8 +33,8 @@ References:
 Created: December 27, 2025
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional, Union
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -44,6 +44,7 @@ from sklearn.linear_model import LinearRegression
 @dataclass
 class DiDResult:
     """Result of Difference-in-Differences analysis."""
+
     # Main estimate
     did_estimate: float
     std_error: float
@@ -82,44 +83,45 @@ class DiDResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'estimate': {
-                'did': self.did_estimate,
-                'std_error': self.std_error,
-                't_statistic': self.t_statistic,
-                'p_value': self.p_value,
-                'ci_lower': self.ci_lower,
-                'ci_upper': self.ci_upper
+            "estimate": {
+                "did": self.did_estimate,
+                "std_error": self.std_error,
+                "t_statistic": self.t_statistic,
+                "p_value": self.p_value,
+                "ci_lower": self.ci_lower,
+                "ci_upper": self.ci_upper,
             },
-            'group_means': {
-                'treatment_pre': self.treat_pre_mean,
-                'treatment_post': self.treat_post_mean,
-                'control_pre': self.control_pre_mean,
-                'control_post': self.control_post_mean
+            "group_means": {
+                "treatment_pre": self.treat_pre_mean,
+                "treatment_post": self.treat_post_mean,
+                "control_pre": self.control_pre_mean,
+                "control_post": self.control_post_mean,
             },
-            'changes': {
-                'treatment': self.treat_change,
-                'control': self.control_change,
-                'difference': self.did_estimate
+            "changes": {
+                "treatment": self.treat_change,
+                "control": self.control_change,
+                "difference": self.did_estimate,
             },
-            'sample_sizes': {
-                'total': self.n_total,
-                'treatment': self.n_treat,
-                'control': self.n_control,
-                'pre_period': self.n_pre,
-                'post_period': self.n_post
+            "sample_sizes": {
+                "total": self.n_total,
+                "treatment": self.n_treat,
+                "control": self.n_control,
+                "pre_period": self.n_pre,
+                "post_period": self.n_post,
             },
-            'method': self.method,
-            'covariates': self.covariates_used,
-            'clustered_se': self.clustered_se,
-            'parallel_trends_test': self.parallel_trends_test,
-            'interpretation': self.interpretation,
-            'warnings': self.warnings
+            "method": self.method,
+            "covariates": self.covariates_used,
+            "clustered_se": self.clustered_se,
+            "parallel_trends_test": self.parallel_trends_test,
+            "interpretation": self.interpretation,
+            "warnings": self.warnings,
         }
 
 
 @dataclass
 class EventStudyResult:
     """Result of event study analysis."""
+
     # Coefficients for each period relative to treatment
     coefficients: Dict[int, float]  # period -> coefficient
     std_errors: Dict[int, float]
@@ -143,24 +145,24 @@ class EventStudyResult:
     def to_dict(self) -> Dict[str, Any]:
         periods = sorted(self.coefficients.keys())
         return {
-            'coefficients': [
+            "coefficients": [
                 {
-                    'period': p,
-                    'estimate': self.coefficients[p],
-                    'std_error': self.std_errors[p],
-                    'ci_lower': self.ci_lower[p],
-                    'ci_upper': self.ci_upper[p],
-                    'p_value': self.p_values[p],
-                    'significant': self.p_values[p] < 0.05
+                    "period": p,
+                    "estimate": self.coefficients[p],
+                    "std_error": self.std_errors[p],
+                    "ci_lower": self.ci_lower[p],
+                    "ci_upper": self.ci_upper[p],
+                    "p_value": self.p_values[p],
+                    "significant": self.p_values[p] < 0.05,
                 }
                 for p in periods
             ],
-            'reference_period': self.reference_period,
-            'pre_trend_test': self.pre_trend_test,
-            'sample_size': self.n,
-            'n_periods': self.n_periods,
-            'interpretation': self.interpretation,
-            'warnings': self.warnings
+            "reference_period": self.reference_period,
+            "pre_trend_test": self.pre_trend_test,
+            "sample_size": self.n,
+            "n_periods": self.n_periods,
+            "interpretation": self.interpretation,
+            "warnings": self.warnings,
         }
 
 
@@ -171,7 +173,7 @@ def difference_in_differences(
     post_period: str,
     covariates: Optional[List[str]] = None,
     cluster_var: Optional[str] = None,
-    test_parallel_trends: bool = True
+    test_parallel_trends: bool = True,
 ) -> DiDResult:
     """
     Perform basic Difference-in-Differences estimation.
@@ -218,7 +220,7 @@ def difference_in_differences(
     # Calculate DiD manually
     treat_change = treat_post_mean - treat_pre_mean
     control_change = control_post_mean - control_pre_mean
-    did_manual = treat_change - control_change
+    treat_change - control_change
 
     # Regression-based DiD
     # Y = β₀ + β₁*D + β₂*P + β₃*D*P + covariates + ε
@@ -257,13 +259,11 @@ def difference_in_differences(
     parallel_test = None
     if test_parallel_trends:
         try:
-            parallel_test = test_parallel_trends_simple(
-                data, outcome, treatment_group, post_period
-            )
-            if parallel_test.get('p_value', 1) < 0.05:
+            parallel_test = test_parallel_trends_simple(data, outcome, treatment_group, post_period)
+            if parallel_test.get("p_value", 1) < 0.05:
                 warnings.append("Parallel trends assumption may be violated (p < 0.05)")
         except Exception:
-            parallel_test = {'error': 'Could not perform parallel trends test'}
+            parallel_test = {"error": "Could not perform parallel trends test"}
 
     # Sample sizes
     n_treat = int(np.sum(D == 1))
@@ -292,12 +292,12 @@ def difference_in_differences(
         n_control=n_control,
         n_pre=n_pre,
         n_post=n_post,
-        method='twfe' if covariates else 'basic_2x2',
+        method="twfe" if covariates else "basic_2x2",
         covariates_used=covariates,
         clustered_se=clustered,
         parallel_trends_test=parallel_test,
         interpretation=interpretation,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -311,7 +311,7 @@ def event_study(
     covariates: Optional[List[str]] = None,
     reference_period: int = -1,
     pre_periods: int = 4,
-    post_periods: int = 4
+    post_periods: int = 4,
 ) -> EventStudyResult:
     """
     Perform event study analysis with dynamic treatment effects.
@@ -344,21 +344,21 @@ def event_study(
         # treatment_time is a column with unit-specific treatment times
         if treatment_time in data.columns:
             data = data.copy()
-            data['_rel_time'] = data[time_var] - data[treatment_time]
+            data["_rel_time"] = data[time_var] - data[treatment_time]
         else:
             raise ValueError(f"Column {treatment_time} not found")
     else:
         # treatment_time is a single value
         data = data.copy()
-        data['_rel_time'] = data[time_var] - treatment_time
+        data["_rel_time"] = data[time_var] - treatment_time
 
     # Filter to relevant periods
     periods = range(-pre_periods, post_periods + 1)
-    data_filtered = data[data['_rel_time'].isin(periods)].copy()
+    data_filtered = data[data["_rel_time"].isin(periods)].copy()
 
     Y = data_filtered[outcome].values
     D = data_filtered[treatment_group].values
-    rel_time = data_filtered['_rel_time'].values
+    rel_time = data_filtered["_rel_time"].values
 
     n = len(Y)
 
@@ -432,17 +432,17 @@ def event_study(
         p_pre = 1 - stats.chi2.cdf(chi_sq, df_pre)
 
         pre_trend_test = {
-            'test': 'joint_wald',
-            'chi_square': float(chi_sq),
-            'df': df_pre,
-            'p_value': float(p_pre),
-            'pre_trend_significant': p_pre < 0.05
+            "test": "joint_wald",
+            "chi_square": float(chi_sq),
+            "df": df_pre,
+            "p_value": float(p_pre),
+            "pre_trend_significant": p_pre < 0.05,
         }
 
         if p_pre < 0.05:
             warnings.append("Pre-trend test significant - parallel trends may be violated")
     else:
-        pre_trend_test = {'test': 'not_available', 'reason': 'Insufficient pre-periods'}
+        pre_trend_test = {"test": "not_available", "reason": "Insufficient pre-periods"}
 
     # Interpretation
     interpretation = _interpret_event_study(coefficients, p_values, reference_period)
@@ -458,16 +458,12 @@ def event_study(
         n=n,
         n_periods=len(periods),
         interpretation=interpretation,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
 def test_parallel_trends_simple(
-    data: pd.DataFrame,
-    outcome: str,
-    treatment_group: str,
-    post_period: str,
-    time_var: Optional[str] = None
+    data: pd.DataFrame, outcome: str, treatment_group: str, post_period: str, time_var: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Simple test for parallel trends assumption.
@@ -491,10 +487,7 @@ def test_parallel_trends_simple(
     pre_data = data[data[post_period] == 0].copy()
 
     if len(pre_data) < 10:
-        return {
-            'test': 'insufficient_data',
-            'message': 'Not enough pre-treatment observations'
-        }
+        return {"test": "insufficient_data", "message": "Not enough pre-treatment observations"}
 
     Y = pre_data[outcome].values
     D = pre_data[treatment_group].values
@@ -517,16 +510,17 @@ def test_parallel_trends_simple(
         p_value = 2 * (1 - stats.t.cdf(abs(t_stat), len(Y) - 4))
 
         return {
-            'test': 'differential_trends',
-            'interaction_coefficient': float(interaction_coef),
-            'std_error': float(se),
-            't_statistic': float(t_stat),
-            'p_value': float(p_value),
-            'parallel_trends_supported': p_value >= 0.05,
-            'interpretation': (
-                "No significant differential pre-trends" if p_value >= 0.05
+            "test": "differential_trends",
+            "interaction_coefficient": float(interaction_coef),
+            "std_error": float(se),
+            "t_statistic": float(t_stat),
+            "p_value": float(p_value),
+            "parallel_trends_supported": p_value >= 0.05,
+            "interpretation": (
+                "No significant differential pre-trends"
+                if p_value >= 0.05
                 else "Warning: Significant differential pre-trends detected"
-            )
+            ),
         }
     else:
         # Simple t-test of pre-treatment levels
@@ -536,16 +530,17 @@ def test_parallel_trends_simple(
         t_stat, p_value = stats.ttest_ind(treat_pre, control_pre)
 
         return {
-            'test': 'pre_treatment_levels',
-            'treatment_mean': float(np.mean(treat_pre)),
-            'control_mean': float(np.mean(control_pre)),
-            't_statistic': float(t_stat),
-            'p_value': float(p_value),
-            'similar_levels': p_value >= 0.05,
-            'interpretation': (
-                "Pre-treatment levels are similar" if p_value >= 0.05
+            "test": "pre_treatment_levels",
+            "treatment_mean": float(np.mean(treat_pre)),
+            "control_mean": float(np.mean(control_pre)),
+            "t_statistic": float(t_stat),
+            "p_value": float(p_value),
+            "similar_levels": p_value >= 0.05,
+            "interpretation": (
+                "Pre-treatment levels are similar"
+                if p_value >= 0.05
                 else "Warning: Pre-treatment levels differ significantly"
-            )
+            ),
         }
 
 
@@ -556,7 +551,7 @@ def staggered_did(
     time_var: str,
     treatment_time_var: str,
     covariates: Optional[List[str]] = None,
-    control_group: str = 'never_treated'
+    control_group: str = "never_treated",
 ) -> Dict[str, Any]:
     """
     Difference-in-Differences with staggered treatment adoption.
@@ -589,14 +584,14 @@ def staggered_did(
     cohorts = treatment_times[treatment_times < np.inf].unique()
 
     if len(cohorts) == 0:
-        return {'error': 'No treated units found'}
+        return {"error": "No treated units found"}
 
     # Identify never-treated units
     never_treated = treatment_times[treatment_times == np.inf].index
 
-    if control_group == 'never_treated' and len(never_treated) == 0:
+    if control_group == "never_treated" and len(never_treated) == 0:
         warnings.append("No never-treated units - using not-yet-treated as control")
-        control_group = 'not_yet_treated'
+        control_group = "not_yet_treated"
 
     # Compute group-time ATTs
     group_time_effects = []
@@ -612,21 +607,18 @@ def staggered_did(
                 continue
 
             # Get treated observations at time t
-            treat_data = data[(data[unit_var].isin(treated_units)) &
-                             (data[time_var] == t)]
+            treat_data = data[(data[unit_var].isin(treated_units)) & (data[time_var] == t)]
 
             if len(treat_data) == 0:
                 continue
 
             # Get control observations
-            if control_group == 'never_treated':
-                control_data = data[(data[unit_var].isin(never_treated)) &
-                                   (data[time_var] == t)]
+            if control_group == "never_treated":
+                control_data = data[(data[unit_var].isin(never_treated)) & (data[time_var] == t)]
             else:
                 # Not yet treated at time t
                 not_yet = treatment_times[treatment_times > t].index
-                control_data = data[(data[unit_var].isin(not_yet)) &
-                                   (data[time_var] == t)]
+                control_data = data[(data[unit_var].isin(not_yet)) & (data[time_var] == t)]
 
             if len(control_data) < 5:
                 continue
@@ -636,10 +628,10 @@ def staggered_did(
             if baseline_t not in time_periods:
                 continue
 
-            treat_baseline = data[(data[unit_var].isin(treated_units)) &
-                                 (data[time_var] == baseline_t)]
-            control_baseline = data[(data[unit_var].isin(control_data[unit_var].unique())) &
-                                   (data[time_var] == baseline_t)]
+            treat_baseline = data[(data[unit_var].isin(treated_units)) & (data[time_var] == baseline_t)]
+            control_baseline = data[
+                (data[unit_var].isin(control_data[unit_var].unique())) & (data[time_var] == baseline_t)
+            ]
 
             if len(treat_baseline) == 0 or len(control_baseline) == 0:
                 continue
@@ -653,29 +645,29 @@ def staggered_did(
             # Simple SE (could use bootstrap)
             n_treat = len(treat_data)
             n_control = len(control_data)
-            se = np.sqrt(treat_data[outcome].var() / n_treat +
-                        control_data[outcome].var() / n_control)
+            se = np.sqrt(treat_data[outcome].var() / n_treat + control_data[outcome].var() / n_control)
 
-            group_time_effects.append({
-                'cohort': int(g),
-                'time': int(t),
-                'att': float(att_gt),
-                'std_error': float(se),
-                'n_treated': n_treat,
-                'n_control': n_control,
-                'periods_since_treatment': int(t - g)
-            })
+            group_time_effects.append(
+                {
+                    "cohort": int(g),
+                    "time": int(t),
+                    "att": float(att_gt),
+                    "std_error": float(se),
+                    "n_treated": n_treat,
+                    "n_control": n_control,
+                    "periods_since_treatment": int(t - g),
+                }
+            )
 
     if len(group_time_effects) == 0:
-        return {'error': 'Could not compute any group-time effects'}
+        return {"error": "Could not compute any group-time effects"}
 
     # Aggregate to overall ATT (simple average, weighted by n_treated)
-    total_weight = sum(e['n_treated'] for e in group_time_effects)
-    overall_att = sum(e['att'] * e['n_treated'] for e in group_time_effects) / total_weight
+    total_weight = sum(e["n_treated"] for e in group_time_effects)
+    overall_att = sum(e["att"] * e["n_treated"] for e in group_time_effects) / total_weight
 
     # SE via delta method (simplified)
-    overall_se = np.sqrt(sum((e['std_error'] * e['n_treated'] / total_weight) ** 2
-                            for e in group_time_effects))
+    overall_se = np.sqrt(sum((e["std_error"] * e["n_treated"] / total_weight) ** 2 for e in group_time_effects))
 
     t_stat = overall_att / overall_se if overall_se > 0 else 0
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
@@ -683,7 +675,7 @@ def staggered_did(
     # Aggregate by event time
     event_time_effects = {}
     for e in group_time_effects:
-        et = e['periods_since_treatment']
+        et = e["periods_since_treatment"]
         if et not in event_time_effects:
             event_time_effects[et] = []
         event_time_effects[et].append(e)
@@ -691,34 +683,33 @@ def staggered_did(
     event_time_summary = []
     for et in sorted(event_time_effects.keys()):
         effects = event_time_effects[et]
-        wt = sum(e['n_treated'] for e in effects)
-        avg = sum(e['att'] * e['n_treated'] for e in effects) / wt
-        event_time_summary.append({
-            'event_time': et,
-            'att': float(avg),
-            'n_cohorts': len(set(e['cohort'] for e in effects))
-        })
+        wt = sum(e["n_treated"] for e in effects)
+        avg = sum(e["att"] * e["n_treated"] for e in effects) / wt
+        event_time_summary.append(
+            {"event_time": et, "att": float(avg), "n_cohorts": len(set(e["cohort"] for e in effects))}
+        )
 
     return {
-        'overall_att': {
-            'estimate': float(overall_att),
-            'std_error': float(overall_se),
-            't_statistic': float(t_stat),
-            'p_value': float(p_value),
-            'ci_lower': float(overall_att - stats.norm.ppf(0.975) * overall_se),
-            'ci_upper': float(overall_att + stats.norm.ppf(0.975) * overall_se)
+        "overall_att": {
+            "estimate": float(overall_att),
+            "std_error": float(overall_se),
+            "t_statistic": float(t_stat),
+            "p_value": float(p_value),
+            "ci_lower": float(overall_att - stats.norm.ppf(0.975) * overall_se),
+            "ci_upper": float(overall_att + stats.norm.ppf(0.975) * overall_se),
         },
-        'group_time_effects': group_time_effects,
-        'event_time_effects': event_time_summary,
-        'n_cohorts': len(cohorts),
-        'cohorts': sorted([int(c) for c in cohorts]),
-        'control_group': control_group,
-        'n_group_time_estimates': len(group_time_effects),
-        'warnings': warnings
+        "group_time_effects": group_time_effects,
+        "event_time_effects": event_time_summary,
+        "n_cohorts": len(cohorts),
+        "cohorts": sorted([int(c) for c in cohorts]),
+        "control_group": control_group,
+        "n_group_time_estimates": len(group_time_effects),
+        "warnings": warnings,
     }
 
 
 # ==================== Helper Functions ====================
+
 
 def _robust_se(X: np.ndarray, residuals: np.ndarray) -> np.ndarray:
     """HC1 robust standard errors."""
@@ -726,17 +717,13 @@ def _robust_se(X: np.ndarray, residuals: np.ndarray) -> np.ndarray:
     XtX_inv = np.linalg.inv(X.T @ X)
     scale = n / (n - k)  # HC1 adjustment
 
-    meat = X.T @ np.diag(residuals ** 2) @ X * scale
+    meat = X.T @ np.diag(residuals**2) @ X * scale
     sandwich = XtX_inv @ meat @ XtX_inv
 
     return np.sqrt(np.diag(sandwich))
 
 
-def _clustered_se(
-    X: np.ndarray,
-    residuals: np.ndarray,
-    clusters: np.ndarray
-) -> np.ndarray:
+def _clustered_se(X: np.ndarray, residuals: np.ndarray, clusters: np.ndarray) -> np.ndarray:
     """Clustered standard errors."""
     n, k = X.shape
     unique_clusters = np.unique(clusters)
@@ -762,12 +749,7 @@ def _clustered_se(
     return np.sqrt(np.diag(sandwich))
 
 
-def _interpret_did(
-    did: float,
-    p_value: float,
-    treat_change: float,
-    control_change: float
-) -> str:
+def _interpret_did(did: float, p_value: float, treat_change: float, control_change: float) -> str:
     """Interpret DiD results."""
     parts = []
 
@@ -783,11 +765,7 @@ def _interpret_did(
     return ". ".join(parts) + "."
 
 
-def _interpret_event_study(
-    coefs: Dict[int, float],
-    pvals: Dict[int, float],
-    ref: int
-) -> str:
+def _interpret_event_study(coefs: Dict[int, float], pvals: Dict[int, float], ref: int) -> str:
     """Interpret event study results."""
     parts = []
 
@@ -806,7 +784,7 @@ def _interpret_event_study(
         # Check if effects grow over time
         post_coefs = [(p, coefs[p]) for p in sorted(post_sig)]
         if len(post_coefs) > 1:
-            if all(post_coefs[i][1] <= post_coefs[i+1][1] for i in range(len(post_coefs)-1)):
+            if all(post_coefs[i][1] <= post_coefs[i + 1][1] for i in range(len(post_coefs) - 1)):
                 parts.append("Treatment effects appear to grow over time")
     else:
         parts.append("No significant post-treatment effects")

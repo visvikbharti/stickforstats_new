@@ -19,8 +19,4 @@ try:
 except (ImportError, Exception):
     pass
 
-__all__ = [
-    'LinearRegressionService',
-    'RegressionDiagnostics', 
-    'GLMService'
-]
+__all__ = ["LinearRegressionService", "RegressionDiagnostics", "GLMService"]

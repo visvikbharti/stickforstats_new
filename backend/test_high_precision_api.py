@@ -4,11 +4,10 @@ Test script for high-precision API implementation
 """
 
 import os
-import sys
 import django
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stickforstats.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "stickforstats.settings")
 django.setup()
 
 from core.high_precision_calculator import HighPrecisionCalculator
@@ -20,9 +19,9 @@ from decimal import Decimal
 
 def test_high_precision_ttest():
     """Test high-precision t-test implementation"""
-    print("="*60)
+    print("=" * 60)
     print("TESTING HIGH-PRECISION T-TEST IMPLEMENTATION")
-    print("="*60)
+    print("=" * 60)
 
     # Test data
     data1 = [23.1, 24.2, 25.3, 26.4, 27.5]
@@ -50,7 +49,7 @@ def test_high_precision_ttest():
 
     # 3. Comparison
     print("\n3. COMPARISON:")
-    hp_t = Decimal(str(hp_result['t_statistic']))
+    hp_t = Decimal(str(hp_result["t_statistic"]))
     sp_t = Decimal(str(t_stat_scipy))
     difference = abs(hp_t - sp_t)
 
@@ -80,7 +79,7 @@ def test_high_precision_ttest():
         print(f"    Suggestions: {[s.value for s in equal_var.suggestions]}")
 
     # Check sample size (if method exists)
-    if hasattr(checker, 'check_sample_size'):
+    if hasattr(checker, "check_sample_size"):
         sample_size = checker.check_sample_size(len(data1))
         print(f"  Sample Size Adequate: {sample_size.is_met}")
         if sample_size.warning_message:
@@ -89,29 +88,31 @@ def test_high_precision_ttest():
         # Manual check
         print(f"  Sample Size: {len(data1)} (Minimum recommended: 30 for t-test)")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("CONCLUSION:")
-    print(f"✅ High-precision calculator works correctly")
+    print("✅ High-precision calculator works correctly")
     print(f"✅ Achieved {len(str(hp_result['t_statistic']).split('.')[-1])} decimal precision")
-    print(f"✅ Assumption checking integrated")
-    print("="*60)
+    print("✅ Assumption checking integrated")
+    print("=" * 60)
 
 
 def test_data_import():
     """Test data import functionality"""
     print("\n\nTESTING DATA IMPORT CAPABILITY")
-    print("="*60)
+    print("=" * 60)
 
     import pandas as pd
     import tempfile
 
     # Create test CSV file
-    test_data = pd.DataFrame({
-        'group': ['A', 'A', 'A', 'A', 'A', 'B', 'B', 'B', 'B', 'B'],
-        'value': [23.1, 24.2, 25.3, 26.4, 27.5, 22.5, 23.6, 24.7, 25.8, 26.9]
-    })
+    test_data = pd.DataFrame(
+        {
+            "group": ["A", "A", "A", "A", "A", "B", "B", "B", "B", "B"],
+            "value": [23.1, 24.2, 25.3, 26.4, 27.5, 22.5, 23.6, 24.7, 25.8, 26.9],
+        }
+    )
 
-    with tempfile.NamedTemporaryFile(suffix='.csv', mode='w', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
         test_data.to_csv(f, index=False)
         temp_file = f.name
 
@@ -136,4 +137,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()

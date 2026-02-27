@@ -355,8 +355,8 @@ export const normalizePoints = (points, width, height, padding = 0.1) => {
   const rangeX = maxX - minX || 1;
   const rangeY = maxY - minY || 1;
 
-  const paddingX = rangeX * padding;
-  const paddingY = rangeY * padding;
+  const _paddingX = rangeX * padding;
+  const _paddingY = rangeY * padding;
 
   return points.map(p => ({
     x: ((p.x - minX) / rangeX) * (width * (1 - 2 * padding)) + width * padding,

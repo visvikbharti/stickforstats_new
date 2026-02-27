@@ -287,6 +287,8 @@ export const components = {
             .attr('y', -labelOffset)
             .attr('text-anchor', 'middle');
           break;
+        default:
+          break;
       }
     }
     

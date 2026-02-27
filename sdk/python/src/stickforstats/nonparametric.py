@@ -4,7 +4,7 @@ Nonparametric tests module — wraps ``/api/v1/nonparametric/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import NonparametricResult
 
@@ -24,8 +24,8 @@ class NonparametricModule:
 
     def mann_whitney(
         self,
-        group1: List[float],
-        group2: List[float],
+        group1: list[float],
+        group2: list[float],
         *,
         alternative: str = "two-sided",
         alpha: float = 0.05,
@@ -47,7 +47,7 @@ class NonparametricModule:
         -------
         NonparametricResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "group1": group1,
             "group2": group2,
             "alternative": alternative,
@@ -59,8 +59,8 @@ class NonparametricModule:
 
     def wilcoxon(
         self,
-        x: List[float],
-        y: Optional[List[float]] = None,
+        x: list[float],
+        y: list[float] | None = None,
         *,
         alternative: str = "two-sided",
         alpha: float = 0.05,
@@ -84,7 +84,7 @@ class NonparametricModule:
         -------
         NonparametricResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "x": x,
             "alternative": alternative,
             "alpha": alpha,
@@ -98,7 +98,7 @@ class NonparametricModule:
 
     def kruskal_wallis(
         self,
-        data: Dict[str, List[float]],
+        data: dict[str, list[float]],
         *,
         alpha: float = 0.05,
         **kwargs: Any,
@@ -117,13 +117,13 @@ class NonparametricModule:
         -------
         NonparametricResult
         """
-        payload: Dict[str, Any] = {"data": data, "alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"data": data, "alpha": alpha, **kwargs}
         resp = self._client.post("nonparametric/kruskal-wallis/", json=payload)
         return NonparametricResult.model_validate(resp)
 
     def friedman(
         self,
-        data: Dict[str, List[float]],
+        data: dict[str, list[float]],
         *,
         alpha: float = 0.05,
         **kwargs: Any,
@@ -142,6 +142,6 @@ class NonparametricModule:
         -------
         NonparametricResult
         """
-        payload: Dict[str, Any] = {"data": data, "alpha": alpha, **kwargs}
+        payload: dict[str, Any] = {"data": data, "alpha": alpha, **kwargs}
         resp = self._client.post("nonparametric/friedman/", json=payload)
         return NonparametricResult.model_validate(resp)

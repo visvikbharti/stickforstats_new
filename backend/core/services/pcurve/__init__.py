@@ -29,40 +29,30 @@ from .core import (
     stouffer_test,
     binomial_test_33,
     binomial_test_half,
-    get_pcurve_interpretation
+    get_pcurve_interpretation,
 )
 
-from .input_parser import (
-    parse_test_statistic,
-    convert_to_pvalue,
-    PCurveInput,
-    parse_multiple_studies
-)
+from .input_parser import parse_test_statistic, convert_to_pvalue, PCurveInput, parse_multiple_studies
 
-from .visualization import (
-    generate_pcurve_plot_data,
-    generate_comparison_data
-)
+from .visualization import generate_pcurve_plot_data, generate_comparison_data
 
 __all__ = [
     # Core
-    'PCurveResult',
-    'compute_pcurve',
-    'compute_pp_values',
-    'stouffer_test',
-    'binomial_test_33',
-    'binomial_test_half',
-    'get_pcurve_interpretation',
-
+    "PCurveResult",
+    "compute_pcurve",
+    "compute_pp_values",
+    "stouffer_test",
+    "binomial_test_33",
+    "binomial_test_half",
+    "get_pcurve_interpretation",
     # Input
-    'parse_test_statistic',
-    'convert_to_pvalue',
-    'PCurveInput',
-    'parse_multiple_studies',
-
+    "parse_test_statistic",
+    "convert_to_pvalue",
+    "PCurveInput",
+    "parse_multiple_studies",
     # Visualization
-    'generate_pcurve_plot_data',
-    'generate_comparison_data'
+    "generate_pcurve_plot_data",
+    "generate_comparison_data",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

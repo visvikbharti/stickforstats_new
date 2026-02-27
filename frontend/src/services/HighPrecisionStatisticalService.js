@@ -157,41 +157,6 @@ class HighPrecisionStatisticalService {
   }
 
   /**
-   * Process high precision results from API
-   */
-  processHighPrecisionResult(data) {
-    return data;
-  }
-
-  /**
-   * Process ANOVA results
-   */
-  processAnovaResult(data) {
-    return data;
-  }
-
-  /**
-   * Process ANCOVA results
-   */
-  processAncovaResult(data) {
-    return data;
-  }
-
-  /**
-   * Process MANOVA results
-   */
-  processManovaResult(data) {
-    return data;
-  }
-
-  /**
-   * Process correlation results
-   */
-  processCorrelationResult(data) {
-    return data;
-  }
-
-  /**
    * Import data from file
    */
   async importData(file, onProgress) {

@@ -246,7 +246,7 @@ export const batchValidate = async (validations) => {
 };
 
 // Default export with all components
-export default {
+const validation = {
   validator,
   auditLogger,
   errorRecoveryManager,
@@ -263,3 +263,5 @@ export default {
   createValidatedCalculation,
   batchValidate
 };
+
+export default validation;

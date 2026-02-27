@@ -27,9 +27,9 @@ import { useNavigate } from 'react-router-dom';
 
 const GlobalSearch = () => {
   const anchorRef = useRef(null);
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const {
-    searchQuery,
+    searchQuery: _searchQuery,
     searchResults,
     isSearching,
     isSearchOpen,
@@ -54,6 +54,7 @@ const GlobalSearch = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localQuery, performSearch]);
 
   const handleClear = () => {

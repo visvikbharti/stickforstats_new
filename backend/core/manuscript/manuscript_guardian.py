@@ -37,7 +37,8 @@ from .consistency_validator import (
 )
 
 try:
-    from core.sqs_scoring import SQSScorer, SQSReport
+    from core.sqs_scoring import SQSScorer
+
     SQS_AVAILABLE = True
 except ImportError:
     SQS_AVAILABLE = False
@@ -49,15 +50,17 @@ logger = logging.getLogger(__name__)
 # Data classes for the review output
 # =====================================================================
 
+
 @dataclass
 class ReviewFinding:
     """A single finding in the manuscript review."""
-    severity: str           # 'blocking', 'major', 'moderate', 'minor', 'positive'
-    category: str           # 'consistency', 'reporting', 'methodology', 'sqs'
+
+    severity: str  # 'blocking', 'major', 'moderate', 'minor', 'positive'
+    category: str  # 'consistency', 'reporting', 'methodology', 'sqs'
     title: str
     description: str
-    evidence: str = ''
-    recommendation: str = ''
+    evidence: str = ""
+    recommendation: str = ""
     claim_id: Optional[str] = None  # Reference to StatisticalClaim if applicable
 
 
@@ -69,6 +72,7 @@ class ManuscriptReviewReport:
     Contains all analysis results plus structured findings for
     editor, reviewer, and author report tiers.
     """
+
     # Manuscript identification
     title: str
     authors: List[str]
@@ -96,7 +100,7 @@ class ManuscriptReviewReport:
     positive_findings: List[ReviewFinding] = field(default_factory=list)
 
     # Overall assessment
-    overall_assessment: str = 'pass'  # pass, minor_issues, major_issues, critical
+    overall_assessment: str = "pass"  # pass, minor_issues, major_issues, critical
 
     # Processing metadata
     processing_time_ms: int = 0
@@ -105,67 +109,67 @@ class ManuscriptReviewReport:
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a JSON-compatible dictionary."""
         return {
-            'title': self.title,
-            'authors': self.authors,
-            'word_count': self.word_count,
-            'sections_found': self.sections_found,
-            'sqs_score': self.sqs_score,
-            'sqs_grade': self.sqs_grade,
-            'consistency_rate': self.consistency_rate,
-            'claims_found': self.claims_found,
-            'claims_consistent': self.claims_consistent,
-            'claims_inconsistent': self.claims_inconsistent,
-            'decision_errors': self.decision_errors,
-            'gross_errors': self.gross_errors,
-            'overall_assessment': self.overall_assessment,
-            'findings': [
+            "title": self.title,
+            "authors": self.authors,
+            "word_count": self.word_count,
+            "sections_found": self.sections_found,
+            "sqs_score": self.sqs_score,
+            "sqs_grade": self.sqs_grade,
+            "consistency_rate": self.consistency_rate,
+            "claims_found": self.claims_found,
+            "claims_consistent": self.claims_consistent,
+            "claims_inconsistent": self.claims_inconsistent,
+            "decision_errors": self.decision_errors,
+            "gross_errors": self.gross_errors,
+            "overall_assessment": self.overall_assessment,
+            "findings": [
                 {
-                    'severity': f.severity,
-                    'category': f.category,
-                    'title': f.title,
-                    'description': f.description,
-                    'evidence': f.evidence,
-                    'recommendation': f.recommendation,
-                    'claim_id': f.claim_id,
+                    "severity": f.severity,
+                    "category": f.category,
+                    "title": f.title,
+                    "description": f.description,
+                    "evidence": f.evidence,
+                    "recommendation": f.recommendation,
+                    "claim_id": f.claim_id,
                 }
                 for f in self.findings
             ],
-            'positive_findings': [
+            "positive_findings": [
                 {
-                    'severity': f.severity,
-                    'category': f.category,
-                    'title': f.title,
-                    'description': f.description,
+                    "severity": f.severity,
+                    "category": f.category,
+                    "title": f.title,
+                    "description": f.description,
                 }
                 for f in self.positive_findings
             ],
-            'extraction_summary': {
-                'total_claims': self.extraction_summary.total_claims,
-                'claims_by_type': self.extraction_summary.claims_by_type,
-                'claims_with_p_values': self.extraction_summary.claims_with_p_values,
-                'claims_with_effect_sizes': self.extraction_summary.claims_with_effect_sizes,
-                'claims_with_ci': self.extraction_summary.claims_with_ci,
-                'claims_with_df': self.extraction_summary.claims_with_df,
-                'unique_test_types': self.extraction_summary.unique_test_types,
+            "extraction_summary": {
+                "total_claims": self.extraction_summary.total_claims,
+                "claims_by_type": self.extraction_summary.claims_by_type,
+                "claims_with_p_values": self.extraction_summary.claims_with_p_values,
+                "claims_with_effect_sizes": self.extraction_summary.claims_with_effect_sizes,
+                "claims_with_ci": self.extraction_summary.claims_with_ci,
+                "claims_with_df": self.extraction_summary.claims_with_df,
+                "unique_test_types": self.extraction_summary.unique_test_types,
             },
-            'consistency_results': [
+            "consistency_results": [
                 {
-                    'claim_id': r.claim_id,
-                    'claim_type': r.claim_type,
-                    'reported_statistic': r.reported_statistic,
-                    'reported_p': r.reported_p,
-                    'computed_p': r.computed_p,
-                    'is_consistent': r.is_consistent,
-                    'is_decision_consistent': r.is_decision_consistent,
-                    'discrepancy': r.discrepancy,
-                    'severity': r.severity,
-                    'note': r.note,
+                    "claim_id": r.claim_id,
+                    "claim_type": r.claim_type,
+                    "reported_statistic": r.reported_statistic,
+                    "reported_p": r.reported_p,
+                    "computed_p": r.computed_p,
+                    "is_consistent": r.is_consistent,
+                    "is_decision_consistent": r.is_decision_consistent,
+                    "discrepancy": r.discrepancy,
+                    "severity": r.severity,
+                    "note": r.note,
                 }
                 for r in self.consistency_summary.results
             ],
-            'processing_time_ms': self.processing_time_ms,
-            'warnings': self.warnings,
-            'parse_quality': self.parsed.parse_quality,
+            "processing_time_ms": self.processing_time_ms,
+            "warnings": self.warnings,
+            "parse_quality": self.parsed.parse_quality,
         }
 
     def generate_editor_summary(self) -> str:
@@ -177,14 +181,9 @@ class ManuscriptReviewReport:
         ]
 
         if self.sqs_score is not None:
-            lines.append(
-                f"Statistical Quality Score: {self.sqs_score:.1f}/100 "
-                f"(Grade: {self.sqs_grade})"
-            )
+            lines.append(f"Statistical Quality Score: {self.sqs_score:.1f}/100 " f"(Grade: {self.sqs_grade})")
 
-        lines.append(
-            f"Statistical Claims Found: {self.claims_found}"
-        )
+        lines.append(f"Statistical Claims Found: {self.claims_found}")
 
         if self.claims_found > 0:
             lines.append(
@@ -197,18 +196,15 @@ class ManuscriptReviewReport:
                     f"where significance conclusion may be incorrect **"
                 )
             if self.gross_errors > 0:
-                lines.append(
-                    f"** GROSS ERRORS: {self.gross_errors} claim(s) with "
-                    f"large p-value discrepancies **"
-                )
+                lines.append(f"** GROSS ERRORS: {self.gross_errors} claim(s) with " f"large p-value discrepancies **")
 
         lines.append("")
         lines.append(f"Overall Assessment: {self.overall_assessment.upper()}")
         lines.append("")
 
         # Major findings
-        blocking = [f for f in self.findings if f.severity == 'blocking']
-        major = [f for f in self.findings if f.severity == 'major']
+        blocking = [f for f in self.findings if f.severity == "blocking"]
+        major = [f for f in self.findings if f.severity == "major"]
 
         if blocking:
             lines.append("BLOCKING ISSUES:")
@@ -262,6 +258,7 @@ class ManuscriptReviewReport:
 # Main orchestrator
 # =====================================================================
 
+
 class ManuscriptGuardian:
     """
     Orchestrates the full manuscript statistical review pipeline.
@@ -276,7 +273,7 @@ class ManuscriptGuardian:
 
     def __init__(
         self,
-        field: str = 'general',
+        field: str = "general",
         alpha: float = 0.05,
         consistency_tolerance: float = 0.005,
     ) -> None:
@@ -296,7 +293,7 @@ class ManuscriptGuardian:
     def review(
         self,
         file: Any,
-        file_type: str = 'auto',
+        file_type: str = "auto",
     ) -> ManuscriptReviewReport:
         """
         Run the full review pipeline on a manuscript file.
@@ -316,8 +313,8 @@ class ManuscriptGuardian:
             parsed = self._parser.parse(file, file_type=file_type)
             warnings.extend(parsed.warnings)
         except Exception as exc:
-            logger.error('ManuscriptGuardian parse failed: %s', exc)
-            raise ValueError(f'Failed to parse manuscript: {exc}') from exc
+            logger.error("ManuscriptGuardian parse failed: %s", exc)
+            raise ValueError(f"Failed to parse manuscript: {exc}") from exc
 
         # ---- Stage 2: Extract claims ----
         claims: List[StatisticalClaim] = []
@@ -325,31 +322,26 @@ class ManuscriptGuardian:
             claims = self._extractor.extract_from_sections(parsed.sections)
             if not claims and parsed.results_text:
                 # Fallback: try extracting from raw results text
-                claims = self._extractor.extract(
-                    parsed.results_text, section='results'
-                )
+                claims = self._extractor.extract(parsed.results_text, section="results")
             if not claims and parsed.full_text:
                 # Last resort: extract from full text
-                claims = self._extractor.extract(
-                    parsed.full_text, section='full_text'
-                )
+                claims = self._extractor.extract(parsed.full_text, section="full_text")
         except Exception as exc:
-            logger.warning('Claim extraction failed: %s', exc)
-            warnings.append(f'Claim extraction issue: {exc}')
+            logger.warning("Claim extraction failed: %s", exc)
+            warnings.append(f"Claim extraction issue: {exc}")
 
         extraction_summary = self._extractor.summarize(claims)
 
         # ---- Stage 3: Consistency validation ----
         checkable_claims = [
-            c for c in claims
-            if c.claim_type and c.statistic_value is not None and c.p_value is not None
+            c for c in claims if c.claim_type and c.statistic_value is not None and c.p_value is not None
         ]
 
         try:
             consistency_summary = self._validator.validate(checkable_claims)
         except Exception as exc:
-            logger.warning('Consistency validation failed: %s', exc)
-            warnings.append(f'Consistency validation issue: {exc}')
+            logger.warning("Consistency validation failed: %s", exc)
+            warnings.append(f"Consistency validation issue: {exc}")
             consistency_summary = ValidationSummary(
                 total_checked=0,
                 consistent=0,
@@ -360,7 +352,10 @@ class ManuscriptGuardian:
                 results=[],
                 overall_consistency_rate=0.0,
                 severity_counts={
-                    'none': 0, 'minor': 0, 'major': 0, 'gross_error': 0,
+                    "none": 0,
+                    "minor": 0,
+                    "major": 0,
+                    "gross_error": 0,
                 },
                 warnings=[str(exc)],
             )
@@ -378,8 +373,8 @@ class ManuscriptGuardian:
                 sqs_score = sqs_report.percentage
                 sqs_grade = sqs_report.grade
             except Exception as exc:
-                logger.warning('SQS scoring failed: %s', exc)
-                warnings.append(f'SQS scoring issue: {exc}')
+                logger.warning("SQS scoring failed: %s", exc)
+                warnings.append(f"SQS scoring issue: {exc}")
 
         # ---- Stage 5: Generate findings ----
         findings, positive_findings = self._generate_findings(
@@ -400,7 +395,7 @@ class ManuscriptGuardian:
         processing_time_ms = int((time.time() - start_time) * 1000)
 
         return ManuscriptReviewReport(
-            title=parsed.metadata.title or '',
+            title=parsed.metadata.title or "",
             authors=parsed.metadata.authors,
             word_count=parsed.metadata.word_count,
             sections_found=parsed.metadata.sections_found,
@@ -434,10 +429,11 @@ class ManuscriptGuardian:
         Useful when text has already been extracted elsewhere.
         """
         import io
+
         # Wrap text in a file-like object for the parser
         f = io.StringIO(text)
-        f.name = 'manuscript.txt'
-        return self.review(f, file_type='latex')
+        f.name = "manuscript.txt"
+        return self.review(f, file_type="latex")
 
     # -----------------------------------------------------------------
     # Finding generation
@@ -457,207 +453,212 @@ class ManuscriptGuardian:
 
         # --- Consistency findings ---
         for result in consistency_summary.results:
-            if result.severity == 'gross_error':
-                computed_str = (
-                    f'{result.computed_p:.6f}'
-                    if result.computed_p is not None else 'N/A'
+            if result.severity == "gross_error":
+                computed_str = f"{result.computed_p:.6f}" if result.computed_p is not None else "N/A"
+                findings.append(
+                    ReviewFinding(
+                        severity="blocking",
+                        category="consistency",
+                        title=f"Gross statistical error in claim {result.claim_id}",
+                        description=(
+                            f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
+                            f"but recomputed p = {computed_str}. "
+                            f"This leads to a different significance conclusion."
+                        ),
+                        evidence=result.raw_text,
+                        recommendation=(
+                            "Verify the reported test statistic, degrees of freedom, "
+                            "and p-value. Rerun the analysis and correct the reported values."
+                        ),
+                        claim_id=result.claim_id,
+                    )
                 )
-                findings.append(ReviewFinding(
-                    severity='blocking',
-                    category='consistency',
-                    title=f'Gross statistical error in claim {result.claim_id}',
-                    description=(
-                        f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
-                        f'but recomputed p = {computed_str}. '
-                        f'This leads to a different significance conclusion.'
-                    ),
-                    evidence=result.raw_text,
-                    recommendation=(
-                        'Verify the reported test statistic, degrees of freedom, '
-                        'and p-value. Rerun the analysis and correct the reported values.'
-                    ),
-                    claim_id=result.claim_id,
-                ))
-            elif result.severity == 'major':
-                computed_str = (
-                    f'{result.computed_p:.6f}'
-                    if result.computed_p is not None else 'N/A'
+            elif result.severity == "major":
+                computed_str = f"{result.computed_p:.6f}" if result.computed_p is not None else "N/A"
+                discrepancy_str = f"{result.discrepancy:.4f}" if result.discrepancy is not None else "N/A"
+                findings.append(
+                    ReviewFinding(
+                        severity="major",
+                        category="consistency",
+                        title=f"Significant discrepancy in claim {result.claim_id}",
+                        description=(
+                            f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
+                            f"recomputed p = {computed_str} "
+                            f"(discrepancy: {discrepancy_str})."
+                        ),
+                        evidence=result.raw_text,
+                        recommendation="Check and correct the reported values.",
+                        claim_id=result.claim_id,
+                    )
                 )
-                discrepancy_str = (
-                    f'{result.discrepancy:.4f}'
-                    if result.discrepancy is not None else 'N/A'
+            elif result.severity == "minor":
+                findings.append(
+                    ReviewFinding(
+                        severity="minor",
+                        category="consistency",
+                        title=f"Minor rounding discrepancy in claim {result.claim_id}",
+                        description=result.note,
+                        evidence=result.raw_text,
+                        claim_id=result.claim_id,
+                    )
                 )
-                findings.append(ReviewFinding(
-                    severity='major',
-                    category='consistency',
-                    title=f'Significant discrepancy in claim {result.claim_id}',
-                    description=(
-                        f'Reported p {result.reported_p_comparison or "="} {result.reported_p}, '
-                        f'recomputed p = {computed_str} '
-                        f'(discrepancy: {discrepancy_str}).'
-                    ),
-                    evidence=result.raw_text,
-                    recommendation='Check and correct the reported values.',
-                    claim_id=result.claim_id,
-                ))
-            elif result.severity == 'minor':
-                findings.append(ReviewFinding(
-                    severity='minor',
-                    category='consistency',
-                    title=f'Minor rounding discrepancy in claim {result.claim_id}',
-                    description=result.note,
-                    evidence=result.raw_text,
-                    claim_id=result.claim_id,
-                ))
 
         # --- Reporting quality findings ---
         if extraction_summary.total_claims > 0:
             # Check effect size reporting
-            es_rate = (
-                extraction_summary.claims_with_effect_sizes
-                / extraction_summary.total_claims
-            )
+            es_rate = extraction_summary.claims_with_effect_sizes / extraction_summary.total_claims
             if es_rate == 0:
-                findings.append(ReviewFinding(
-                    severity='major',
-                    category='reporting',
-                    title='No effect sizes reported',
-                    description=(
-                        f'{extraction_summary.total_claims} statistical tests '
-                        f'found but none include effect size measures.'
-                    ),
-                    recommendation=(
-                        "Report effect sizes (e.g., Cohen's d, η², R²) for "
-                        'all statistical tests per APA 7th edition guidelines.'
-                    ),
-                ))
+                findings.append(
+                    ReviewFinding(
+                        severity="major",
+                        category="reporting",
+                        title="No effect sizes reported",
+                        description=(
+                            f"{extraction_summary.total_claims} statistical tests "
+                            f"found but none include effect size measures."
+                        ),
+                        recommendation=(
+                            "Report effect sizes (e.g., Cohen's d, η², R²) for "
+                            "all statistical tests per APA 7th edition guidelines."
+                        ),
+                    )
+                )
             elif es_rate < 0.5:
-                findings.append(ReviewFinding(
-                    severity='moderate',
-                    category='reporting',
-                    title='Incomplete effect size reporting',
-                    description=(
-                        f'Only {extraction_summary.claims_with_effect_sizes} of '
-                        f'{extraction_summary.total_claims} tests include effect sizes.'
-                    ),
-                    recommendation='Report effect sizes for all statistical tests.',
-                ))
+                findings.append(
+                    ReviewFinding(
+                        severity="moderate",
+                        category="reporting",
+                        title="Incomplete effect size reporting",
+                        description=(
+                            f"Only {extraction_summary.claims_with_effect_sizes} of "
+                            f"{extraction_summary.total_claims} tests include effect sizes."
+                        ),
+                        recommendation="Report effect sizes for all statistical tests.",
+                    )
+                )
             else:
-                positives.append(ReviewFinding(
-                    severity='positive',
-                    category='reporting',
-                    title='Effect sizes reported',
-                    description=(
-                        f'{extraction_summary.claims_with_effect_sizes} of '
-                        f'{extraction_summary.total_claims} tests include '
-                        f'effect size measures.'
-                    ),
-                ))
+                positives.append(
+                    ReviewFinding(
+                        severity="positive",
+                        category="reporting",
+                        title="Effect sizes reported",
+                        description=(
+                            f"{extraction_summary.claims_with_effect_sizes} of "
+                            f"{extraction_summary.total_claims} tests include "
+                            f"effect size measures."
+                        ),
+                    )
+                )
 
             # Check confidence interval reporting
-            ci_rate = (
-                extraction_summary.claims_with_ci
-                / extraction_summary.total_claims
-            )
+            ci_rate = extraction_summary.claims_with_ci / extraction_summary.total_claims
             if ci_rate == 0:
-                findings.append(ReviewFinding(
-                    severity='moderate',
-                    category='reporting',
-                    title='No confidence intervals reported',
-                    description='Consider reporting confidence intervals for key estimates.',
-                    recommendation=(
-                        'Include 95% confidence intervals alongside point estimates.'
-                    ),
-                ))
+                findings.append(
+                    ReviewFinding(
+                        severity="moderate",
+                        category="reporting",
+                        title="No confidence intervals reported",
+                        description="Consider reporting confidence intervals for key estimates.",
+                        recommendation=("Include 95% confidence intervals alongside point estimates."),
+                    )
+                )
             elif ci_rate >= 0.5:
-                positives.append(ReviewFinding(
-                    severity='positive',
-                    category='reporting',
-                    title='Confidence intervals reported',
-                    description=(
-                        f'{extraction_summary.claims_with_ci} of '
-                        f'{extraction_summary.total_claims} tests include CIs.'
-                    ),
-                ))
+                positives.append(
+                    ReviewFinding(
+                        severity="positive",
+                        category="reporting",
+                        title="Confidence intervals reported",
+                        description=(
+                            f"{extraction_summary.claims_with_ci} of "
+                            f"{extraction_summary.total_claims} tests include CIs."
+                        ),
+                    )
+                )
 
         else:
-            findings.append(ReviewFinding(
-                severity='moderate',
-                category='reporting',
-                title='No statistical claims detected',
-                description=(
-                    'Could not identify standard statistical reporting patterns '
-                    '(e.g., t(df) = value, p = value). This may indicate '
-                    'non-standard formatting or a non-quantitative paper.'
-                ),
-                recommendation=(
-                    'Use standard APA-format reporting: '
-                    'test_statistic(df) = value, p = value, effect_size.'
-                ),
-            ))
+            findings.append(
+                ReviewFinding(
+                    severity="moderate",
+                    category="reporting",
+                    title="No statistical claims detected",
+                    description=(
+                        "Could not identify standard statistical reporting patterns "
+                        "(e.g., t(df) = value, p = value). This may indicate "
+                        "non-standard formatting or a non-quantitative paper."
+                    ),
+                    recommendation=(
+                        "Use standard APA-format reporting: " "test_statistic(df) = value, p = value, effect_size."
+                    ),
+                )
+            )
 
         # --- Section structure findings ---
         sections_found = set(parsed.metadata.sections_found)
-        if 'methods' not in sections_found:
-            findings.append(ReviewFinding(
-                severity='moderate',
-                category='methodology',
-                title='Methods section not detected',
-                description=(
-                    'Could not identify a clearly labeled Methods section. '
-                    'This may affect the quality of the review.'
-                ),
-                recommendation='Ensure the Methods section is clearly labeled.',
-            ))
-        if 'results' not in sections_found:
-            findings.append(ReviewFinding(
-                severity='moderate',
-                category='methodology',
-                title='Results section not detected',
-                description=(
-                    'Could not identify a clearly labeled Results section.'
-                ),
-                recommendation='Ensure the Results section is clearly labeled.',
-            ))
+        if "methods" not in sections_found:
+            findings.append(
+                ReviewFinding(
+                    severity="moderate",
+                    category="methodology",
+                    title="Methods section not detected",
+                    description=(
+                        "Could not identify a clearly labeled Methods section. "
+                        "This may affect the quality of the review."
+                    ),
+                    recommendation="Ensure the Methods section is clearly labeled.",
+                )
+            )
+        if "results" not in sections_found:
+            findings.append(
+                ReviewFinding(
+                    severity="moderate",
+                    category="methodology",
+                    title="Results section not detected",
+                    description=("Could not identify a clearly labeled Results section."),
+                    recommendation="Ensure the Results section is clearly labeled.",
+                )
+            )
 
         # --- SQS findings ---
         if sqs_report and SQS_AVAILABLE:
             sqs_dict = sqs_report.to_dict()
-            for cat_key, cat_data in sqs_dict.get('category_scores', {}).items():
-                pct = cat_data.get('percentage', 0)
-                name = cat_data.get('name', cat_key)
+            for cat_key, cat_data in sqs_dict.get("category_scores", {}).items():
+                pct = cat_data.get("percentage", 0)
+                name = cat_data.get("name", cat_key)
                 if pct < 40:
-                    findings.append(ReviewFinding(
-                        severity='major',
-                        category='sqs',
-                        title=f'Poor {name} score ({pct:.0f}%)',
-                        description=(
-                            f'The manuscript scores {pct:.0f}% in the '
-                            f'"{name}" category of statistical quality.'
-                        ),
-                        recommendation=f'Improve {name.lower()} reporting.',
-                    ))
+                    findings.append(
+                        ReviewFinding(
+                            severity="major",
+                            category="sqs",
+                            title=f"Poor {name} score ({pct:.0f}%)",
+                            description=(
+                                f"The manuscript scores {pct:.0f}% in the " f'"{name}" category of statistical quality.'
+                            ),
+                            recommendation=f"Improve {name.lower()} reporting.",
+                        )
+                    )
                 elif pct >= 80:
-                    positives.append(ReviewFinding(
-                        severity='positive',
-                        category='sqs',
-                        title=f'Strong {name} ({pct:.0f}%)',
-                        description=(
-                            f'Excellent score in the "{name}" category.'
-                        ),
-                    ))
+                    positives.append(
+                        ReviewFinding(
+                            severity="positive",
+                            category="sqs",
+                            title=f"Strong {name} ({pct:.0f}%)",
+                            description=(f'Excellent score in the "{name}" category.'),
+                        )
+                    )
 
         # --- Consistency positives ---
         if consistency_summary.consistent > 0 and consistency_summary.inconsistent == 0:
-            positives.append(ReviewFinding(
-                severity='positive',
-                category='consistency',
-                title='All statistical values are internally consistent',
-                description=(
-                    f'All {consistency_summary.consistent} checkable claims '
-                    f'have consistent test statistics and p-values.'
-                ),
-            ))
+            positives.append(
+                ReviewFinding(
+                    severity="positive",
+                    category="consistency",
+                    title="All statistical values are internally consistent",
+                    description=(
+                        f"All {consistency_summary.consistent} checkable claims "
+                        f"have consistent test statistics and p-values."
+                    ),
+                )
+            )
 
         return findings, positives
 
@@ -677,30 +678,24 @@ class ManuscriptGuardian:
         Returns one of:
             'pass', 'minor_issues', 'major_issues', 'critical'
         """
-        blocking_count = sum(
-            1 for f in findings if f.severity == 'blocking'
-        )
-        major_count = sum(
-            1 for f in findings if f.severity == 'major'
-        )
-        moderate_count = sum(
-            1 for f in findings if f.severity == 'moderate'
-        )
+        blocking_count = sum(1 for f in findings if f.severity == "blocking")
+        major_count = sum(1 for f in findings if f.severity == "major")
+        moderate_count = sum(1 for f in findings if f.severity == "moderate")
 
         # Critical: any blocking issues or gross errors
         if blocking_count > 0 or consistency_summary.gross_errors > 0:
-            return 'critical'
+            return "critical"
 
         # Major: multiple decision errors or many major findings
         if consistency_summary.decision_errors >= 2 or major_count >= 3:
-            return 'major_issues'
+            return "major_issues"
 
         # Major: single decision error or some major findings
         if consistency_summary.decision_errors >= 1 or major_count >= 1:
-            return 'major_issues'
+            return "major_issues"
 
         # Minor: some moderate findings or low SQS
         if moderate_count >= 2 or (sqs_score is not None and sqs_score < 50):
-            return 'minor_issues'
+            return "minor_issues"
 
-        return 'pass'
+        return "pass"

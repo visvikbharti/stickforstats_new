@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, [token]);
 
-  const fetchUser = async () => {
+  const _fetchUser = async () => {
     try {
       const response = await apiClient.get('/auth/me/');
       setUser(response.data);

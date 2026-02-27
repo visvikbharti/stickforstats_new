@@ -35,13 +35,13 @@ from .posterior import (
     compute_hdi,
     rope_analysis,
     posterior_summary,
-    generate_posterior_samples
 )
 
 
 @dataclass
 class BayesianTTestResult:
     """Complete result from a Bayesian t-test."""
+
     # Test identification
     test_type: str  # 'one_sample', 'two_sample', 'paired'
 
@@ -105,11 +105,7 @@ class BayesianTTestResult:
         return result
 
 
-def _compute_jzs_bf_one_sample(
-    t: float,
-    n: int,
-    r: float = 0.707
-) -> float:
+def _compute_jzs_bf_one_sample(t: float, n: int, r: float = 0.707) -> float:
     """
     Compute JZS Bayes Factor for one-sample t-test.
 
@@ -151,12 +147,7 @@ def _compute_jzs_bf_one_sample(
     return bf10
 
 
-def _compute_jzs_bf_two_sample(
-    t: float,
-    n1: int,
-    n2: int,
-    r: float = 0.707
-) -> float:
+def _compute_jzs_bf_two_sample(t: float, n1: int, n2: int, r: float = 0.707) -> float:
     """
     Compute JZS Bayes Factor for two-sample t-test.
 
@@ -199,7 +190,7 @@ def bayesian_one_sample_ttest(
     rope_low: float = -0.1,
     rope_high: float = 0.1,
     credible_mass: float = 0.95,
-    robustness_check: bool = True
+    robustness_check: bool = True,
 ) -> BayesianTTestResult:
     """
     Perform Bayesian one-sample t-test.
@@ -244,8 +235,8 @@ def bayesian_one_sample_ttest(
 
     # Compute Bayes Factor
     bf10 = _compute_jzs_bf_one_sample(t_stat, n, r)
-    bf01 = 1 / bf10 if bf10 > 0 else float('inf')
-    log_bf10 = np.log(bf10) if bf10 > 0 else float('-inf')
+    bf01 = 1 / bf10 if bf10 > 0 else float("inf")
+    log_bf10 = np.log(bf10) if bf10 > 0 else float("-inf")
 
     # Interpretation
     interpretation = interpret_bayes_factor(bf10)
@@ -255,23 +246,13 @@ def bayesian_one_sample_ttest(
     delta_range, posterior = compute_posterior_ttest(data, mu, r)
 
     # Posterior summary
-    post_summary = posterior_summary(
-        posterior_density=(delta_range, posterior),
-        credible_mass=credible_mass
-    )
+    post_summary = posterior_summary(posterior_density=(delta_range, posterior), credible_mass=credible_mass)
 
     # Effect size HDI
-    hdi_low, hdi_high = compute_hdi(
-        posterior_density=(delta_range, posterior),
-        credible_mass=credible_mass
-    )
+    hdi_low, hdi_high = compute_hdi(posterior_density=(delta_range, posterior), credible_mass=credible_mass)
 
     # ROPE analysis
-    rope_result = rope_analysis(
-        posterior_density=(delta_range, posterior),
-        rope_low=rope_low,
-        rope_high=rope_high
-    )
+    rope_result = rope_analysis(posterior_density=(delta_range, posterior), rope_low=rope_low, rope_high=rope_high)
 
     # Prior visualization
     prior = CauchyPrior(location=0, scale=r)
@@ -283,29 +264,31 @@ def bayesian_one_sample_ttest(
     if robustness_check:
         robustness = {}
         for scale_name, scale_info in PRIOR_SCALES.items():
-            bf_r = _compute_jzs_bf_one_sample(t_stat, n, scale_info['r'])
+            bf_r = _compute_jzs_bf_one_sample(t_stat, n, scale_info["r"])
             robustness[scale_name] = bf_r
 
     # Get prior description
     if isinstance(prior_scale, str) and prior_scale.lower() in PRIOR_SCALES:
-        prior_desc = PRIOR_SCALES[prior_scale.lower()]['description']
+        prior_desc = PRIOR_SCALES[prior_scale.lower()]["description"]
     else:
         prior_desc = f"Custom Cauchy(0, {r})"
 
     return BayesianTTestResult(
-        test_type='one_sample',
+        test_type="one_sample",
         bf10=float(bf10),
         bf01=float(bf01),
         log_bf10=float(log_bf10),
-        interpretation=asdict(interpretation) if hasattr(interpretation, '__dict__') else {
-            'level': interpretation.level,
-            'label': interpretation.label,
-            'favors': interpretation.favors,
-            'strength': interpretation.strength,
-            'color': interpretation.color
+        interpretation=asdict(interpretation)
+        if hasattr(interpretation, "__dict__")
+        else {
+            "level": interpretation.level,
+            "label": interpretation.label,
+            "favors": interpretation.favors,
+            "strength": interpretation.strength,
+            "color": interpretation.color,
         },
-        posterior_probability_h1=probs['p_h1'],
-        posterior_probability_h0=probs['p_h0'],
+        posterior_probability_h1=probs["p_h1"],
+        posterior_probability_h0=probs["p_h0"],
         effect_size=float(effect_size),
         effect_size_hdi=(float(hdi_low), float(hdi_high)),
         prior_scale=float(r),
@@ -315,13 +298,13 @@ def bayesian_one_sample_ttest(
         posterior_mode=post_summary.mode,
         posterior_sd=post_summary.sd,
         rope_analysis={
-            'rope_low': rope_result.rope_low,
-            'rope_high': rope_result.rope_high,
-            'percentage_in_rope': rope_result.percentage_in_rope,
-            'percentage_below_rope': rope_result.percentage_below_rope,
-            'percentage_above_rope': rope_result.percentage_above_rope,
-            'decision': rope_result.decision,
-            'decision_confidence': rope_result.decision_confidence
+            "rope_low": rope_result.rope_low,
+            "rope_high": rope_result.rope_high,
+            "percentage_in_rope": rope_result.percentage_in_rope,
+            "percentage_below_rope": rope_result.percentage_below_rope,
+            "percentage_above_rope": rope_result.percentage_above_rope,
+            "decision": rope_result.decision,
+            "decision_confidence": rope_result.decision_confidence,
         },
         frequentist_t=float(t_stat),
         frequentist_df=float(df),
@@ -333,7 +316,7 @@ def bayesian_one_sample_ttest(
         posterior_y=posterior.tolist(),
         prior_x=prior_x.tolist(),
         prior_y=prior_y.tolist(),
-        robustness_check=robustness
+        robustness_check=robustness,
     )
 
 
@@ -344,7 +327,7 @@ def bayesian_two_sample_ttest(
     rope_low: float = -0.1,
     rope_high: float = 0.1,
     credible_mass: float = 0.95,
-    robustness_check: bool = True
+    robustness_check: bool = True,
 ) -> BayesianTTestResult:
     """
     Perform Bayesian independent samples t-test.
@@ -382,7 +365,7 @@ def bayesian_two_sample_ttest(
     sp = np.sqrt(((n1 - 1) * var1 + (n2 - 1) * var2) / (n_total - 2))
 
     # Standard error
-    se = sp * np.sqrt(1/n1 + 1/n2)
+    se = sp * np.sqrt(1 / n1 + 1 / n2)
 
     # Frequentist t-test
     t_stat = (mean1 - mean2) / se
@@ -397,8 +380,8 @@ def bayesian_two_sample_ttest(
 
     # Compute Bayes Factor
     bf10 = _compute_jzs_bf_two_sample(t_stat, n1, n2, r)
-    bf01 = 1 / bf10 if bf10 > 0 else float('inf')
-    log_bf10 = np.log(bf10) if bf10 > 0 else float('-inf')
+    bf01 = 1 / bf10 if bf10 > 0 else float("inf")
+    log_bf10 = np.log(bf10) if bf10 > 0 else float("-inf")
 
     # Interpretation
     interpretation = interpret_bayes_factor(bf10)
@@ -408,23 +391,13 @@ def bayesian_two_sample_ttest(
     delta_range, posterior = compute_posterior_two_sample(group1, group2, r)
 
     # Posterior summary
-    post_summary = posterior_summary(
-        posterior_density=(delta_range, posterior),
-        credible_mass=credible_mass
-    )
+    post_summary = posterior_summary(posterior_density=(delta_range, posterior), credible_mass=credible_mass)
 
     # HDI
-    hdi_low, hdi_high = compute_hdi(
-        posterior_density=(delta_range, posterior),
-        credible_mass=credible_mass
-    )
+    hdi_low, hdi_high = compute_hdi(posterior_density=(delta_range, posterior), credible_mass=credible_mass)
 
     # ROPE
-    rope_result = rope_analysis(
-        posterior_density=(delta_range, posterior),
-        rope_low=rope_low,
-        rope_high=rope_high
-    )
+    rope_result = rope_analysis(posterior_density=(delta_range, posterior), rope_low=rope_low, rope_high=rope_high)
 
     # Prior visualization
     prior = CauchyPrior(location=0, scale=r)
@@ -436,29 +409,29 @@ def bayesian_two_sample_ttest(
     if robustness_check:
         robustness = {}
         for scale_name, scale_info in PRIOR_SCALES.items():
-            bf_r = _compute_jzs_bf_two_sample(t_stat, n1, n2, scale_info['r'])
+            bf_r = _compute_jzs_bf_two_sample(t_stat, n1, n2, scale_info["r"])
             robustness[scale_name] = bf_r
 
     # Prior description
     if isinstance(prior_scale, str) and prior_scale.lower() in PRIOR_SCALES:
-        prior_desc = PRIOR_SCALES[prior_scale.lower()]['description']
+        prior_desc = PRIOR_SCALES[prior_scale.lower()]["description"]
     else:
         prior_desc = f"Custom Cauchy(0, {r})"
 
     return BayesianTTestResult(
-        test_type='two_sample',
+        test_type="two_sample",
         bf10=float(bf10),
         bf01=float(bf01),
         log_bf10=float(log_bf10),
         interpretation={
-            'level': interpretation.level,
-            'label': interpretation.label,
-            'favors': interpretation.favors,
-            'strength': interpretation.strength,
-            'color': interpretation.color
+            "level": interpretation.level,
+            "label": interpretation.label,
+            "favors": interpretation.favors,
+            "strength": interpretation.strength,
+            "color": interpretation.color,
         },
-        posterior_probability_h1=probs['p_h1'],
-        posterior_probability_h0=probs['p_h0'],
+        posterior_probability_h1=probs["p_h1"],
+        posterior_probability_h0=probs["p_h0"],
         effect_size=float(effect_size),
         effect_size_hdi=(float(hdi_low), float(hdi_high)),
         prior_scale=float(r),
@@ -468,13 +441,13 @@ def bayesian_two_sample_ttest(
         posterior_mode=post_summary.mode,
         posterior_sd=post_summary.sd,
         rope_analysis={
-            'rope_low': rope_result.rope_low,
-            'rope_high': rope_result.rope_high,
-            'percentage_in_rope': rope_result.percentage_in_rope,
-            'percentage_below_rope': rope_result.percentage_below_rope,
-            'percentage_above_rope': rope_result.percentage_above_rope,
-            'decision': rope_result.decision,
-            'decision_confidence': rope_result.decision_confidence
+            "rope_low": rope_result.rope_low,
+            "rope_high": rope_result.rope_high,
+            "percentage_in_rope": rope_result.percentage_in_rope,
+            "percentage_below_rope": rope_result.percentage_below_rope,
+            "percentage_above_rope": rope_result.percentage_above_rope,
+            "decision": rope_result.decision,
+            "decision_confidence": rope_result.decision_confidence,
         },
         frequentist_t=float(t_stat),
         frequentist_df=float(df),
@@ -486,7 +459,7 @@ def bayesian_two_sample_ttest(
         posterior_y=posterior.tolist(),
         prior_x=prior_x.tolist(),
         prior_y=prior_y.tolist(),
-        robustness_check=robustness
+        robustness_check=robustness,
     )
 
 
@@ -497,7 +470,7 @@ def bayesian_paired_ttest(
     rope_low: float = -0.1,
     rope_high: float = 0.1,
     credible_mass: float = 0.95,
-    robustness_check: bool = True
+    robustness_check: bool = True,
 ) -> BayesianTTestResult:
     """
     Perform Bayesian paired samples t-test.
@@ -540,12 +513,12 @@ def bayesian_paired_ttest(
         rope_low=rope_low,
         rope_high=rope_high,
         credible_mass=credible_mass,
-        robustness_check=robustness_check
+        robustness_check=robustness_check,
     )
 
     # Update test type
     return BayesianTTestResult(
-        test_type='paired',
+        test_type="paired",
         bf10=result.bf10,
         bf01=result.bf01,
         log_bf10=result.log_bf10,
@@ -571,7 +544,7 @@ def bayesian_paired_ttest(
         posterior_y=result.posterior_y,
         prior_x=result.prior_x,
         prior_y=result.prior_y,
-        robustness_check=result.robustness_check
+        robustness_check=result.robustness_check,
     )
 
 
@@ -585,11 +558,7 @@ def generate_interpretation_text(result: BayesianTTestResult) -> str:
     Returns:
         Formatted interpretation text
     """
-    test_names = {
-        'one_sample': 'one-sample',
-        'two_sample': 'independent samples',
-        'paired': 'paired samples'
-    }
+    test_names = {"one_sample": "one-sample", "two_sample": "independent samples", "paired": "paired samples"}
     test_name = test_names.get(result.test_type, result.test_type)
 
     # Main finding

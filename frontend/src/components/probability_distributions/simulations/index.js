@@ -39,7 +39,7 @@ export const getSimulationComponent = (name) => {
 };
 
 // Default export
-export default {
+const simulations = {
   EmailArrivalsD3,
   QualityControlD3,
   ClinicalTrialD3,
@@ -47,3 +47,5 @@ export default {
   ManufacturingDefectsD3,
   getSimulationComponent
 };
+
+export default simulations;

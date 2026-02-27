@@ -338,8 +338,8 @@ export const applyResponsiveOptimizations = (options) => {
   const {
     svg,
     dimensions,
-    xScale,
-    yScale,
+    xScale: _xScale,
+    yScale: _yScale,
     xAxis,
     yAxis,
     data,
@@ -434,7 +434,7 @@ export const addResponsiveResizeHandler = (renderFn, ref) => {
 };
 
 // Export all utilities
-export default {
+const d3Optimizer = {
   debounce,
   throttle,
   calculateOptimalTickCount,
@@ -449,3 +449,5 @@ export default {
   applyResponsiveOptimizations,
   addResponsiveResizeHandler
 };
+
+export default d3Optimizer;

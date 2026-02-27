@@ -16,7 +16,7 @@ References:
 Created: December 26, 2025
 """
 
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, asdict
 import numpy as np
 from scipy import stats, integrate
@@ -28,6 +28,7 @@ from .priors import get_prior_scale_value, PRIOR_SCALES
 @dataclass
 class BayesianAnovaResult:
     """Complete result from Bayesian one-way ANOVA."""
+
     # Bayes Factor
     bf10: float
     bf01: float
@@ -80,10 +81,7 @@ class BayesianAnovaResult:
         return result
 
 
-def _compute_anova_bf(
-    groups: List[np.ndarray],
-    r: float = 0.707
-) -> float:
+def _compute_anova_bf(groups: List[np.ndarray], r: float = 0.707) -> float:
     """
     Compute Bayes Factor for one-way ANOVA using JZS approach.
 
@@ -105,13 +103,13 @@ def _compute_anova_bf(
     grand_mean = np.mean(all_data)
 
     # SS Between
-    ss_between = sum(n * (np.mean(g) - grand_mean)**2 for n, g in zip(ns, groups))
+    ss_between = sum(n * (np.mean(g) - grand_mean) ** 2 for n, g in zip(ns, groups))
 
     # SS Within
-    ss_within = sum(np.sum((g - np.mean(g))**2) for g in groups)
+    ss_within = sum(np.sum((g - np.mean(g)) ** 2) for g in groups)
 
     # SS Total
-    ss_total = np.sum((all_data - grand_mean)**2)
+    ss_total = np.sum((all_data - grand_mean) ** 2)
 
     # Degrees of freedom
     df_between = k - 1
@@ -125,7 +123,7 @@ def _compute_anova_bf(
     f_stat = ms_between / ms_within if ms_within > 0 else 0
 
     # Effect size measures
-    eta_sq = ss_between / ss_total if ss_total > 0 else 0
+    ss_between / ss_total if ss_total > 0 else 0
 
     # BF approximation using BIC method (Masson, 2011)
     # log(BF10) ≈ (df_between/2) * log(1 + f * df_between/df_within) - (df_between/2) * log(n_total)
@@ -153,9 +151,7 @@ def _compute_anova_bf(
 
     # Integrate over effect sizes
     try:
-        marginal_h1, _ = integrate.quad(
-            integrand, 0, np.inf, limit=100
-        )
+        marginal_h1, _ = integrate.quad(integrand, 0, np.inf, limit=100)
         marginal_h1 *= 2  # Account for both positive and negative effects
     except:
         marginal_h1 = 0
@@ -178,11 +174,7 @@ def _compute_anova_bf(
     return bf10
 
 
-def _compute_pairwise_bf(
-    groups: List[np.ndarray],
-    group_names: List[str],
-    r: float = 0.707
-) -> Dict[str, float]:
+def _compute_pairwise_bf(groups: List[np.ndarray], group_names: List[str], r: float = 0.707) -> Dict[str, float]:
     """
     Compute pairwise Bayes Factors between groups.
 
@@ -205,8 +197,8 @@ def _compute_pairwise_bf(
             n1, n2 = len(g1), len(g2)
 
             # Compute two-sample t-statistic
-            sp = np.sqrt(((n1-1)*np.var(g1, ddof=1) + (n2-1)*np.var(g2, ddof=1)) / (n1+n2-2))
-            se = sp * np.sqrt(1/n1 + 1/n2)
+            sp = np.sqrt(((n1 - 1) * np.var(g1, ddof=1) + (n2 - 1) * np.var(g2, ddof=1)) / (n1 + n2 - 2))
+            se = sp * np.sqrt(1 / n1 + 1 / n2)
             t_stat = (np.mean(g1) - np.mean(g2)) / se if se > 0 else 0
 
             bf = _compute_jzs_bf_two_sample(t_stat, n1, n2, r)
@@ -221,7 +213,7 @@ def bayesian_one_way_anova(
     group_names: List[str] = None,
     prior_scale: float = 0.707,
     compute_pairwise: bool = True,
-    robustness_check: bool = True
+    robustness_check: bool = True,
 ) -> BayesianAnovaResult:
     """
     Perform Bayesian one-way ANOVA.
@@ -272,8 +264,8 @@ def bayesian_one_way_anova(
     df_within = n_total - k
 
     # Effect sizes
-    ss_between = sum(n * (m - grand_mean)**2 for n, m in zip(ns, means))
-    ss_within = sum(np.sum((g - np.mean(g))**2) for g in groups)
+    ss_between = sum(n * (m - grand_mean) ** 2 for n, m in zip(ns, means))
+    ss_within = sum(np.sum((g - np.mean(g)) ** 2) for g in groups)
     ss_total = ss_between + ss_within
 
     eta_squared = ss_between / ss_total if ss_total > 0 else 0
@@ -288,8 +280,8 @@ def bayesian_one_way_anova(
 
     # Compute Bayes Factor
     bf10 = _compute_anova_bf(groups, r)
-    bf01 = 1 / bf10 if bf10 > 0 else float('inf')
-    log_bf10 = np.log(bf10) if bf10 > 0 else float('-inf')
+    bf01 = 1 / bf10 if bf10 > 0 else float("inf")
+    log_bf10 = np.log(bf10) if bf10 > 0 else float("-inf")
 
     # Interpretation
     interpretation = interpret_bayes_factor(bf10)
@@ -305,7 +297,7 @@ def bayesian_one_way_anova(
     if robustness_check:
         robustness = {}
         for scale_name, scale_info in PRIOR_SCALES.items():
-            bf_r = _compute_anova_bf(groups, scale_info['r'])
+            bf_r = _compute_anova_bf(groups, scale_info["r"])
             robustness[scale_name] = bf_r
 
     return BayesianAnovaResult(
@@ -313,14 +305,14 @@ def bayesian_one_way_anova(
         bf01=float(bf01),
         log_bf10=float(log_bf10),
         interpretation={
-            'level': interpretation.level,
-            'label': interpretation.label,
-            'favors': interpretation.favors,
-            'strength': interpretation.strength,
-            'color': interpretation.color
+            "level": interpretation.level,
+            "label": interpretation.label,
+            "favors": interpretation.favors,
+            "strength": interpretation.strength,
+            "color": interpretation.color,
         },
-        posterior_probability_h1=probs['p_h1'],
-        posterior_probability_h0=probs['p_h0'],
+        posterior_probability_h1=probs["p_h1"],
+        posterior_probability_h0=probs["p_h0"],
         eta_squared=float(eta_squared),
         omega_squared=float(omega_squared),
         prior_scale=float(r),
@@ -335,7 +327,7 @@ def bayesian_one_way_anova(
         n_groups=k,
         n_total=n_total,
         pairwise_bf=pairwise,
-        robustness_check=robustness
+        robustness_check=robustness,
     )
 
 

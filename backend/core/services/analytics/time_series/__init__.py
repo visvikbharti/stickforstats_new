@@ -5,4 +5,4 @@ try:
 except ImportError:
     pass
 
-__all__ = ['TimeSeriesService', 'get_time_series_service']
+__all__ = ["TimeSeriesService", "get_time_series_service"]

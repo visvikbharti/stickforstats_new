@@ -647,7 +647,7 @@ export function calculateQualityScore(issues) {
   };
 }
 
-export default {
+const errorRules = {
   SEVERITY,
   CATEGORY,
   ERROR_RULES,
@@ -657,3 +657,5 @@ export default {
   getCategoryIcon,
   calculateQualityScore
 };
+
+export default errorRules;

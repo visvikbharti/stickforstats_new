@@ -36,7 +36,7 @@ import {
 } from '@mui/icons-material';
 
 const WebSocketMonitoringPage = () => {
-  const [connections, setConnections] = useState([
+  const [connections, _setConnections] = useState([
     {
       id: 'ws-001',
       endpoint: '/ws/analytics',

@@ -279,7 +279,7 @@ export const selectAppropriateTest = (context) => {
     normalityMet,
     homogeneityMet,
     sampleSize,
-    numPredictors,
+    numPredictors: _numPredictors,
   } = context;
 
   const recommendations = [];
@@ -469,7 +469,7 @@ export const getNonParametricAlternative = (testId) => {
  * Get required sample size guidance
  */
 export const getSampleSizeGuidance = (testId, effectSize = 'medium') => {
-  const effectSizes = {
+  const _effectSizes = {
     small: { d: 0.2, f: 0.1, r: 0.1 },
     medium: { d: 0.5, f: 0.25, r: 0.3 },
     large: { d: 0.8, f: 0.4, r: 0.5 },
@@ -486,7 +486,7 @@ export const getSampleSizeGuidance = (testId, effectSize = 'medium') => {
   return sampleSizeTable[testId]?.[effectSize] || null;
 };
 
-export default {
+const testSelector = {
   TEST_CATALOG,
   selectAppropriateTest,
   getTestById,
@@ -494,3 +494,5 @@ export default {
   getNonParametricAlternative,
   getSampleSizeGuidance,
 };
+
+export default testSelector;

@@ -181,8 +181,8 @@ export default function usePerformanceTracking(componentName, options = {}) {
    * @returns {Object} Timing utilities
    */
   const measure = useCallback((name) => {
-    const startTime = performance.now();
-    
+    let startTime = performance.now();
+
     return {
       start: () => {
         // Reset start time

@@ -640,6 +640,8 @@ export async function calculateDesirability(type, params) {
         upper: { required: true, type: 'float' }
       };
       break;
+    default:
+      break;
   }
 
   const validation = await validateStatisticalParams(params, schema);
@@ -684,6 +686,8 @@ export async function calculateDesirability(type, params) {
           params.target,
           params.upper
         );
+        break;
+      default:
         break;
     }
 
@@ -867,7 +871,7 @@ export async function batchDOECalculations(requests) {
 /**
  * Export all validated functions
  */
-export default {
+const validatedDesignCalculations = {
   // Design generation
   generateFullFactorial,
   generateCentralComposite,
@@ -894,3 +898,5 @@ export default {
   // Schemas for external use
   DOE_SCHEMAS
 };
+
+export default validatedDesignCalculations;

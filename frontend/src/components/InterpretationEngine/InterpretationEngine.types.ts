@@ -7,8 +7,6 @@
  * @scientific_rigor ABSOLUTE
  */
 
-import { ReactNode } from 'react';
-
 // Result significance levels
 export type SignificanceLevel = 'highly_significant' | 'significant' | 'marginally_significant' | 'not_significant';
 

@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.db.models import Count, Avg, Sum, Q
-from django.db.models.functions import TruncDate, TruncHour
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 # Try importing Stripe — graceful fallback if not installed
 try:
     import stripe
-    stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+
+    stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", "")
     STRIPE_AVAILABLE = bool(stripe.api_key)
 except ImportError:
     stripe = None
@@ -32,6 +33,7 @@ except ImportError:
 @dataclass
 class UsageSummary:
     """Summary of API usage for a time period."""
+
     total_requests: int = 0
     billable_requests: int = 0
     total_credits: int = 0
@@ -46,17 +48,17 @@ class UsageSummary:
 
     def to_dict(self):
         return {
-            'total_requests': self.total_requests,
-            'billable_requests': self.billable_requests,
-            'total_credits': self.total_credits,
-            'avg_response_time_ms': round(self.avg_response_time_ms, 1),
-            'by_category': self.by_category,
-            'by_day': self.by_day,
-            'by_status': self.by_status,
-            'period_start': self.period_start,
-            'period_end': self.period_end,
-            'limit': self.limit,
-            'usage_percent': round(self.usage_percent, 1),
+            "total_requests": self.total_requests,
+            "billable_requests": self.billable_requests,
+            "total_credits": self.total_credits,
+            "avg_response_time_ms": round(self.avg_response_time_ms, 1),
+            "by_category": self.by_category,
+            "by_day": self.by_day,
+            "by_status": self.by_status,
+            "period_start": self.period_start,
+            "period_end": self.period_end,
+            "limit": self.limit,
+            "usage_percent": round(self.usage_percent, 1),
         }
 
 
@@ -71,43 +73,42 @@ class BillingService:
         """
         tier = organization.tier
         if not tier:
-            return {'within_limits': True, 'checks': {}}
+            return {"within_limits": True, "checks": {}}
 
         usage_count = organization.get_usage_this_month()
         max_analyses = tier.max_analyses_per_month
 
         checks = {
-            'analyses': {
-                'used': usage_count,
-                'limit': max_analyses,
-                'within_limit': max_analyses == 0 or usage_count < max_analyses,
-                'percent_used': (usage_count / max_analyses * 100) if max_analyses > 0 else 0,
+            "analyses": {
+                "used": usage_count,
+                "limit": max_analyses,
+                "within_limit": max_analyses == 0 or usage_count < max_analyses,
+                "percent_used": (usage_count / max_analyses * 100) if max_analyses > 0 else 0,
             },
-            'team_members': {
-                'used': organization.memberships.filter(is_active=True).count(),
-                'limit': tier.max_team_members,
-                'within_limit': (
-                    tier.max_team_members == 0 or
-                    organization.memberships.filter(is_active=True).count() <= tier.max_team_members
+            "team_members": {
+                "used": organization.memberships.filter(is_active=True).count(),
+                "limit": tier.max_team_members,
+                "within_limit": (
+                    tier.max_team_members == 0
+                    or organization.memberships.filter(is_active=True).count() <= tier.max_team_members
                 ),
             },
-            'api_keys': {
-                'used': organization.api_keys.filter(is_active=True).count(),
-                'limit': tier.max_api_keys,
-                'within_limit': (
-                    tier.max_api_keys == 0 or
-                    organization.api_keys.filter(is_active=True).count() <= tier.max_api_keys
+            "api_keys": {
+                "used": organization.api_keys.filter(is_active=True).count(),
+                "limit": tier.max_api_keys,
+                "within_limit": (
+                    tier.max_api_keys == 0 or organization.api_keys.filter(is_active=True).count() <= tier.max_api_keys
                 ),
             },
         }
 
-        within_limits = all(c['within_limit'] for c in checks.values())
+        within_limits = all(c["within_limit"] for c in checks.values())
 
         return {
-            'within_limits': within_limits,
-            'tier': tier.slug,
-            'tier_display': tier.display_name,
-            'checks': checks,
+            "within_limits": within_limits,
+            "tier": tier.slug,
+            "tier_display": tier.display_name,
+            "checks": checks,
         }
 
     @staticmethod
@@ -128,48 +129,42 @@ class BillingService:
 
         # Aggregated stats
         stats = qs.aggregate(
-            total=Count('id'),
-            billable=Count('id', filter=Q(is_billable=True)),
-            credits=Sum('credits_consumed'),
-            avg_time=Avg('response_time_ms'),
+            total=Count("id"),
+            billable=Count("id", filter=Q(is_billable=True)),
+            credits=Sum("credits_consumed"),
+            avg_time=Avg("response_time_ms"),
         )
 
         # By category
         by_category = dict(
-            qs.values_list('endpoint_category')
-            .annotate(count=Count('id'))
-            .values_list('endpoint_category', 'count')
+            qs.values_list("endpoint_category").annotate(count=Count("id")).values_list("endpoint_category", "count")
         )
 
         # By day
         by_day = list(
-            qs.annotate(day=TruncDate('timestamp'))
-            .values('day')
-            .annotate(count=Count('id'), avg_time=Avg('response_time_ms'))
-            .order_by('day')
-            .values('day', 'count', 'avg_time')
+            qs.annotate(day=TruncDate("timestamp"))
+            .values("day")
+            .annotate(count=Count("id"), avg_time=Avg("response_time_ms"))
+            .order_by("day")
+            .values("day", "count", "avg_time")
         )
         # Convert dates to strings
         for entry in by_day:
-            entry['day'] = entry['day'].isoformat() if entry['day'] else None
-            entry['avg_time'] = round(entry['avg_time'] or 0, 1)
+            entry["day"] = entry["day"].isoformat() if entry["day"] else None
+            entry["avg_time"] = round(entry["avg_time"] or 0, 1)
 
         # By status code
-        by_status = dict(
-            qs.values_list('status_code')
-            .annotate(count=Count('id'))
-            .values_list('status_code', 'count')
-        )
+        by_status = dict(qs.values_list("status_code").annotate(count=Count("id")).values_list("status_code", "count"))
 
         tier = organization.tier
         limit = tier.max_analyses_per_month if tier else 0
-        billable = stats['billable'] or 0
+        billable = stats["billable"] or 0
 
         return UsageSummary(
-            total_requests=stats['total'] or 0,
+            total_requests=stats["total"] or 0,
             billable_requests=billable,
-            total_credits=stats['credits'] or 0,
-            avg_response_time_ms=stats['avg_time'] or 0.0,
+            total_credits=stats["credits"] or 0,
+            avg_response_time_ms=stats["avg_time"] or 0.0,
             by_category=by_category,
             by_day=by_day,
             by_status=by_status,
@@ -184,47 +179,48 @@ class BillingService:
         """Get all active tiers for public display."""
         from core.models import SubscriptionTier
 
-        tiers = SubscriptionTier.objects.filter(is_active=True).order_by('sort_order')
+        tiers = SubscriptionTier.objects.filter(is_active=True).order_by("sort_order")
 
         if not tiers.exists():
             # Fallback to config-defined tiers
             from core.services.tier_config import ALL_TIERS
+
             return [
                 {
-                    'slug': t.slug,
-                    'name': t.display_name,
-                    'description': t.description,
-                    'price_monthly': t.price_monthly_cents / 100,
-                    'price_yearly': t.price_yearly_cents / 100,
-                    'limits': {
-                        'analyses_per_month': t.max_analyses_per_month or 'Unlimited',
-                        'upload_size_mb': t.max_upload_size_mb,
-                        'projects': t.max_projects or 'Unlimited',
-                        'team_members': t.max_team_members or 'Unlimited',
-                        'api_keys': t.max_api_keys or 'Unlimited',
+                    "slug": t.slug,
+                    "name": t.display_name,
+                    "description": t.description,
+                    "price_monthly": t.price_monthly_cents / 100,
+                    "price_yearly": t.price_yearly_cents / 100,
+                    "limits": {
+                        "analyses_per_month": t.max_analyses_per_month or "Unlimited",
+                        "upload_size_mb": t.max_upload_size_mb,
+                        "projects": t.max_projects or "Unlimited",
+                        "team_members": t.max_team_members or "Unlimited",
+                        "api_keys": t.max_api_keys or "Unlimited",
                     },
-                    'features': t.features,
-                    'is_default': t.is_default,
+                    "features": t.features,
+                    "is_default": t.is_default,
                 }
                 for t in ALL_TIERS
             ]
 
         return [
             {
-                'slug': t.slug,
-                'name': t.display_name,
-                'description': t.description,
-                'price_monthly': t.price_monthly_cents / 100,
-                'price_yearly': t.price_yearly_cents / 100,
-                'limits': {
-                    'analyses_per_month': t.max_analyses_per_month or 'Unlimited',
-                    'upload_size_mb': t.max_upload_size_mb,
-                    'projects': t.max_projects or 'Unlimited',
-                    'team_members': t.max_team_members or 'Unlimited',
-                    'api_keys': t.max_api_keys or 'Unlimited',
+                "slug": t.slug,
+                "name": t.display_name,
+                "description": t.description,
+                "price_monthly": t.price_monthly_cents / 100,
+                "price_yearly": t.price_yearly_cents / 100,
+                "limits": {
+                    "analyses_per_month": t.max_analyses_per_month or "Unlimited",
+                    "upload_size_mb": t.max_upload_size_mb,
+                    "projects": t.max_projects or "Unlimited",
+                    "team_members": t.max_team_members or "Unlimited",
+                    "api_keys": t.max_api_keys or "Unlimited",
                 },
-                'features': t.features,
-                'is_default': t.is_default,
+                "features": t.features,
+                "is_default": t.is_default,
             }
             for t in tiers
         ]
@@ -234,7 +230,7 @@ class BillingService:
     # =========================================================================
 
     @staticmethod
-    def create_checkout_session(organization, tier_slug: str, billing_period: str = 'monthly') -> Dict[str, Any]:
+    def create_checkout_session(organization, tier_slug: str, billing_period: str = "monthly") -> Dict[str, Any]:
         """
         Create a Stripe checkout session for upgrading to a new tier.
         Returns checkout URL or error.
@@ -244,44 +240,46 @@ class BillingService:
         try:
             tier = SubscriptionTier.objects.get(slug=tier_slug, is_active=True)
         except SubscriptionTier.DoesNotExist:
-            return {'error': f'Tier "{tier_slug}" not found'}
+            return {"error": f'Tier "{tier_slug}" not found'}
 
         if not STRIPE_AVAILABLE:
             logger.info(f"Stripe not configured. Simulating checkout for {organization.name} → {tier_slug}")
             return {
-                'status': 'simulated',
-                'message': 'Stripe is not configured. In production, this would redirect to Stripe Checkout.',
-                'tier': tier_slug,
-                'price': tier.price_monthly_cents / 100 if billing_period == 'monthly' else tier.price_yearly_cents / 100,
-                'checkout_url': None,
+                "status": "simulated",
+                "message": "Stripe is not configured. In production, this would redirect to Stripe Checkout.",
+                "tier": tier_slug,
+                "price": tier.price_monthly_cents / 100
+                if billing_period == "monthly"
+                else tier.price_yearly_cents / 100,
+                "checkout_url": None,
             }
 
         # Real Stripe integration
-        price_id = tier.stripe_price_id_monthly if billing_period == 'monthly' else tier.stripe_price_id_yearly
+        price_id = tier.stripe_price_id_monthly if billing_period == "monthly" else tier.stripe_price_id_yearly
         if not price_id:
-            return {'error': f'No Stripe price configured for {tier_slug} ({billing_period})'}
+            return {"error": f"No Stripe price configured for {tier_slug} ({billing_period})"}
 
         try:
             session = stripe.checkout.Session.create(
                 customer=organization.stripe_customer_id or None,
-                payment_method_types=['card'],
-                line_items=[{'price': price_id, 'quantity': 1}],
-                mode='subscription',
+                payment_method_types=["card"],
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
                 success_url=f"{settings.FRONTEND_URL}/platform/billing?session_id={{CHECKOUT_SESSION_ID}}",
                 cancel_url=f"{settings.FRONTEND_URL}/platform/billing?canceled=true",
                 metadata={
-                    'organization_id': str(organization.id),
-                    'tier_slug': tier_slug,
+                    "organization_id": str(organization.id),
+                    "tier_slug": tier_slug,
                 },
             )
             return {
-                'status': 'created',
-                'checkout_url': session.url,
-                'session_id': session.id,
+                "status": "created",
+                "checkout_url": session.url,
+                "session_id": session.id,
             }
         except Exception as e:
             logger.error(f"Stripe checkout error: {e}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     @staticmethod
     def handle_stripe_webhook(payload: bytes, sig_header: str) -> Dict[str, Any]:
@@ -289,109 +287,111 @@ class BillingService:
         Process Stripe webhook events for subscription lifecycle management.
         """
         if not STRIPE_AVAILABLE:
-            return {'error': 'Stripe not configured'}
+            return {"error": "Stripe not configured"}
 
-        webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', '')
+        webhook_secret = getattr(settings, "STRIPE_WEBHOOK_SECRET", "")
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
         except Exception as e:
-            return {'error': f'Webhook verification failed: {e}'}
+            return {"error": f"Webhook verification failed: {e}"}
 
-        event_type = event['type']
-        data = event['data']['object']
+        event_type = event["type"]
+        data = event["data"]["object"]
 
-        if event_type == 'checkout.session.completed':
+        if event_type == "checkout.session.completed":
             return BillingService._handle_checkout_completed(data)
-        elif event_type == 'customer.subscription.updated':
+        elif event_type == "customer.subscription.updated":
             return BillingService._handle_subscription_updated(data)
-        elif event_type == 'customer.subscription.deleted':
+        elif event_type == "customer.subscription.deleted":
             return BillingService._handle_subscription_deleted(data)
-        elif event_type == 'invoice.payment_failed':
+        elif event_type == "invoice.payment_failed":
             return BillingService._handle_payment_failed(data)
 
-        return {'status': 'ignored', 'event_type': event_type}
+        return {"status": "ignored", "event_type": event_type}
 
     @staticmethod
     def _handle_checkout_completed(session_data):
         """Handle successful checkout — upgrade organization tier."""
         from core.models import Organization, SubscriptionTier
 
-        org_id = session_data.get('metadata', {}).get('organization_id')
-        tier_slug = session_data.get('metadata', {}).get('tier_slug')
+        org_id = session_data.get("metadata", {}).get("organization_id")
+        tier_slug = session_data.get("metadata", {}).get("tier_slug")
 
         if not org_id or not tier_slug:
-            return {'error': 'Missing metadata'}
+            return {"error": "Missing metadata"}
 
         try:
             org = Organization.objects.get(id=org_id)
             tier = SubscriptionTier.objects.get(slug=tier_slug)
             org.tier = tier
-            org.stripe_customer_id = session_data.get('customer', '')
-            org.stripe_subscription_id = session_data.get('subscription', '')
-            org.subscription_status = 'active'
+            org.stripe_customer_id = session_data.get("customer", "")
+            org.stripe_subscription_id = session_data.get("subscription", "")
+            org.subscription_status = "active"
             org.save()
-            return {'status': 'upgraded', 'org': str(org.id), 'tier': tier_slug}
+            return {"status": "upgraded", "org": str(org.id), "tier": tier_slug}
         except Exception as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     @staticmethod
     def _handle_subscription_updated(sub_data):
         from core.models import Organization
+
         try:
-            org = Organization.objects.get(stripe_subscription_id=sub_data['id'])
-            org.subscription_status = sub_data.get('status', 'active')
+            org = Organization.objects.get(stripe_subscription_id=sub_data["id"])
+            org.subscription_status = sub_data.get("status", "active")
             org.current_period_end = timezone.datetime.fromtimestamp(
-                sub_data.get('current_period_end', 0), tz=timezone.utc
+                sub_data.get("current_period_end", 0), tz=timezone.utc
             )
             org.save()
-            return {'status': 'updated'}
+            return {"status": "updated"}
         except Organization.DoesNotExist:
-            return {'error': 'Organization not found for subscription'}
+            return {"error": "Organization not found for subscription"}
 
     @staticmethod
     def _handle_subscription_deleted(sub_data):
         from core.models import Organization, SubscriptionTier
+
         try:
-            org = Organization.objects.get(stripe_subscription_id=sub_data['id'])
+            org = Organization.objects.get(stripe_subscription_id=sub_data["id"])
             free_tier = SubscriptionTier.objects.filter(is_default=True).first()
             if free_tier:
                 org.tier = free_tier
-            org.subscription_status = 'canceled'
-            org.stripe_subscription_id = ''
+            org.subscription_status = "canceled"
+            org.stripe_subscription_id = ""
             org.save()
-            return {'status': 'downgraded_to_free'}
+            return {"status": "downgraded_to_free"}
         except Organization.DoesNotExist:
-            return {'error': 'Organization not found'}
+            return {"error": "Organization not found"}
 
     @staticmethod
     def _handle_payment_failed(invoice_data):
         from core.models import Organization
-        sub_id = invoice_data.get('subscription')
+
+        sub_id = invoice_data.get("subscription")
         if sub_id:
             try:
                 org = Organization.objects.get(stripe_subscription_id=sub_id)
-                org.subscription_status = 'past_due'
+                org.subscription_status = "past_due"
                 org.save()
-                return {'status': 'marked_past_due'}
+                return {"status": "marked_past_due"}
             except Organization.DoesNotExist:
                 pass
-        return {'status': 'no_action'}
+        return {"status": "no_action"}
 
     @staticmethod
     def get_subscription_status(organization) -> Dict[str, Any]:
         """Get current subscription status for an organization."""
         tier = organization.tier
         return {
-            'tier': {
-                'slug': tier.slug if tier else 'free',
-                'name': tier.display_name if tier else 'Free',
-                'price_monthly': tier.price_monthly_cents / 100 if tier else 0,
+            "tier": {
+                "slug": tier.slug if tier else "free",
+                "name": tier.display_name if tier else "Free",
+                "price_monthly": tier.price_monthly_cents / 100 if tier else 0,
             },
-            'status': organization.subscription_status,
-            'stripe_customer_id': organization.stripe_customer_id or None,
-            'current_period_end': (
-                organization.current_period_end.isoformat()
-                if organization.current_period_end else None
+            "status": organization.subscription_status,
+            "stripe_customer_id": organization.stripe_customer_id or None,
+            "current_period_end": (
+                organization.current_period_end.isoformat() if organization.current_period_end else None
             ),
-            'usage': BillingService.check_tier_limits(organization),
+            "usage": BillingService.check_tier_limits(organization),
         }

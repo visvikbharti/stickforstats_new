@@ -15,21 +15,19 @@ def model_analysis_status_changed(sender, instance, created, update_fields=None,
     """
     Send a WebSocket message when a model analysis status changes.
     """
-    if not created and update_fields and 'status' in update_fields:
+    if not created and update_fields and "status" in update_fields:
         try:
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
+
             channel_layer = get_channel_layer()
             if channel_layer:
                 async_to_sync(channel_layer.group_send)(
                     f"analysis_{instance.experiment_design_id}",
                     {
-                        'type': 'analysis_status',
-                        'message': {
-                            'status': instance.status,
-                            'analysis_id': str(instance.id)
-                        }
-                    }
+                        "type": "analysis_status",
+                        "message": {"status": instance.status, "analysis_id": str(instance.id)},
+                    },
                 )
         except Exception:
             logger.debug("WebSocket notification skipped for ModelAnalysis %s", instance.id)
@@ -40,21 +38,19 @@ def optimization_status_changed(sender, instance, created, update_fields=None, *
     """
     Send a WebSocket message when an optimization analysis status changes.
     """
-    if not created and update_fields and 'status' in update_fields:
+    if not created and update_fields and "status" in update_fields:
         try:
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
+
             channel_layer = get_channel_layer()
             if channel_layer:
                 async_to_sync(channel_layer.group_send)(
                     f"optimization_{instance.experiment_design_id}",
                     {
-                        'type': 'optimization_status',
-                        'message': {
-                            'status': instance.status,
-                            'optimization_id': str(instance.id)
-                        }
-                    }
+                        "type": "optimization_status",
+                        "message": {"status": instance.status, "optimization_id": str(instance.id)},
+                    },
                 )
         except Exception:
             logger.debug("WebSocket notification skipped for OptimizationAnalysis %s", instance.id)
@@ -63,10 +59,8 @@ def optimization_status_changed(sender, instance, created, update_fields=None, *
 @receiver(post_delete, sender=ModelAnalysis)
 def cleanup_model_analysis_files(sender, instance, **kwargs):
     """Clean up any files associated with a model analysis when it's deleted"""
-    pass
 
 
 @receiver(post_delete, sender=OptimizationAnalysis)
 def cleanup_optimization_files(sender, instance, **kwargs):
     """Clean up any files associated with an optimization analysis when it's deleted"""
-    pass

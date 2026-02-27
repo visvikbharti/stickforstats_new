@@ -4,13 +4,13 @@ Exception classes for the StickForStats SDK.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class StickForStatsError(Exception):
     """Base exception for all StickForStats SDK errors."""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(message)
         self.message = message
         self.details = details or {}
@@ -23,7 +23,7 @@ class APIError(StickForStatsError):
         self,
         message: str,
         status_code: int,
-        response_body: Optional[Dict[str, Any]] = None,
+        response_body: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message, details=response_body)
         self.status_code = status_code
@@ -43,7 +43,7 @@ class AuthenticationError(APIError):
 class ValidationError(StickForStatsError):
     """Raised when the API rejects input data (400 with validation errors)."""
 
-    def __init__(self, message: str, field_errors: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, message: str, field_errors: dict[str, Any] | None = None) -> None:
         super().__init__(message, details=field_errors)
         self.field_errors = field_errors or {}
 

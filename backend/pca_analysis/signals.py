@@ -35,7 +35,6 @@ def cleanup_pca_result_files(sender, instance, **kwargs):
     """
     Clean up any files associated with a PCA result when it's deleted.
     """
-    pass
 
 
 @receiver(post_delete, sender=PCAVisualization)
@@ -43,4 +42,3 @@ def cleanup_visualization_files(sender, instance, **kwargs):
     """
     Clean up any files associated with a visualization when it's deleted.
     """
-    pass

@@ -762,4 +762,6 @@ class StatisticalTestService {
   }
 }
 
-export default new StatisticalTestService();
+const statisticalTestService = new StatisticalTestService();
+
+export default statisticalTestService;

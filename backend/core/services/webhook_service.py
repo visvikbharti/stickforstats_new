@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # Try to use requests for nicer HTTP handling; fall back to urllib
 try:
     import requests as _requests_lib
+
     HAS_REQUESTS = True
 except ImportError:
     _requests_lib = None
@@ -37,7 +38,7 @@ except ImportError:
 
 # Retry configuration
 MAX_RETRIES = 3
-BACKOFF_BASE = 1      # seconds
+BACKOFF_BASE = 1  # seconds
 BACKOFF_EXPONENT = 2  # backoff = base * (exponent ^ attempt) → 1s, 4s, 16s
 DELIVERY_TIMEOUT = 30  # seconds per attempt
 
@@ -70,23 +71,23 @@ class WebhookDeliveryService:
         """
         if not journal.webhook_url:
             logger.debug(
-                'Journal %s has no webhook_url configured; skipping delivery.',
+                "Journal %s has no webhook_url configured; skipping delivery.",
                 journal.name,
             )
             return False
 
         payload = WebhookDeliveryService.build_payload(submission, report)
-        payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+        payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
 
         # Sign the payload
-        secret = journal.webhook_secret or ''
+        secret = journal.webhook_secret or ""
         signature = WebhookDeliveryService.sign_payload(payload_bytes, secret)
 
         headers = {
-            'Content-Type': 'application/json',
-            'X-StickForStats-Signature': signature,
-            'X-StickForStats-Event': 'report.completed',
-            'X-StickForStats-Delivery': str(uuid.uuid4()),
+            "Content-Type": "application/json",
+            "X-StickForStats-Signature": signature,
+            "X-StickForStats-Event": "report.completed",
+            "X-StickForStats-Delivery": str(uuid.uuid4()),
         }
 
         last_error = None
@@ -94,8 +95,11 @@ class WebhookDeliveryService:
             if attempt > 0:
                 backoff = BACKOFF_BASE * (BACKOFF_EXPONENT ** (attempt * 2 - 1))
                 logger.info(
-                    'Webhook retry %d/%d for journal %s in %.1fs',
-                    attempt + 1, MAX_RETRIES, journal.name, backoff,
+                    "Webhook retry %d/%d for journal %s in %.1fs",
+                    attempt + 1,
+                    MAX_RETRIES,
+                    journal.name,
+                    backoff,
                 )
                 time.sleep(backoff)
 
@@ -109,25 +113,35 @@ class WebhookDeliveryService:
                 # Mark report as delivered
                 report.delivered = True
                 report.delivered_at = timezone.now()
-                report.delivery_method = 'webhook'
-                report.save(update_fields=[
-                    'delivered', 'delivered_at', 'delivery_method',
-                ])
+                report.delivery_method = "webhook"
+                report.save(
+                    update_fields=[
+                        "delivered",
+                        "delivered_at",
+                        "delivery_method",
+                    ]
+                )
                 logger.info(
-                    'Webhook delivered for report %s to journal %s',
-                    report.id, journal.name,
+                    "Webhook delivered for report %s to journal %s",
+                    report.id,
+                    journal.name,
                 )
                 return True
 
             last_error = error
             logger.warning(
-                'Webhook attempt %d/%d failed for journal %s: %s',
-                attempt + 1, MAX_RETRIES, journal.name, error,
+                "Webhook attempt %d/%d failed for journal %s: %s",
+                attempt + 1,
+                MAX_RETRIES,
+                journal.name,
+                error,
             )
 
         logger.error(
-            'Webhook delivery failed after %d attempts for journal %s: %s',
-            MAX_RETRIES, journal.name, last_error,
+            "Webhook delivery failed after %d attempts for journal %s: %s",
+            MAX_RETRIES,
+            journal.name,
+            last_error,
         )
         return False
 
@@ -148,33 +162,33 @@ class WebhookDeliveryService:
         findings_list = report.findings if isinstance(report.findings, list) else []
         for finding in findings_list[:10]:
             if isinstance(finding, dict):
-                findings_summary.append({
-                    'severity': finding.get('severity', ''),
-                    'category': finding.get('category', ''),
-                    'title': finding.get('title', ''),
-                })
+                findings_summary.append(
+                    {
+                        "severity": finding.get("severity", ""),
+                        "category": finding.get("category", ""),
+                        "title": finding.get("title", ""),
+                    }
+                )
 
         return {
-            'event_type': 'report.completed',
-            'timestamp': timezone.now().isoformat(),
-            'submission_id': str(submission.id),
-            'manuscript_id': submission.manuscript_id or '',
-            'title': submission.title or '',
-            'report_id': str(report.id),
-            'report_type': report.report_type,
-            'overall_assessment': report.overall_assessment,
-            'sqs_score': float(report.sqs_score) if report.sqs_score is not None else None,
-            'claims_found': submission.claims_found,
-            'consistency_rate': (
-                float(submission.consistency_rate)
-                if submission.consistency_rate is not None
-                else None
+            "event_type": "report.completed",
+            "timestamp": timezone.now().isoformat(),
+            "submission_id": str(submission.id),
+            "manuscript_id": submission.manuscript_id or "",
+            "title": submission.title or "",
+            "report_id": str(report.id),
+            "report_type": report.report_type,
+            "overall_assessment": report.overall_assessment,
+            "sqs_score": float(report.sqs_score) if report.sqs_score is not None else None,
+            "claims_found": submission.claims_found,
+            "consistency_rate": (
+                float(submission.consistency_rate) if submission.consistency_rate is not None else None
             ),
-            'decision_errors': submission.decision_errors,
-            'gross_errors': submission.gross_errors,
-            'findings_count': len(findings_list),
-            'findings_summary': findings_summary,
-            'report_url': f'/api/v1/manuscript/report/{submission.id}/',
+            "decision_errors": submission.decision_errors,
+            "gross_errors": submission.gross_errors,
+            "findings_count": len(findings_list),
+            "findings_summary": findings_summary,
+            "report_url": f"/api/v1/manuscript/report/{submission.id}/",
         }
 
     @staticmethod
@@ -189,9 +203,9 @@ class WebhookDeliveryService:
         Returns:
             str: Hex-encoded HMAC-SHA256 signature prefixed with 'sha256='.
         """
-        key = secret.encode('utf-8') if isinstance(secret, str) else secret
+        key = secret.encode("utf-8") if isinstance(secret, str) else secret
         digest = hmac.new(key, payload_bytes, hashlib.sha256).hexdigest()
-        return f'sha256={digest}'
+        return f"sha256={digest}"
 
     @staticmethod
     def verify_signature(payload_bytes, signature, secret):
@@ -227,10 +241,14 @@ class WebhookDeliveryService:
         """
         if HAS_REQUESTS:
             return WebhookDeliveryService._post_requests(
-                url, payload_bytes, headers,
+                url,
+                payload_bytes,
+                headers,
             )
         return WebhookDeliveryService._post_urllib(
-            url, payload_bytes, headers,
+            url,
+            payload_bytes,
+            headers,
         )
 
     @staticmethod
@@ -245,7 +263,7 @@ class WebhookDeliveryService:
             )
             if 200 <= resp.status_code < 300:
                 return True, None
-            return False, f'HTTP {resp.status_code}: {resp.text[:200]}'
+            return False, f"HTTP {resp.status_code}: {resp.text[:200]}"
         except _requests_lib.RequestException as exc:
             return False, str(exc)
 
@@ -257,14 +275,14 @@ class WebhookDeliveryService:
                 url,
                 data=payload_bytes,
                 headers=headers,
-                method='POST',
+                method="POST",
             )
             with urlopen(req, timeout=DELIVERY_TIMEOUT) as resp:
                 if 200 <= resp.status < 300:
                     return True, None
-                return False, f'HTTP {resp.status}'
+                return False, f"HTTP {resp.status}"
         except HTTPError as exc:
-            return False, f'HTTP {exc.code}: {exc.reason}'
+            return False, f"HTTP {exc.code}: {exc.reason}"
         except URLError as exc:
             return False, str(exc.reason)
         except Exception as exc:

@@ -7,10 +7,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../store';
-import { 
-  selectUser, 
+import {
+  selectUser,
   selectIsAuthenticated,
-  fetchCurrentUser 
 } from '../store/slices/authSlice';
 import {
   selectCurrentDataset,
@@ -23,7 +22,6 @@ import {
 } from '../store/slices/analysisSlice';
 import {
   selectTheme,
-  addNotification,
   showSuccessNotification
 } from '../store/slices/uiSlice';
 import { VariableType, TestType } from '../types/api.types';
@@ -49,7 +47,7 @@ const TestTypeScript: React.FC<TestTypeScriptProps> = ({
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const currentDataset = useAppSelector(selectCurrentDataset);
   const uploadProgress = useAppSelector(selectUploadProgress);
-  const isUploading = useAppSelector(selectIsUploading);
+  const _isUploading = useAppSelector(selectIsUploading);
   const workflowStep = useAppSelector(selectWorkflowStep);
   const workflowProgress = useAppSelector(selectWorkflowProgress);
   const theme = useAppSelector(selectTheme);
@@ -106,6 +104,7 @@ const TestTypeScript: React.FC<TestTypeScriptProps> = ({
     if (testStatus === 'idle') {
       runTests();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testStatus]);
 
   // Render based on test status

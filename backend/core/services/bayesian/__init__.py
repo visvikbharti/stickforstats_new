@@ -41,64 +41,42 @@ from .bayesian_ttest import (
     bayesian_one_sample_ttest,
     bayesian_two_sample_ttest,
     bayesian_paired_ttest,
-    BayesianTTestResult
+    BayesianTTestResult,
 )
 
-from .bayesian_anova import (
-    bayesian_one_way_anova,
-    BayesianAnovaResult
-)
+from .bayesian_anova import bayesian_one_way_anova, BayesianAnovaResult
 
-from .bayesian_correlation import (
-    bayesian_correlation,
-    BayesianCorrelationResult
-)
+from .bayesian_correlation import bayesian_correlation, BayesianCorrelationResult
 
-from .bayes_factor import (
-    interpret_bayes_factor,
-    bayes_factor_to_probability,
-    JEFFREYS_SCALE
-)
+from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability, JEFFREYS_SCALE
 
-from .posterior import (
-    compute_posterior_ttest,
-    compute_hdi,
-    rope_analysis
-)
+from .posterior import compute_posterior_ttest, compute_hdi, rope_analysis
 
-from .priors import (
-    PRIOR_SCALES,
-    get_prior_description
-)
+from .priors import PRIOR_SCALES, get_prior_description
 
 __all__ = [
     # T-Tests
-    'bayesian_one_sample_ttest',
-    'bayesian_two_sample_ttest',
-    'bayesian_paired_ttest',
-    'BayesianTTestResult',
-
+    "bayesian_one_sample_ttest",
+    "bayesian_two_sample_ttest",
+    "bayesian_paired_ttest",
+    "BayesianTTestResult",
     # ANOVA
-    'bayesian_one_way_anova',
-    'BayesianAnovaResult',
-
+    "bayesian_one_way_anova",
+    "BayesianAnovaResult",
     # Correlation
-    'bayesian_correlation',
-    'BayesianCorrelationResult',
-
+    "bayesian_correlation",
+    "BayesianCorrelationResult",
     # Bayes Factor
-    'interpret_bayes_factor',
-    'bayes_factor_to_probability',
-    'JEFFREYS_SCALE',
-
+    "interpret_bayes_factor",
+    "bayes_factor_to_probability",
+    "JEFFREYS_SCALE",
     # Posterior
-    'compute_posterior_ttest',
-    'compute_hdi',
-    'rope_analysis',
-
+    "compute_posterior_ttest",
+    "compute_hdi",
+    "rope_analysis",
     # Priors
-    'PRIOR_SCALES',
-    'get_prior_description'
+    "PRIOR_SCALES",
+    "get_prior_description",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

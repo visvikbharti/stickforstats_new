@@ -633,8 +633,8 @@ export async function runTransformationSimulation(params, onProgress) {
   // Get true parameter value
   const trueParameter = distParams.mean || 0;
 
-  const originalIntervals = [];
-  const transformedIntervals = [];
+  const _originalIntervals = [];
+  const _transformedIntervals = [];
   let originalContains = 0;
   let transformedContains = 0;
   let originalWidthSum = 0;
@@ -825,7 +825,7 @@ export async function runNonNormalitySimulation(params, onProgress) {
     }
 
     // Method 2: Trimmed mean interval (simplified - using t-interval on trimmed data)
-    const trimmedMean = calculateTrimmedMean(sample);
+    const _trimmedMean = calculateTrimmedMean(sample);
     const trimmedSample = [...sample].sort((a, b) => a - b);
     const trimCount = Math.floor(sampleSize * 0.1);
     const trimmedData = trimmedSample.slice(trimCount, trimmedSample.length - trimCount);

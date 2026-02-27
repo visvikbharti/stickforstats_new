@@ -17,11 +17,7 @@ import {
   Tab,
   Alert,
   Button,
-  IconButton,
-  Chip,
-  Divider,
   Grid,
-  Tooltip,
   LinearProgress,
   Snackbar,
   Card,
@@ -34,19 +30,12 @@ import {
   Code as TechnicalIcon,
   BarChart as VisualIcon,
   Download as ExportIcon,
-  ContentCopy as CopyIcon,
   CheckCircle as SignificantIcon,
   Cancel as NotSignificantIcon,
   Warning as WarningIcon,
-  Info as InfoIcon,
   Refresh as RerunIcon,
   Settings as SettingsIcon,
-  School as LearnIcon,
 } from '@mui/icons-material';
-
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { setTestResults } from '../../store/slices/analysisSlice';
 
 import ResultSummary from './ResultSummary';
 import APAFormatter from './APAFormatter';
@@ -86,8 +75,6 @@ const InterpretationEngine: React.FC<InterpretationEngineProps> = ({
   onAdjustParameters,
   onViewDetails,
 }) => {
-  const dispatch = useDispatch();
-  
   // Component state
   const [state, setState] = useState<InterpretationEngineState>({
     activeView: 'summary',
@@ -231,35 +218,6 @@ const InterpretationEngine: React.FC<InterpretationEngineProps> = ({
       setSnackbar({ open: true, message: 'Copied to clipboard!' });
     });
   }, []);
-
-  // Handle export
-  const handleExport = useCallback((format: string) => {
-    if (!onExport || !result) return;
-    
-    let content = '';
-    
-    // Generate content based on format
-    switch (format) {
-      case 'markdown':
-        content = `# Statistical Test Results\n\n`;
-        content += `## Test: ${result.testName}\n\n`;
-        if (generateAPAFormat) {
-          content += `### APA Format\n${generateAPAFormat.statistical}\n\n`;
-        }
-        if (generatePlainLanguage) {
-          content += `### Plain Language\n${generatePlainLanguage.summary}\n\n`;
-          content += `${generatePlainLanguage.finding}\n\n`;
-          content += `${generatePlainLanguage.meaning}\n\n`;
-        }
-        break;
-      
-      default:
-        content = JSON.stringify({ result, apa: generateAPAFormat, plainLanguage: generatePlainLanguage }, null, 2);
-    }
-    
-    onExport(format, content);
-    setSnackbar({ open: true, message: `Exported as ${format.toUpperCase()}` });
-  }, [result, generateAPAFormat, generatePlainLanguage, onExport]);
 
   // Loading state
   if (isLoading) {

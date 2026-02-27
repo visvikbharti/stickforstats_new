@@ -85,6 +85,7 @@ const CommandPalette = () => {
     } else {
       setFilteredCommands(allCommands);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, commands]);
 
   const handleCommandSelect = (command) => {

@@ -10,13 +10,12 @@ Version: 1.0.0
 """
 
 from decimal import Decimal, getcontext
-from typing import Dict, List, Tuple, Optional, Union, Any
+from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
 import math
 import numpy as np
 from scipy import stats
-import warnings
 import logging
 
 # Configure high precision
@@ -27,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class CorrelationType(Enum):
     """Types of correlation tests"""
+
     PEARSON = "pearson"
     SPEARMAN = "spearman"
     KENDALL = "kendall"
@@ -35,6 +35,7 @@ class CorrelationType(Enum):
 
 class DataDistribution(Enum):
     """Data distribution types"""
+
     NORMAL = "normal"
     NON_NORMAL = "non_normal"
     ORDINAL = "ordinal"
@@ -46,6 +47,7 @@ class DataDistribution(Enum):
 @dataclass
 class CorrelationResult:
     """Comprehensive correlation analysis result"""
+
     correlation_coefficient: Decimal
     p_value: Decimal
     confidence_interval_lower: Decimal
@@ -73,6 +75,7 @@ class CorrelationResult:
 @dataclass
 class TestRecommendation:
     """Recommendation for which correlation test to use"""
+
     recommended_test: CorrelationType
     confidence: float
     reasoning: List[str]
@@ -110,24 +113,24 @@ class HighPrecisionCorrelation:
         n = len(arr)
 
         analysis = {
-            'sample_size': n,
-            'mean': float(np.mean(arr)),
-            'median': float(np.median(arr)),
-            'std': float(np.std(arr, ddof=1)),
-            'skewness': float(stats.skew(arr)),
-            'kurtosis': float(stats.kurtosis(arr)),
-            'outliers': self._detect_outliers(arr),
-            'normality': self._test_normality(arr),
-            'monotonicity': self._test_monotonicity(arr),
-            'linearity_score': 0.0,  # Will be calculated with both variables
-            'data_type': self._infer_data_type(arr)
+            "sample_size": n,
+            "mean": float(np.mean(arr)),
+            "median": float(np.median(arr)),
+            "std": float(np.std(arr, ddof=1)),
+            "skewness": float(stats.skew(arr)),
+            "kurtosis": float(stats.kurtosis(arr)),
+            "outliers": self._detect_outliers(arr),
+            "normality": self._test_normality(arr),
+            "monotonicity": self._test_monotonicity(arr),
+            "linearity_score": 0.0,  # Will be calculated with both variables
+            "data_type": self._infer_data_type(arr),
         }
 
         # Determine distribution type
-        if analysis['normality']['is_normal']:
-            analysis['distribution'] = DataDistribution.NORMAL
+        if analysis["normality"]["is_normal"]:
+            analysis["distribution"] = DataDistribution.NORMAL
         else:
-            analysis['distribution'] = DataDistribution.NON_NORMAL
+            analysis["distribution"] = DataDistribution.NON_NORMAL
 
         return analysis
 
@@ -135,39 +138,36 @@ class HighPrecisionCorrelation:
         """Test for normality using multiple methods"""
         n = len(data)
 
-        results = {
-            'is_normal': False,
-            'tests': {}
-        }
+        results = {"is_normal": False, "tests": {}}
 
         # Shapiro-Wilk test (best for small samples)
         if n <= 5000:
             stat, p_value = stats.shapiro(data)
-            results['tests']['shapiro_wilk'] = {
-                'statistic': float(stat),
-                'p_value': float(p_value),
-                'normal': p_value > 0.05
+            results["tests"]["shapiro_wilk"] = {
+                "statistic": float(stat),
+                "p_value": float(p_value),
+                "normal": p_value > 0.05,
             }
 
         # Anderson-Darling test
         result = stats.anderson(data)
-        results['tests']['anderson_darling'] = {
-            'statistic': float(result.statistic),
-            'critical_values': result.critical_values.tolist(),
-            'normal': result.statistic < result.critical_values[2]  # 5% level
+        results["tests"]["anderson_darling"] = {
+            "statistic": float(result.statistic),
+            "critical_values": result.critical_values.tolist(),
+            "normal": result.statistic < result.critical_values[2],  # 5% level
         }
 
         # Kolmogorov-Smirnov test
-        stat, p_value = stats.kstest(data, 'norm', args=(np.mean(data), np.std(data)))
-        results['tests']['kolmogorov_smirnov'] = {
-            'statistic': float(stat),
-            'p_value': float(p_value),
-            'normal': p_value > 0.05
+        stat, p_value = stats.kstest(data, "norm", args=(np.mean(data), np.std(data)))
+        results["tests"]["kolmogorov_smirnov"] = {
+            "statistic": float(stat),
+            "p_value": float(p_value),
+            "normal": p_value > 0.05,
         }
 
         # Overall decision (majority vote)
-        normal_votes = sum(1 for test in results['tests'].values() if test.get('normal', False))
-        results['is_normal'] = normal_votes >= len(results['tests']) / 2
+        normal_votes = sum(1 for test in results["tests"].values() if test.get("normal", False))
+        results["is_normal"] = normal_votes >= len(results["tests"]) / 2
 
         return results
 
@@ -187,10 +187,10 @@ class HighPrecisionCorrelation:
         z_outliers = np.where(z_scores > 3)[0]
 
         return {
-            'has_outliers': len(iqr_outliers) > 0 or len(z_outliers) > 0,
-            'iqr_count': len(iqr_outliers),
-            'z_score_count': len(z_outliers),
-            'outlier_percentage': max(len(iqr_outliers), len(z_outliers)) / len(data) * 100
+            "has_outliers": len(iqr_outliers) > 0 or len(z_outliers) > 0,
+            "iqr_count": len(iqr_outliers),
+            "z_score_count": len(z_outliers),
+            "outlier_percentage": max(len(iqr_outliers), len(z_outliers)) / len(data) * 100,
         }
 
     def _test_monotonicity(self, data: np.ndarray) -> Dict[str, Any]:
@@ -203,9 +203,9 @@ class HighPrecisionCorrelation:
         monotonic_score = max(increasing, decreasing) / total if total > 0 else 0
 
         return {
-            'is_monotonic': monotonic_score > 0.8,
-            'monotonic_score': float(monotonic_score),
-            'direction': 'increasing' if increasing > decreasing else 'decreasing'
+            "is_monotonic": monotonic_score > 0.8,
+            "monotonic_score": float(monotonic_score),
+            "direction": "increasing" if increasing > decreasing else "decreasing",
         }
 
     def _infer_data_type(self, data: np.ndarray) -> str:
@@ -215,16 +215,15 @@ class HighPrecisionCorrelation:
 
         # Check if data appears to be ordinal (limited unique values)
         if unique_values < 10 and unique_values < n / 3:
-            return 'ordinal'
+            return "ordinal"
 
         # Check if data is likely continuous
         if unique_values > n / 2:
-            return 'continuous'
+            return "continuous"
 
-        return 'mixed'
+        return "mixed"
 
-    def recommend_correlation_test(self, x: Union[List, np.ndarray],
-                                  y: Union[List, np.ndarray]) -> TestRecommendation:
+    def recommend_correlation_test(self, x: Union[List, np.ndarray], y: Union[List, np.ndarray]) -> TestRecommendation:
         """
         Recommend the most appropriate correlation test based on data characteristics.
 
@@ -243,11 +242,11 @@ class HighPrecisionCorrelation:
         alternatives = []
 
         # Decision logic
-        both_normal = x_analysis['normality']['is_normal'] and y_analysis['normality']['is_normal']
-        has_outliers = x_analysis['outliers']['has_outliers'] or y_analysis['outliers']['has_outliers']
-        both_continuous = x_analysis['data_type'] == 'continuous' and y_analysis['data_type'] == 'continuous'
-        either_ordinal = x_analysis['data_type'] == 'ordinal' or y_analysis['data_type'] == 'ordinal'
-        small_sample = x_analysis['sample_size'] < 30
+        both_normal = x_analysis["normality"]["is_normal"] and y_analysis["normality"]["is_normal"]
+        has_outliers = x_analysis["outliers"]["has_outliers"] or y_analysis["outliers"]["has_outliers"]
+        both_continuous = x_analysis["data_type"] == "continuous" and y_analysis["data_type"] == "continuous"
+        either_ordinal = x_analysis["data_type"] == "ordinal" or y_analysis["data_type"] == "ordinal"
+        small_sample = x_analysis["sample_size"] < 30
 
         # Recommendation logic
         if both_normal and both_continuous and linearity_score > 0.7 and not has_outliers:
@@ -290,57 +289,56 @@ class HighPrecisionCorrelation:
             alternatives = [CorrelationType.PEARSON, CorrelationType.KENDALL]
 
         # Calculate confidence in recommendation
-        confidence = self._calculate_recommendation_confidence(
-            x_analysis, y_analysis, linearity_score, recommended
-        )
+        confidence = self._calculate_recommendation_confidence(x_analysis, y_analysis, linearity_score, recommended)
 
         return TestRecommendation(
             recommended_test=recommended,
             confidence=confidence,
             reasoning=reasoning,
             alternative_tests=alternatives,
-            warnings=warnings
+            warnings=warnings,
         )
 
     def _assess_linearity(self, x: np.ndarray, y: np.ndarray) -> float:
         """Assess the linearity of relationship between two variables"""
         # Simple R-squared from linear regression
         from scipy import stats
+
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
         return abs(r_value)  # Return absolute correlation as linearity measure
 
-    def _calculate_recommendation_confidence(self, x_analysis: Dict, y_analysis: Dict,
-                                            linearity_score: float,
-                                            recommended: CorrelationType) -> float:
+    def _calculate_recommendation_confidence(
+        self, x_analysis: Dict, y_analysis: Dict, linearity_score: float, recommended: CorrelationType
+    ) -> float:
         """Calculate confidence in test recommendation"""
         confidence = 0.5  # Base confidence
 
         if recommended == CorrelationType.PEARSON:
-            if x_analysis['normality']['is_normal'] and y_analysis['normality']['is_normal']:
+            if x_analysis["normality"]["is_normal"] and y_analysis["normality"]["is_normal"]:
                 confidence += 0.2
             if linearity_score > 0.8:
                 confidence += 0.2
-            if not x_analysis['outliers']['has_outliers']:
+            if not x_analysis["outliers"]["has_outliers"]:
                 confidence += 0.1
 
         elif recommended == CorrelationType.SPEARMAN:
-            if x_analysis['distribution'] == DataDistribution.NON_NORMAL:
+            if x_analysis["distribution"] == DataDistribution.NON_NORMAL:
                 confidence += 0.2
-            if x_analysis['outliers']['has_outliers']:
+            if x_analysis["outliers"]["has_outliers"]:
                 confidence += 0.15
             confidence += 0.15  # Spearman is generally safe
 
         elif recommended == CorrelationType.KENDALL:
-            if x_analysis['sample_size'] < 30:
+            if x_analysis["sample_size"] < 30:
                 confidence += 0.3
-            if x_analysis['data_type'] == 'ordinal':
+            if x_analysis["data_type"] == "ordinal":
                 confidence += 0.2
 
         return min(confidence, 1.0)
 
-    def pearson_correlation(self, x: Union[List, np.ndarray],
-                           y: Union[List, np.ndarray],
-                           confidence_level: float = 0.95) -> CorrelationResult:
+    def pearson_correlation(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], confidence_level: float = 0.95
+    ) -> CorrelationResult:
         """
         Calculate Pearson correlation coefficient with high precision.
 
@@ -369,8 +367,8 @@ class HighPrecisionCorrelation:
             x_diff = xi - mean_x
             y_diff = yi - mean_y
             numerator += x_diff * y_diff
-            sum_x_sq += x_diff ** 2
-            sum_y_sq += y_diff ** 2
+            sum_x_sq += x_diff**2
+            sum_y_sq += y_diff**2
 
         # Calculate correlation coefficient
         denominator = (sum_x_sq * sum_y_sq).sqrt()
@@ -383,7 +381,7 @@ class HighPrecisionCorrelation:
         # Calculate t-statistic for significance test
         df = int(n - 2)
         if abs(r) == 1:
-            t_stat = Decimal('Infinity') if r > 0 else Decimal('-Infinity')
+            t_stat = Decimal("Infinity") if r > 0 else Decimal("-Infinity")
             p_value = Decimal(0)
         else:
             t_stat = r * ((n - 2) / (1 - r**2)).sqrt()
@@ -417,14 +415,14 @@ class HighPrecisionCorrelation:
             correlation_type="Pearson",
             r_squared=r**2,
             standard_error=se_r,
-            interpretation=self._interpret_correlation(r, p_value)
+            interpretation=self._interpret_correlation(r, p_value),
         )
 
         return result
 
-    def spearman_correlation(self, x: Union[List, np.ndarray],
-                           y: Union[List, np.ndarray],
-                           confidence_level: float = 0.95) -> CorrelationResult:
+    def spearman_correlation(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], confidence_level: float = 0.95
+    ) -> CorrelationResult:
         """
         Calculate Spearman's rank correlation coefficient with high precision.
 
@@ -449,15 +447,15 @@ class HighPrecisionCorrelation:
         n = len(x)
         if n > 20:
             rs = float(result.correlation_coefficient)
-            t_stat = rs * math.sqrt((n - 2) / (1 - rs**2)) if abs(rs) < 1 else float('inf')
+            t_stat = rs * math.sqrt((n - 2) / (1 - rs**2)) if abs(rs) < 1 else float("inf")
             p_value = Decimal(str(2 * (1 - stats.t.cdf(abs(t_stat), n - 2))))
             result.p_value = p_value
 
         return result
 
-    def kendall_tau(self, x: Union[List, np.ndarray],
-                   y: Union[List, np.ndarray],
-                   confidence_level: float = 0.95) -> CorrelationResult:
+    def kendall_tau(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], confidence_level: float = 0.95
+    ) -> CorrelationResult:
         """
         Calculate Kendall's Tau correlation coefficient with high precision.
 
@@ -526,14 +524,14 @@ class HighPrecisionCorrelation:
             sample_size=n,
             correlation_type="Kendall's Tau",
             standard_error=se,
-            interpretation=self._interpret_correlation(tau, p_value)
+            interpretation=self._interpret_correlation(tau, p_value),
         )
 
         return result
 
-    def auto_correlation(self, x: Union[List, np.ndarray],
-                        y: Union[List, np.ndarray],
-                        confidence_level: float = 0.95) -> Dict[str, Any]:
+    def auto_correlation(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], confidence_level: float = 0.95
+    ) -> Dict[str, Any]:
         """
         Automatically select and perform the most appropriate correlation test.
 
@@ -548,42 +546,42 @@ class HighPrecisionCorrelation:
 
         # Pearson
         try:
-            results['pearson'] = self.pearson_correlation(x, y, confidence_level)
+            results["pearson"] = self.pearson_correlation(x, y, confidence_level)
         except Exception as e:
             logger.warning(f"Pearson correlation failed: {e}")
-            results['pearson'] = None
+            results["pearson"] = None
 
         # Spearman
         try:
-            results['spearman'] = self.spearman_correlation(x, y, confidence_level)
+            results["spearman"] = self.spearman_correlation(x, y, confidence_level)
         except Exception as e:
             logger.warning(f"Spearman correlation failed: {e}")
-            results['spearman'] = None
+            results["spearman"] = None
 
         # Kendall
         try:
-            results['kendall'] = self.kendall_tau(x, y, confidence_level)
+            results["kendall"] = self.kendall_tau(x, y, confidence_level)
         except Exception as e:
             logger.warning(f"Kendall correlation failed: {e}")
-            results['kendall'] = None
+            results["kendall"] = None
 
         # Get the recommended result
         recommended_result = results.get(recommendation.recommended_test.value)
 
         # Prepare comprehensive output
         output = {
-            'recommendation': {
-                'test': recommendation.recommended_test.value,
-                'confidence': recommendation.confidence,
-                'reasoning': recommendation.reasoning,
-                'alternatives': [t.value for t in recommendation.alternative_tests],
-                'warnings': recommendation.warnings
+            "recommendation": {
+                "test": recommendation.recommended_test.value,
+                "confidence": recommendation.confidence,
+                "reasoning": recommendation.reasoning,
+                "alternatives": [t.value for t in recommendation.alternative_tests],
+                "warnings": recommendation.warnings,
             },
-            'primary_result': recommended_result,
-            'all_results': results,
-            'comparison': self._compare_correlations(results),
-            'interpretation_guide': self._generate_interpretation_guide(recommended_result),
-            'visualization_data': self._prepare_visualization_data(x, y, results)
+            "primary_result": recommended_result,
+            "all_results": results,
+            "comparison": self._compare_correlations(results),
+            "interpretation_guide": self._generate_interpretation_guide(recommended_result),
+            "visualization_data": self._prepare_visualization_data(x, y, results),
         }
 
         return output
@@ -613,7 +611,7 @@ class HighPrecisionCorrelation:
     def _fisher_z_transform(self, r: Decimal) -> Decimal:
         """Fisher's z-transformation for correlation coefficient"""
         if abs(r) >= 1:
-            return Decimal('Infinity') if r > 0 else Decimal('-Infinity')
+            return Decimal("Infinity") if r > 0 else Decimal("-Infinity")
 
         # z = 0.5 * ln((1 + r) / (1 - r))
         return (((1 + r) / (1 - r)).ln()) / 2
@@ -624,26 +622,26 @@ class HighPrecisionCorrelation:
             # r = (exp(2z) - 1) / (exp(2z) + 1)
             # Handle extreme values
             if abs(z) > 10:
-                return Decimal('1') if z > 0 else Decimal('-1')
+                return Decimal("1") if z > 0 else Decimal("-1")
 
             exp_2z = (2 * z).exp()
             return (exp_2z - 1) / (exp_2z + 1)
         except:
             # Return bounded value for extreme cases
-            return Decimal('0.999') if z > 0 else Decimal('-0.999')
+            return Decimal("0.999") if z > 0 else Decimal("-0.999")
 
     def _interpret_correlation(self, r: Decimal, p_value: Decimal) -> str:
         """Provide interpretation of correlation strength and significance"""
         abs_r = abs(r)
 
         # Determine strength
-        if abs_r < Decimal('0.1'):
+        if abs_r < Decimal("0.1"):
             strength = "negligible"
-        elif abs_r < Decimal('0.3'):
+        elif abs_r < Decimal("0.3"):
             strength = "weak"
-        elif abs_r < Decimal('0.5'):
+        elif abs_r < Decimal("0.5"):
             strength = "moderate"
-        elif abs_r < Decimal('0.7'):
+        elif abs_r < Decimal("0.7"):
             strength = "strong"
         else:
             strength = "very strong"
@@ -652,11 +650,11 @@ class HighPrecisionCorrelation:
         direction = "positive" if r > 0 else "negative"
 
         # Determine significance
-        if p_value < Decimal('0.001'):
+        if p_value < Decimal("0.001"):
             significance = "highly significant (p < 0.001)"
-        elif p_value < Decimal('0.01'):
+        elif p_value < Decimal("0.01"):
             significance = "very significant (p < 0.01)"
-        elif p_value < Decimal('0.05'):
+        elif p_value < Decimal("0.05"):
             significance = "significant (p < 0.05)"
         else:
             significance = "not significant (p ≥ 0.05)"
@@ -665,12 +663,7 @@ class HighPrecisionCorrelation:
 
     def _compare_correlations(self, results: Dict[str, CorrelationResult]) -> Dict[str, Any]:
         """Compare results from different correlation methods"""
-        comparison = {
-            'agreement': None,
-            'max_difference': None,
-            'consistent_significance': None,
-            'details': {}
-        }
+        comparison = {"agreement": None, "max_difference": None, "consistent_significance": None, "details": {}}
 
         valid_results = {k: v for k, v in results.items() if v is not None}
 
@@ -683,23 +676,23 @@ class HighPrecisionCorrelation:
         # Check agreement
         all_positive = all(c > 0 for c in coefficients.values())
         all_negative = all(c < 0 for c in coefficients.values())
-        comparison['agreement'] = 'strong' if (all_positive or all_negative) else 'weak'
+        comparison["agreement"] = "strong" if (all_positive or all_negative) else "weak"
 
         # Maximum difference
         if len(coefficients) > 1:
-            comparison['max_difference'] = max(coefficients.values()) - min(coefficients.values())
+            comparison["max_difference"] = max(coefficients.values()) - min(coefficients.values())
 
         # Consistent significance
         all_significant = all(p < 0.05 for p in p_values.values())
         none_significant = all(p >= 0.05 for p in p_values.values())
-        comparison['consistent_significance'] = all_significant or none_significant
+        comparison["consistent_significance"] = all_significant or none_significant
 
         # Detailed comparison
         for method, result in valid_results.items():
-            comparison['details'][method] = {
-                'coefficient': str(result.correlation_coefficient)[:20],
-                'p_value': str(result.p_value)[:20],
-                'significant': float(result.p_value) < 0.05
+            comparison["details"][method] = {
+                "coefficient": str(result.correlation_coefficient)[:20],
+                "p_value": str(result.p_value)[:20],
+                "significant": float(result.p_value) < 0.05,
             }
 
         return comparison
@@ -710,11 +703,11 @@ class HighPrecisionCorrelation:
             return {"error": "No result available for interpretation"}
 
         guide = {
-            'what_it_means': "",
-            'strength_interpretation': "",
-            'practical_significance': "",
-            'next_steps': "",
-            'cautions': []
+            "what_it_means": "",
+            "strength_interpretation": "",
+            "practical_significance": "",
+            "next_steps": "",
+            "cautions": [],
         }
 
         r = float(result.correlation_coefficient)
@@ -722,84 +715,83 @@ class HighPrecisionCorrelation:
 
         # What it means
         if result.correlation_type == "Pearson":
-            guide['what_it_means'] = "Measures linear relationship between continuous variables"
+            guide["what_it_means"] = "Measures linear relationship between continuous variables"
         elif result.correlation_type == "Spearman":
-            guide['what_it_means'] = "Measures monotonic relationship, robust to outliers"
+            guide["what_it_means"] = "Measures monotonic relationship, robust to outliers"
         else:  # Kendall
-            guide['what_it_means'] = "Measures ordinal association, good for small samples"
+            guide["what_it_means"] = "Measures ordinal association, good for small samples"
 
         # Strength interpretation
         abs_r = abs(r)
         if abs_r < 0.1:
-            guide['strength_interpretation'] = "Variables are essentially uncorrelated"
+            guide["strength_interpretation"] = "Variables are essentially uncorrelated"
         elif abs_r < 0.3:
-            guide['strength_interpretation'] = "Weak correlation - minimal practical relationship"
+            guide["strength_interpretation"] = "Weak correlation - minimal practical relationship"
         elif abs_r < 0.5:
-            guide['strength_interpretation'] = "Moderate correlation - noticeable relationship"
+            guide["strength_interpretation"] = "Moderate correlation - noticeable relationship"
         elif abs_r < 0.7:
-            guide['strength_interpretation'] = "Strong correlation - substantial relationship"
+            guide["strength_interpretation"] = "Strong correlation - substantial relationship"
         else:
-            guide['strength_interpretation'] = "Very strong correlation - variables highly related"
+            guide["strength_interpretation"] = "Very strong correlation - variables highly related"
 
         # Practical significance
-        r_squared = r ** 2
-        guide['practical_significance'] = f"{r_squared*100:.1f}% of variance in one variable is explained by the other"
+        r_squared = r**2
+        guide["practical_significance"] = f"{r_squared*100:.1f}% of variance in one variable is explained by the other"
 
         # Next steps
         if p < 0.05:
             if abs_r > 0.5:
-                guide['next_steps'] = "Consider regression analysis to model the relationship"
+                guide["next_steps"] = "Consider regression analysis to model the relationship"
             else:
-                guide['next_steps'] = "Relationship exists but is weak - investigate other factors"
+                guide["next_steps"] = "Relationship exists but is weak - investigate other factors"
         else:
-            guide['next_steps'] = "No significant relationship found - consider different variables or non-linear methods"
+            guide[
+                "next_steps"
+            ] = "No significant relationship found - consider different variables or non-linear methods"
 
         # Cautions
-        guide['cautions'] = [
+        guide["cautions"] = [
             "Correlation does not imply causation",
             "Check for confounding variables",
-            "Verify assumptions are met for the test used"
+            "Verify assumptions are met for the test used",
         ]
 
         return guide
 
-    def _prepare_visualization_data(self, x: Union[List, np.ndarray],
-                                   y: Union[List, np.ndarray],
-                                   results: Dict[str, CorrelationResult]) -> Dict[str, Any]:
+    def _prepare_visualization_data(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], results: Dict[str, CorrelationResult]
+    ) -> Dict[str, Any]:
         """Prepare data for visualization"""
         x_arr = np.array(x)
         y_arr = np.array(y)
 
         viz_data = {
-            'scatter_plot': {
-                'x': x_arr.tolist(),
-                'y': y_arr.tolist(),
-                'x_label': 'Variable X',
-                'y_label': 'Variable Y'
+            "scatter_plot": {
+                "x": x_arr.tolist(),
+                "y": y_arr.tolist(),
+                "x_label": "Variable X",
+                "y_label": "Variable Y",
             },
-            'regression_line': None,
-            'confidence_bands': None,
-            'distribution_plots': {
-                'x_histogram': np.histogram(x_arr, bins='auto'),
-                'y_histogram': np.histogram(y_arr, bins='auto')
+            "regression_line": None,
+            "confidence_bands": None,
+            "distribution_plots": {
+                "x_histogram": np.histogram(x_arr, bins="auto"),
+                "y_histogram": np.histogram(y_arr, bins="auto"),
             },
-            'correlation_matrix': None,
-            'qq_plots': {
-                'x': stats.probplot(x_arr),
-                'y': stats.probplot(y_arr)
-            }
+            "correlation_matrix": None,
+            "qq_plots": {"x": stats.probplot(x_arr), "y": stats.probplot(y_arr)},
         }
 
         # Add regression line for Pearson correlation
-        if 'pearson' in results and results['pearson'] is not None:
+        if "pearson" in results and results["pearson"] is not None:
             slope, intercept, _, _, _ = stats.linregress(x_arr, y_arr)
             x_line = np.array([x_arr.min(), x_arr.max()])
             y_line = slope * x_line + intercept
 
-            viz_data['regression_line'] = {
-                'x': x_line.tolist(),
-                'y': y_line.tolist(),
-                'equation': f"y = {slope:.3f}x + {intercept:.3f}"
+            viz_data["regression_line"] = {
+                "x": x_line.tolist(),
+                "y": y_line.tolist(),
+                "equation": f"y = {slope:.3f}x + {intercept:.3f}",
             }
 
         return viz_data
@@ -807,11 +799,11 @@ class HighPrecisionCorrelation:
 
 def create_correlation_comparison_table(results: Dict[str, CorrelationResult]) -> str:
     """Create a formatted comparison table of correlation results"""
-    table = "\n" + "="*80 + "\n"
+    table = "\n" + "=" * 80 + "\n"
     table += "CORRELATION COMPARISON TABLE\n"
-    table += "="*80 + "\n"
+    table += "=" * 80 + "\n"
     table += f"{'Method':<15} {'Coefficient':<20} {'P-value':<15} {'95% CI':<30}\n"
-    table += "-"*80 + "\n"
+    table += "-" * 80 + "\n"
 
     for method, result in results.items():
         if result is not None:
@@ -820,5 +812,5 @@ def create_correlation_comparison_table(results: Dict[str, CorrelationResult]) -
             ci = f"[{str(result.confidence_interval_lower)[:12]}, {str(result.confidence_interval_upper)[:12]}]"
             table += f"{method:<15} {coef:<20} {p_val:<15} {ci:<30}\n"
 
-    table += "="*80 + "\n"
+    table += "=" * 80 + "\n"
     return table

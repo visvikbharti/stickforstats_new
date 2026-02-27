@@ -26,8 +26,8 @@ Date: September 2025
 Version: 1.0.0
 """
 
-from decimal import Decimal, getcontext
-from typing import Dict, List, Tuple, Optional, Union, Any, Callable
+from decimal import getcontext
+from typing import Dict, List, Tuple, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
 import numpy as np
@@ -36,7 +36,6 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 import warnings
 import logging
@@ -46,14 +45,15 @@ getcontext().prec = 50
 
 # Set style
 sns.set_style("whitegrid")
-plt.rcParams['figure.figsize'] = (12, 8)
-plt.rcParams['font.size'] = 10
+plt.rcParams["figure.figsize"] = (12, 8)
+plt.rcParams["font.size"] = 10
 
 logger = logging.getLogger(__name__)
 
 
 class VisualizationType(Enum):
     """Types of statistical visualizations"""
+
     # Distribution plots
     HISTOGRAM = "histogram"
     DENSITY = "density"
@@ -108,6 +108,7 @@ class VisualizationType(Enum):
 @dataclass
 class VisualizationConfig:
     """Configuration for visualization generation"""
+
     title: str
     xlabel: str = ""
     ylabel: str = ""
@@ -146,6 +147,7 @@ class VisualizationConfig:
 @dataclass
 class VisualizationResult:
     """Result of visualization generation"""
+
     plot_type: str
     figure: Optional[Any] = None  # matplotlib or plotly figure
 
@@ -178,8 +180,9 @@ class ComprehensiveVisualizationSystem:
         getcontext().prec = precision
         self.precision = precision
 
-    def create_distribution_plots(self, data: Union[List, np.ndarray, pd.Series],
-                                 config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_distribution_plots(
+        self, data: Union[List, np.ndarray, pd.Series], config: Optional[VisualizationConfig] = None
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive distribution visualizations.
 
@@ -206,37 +209,28 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Histogram with KDE and normal overlay
         fig1 = self._create_histogram_kde(data_clean, config, normality_info)
-        results['histogram'] = VisualizationResult(
+        results["histogram"] = VisualizationResult(
             plot_type="histogram_kde",
             figure=fig1,
             data_summary=self._calculate_summary_stats(data_clean),
             missing_data_info=missing_info,
             outlier_info=outlier_info,
-            assumption_violations=self._check_distribution_assumptions(data_clean, normality_info)
+            assumption_violations=self._check_distribution_assumptions(data_clean, normality_info),
         )
 
         # 2. Q-Q Plot
         fig2 = self._create_qq_plot(data_clean, config)
-        results['qq_plot'] = VisualizationResult(
-            plot_type="qq_plot",
-            figure=fig2,
-            warnings=self._generate_qq_warnings(data_clean, normality_info)
+        results["qq_plot"] = VisualizationResult(
+            plot_type="qq_plot", figure=fig2, warnings=self._generate_qq_warnings(data_clean, normality_info)
         )
 
         # 3. Box plot with violin overlay
         fig3 = self._create_box_violin_plot(data_clean, config, outlier_info)
-        results['box_violin'] = VisualizationResult(
-            plot_type="box_violin",
-            figure=fig3,
-            outlier_info=outlier_info
-        )
+        results["box_violin"] = VisualizationResult(plot_type="box_violin", figure=fig3, outlier_info=outlier_info)
 
         # 4. ECDF
         fig4 = self._create_ecdf_plot(data_clean, config)
-        results['ecdf'] = VisualizationResult(
-            plot_type="ecdf",
-            figure=fig4
-        )
+        results["ecdf"] = VisualizationResult(plot_type="ecdf", figure=fig4)
 
         # Generate recommendations
         recommendations = self._generate_distribution_recommendations(
@@ -248,9 +242,12 @@ class ComprehensiveVisualizationSystem:
 
         return results
 
-    def create_comparison_plots(self, *groups: Union[List, np.ndarray],
-                               labels: Optional[List[str]] = None,
-                               config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_comparison_plots(
+        self,
+        *groups: Union[List, np.ndarray],
+        labels: Optional[List[str]] = None,
+        config: Optional[VisualizationConfig] = None,
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive comparison visualizations for multiple groups.
 
@@ -281,32 +278,21 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Interactive box plot with points
         fig1 = self._create_interactive_box_plot(groups_clean, labels, config, assumption_results)
-        results['box_plot'] = VisualizationResult(
-            plot_type="interactive_box",
-            figure=fig1,
-            assumption_violations=assumption_results['violations']
+        results["box_plot"] = VisualizationResult(
+            plot_type="interactive_box", figure=fig1, assumption_violations=assumption_results["violations"]
         )
 
         # 2. Violin plot with statistics
         fig2 = self._create_violin_plot_with_stats(groups_clean, labels, config)
-        results['violin_plot'] = VisualizationResult(
-            plot_type="violin_with_stats",
-            figure=fig2
-        )
+        results["violin_plot"] = VisualizationResult(plot_type="violin_with_stats", figure=fig2)
 
         # 3. Mean plot with confidence intervals
         fig3 = self._create_mean_ci_plot(groups_clean, labels, config)
-        results['mean_ci'] = VisualizationResult(
-            plot_type="mean_confidence_intervals",
-            figure=fig3
-        )
+        results["mean_ci"] = VisualizationResult(plot_type="mean_confidence_intervals", figure=fig3)
 
         # 4. Raincloud plot (combines box, violin, and strip)
         fig4 = self._create_raincloud_plot(groups_clean, labels, config)
-        results['raincloud'] = VisualizationResult(
-            plot_type="raincloud",
-            figure=fig4
-        )
+        results["raincloud"] = VisualizationResult(plot_type="raincloud", figure=fig4)
 
         # Add warnings and recommendations
         for key in results:
@@ -315,9 +301,9 @@ class ComprehensiveVisualizationSystem:
 
         return results
 
-    def create_correlation_plots(self, x: Union[List, np.ndarray],
-                                y: Union[List, np.ndarray],
-                                config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_correlation_plots(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], config: Optional[VisualizationConfig] = None
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive correlation visualizations.
 
@@ -340,40 +326,34 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Scatter plot with regression
         fig1 = self._create_scatter_regression_plot(x_clean, y_clean, config, correlation_assumptions)
-        results['scatter_regression'] = VisualizationResult(
+        results["scatter_regression"] = VisualizationResult(
             plot_type="scatter_with_regression",
             figure=fig1,
             data_summary=self._calculate_correlation_summary(x_clean, y_clean),
-            assumption_violations=correlation_assumptions['violations']
+            assumption_violations=correlation_assumptions["violations"],
         )
 
         # 2. Residual diagnostic plots
         fig2 = self._create_residual_diagnostic_plots(x_clean, y_clean, config)
-        results['residual_diagnostics'] = VisualizationResult(
-            plot_type="residual_diagnostics",
-            figure=fig2
-        )
+        results["residual_diagnostics"] = VisualizationResult(plot_type="residual_diagnostics", figure=fig2)
 
         # 3. Hexbin plot for dense data
         if len(x_clean) > 500:
             fig3 = self._create_hexbin_plot(x_clean, y_clean, config)
-            results['hexbin'] = VisualizationResult(
-                plot_type="hexbin_density",
-                figure=fig3
-            )
+            results["hexbin"] = VisualizationResult(plot_type="hexbin_density", figure=fig3)
 
         # 4. Marginal distribution plot
         fig4 = self._create_marginal_plot(x_clean, y_clean, config)
-        results['marginal'] = VisualizationResult(
-            plot_type="scatter_with_marginals",
-            figure=fig4
-        )
+        results["marginal"] = VisualizationResult(plot_type="scatter_with_marginals", figure=fig4)
 
         return results
 
-    def create_anova_plots(self, groups: List[np.ndarray],
-                          factor_levels: Optional[Dict[str, List]] = None,
-                          config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_anova_plots(
+        self,
+        groups: List[np.ndarray],
+        factor_levels: Optional[Dict[str, List]] = None,
+        config: Optional[VisualizationConfig] = None,
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive ANOVA visualizations.
 
@@ -390,38 +370,26 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Means comparison plot
         fig1 = self._create_means_comparison_plot(groups, config)
-        results['means_comparison'] = VisualizationResult(
-            plot_type="means_with_errors",
-            figure=fig1
-        )
+        results["means_comparison"] = VisualizationResult(plot_type="means_with_errors", figure=fig1)
 
         # 2. Interaction plot if factorial
         if factor_levels and len(factor_levels) > 1:
             fig2 = self._create_interaction_plot(groups, factor_levels, config)
-            results['interaction'] = VisualizationResult(
-                plot_type="interaction_plot",
-                figure=fig2
-            )
+            results["interaction"] = VisualizationResult(plot_type="interaction_plot", figure=fig2)
 
         # 3. Residual plots for ANOVA
         fig3 = self._create_anova_diagnostic_plots(groups, config)
-        results['diagnostics'] = VisualizationResult(
-            plot_type="anova_diagnostics",
-            figure=fig3
-        )
+        results["diagnostics"] = VisualizationResult(plot_type="anova_diagnostics", figure=fig3)
 
         # 4. Post-hoc comparison matrix
         fig4 = self._create_posthoc_matrix(groups, config)
-        results['posthoc_matrix'] = VisualizationResult(
-            plot_type="posthoc_comparisons",
-            figure=fig4
-        )
+        results["posthoc_matrix"] = VisualizationResult(plot_type="posthoc_comparisons", figure=fig4)
 
         return results
 
-    def create_regression_diagnostic_plots(self, X: np.ndarray, y: np.ndarray,
-                                          predictions: np.ndarray,
-                                          config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_regression_diagnostic_plots(
+        self, X: np.ndarray, y: np.ndarray, predictions: np.ndarray, config: Optional[VisualizationConfig] = None
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive regression diagnostic plots.
 
@@ -442,37 +410,49 @@ class ComprehensiveVisualizationSystem:
 
         # Create 2x3 subplot with all diagnostics
         fig = make_subplots(
-            rows=2, cols=3,
-            subplot_titles=('Residuals vs Fitted', 'Q-Q Plot', 'Scale-Location',
-                          'Residuals vs Leverage', "Cook's Distance", 'Histogram of Residuals')
+            rows=2,
+            cols=3,
+            subplot_titles=(
+                "Residuals vs Fitted",
+                "Q-Q Plot",
+                "Scale-Location",
+                "Residuals vs Leverage",
+                "Cook's Distance",
+                "Histogram of Residuals",
+            ),
         )
 
         # 1. Residuals vs Fitted
         fig.add_trace(
-            go.Scatter(x=predictions, y=residuals, mode='markers',
-                      marker=dict(color='blue', size=5),
-                      name='Residuals'),
-            row=1, col=1
+            go.Scatter(x=predictions, y=residuals, mode="markers", marker=dict(color="blue", size=5), name="Residuals"),
+            row=1,
+            col=1,
         )
         fig.add_hline(y=0, line_dash="dash", line_color="red", row=1, col=1)
 
         # 2. Q-Q plot
         qq_theoretical, qq_sample = stats.probplot(residuals, dist="norm", plot=None)
         fig.add_trace(
-            go.Scatter(x=qq_theoretical[0], y=qq_theoretical[1], mode='markers',
-                      marker=dict(color='blue', size=5),
-                      name='Q-Q'),
-            row=1, col=2
+            go.Scatter(
+                x=qq_theoretical[0], y=qq_theoretical[1], mode="markers", marker=dict(color="blue", size=5), name="Q-Q"
+            ),
+            row=1,
+            col=2,
         )
 
         # 3. Scale-Location
         standardized_residuals = residuals / np.std(residuals, ddof=1)
         sqrt_abs_residuals = np.sqrt(np.abs(standardized_residuals))
         fig.add_trace(
-            go.Scatter(x=predictions, y=sqrt_abs_residuals, mode='markers',
-                      marker=dict(color='blue', size=5),
-                      name='Scale-Location'),
-            row=1, col=3
+            go.Scatter(
+                x=predictions,
+                y=sqrt_abs_residuals,
+                mode="markers",
+                marker=dict(color="blue", size=5),
+                name="Scale-Location",
+            ),
+            row=1,
+            col=3,
         )
 
         # 4. Calculate leverage and Cook's distance
@@ -485,50 +465,41 @@ class ComprehensiveVisualizationSystem:
 
         # Cook's distance
         mse = np.mean(residuals**2)
-        cooks_d = (residuals**2 / (p * mse)) * (leverage / (1 - leverage)**2)
+        cooks_d = (residuals**2 / (p * mse)) * (leverage / (1 - leverage) ** 2)
 
         # 4. Residuals vs Leverage
         fig.add_trace(
-            go.Scatter(x=leverage, y=standardized_residuals, mode='markers',
-                      marker=dict(color='blue', size=5),
-                      name='Leverage'),
-            row=2, col=1
+            go.Scatter(
+                x=leverage, y=standardized_residuals, mode="markers", marker=dict(color="blue", size=5), name="Leverage"
+            ),
+            row=2,
+            col=1,
         )
 
         # 5. Cook's distance
         fig.add_trace(
-            go.Bar(x=list(range(len(cooks_d))), y=cooks_d,
-                  marker=dict(color='blue'),
-                  name="Cook's D"),
-            row=2, col=2
+            go.Bar(x=list(range(len(cooks_d))), y=cooks_d, marker=dict(color="blue"), name="Cook's D"), row=2, col=2
         )
 
         # 6. Histogram of residuals
         fig.add_trace(
-            go.Histogram(x=residuals, nbinsx=30,
-                        marker=dict(color='blue'),
-                        name='Residual Distribution'),
-            row=2, col=3
+            go.Histogram(x=residuals, nbinsx=30, marker=dict(color="blue"), name="Residual Distribution"), row=2, col=3
         )
 
         # Update layout
-        fig.update_layout(
-            title_text="Regression Diagnostic Plots",
-            showlegend=False,
-            height=800,
-            width=1200
-        )
+        fig.update_layout(title_text="Regression Diagnostic Plots", showlegend=False, height=800, width=1200)
 
-        results['diagnostic_suite'] = VisualizationResult(
+        results["diagnostic_suite"] = VisualizationResult(
             plot_type="regression_diagnostics",
             figure=fig,
-            assumption_violations=self._check_regression_assumptions(residuals, leverage, cooks_d)
+            assumption_violations=self._check_regression_assumptions(residuals, leverage, cooks_d),
         )
 
         return results
 
-    def create_missing_data_visualization(self, data: pd.DataFrame,
-                                         config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_missing_data_visualization(
+        self, data: pd.DataFrame, config: Optional[VisualizationConfig] = None
+    ) -> Dict[str, VisualizationResult]:
         """
         Create comprehensive missing data visualizations.
 
@@ -545,32 +516,27 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Missing data pattern matrix
         fig1 = self._create_missing_pattern_matrix(data, config)
-        results['pattern_matrix'] = VisualizationResult(
-            plot_type="missing_pattern",
-            figure=fig1,
-            missing_data_info=self._analyze_missing_patterns(data)
+        results["pattern_matrix"] = VisualizationResult(
+            plot_type="missing_pattern", figure=fig1, missing_data_info=self._analyze_missing_patterns(data)
         )
 
         # 2. Missing data heatmap
         fig2 = self._create_missing_heatmap(data, config)
-        results['heatmap'] = VisualizationResult(
-            plot_type="missing_heatmap",
-            figure=fig2
-        )
+        results["heatmap"] = VisualizationResult(plot_type="missing_heatmap", figure=fig2)
 
         # 3. Missing data statistics
         fig3 = self._create_missing_statistics_plot(data, config)
-        results['statistics'] = VisualizationResult(
-            plot_type="missing_statistics",
-            figure=fig3
-        )
+        results["statistics"] = VisualizationResult(plot_type="missing_statistics", figure=fig3)
 
         return results
 
-    def create_power_analysis_plots(self, effect_sizes: List[float],
-                                   sample_sizes: List[int],
-                                   alpha: float = 0.05,
-                                   config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_power_analysis_plots(
+        self,
+        effect_sizes: List[float],
+        sample_sizes: List[int],
+        alpha: float = 0.05,
+        config: Optional[VisualizationConfig] = None,
+    ) -> Dict[str, VisualizationResult]:
         """
         Create power analysis visualizations.
 
@@ -586,23 +552,20 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Power curves for different effect sizes
         fig1 = self._create_power_curves(effect_sizes, sample_sizes, alpha, config)
-        results['power_curves'] = VisualizationResult(
-            plot_type="power_curves",
-            figure=fig1
-        )
+        results["power_curves"] = VisualizationResult(plot_type="power_curves", figure=fig1)
 
         # 2. Sample size determination
         fig2 = self._create_sample_size_plot(effect_sizes, alpha, config)
-        results['sample_size'] = VisualizationResult(
-            plot_type="sample_size_determination",
-            figure=fig2
-        )
+        results["sample_size"] = VisualizationResult(plot_type="sample_size_determination", figure=fig2)
 
         return results
 
-    def create_effect_size_plots(self, effect_sizes: Dict[str, float],
-                                confidence_intervals: Dict[str, Tuple[float, float]],
-                                config: Optional[VisualizationConfig] = None) -> Dict[str, VisualizationResult]:
+    def create_effect_size_plots(
+        self,
+        effect_sizes: Dict[str, float],
+        confidence_intervals: Dict[str, Tuple[float, float]],
+        config: Optional[VisualizationConfig] = None,
+    ) -> Dict[str, VisualizationResult]:
         """
         Create effect size visualizations.
 
@@ -618,24 +581,19 @@ class ComprehensiveVisualizationSystem:
 
         # 1. Forest plot
         fig1 = self._create_forest_plot(effect_sizes, confidence_intervals, config)
-        results['forest_plot'] = VisualizationResult(
-            plot_type="forest_plot",
-            figure=fig1
-        )
+        results["forest_plot"] = VisualizationResult(plot_type="forest_plot", figure=fig1)
 
         # 2. Effect size comparison
         fig2 = self._create_effect_size_comparison(effect_sizes, config)
-        results['comparison'] = VisualizationResult(
-            plot_type="effect_size_comparison",
-            figure=fig2
-        )
+        results["comparison"] = VisualizationResult(plot_type="effect_size_comparison", figure=fig2)
 
         return results
 
     # Helper methods for data handling
 
-    def _handle_missing_data(self, data: Union[List, np.ndarray, pd.Series],
-                            config: VisualizationConfig) -> Tuple[np.ndarray, Dict]:
+    def _handle_missing_data(
+        self, data: Union[List, np.ndarray, pd.Series], config: VisualizationConfig
+    ) -> Tuple[np.ndarray, Dict]:
         """Handle missing data according to configuration"""
         data = np.array(data)
         original_size = len(data)
@@ -647,46 +605,46 @@ class ComprehensiveVisualizationSystem:
             missing_percentage = (missing_count / original_size) * 100
 
             missing_info = {
-                'has_missing': True,
-                'count': missing_count,
-                'percentage': missing_percentage,
-                'indices': missing_indices.tolist(),
-                'action_taken': config.handle_missing
+                "has_missing": True,
+                "count": missing_count,
+                "percentage": missing_percentage,
+                "indices": missing_indices.tolist(),
+                "action_taken": config.handle_missing,
             }
 
             # Handle based on configuration
-            if config.handle_missing == 'warn':
+            if config.handle_missing == "warn":
                 warnings.warn(f"Data contains {missing_count} ({missing_percentage:.1f}%) missing values")
                 data_clean = data[~pd.isna(data)]
 
-            elif config.handle_missing == 'remove':
+            elif config.handle_missing == "remove":
                 data_clean = data[~pd.isna(data)]
 
-            elif config.handle_missing == 'impute':
-                if config.imputation_method == 'mean':
+            elif config.handle_missing == "impute":
+                if config.imputation_method == "mean":
                     impute_value = np.nanmean(data)
-                elif config.imputation_method == 'median':
+                elif config.imputation_method == "median":
                     impute_value = np.nanmedian(data)
-                elif config.imputation_method == 'mode':
+                elif config.imputation_method == "mode":
                     impute_value = stats.mode(data[~pd.isna(data)])[0][0]
                 else:
                     impute_value = 0
 
                 data_clean = np.where(pd.isna(data), impute_value, data)
-                missing_info['imputed_value'] = impute_value
+                missing_info["imputed_value"] = impute_value
 
             else:  # show
                 data_clean = data
 
         else:
             data_clean = data
-            missing_info = {'has_missing': False, 'count': 0, 'percentage': 0}
+            missing_info = {"has_missing": False, "count": 0, "percentage": 0}
 
         return data_clean, missing_info
 
-    def _handle_paired_missing_data(self, x: Union[List, np.ndarray],
-                                   y: Union[List, np.ndarray],
-                                   config: VisualizationConfig) -> Tuple[np.ndarray, np.ndarray]:
+    def _handle_paired_missing_data(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], config: VisualizationConfig
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Handle missing data in paired datasets"""
         x = np.array(x)
         y = np.array(y)
@@ -700,12 +658,11 @@ class ComprehensiveVisualizationSystem:
 
         return x[complete_cases], y[complete_cases]
 
-    def _detect_outliers(self, data: np.ndarray,
-                        config: VisualizationConfig) -> Dict[str, Any]:
+    def _detect_outliers(self, data: np.ndarray, config: VisualizationConfig) -> Dict[str, Any]:
         """Detect outliers using specified method"""
         outliers = {}
 
-        if config.outlier_method == 'iqr':
+        if config.outlier_method == "iqr":
             Q1 = np.percentile(data, 25)
             Q3 = np.percentile(data, 75)
             IQR = Q3 - Q1
@@ -713,19 +670,19 @@ class ComprehensiveVisualizationSystem:
             upper_bound = Q3 + config.outlier_threshold * IQR
 
             outlier_mask = (data < lower_bound) | (data > upper_bound)
-            outliers['indices'] = np.where(outlier_mask)[0].tolist()
-            outliers['values'] = data[outlier_mask].tolist()
-            outliers['bounds'] = {'lower': lower_bound, 'upper': upper_bound}
+            outliers["indices"] = np.where(outlier_mask)[0].tolist()
+            outliers["values"] = data[outlier_mask].tolist()
+            outliers["bounds"] = {"lower": lower_bound, "upper": upper_bound}
 
-        elif config.outlier_method == 'zscore':
+        elif config.outlier_method == "zscore":
             z_scores = np.abs(stats.zscore(data))
             outlier_mask = z_scores > 3
-            outliers['indices'] = np.where(outlier_mask)[0].tolist()
-            outliers['values'] = data[outlier_mask].tolist()
-            outliers['z_scores'] = z_scores[outlier_mask].tolist()
+            outliers["indices"] = np.where(outlier_mask)[0].tolist()
+            outliers["values"] = data[outlier_mask].tolist()
+            outliers["z_scores"] = z_scores[outlier_mask].tolist()
 
-        outliers['count'] = len(outliers['indices'])
-        outliers['percentage'] = (outliers['count'] / len(data)) * 100
+        outliers["count"] = len(outliers["indices"])
+        outliers["percentage"] = (outliers["count"] / len(data)) * 100
 
         return outliers
 
@@ -736,47 +693,39 @@ class ComprehensiveVisualizationSystem:
         # Shapiro-Wilk test
         if len(data) <= 5000:
             stat, p_value = stats.shapiro(data)
-            normality_info['shapiro_wilk'] = {
-                'statistic': stat,
-                'p_value': p_value,
-                'is_normal': p_value > 0.05
-            }
+            normality_info["shapiro_wilk"] = {"statistic": stat, "p_value": p_value, "is_normal": p_value > 0.05}
 
         # Anderson-Darling test
         result = stats.anderson(data)
-        normality_info['anderson_darling'] = {
-            'statistic': result.statistic,
-            'critical_values': result.critical_values,
-            'is_normal': result.statistic < result.critical_values[2]  # 5% level
+        normality_info["anderson_darling"] = {
+            "statistic": result.statistic,
+            "critical_values": result.critical_values,
+            "is_normal": result.statistic < result.critical_values[2],  # 5% level
         }
 
         # Kolmogorov-Smirnov test
-        stat, p_value = stats.kstest(data, 'norm', args=(np.mean(data), np.std(data)))
-        normality_info['kolmogorov_smirnov'] = {
-            'statistic': stat,
-            'p_value': p_value,
-            'is_normal': p_value > 0.05
-        }
+        stat, p_value = stats.kstest(data, "norm", args=(np.mean(data), np.std(data)))
+        normality_info["kolmogorov_smirnov"] = {"statistic": stat, "p_value": p_value, "is_normal": p_value > 0.05}
 
         # Overall assessment
-        normal_votes = sum(1 for test in normality_info.values()
-                          if test.get('is_normal', False))
-        normality_info['overall_normal'] = normal_votes >= len(normality_info) / 2
+        normal_votes = sum(1 for test in normality_info.values() if test.get("is_normal", False))
+        normality_info["overall_normal"] = normal_votes >= len(normality_info) / 2
 
         return normality_info
 
-    def _check_distribution_assumptions(self, data: np.ndarray,
-                                       normality_info: Dict) -> List[str]:
+    def _check_distribution_assumptions(self, data: np.ndarray, normality_info: Dict) -> List[str]:
         """Check distribution assumptions and return violations"""
         violations = []
 
-        if not normality_info.get('overall_normal', False):
+        if not normality_info.get("overall_normal", False):
             violations.append("Data appears to be non-normal")
 
         # Check skewness
         skewness = stats.skew(data)
         if abs(skewness) > 1:
-            violations.append(f"Data is {'positively' if skewness > 0 else 'negatively'} skewed (skewness={skewness:.2f})")
+            violations.append(
+                f"Data is {'positively' if skewness > 0 else 'negatively'} skewed (skewness={skewness:.2f})"
+            )
 
         # Check kurtosis
         kurtosis = stats.kurtosis(data)
@@ -787,48 +736,48 @@ class ComprehensiveVisualizationSystem:
 
     def _check_comparison_assumptions(self, groups: List[np.ndarray]) -> Dict[str, Any]:
         """Check assumptions for group comparisons"""
-        assumptions = {'violations': []}
+        assumptions = {"violations": []}
 
         # Check normality for each group
         for i, group in enumerate(groups):
             norm_info = self._check_normality(group)
-            if not norm_info['overall_normal']:
-                assumptions['violations'].append(f"Group {i+1} appears non-normal")
+            if not norm_info["overall_normal"]:
+                assumptions["violations"].append(f"Group {i+1} appears non-normal")
 
         # Check homogeneity of variances
         stat, p_value = stats.levene(*groups)
-        assumptions['levene'] = {'statistic': stat, 'p_value': p_value}
+        assumptions["levene"] = {"statistic": stat, "p_value": p_value}
         if p_value < 0.05:
-            assumptions['violations'].append("Variances appear unequal (Levene's test p < 0.05)")
+            assumptions["violations"].append("Variances appear unequal (Levene's test p < 0.05)")
 
         # Check sample sizes
         sizes = [len(g) for g in groups]
         if min(sizes) < 30:
-            assumptions['violations'].append("Small sample size(s) detected (n < 30)")
+            assumptions["violations"].append("Small sample size(s) detected (n < 30)")
 
-        assumptions['sample_sizes'] = sizes
+        assumptions["sample_sizes"] = sizes
 
         return assumptions
 
     def _check_correlation_assumptions(self, x: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
         """Check assumptions for correlation analysis"""
-        assumptions = {'violations': []}
+        assumptions = {"violations": []}
 
         # Check linearity (using correlation coefficient)
         r, p = stats.pearsonr(x, y)
         rho, p_rho = stats.spearmanr(x, y)
 
         if abs(r - rho) > 0.2:
-            assumptions['violations'].append("Relationship may be non-linear")
+            assumptions["violations"].append("Relationship may be non-linear")
 
         # Check normality
         x_norm = self._check_normality(x)
         y_norm = self._check_normality(y)
 
-        if not x_norm['overall_normal']:
-            assumptions['violations'].append("X variable appears non-normal")
-        if not y_norm['overall_normal']:
-            assumptions['violations'].append("Y variable appears non-normal")
+        if not x_norm["overall_normal"]:
+            assumptions["violations"].append("X variable appears non-normal")
+        if not y_norm["overall_normal"]:
+            assumptions["violations"].append("Y variable appears non-normal")
 
         # Check homoscedasticity (simplified)
         # Split x into bins and check variance of y in each bin
@@ -846,16 +795,16 @@ class ComprehensiveVisualizationSystem:
                 max_var = max(variances)
                 min_var = min(variances)
                 if max_var / min_var > 4:  # Rule of thumb
-                    assumptions['violations'].append("Possible heteroscedasticity detected")
+                    assumptions["violations"].append("Possible heteroscedasticity detected")
 
-        assumptions['correlation_r'] = r
-        assumptions['correlation_rho'] = rho
+        assumptions["correlation_r"] = r
+        assumptions["correlation_rho"] = rho
 
         return assumptions
 
-    def _check_regression_assumptions(self, residuals: np.ndarray,
-                                     leverage: np.ndarray,
-                                     cooks_d: np.ndarray) -> List[str]:
+    def _check_regression_assumptions(
+        self, residuals: np.ndarray, leverage: np.ndarray, cooks_d: np.ndarray
+    ) -> List[str]:
         """Check regression assumptions"""
         violations = []
 
@@ -875,7 +824,7 @@ class ComprehensiveVisualizationSystem:
                 violations.append("Residuals may be autocorrelated")
 
         # Influential points
-        n_influential = np.sum(cooks_d > 4/len(cooks_d))
+        n_influential = np.sum(cooks_d > 4 / len(cooks_d))
         if n_influential > 0:
             violations.append(f"{n_influential} potentially influential points detected")
 
@@ -889,19 +838,19 @@ class ComprehensiveVisualizationSystem:
     def _calculate_summary_stats(self, data: np.ndarray) -> Dict[str, float]:
         """Calculate comprehensive summary statistics"""
         return {
-            'n': len(data),
-            'mean': float(np.mean(data)),
-            'median': float(np.median(data)),
-            'std': float(np.std(data, ddof=1)),
-            'var': float(np.var(data, ddof=1)),
-            'min': float(np.min(data)),
-            'max': float(np.max(data)),
-            'q1': float(np.percentile(data, 25)),
-            'q3': float(np.percentile(data, 75)),
-            'iqr': float(np.percentile(data, 75) - np.percentile(data, 25)),
-            'skewness': float(stats.skew(data)),
-            'kurtosis': float(stats.kurtosis(data)),
-            'cv': float(np.std(data, ddof=1) / np.mean(data)) if np.mean(data) != 0 else None
+            "n": len(data),
+            "mean": float(np.mean(data)),
+            "median": float(np.median(data)),
+            "std": float(np.std(data, ddof=1)),
+            "var": float(np.var(data, ddof=1)),
+            "min": float(np.min(data)),
+            "max": float(np.max(data)),
+            "q1": float(np.percentile(data, 25)),
+            "q3": float(np.percentile(data, 75)),
+            "iqr": float(np.percentile(data, 75) - np.percentile(data, 25)),
+            "skewness": float(stats.skew(data)),
+            "kurtosis": float(stats.kurtosis(data)),
+            "cv": float(np.std(data, ddof=1) / np.mean(data)) if np.mean(data) != 0 else None,
         }
 
     def _calculate_correlation_summary(self, x: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
@@ -911,11 +860,11 @@ class ComprehensiveVisualizationSystem:
         tau, p_tau = stats.kendalltau(x, y)
 
         return {
-            'pearson': {'r': r, 'p_value': p_r},
-            'spearman': {'rho': rho, 'p_value': p_rho},
-            'kendall': {'tau': tau, 'p_value': p_tau},
-            'r_squared': r**2,
-            'interpretation': self._interpret_correlation(r)
+            "pearson": {"r": r, "p_value": p_r},
+            "spearman": {"rho": rho, "p_value": p_rho},
+            "kendall": {"tau": tau, "p_value": p_tau},
+            "r_squared": r**2,
+            "interpretation": self._interpret_correlation(r),
         }
 
     def _interpret_correlation(self, r: float) -> str:
@@ -935,22 +884,21 @@ class ComprehensiveVisualizationSystem:
         direction = "positive" if r > 0 else "negative"
         return f"{strength} {direction} correlation"
 
-    def _generate_distribution_recommendations(self, data: np.ndarray,
-                                              normality_info: Dict,
-                                              outlier_info: Dict,
-                                              missing_info: Dict) -> List[str]:
+    def _generate_distribution_recommendations(
+        self, data: np.ndarray, normality_info: Dict, outlier_info: Dict, missing_info: Dict
+    ) -> List[str]:
         """Generate recommendations based on distribution analysis"""
         recommendations = []
 
-        if not normality_info.get('overall_normal', False):
+        if not normality_info.get("overall_normal", False):
             recommendations.append("Consider non-parametric tests or data transformation")
             recommendations.append("Log, square root, or Box-Cox transformation may help normalize data")
 
-        if outlier_info['count'] > 0:
+        if outlier_info["count"] > 0:
             recommendations.append(f"Consider investigating {outlier_info['count']} outliers")
             recommendations.append("Robust statistical methods may be more appropriate")
 
-        if missing_info['has_missing']:
+        if missing_info["has_missing"]:
             recommendations.append(f"Address {missing_info['count']} missing values")
             recommendations.append("Consider multiple imputation for missing data")
 
@@ -963,10 +911,10 @@ class ComprehensiveVisualizationSystem:
         """Generate warnings for comparison plots"""
         warnings = []
 
-        if assumption_results.get('violations'):
-            warnings.extend(assumption_results['violations'])
+        if assumption_results.get("violations"):
+            warnings.extend(assumption_results["violations"])
 
-        if min(assumption_results.get('sample_sizes', [30])) < 5:
+        if min(assumption_results.get("sample_sizes", [30])) < 5:
             warnings.append("Very small sample size(s) - results may be unreliable")
 
         return warnings
@@ -975,10 +923,10 @@ class ComprehensiveVisualizationSystem:
         """Generate recommendations for group comparisons"""
         recommendations = []
 
-        if 'Variances appear unequal' in assumption_results.get('violations', []):
+        if "Variances appear unequal" in assumption_results.get("violations", []):
             recommendations.append("Consider Welch's test for unequal variances")
 
-        if any('non-normal' in v for v in assumption_results.get('violations', [])):
+        if any("non-normal" in v for v in assumption_results.get("violations", [])):
             recommendations.append("Consider non-parametric alternatives (Kruskal-Wallis, Mann-Whitney)")
 
         return recommendations
@@ -987,7 +935,7 @@ class ComprehensiveVisualizationSystem:
         """Generate warnings for Q-Q plot"""
         warnings = []
 
-        if not normality_info.get('overall_normal', False):
+        if not normality_info.get("overall_normal", False):
             warnings.append("Deviation from normality detected")
 
         # Check for specific patterns
@@ -1000,11 +948,11 @@ class ComprehensiveVisualizationSystem:
     def _analyze_missing_patterns(self, data: pd.DataFrame) -> Dict[str, Any]:
         """Analyze missing data patterns"""
         missing_info = {
-            'total_missing': data.isnull().sum().sum(),
-            'missing_by_column': data.isnull().sum().to_dict(),
-            'missing_percentage': (data.isnull().sum() / len(data) * 100).to_dict(),
-            'complete_cases': len(data.dropna()),
-            'pattern': 'MCAR'  # Default assumption; Little's MCAR test not implemented
+            "total_missing": data.isnull().sum().sum(),
+            "missing_by_column": data.isnull().sum().to_dict(),
+            "missing_percentage": (data.isnull().sum() / len(data) * 100).to_dict(),
+            "complete_cases": len(data.dropna()),
+            "pattern": "MCAR",  # Default assumption; Little's MCAR test not implemented
         }
 
         # Check if missing data is related to other variables
@@ -1014,60 +962,54 @@ class ComprehensiveVisualizationSystem:
 
     # Visualization creation methods (simplified implementations)
 
-    def _create_histogram_kde(self, data: np.ndarray,
-                             config: VisualizationConfig,
-                             normality_info: Dict) -> go.Figure:
+    def _create_histogram_kde(self, data: np.ndarray, config: VisualizationConfig, normality_info: Dict) -> go.Figure:
         """Create histogram with KDE overlay"""
         fig = go.Figure()
 
         # Histogram
-        fig.add_trace(go.Histogram(
-            x=data,
-            name='Histogram',
-            nbinsx=30,
-            histnorm='probability density',
-            marker_color='lightblue',
-            opacity=0.7
-        ))
+        fig.add_trace(
+            go.Histogram(
+                x=data,
+                name="Histogram",
+                nbinsx=30,
+                histnorm="probability density",
+                marker_color="lightblue",
+                opacity=0.7,
+            )
+        )
 
         # KDE
         kde = stats.gaussian_kde(data)
         x_range = np.linspace(data.min(), data.max(), 100)
         kde_values = kde(x_range)
 
-        fig.add_trace(go.Scatter(
-            x=x_range,
-            y=kde_values,
-            mode='lines',
-            name='KDE',
-            line=dict(color='blue', width=2)
-        ))
+        fig.add_trace(go.Scatter(x=x_range, y=kde_values, mode="lines", name="KDE", line=dict(color="blue", width=2)))
 
         # Normal distribution overlay if requested
         if config.show_distribution_fit:
             mean, std = np.mean(data), np.std(data, ddof=1)
             normal_values = stats.norm.pdf(x_range, mean, std)
-            fig.add_trace(go.Scatter(
-                x=x_range,
-                y=normal_values,
-                mode='lines',
-                name='Normal fit',
-                line=dict(color='red', width=2, dash='dash')
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=x_range,
+                    y=normal_values,
+                    mode="lines",
+                    name="Normal fit",
+                    line=dict(color="red", width=2, dash="dash"),
+                )
+            )
 
         # Add mean and median lines
         if config.show_mean:
-            fig.add_vline(x=np.mean(data), line_dash="dash", line_color="green",
-                         annotation_text="Mean")
+            fig.add_vline(x=np.mean(data), line_dash="dash", line_color="green", annotation_text="Mean")
         if config.show_median:
-            fig.add_vline(x=np.median(data), line_dash="dash", line_color="orange",
-                         annotation_text="Median")
+            fig.add_vline(x=np.median(data), line_dash="dash", line_color="orange", annotation_text="Median")
 
         fig.update_layout(
             title=config.title + " - Histogram with KDE",
             xaxis_title=config.xlabel or "Value",
             yaxis_title="Density",
-            showlegend=True
+            showlegend=True,
         )
 
         return fig
@@ -1079,63 +1021,61 @@ class ComprehensiveVisualizationSystem:
         fig = go.Figure()
 
         # Q-Q points
-        fig.add_trace(go.Scatter(
-            x=theoretical_quantiles[0],
-            y=theoretical_quantiles[1],
-            mode='markers',
-            name='Data',
-            marker=dict(color='blue', size=5)
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=theoretical_quantiles[0],
+                y=theoretical_quantiles[1],
+                mode="markers",
+                name="Data",
+                marker=dict(color="blue", size=5),
+            )
+        )
 
         # Reference line
         x_range = [theoretical_quantiles[0].min(), theoretical_quantiles[0].max()]
-        fig.add_trace(go.Scatter(
-            x=x_range,
-            y=x_range,
-            mode='lines',
-            name='Normal line',
-            line=dict(color='red', dash='dash')
-        ))
+        fig.add_trace(
+            go.Scatter(x=x_range, y=x_range, mode="lines", name="Normal line", line=dict(color="red", dash="dash"))
+        )
 
         fig.update_layout(
             title=config.title + " - Q-Q Plot",
             xaxis_title="Theoretical Quantiles",
             yaxis_title="Sample Quantiles",
-            showlegend=True
+            showlegend=True,
         )
 
         return fig
 
-    def _create_box_violin_plot(self, data: np.ndarray,
-                               config: VisualizationConfig,
-                               outlier_info: Dict) -> go.Figure:
+    def _create_box_violin_plot(self, data: np.ndarray, config: VisualizationConfig, outlier_info: Dict) -> go.Figure:
         """Create combined box and violin plot"""
         fig = go.Figure()
 
         # Box plot
-        fig.add_trace(go.Box(
-            y=data,
-            name='Box plot',
-            boxmean='sd',  # Show mean and standard deviation
-            marker_color='lightblue',
-            boxpoints='outliers' if config.show_outliers else False
-        ))
+        fig.add_trace(
+            go.Box(
+                y=data,
+                name="Box plot",
+                boxmean="sd",  # Show mean and standard deviation
+                marker_color="lightblue",
+                boxpoints="outliers" if config.show_outliers else False,
+            )
+        )
 
         # Violin plot
-        fig.add_trace(go.Violin(
-            y=data,
-            name='Violin plot',
-            box_visible=True,
-            meanline_visible=True,
-            fillcolor='lightgreen',
-            opacity=0.6,
-            x0='Violin'
-        ))
+        fig.add_trace(
+            go.Violin(
+                y=data,
+                name="Violin plot",
+                box_visible=True,
+                meanline_visible=True,
+                fillcolor="lightgreen",
+                opacity=0.6,
+                x0="Violin",
+            )
+        )
 
         fig.update_layout(
-            title=config.title + " - Box & Violin Plot",
-            yaxis_title=config.ylabel or "Value",
-            showlegend=True
+            title=config.title + " - Box & Violin Plot", yaxis_title=config.ylabel or "Value", showlegend=True
         )
 
         return fig
@@ -1147,31 +1087,27 @@ class ComprehensiveVisualizationSystem:
 
         fig = go.Figure()
 
-        fig.add_trace(go.Scatter(
-            x=sorted_data,
-            y=ecdf,
-            mode='lines',
-            name='ECDF',
-            line=dict(color='blue', width=2)
-        ))
+        fig.add_trace(go.Scatter(x=sorted_data, y=ecdf, mode="lines", name="ECDF", line=dict(color="blue", width=2)))
 
         # Add theoretical CDF if normal
         if config.show_distribution_fit:
             mean, std = np.mean(data), np.std(data, ddof=1)
             theoretical_cdf = stats.norm.cdf(sorted_data, mean, std)
-            fig.add_trace(go.Scatter(
-                x=sorted_data,
-                y=theoretical_cdf,
-                mode='lines',
-                name='Normal CDF',
-                line=dict(color='red', width=2, dash='dash')
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=sorted_data,
+                    y=theoretical_cdf,
+                    mode="lines",
+                    name="Normal CDF",
+                    line=dict(color="red", width=2, dash="dash"),
+                )
+            )
 
         fig.update_layout(
             title=config.title + " - Empirical CDF",
             xaxis_title=config.xlabel or "Value",
             yaxis_title="Cumulative Probability",
-            showlegend=True
+            showlegend=True,
         )
 
         return fig
@@ -1179,71 +1115,76 @@ class ComprehensiveVisualizationSystem:
     # Additional plot creation methods would follow...
     # These are simplified - full implementation would be more comprehensive
 
-    def _create_interactive_box_plot(self, groups: List[np.ndarray],
-                                    labels: List[str],
-                                    config: VisualizationConfig,
-                                    assumption_results: Dict) -> go.Figure:
+    def _create_interactive_box_plot(
+        self, groups: List[np.ndarray], labels: List[str], config: VisualizationConfig, assumption_results: Dict
+    ) -> go.Figure:
         """Create interactive box plot for group comparison"""
         fig = go.Figure()
 
         for i, (group, label) in enumerate(zip(groups, labels)):
-            fig.add_trace(go.Box(
-                y=group,
-                name=label,
-                boxmean='sd',
-                boxpoints='all' if len(group) < 50 else 'outliers',
-                jitter=0.3,
-                pointpos=-1.8,
-                marker=dict(size=5)
-            ))
+            fig.add_trace(
+                go.Box(
+                    y=group,
+                    name=label,
+                    boxmean="sd",
+                    boxpoints="all" if len(group) < 50 else "outliers",
+                    jitter=0.3,
+                    pointpos=-1.8,
+                    marker=dict(size=5),
+                )
+            )
 
         # Add annotations for assumption violations
-        if assumption_results.get('violations'):
+        if assumption_results.get("violations"):
             fig.add_annotation(
-                text="⚠️ " + "; ".join(assumption_results['violations'][:2]),
-                xref="paper", yref="paper",
-                x=0.5, y=1.05,
+                text="⚠️ " + "; ".join(assumption_results["violations"][:2]),
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=1.05,
                 showarrow=False,
-                font=dict(color="red", size=10)
+                font=dict(color="red", size=10),
             )
 
         fig.update_layout(
             title=config.title + " - Interactive Box Plot",
             yaxis_title=config.ylabel or "Value",
             showlegend=True,
-            hovermode='x unified'
+            hovermode="x unified",
         )
 
         return fig
 
-    def _create_violin_plot_with_stats(self, groups: List[np.ndarray],
-                                      labels: List[str],
-                                      config: VisualizationConfig) -> go.Figure:
+    def _create_violin_plot_with_stats(
+        self, groups: List[np.ndarray], labels: List[str], config: VisualizationConfig
+    ) -> go.Figure:
         """Create violin plot with statistical overlays"""
         fig = go.Figure()
 
         for i, (group, label) in enumerate(zip(groups, labels)):
-            fig.add_trace(go.Violin(
-                y=group,
-                name=label,
-                box_visible=True,
-                meanline_visible=True,
-                line_color=f'rgb({i*50}, {100+i*30}, {200-i*30})',
-                fillcolor=f'rgba({i*50}, {100+i*30}, {200-i*30}, 0.3)'
-            ))
+            fig.add_trace(
+                go.Violin(
+                    y=group,
+                    name=label,
+                    box_visible=True,
+                    meanline_visible=True,
+                    line_color=f"rgb({i*50}, {100+i*30}, {200-i*30})",
+                    fillcolor=f"rgba({i*50}, {100+i*30}, {200-i*30}, 0.3)",
+                )
+            )
 
         fig.update_layout(
             title=config.title + " - Violin Plot with Statistics",
             yaxis_title=config.ylabel or "Value",
-            violinmode='group',
-            showlegend=True
+            violinmode="group",
+            showlegend=True,
         )
 
         return fig
 
-    def _create_mean_ci_plot(self, groups: List[np.ndarray],
-                           labels: List[str],
-                           config: VisualizationConfig) -> go.Figure:
+    def _create_mean_ci_plot(
+        self, groups: List[np.ndarray], labels: List[str], config: VisualizationConfig
+    ) -> go.Figure:
         """Create mean plot with confidence intervals"""
         fig = go.Figure()
 
@@ -1258,32 +1199,34 @@ class ComprehensiveVisualizationSystem:
             ci_lower.append(mean - ci)
             ci_upper.append(mean + ci)
 
-        fig.add_trace(go.Scatter(
-            x=labels,
-            y=means,
-            error_y=dict(
-                type='data',
-                symmetric=False,
-                array=[u - m for u, m in zip(ci_upper, means)],
-                arrayminus=[m - l for m, l in zip(means, ci_lower)]
-            ),
-            mode='markers',
-            marker=dict(size=10, color='blue'),
-            name=f'Mean ± {config.confidence_level*100:.0f}% CI'
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=labels,
+                y=means,
+                error_y=dict(
+                    type="data",
+                    symmetric=False,
+                    array=[u - m for u, m in zip(ci_upper, means)],
+                    arrayminus=[m - l for m, l in zip(means, ci_lower)],
+                ),
+                mode="markers",
+                marker=dict(size=10, color="blue"),
+                name=f"Mean ± {config.confidence_level*100:.0f}% CI",
+            )
+        )
 
         fig.update_layout(
             title=config.title + " - Means with Confidence Intervals",
             xaxis_title="Group",
             yaxis_title=config.ylabel or "Mean Value",
-            showlegend=True
+            showlegend=True,
         )
 
         return fig
 
-    def _create_raincloud_plot(self, groups: List[np.ndarray],
-                              labels: List[str],
-                              config: VisualizationConfig) -> go.Figure:
+    def _create_raincloud_plot(
+        self, groups: List[np.ndarray], labels: List[str], config: VisualizationConfig
+    ) -> go.Figure:
         """Create raincloud plot (violin + box + strip)"""
         # This is a simplified version - full raincloud would need custom implementation
         fig = make_subplots(rows=1, cols=len(groups), shared_yaxes=True)
@@ -1291,24 +1234,19 @@ class ComprehensiveVisualizationSystem:
         for i, (group, label) in enumerate(zip(groups, labels)):
             # Violin part
             fig.add_trace(
-                go.Violin(y=group, name=label, side='negative',
-                         line_color='lightblue', fillcolor='lightblue',
-                         opacity=0.5),
-                row=1, col=i+1
+                go.Violin(
+                    y=group, name=label, side="negative", line_color="lightblue", fillcolor="lightblue", opacity=0.5
+                ),
+                row=1,
+                col=i + 1,
             )
 
             # Box part
             fig.add_trace(
-                go.Box(y=group, name=label, boxmean=True,
-                      marker_color='darkblue', opacity=0.7),
-                row=1, col=i+1
+                go.Box(y=group, name=label, boxmean=True, marker_color="darkblue", opacity=0.7), row=1, col=i + 1
             )
 
-        fig.update_layout(
-            title=config.title + " - Raincloud Plot",
-            showlegend=False,
-            height=600
-        )
+        fig.update_layout(title=config.title + " - Raincloud Plot", showlegend=False, height=600)
 
         return fig
 

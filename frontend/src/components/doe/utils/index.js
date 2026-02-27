@@ -59,7 +59,7 @@ export {
   ResponsiveGrid
 };
 
-export default {
+const doeUtils = {
   ResponsiveDoePage,
   useIsMobile,
   useIsTablet,
@@ -71,3 +71,5 @@ export default {
   NotMobile,
   ResponsiveGrid
 };
+
+export default doeUtils;

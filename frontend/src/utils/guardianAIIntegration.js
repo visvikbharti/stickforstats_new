@@ -462,7 +462,7 @@ export function createGuardianSummaryCard(guardianContext) {
 }
 
 // Export default object with all utilities
-export default {
+const guardianAIIntegration = {
   GuardianSeverity,
   AssumptionStatus,
   formatAssumptionForAI,
@@ -474,3 +474,5 @@ export default {
   getAssumptionsForTest,
   createGuardianSummaryCard
 };
+
+export default guardianAIIntegration;

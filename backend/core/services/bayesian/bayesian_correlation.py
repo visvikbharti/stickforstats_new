@@ -20,15 +20,15 @@ Created: December 26, 2025
 from typing import Dict, Any, Tuple, Optional, List
 from dataclasses import dataclass, asdict
 import numpy as np
-from scipy import stats, integrate, special
+from scipy import stats, integrate
 
 from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability
-from .priors import BetaPrior
 
 
 @dataclass
 class BayesianCorrelationResult:
     """Complete result from Bayesian correlation analysis."""
+
     # Correlation
     r: float  # Sample correlation
     r_squared: float
@@ -106,11 +106,7 @@ def _stretched_beta_pdf(rho: np.ndarray, kappa: float = 1.0) -> np.ndarray:
     return pdf
 
 
-def _compute_correlation_bf(
-    r: float,
-    n: int,
-    kappa: float = 1.0
-) -> float:
+def _compute_correlation_bf(r: float, n: int, kappa: float = 1.0) -> float:
     """
     Compute Bayes Factor for correlation using exact method.
 
@@ -126,7 +122,7 @@ def _compute_correlation_bf(
     """
     # Special case: exact 0 or 1 correlation
     if abs(r) >= 0.9999:
-        return float('inf') if abs(r) > 0.5 else 1.0
+        return float("inf") if abs(r) > 0.5 else 1.0
 
     # Likelihood function for correlation
     # Under H0: rho = 0, the likelihood uses the marginal
@@ -158,9 +154,7 @@ def _compute_correlation_bf(
 
     try:
         # Numerical integration
-        marginal_h1, _ = integrate.quad(
-            integrand, -0.999, 0.999, limit=100
-        )
+        marginal_h1, _ = integrate.quad(integrand, -0.999, 0.999, limit=100)
     except:
         marginal_h1 = 0
 
@@ -183,10 +177,7 @@ def _compute_correlation_bf(
 
 
 def _compute_correlation_posterior(
-    r: float,
-    n: int,
-    kappa: float = 1.0,
-    n_points: int = 200
+    r: float, n: int, kappa: float = 1.0, n_points: int = 200
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute posterior distribution for correlation.
@@ -219,7 +210,7 @@ def _compute_correlation_posterior(
     posterior = prior * likelihood
 
     # Normalize
-    dx = rho_vals[1] - rho_vals[0]
+    rho_vals[1] - rho_vals[0]
     normalizing_constant = np.trapz(posterior, rho_vals)
 
     if normalizing_constant > 0:
@@ -231,9 +222,7 @@ def _compute_correlation_posterior(
 
 
 def _compute_hdi_correlation(
-    rho_vals: np.ndarray,
-    posterior: np.ndarray,
-    credible_mass: float = 0.95
+    rho_vals: np.ndarray, posterior: np.ndarray, credible_mass: float = 0.95
 ) -> Tuple[float, float]:
     """
     Compute HDI for correlation posterior.
@@ -267,11 +256,7 @@ def _compute_hdi_correlation(
 
 
 def bayesian_correlation(
-    x: np.ndarray,
-    y: np.ndarray,
-    kappa: float = 1.0,
-    credible_mass: float = 0.95,
-    robustness_check: bool = True
+    x: np.ndarray, y: np.ndarray, kappa: float = 1.0, credible_mass: float = 0.95, robustness_check: bool = True
 ) -> BayesianCorrelationResult:
     """
     Perform Bayesian correlation analysis.
@@ -311,8 +296,8 @@ def bayesian_correlation(
 
     # Bayes Factor
     bf10 = _compute_correlation_bf(r, n, kappa)
-    bf01 = 1 / bf10 if bf10 > 0 else float('inf')
-    log_bf10 = np.log(bf10) if bf10 > 0 else float('-inf')
+    bf01 = 1 / bf10 if bf10 > 0 else float("inf")
+    log_bf10 = np.log(bf10) if bf10 > 0 else float("-inf")
 
     # Interpretation
     interpretation = interpret_bayes_factor(bf10)
@@ -331,12 +316,12 @@ def bayesian_correlation(
 
     # Mode (MAP)
     mode_idx = np.argmax(posterior)
-    posterior_mode = rho_vals[mode_idx]
+    rho_vals[mode_idx]
 
     # Median
     cdf = np.cumsum(posterior_norm) * dx
     median_idx = np.searchsorted(cdf, 0.5)
-    posterior_median = rho_vals[min(median_idx, len(rho_vals)-1)]
+    posterior_median = rho_vals[min(median_idx, len(rho_vals) - 1)]
 
     # HDI
     hdi_low, hdi_high = _compute_hdi_correlation(rho_vals, posterior, credible_mass)
@@ -349,11 +334,7 @@ def bayesian_correlation(
     robustness = None
     if robustness_check:
         robustness = {}
-        kappa_values = {
-            'concentrated': 0.5,
-            'uniform': 1.0,
-            'diffuse': 2.0
-        }
+        kappa_values = {"concentrated": 0.5, "uniform": 1.0, "diffuse": 2.0}
         for name, k in kappa_values.items():
             bf_k = _compute_correlation_bf(r, n, k)
             robustness[name] = bf_k
@@ -365,14 +346,14 @@ def bayesian_correlation(
         bf01=float(bf01),
         log_bf10=float(log_bf10),
         interpretation={
-            'level': interpretation.level,
-            'label': interpretation.label,
-            'favors': interpretation.favors,
-            'strength': interpretation.strength,
-            'color': interpretation.color
+            "level": interpretation.level,
+            "label": interpretation.label,
+            "favors": interpretation.favors,
+            "strength": interpretation.strength,
+            "color": interpretation.color,
         },
-        posterior_probability_h1=probs['p_h1'],
-        posterior_probability_h0=probs['p_h0'],
+        posterior_probability_h1=probs["p_h1"],
+        posterior_probability_h0=probs["p_h0"],
         posterior_median=float(posterior_median),
         posterior_mean=float(posterior_mean),
         posterior_hdi=(float(hdi_low), float(hdi_high)),
@@ -386,14 +367,12 @@ def bayesian_correlation(
         posterior_y=posterior.tolist(),
         prior_x=prior_x.tolist(),
         prior_y=prior_y.tolist(),
-        robustness_check=robustness
+        robustness_check=robustness,
     )
 
 
 def correlation_matrix_bayesian(
-    data: np.ndarray,
-    variable_names: List[str] = None,
-    kappa: float = 1.0
+    data: np.ndarray, variable_names: List[str] = None, kappa: float = 1.0
 ) -> Dict[str, Any]:
     """
     Compute Bayesian correlation matrix for multiple variables.
@@ -423,14 +402,10 @@ def correlation_matrix_bayesian(
         for j in range(n_vars):
             if i == j:
                 r_matrix[i, j] = 1.0
-                bf_matrix[i, j] = float('nan')  # Not applicable
+                bf_matrix[i, j] = float("nan")  # Not applicable
                 p_matrix[i, j] = 0.0
             elif i < j:
-                result = bayesian_correlation(
-                    data[:, i], data[:, j],
-                    kappa=kappa,
-                    robustness_check=False
-                )
+                result = bayesian_correlation(data[:, i], data[:, j], kappa=kappa, robustness_check=False)
                 r_matrix[i, j] = result.r
                 r_matrix[j, i] = result.r
                 bf_matrix[i, j] = result.bf10
@@ -439,12 +414,12 @@ def correlation_matrix_bayesian(
                 p_matrix[j, i] = result.frequentist_p
 
     return {
-        'variables': variable_names,
-        'n': n_samples,
-        'correlation_matrix': r_matrix.tolist(),
-        'bayes_factor_matrix': bf_matrix.tolist(),
-        'p_value_matrix': p_matrix.tolist(),
-        'prior_kappa': kappa
+        "variables": variable_names,
+        "n": n_samples,
+        "correlation_matrix": r_matrix.tolist(),
+        "bayes_factor_matrix": bf_matrix.tolist(),
+        "p_value_matrix": p_matrix.tolist(),
+        "prior_kappa": kappa,
     }
 
 
@@ -474,10 +449,10 @@ def generate_correlation_interpretation(result: BayesianCorrelationResult) -> st
     # Main finding
     if result.bf10 >= 1:
         bf_str = f"BF10 = {result.bf10:.3f}"
-        times = result.bf10
+        result.bf10
     else:
         bf_str = f"BF01 = {result.bf01:.3f}"
-        times = result.bf01
+        result.bf01
 
     interp = result.interpretation
 

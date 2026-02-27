@@ -173,13 +173,13 @@ function setupPerformanceObservers() {
     
     // Layout shift observer
     if ('LayoutShift' in window) {
-      let cumulativeLayoutShift = 0;
+      let _cumulativeLayoutShift = 0;
       
       const layoutShiftObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach(entry => {
           // Only count layout shifts without recent user input
           if (!entry.hadRecentInput) {
-            cumulativeLayoutShift += entry.value;
+            _cumulativeLayoutShift += entry.value;
             
             if (currentOptions.logToConsole && entry.value > 0.05) {
               console.warn('Significant layout shift:', entry.value, entry);

@@ -32,69 +32,51 @@ from .templates import (
     get_template_names,
     OSFTemplate,
     AsPredictedTemplate,
-    JARSTemplate
+    JARSTemplate,
 )
 
-from .hypothesis import (
-    Hypothesis,
-    HypothesisFormulator,
-    HYPOTHESIS_TYPES,
-    VARIABLE_TYPES
-)
+from .hypothesis import Hypothesis, HypothesisFormulator, HYPOTHESIS_TYPES, VARIABLE_TYPES
 
-from .sample_size import (
-    SampleSizeJustification,
-    create_sample_size_justification,
-    JUSTIFICATION_STRATEGIES
-)
+from .sample_size import SampleSizeJustification, create_sample_size_justification, JUSTIFICATION_STRATEGIES
 
-from .analysis_plan import (
-    AnalysisPlan,
-    AnalysisStep,
-    create_analysis_plan,
-    create_standard_analysis_steps
-)
+from .analysis_plan import AnalysisPlan, AnalysisStep, create_analysis_plan, create_standard_analysis_steps
 
 from .preregistration import (
     PreRegistration,
     PreRegistrationBuilder,
     export_to_osf_json,
     export_to_markdown,
-    export_to_pdf_data
+    export_to_pdf_data,
 )
 
 __all__ = [
     # Templates
-    'PREREGISTRATION_TEMPLATES',
-    'get_template',
-    'get_template_names',
-    'OSFTemplate',
-    'AsPredictedTemplate',
-    'JARSTemplate',
-
+    "PREREGISTRATION_TEMPLATES",
+    "get_template",
+    "get_template_names",
+    "OSFTemplate",
+    "AsPredictedTemplate",
+    "JARSTemplate",
     # Hypothesis
-    'Hypothesis',
-    'HypothesisFormulator',
-    'HYPOTHESIS_TYPES',
-    'VARIABLE_TYPES',
-
+    "Hypothesis",
+    "HypothesisFormulator",
+    "HYPOTHESIS_TYPES",
+    "VARIABLE_TYPES",
     # Sample Size
-    'SampleSizeJustification',
-    'create_sample_size_justification',
-    'JUSTIFICATION_STRATEGIES',
-
+    "SampleSizeJustification",
+    "create_sample_size_justification",
+    "JUSTIFICATION_STRATEGIES",
     # Analysis Plan
-    'AnalysisPlan',
-    'AnalysisStep',
-    'create_analysis_plan',
-    'create_standard_analysis_steps',
-
+    "AnalysisPlan",
+    "AnalysisStep",
+    "create_analysis_plan",
+    "create_standard_analysis_steps",
     # Pre-Registration
-    'PreRegistration',
-    'PreRegistrationBuilder',
-    'export_to_osf_json',
-    'export_to_markdown',
-    'export_to_pdf_data'
+    "PreRegistration",
+    "PreRegistrationBuilder",
+    "export_to_osf_json",
+    "export_to_markdown",
+    "export_to_pdf_data",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

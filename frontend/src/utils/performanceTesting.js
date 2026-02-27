@@ -942,6 +942,8 @@ function generateRecommendations(scenarios) {
               recommendation: 'Reduce the number of resource requests by bundling assets, using sprite sheets for icons, or eliminating unnecessary resources. Consider implementing HTTP/2 to make multiple requests more efficient.'
             });
             break;
+          default:
+            break;
         }
       }
     }

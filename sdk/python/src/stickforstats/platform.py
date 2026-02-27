@@ -4,7 +4,7 @@ Platform module — wraps ``/api/v1/platform/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from stickforstats.models import TierInfo, UsageSummary
 
@@ -33,7 +33,7 @@ class PlatformModule:
         resp = self._client.get("platform/usage/")
         return UsageSummary.model_validate(resp)
 
-    def tiers(self) -> List[TierInfo]:
+    def tiers(self) -> list[TierInfo]:
         """
         List all available platform tiers and their features.
 

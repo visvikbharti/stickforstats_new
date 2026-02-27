@@ -333,7 +333,7 @@ export const createResponsiveTooltipPositioner = (container) => {
 };
 
 // Export all utilities
-export default {
+const responsiveUtils = {
   BREAKPOINTS,
   getCurrentBreakpoint,
   isBelowBreakpoint,
@@ -348,3 +348,5 @@ export default {
   makeResponsiveSvg,
   createResponsiveTooltipPositioner
 };
+
+export default responsiveUtils;

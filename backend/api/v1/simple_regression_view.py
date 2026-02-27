@@ -12,8 +12,10 @@ from decimal import Decimal, getcontext
 # Set precision
 getcontext().prec = 60
 
+
 class SimpleRegressionView(APIView):
     """Simple working regression endpoint"""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -23,12 +25,12 @@ class SimpleRegressionView(APIView):
         try:
             # Extract data
             data = request.data
-            regression_type = data.get('type', 'simple_linear')
-            X_data = data.get('X', [])
-            y_data = data.get('y', [])
+            regression_type = data.get("type", "simple_linear")
+            X_data = data.get("X", [])
+            y_data = data.get("y", [])
 
             # Convert to numpy arrays
-            if regression_type == 'simple_linear':
+            if regression_type == "simple_linear":
                 X = np.array(X_data).reshape(-1, 1)
             else:
                 X = np.array(X_data)
@@ -46,26 +48,22 @@ class SimpleRegressionView(APIView):
                 p_value_hp = str(Decimal(str(p_value)))
 
                 response_data = {
-                    'success': True,
-                    'method': 'simple_linear',
-                    'high_precision_result': {
-                        'slope': slope_hp,
-                        'intercept': intercept_hp,
-                        'r_squared': r_squared_hp,
-                        'p_value': p_value_hp,
-                        'standard_error': str(Decimal(str(std_err)))
+                    "success": True,
+                    "method": "simple_linear",
+                    "high_precision_result": {
+                        "slope": slope_hp,
+                        "intercept": intercept_hp,
+                        "r_squared": r_squared_hp,
+                        "p_value": p_value_hp,
+                        "standard_error": str(Decimal(str(std_err))),
                     },
-                    'standard_precision_result': {
-                        'slope': float(slope),
-                        'intercept': float(intercept),
-                        'r_squared': float(r_value**2),
-                        'p_value': float(p_value)
+                    "standard_precision_result": {
+                        "slope": float(slope),
+                        "intercept": float(intercept),
+                        "r_squared": float(r_value**2),
+                        "p_value": float(p_value),
                     },
-                    'metadata': {
-                        'n_samples': len(y),
-                        'n_features': 1,
-                        'precision': '50 decimals'
-                    }
+                    "metadata": {"n_samples": len(y), "n_features": 1, "precision": "50 decimals"},
                 }
             else:
                 # Multiple regression - use numpy for simplicity
@@ -84,29 +82,22 @@ class SimpleRegressionView(APIView):
                 r_squared = 1 - (ss_res / ss_tot)
 
                 response_data = {
-                    'success': True,
-                    'method': 'multiple_linear',
-                    'high_precision_result': {
-                        'intercept': str(Decimal(str(coeffs[0]))),
-                        'coefficients': [str(Decimal(str(c))) for c in coeffs[1:]],
-                        'r_squared': str(Decimal(str(r_squared)))
+                    "success": True,
+                    "method": "multiple_linear",
+                    "high_precision_result": {
+                        "intercept": str(Decimal(str(coeffs[0]))),
+                        "coefficients": [str(Decimal(str(c))) for c in coeffs[1:]],
+                        "r_squared": str(Decimal(str(r_squared))),
                     },
-                    'standard_precision_result': {
-                        'intercept': float(coeffs[0]),
-                        'coefficients': coeffs[1:].tolist(),
-                        'r_squared': float(r_squared)
+                    "standard_precision_result": {
+                        "intercept": float(coeffs[0]),
+                        "coefficients": coeffs[1:].tolist(),
+                        "r_squared": float(r_squared),
                     },
-                    'metadata': {
-                        'n_samples': len(y),
-                        'n_features': X.shape[1],
-                        'precision': '50 decimals'
-                    }
+                    "metadata": {"n_samples": len(y), "n_features": X.shape[1], "precision": "50 decimals"},
                 }
 
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response(
-                {'error': str(e), 'success': False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": str(e), "success": False}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

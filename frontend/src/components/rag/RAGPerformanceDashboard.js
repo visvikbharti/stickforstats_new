@@ -82,6 +82,7 @@ const RAGPerformanceDashboard = ({ timeRange = '1h', autoRefresh = true }) => {
     fetchMetrics();
     const interval = autoRefresh ? setInterval(fetchMetrics, 5000) : null;
     return () => interval && clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeRange, autoRefresh]);
 
   const fetchMetrics = async () => {

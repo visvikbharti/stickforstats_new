@@ -25,11 +25,10 @@ import {
 import {
   CompareArrows as CompareIcon,
   CheckCircle as BetterIcon,
-  Cancel as WorseIcon,
   Remove as SameIcon,
 } from '@mui/icons-material';
 
-import { TestComparisonViewProps, TestRecommendation } from './TestRecommendation.types';
+import { TestComparisonViewProps } from './TestRecommendation.types';
 
 const TestComparisonView: React.FC<TestComparisonViewProps> = ({
   tests,

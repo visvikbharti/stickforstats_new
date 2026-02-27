@@ -41,7 +41,7 @@ const prepareSvgForExport = (svgElement, options = {}) => {
   const {
     includeStyles = true,
     excludeElements = DEFAULT_SVG_OPTIONS.excludeElements,
-    copyAttributes = true,
+    copyAttributes: _copyAttributes = true,
     backgroundColor = null
   } = options;
   
@@ -477,7 +477,7 @@ export const exportControlsProps = {
 };
 
 // Main export
-export default {
+const exportUtils = {
   exportSvg,
   exportPng,
   exportChart,
@@ -487,3 +487,5 @@ export default {
   DEFAULT_SVG_OPTIONS,
   DEFAULT_PNG_OPTIONS
 };
+
+export default exportUtils;

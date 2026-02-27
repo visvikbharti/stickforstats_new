@@ -7,8 +7,6 @@
  * @scientific_rigor ABSOLUTE
  */
 
-import { ReactNode } from 'react';
-
 // Test category types
 export type TestCategory = 
   | 'comparison'

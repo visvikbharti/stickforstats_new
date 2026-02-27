@@ -19,6 +19,7 @@ from enum import Enum
 
 class TemplateSection(Enum):
     """Standard sections across templates."""
+
     TITLE = "title"
     AUTHORS = "authors"
     RESEARCH_QUESTIONS = "research_questions"
@@ -34,6 +35,7 @@ class TemplateSection(Enum):
 @dataclass
 class TemplateField:
     """A field within a pre-registration template."""
+
     id: str
     label: str
     description: str
@@ -50,6 +52,7 @@ class TemplateField:
 @dataclass
 class PreRegistrationTemplate:
     """Base class for pre-registration templates."""
+
     name: str
     version: str
     description: str
@@ -79,9 +82,7 @@ class PreRegistrationTemplate:
                 if len(str(data[field_def.id])) > field_def.max_length:
                     if field_def.id not in errors:
                         errors[field_def.id] = []
-                    errors[field_def.id].append(
-                        f"{field_def.label} exceeds maximum length of {field_def.max_length}"
-                    )
+                    errors[field_def.id].append(f"{field_def.label} exceeds maximum length of {field_def.max_length}")
 
         return errors
 
@@ -99,7 +100,7 @@ OSF_FIELDS = [
         field_type="text",
         section=TemplateSection.TITLE,
         placeholder="A descriptive title for your study",
-        max_length=500
+        max_length=500,
     ),
     TemplateField(
         id="authors",
@@ -108,7 +109,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.AUTHORS,
-        placeholder="Author 1 (Affiliation)\nAuthor 2 (Affiliation)"
+        placeholder="Author 1 (Affiliation)\nAuthor 2 (Affiliation)",
     ),
     TemplateField(
         id="research_questions",
@@ -117,7 +118,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.RESEARCH_QUESTIONS,
-        help_text="List each research question clearly and specifically."
+        help_text="List each research question clearly and specifically.",
     ),
     TemplateField(
         id="hypotheses",
@@ -126,7 +127,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.HYPOTHESES,
-        help_text="Be as precise as possible. Specify directionality where applicable."
+        help_text="Be as precise as possible. Specify directionality where applicable.",
     ),
     TemplateField(
         id="study_design",
@@ -142,9 +143,9 @@ OSF_FIELDS = [
             "Observational",
             "Longitudinal",
             "Cross-sectional",
-            "Other"
+            "Other",
         ],
-        section=TemplateSection.DESIGN
+        section=TemplateSection.DESIGN,
     ),
     TemplateField(
         id="design_description",
@@ -153,7 +154,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.DESIGN,
-        help_text="Include number of conditions, factors, and levels."
+        help_text="Include number of conditions, factors, and levels.",
     ),
     TemplateField(
         id="independent_variables",
@@ -162,7 +163,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.VARIABLES,
-        help_text="Include how each variable will be measured or manipulated."
+        help_text="Include how each variable will be measured or manipulated.",
     ),
     TemplateField(
         id="dependent_variables",
@@ -171,7 +172,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.VARIABLES,
-        help_text="Include how each variable will be measured."
+        help_text="Include how each variable will be measured.",
     ),
     TemplateField(
         id="covariates",
@@ -179,7 +180,7 @@ OSF_FIELDS = [
         description="List any covariates or control variables.",
         required=False,
         field_type="textarea",
-        section=TemplateSection.VARIABLES
+        section=TemplateSection.VARIABLES,
     ),
     TemplateField(
         id="sample_size",
@@ -188,7 +189,7 @@ OSF_FIELDS = [
         required=True,
         field_type="number",
         section=TemplateSection.SAMPLE,
-        validation={"min": 1}
+        validation={"min": 1},
     ),
     TemplateField(
         id="sample_size_rationale",
@@ -196,14 +197,8 @@ OSF_FIELDS = [
         description="How did you determine your sample size?",
         required=True,
         field_type="select",
-        options=[
-            "A priori power analysis",
-            "Resource constraints",
-            "Rule of thumb",
-            "Sequential analysis",
-            "Other"
-        ],
-        section=TemplateSection.SAMPLE
+        options=["A priori power analysis", "Resource constraints", "Rule of thumb", "Sequential analysis", "Other"],
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="power_analysis",
@@ -212,7 +207,7 @@ OSF_FIELDS = [
         required=False,
         field_type="textarea",
         section=TemplateSection.SAMPLE,
-        help_text="Include effect size, alpha, power, and software used."
+        help_text="Include effect size, alpha, power, and software used.",
     ),
     TemplateField(
         id="stopping_rule",
@@ -220,7 +215,7 @@ OSF_FIELDS = [
         description="What is your rule for stopping data collection?",
         required=True,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="inclusion_criteria",
@@ -228,7 +223,7 @@ OSF_FIELDS = [
         description="Describe criteria for including participants.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="exclusion_criteria",
@@ -236,7 +231,7 @@ OSF_FIELDS = [
         description="Describe criteria for excluding participants.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.DATA_EXCLUSION
+        section=TemplateSection.DATA_EXCLUSION,
     ),
     TemplateField(
         id="data_exclusion_procedures",
@@ -245,7 +240,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.DATA_EXCLUSION,
-        help_text="Include any outlier detection methods."
+        help_text="Include any outlier detection methods.",
     ),
     TemplateField(
         id="statistical_analyses",
@@ -254,7 +249,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.ANALYSIS,
-        help_text="Be specific about which tests you will use for which hypotheses."
+        help_text="Be specific about which tests you will use for which hypotheses.",
     ),
     TemplateField(
         id="inference_criteria",
@@ -263,7 +258,7 @@ OSF_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.ANALYSIS,
-        help_text="e.g., alpha = .05, Bayes Factor > 3, etc."
+        help_text="e.g., alpha = .05, Bayes Factor > 3, etc.",
     ),
     TemplateField(
         id="exploratory_analyses",
@@ -271,7 +266,7 @@ OSF_FIELDS = [
         description="Describe any exploratory analyses you plan to conduct.",
         required=False,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="other",
@@ -279,8 +274,8 @@ OSF_FIELDS = [
         description="Any other information you would like to include.",
         required=False,
         field_type="textarea",
-        section=TemplateSection.OTHER
-    )
+        section=TemplateSection.OTHER,
+    ),
 ]
 
 OSFTemplate = PreRegistrationTemplate(
@@ -299,8 +294,8 @@ OSFTemplate = PreRegistrationTemplate(
         TemplateSection.SAMPLE,
         TemplateSection.DATA_EXCLUSION,
         TemplateSection.ANALYSIS,
-        TemplateSection.OTHER
-    ]
+        TemplateSection.OTHER,
+    ],
 )
 
 
@@ -315,7 +310,7 @@ ASPREDICTED_FIELDS = [
         description="Working title for your study.",
         required=True,
         field_type="text",
-        section=TemplateSection.TITLE
+        section=TemplateSection.TITLE,
     ),
     TemplateField(
         id="authors",
@@ -323,7 +318,7 @@ ASPREDICTED_FIELDS = [
         description="Who are the authors of this study?",
         required=True,
         field_type="textarea",
-        section=TemplateSection.AUTHORS
+        section=TemplateSection.AUTHORS,
     ),
     TemplateField(
         id="data_collection_status",
@@ -333,9 +328,9 @@ ASPREDICTED_FIELDS = [
         field_type="select",
         options=[
             "No, no data have been collected for this study yet",
-            "Yes, data collection is already underway or complete"
+            "Yes, data collection is already underway or complete",
         ],
-        section=TemplateSection.OTHER
+        section=TemplateSection.OTHER,
     ),
     TemplateField(
         id="hypothesis",
@@ -344,7 +339,7 @@ ASPREDICTED_FIELDS = [
         required=True,
         field_type="textarea",
         section=TemplateSection.HYPOTHESES,
-        help_text="Describe the key DVs, IVs, and predicted relationship."
+        help_text="Describe the key DVs, IVs, and predicted relationship.",
     ),
     TemplateField(
         id="dependent_variable",
@@ -352,7 +347,7 @@ ASPREDICTED_FIELDS = [
         description="Describe the key dependent variable(s).",
         required=True,
         field_type="textarea",
-        section=TemplateSection.VARIABLES
+        section=TemplateSection.VARIABLES,
     ),
     TemplateField(
         id="conditions",
@@ -360,7 +355,7 @@ ASPREDICTED_FIELDS = [
         description="How many and which conditions will participants be assigned to?",
         required=True,
         field_type="textarea",
-        section=TemplateSection.DESIGN
+        section=TemplateSection.DESIGN,
     ),
     TemplateField(
         id="analyses",
@@ -368,7 +363,7 @@ ASPREDICTED_FIELDS = [
         description="Specify exactly which analyses you will conduct to examine each hypothesis.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="outliers",
@@ -376,7 +371,7 @@ ASPREDICTED_FIELDS = [
         description="Describe your rules for excluding data.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.DATA_EXCLUSION
+        section=TemplateSection.DATA_EXCLUSION,
     ),
     TemplateField(
         id="sample_size",
@@ -384,7 +379,7 @@ ASPREDICTED_FIELDS = [
         description="How many observations will be collected?",
         required=True,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="other",
@@ -392,7 +387,7 @@ ASPREDICTED_FIELDS = [
         description="Anything else you would like to pre-register?",
         required=False,
         field_type="textarea",
-        section=TemplateSection.OTHER
+        section=TemplateSection.OTHER,
     ),
     TemplateField(
         id="study_type",
@@ -400,14 +395,9 @@ ASPREDICTED_FIELDS = [
         description="What type of study is this?",
         required=True,
         field_type="select",
-        options=[
-            "Experiment",
-            "Survey",
-            "Observational",
-            "Other"
-        ],
-        section=TemplateSection.DESIGN
-    )
+        options=["Experiment", "Survey", "Observational", "Other"],
+        section=TemplateSection.DESIGN,
+    ),
 ]
 
 AsPredictedTemplate = PreRegistrationTemplate(
@@ -425,8 +415,8 @@ AsPredictedTemplate = PreRegistrationTemplate(
         TemplateSection.ANALYSIS,
         TemplateSection.DATA_EXCLUSION,
         TemplateSection.SAMPLE,
-        TemplateSection.OTHER
-    ]
+        TemplateSection.OTHER,
+    ],
 )
 
 
@@ -441,7 +431,7 @@ JARS_FIELDS = [
         description="Study title.",
         required=True,
         field_type="text",
-        section=TemplateSection.TITLE
+        section=TemplateSection.TITLE,
     ),
     TemplateField(
         id="abstract",
@@ -449,7 +439,7 @@ JARS_FIELDS = [
         description="Study abstract.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.TITLE
+        section=TemplateSection.TITLE,
     ),
     TemplateField(
         id="problem_statement",
@@ -457,7 +447,7 @@ JARS_FIELDS = [
         description="Statement of the problem or question being investigated.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.RESEARCH_QUESTIONS
+        section=TemplateSection.RESEARCH_QUESTIONS,
     ),
     TemplateField(
         id="theoretical_framework",
@@ -465,7 +455,7 @@ JARS_FIELDS = [
         description="Theoretical basis for the study and hypotheses.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.RESEARCH_QUESTIONS
+        section=TemplateSection.RESEARCH_QUESTIONS,
     ),
     TemplateField(
         id="hypotheses_aims",
@@ -473,7 +463,7 @@ JARS_FIELDS = [
         description="Specific hypotheses tested and/or objectives.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.HYPOTHESES
+        section=TemplateSection.HYPOTHESES,
     ),
     TemplateField(
         id="study_design",
@@ -487,9 +477,9 @@ JARS_FIELDS = [
             "Quasi-experimental",
             "Observational - Cross-sectional",
             "Observational - Longitudinal",
-            "Meta-analysis"
+            "Meta-analysis",
         ],
-        section=TemplateSection.DESIGN
+        section=TemplateSection.DESIGN,
     ),
     TemplateField(
         id="sampling_procedures",
@@ -497,7 +487,7 @@ JARS_FIELDS = [
         description="Procedures for selecting participants.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="sample_size_determination",
@@ -505,7 +495,7 @@ JARS_FIELDS = [
         description="How the sample size was determined.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="power_analysis_details",
@@ -513,7 +503,7 @@ JARS_FIELDS = [
         description="Details of any power analysis conducted.",
         required=False,
         field_type="textarea",
-        section=TemplateSection.SAMPLE
+        section=TemplateSection.SAMPLE,
     ),
     TemplateField(
         id="measures",
@@ -521,7 +511,7 @@ JARS_FIELDS = [
         description="Description of all measures and covariates.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.VARIABLES
+        section=TemplateSection.VARIABLES,
     ),
     TemplateField(
         id="data_collection",
@@ -529,7 +519,7 @@ JARS_FIELDS = [
         description="Data collection procedures and quality control.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.DESIGN
+        section=TemplateSection.DESIGN,
     ),
     TemplateField(
         id="statistical_analysis_plan",
@@ -537,7 +527,7 @@ JARS_FIELDS = [
         description="Planned statistical analyses for each hypothesis.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="missing_data",
@@ -545,7 +535,7 @@ JARS_FIELDS = [
         description="How missing data will be handled.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.DATA_EXCLUSION
+        section=TemplateSection.DATA_EXCLUSION,
     ),
     TemplateField(
         id="assumptions",
@@ -553,7 +543,7 @@ JARS_FIELDS = [
         description="How statistical assumptions will be checked.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="corrections",
@@ -561,7 +551,7 @@ JARS_FIELDS = [
         description="Procedures for correcting multiple comparisons.",
         required=False,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="effect_sizes",
@@ -569,7 +559,7 @@ JARS_FIELDS = [
         description="Which effect sizes will be reported.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
+        section=TemplateSection.ANALYSIS,
     ),
     TemplateField(
         id="confidence_intervals",
@@ -577,8 +567,8 @@ JARS_FIELDS = [
         description="Confidence intervals that will be reported.",
         required=True,
         field_type="textarea",
-        section=TemplateSection.ANALYSIS
-    )
+        section=TemplateSection.ANALYSIS,
+    ),
 ]
 
 JARSTemplate = PreRegistrationTemplate(
@@ -596,8 +586,8 @@ JARSTemplate = PreRegistrationTemplate(
         TemplateSection.VARIABLES,
         TemplateSection.DATA_EXCLUSION,
         TemplateSection.ANALYSIS,
-        TemplateSection.OTHER
-    ]
+        TemplateSection.OTHER,
+    ],
 )
 
 
@@ -605,11 +595,7 @@ JARSTemplate = PreRegistrationTemplate(
 # Template Registry
 # =====================
 
-PREREGISTRATION_TEMPLATES = {
-    'osf': OSFTemplate,
-    'aspredicted': AsPredictedTemplate,
-    'jars': JARSTemplate
-}
+PREREGISTRATION_TEMPLATES = {"osf": OSFTemplate, "aspredicted": AsPredictedTemplate, "jars": JARSTemplate}
 
 
 def get_template(name: str) -> PreRegistrationTemplate:
@@ -638,13 +624,15 @@ def get_template_info() -> List[Dict[str, Any]]:
     """Get information about all available templates."""
     info = []
     for name, template in PREREGISTRATION_TEMPLATES.items():
-        info.append({
-            'id': name,
-            'name': template.name,
-            'version': template.version,
-            'description': template.description,
-            'url': template.url,
-            'field_count': len(template.fields),
-            'required_field_count': len(template.get_required_fields())
-        })
+        info.append(
+            {
+                "id": name,
+                "name": template.name,
+                "version": template.version,
+                "description": template.description,
+                "url": template.url,
+                "field_count": len(template.fields),
+                "required_field_count": len(template.get_required_fields()),
+            }
+        )
     return info

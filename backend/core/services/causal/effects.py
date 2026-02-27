@@ -23,7 +23,7 @@ References:
 Created: December 26, 2025
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
@@ -34,6 +34,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 @dataclass
 class TreatmentEffectResult:
     """Result of treatment effect estimation."""
+
     estimand: str  # 'ate', 'att', 'atu'
     method: str
     estimate: float
@@ -48,23 +49,19 @@ class TreatmentEffectResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'estimand': self.estimand,
-            'method': self.method,
-            'estimate': self.estimate,
-            'std_error': self.std_error,
-            'confidence_interval': {
-                'lower': self.ci_lower,
-                'upper': self.ci_upper,
-                'level': 0.95
+            "estimand": self.estimand,
+            "method": self.method,
+            "estimate": self.estimate,
+            "std_error": self.std_error,
+            "confidence_interval": {"lower": self.ci_lower, "upper": self.ci_upper, "level": 0.95},
+            "p_value": self.p_value,
+            "sample_sizes": {
+                "treated": self.n_treated,
+                "control": self.n_control,
+                "total": self.n_treated + self.n_control,
             },
-            'p_value': self.p_value,
-            'sample_sizes': {
-                'treated': self.n_treated,
-                'control': self.n_control,
-                'total': self.n_treated + self.n_control
-            },
-            'diagnostics': self.diagnostics,
-            'warnings': self.warnings
+            "diagnostics": self.diagnostics,
+            "warnings": self.warnings,
         }
 
 
@@ -73,8 +70,8 @@ def estimate_ate(
     treatment: str,
     outcome: str,
     covariates: Optional[List[str]] = None,
-    method: str = 'regression',
-    confidence_level: float = 0.95
+    method: str = "regression",
+    confidence_level: float = 0.95,
 ) -> TreatmentEffectResult:
     """
     Estimate Average Treatment Effect (ATE).
@@ -99,7 +96,7 @@ def estimate_ate(
     n_treated = int(np.sum(T == 1))
     n_control = int(np.sum(T == 0))
 
-    if method == 'unadjusted':
+    if method == "unadjusted":
         # Simple difference in means
         y1 = Y[T == 1]
         y0 = Y[T == 0]
@@ -108,13 +105,13 @@ def estimate_ate(
         se = np.sqrt(np.var(y1, ddof=1) / n_treated + np.var(y0, ddof=1) / n_control)
 
         diagnostics = {
-            'mean_treated': float(np.mean(y1)),
-            'mean_control': float(np.mean(y0)),
-            'sd_treated': float(np.std(y1, ddof=1)),
-            'sd_control': float(np.std(y0, ddof=1))
+            "mean_treated": float(np.mean(y1)),
+            "mean_control": float(np.mean(y0)),
+            "sd_treated": float(np.std(y1, ddof=1)),
+            "sd_control": float(np.std(y0, ddof=1)),
         }
 
-    elif method == 'regression':
+    elif method == "regression":
         # Regression adjustment
         if covariates is None:
             covariates = []
@@ -136,31 +133,31 @@ def estimate_ate(
         # Standard error via sandwich estimator (simplified)
         residuals = Y - model.predict(X)
         n = len(Y)
-        k = X.shape[1]
+        X.shape[1]
 
         # Heteroskedasticity-robust SE
-        meat = X.T @ np.diag(residuals ** 2) @ X / n
+        meat = X.T @ np.diag(residuals**2) @ X / n
         bread = np.linalg.inv(X.T @ X / n)
         sandwich = bread @ meat @ bread / n
 
         se = np.sqrt(sandwich[1, 1])
 
         diagnostics = {
-            'method': 'OLS with covariates',
-            'n_covariates': len(covariates),
-            'r_squared': float(1 - np.sum(residuals ** 2) / np.sum((Y - np.mean(Y)) ** 2)),
-            'coefficients': {treatment: float(ate)}
+            "method": "OLS with covariates",
+            "n_covariates": len(covariates),
+            "r_squared": float(1 - np.sum(residuals**2) / np.sum((Y - np.mean(Y)) ** 2)),
+            "coefficients": {treatment: float(ate)},
         }
 
         if covariates:
             for i, cov in enumerate(covariates):
-                diagnostics['coefficients'][cov] = float(model.coef_[i + 2])
+                diagnostics["coefficients"][cov] = float(model.coef_[i + 2])
 
-    elif method == 'ipw':
+    elif method == "ipw":
         # IPW estimation
         if covariates is None or len(covariates) == 0:
             warnings.append("IPW without covariates reduces to unadjusted estimate")
-            return estimate_ate(data, treatment, outcome, None, 'unadjusted')
+            return estimate_ate(data, treatment, outcome, None, "unadjusted")
 
         # Estimate propensity scores
         X_cov = data[covariates].values
@@ -203,20 +200,10 @@ def estimate_ate(
         ess_c = np.sum(weights[T == 0]) ** 2 / np.sum(weights[T == 0] ** 2)
 
         diagnostics = {
-            'method': 'Inverse Probability Weighting',
-            'propensity_score': {
-                'mean': float(np.mean(ps)),
-                'min': float(np.min(ps)),
-                'max': float(np.max(ps))
-            },
-            'effective_sample_size': {
-                'treated': float(ess_t),
-                'control': float(ess_c)
-            },
-            'weighted_means': {
-                'treated': float(y1_weighted),
-                'control': float(y0_weighted)
-            }
+            "method": "Inverse Probability Weighting",
+            "propensity_score": {"mean": float(np.mean(ps)), "min": float(np.min(ps)), "max": float(np.max(ps))},
+            "effective_sample_size": {"treated": float(ess_t), "control": float(ess_c)},
+            "weighted_means": {"treated": float(y1_weighted), "control": float(y0_weighted)},
         }
 
     else:
@@ -230,7 +217,7 @@ def estimate_ate(
     ci_upper = ate + z_crit * se
 
     return TreatmentEffectResult(
-        estimand='ate',
+        estimand="ate",
         method=method,
         estimate=float(ate),
         std_error=float(se),
@@ -240,7 +227,7 @@ def estimate_ate(
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -249,8 +236,8 @@ def estimate_att(
     treatment: str,
     outcome: str,
     covariates: Optional[List[str]] = None,
-    method: str = 'regression',
-    confidence_level: float = 0.95
+    method: str = "regression",
+    confidence_level: float = 0.95,
 ) -> TreatmentEffectResult:
     """
     Estimate Average Treatment Effect on Treated (ATT).
@@ -275,7 +262,7 @@ def estimate_att(
     n_treated = int(np.sum(T == 1))
     n_control = int(np.sum(T == 0))
 
-    if method == 'unadjusted':
+    if method == "unadjusted":
         # For ATT, we need to model E[Y(0)|T=1]
         # Simple approach: use control mean (biased without adjustment)
         y1 = Y[T == 1]
@@ -286,12 +273,9 @@ def estimate_att(
 
         warnings.append("Unadjusted ATT assumes no confounding")
 
-        diagnostics = {
-            'mean_treated': float(np.mean(y1)),
-            'mean_control': float(np.mean(y0))
-        }
+        diagnostics = {"mean_treated": float(np.mean(y1)), "mean_control": float(np.mean(y0))}
 
-    elif method == 'regression':
+    elif method == "regression":
         # Regression adjustment with interaction terms
         if covariates is None:
             covariates = []
@@ -330,16 +314,16 @@ def estimate_att(
         se = np.std(boot_atts, ddof=1) if boot_atts else 0
 
         diagnostics = {
-            'method': 'regression_imputation',
-            'counterfactual_mean': float(np.mean(y0_pred)),
-            'observed_mean_treated': float(np.mean(Y[T == 1]))
+            "method": "regression_imputation",
+            "counterfactual_mean": float(np.mean(y0_pred)),
+            "observed_mean_treated": float(np.mean(Y[T == 1])),
         }
 
-    elif method == 'ipw':
+    elif method == "ipw":
         # IPW for ATT
         if covariates is None or len(covariates) == 0:
             warnings.append("IPW requires covariates")
-            return estimate_att(data, treatment, outcome, None, 'unadjusted')
+            return estimate_att(data, treatment, outcome, None, "unadjusted")
 
         # Estimate propensity scores
         X_cov = data[covariates].values
@@ -385,9 +369,9 @@ def estimate_att(
         se = np.std(boot_atts, ddof=1) if boot_atts else 0
 
         diagnostics = {
-            'method': 'IPW for ATT',
-            'weighted_control_mean': float(y0_weighted),
-            'observed_treated_mean': float(y1_mean)
+            "method": "IPW for ATT",
+            "weighted_control_mean": float(y0_weighted),
+            "observed_treated_mean": float(y1_mean),
         }
 
     else:
@@ -401,7 +385,7 @@ def estimate_att(
     ci_upper = att + z_crit * se
 
     return TreatmentEffectResult(
-        estimand='att',
+        estimand="att",
         method=method,
         estimate=float(att),
         std_error=float(se),
@@ -411,7 +395,7 @@ def estimate_att(
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -420,8 +404,8 @@ def estimate_effects_ipw(
     treatment: str,
     outcome: str,
     propensity_scores: np.ndarray,
-    estimand: str = 'ate',
-    confidence_level: float = 0.95
+    estimand: str = "ate",
+    confidence_level: float = 0.95,
 ) -> TreatmentEffectResult:
     """
     Estimate treatment effects using pre-computed propensity scores.
@@ -443,7 +427,7 @@ def estimate_effects_ipw(
     n_treated = int(np.sum(T == 1))
     n_control = int(np.sum(T == 0))
 
-    if estimand == 'ate':
+    if estimand == "ate":
         # ATE weights
         w1 = 1 / ps
         w0 = 1 / (1 - ps)
@@ -475,7 +459,7 @@ def estimate_effects_ipw(
 
     return TreatmentEffectResult(
         estimand=estimand,
-        method='ipw_precomputed',
+        method="ipw_precomputed",
         estimate=float(effect),
         std_error=float(se),
         ci_lower=float(effect - z_crit * se),
@@ -483,8 +467,8 @@ def estimate_effects_ipw(
         p_value=float(p_value),
         n_treated=n_treated,
         n_control=n_control,
-        diagnostics={'propensity_score_range': [float(np.min(ps)), float(np.max(ps))]},
-        warnings=[]
+        diagnostics={"propensity_score_range": [float(np.min(ps)), float(np.max(ps))]},
+        warnings=[],
     )
 
 
@@ -493,8 +477,8 @@ def doubly_robust_estimator(
     treatment: str,
     outcome: str,
     covariates: List[str],
-    estimand: str = 'ate',
-    confidence_level: float = 0.95
+    estimand: str = "ate",
+    confidence_level: float = 0.95,
 ) -> TreatmentEffectResult:
     """
     Doubly Robust (AIPW) estimation.
@@ -541,7 +525,7 @@ def doubly_robust_estimator(
     mu0_hat = model_0.predict(X)
 
     # Step 3: AIPW estimator
-    if estimand == 'ate':
+    if estimand == "ate":
         # E[Y(1)]
         term1 = T * (Y - mu1_hat) / ps + mu1_hat
         mu1_aipw = np.mean(term1)
@@ -582,21 +566,23 @@ def doubly_robust_estimator(
     p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
 
     diagnostics = {
-        'method': 'AIPW (Doubly Robust)',
-        'propensity_model': 'logistic regression',
-        'outcome_model': 'linear regression',
-        'propensity_score_range': [float(np.min(ps)), float(np.max(ps))],
-        'outcome_r2': {
-            'treated_model': float(1 - np.sum((Y[T == 1] - mu1_hat[T == 1]) ** 2) /
-                                   np.sum((Y[T == 1] - np.mean(Y[T == 1])) ** 2)),
-            'control_model': float(1 - np.sum((Y[T == 0] - mu0_hat[T == 0]) ** 2) /
-                                   np.sum((Y[T == 0] - np.mean(Y[T == 0])) ** 2))
-        }
+        "method": "AIPW (Doubly Robust)",
+        "propensity_model": "logistic regression",
+        "outcome_model": "linear regression",
+        "propensity_score_range": [float(np.min(ps)), float(np.max(ps))],
+        "outcome_r2": {
+            "treated_model": float(
+                1 - np.sum((Y[T == 1] - mu1_hat[T == 1]) ** 2) / np.sum((Y[T == 1] - np.mean(Y[T == 1])) ** 2)
+            ),
+            "control_model": float(
+                1 - np.sum((Y[T == 0] - mu0_hat[T == 0]) ** 2) / np.sum((Y[T == 0] - np.mean(Y[T == 0])) ** 2)
+            ),
+        },
     }
 
     return TreatmentEffectResult(
         estimand=estimand,
-        method='doubly_robust',
+        method="doubly_robust",
         estimate=float(effect),
         std_error=float(se),
         ci_lower=float(effect - z_crit * se),
@@ -605,7 +591,7 @@ def doubly_robust_estimator(
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -615,7 +601,7 @@ def sensitivity_analysis(
     outcome: str,
     covariates: List[str],
     gamma_range: Tuple[float, float] = (1.0, 2.0),
-    n_points: int = 10
+    n_points: int = 10,
 ) -> Dict[str, Any]:
     """
     Sensitivity analysis for unmeasured confounding.
@@ -635,7 +621,7 @@ def sensitivity_analysis(
         Dictionary with sensitivity analysis results
     """
     # Get point estimate
-    result = doubly_robust_estimator(data, treatment, outcome, covariates, 'ate')
+    result = doubly_robust_estimator(data, treatment, outcome, covariates, "ate")
     point_estimate = result.estimate
 
     # Sensitivity analysis using Rosenbaum bounds
@@ -649,26 +635,23 @@ def sensitivity_analysis(
         lower = point_estimate - gamma * result.std_error * z_crit
         upper = point_estimate + gamma * result.std_error * z_crit
 
-        bounds.append({
-            'gamma': float(gamma),
-            'lower': float(lower),
-            'upper': float(upper),
-            'includes_zero': lower <= 0 <= upper
-        })
+        bounds.append(
+            {"gamma": float(gamma), "lower": float(lower), "upper": float(upper), "includes_zero": lower <= 0 <= upper}
+        )
 
     # Find gamma where effect becomes non-significant
     gamma_critical = None
     for b in bounds:
-        if b['includes_zero']:
-            gamma_critical = b['gamma']
+        if b["includes_zero"]:
+            gamma_critical = b["gamma"]
             break
 
     return {
-        'point_estimate': float(point_estimate),
-        'std_error': float(result.std_error),
-        'sensitivity_bounds': bounds,
-        'gamma_critical': gamma_critical,
-        'interpretation': _interpret_sensitivity(gamma_critical)
+        "point_estimate": float(point_estimate),
+        "std_error": float(result.std_error),
+        "sensitivity_bounds": bounds,
+        "gamma_critical": gamma_critical,
+        "interpretation": _interpret_sensitivity(gamma_critical),
     }
 
 

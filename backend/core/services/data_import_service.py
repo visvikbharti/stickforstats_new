@@ -28,13 +28,13 @@ MAX_SAMPLE_VALUES = 5
 
 # Supported file extensions and their canonical format names
 SUPPORTED_FORMATS = {
-    '.csv': 'csv',
-    '.xlsx': 'excel',
-    '.xls': 'excel',
-    '.sav': 'spss',
-    '.sas7bdat': 'sas',
-    '.dta': 'stata',
-    '.json': 'json',
+    ".csv": "csv",
+    ".xlsx": "excel",
+    ".xls": "excel",
+    ".sav": "spss",
+    ".sas7bdat": "sas",
+    ".dta": "stata",
+    ".json": "json",
 }
 
 
@@ -56,6 +56,7 @@ class DataImportResult:
         errors: List of error messages if import failed.
         dataframe: The full pandas DataFrame (not serialized; for downstream use in Python).
     """
+
     success: bool = True
     data: List[Dict[str, Any]] = field(default_factory=list)
     columns: List[Dict[str, Any]] = field(default_factory=list)
@@ -71,16 +72,16 @@ class DataImportResult:
         """Serialize to a JSON-safe dictionary, limiting data to preview_rows."""
         preview_data = self.data[:preview_rows] if self.data else []
         return {
-            'success': self.success,
-            'data': preview_data,
-            'columns': self.columns,
-            'n_rows': self.n_rows,
-            'n_cols': self.n_cols,
-            'n_preview_rows': len(preview_data),
-            'variable_metadata': self.variable_metadata,
-            'file_info': self.file_info,
-            'warnings': self.warnings,
-            'errors': self.errors,
+            "success": self.success,
+            "data": preview_data,
+            "columns": self.columns,
+            "n_rows": self.n_rows,
+            "n_cols": self.n_cols,
+            "n_preview_rows": len(preview_data),
+            "variable_metadata": self.variable_metadata,
+            "file_info": self.file_info,
+            "warnings": self.warnings,
+            "errors": self.errors,
         }
 
 
@@ -99,19 +100,19 @@ class DataImportService:
 
     # Map format names to importer methods
     _IMPORTERS = {
-        'csv': '_import_csv',
-        'excel': '_import_excel',
-        'spss': '_import_spss',
-        'sas': '_import_sas',
-        'stata': '_import_stata',
-        'json': '_import_json',
+        "csv": "_import_csv",
+        "excel": "_import_excel",
+        "spss": "_import_spss",
+        "sas": "_import_sas",
+        "stata": "_import_stata",
+        "json": "_import_json",
     }
 
     def import_file(
         self,
         file_obj,
         file_type: Optional[str] = None,
-        encoding: str = 'utf-8',
+        encoding: str = "utf-8",
     ) -> DataImportResult:
         """
         Import a data file and return a DataImportResult.
@@ -135,36 +136,33 @@ class DataImportService:
             file_type = self._detect_format(file_obj)
 
         if file_type is None:
-            file_name = getattr(file_obj, 'name', 'unknown')
-            ext = os.path.splitext(file_name)[1].lower() if file_name else ''
-            supported = ', '.join(sorted(SUPPORTED_FORMATS.keys()))
+            file_name = getattr(file_obj, "name", "unknown")
+            ext = os.path.splitext(file_name)[1].lower() if file_name else ""
+            supported = ", ".join(sorted(SUPPORTED_FORMATS.keys()))
             result.success = False
-            result.errors.append(
-                f"Unsupported file extension '{ext}'. "
-                f"Supported formats: {supported}"
-            )
+            result.errors.append(f"Unsupported file extension '{ext}'. " f"Supported formats: {supported}")
             return result
 
         # --- Populate file info ---
-        file_name = getattr(file_obj, 'name', 'unknown')
+        file_name = getattr(file_obj, "name", "unknown")
         file_size = 0
-        if hasattr(file_obj, 'size'):
+        if hasattr(file_obj, "size"):
             file_size = file_obj.size
-        elif hasattr(file_obj, 'seek') and hasattr(file_obj, 'tell'):
+        elif hasattr(file_obj, "seek") and hasattr(file_obj, "tell"):
             current_pos = file_obj.tell()
             file_obj.seek(0, 2)  # seek to end
             file_size = file_obj.tell()
             file_obj.seek(current_pos)  # seek back
 
         result.file_info = {
-            'format': file_type,
-            'original_name': file_name,
-            'size_bytes': file_size,
-            'encoding': encoding if file_type in ('csv', 'json') else None,
+            "format": file_type,
+            "original_name": file_name,
+            "size_bytes": file_size,
+            "encoding": encoding if file_type in ("csv", "json") else None,
         }
 
         # --- Ensure file position is at the start ---
-        if hasattr(file_obj, 'seek'):
+        if hasattr(file_obj, "seek"):
             file_obj.seek(0)
 
         # --- Call the appropriate importer ---
@@ -204,7 +202,10 @@ class DataImportService:
 
         logger.info(
             "Successfully imported %s: %d rows x %d cols from '%s'",
-            file_type.upper(), result.n_rows, result.n_cols, file_name,
+            file_type.upper(),
+            result.n_rows,
+            result.n_cols,
+            file_name,
         )
         return result
 
@@ -212,39 +213,32 @@ class DataImportService:
     # Format-specific importers
     # ------------------------------------------------------------------
 
-    def _import_csv(
-        self, file_obj, encoding: str = 'utf-8', **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_csv(self, file_obj, encoding: str = "utf-8", **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """Import a CSV file using pandas."""
         warnings_list: List[str] = []
         try:
             df = pd.read_csv(file_obj, encoding=encoding)
         except UnicodeDecodeError:
             # Retry with latin-1 encoding
-            if hasattr(file_obj, 'seek'):
+            if hasattr(file_obj, "seek"):
                 file_obj.seek(0)
-            df = pd.read_csv(file_obj, encoding='latin-1')
-            warnings_list.append(
-                f"File could not be read as {encoding}; fell back to latin-1 encoding."
-            )
+            df = pd.read_csv(file_obj, encoding="latin-1")
+            warnings_list.append(f"File could not be read as {encoding}; fell back to latin-1 encoding.")
         return df, {}, warnings_list
 
-    def _import_excel(
-        self, file_obj, **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_excel(self, file_obj, **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """Import an Excel file (.xlsx/.xls) using pandas + openpyxl/xlrd."""
         warnings_list: List[str] = []
         try:
             df = pd.read_excel(file_obj, engine=None)  # auto-detect engine
         except ImportError as e:
-            missing_pkg = 'openpyxl' if 'openpyxl' in str(e) else 'xlrd'
+            missing_pkg = "openpyxl" if "openpyxl" in str(e) else "xlrd"
             raise ImportError(
-                f"Excel support requires the '{missing_pkg}' package. "
-                f"Install it with: pip install {missing_pkg}"
+                f"Excel support requires the '{missing_pkg}' package. " f"Install it with: pip install {missing_pkg}"
             ) from e
 
         # Check for multiple sheets
-        if hasattr(file_obj, 'seek'):
+        if hasattr(file_obj, "seek"):
             file_obj.seek(0)
         try:
             xls = pd.ExcelFile(file_obj)
@@ -258,16 +252,13 @@ class DataImportService:
 
         return df, {}, warnings_list
 
-    def _import_spss(
-        self, file_obj, **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_spss(self, file_obj, **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """Import an SPSS .sav file using pyreadstat."""
         try:
             import pyreadstat
         except ImportError:
             raise ImportError(
-                "SPSS file support requires the 'pyreadstat' package. "
-                "Install it with: pip install pyreadstat"
+                "SPSS file support requires the 'pyreadstat' package. " "Install it with: pip install pyreadstat"
             )
 
         warnings_list: List[str] = []
@@ -279,16 +270,13 @@ class DataImportService:
         metadata = self._extract_pyreadstat_metadata(meta)
         return df, metadata, warnings_list
 
-    def _import_sas(
-        self, file_obj, **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_sas(self, file_obj, **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """Import a SAS .sas7bdat file using pyreadstat."""
         try:
             import pyreadstat
         except ImportError:
             raise ImportError(
-                "SAS file support requires the 'pyreadstat' package. "
-                "Install it with: pip install pyreadstat"
+                "SAS file support requires the 'pyreadstat' package. " "Install it with: pip install pyreadstat"
             )
 
         warnings_list: List[str] = []
@@ -298,16 +286,13 @@ class DataImportService:
         metadata = self._extract_pyreadstat_metadata(meta)
         return df, metadata, warnings_list
 
-    def _import_stata(
-        self, file_obj, **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_stata(self, file_obj, **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """Import a Stata .dta file using pyreadstat."""
         try:
             import pyreadstat
         except ImportError:
             raise ImportError(
-                "Stata file support requires the 'pyreadstat' package. "
-                "Install it with: pip install pyreadstat"
+                "Stata file support requires the 'pyreadstat' package. " "Install it with: pip install pyreadstat"
             )
 
         warnings_list: List[str] = []
@@ -317,9 +302,7 @@ class DataImportService:
         metadata = self._extract_pyreadstat_metadata(meta)
         return df, metadata, warnings_list
 
-    def _import_json(
-        self, file_obj, encoding: str = 'utf-8', **kwargs
-    ) -> Tuple[pd.DataFrame, Dict, List[str]]:
+    def _import_json(self, file_obj, encoding: str = "utf-8", **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
         """
         Import a JSON file using pandas.
 
@@ -348,13 +331,9 @@ class DataImportService:
             else:
                 # Single record
                 df = pd.DataFrame([parsed])
-                warnings_list.append(
-                    "JSON contained a single object; imported as one row."
-                )
+                warnings_list.append("JSON contained a single object; imported as one row.")
         else:
-            raise ValueError(
-                "Unsupported JSON structure. Expected a list of objects or a dict of arrays."
-            )
+            raise ValueError("Unsupported JSON structure. Expected a list of objects or a dict of arrays.")
 
         return df, {}, warnings_list
 
@@ -365,7 +344,7 @@ class DataImportService:
     @staticmethod
     def _detect_format(file_obj) -> Optional[str]:
         """Detect the file format from its extension."""
-        name = getattr(file_obj, 'name', None)
+        name = getattr(file_obj, "name", None)
         if name is None:
             return None
         ext = os.path.splitext(name)[1].lower()
@@ -383,7 +362,7 @@ class DataImportService:
 
         data = file_obj.read()
         if isinstance(data, str):
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
         return io.BytesIO(data)
 
     @staticmethod
@@ -395,43 +374,39 @@ class DataImportService:
         metadata: Dict[str, Any] = {}
 
         # Variable labels (column_name -> human-readable label)
-        if hasattr(meta, 'column_names_to_labels') and meta.column_names_to_labels:
-            metadata['variable_labels'] = {
-                k: v for k, v in meta.column_names_to_labels.items() if v
-            }
+        if hasattr(meta, "column_names_to_labels") and meta.column_names_to_labels:
+            metadata["variable_labels"] = {k: v for k, v in meta.column_names_to_labels.items() if v}
 
         # Value labels (column_name -> {code: label})
-        if hasattr(meta, 'variable_value_labels') and meta.variable_value_labels:
-            metadata['value_labels'] = {}
+        if hasattr(meta, "variable_value_labels") and meta.variable_value_labels:
+            metadata["value_labels"] = {}
             for col, mapping in meta.variable_value_labels.items():
                 if mapping:
                     # Convert numeric keys to strings for JSON safety
-                    metadata['value_labels'][col] = {
-                        str(k): str(v) for k, v in mapping.items()
-                    }
+                    metadata["value_labels"][col] = {str(k): str(v) for k, v in mapping.items()}
 
         # Missing value definitions (SPSS user-defined missing values)
-        if hasattr(meta, 'missing_ranges') and meta.missing_ranges:
-            metadata['missing_ranges'] = {}
+        if hasattr(meta, "missing_ranges") and meta.missing_ranges:
+            metadata["missing_ranges"] = {}
             for col, ranges in meta.missing_ranges.items():
                 if ranges:
-                    metadata['missing_ranges'][col] = [
+                    metadata["missing_ranges"][col] = [
                         {
-                            'lo': _safe_scalar(r.get('lo')),
-                            'hi': _safe_scalar(r.get('hi')),
+                            "lo": _safe_scalar(r.get("lo")),
+                            "hi": _safe_scalar(r.get("hi")),
                         }
                         for r in ranges
                     ]
 
         # File-level metadata
-        if hasattr(meta, 'file_label') and meta.file_label:
-            metadata['file_label'] = str(meta.file_label)
-        if hasattr(meta, 'file_encoding') and meta.file_encoding:
-            metadata['file_encoding'] = str(meta.file_encoding)
-        if hasattr(meta, 'number_rows'):
-            metadata['original_row_count'] = int(meta.number_rows)
-        if hasattr(meta, 'number_columns'):
-            metadata['original_column_count'] = int(meta.number_columns)
+        if hasattr(meta, "file_label") and meta.file_label:
+            metadata["file_label"] = str(meta.file_label)
+        if hasattr(meta, "file_encoding") and meta.file_encoding:
+            metadata["file_encoding"] = str(meta.file_encoding)
+        if hasattr(meta, "number_rows"):
+            metadata["original_row_count"] = int(meta.number_rows)
+        if hasattr(meta, "number_columns"):
+            metadata["original_column_count"] = int(meta.number_columns)
 
         return metadata
 
@@ -453,31 +428,31 @@ class DataImportService:
             dtype_str = str(series.dtype)
             if pd.api.types.is_numeric_dtype(series):
                 if pd.api.types.is_integer_dtype(series):
-                    dtype_str = 'integer'
+                    dtype_str = "integer"
                 else:
-                    dtype_str = 'numeric'
+                    dtype_str = "numeric"
             elif pd.api.types.is_datetime64_any_dtype(series):
-                dtype_str = 'datetime'
+                dtype_str = "datetime"
             elif pd.api.types.is_bool_dtype(series):
-                dtype_str = 'boolean'
+                dtype_str = "boolean"
             elif pd.api.types.is_categorical_dtype(series):
-                dtype_str = 'categorical'
+                dtype_str = "categorical"
             else:
-                dtype_str = 'string'
+                dtype_str = "string"
 
             # Collect sample non-null values
             non_null = series.dropna()
-            sample_values = [
-                _safe_scalar(v) for v in non_null.head(MAX_SAMPLE_VALUES).tolist()
-            ]
+            sample_values = [_safe_scalar(v) for v in non_null.head(MAX_SAMPLE_VALUES).tolist()]
 
-            columns.append({
-                'name': str(col),
-                'dtype': dtype_str,
-                'n_unique': n_unique,
-                'n_missing': n_missing,
-                'sample_values': sample_values,
-            })
+            columns.append(
+                {
+                    "name": str(col),
+                    "dtype": dtype_str,
+                    "n_unique": n_unique,
+                    "n_missing": n_missing,
+                    "sample_values": sample_values,
+                }
+            )
         return columns
 
     @staticmethod
@@ -499,46 +474,46 @@ class DataImportService:
         """Return a list of supported file formats with descriptions."""
         return [
             {
-                'extension': '.csv',
-                'format': 'csv',
-                'description': 'Comma-separated values',
-                'requires': 'pandas (built-in)',
+                "extension": ".csv",
+                "format": "csv",
+                "description": "Comma-separated values",
+                "requires": "pandas (built-in)",
             },
             {
-                'extension': '.xlsx',
-                'format': 'excel',
-                'description': 'Microsoft Excel (modern)',
-                'requires': 'openpyxl',
+                "extension": ".xlsx",
+                "format": "excel",
+                "description": "Microsoft Excel (modern)",
+                "requires": "openpyxl",
             },
             {
-                'extension': '.xls',
-                'format': 'excel',
-                'description': 'Microsoft Excel (legacy)',
-                'requires': 'xlrd',
+                "extension": ".xls",
+                "format": "excel",
+                "description": "Microsoft Excel (legacy)",
+                "requires": "xlrd",
             },
             {
-                'extension': '.sav',
-                'format': 'spss',
-                'description': 'IBM SPSS Statistics',
-                'requires': 'pyreadstat',
+                "extension": ".sav",
+                "format": "spss",
+                "description": "IBM SPSS Statistics",
+                "requires": "pyreadstat",
             },
             {
-                'extension': '.sas7bdat',
-                'format': 'sas',
-                'description': 'SAS Data Set',
-                'requires': 'pyreadstat',
+                "extension": ".sas7bdat",
+                "format": "sas",
+                "description": "SAS Data Set",
+                "requires": "pyreadstat",
             },
             {
-                'extension': '.dta',
-                'format': 'stata',
-                'description': 'Stata Data File',
-                'requires': 'pyreadstat',
+                "extension": ".dta",
+                "format": "stata",
+                "description": "Stata Data File",
+                "requires": "pyreadstat",
             },
             {
-                'extension': '.json',
-                'format': 'json',
-                'description': 'JSON (records or columnar)',
-                'requires': 'pandas (built-in)',
+                "extension": ".json",
+                "format": "json",
+                "description": "JSON (records or columnar)",
+                "requires": "pandas (built-in)",
             },
         ]
 
@@ -567,5 +542,5 @@ def _safe_scalar(value) -> Any:
     if isinstance(value, pd.Timestamp):
         return value.isoformat()
     if isinstance(value, (bytes,)):
-        return value.decode('utf-8', errors='replace')
+        return value.decode("utf-8", errors="replace")
     return value

@@ -8,22 +8,16 @@
  * @scientific_rigor ABSOLUTE
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
   Typography,
   Grid,
   Alert,
-  Tabs,
-  Tab,
   Button,
   ButtonGroup,
-  Chip,
   Badge,
-  IconButton,
-  Tooltip,
-  Collapse,
   LinearProgress,
   Dialog,
   DialogTitle,
@@ -34,15 +28,10 @@ import {
 import {
   Science as ScienceIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
   CompareArrows as CompareIcon,
-  Code as CodeIcon,
-  School as SchoolIcon,
   FilterList as FilterIcon,
   Sort as SortIcon,
   Download as DownloadIcon,
-  PlayArrow as RunIcon,
   ViewModule as CardsIcon,
   ViewList as ListIcon,
   TableChart as TableIcon,
@@ -50,19 +39,15 @@ import {
 
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { setSelectedTests, setTestResults } from '../../store/slices/analysisSlice';
+import { setSelectedTests } from '../../store/slices/analysisSlice';
 
 import TestCard from './TestCard';
-import AssumptionPanel from './AssumptionPanel';
 import TestComparisonView from './TestComparisonView';
 import FilterPanel from './FilterPanel';
-import ImplementationViewer from './ImplementationViewer';
 
 import {
   TestRecommendationProps,
   TestRecommendation,
-  TestFilterOptions,
-  TestSortOptions,
   TestRecommendationState,
 } from './TestRecommendation.types';
 
@@ -90,7 +75,7 @@ const TestRecommendationComponent: React.FC<TestRecommendationProps> = ({
   onSaveSelection,
 }) => {
   const dispatch = useDispatch();
-  const { selectedTests } = useSelector((state: RootState) => state.analysis);
+  const { selectedTests: _selectedTests } = useSelector((state: RootState) => state.analysis);
 
   // Component state
   const [state, setState] = useState<TestRecommendationState>({
@@ -104,7 +89,7 @@ const TestRecommendationComponent: React.FC<TestRecommendationProps> = ({
     showAssumptionDetails: false,
   });
 
-  const [activeTab, setActiveTab] = useState(0);
+  const [_activeTab, _setActiveTab] = useState(0);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [showComparisonDialog, setShowComparisonDialog] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({

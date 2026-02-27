@@ -432,6 +432,8 @@ export class CentralErrorHandler {
       case 'degreesOfFreedom':
         suggestions.push('Degrees of freedom must be a positive integer');
         break;
+      default:
+        break;
     }
 
     return suggestions.join('. ');
@@ -786,9 +788,11 @@ const STATISTICAL_BOUNDS = {
 };
 
 // Export singleton instance
-export default new CentralErrorHandler({
+const centralErrorHandler = new CentralErrorHandler({
   enableRecovery: true,
   enableAudit: true,
   enableNotifications: true,
   enableStackTrace: true
 });
+
+export default centralErrorHandler;

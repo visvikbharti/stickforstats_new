@@ -64,8 +64,8 @@ const TestCard: React.FC<TestCardProps> = ({
   };
 
   // Get assumption status color
-  const getAssumptionStatusColor = () => {
-    const { met, violated, partial } = test.assumptionsSummary;
+  const _getAssumptionStatusColor = () => {
+    const { violated, partial } = test.assumptionsSummary;
     if (violated > 0) return 'error';
     if (partial > 0) return 'warning';
     return 'success';

@@ -45,7 +45,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const EnterpriseDashboard = () => {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
 

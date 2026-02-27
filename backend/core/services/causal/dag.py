@@ -24,60 +24,63 @@ Created: December 26, 2025
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Optional, Any, Tuple, Union
+from typing import Dict, List, Set, Optional, Any, Tuple
 from enum import Enum
 import networkx as nx
 
 
 class NodeType(Enum):
     """Types of nodes in a causal DAG."""
-    EXPOSURE = 'exposure'       # Treatment/intervention variable
-    OUTCOME = 'outcome'         # Outcome variable of interest
-    CONFOUNDER = 'confounder'   # Common cause of exposure and outcome
-    MEDIATOR = 'mediator'       # On causal path from exposure to outcome
-    COLLIDER = 'collider'       # Common effect of exposure and outcome
-    INSTRUMENT = 'instrument'   # Affects outcome only through exposure
-    COVARIATE = 'covariate'     # Other measured variable
-    LATENT = 'latent'           # Unmeasured/unobserved variable
+
+    EXPOSURE = "exposure"  # Treatment/intervention variable
+    OUTCOME = "outcome"  # Outcome variable of interest
+    CONFOUNDER = "confounder"  # Common cause of exposure and outcome
+    MEDIATOR = "mediator"  # On causal path from exposure to outcome
+    COLLIDER = "collider"  # Common effect of exposure and outcome
+    INSTRUMENT = "instrument"  # Affects outcome only through exposure
+    COVARIATE = "covariate"  # Other measured variable
+    LATENT = "latent"  # Unmeasured/unobserved variable
 
 
 @dataclass
 class DAGNode:
     """Represents a node (variable) in a causal DAG."""
+
     name: str
     node_type: NodeType = NodeType.COVARIATE
     observed: bool = True
-    description: str = ''
+    description: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'name': self.name,
-            'node_type': self.node_type.value,
-            'observed': self.observed,
-            'description': self.description,
-            'metadata': self.metadata
+            "name": self.name,
+            "node_type": self.node_type.value,
+            "observed": self.observed,
+            "description": self.description,
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class DAGEdge:
     """Represents a directed edge (causal relationship) in a DAG."""
+
     source: str
     target: str
-    edge_type: str = 'causal'  # 'causal', 'selection', 'correlation'
+    edge_type: str = "causal"  # 'causal', 'selection', 'correlation'
     observed: bool = True
     coefficient: Optional[float] = None
-    description: str = ''
+    description: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'source': self.source,
-            'target': self.target,
-            'edge_type': self.edge_type,
-            'observed': self.observed,
-            'coefficient': self.coefficient,
-            'description': self.description
+            "source": self.source,
+            "target": self.target,
+            "edge_type": self.edge_type,
+            "observed": self.observed,
+            "coefficient": self.coefficient,
+            "description": self.description,
         }
 
 
@@ -103,7 +106,7 @@ class CausalDAG:
         # Now Z is a confounder that must be adjusted for
     """
 
-    def __init__(self, name: str = 'causal_dag'):
+    def __init__(self, name: str = "causal_dag"):
         """Initialize an empty causal DAG."""
         self.name = name
         self._graph = nx.DiGraph()
@@ -119,8 +122,8 @@ class CausalDAG:
         name: str,
         node_type: NodeType = NodeType.COVARIATE,
         observed: bool = True,
-        description: str = '',
-        **metadata
+        description: str = "",
+        **metadata,
     ) -> None:
         """
         Add a node to the DAG.
@@ -132,13 +135,7 @@ class CausalDAG:
             description: Optional description
             **metadata: Additional metadata
         """
-        node = DAGNode(
-            name=name,
-            node_type=node_type,
-            observed=observed,
-            description=description,
-            metadata=metadata
-        )
+        node = DAGNode(name=name, node_type=node_type, observed=observed, description=description, metadata=metadata)
         self._nodes[name] = node
         self._graph.add_node(name, **node.to_dict())
 
@@ -153,8 +150,7 @@ class CausalDAG:
         if name in self._nodes:
             del self._nodes[name]
             self._graph.remove_node(name)
-            self._edges = [e for e in self._edges
-                         if e.source != name and e.target != name]
+            self._edges = [e for e in self._edges if e.source != name and e.target != name]
             if self._exposure == name:
                 self._exposure = None
             if self._outcome == name:
@@ -185,10 +181,10 @@ class CausalDAG:
         self,
         source: str,
         target: str,
-        edge_type: str = 'causal',
+        edge_type: str = "causal",
         observed: bool = True,
         coefficient: Optional[float] = None,
-        description: str = ''
+        description: str = "",
     ) -> None:
         """
         Add a directed edge from source to target.
@@ -213,15 +209,14 @@ class CausalDAG:
             edge_type=edge_type,
             observed=observed,
             coefficient=coefficient,
-            description=description
+            description=description,
         )
         self._edges.append(edge)
         self._graph.add_edge(source, target, **edge.to_dict())
 
     def remove_edge(self, source: str, target: str) -> None:
         """Remove an edge from the DAG."""
-        self._edges = [e for e in self._edges
-                      if not (e.source == source and e.target == target)]
+        self._edges = [e for e in self._edges if not (e.source == source and e.target == target)]
         if self._graph.has_edge(source, target):
             self._graph.remove_edge(source, target)
 
@@ -335,11 +330,7 @@ class CausalDAG:
 
     # ==================== Special Node Identification ====================
 
-    def identify_confounders(
-        self,
-        exposure: Optional[str] = None,
-        outcome: Optional[str] = None
-    ) -> Set[str]:
+    def identify_confounders(self, exposure: Optional[str] = None, outcome: Optional[str] = None) -> Set[str]:
         """
         Identify confounders: common causes of exposure and outcome.
 
@@ -375,11 +366,7 @@ class CausalDAG:
 
         return confounders
 
-    def identify_mediators(
-        self,
-        exposure: Optional[str] = None,
-        outcome: Optional[str] = None
-    ) -> Set[str]:
+    def identify_mediators(self, exposure: Optional[str] = None, outcome: Optional[str] = None) -> Set[str]:
         """
         Identify mediators: nodes on the causal path from exposure to outcome.
         """
@@ -419,11 +406,7 @@ class CausalDAG:
 
         return colliders
 
-    def identify_instruments(
-        self,
-        exposure: Optional[str] = None,
-        outcome: Optional[str] = None
-    ) -> Set[str]:
+    def identify_instruments(self, exposure: Optional[str] = None, outcome: Optional[str] = None) -> Set[str]:
         """
         Identify potential instrumental variables.
 
@@ -445,8 +428,7 @@ class CausalDAG:
                 continue
 
             # Check if Z affects X
-            if not (self.has_edge(node, exposure) or
-                    exposure in self.descendants(node)):
+            if not (self.has_edge(node, exposure) or exposure in self.descendants(node)):
                 continue
 
             # Check exclusion: Z should only affect Y through X
@@ -474,35 +456,35 @@ class CausalDAG:
     def to_dict(self) -> Dict[str, Any]:
         """Convert DAG to dictionary representation."""
         return {
-            'name': self.name,
-            'nodes': [node.to_dict() for node in self._nodes.values()],
-            'edges': [edge.to_dict() for edge in self._edges],
-            'exposure': self._exposure,
-            'outcome': self._outcome
+            "name": self.name,
+            "nodes": [node.to_dict() for node in self._nodes.values()],
+            "edges": [edge.to_dict() for edge in self._edges],
+            "exposure": self._exposure,
+            "outcome": self._outcome,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'CausalDAG':
+    def from_dict(cls, data: Dict[str, Any]) -> "CausalDAG":
         """Create DAG from dictionary representation."""
-        dag = cls(name=data.get('name', 'causal_dag'))
+        dag = cls(name=data.get("name", "causal_dag"))
 
-        for node_data in data.get('nodes', []):
+        for node_data in data.get("nodes", []):
             dag.add_node(
-                name=node_data['name'],
-                node_type=NodeType(node_data.get('node_type', 'covariate')),
-                observed=node_data.get('observed', True),
-                description=node_data.get('description', ''),
-                **node_data.get('metadata', {})
+                name=node_data["name"],
+                node_type=NodeType(node_data.get("node_type", "covariate")),
+                observed=node_data.get("observed", True),
+                description=node_data.get("description", ""),
+                **node_data.get("metadata", {}),
             )
 
-        for edge_data in data.get('edges', []):
+        for edge_data in data.get("edges", []):
             dag.add_edge(
-                source=edge_data['source'],
-                target=edge_data['target'],
-                edge_type=edge_data.get('edge_type', 'causal'),
-                observed=edge_data.get('observed', True),
-                coefficient=edge_data.get('coefficient'),
-                description=edge_data.get('description', '')
+                source=edge_data["source"],
+                target=edge_data["target"],
+                edge_type=edge_data.get("edge_type", "causal"),
+                observed=edge_data.get("observed", True),
+                coefficient=edge_data.get("coefficient"),
+                description=edge_data.get("description", ""),
             )
 
         return dag
@@ -526,7 +508,7 @@ def create_dag_from_edges(
     edges: List[Tuple[str, str]],
     exposure: Optional[str] = None,
     outcome: Optional[str] = None,
-    name: str = 'causal_dag'
+    name: str = "causal_dag",
 ) -> CausalDAG:
     """
     Create a CausalDAG from a list of edges.

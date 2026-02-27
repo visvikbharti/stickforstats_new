@@ -44,57 +44,50 @@ def generate_pcurve_plot_data(result: PCurveResult) -> Dict[str, Any]:
     expected_80_props = [0.73, 0.10, 0.07, 0.05, 0.05]
 
     return {
-        'title': 'P-Curve Analysis',
-        'subtitle': f'Distribution of {n_total} significant p-values',
-
-        'bins': {
-            'edges': bin_edges,
-            'centers': bin_centers,
-            'labels': ['p < .01', '.01-.02', '.02-.03', '.03-.04', '.04-.05']
+        "title": "P-Curve Analysis",
+        "subtitle": f"Distribution of {n_total} significant p-values",
+        "bins": {
+            "edges": bin_edges,
+            "centers": bin_centers,
+            "labels": ["p < .01", ".01-.02", ".02-.03", ".03-.04", ".04-.05"],
         },
-
-        'observed': {
-            'counts': observed_counts,
-            'proportions': observed_props,
-            'label': 'Observed',
-            'color': '#2196F3'  # Blue
+        "observed": {
+            "counts": observed_counts,
+            "proportions": observed_props,
+            "label": "Observed",
+            "color": "#2196F3",  # Blue
         },
-
-        'expected_null': {
-            'proportions': expected_null_props,
-            'label': 'Expected if null (no effect)',
-            'color': '#9E9E9E',  # Gray
-            'style': 'dashed'
+        "expected_null": {
+            "proportions": expected_null_props,
+            "label": "Expected if null (no effect)",
+            "color": "#9E9E9E",  # Gray
+            "style": "dashed",
         },
-
-        'expected_33': {
-            'proportions': expected_33_props,
-            'label': 'Expected if 33% power',
-            'color': '#FF9800',  # Orange
-            'style': 'dashed'
+        "expected_33": {
+            "proportions": expected_33_props,
+            "label": "Expected if 33% power",
+            "color": "#FF9800",  # Orange
+            "style": "dashed",
         },
-
-        'expected_80': {
-            'proportions': expected_80_props,
-            'label': 'Expected if 80% power',
-            'color': '#4CAF50',  # Green
-            'style': 'dashed'
+        "expected_80": {
+            "proportions": expected_80_props,
+            "label": "Expected if 80% power",
+            "color": "#4CAF50",  # Green
+            "style": "dashed",
         },
-
-        'annotations': {
-            'has_evidential_value': result.has_evidential_value,
-            'inadequate_evidence': result.inadequate_evidence,
-            'interpretation_color': '#4CAF50' if result.has_evidential_value else (
-                '#F44336' if result.inadequate_evidence else '#FF9800'
-            )
+        "annotations": {
+            "has_evidential_value": result.has_evidential_value,
+            "inadequate_evidence": result.inadequate_evidence,
+            "interpretation_color": "#4CAF50"
+            if result.has_evidential_value
+            else ("#F44336" if result.inadequate_evidence else "#FF9800"),
         },
-
-        'summary_stats': {
-            'n_studies': result.n_studies,
-            'n_significant': result.n_significant,
-            'prop_below_025': sum(observed_counts[:2]) / n_total if n_total > 0 else 0,
-            'estimated_power': result.estimated_power
-        }
+        "summary_stats": {
+            "n_studies": result.n_studies,
+            "n_significant": result.n_significant,
+            "prop_below_025": sum(observed_counts[:2]) / n_total if n_total > 0 else 0,
+            "estimated_power": result.estimated_power,
+        },
     }
 
 
@@ -111,10 +104,7 @@ def generate_pp_values_plot(result: PCurveResult) -> Dict[str, Any]:
     pp_values = result.pp_values_full
 
     if not pp_values:
-        return {
-            'error': 'No PP-values available',
-            'pp_values': []
-        }
+        return {"error": "No PP-values available", "pp_values": []}
 
     # Create cumulative distribution
     sorted_pp = np.sort(pp_values)
@@ -126,35 +116,29 @@ def generate_pp_values_plot(result: PCurveResult) -> Dict[str, Any]:
     uniform_y = [0, 1]
 
     return {
-        'title': 'PP-Values Distribution',
-        'subtitle': 'Cumulative distribution of PP-values',
-
-        'observed': {
-            'x': sorted_pp.tolist(),
-            'y': cumulative.tolist(),
-            'label': 'Observed PP-values',
-            'color': '#2196F3'
+        "title": "PP-Values Distribution",
+        "subtitle": "Cumulative distribution of PP-values",
+        "observed": {
+            "x": sorted_pp.tolist(),
+            "y": cumulative.tolist(),
+            "label": "Observed PP-values",
+            "color": "#2196F3",
         },
-
-        'expected_uniform': {
-            'x': uniform_x,
-            'y': uniform_y,
-            'label': 'Expected if null (uniform)',
-            'color': '#9E9E9E',
-            'style': 'dashed'
+        "expected_uniform": {
+            "x": uniform_x,
+            "y": uniform_y,
+            "label": "Expected if null (uniform)",
+            "color": "#9E9E9E",
+            "style": "dashed",
         },
-
-        'ks_test': {
-            'statistic': float(np.max(np.abs(cumulative - sorted_pp))),
-            'note': 'Kolmogorov-Smirnov statistic vs uniform'
-        }
+        "ks_test": {
+            "statistic": float(np.max(np.abs(cumulative - sorted_pp))),
+            "note": "Kolmogorov-Smirnov statistic vs uniform",
+        },
     }
 
 
-def generate_comparison_data(
-    result: PCurveResult,
-    include_power_curves: bool = True
-) -> Dict[str, Any]:
+def generate_comparison_data(result: PCurveResult, include_power_curves: bool = True) -> Dict[str, Any]:
     """
     Generate comprehensive comparison data for visualization.
 
@@ -172,45 +156,49 @@ def generate_comparison_data(
     power_estimate_data = None
     if result.estimated_power:
         power_estimate_data = {
-            'estimate': result.estimated_power,
-            'ci': list(result.power_ci) if result.power_ci else None,
-            'interpretation': _get_power_interpretation(result.estimated_power)
+            "estimate": result.estimated_power,
+            "ci": list(result.power_ci) if result.power_ci else None,
+            "interpretation": _get_power_interpretation(result.estimated_power),
         }
 
     # Test results summary
     test_summary = {
-        'right_skew': {
-            'test_name': 'Right-skew test',
-            'z': result.right_skew_test.get('z', 0),
-            'p': result.right_skew_test.get('p', 1),
-            'significant': result.right_skew_test.get('significant', False),
-            'conclusion': 'Evidence of right-skew' if result.right_skew_test.get('significant') else 'No significant right-skew'
+        "right_skew": {
+            "test_name": "Right-skew test",
+            "z": result.right_skew_test.get("z", 0),
+            "p": result.right_skew_test.get("p", 1),
+            "significant": result.right_skew_test.get("significant", False),
+            "conclusion": "Evidence of right-skew"
+            if result.right_skew_test.get("significant")
+            else "No significant right-skew",
         },
-        'half_test': {
-            'test_name': 'Binomial test',
-            'n_below_025': result.half_test.get('n_below', 0),
-            'n_total': result.half_test.get('n_total', 0),
-            'proportion': result.half_test.get('prop', 0),
-            'p': result.half_test.get('p', 1),
-            'significant': result.half_test.get('significant', False)
+        "half_test": {
+            "test_name": "Binomial test",
+            "n_below_025": result.half_test.get("n_below", 0),
+            "n_total": result.half_test.get("n_total", 0),
+            "proportion": result.half_test.get("prop", 0),
+            "p": result.half_test.get("p", 1),
+            "significant": result.half_test.get("significant", False),
         },
-        'flat_test': {
-            'test_name': '33% power test',
-            'p': result.flat_test.get('p', 1),
-            'conclusion': 'Consistent with 33% power' if result.flat_test.get('p', 1) > 0.05 else 'Differs from 33% power'
-        }
+        "flat_test": {
+            "test_name": "33% power test",
+            "p": result.flat_test.get("p", 1),
+            "conclusion": "Consistent with 33% power"
+            if result.flat_test.get("p", 1) > 0.05
+            else "Differs from 33% power",
+        },
     }
 
     return {
-        'histogram': plot_data,
-        'pp_values': pp_plot,
-        'power_estimate': power_estimate_data,
-        'test_summary': test_summary,
-        'overall_conclusion': {
-            'has_evidential_value': result.has_evidential_value,
-            'inadequate_evidence': result.inadequate_evidence,
-            'interpretation': result.interpretation
-        }
+        "histogram": plot_data,
+        "pp_values": pp_plot,
+        "power_estimate": power_estimate_data,
+        "test_summary": test_summary,
+        "overall_conclusion": {
+            "has_evidential_value": result.has_evidential_value,
+            "inadequate_evidence": result.inadequate_evidence,
+            "interpretation": result.interpretation,
+        },
     }
 
 
@@ -244,31 +232,35 @@ def generate_sensitivity_plot_data(p_values: List[float]) -> Dict[str, Any]:
 
     # Leave-one-out analysis
     for i in range(min(n_studies, 20)):  # Limit for performance
-        subset = p_values[:i] + p_values[i+1:]
+        subset = p_values[:i] + p_values[i + 1 :]
         if len(subset) >= 3:
             result = compute_pcurve(subset)
-            sensitivity_results.append({
-                'excluded_study': i + 1,
-                'has_evidential_value': result.has_evidential_value,
-                'estimated_power': result.estimated_power
-            })
+            sensitivity_results.append(
+                {
+                    "excluded_study": i + 1,
+                    "has_evidential_value": result.has_evidential_value,
+                    "estimated_power": result.estimated_power,
+                }
+            )
 
     # Cumulative analysis (first k studies)
     cumulative_results = []
     for k in range(3, n_studies + 1):
         subset = p_values[:k]
         result = compute_pcurve(subset)
-        cumulative_results.append({
-            'n_studies': k,
-            'has_evidential_value': result.has_evidential_value,
-            'estimated_power': result.estimated_power,
-            'prop_below_025': sum(1 for p in subset if p < 0.025) / len(subset)
-        })
+        cumulative_results.append(
+            {
+                "n_studies": k,
+                "has_evidential_value": result.has_evidential_value,
+                "estimated_power": result.estimated_power,
+                "prop_below_025": sum(1 for p in subset if p < 0.025) / len(subset),
+            }
+        )
 
     return {
-        'leave_one_out': sensitivity_results,
-        'cumulative': cumulative_results,
-        'stability_assessment': _assess_stability(sensitivity_results)
+        "leave_one_out": sensitivity_results,
+        "cumulative": cumulative_results,
+        "stability_assessment": _assess_stability(sensitivity_results),
     }
 
 
@@ -277,7 +269,7 @@ def _assess_stability(leave_one_out_results: List[Dict]) -> str:
     if not leave_one_out_results:
         return "Insufficient data for stability assessment"
 
-    evidential_count = sum(1 for r in leave_one_out_results if r['has_evidential_value'])
+    evidential_count = sum(1 for r in leave_one_out_results if r["has_evidential_value"])
     total = len(leave_one_out_results)
 
     if evidential_count == total:

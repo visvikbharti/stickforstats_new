@@ -19,15 +19,14 @@ Based on established meta-analytic methods:
 
 import numpy as np
 from scipy import stats
-from scipy.optimize import minimize_scalar
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple, Any
-import warnings
 
 
 @dataclass
 class StudyData:
     """Individual study data for meta-analysis"""
+
     study_id: str
     study_name: str
     effect_size: float  # e.g., Cohen's d, log odds ratio, correlation r
@@ -42,6 +41,7 @@ class StudyData:
 @dataclass
 class MetaAnalysisResult:
     """Results from meta-analysis"""
+
     # Pooled effect
     pooled_effect: float
     pooled_se: float
@@ -79,11 +79,7 @@ class MetaAnalysisEngine:
         self.alpha = 0.05  # Default significance level
 
     def analyze(
-        self,
-        studies: List[StudyData],
-        model: str = 'random',
-        method: str = 'DL',
-        alpha: float = 0.05
+        self, studies: List[StudyData], model: str = "random", method: str = "DL", alpha: float = 0.05
     ) -> MetaAnalysisResult:
         """
         Perform meta-analysis on study data.
@@ -108,16 +104,14 @@ class MetaAnalysisEngine:
         se = np.array([s.standard_error for s in studies])
 
         # Calculate fixed-effect weights (inverse variance)
-        var = se ** 2
+        var = se**2
         w_fixed = 1.0 / var
 
         # Calculate heterogeneity statistics
-        q_stat, q_df, q_p, i_sq, tau_sq, tau, h_sq = self._calculate_heterogeneity(
-            effects, w_fixed, method
-        )
+        q_stat, q_df, q_p, i_sq, tau_sq, tau, h_sq = self._calculate_heterogeneity(effects, w_fixed, method)
 
         # Calculate pooled effect based on model
-        if model == 'fixed':
+        if model == "fixed":
             pooled, pooled_se, weights = self._fixed_effects(effects, w_fixed)
         else:
             pooled, pooled_se, weights = self._random_effects(effects, var, tau_sq)
@@ -140,18 +134,20 @@ class MetaAnalysisEngine:
             study_ci_lower = study.effect_size - z_crit_study * study.standard_error
             study_ci_upper = study.effect_size + z_crit_study * study.standard_error
 
-            study_results.append({
-                'study_id': study.study_id,
-                'study_name': study.study_name,
-                'effect_size': study.effect_size,
-                'standard_error': study.standard_error,
-                'sample_size': study.sample_size,
-                'weight': weights[i],
-                'weight_percent': (weights[i] / weights.sum()) * 100,
-                'ci_lower': study_ci_lower,
-                'ci_upper': study_ci_upper,
-                'subgroup': study.subgroup
-            })
+            study_results.append(
+                {
+                    "study_id": study.study_id,
+                    "study_name": study.study_name,
+                    "effect_size": study.effect_size,
+                    "standard_error": study.standard_error,
+                    "sample_size": study.sample_size,
+                    "weight": weights[i],
+                    "weight_percent": (weights[i] / weights.sum()) * 100,
+                    "ci_lower": study_ci_lower,
+                    "ci_upper": study_ci_upper,
+                    "subgroup": study.subgroup,
+                }
+            )
 
         return MetaAnalysisResult(
             pooled_effect=float(pooled),
@@ -170,14 +166,10 @@ class MetaAnalysisEngine:
             model=model,
             k_studies=k,
             total_n=total_n,
-            studies=study_results
+            studies=study_results,
         )
 
-    def _fixed_effects(
-        self,
-        effects: np.ndarray,
-        weights: np.ndarray
-    ) -> Tuple[float, float, np.ndarray]:
+    def _fixed_effects(self, effects: np.ndarray, weights: np.ndarray) -> Tuple[float, float, np.ndarray]:
         """
         Calculate fixed-effects pooled estimate.
 
@@ -188,10 +180,7 @@ class MetaAnalysisEngine:
         return pooled, pooled_se, weights
 
     def _random_effects(
-        self,
-        effects: np.ndarray,
-        variances: np.ndarray,
-        tau_squared: float
+        self, effects: np.ndarray, variances: np.ndarray, tau_squared: float
     ) -> Tuple[float, float, np.ndarray]:
         """
         Calculate random-effects pooled estimate.
@@ -208,10 +197,7 @@ class MetaAnalysisEngine:
         return pooled, pooled_se, weights
 
     def _calculate_heterogeneity(
-        self,
-        effects: np.ndarray,
-        weights: np.ndarray,
-        method: str = 'DL'
+        self, effects: np.ndarray, weights: np.ndarray, method: str = "DL"
     ) -> Tuple[float, int, float, float, float, float, float]:
         """
         Calculate heterogeneity statistics.
@@ -227,9 +213,9 @@ class MetaAnalysisEngine:
         q_p = 1 - stats.chi2.cdf(q_stat, df)
 
         # Calculate τ² using specified method
-        if method == 'DL':
+        if method == "DL":
             tau_sq = self._dersimonian_laird(q_stat, weights, df)
-        elif method == 'PM':
+        elif method == "PM":
             tau_sq = self._paule_mandel(effects, weights)
         else:
             tau_sq = self._dersimonian_laird(q_stat, weights, df)
@@ -251,28 +237,17 @@ class MetaAnalysisEngine:
 
         return q_stat, df, q_p, i_sq, tau_sq, tau, h_sq
 
-    def _dersimonian_laird(
-        self,
-        q_stat: float,
-        weights: np.ndarray,
-        df: int
-    ) -> float:
+    def _dersimonian_laird(self, q_stat: float, weights: np.ndarray, df: int) -> float:
         """
         DerSimonian-Laird estimator for τ².
 
         Most commonly used method (DerSimonian & Laird, 1986).
         """
-        c = np.sum(weights) - np.sum(weights ** 2) / np.sum(weights)
+        c = np.sum(weights) - np.sum(weights**2) / np.sum(weights)
         tau_sq = (q_stat - df) / c
         return tau_sq
 
-    def _paule_mandel(
-        self,
-        effects: np.ndarray,
-        weights: np.ndarray,
-        max_iter: int = 100,
-        tol: float = 1e-6
-    ) -> float:
+    def _paule_mandel(self, effects: np.ndarray, weights: np.ndarray, max_iter: int = 100, tol: float = 1e-6) -> float:
         """
         Paule-Mandel iterative estimator for τ².
 
@@ -284,7 +259,7 @@ class MetaAnalysisEngine:
         # Start with DL estimate
         pooled = np.sum(weights * effects) / np.sum(weights)
         q_stat = np.sum(weights * (effects - pooled) ** 2)
-        c = np.sum(weights) - np.sum(weights ** 2) / np.sum(weights)
+        c = np.sum(weights) - np.sum(weights**2) / np.sum(weights)
         tau_sq = max(0, (q_stat - df) / c)
 
         for _ in range(max_iter):
@@ -297,15 +272,12 @@ class MetaAnalysisEngine:
                 break
 
             # Update tau_sq
-            c = np.sum(adj_weights) - np.sum(adj_weights ** 2) / np.sum(adj_weights)
+            c = np.sum(adj_weights) - np.sum(adj_weights**2) / np.sum(adj_weights)
             tau_sq = max(0, tau_sq + (q_new - df) / c)
 
         return tau_sq
 
-    def eggers_test(
-        self,
-        studies: List[StudyData]
-    ) -> Dict[str, float]:
+    def eggers_test(self, studies: List[StudyData]) -> Dict[str, float]:
         """
         Egger's regression test for publication bias.
 
@@ -340,7 +312,7 @@ class MetaAnalysisEngine:
         # Calculate residuals and SE of intercept
         y_pred = X @ beta
         residuals = y - y_pred
-        mse = np.sum(residuals ** 2) / (n - 2)
+        mse = np.sum(residuals**2) / (n - 2)
         # Use pseudoinverse instead of inverse to handle near-singular matrices
         # This can occur when studies have very similar precision values
         var_beta = mse * np.linalg.pinv(X.T @ X)
@@ -351,13 +323,13 @@ class MetaAnalysisEngine:
         p_value = 2 * (1 - stats.t.cdf(abs(t_stat), n - 2))
 
         return {
-            'intercept': float(intercept),
-            'se': float(se_intercept),
-            't_statistic': float(t_stat),
-            'df': n - 2,
-            'p_value': float(p_value),
-            'significant': p_value < 0.05,
-            'interpretation': self._interpret_eggers(p_value)
+            "intercept": float(intercept),
+            "se": float(se_intercept),
+            "t_statistic": float(t_stat),
+            "df": n - 2,
+            "p_value": float(p_value),
+            "significant": p_value < 0.05,
+            "interpretation": self._interpret_eggers(p_value),
         }
 
     def _interpret_eggers(self, p_value: float) -> str:
@@ -371,10 +343,7 @@ class MetaAnalysisEngine:
         else:
             return "No significant evidence of publication bias"
 
-    def beggs_test(
-        self,
-        studies: List[StudyData]
-    ) -> Dict[str, float]:
+    def beggs_test(self, studies: List[StudyData]) -> Dict[str, float]:
         """
         Begg's rank correlation test for publication bias.
 
@@ -385,11 +354,11 @@ class MetaAnalysisEngine:
             Dictionary with tau, z-statistic, p-value
         """
         effects = np.array([s.effect_size for s in studies])
-        var = np.array([s.standard_error ** 2 for s in studies])
+        var = np.array([s.standard_error**2 for s in studies])
 
         # Standardize effects
         pooled = np.mean(effects)
-        pooled_var = np.mean(var)
+        np.mean(var)
         std_effects = (effects - pooled) / np.sqrt(var)
 
         # Kendall's tau correlation
@@ -400,11 +369,11 @@ class MetaAnalysisEngine:
         z_stat = tau / np.sqrt(2 * (2 * n + 5) / (9 * n * (n - 1)))
 
         return {
-            'tau': float(tau),
-            'z_statistic': float(z_stat),
-            'p_value': float(p_value),
-            'significant': p_value < 0.05,
-            'interpretation': self._interpret_beggs(p_value)
+            "tau": float(tau),
+            "z_statistic": float(z_stat),
+            "p_value": float(p_value),
+            "significant": p_value < 0.05,
+            "interpretation": self._interpret_beggs(p_value),
         }
 
     def _interpret_beggs(self, p_value: float) -> str:
@@ -414,11 +383,7 @@ class MetaAnalysisEngine:
         else:
             return "No significant evidence of publication bias"
 
-    def funnel_plot_data(
-        self,
-        studies: List[StudyData],
-        pooled_effect: float
-    ) -> Dict[str, Any]:
+    def funnel_plot_data(self, studies: List[StudyData], pooled_effect: float) -> Dict[str, Any]:
         """
         Generate data for funnel plot visualization.
 
@@ -440,29 +405,25 @@ class MetaAnalysisEngine:
 
         points = [
             {
-                'study_name': studies[i].study_name,
-                'effect': float(effects[i]),
-                'se': float(se[i]),
-                'precision': float(1 / se[i])
+                "study_name": studies[i].study_name,
+                "effect": float(effects[i]),
+                "se": float(se[i]),
+                "precision": float(1 / se[i]),
             }
             for i in range(len(studies))
         ]
 
         return {
-            'points': points,
-            'pooled_effect': float(pooled_effect),
-            'se_range': se_range.tolist(),
-            'ci_95_lower': ci_95_lower.tolist(),
-            'ci_95_upper': ci_95_upper.tolist(),
-            'ci_99_lower': ci_99_lower.tolist(),
-            'ci_99_upper': ci_99_upper.tolist()
+            "points": points,
+            "pooled_effect": float(pooled_effect),
+            "se_range": se_range.tolist(),
+            "ci_95_lower": ci_95_lower.tolist(),
+            "ci_95_upper": ci_95_upper.tolist(),
+            "ci_99_lower": ci_99_lower.tolist(),
+            "ci_99_upper": ci_99_upper.tolist(),
         }
 
-    def subgroup_analysis(
-        self,
-        studies: List[StudyData],
-        model: str = 'random'
-    ) -> Dict[str, Any]:
+    def subgroup_analysis(self, studies: List[StudyData], model: str = "random") -> Dict[str, Any]:
         """
         Perform subgroup analysis.
 
@@ -474,7 +435,7 @@ class MetaAnalysisEngine:
         # Group studies by subgroup
         subgroups = {}
         for study in studies:
-            group = study.subgroup or 'Overall'
+            group = study.subgroup or "Overall"
             if group not in subgroups:
                 subgroups[group] = []
             subgroups[group].append(study)
@@ -488,17 +449,17 @@ class MetaAnalysisEngine:
             if len(group_studies) >= 2:
                 result = self.analyze(group_studies, model=model)
                 subgroup_results[group_name] = {
-                    'k': result.k_studies,
-                    'pooled_effect': result.pooled_effect,
-                    'pooled_se': result.pooled_se,
-                    'ci_lower': result.pooled_ci_lower,
-                    'ci_upper': result.pooled_ci_upper,
-                    'p_value': result.pooled_p,
-                    'i_squared': result.i_squared,
-                    'tau_squared': result.tau_squared
+                    "k": result.k_studies,
+                    "pooled_effect": result.pooled_effect,
+                    "pooled_se": result.pooled_se,
+                    "ci_lower": result.pooled_ci_lower,
+                    "ci_upper": result.pooled_ci_upper,
+                    "p_value": result.pooled_p,
+                    "i_squared": result.i_squared,
+                    "tau_squared": result.tau_squared,
                 }
                 pooled_effects.append(result.pooled_effect)
-                pooled_vars.append(result.pooled_se ** 2)
+                pooled_vars.append(result.pooled_se**2)
 
         # Test for between-group heterogeneity (Q-between)
         if len(pooled_effects) >= 2:
@@ -514,18 +475,14 @@ class MetaAnalysisEngine:
             p_between = 1.0
 
         return {
-            'subgroups': subgroup_results,
-            'q_between': float(q_between),
-            'df_between': int(df_between),
-            'p_between': float(p_between),
-            'significant_difference': p_between < 0.05
+            "subgroups": subgroup_results,
+            "q_between": float(q_between),
+            "df_between": int(df_between),
+            "p_between": float(p_between),
+            "significant_difference": p_between < 0.05,
         }
 
-    def sensitivity_analysis(
-        self,
-        studies: List[StudyData],
-        model: str = 'random'
-    ) -> List[Dict[str, Any]]:
+    def sensitivity_analysis(self, studies: List[StudyData], model: str = "random") -> List[Dict[str, Any]]:
         """
         Leave-one-out sensitivity analysis.
 
@@ -541,15 +498,17 @@ class MetaAnalysisEngine:
 
             if len(remaining) >= 2:
                 result = self.analyze(remaining, model=model)
-                results.append({
-                    'excluded_study': excluded_study.study_name,
-                    'k_remaining': result.k_studies,
-                    'pooled_effect': result.pooled_effect,
-                    'pooled_se': result.pooled_se,
-                    'ci_lower': result.pooled_ci_lower,
-                    'ci_upper': result.pooled_ci_upper,
-                    'i_squared': result.i_squared
-                })
+                results.append(
+                    {
+                        "excluded_study": excluded_study.study_name,
+                        "k_remaining": result.k_studies,
+                        "pooled_effect": result.pooled_effect,
+                        "pooled_se": result.pooled_se,
+                        "ci_lower": result.pooled_ci_lower,
+                        "ci_upper": result.pooled_ci_upper,
+                        "i_squared": result.i_squared,
+                    }
+                )
 
         return results
 
@@ -574,7 +533,7 @@ class EffectSizeConverter:
             a = (n1 + n2) ** 2 / (n1 * n2)
         else:
             a = 4
-        return d / np.sqrt(d ** 2 + a)
+        return d / np.sqrt(d**2 + a)
 
     @staticmethod
     def r_to_d(r: float) -> float:
@@ -583,7 +542,7 @@ class EffectSizeConverter:
 
         Formula: d = 2r / sqrt(1 - r²)
         """
-        return 2 * r / np.sqrt(1 - r ** 2)
+        return 2 * r / np.sqrt(1 - r**2)
 
     @staticmethod
     def d_to_hedges_g(d: float, n: int) -> float:
@@ -630,7 +589,7 @@ class EffectSizeConverter:
 
         Formula: SE = sqrt((n1 + n2) / (n1 * n2) + d² / (2 * (n1 + n2)))
         """
-        return np.sqrt((n1 + n2) / (n1 * n2) + d ** 2 / (2 * (n1 + n2)))
+        return np.sqrt((n1 + n2) / (n1 * n2) + d**2 / (2 * (n1 + n2)))
 
     @staticmethod
     def calculate_se_r(r: float, n: int) -> float:
@@ -667,10 +626,7 @@ def get_meta_analysis_engine() -> MetaAnalysisEngine:
 
 # Convenience functions
 def run_meta_analysis(
-    studies: List[Dict],
-    model: str = 'random',
-    method: str = 'DL',
-    alpha: float = 0.05
+    studies: List[Dict], model: str = "random", method: str = "DL", alpha: float = 0.05
 ) -> Dict[str, Any]:
     """
     Run meta-analysis on study data.
@@ -691,11 +647,11 @@ def run_meta_analysis(
     study_objects = [
         StudyData(
             study_id=str(i),
-            study_name=s.get('study_name', f'Study {i+1}'),
-            effect_size=s['effect_size'],
-            standard_error=s['standard_error'],
-            sample_size=s.get('sample_size'),
-            subgroup=s.get('subgroup')
+            study_name=s.get("study_name", f"Study {i+1}"),
+            effect_size=s["effect_size"],
+            standard_error=s["standard_error"],
+            sample_size=s.get("sample_size"),
+            subgroup=s.get("subgroup"),
         )
         for i, s in enumerate(studies)
     ]
@@ -718,30 +674,27 @@ def run_meta_analysis(
     subgroup_results = engine.subgroup_analysis(study_objects, model=model) if has_subgroups else None
 
     return {
-        'success': True,
-        'pooled_effect': result.pooled_effect,
-        'pooled_se': result.pooled_se,
-        'pooled_ci': [result.pooled_ci_lower, result.pooled_ci_upper],
-        'pooled_z': result.pooled_z,
-        'pooled_p': result.pooled_p,
-        'heterogeneity': {
-            'q': result.q_statistic,
-            'q_df': result.q_df,
-            'q_p': result.q_p_value,
-            'i_squared': result.i_squared,
-            'tau_squared': result.tau_squared,
-            'tau': result.tau,
-            'h_squared': result.h_squared
+        "success": True,
+        "pooled_effect": result.pooled_effect,
+        "pooled_se": result.pooled_se,
+        "pooled_ci": [result.pooled_ci_lower, result.pooled_ci_upper],
+        "pooled_z": result.pooled_z,
+        "pooled_p": result.pooled_p,
+        "heterogeneity": {
+            "q": result.q_statistic,
+            "q_df": result.q_df,
+            "q_p": result.q_p_value,
+            "i_squared": result.i_squared,
+            "tau_squared": result.tau_squared,
+            "tau": result.tau,
+            "h_squared": result.h_squared,
         },
-        'model': result.model,
-        'k_studies': result.k_studies,
-        'total_n': result.total_n,
-        'studies': result.studies,
-        'publication_bias': {
-            'eggers_test': eggers,
-            'beggs_test': beggs
-        },
-        'funnel_plot_data': funnel_data,
-        'sensitivity_analysis': sensitivity,
-        'subgroup_analysis': subgroup_results
+        "model": result.model,
+        "k_studies": result.k_studies,
+        "total_n": result.total_n,
+        "studies": result.studies,
+        "publication_bias": {"eggers_test": eggers, "beggs_test": beggs},
+        "funnel_plot_data": funnel_data,
+        "sensitivity_analysis": sensitivity,
+        "subgroup_analysis": subgroup_results,
     }

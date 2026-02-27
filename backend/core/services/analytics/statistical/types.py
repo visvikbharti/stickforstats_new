@@ -4,11 +4,12 @@ Type definitions for statistical analysis services.
 
 from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Union
+from typing import List, Optional
 
 
 class TestType(Enum):
     """Enumeration of available statistical test types."""
+
     ONE_WAY_ANOVA = "One-way ANOVA"
     TWO_WAY_ANOVA = "Two-way ANOVA"
     REPEATED_MEASURES = "Repeated Measures ANOVA"
@@ -22,6 +23,7 @@ class TestType(Enum):
 @dataclass
 class ReplicateConfig:
     """Configuration for handling replicates in the analysis."""
+
     has_replicates: bool
     replicate_type: str  # 'technical' or 'biological'
     num_replicates: int
@@ -32,6 +34,7 @@ class ReplicateConfig:
 @dataclass
 class VariableSelection:
     """Selected variables for the analysis."""
+
     dependent_variables: List[str]
     independent_variables: List[str]
     subject_id: Optional[str] = None
@@ -43,6 +46,7 @@ class VariableSelection:
 @dataclass
 class AnalysisOptions:
     """Options for statistical analysis."""
+
     alpha: float = 0.05
     post_hoc: bool = True
     assumption_checks: bool = True

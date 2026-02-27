@@ -55,8 +55,8 @@ const useRAGWebSocket = (options = {}) => {
     try {
       updateStatus('connecting');
       const wsUrl = secureWebSocketUrl('/rag/chat');
-      const wsOptions = createWebSocketOptions();
-      
+      const _wsOptions = createWebSocketOptions();
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       startTimeRef.current = Date.now();

@@ -34,7 +34,7 @@ Created: December 26, 2025
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Tuple, Union
+from typing import Dict, Any, Optional, Tuple, Union
 import numpy as np
 from scipy import stats
 import pandas as pd
@@ -42,51 +42,52 @@ import pandas as pd
 
 # ICC type definitions
 ICC_TYPES = {
-    'ICC(1,1)': {
-        'name': 'One-way random, single measures',
-        'description': 'Each subject rated by different random raters',
-        'use_case': 'Inter-rater reliability with different raters per subject'
+    "ICC(1,1)": {
+        "name": "One-way random, single measures",
+        "description": "Each subject rated by different random raters",
+        "use_case": "Inter-rater reliability with different raters per subject",
     },
-    'ICC(1,k)': {
-        'name': 'One-way random, average measures',
-        'description': 'Average of k ratings from different random raters',
-        'use_case': 'Reliability of mean ratings when raters vary'
+    "ICC(1,k)": {
+        "name": "One-way random, average measures",
+        "description": "Average of k ratings from different random raters",
+        "use_case": "Reliability of mean ratings when raters vary",
     },
-    'ICC(2,1)': {
-        'name': 'Two-way random, single measures',
-        'description': 'Each subject rated by same random raters',
-        'use_case': 'Absolute agreement, single rater, generalizable'
+    "ICC(2,1)": {
+        "name": "Two-way random, single measures",
+        "description": "Each subject rated by same random raters",
+        "use_case": "Absolute agreement, single rater, generalizable",
     },
-    'ICC(2,k)': {
-        'name': 'Two-way random, average measures',
-        'description': 'Average of ratings from same random raters',
-        'use_case': 'Absolute agreement, average of k raters, generalizable'
+    "ICC(2,k)": {
+        "name": "Two-way random, average measures",
+        "description": "Average of ratings from same random raters",
+        "use_case": "Absolute agreement, average of k raters, generalizable",
     },
-    'ICC(3,1)': {
-        'name': 'Two-way mixed, single measures',
-        'description': 'Specific raters, consistency only',
-        'use_case': 'Consistency of single rater, not generalizable'
+    "ICC(3,1)": {
+        "name": "Two-way mixed, single measures",
+        "description": "Specific raters, consistency only",
+        "use_case": "Consistency of single rater, not generalizable",
     },
-    'ICC(3,k)': {
-        'name': 'Two-way mixed, average measures',
-        'description': 'Average ratings, specific raters, consistency',
-        'use_case': 'Consistency of mean ratings, not generalizable'
-    }
+    "ICC(3,k)": {
+        "name": "Two-way mixed, average measures",
+        "description": "Average ratings, specific raters, consistency",
+        "use_case": "Consistency of mean ratings, not generalizable",
+    },
 }
 
 # Interpretation thresholds (Cicchetti, 1994)
 ICC_INTERPRETATION = [
-    (0.75, 'excellent', 'Excellent reliability'),
-    (0.60, 'good', 'Good reliability'),
-    (0.40, 'fair', 'Fair reliability'),
-    (0.00, 'poor', 'Poor reliability'),
-    (float('-inf'), 'negative', 'Negative ICC - systematic disagreement')
+    (0.75, "excellent", "Excellent reliability"),
+    (0.60, "good", "Good reliability"),
+    (0.40, "fair", "Fair reliability"),
+    (0.00, "poor", "Poor reliability"),
+    (float("-inf"), "negative", "Negative ICC - systematic disagreement"),
 ]
 
 
 @dataclass
 class ICCResult:
     """Result of ICC calculation."""
+
     icc_type: str
     icc_value: float
     ci_lower: float
@@ -116,45 +117,35 @@ class ICCResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API response."""
         return {
-            'icc_type': self.icc_type,
-            'icc_value': round(self.icc_value, 4),
-            'confidence_interval': {
-                'lower': round(self.ci_lower, 4),
-                'upper': round(self.ci_upper, 4),
-                'level': 0.95
+            "icc_type": self.icc_type,
+            "icc_value": round(self.icc_value, 4),
+            "confidence_interval": {"lower": round(self.ci_lower, 4), "upper": round(self.ci_upper, 4), "level": 0.95},
+            "f_test": {
+                "f_value": round(self.f_value, 4),
+                "df_between": self.df_between,
+                "df_within": self.df_within,
+                "p_value": round(self.p_value, 6),
             },
-            'f_test': {
-                'f_value': round(self.f_value, 4),
-                'df_between': self.df_between,
-                'df_within': self.df_within,
-                'p_value': round(self.p_value, 6)
+            "variance_components": {
+                "between_groups": round(self.variance_between, 6),
+                "within_groups": round(self.variance_within, 6),
+                "total": round(self.variance_total, 6),
+                "proportion_between": round(self.icc_value, 4),
             },
-            'variance_components': {
-                'between_groups': round(self.variance_between, 6),
-                'within_groups': round(self.variance_within, 6),
-                'total': round(self.variance_total, 6),
-                'proportion_between': round(self.icc_value, 4)
-            },
-            'interpretation': {
-                'label': self.interpretation_label,
-                'description': self.interpretation
-            },
-            'design_effect': round(self.design_effect, 4) if self.design_effect else None,
-            'effective_sample_size': round(self.effective_sample_size, 2) if self.effective_sample_size else None,
-            'sample_info': {
-                'n_subjects': self.n_subjects,
-                'n_raters': self.n_raters
-            }
+            "interpretation": {"label": self.interpretation_label, "description": self.interpretation},
+            "design_effect": round(self.design_effect, 4) if self.design_effect else None,
+            "effective_sample_size": round(self.effective_sample_size, 2) if self.effective_sample_size else None,
+            "sample_info": {"n_subjects": self.n_subjects, "n_raters": self.n_raters},
         }
 
 
 def calculate_icc(
     data: Union[np.ndarray, pd.DataFrame],
-    icc_type: str = 'ICC(2,1)',
+    icc_type: str = "ICC(2,1)",
     confidence_level: float = 0.95,
     subjects_col: str = None,
     raters_col: str = None,
-    values_col: str = None
+    values_col: str = None,
 ) -> ICCResult:
     """
     Calculate Intraclass Correlation Coefficient.
@@ -175,18 +166,14 @@ def calculate_icc(
         ValueError: If invalid ICC type or data format
     """
     if icc_type not in ICC_TYPES:
-        valid_types = ', '.join(ICC_TYPES.keys())
+        valid_types = ", ".join(ICC_TYPES.keys())
         raise ValueError(f"Invalid ICC type: {icc_type}. Valid types: {valid_types}")
 
     # Convert data to matrix format
     if isinstance(data, pd.DataFrame):
         if subjects_col and raters_col and values_col:
             # Pivot to matrix format
-            matrix = data.pivot(
-                index=subjects_col,
-                columns=raters_col,
-                values=values_col
-            ).values
+            matrix = data.pivot(index=subjects_col, columns=raters_col, values=values_col).values
         else:
             matrix = data.values
     else:
@@ -226,24 +213,22 @@ def calculate_icc(
     ms_residual = ss_residual / df_residual if df_residual > 0 else 0
 
     # Calculate ICC based on type
-    if icc_type.startswith('ICC(1'):
+    if icc_type.startswith("ICC(1"):
         # One-way random effects
-        icc, f_value, var_between, var_within = _icc_one_way(
-            ms_between, ms_within, n, k, icc_type.endswith('k)')
-        )
+        icc, f_value, var_between, var_within = _icc_one_way(ms_between, ms_within, n, k, icc_type.endswith("k)"))
         df1, df2 = df_between, df_within
 
-    elif icc_type.startswith('ICC(2'):
+    elif icc_type.startswith("ICC(2"):
         # Two-way random effects (absolute agreement)
         icc, f_value, var_between, var_within = _icc_two_way_random(
-            ms_between, ms_residual, ms_raters, n, k, icc_type.endswith('k)')
+            ms_between, ms_residual, ms_raters, n, k, icc_type.endswith("k)")
         )
         df1, df2 = df_between, df_residual
 
     else:  # ICC(3,*)
         # Two-way mixed effects (consistency)
         icc, f_value, var_between, var_within = _icc_two_way_mixed(
-            ms_between, ms_residual, n, k, icc_type.endswith('k)')
+            ms_between, ms_residual, n, k, icc_type.endswith("k)")
         )
         df1, df2 = df_between, df_residual
 
@@ -251,9 +236,7 @@ def calculate_icc(
     p_value = 1 - stats.f.cdf(f_value, df1, df2)
 
     # Calculate confidence interval
-    ci_lower, ci_upper = _calculate_icc_ci(
-        icc, f_value, n, k, df1, df2, confidence_level, icc_type
-    )
+    ci_lower, ci_upper = _calculate_icc_ci(icc, f_value, n, k, df1, df2, confidence_level, icc_type)
 
     # Interpretation
     interpretation_label, interpretation = _interpret_icc(icc)
@@ -280,16 +263,12 @@ def calculate_icc(
         design_effect=float(design_effect),
         effective_sample_size=float(effective_n),
         n_subjects=int(n),
-        n_raters=int(k)
+        n_raters=int(k),
     )
 
 
 def _icc_one_way(
-    ms_between: float,
-    ms_within: float,
-    n: int,
-    k: int,
-    average: bool
+    ms_between: float, ms_within: float, n: int, k: int, average: bool
 ) -> Tuple[float, float, float, float]:
     """Calculate one-way random effects ICC."""
     # Variance components
@@ -310,12 +289,7 @@ def _icc_one_way(
 
 
 def _icc_two_way_random(
-    ms_between: float,
-    ms_residual: float,
-    ms_raters: float,
-    n: int,
-    k: int,
-    average: bool
+    ms_between: float, ms_residual: float, ms_raters: float, n: int, k: int, average: bool
 ) -> Tuple[float, float, float, float]:
     """Calculate two-way random effects ICC (absolute agreement)."""
     # Variance components
@@ -338,11 +312,7 @@ def _icc_two_way_random(
 
 
 def _icc_two_way_mixed(
-    ms_between: float,
-    ms_residual: float,
-    n: int,
-    k: int,
-    average: bool
+    ms_between: float, ms_residual: float, n: int, k: int, average: bool
 ) -> Tuple[float, float, float, float]:
     """Calculate two-way mixed effects ICC (consistency)."""
     # Variance components
@@ -363,14 +333,7 @@ def _icc_two_way_mixed(
 
 
 def _calculate_icc_ci(
-    icc: float,
-    f_value: float,
-    n: int,
-    k: int,
-    df1: int,
-    df2: int,
-    confidence_level: float,
-    icc_type: str
+    icc: float, f_value: float, n: int, k: int, df1: int, df2: int, confidence_level: float, icc_type: str
 ) -> Tuple[float, float]:
     """Calculate confidence interval for ICC using F distribution."""
     alpha = 1 - confidence_level
@@ -381,7 +344,7 @@ def _calculate_icc_ci(
 
     # Transform to ICC scale
     # Using the relationship between F and ICC
-    if icc_type.endswith('k)'):
+    if icc_type.endswith("k)"):
         # Average measures
         ci_lower = (f_value / f_upper - 1) / (f_value / f_upper + k - 1)
         ci_upper = (f_value / f_lower - 1) / (f_value / f_lower + k - 1)
@@ -402,14 +365,10 @@ def _interpret_icc(icc: float) -> Tuple[str, str]:
     for threshold, label, description in ICC_INTERPRETATION:
         if icc >= threshold:
             return label, description
-    return 'unknown', 'Unable to interpret'
+    return "unknown", "Unable to interpret"
 
 
-def icc_one_way_random(
-    data: np.ndarray,
-    average: bool = False,
-    confidence_level: float = 0.95
-) -> ICCResult:
+def icc_one_way_random(data: np.ndarray, average: bool = False, confidence_level: float = 0.95) -> ICCResult:
     """
     Convenience function for one-way random effects ICC.
 
@@ -421,15 +380,11 @@ def icc_one_way_random(
     Returns:
         ICCResult
     """
-    icc_type = 'ICC(1,k)' if average else 'ICC(1,1)'
+    icc_type = "ICC(1,k)" if average else "ICC(1,1)"
     return calculate_icc(data, icc_type=icc_type, confidence_level=confidence_level)
 
 
-def icc_two_way_random(
-    data: np.ndarray,
-    average: bool = False,
-    confidence_level: float = 0.95
-) -> ICCResult:
+def icc_two_way_random(data: np.ndarray, average: bool = False, confidence_level: float = 0.95) -> ICCResult:
     """
     Convenience function for two-way random effects ICC (absolute agreement).
 
@@ -441,15 +396,11 @@ def icc_two_way_random(
     Returns:
         ICCResult
     """
-    icc_type = 'ICC(2,k)' if average else 'ICC(2,1)'
+    icc_type = "ICC(2,k)" if average else "ICC(2,1)"
     return calculate_icc(data, icc_type=icc_type, confidence_level=confidence_level)
 
 
-def icc_two_way_mixed(
-    data: np.ndarray,
-    average: bool = False,
-    confidence_level: float = 0.95
-) -> ICCResult:
+def icc_two_way_mixed(data: np.ndarray, average: bool = False, confidence_level: float = 0.95) -> ICCResult:
     """
     Convenience function for two-way mixed effects ICC (consistency).
 
@@ -461,14 +412,11 @@ def icc_two_way_mixed(
     Returns:
         ICCResult
     """
-    icc_type = 'ICC(3,k)' if average else 'ICC(3,1)'
+    icc_type = "ICC(3,k)" if average else "ICC(3,1)"
     return calculate_icc(data, icc_type=icc_type, confidence_level=confidence_level)
 
 
-def calculate_design_effect(
-    icc: float,
-    cluster_size: float
-) -> Dict[str, float]:
+def calculate_design_effect(icc: float, cluster_size: float) -> Dict[str, float]:
     """
     Calculate design effect for clustered data.
 
@@ -490,12 +438,12 @@ def calculate_design_effect(
     deff = 1 + (cluster_size - 1) * icc
 
     return {
-        'design_effect': round(deff, 4),
-        'icc': round(icc, 4),
-        'cluster_size': cluster_size,
-        'variance_inflation': round(deff, 4),
-        'effective_sample_ratio': round(1 / deff, 4),
-        'interpretation': _interpret_design_effect(deff)
+        "design_effect": round(deff, 4),
+        "icc": round(icc, 4),
+        "cluster_size": cluster_size,
+        "variance_inflation": round(deff, 4),
+        "effective_sample_ratio": round(1 / deff, 4),
+        "interpretation": _interpret_design_effect(deff),
     }
 
 
@@ -511,10 +459,7 @@ def _interpret_design_effect(deff: float) -> str:
         return "Strong clustering - multilevel analysis essential"
 
 
-def icc_for_multilevel_decision(
-    data: np.ndarray,
-    grouping: np.ndarray = None
-) -> Dict[str, Any]:
+def icc_for_multilevel_decision(data: np.ndarray, grouping: np.ndarray = None) -> Dict[str, Any]:
     """
     Calculate ICC to help decide if multilevel modeling is needed.
 
@@ -585,14 +530,14 @@ def icc_for_multilevel_decision(
     design_effect = 1 + (avg_cluster_size - 1) * icc
 
     return {
-        'icc': round(icc, 4),
-        'variance_between': round(var_between, 6),
-        'variance_within': round(var_within, 6),
-        'n_groups': n_groups,
-        'n_observations': total_n,
-        'avg_group_size': round(avg_cluster_size, 2),
-        'design_effect': round(design_effect, 4),
-        'decision': decision,
-        'recommendation': recommendation,
-        'multilevel_needed': icc >= 0.05
+        "icc": round(icc, 4),
+        "variance_between": round(var_between, 6),
+        "variance_within": round(var_within, 6),
+        "n_groups": n_groups,
+        "n_observations": total_n,
+        "avg_group_size": round(avg_cluster_size, 2),
+        "design_effect": round(design_effect, 4),
+        "decision": decision,
+        "recommendation": recommendation,
+        "multilevel_needed": icc >= 0.05,
     }

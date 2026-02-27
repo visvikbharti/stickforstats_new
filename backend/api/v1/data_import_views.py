@@ -85,27 +85,27 @@ class UniversalDataImportView(APIView):
         422: File could not be parsed
         500: Unexpected server error
     """
+
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         """Handle multipart file upload and import."""
         # --- Validate file presence ---
-        if 'file' not in request.FILES:
+        if "file" not in request.FILES:
             return Response(
                 {
-                    'success': False,
-                    'error': 'No file provided.',
-                    'detail': (
+                    "success": False,
+                    "error": "No file provided.",
+                    "detail": (
                         'Send a multipart/form-data request with a "file" field. '
-                        'Supported formats: ' +
-                        ', '.join(sorted(SUPPORTED_FORMATS.keys()))
+                        "Supported formats: " + ", ".join(sorted(SUPPORTED_FORMATS.keys()))
                     ),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uploaded_file = request.FILES['file']
+        uploaded_file = request.FILES["file"]
 
         # --- Validate file size ---
         file_size = uploaded_file.size
@@ -114,31 +114,32 @@ class UniversalDataImportView(APIView):
             actual_mb = file_size / (1024 * 1024)
             return Response(
                 {
-                    'success': False,
-                    'error': f'File too large ({actual_mb:.1f} MB). Maximum allowed: {max_mb:.0f} MB.',
+                    "success": False,
+                    "error": f"File too large ({actual_mb:.1f} MB). Maximum allowed: {max_mb:.0f} MB.",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # --- Validate file extension ---
         import os
+
         ext = os.path.splitext(uploaded_file.name)[1].lower()
-        explicit_type = request.data.get('file_type', None)
+        explicit_type = request.data.get("file_type", None)
 
         if explicit_type is None and ext not in SUPPORTED_FORMATS:
             return Response(
                 {
-                    'success': False,
-                    'error': f"Unsupported file extension '{ext}'.",
-                    'supported_formats': list(sorted(SUPPORTED_FORMATS.keys())),
+                    "success": False,
+                    "error": f"Unsupported file extension '{ext}'.",
+                    "supported_formats": list(sorted(SUPPORTED_FORMATS.keys())),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # --- Parse optional parameters ---
-        encoding = request.data.get('encoding', 'utf-8')
+        encoding = request.data.get("encoding", "utf-8")
         try:
-            preview_rows = int(request.data.get('preview_rows', PREVIEW_ROWS))
+            preview_rows = int(request.data.get("preview_rows", PREVIEW_ROWS))
             preview_rows = max(1, min(preview_rows, 1000))
         except (ValueError, TypeError):
             preview_rows = PREVIEW_ROWS
@@ -155,9 +156,9 @@ class UniversalDataImportView(APIView):
             logger.exception("Unexpected error during data import: %s", str(e))
             return Response(
                 {
-                    'success': False,
-                    'error': 'An unexpected error occurred during file import.',
-                    'detail': str(e),
+                    "success": False,
+                    "error": "An unexpected error occurred during file import.",
+                    "detail": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -166,10 +167,10 @@ class UniversalDataImportView(APIView):
         if not result.success:
             return Response(
                 {
-                    'success': False,
-                    'errors': result.errors,
-                    'warnings': result.warnings,
-                    'file_info': result.file_info,
+                    "success": False,
+                    "errors": result.errors,
+                    "warnings": result.warnings,
+                    "file_info": result.file_info,
                 },
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
@@ -186,6 +187,7 @@ class SupportedFormatsView(APIView):
     Returns a list of supported data file formats with their descriptions
     and required Python packages.
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -194,18 +196,20 @@ class SupportedFormatsView(APIView):
 
         # Check which optional packages are actually installed
         for fmt in formats:
-            fmt['installed'] = _check_package_installed(fmt['requires'])
+            fmt["installed"] = _check_package_installed(fmt["requires"])
 
-        return Response({
-            'formats': formats,
-            'max_upload_size_bytes': MAX_UPLOAD_SIZE_BYTES,
-            'max_upload_size_mb': MAX_UPLOAD_SIZE_BYTES / (1024 * 1024),
-        })
+        return Response(
+            {
+                "formats": formats,
+                "max_upload_size_bytes": MAX_UPLOAD_SIZE_BYTES,
+                "max_upload_size_mb": MAX_UPLOAD_SIZE_BYTES / (1024 * 1024),
+            }
+        )
 
 
 def _check_package_installed(requires: str) -> bool:
     """Check whether a required package is installed."""
-    if 'built-in' in requires:
+    if "built-in" in requires:
         return True
     package_name = requires.strip()
     try:

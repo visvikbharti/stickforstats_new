@@ -27,9 +27,6 @@ from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from scipy import stats
-from scipy.special import factorial
-import itertools
-import warnings
 import logging
 
 # Configure high precision
@@ -40,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class NonParametricTest(Enum):
     """Types of non-parametric tests"""
+
     MANN_WHITNEY_U = "mann_whitney_u"
     WILCOXON_SIGNED_RANK = "wilcoxon_signed_rank"
     KRUSKAL_WALLIS = "kruskal_wallis"
@@ -55,6 +53,7 @@ class NonParametricTest(Enum):
 @dataclass
 class NonParametricResult:
     """Comprehensive result for non-parametric tests"""
+
     test_name: str
     test_statistic: Decimal
     p_value: Decimal
@@ -88,40 +87,39 @@ class NonParametricResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to JSON-serializable dictionary"""
         result = {
-            'test_name': self.test_name,
-            'test_statistic': str(self.test_statistic) if self.test_statistic else None,
-            'p_value': str(self.p_value) if self.p_value else None,
-            'sample_sizes': self.sample_sizes,
-            'ties_present': self.ties_present,
-            'ties_correction_applied': self.ties_correction_applied,
-            'interpretation': self.interpretation,
-            'recommendations': self.recommendations
+            "test_name": self.test_name,
+            "test_statistic": str(self.test_statistic) if self.test_statistic else None,
+            "p_value": str(self.p_value) if self.p_value else None,
+            "sample_sizes": self.sample_sizes,
+            "ties_present": self.ties_present,
+            "ties_correction_applied": self.ties_correction_applied,
+            "interpretation": self.interpretation,
+            "recommendations": self.recommendations,
         }
 
         # Add optional fields
         if self.z_score is not None:
-            result['z_score'] = str(self.z_score)
+            result["z_score"] = str(self.z_score)
         if self.effect_size is not None:
-            result['effect_size'] = str(self.effect_size)
+            result["effect_size"] = str(self.effect_size)
         if self.confidence_interval is not None:
-            result['confidence_interval'] = [str(self.confidence_interval[0]),
-                                           str(self.confidence_interval[1])]
+            result["confidence_interval"] = [str(self.confidence_interval[0]), str(self.confidence_interval[1])]
         if self.mean_ranks is not None:
-            result['mean_ranks'] = {k: str(v) for k, v in self.mean_ranks.items()}
+            result["mean_ranks"] = {k: str(v) for k, v in self.mean_ranks.items()}
         if self.sum_ranks is not None:
-            result['sum_ranks'] = {k: str(v) for k, v in self.sum_ranks.items()}
+            result["sum_ranks"] = {k: str(v) for k, v in self.sum_ranks.items()}
         if self.u_statistic is not None:
-            result['u_statistic'] = str(self.u_statistic)
+            result["u_statistic"] = str(self.u_statistic)
         if self.w_statistic is not None:
-            result['w_statistic'] = str(self.w_statistic)
+            result["w_statistic"] = str(self.w_statistic)
         if self.h_statistic is not None:
-            result['h_statistic'] = str(self.h_statistic)
+            result["h_statistic"] = str(self.h_statistic)
         if self.chi_squared is not None:
-            result['chi_squared'] = str(self.chi_squared)
+            result["chi_squared"] = str(self.chi_squared)
         if self.exact_p_value is not None:
-            result['exact_p_value'] = str(self.exact_p_value)
+            result["exact_p_value"] = str(self.exact_p_value)
         if self.asymptotic_p_value is not None:
-            result['asymptotic_p_value'] = str(self.asymptotic_p_value)
+            result["asymptotic_p_value"] = str(self.asymptotic_p_value)
 
         return result
 
@@ -129,6 +127,7 @@ class NonParametricResult:
 @dataclass
 class PostHocResult:
     """Result for post-hoc tests"""
+
     test_name: str
     comparisons: Dict[str, Dict[str, Any]]
     correction_method: Optional[str] = None
@@ -137,10 +136,10 @@ class PostHocResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         return {
-            'test_name': self.test_name,
-            'comparisons': self.comparisons,
-            'correction_method': self.correction_method,
-            'overall_significance': self.overall_significance
+            "test_name": self.test_name,
+            "comparisons": self.comparisons,
+            "correction_method": self.correction_method,
+            "overall_significance": self.overall_significance,
         }
 
 
@@ -163,7 +162,7 @@ class HighPrecisionNonParametric:
         """Convert array to Decimal array"""
         return [self._to_decimal(x) for x in arr]
 
-    def _calculate_ranks(self, *groups, method='average') -> List[np.ndarray]:
+    def _calculate_ranks(self, *groups, method="average") -> List[np.ndarray]:
         """
         Calculate ranks across all groups with tie handling.
 
@@ -200,16 +199,16 @@ class HighPrecisionNonParametric:
                 j += 1
 
             # Assign ranks based on method
-            if method == 'average':
+            if method == "average":
                 # Average rank for ties
                 avg_rank = (i + j + 2) / 2  # +1 for 1-based ranking, +1 for inclusive range
                 for k in range(i, j + 1):
                     ranks[sorted_indices[k]] = avg_rank
-            elif method == 'min':
+            elif method == "min":
                 # Minimum rank for ties
                 for k in range(i, j + 1):
                     ranks[sorted_indices[k]] = i + 1
-            elif method == 'max':
+            elif method == "max":
                 # Maximum rank for ties
                 for k in range(i, j + 1):
                     ranks[sorted_indices[k]] = j + 1
@@ -224,10 +223,13 @@ class HighPrecisionNonParametric:
 
         return group_ranks
 
-    def mann_whitney_u(self, x: Union[List, np.ndarray],
-                      y: Union[List, np.ndarray],
-                      alternative: str = 'two-sided',
-                      use_continuity: bool = True) -> NonParametricResult:
+    def mann_whitney_u(
+        self,
+        x: Union[List, np.ndarray],
+        y: Union[List, np.ndarray],
+        alternative: str = "two-sided",
+        use_continuity: bool = True,
+    ) -> NonParametricResult:
         """
         High-precision Mann-Whitney U test (Wilcoxon rank-sum test).
 
@@ -268,11 +270,9 @@ class HighPrecisionNonParametric:
         # Check for ties
         ties = self._count_ties(np.concatenate([x_arr, y_arr]))
 
-        if ties['has_ties']:
+        if ties["has_ties"]:
             # Correction for ties
-            tie_correction = sum(
-                self._to_decimal(t * (t**2 - 1)) for t in ties['tie_counts']
-            ) / (12 * n * (n - 1))
+            tie_correction = sum(self._to_decimal(t * (t**2 - 1)) for t in ties["tie_counts"]) / (12 * n * (n - 1))
             var_u = self._to_decimal(n1 * n2) * (n + 1) / 12 - tie_correction
         else:
             var_u = self._to_decimal(n1 * n2 * (n + 1) / 12)
@@ -285,9 +285,9 @@ class HighPrecisionNonParametric:
         else:
             continuity = self._to_decimal(0)
 
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             z = (abs(u_stat - mu_u) - continuity) / sigma_u
-        elif alternative == 'less':
+        elif alternative == "less":
             z = (u_stat - mu_u + continuity) / sigma_u
         else:  # greater
             z = (u_stat - mu_u - continuity) / sigma_u
@@ -298,9 +298,9 @@ class HighPrecisionNonParametric:
             p_value = self._mann_whitney_exact_p(u_stat, n1, n2, alternative)
         else:
             # Use normal approximation for large samples
-            if alternative == 'two-sided':
+            if alternative == "two-sided":
                 p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
-            elif alternative == 'less':
+            elif alternative == "less":
                 p_value = self._to_decimal(stats.norm.cdf(float(z)))
             else:  # greater
                 p_value = self._to_decimal(1 - stats.norm.cdf(float(z)))
@@ -317,23 +317,23 @@ class HighPrecisionNonParametric:
             z_score=z,
             effect_size=effect_size,
             u_statistic=u_stat,
-            mean_ranks={
-                'group1': self._to_decimal(np.mean(x_ranks)),
-                'group2': self._to_decimal(np.mean(y_ranks))
-            },
-            sum_ranks={'group1': r1, 'group2': r2},
-            ties_present=ties['has_ties'],
-            ties_correction_applied=ties['has_ties'],
-            interpretation=self._interpret_mann_whitney(u_stat, p_value, effect_size)
+            mean_ranks={"group1": self._to_decimal(np.mean(x_ranks)), "group2": self._to_decimal(np.mean(y_ranks))},
+            sum_ranks={"group1": r1, "group2": r2},
+            ties_present=ties["has_ties"],
+            ties_correction_applied=ties["has_ties"],
+            interpretation=self._interpret_mann_whitney(u_stat, p_value, effect_size),
         )
 
         return result
 
-    def wilcoxon_signed_rank(self, x: Union[List, np.ndarray],
-                           y: Optional[Union[List, np.ndarray]] = None,
-                           zero_method: str = 'wilcox',
-                           correction: bool = True,
-                           alternative: str = 'two-sided') -> NonParametricResult:
+    def wilcoxon_signed_rank(
+        self,
+        x: Union[List, np.ndarray],
+        y: Optional[Union[List, np.ndarray]] = None,
+        zero_method: str = "wilcox",
+        correction: bool = True,
+        alternative: str = "two-sided",
+    ) -> NonParametricResult:
         """
         High-precision Wilcoxon signed-rank test.
 
@@ -361,24 +361,22 @@ class HighPrecisionNonParametric:
         n = len(differences)
 
         # Handle zeros based on method
-        if zero_method == 'wilcox':
+        if zero_method == "wilcox":
             # Remove zeros
             differences = differences[differences != 0]
-        elif zero_method == 'pratt':
+        elif zero_method == "pratt":
             # Include zeros in ranking
             pass
-        elif zero_method == 'zsplit':
+        elif zero_method == "zsplit":
             # Split zeros between positive and negative
             n_zeros = np.sum(differences == 0)
             if n_zeros > 0:
                 differences = differences[differences != 0]
                 # Add half zeros as positive, half as negative (small values)
                 eps = 1e-10
-                differences = np.concatenate([
-                    differences,
-                    np.full(n_zeros // 2, eps),
-                    np.full(n_zeros - n_zeros // 2, -eps)
-                ])
+                differences = np.concatenate(
+                    [differences, np.full(n_zeros // 2, eps), np.full(n_zeros - n_zeros // 2, -eps)]
+                )
 
         n_reduced = len(differences)
 
@@ -389,7 +387,7 @@ class HighPrecisionNonParametric:
                 test_statistic=self._to_decimal(0),
                 p_value=self._to_decimal(1),
                 sample_sizes=[n],
-                interpretation="All differences are zero; no evidence of difference"
+                interpretation="All differences are zero; no evidence of difference",
             )
 
         # Get absolute values and signs
@@ -397,7 +395,7 @@ class HighPrecisionNonParametric:
         signs = np.sign(differences)
 
         # Rank absolute differences
-        ranks = stats.rankdata(abs_diff, method='average')
+        ranks = stats.rankdata(abs_diff, method="average")
 
         # Calculate W+ and W-
         w_plus = self._to_decimal(np.sum(ranks[signs > 0]))
@@ -413,11 +411,9 @@ class HighPrecisionNonParametric:
         # Check for ties
         ties = self._count_ties(abs_diff)
 
-        if ties['has_ties']:
+        if ties["has_ties"]:
             # Correction for ties
-            tie_correction = sum(
-                self._to_decimal(t * (t**2 - 1)) for t in ties['tie_counts']
-            ) / 48
+            tie_correction = sum(self._to_decimal(t * (t**2 - 1)) for t in ties["tie_counts"]) / 48
             var_w = n_r * (n_r + 1) * (2 * n_r + 1) / 24 - tie_correction
         else:
             var_w = n_r * (n_r + 1) * (2 * n_r + 1) / 24
@@ -430,9 +426,9 @@ class HighPrecisionNonParametric:
         else:
             continuity = self._to_decimal(0)
 
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             z = (abs(w_stat - mu_w) - continuity) / sigma_w
-        elif alternative == 'less':
+        elif alternative == "less":
             z = (w_stat - mu_w + continuity) / sigma_w
         else:  # greater
             z = (w_stat - mu_w - continuity) / sigma_w
@@ -443,9 +439,9 @@ class HighPrecisionNonParametric:
             p_value = self._wilcoxon_exact_p(w_stat, n_reduced, alternative)
         else:
             # Use normal approximation
-            if alternative == 'two-sided':
+            if alternative == "two-sided":
                 p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
-            elif alternative == 'less':
+            elif alternative == "less":
                 p_value = self._to_decimal(stats.norm.cdf(float(z)))
             else:  # greater
                 p_value = self._to_decimal(1 - stats.norm.cdf(float(z)))
@@ -462,15 +458,15 @@ class HighPrecisionNonParametric:
             z_score=z,
             effect_size=effect_size,
             w_statistic=w_stat,
-            sum_ranks={'positive': w_plus, 'negative': w_minus},
-            ties_present=ties['has_ties'],
-            ties_correction_applied=ties['has_ties'],
-            interpretation=self._interpret_wilcoxon(w_stat, p_value, effect_size)
+            sum_ranks={"positive": w_plus, "negative": w_minus},
+            ties_present=ties["has_ties"],
+            ties_correction_applied=ties["has_ties"],
+            interpretation=self._interpret_wilcoxon(w_stat, p_value, effect_size),
         )
 
         return result
 
-    def kruskal_wallis(self, *groups, nan_policy: str = 'propagate') -> NonParametricResult:
+    def kruskal_wallis(self, *groups, nan_policy: str = "propagate") -> NonParametricResult:
         """
         High-precision Kruskal-Wallis H test.
 
@@ -492,9 +488,9 @@ class HighPrecisionNonParametric:
         cleaned_groups = []
         for group in groups:
             group_arr = np.array(group)
-            if nan_policy == 'omit':
+            if nan_policy == "omit":
                 group_arr = group_arr[~np.isnan(group_arr)]
-            elif nan_policy == 'raise' and np.any(np.isnan(group_arr)):
+            elif nan_policy == "raise" and np.any(np.isnan(group_arr)):
                 raise ValueError("NaN values found in data")
             cleaned_groups.append(group_arr)
 
@@ -516,19 +512,17 @@ class HighPrecisionNonParametric:
 
         # Calculate H statistic
         n_dec = self._to_decimal(n)
-        h_stat = (12 / (n_dec * (n_dec + 1))) * sum(
-            r_i[i]**2 / self._to_decimal(n_i[i]) for i in range(k)
-        ) - 3 * (n_dec + 1)
+        h_stat = (12 / (n_dec * (n_dec + 1))) * sum(r_i[i] ** 2 / self._to_decimal(n_i[i]) for i in range(k)) - 3 * (
+            n_dec + 1
+        )
 
         # Check for ties and apply correction
         combined_data = np.concatenate(groups)
         ties = self._count_ties(combined_data)
 
-        if ties['has_ties']:
+        if ties["has_ties"]:
             # Tie correction factor
-            c = 1 - sum(
-                self._to_decimal(t**3 - t) for t in ties['tie_counts']
-            ) / (n_dec**3 - n_dec)
+            c = 1 - sum(self._to_decimal(t**3 - t) for t in ties["tie_counts"]) / (n_dec**3 - n_dec)
 
             h_stat = h_stat / c if c > 0 else h_stat
 
@@ -540,10 +534,7 @@ class HighPrecisionNonParametric:
         epsilon_squared = h_stat / (n_dec - 1)
 
         # Mean ranks for each group
-        mean_ranks = {
-            f'group_{i+1}': self._to_decimal(np.mean(ranks[i]))
-            for i in range(k)
-        }
+        mean_ranks = {f"group_{i+1}": self._to_decimal(np.mean(ranks[i])) for i in range(k)}
 
         # Create result
         result = NonParametricResult(
@@ -555,11 +546,13 @@ class HighPrecisionNonParametric:
             chi_squared=h_stat,  # H follows chi-squared distribution
             effect_size=epsilon_squared,
             mean_ranks=mean_ranks,
-            sum_ranks={f'group_{i+1}': r_i[i] for i in range(k)},
-            ties_present=ties['has_ties'],
-            ties_correction_applied=ties['has_ties'],
+            sum_ranks={f"group_{i+1}": r_i[i] for i in range(k)},
+            ties_present=ties["has_ties"],
+            ties_correction_applied=ties["has_ties"],
             interpretation=self._interpret_kruskal_wallis(h_stat, p_value, epsilon_squared, k),
-            recommendations=["Consider post-hoc Dunn's test if significant"] if p_value < self._to_decimal('0.05') else []
+            recommendations=["Consider post-hoc Dunn's test if significant"]
+            if p_value < self._to_decimal("0.05")
+            else [],
         )
 
         return result
@@ -602,7 +595,7 @@ class HighPrecisionNonParametric:
         # Rank within each block (row)
         ranked_data = np.zeros_like(data, dtype=float)
         for i in range(n):
-            ranked_data[i] = stats.rankdata(data[i], method='average')
+            ranked_data[i] = stats.rankdata(data[i], method="average")
 
         # Calculate rank sums for each treatment
         r_j = [self._to_decimal(np.sum(ranked_data[:, j])) for j in range(k)]
@@ -612,14 +605,12 @@ class HighPrecisionNonParametric:
         k_dec = self._to_decimal(k)
 
         # Standard Friedman statistic
-        chi_f = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(
-            r_j[j]**2 for j in range(k)
-        ) - 3 * n_dec * (k_dec + 1)
+        chi_f = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(r_j[j] ** 2 for j in range(k)) - 3 * n_dec * (k_dec + 1)
 
         # Iman-Davenport statistic (better for small samples)
         # Add safety check for division by zero
         denominator = n_dec * (k_dec - 1) - chi_f
-        if abs(denominator) < self._to_decimal('1e-50'):  # Effectively zero
+        if abs(denominator) < self._to_decimal("1e-50"):  # Effectively zero
             # Edge case: use chi-square approximation only
             f_stat = chi_f
         else:
@@ -639,10 +630,7 @@ class HighPrecisionNonParametric:
         w = chi_f / (n_dec * (k_dec - 1))
 
         # Mean ranks for each group
-        mean_ranks = {
-            f'group_{j+1}': r_j[j] / n_dec
-            for j in range(k)
-        }
+        mean_ranks = {f"group_{j+1}": r_j[j] / n_dec for j in range(k)}
 
         # Create result
         result = NonParametricResult(
@@ -653,16 +641,18 @@ class HighPrecisionNonParametric:
             chi_squared=chi_f,
             effect_size=w,  # Kendall's W
             mean_ranks=mean_ranks,
-            sum_ranks={f'group_{j+1}': r_j[j] for j in range(k)},
+            sum_ranks={f"group_{j+1}": r_j[j] for j in range(k)},
             interpretation=self._interpret_friedman(chi_f, p_value, w, k),
-            recommendations=["Consider post-hoc Nemenyi test if significant"] if p_value < self._to_decimal('0.05') else []
+            recommendations=["Consider post-hoc Nemenyi test if significant"]
+            if p_value < self._to_decimal("0.05")
+            else [],
         )
 
         return result
 
-    def sign_test(self, x: Union[List, np.ndarray],
-                 y: Optional[Union[List, np.ndarray]] = None,
-                 alternative: str = 'two-sided') -> NonParametricResult:
+    def sign_test(
+        self, x: Union[List, np.ndarray], y: Optional[Union[List, np.ndarray]] = None, alternative: str = "two-sided"
+    ) -> NonParametricResult:
         """
         High-precision Sign test.
 
@@ -699,24 +689,18 @@ class HighPrecisionNonParametric:
             p_value = self._to_decimal(1)
         else:
             # Exact binomial test
-            if alternative == 'two-sided':
+            if alternative == "two-sided":
                 # Two-tailed test
-                p_value = self._to_decimal(
-                    2 * stats.binom.cdf(s_stat, n_nonzero, 0.5)
-                )
+                p_value = self._to_decimal(2 * stats.binom.cdf(s_stat, n_nonzero, 0.5))
                 p_value = min(p_value, self._to_decimal(1))
-            elif alternative == 'less':
+            elif alternative == "less":
                 # Test if x < y (more negative differences)
                 # P-value = P(S+ <= n_pos) = probability of this few or fewer positives
-                p_value = self._to_decimal(
-                    stats.binom.cdf(n_pos, n_nonzero, 0.5)
-                )
+                p_value = self._to_decimal(stats.binom.cdf(n_pos, n_nonzero, 0.5))
             else:  # greater
                 # Test if x > y (more positive differences)
                 # P-value = P(S- <= n_neg) = probability of this few or fewer negatives
-                p_value = self._to_decimal(
-                    stats.binom.cdf(n_neg, n_nonzero, 0.5)
-                )
+                p_value = self._to_decimal(stats.binom.cdf(n_neg, n_nonzero, 0.5))
 
         # Effect size (proportion of non-zero differences that are positive)
         if n_nonzero > 0:
@@ -731,7 +715,7 @@ class HighPrecisionNonParametric:
             p_value=p_value,
             sample_sizes=[n_total, n_nonzero],
             effect_size=effect_size,
-            interpretation=self._interpret_sign_test(s_stat, p_value, n_pos, n_neg, n_zero)
+            interpretation=self._interpret_sign_test(s_stat, p_value, n_pos, n_neg, n_zero),
         )
 
         return result
@@ -779,12 +763,12 @@ class HighPrecisionNonParametric:
             sample_sizes=[len(g) for g in groups],
             chi_squared=self._to_decimal(chi2_stat),
             effect_size=self._to_decimal(cramers_v),
-            interpretation=self._interpret_moods_median(chi2_stat, p_value, cramers_v, k)
+            interpretation=self._interpret_moods_median(chi2_stat, p_value, cramers_v, k),
         )
 
         return result
 
-    def moods_median(self, *groups, ties: str = 'below', nan_policy: str = 'propagate') -> NonParametricResult:
+    def moods_median(self, *groups, ties: str = "below", nan_policy: str = "propagate") -> NonParametricResult:
         """Alias for moods_median_test for API consistency."""
         return self.moods_median_test(*groups)
 
@@ -816,7 +800,7 @@ class HighPrecisionNonParametric:
 
         # Calculate expected value and variance
         n_i = [len(g) for g in groups]
-        n = sum(n_i)
+        sum(n_i)
 
         # Expected value
         mu_j = self._to_decimal(0)
@@ -839,7 +823,7 @@ class HighPrecisionNonParametric:
         p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
 
         # Effect size
-        max_j = sum(n_i[i] * n_i[j] for i in range(k-1) for j in range(i+1, k))
+        max_j = sum(n_i[i] * n_i[j] for i in range(k - 1) for j in range(i + 1, k))
         effect_size = j_stat / self._to_decimal(max_j)
 
         # Create result
@@ -850,12 +834,12 @@ class HighPrecisionNonParametric:
             sample_sizes=n_i,
             z_score=z,
             effect_size=effect_size,
-            interpretation=self._interpret_jonckheere(j_stat, p_value, effect_size, k)
+            interpretation=self._interpret_jonckheere(j_stat, p_value, effect_size, k),
         )
 
         return result
 
-    def jonckheere_terpstra(self, groups, alternative: str = 'two-sided') -> NonParametricResult:
+    def jonckheere_terpstra(self, groups, alternative: str = "two-sided") -> NonParametricResult:
         """Alias for jonckheere_terpstra_test for API consistency."""
         # Unpack groups tuple/list and pass as *args
         if isinstance(groups, (list, tuple)) and len(groups) > 0 and isinstance(groups[0], (list, np.ndarray)):
@@ -907,7 +891,7 @@ class HighPrecisionNonParametric:
         k = self._to_decimal(k_treatments)
 
         # Expected value: E(L) = n*k*(k+1)^2 / 4
-        mu_l = n * k * (k + 1)**2 / self._to_decimal(4)
+        mu_l = n * k * (k + 1) ** 2 / self._to_decimal(4)
 
         # Variance: Var(L) = n*k^2*(k+1)*(k-1) / 144
         var_l = n * k**2 * (k + 1) * (k - 1) / self._to_decimal(144)
@@ -939,12 +923,12 @@ class HighPrecisionNonParametric:
             sample_sizes=[n_subjects] * k_treatments,
             z_score=z,
             effect_size=effect_size,
-            interpretation=interpretation
+            interpretation=interpretation,
         )
 
         return result
 
-    def dunn_test(self, *groups, method: str = 'bonferroni') -> PostHocResult:
+    def dunn_test(self, *groups, method: str = "bonferroni") -> PostHocResult:
         """
         High-precision Dunn's test (post-hoc for Kruskal-Wallis).
 
@@ -973,7 +957,7 @@ class HighPrecisionNonParametric:
             for j in range(i + 1, k):
                 # Calculate z-statistic
                 mean_diff = abs(mean_ranks[i] - mean_ranks[j])
-                se = np.sqrt((n * (n + 1) / 12) * (1/n_i[i] + 1/n_i[j]))
+                se = np.sqrt((n * (n + 1) / 12) * (1 / n_i[i] + 1 / n_i[j]))
                 z = mean_diff / se
 
                 # Two-tailed p-value
@@ -982,10 +966,10 @@ class HighPrecisionNonParametric:
 
                 comparison_name = f"Group_{i+1}_vs_Group_{j+1}"
                 comparisons[comparison_name] = {
-                    'mean_rank_diff': self._to_decimal(mean_diff),
-                    'z_statistic': self._to_decimal(z),
-                    'p_value': self._to_decimal(p),
-                    'standard_error': self._to_decimal(se)
+                    "mean_rank_diff": self._to_decimal(mean_diff),
+                    "z_statistic": self._to_decimal(z),
+                    "p_value": self._to_decimal(p),
+                    "standard_error": self._to_decimal(se),
                 }
 
         # Apply multiple comparison correction
@@ -994,22 +978,20 @@ class HighPrecisionNonParametric:
         # Update comparisons with corrected p-values
         idx = 0
         for key in comparisons:
-            comparisons[key]['adjusted_p_value'] = self._to_decimal(corrected_p[idx])
-            comparisons[key]['significant'] = corrected_p[idx] < 0.05
+            comparisons[key]["adjusted_p_value"] = self._to_decimal(corrected_p[idx])
+            comparisons[key]["significant"] = corrected_p[idx] < 0.05
             idx += 1
 
         # Check overall significance
         overall_sig = any(p < 0.05 for p in corrected_p)
 
         return PostHocResult(
-            test_name="Dunn's Test",
-            comparisons=comparisons,
-            correction_method=method,
-            overall_significance=overall_sig
+            test_name="Dunn's Test", comparisons=comparisons, correction_method=method, overall_significance=overall_sig
         )
 
-    def rank_biserial_correlation(self, group1: Union[List, np.ndarray],
-                                  group2: Union[List, np.ndarray]) -> NonParametricResult:
+    def rank_biserial_correlation(
+        self, group1: Union[List, np.ndarray], group2: Union[List, np.ndarray]
+    ) -> NonParametricResult:
         """
         Calculate rank-biserial correlation (effect size for Mann-Whitney U test).
 
@@ -1032,7 +1014,7 @@ class HighPrecisionNonParametric:
 
         # Calculate ranks
         ranks = self._calculate_ranks(x_arr, y_arr)
-        x_ranks, y_ranks = ranks[0], ranks[1]
+        x_ranks, _ = ranks[0], ranks[1]
 
         # Calculate rank sum for first group
         r1 = self._to_decimal(np.sum(x_ranks))
@@ -1049,7 +1031,7 @@ class HighPrecisionNonParametric:
             p_value=None,
             sample_sizes=[n1, n2],
             effect_size=effect_size,
-            interpretation=f"Rank-biserial correlation: {effect_size:.4f} ({'small' if abs(effect_size) < 0.3 else 'medium' if abs(effect_size) < 0.5 else 'large'} effect)"
+            interpretation=f"Rank-biserial correlation: {effect_size:.4f} ({'small' if abs(effect_size) < 0.3 else 'medium' if abs(effect_size) < 0.5 else 'large'} effect)",
         )
 
     def epsilon_squared(self, groups: List[Union[List, np.ndarray]]) -> NonParametricResult:
@@ -1085,9 +1067,9 @@ class HighPrecisionNonParametric:
 
         # Calculate H statistic
         n_dec = self._to_decimal(n)
-        h_stat = (12 / (n_dec * (n_dec + 1))) * sum(
-            r_i[i]**2 / self._to_decimal(n_i[i]) for i in range(k)
-        ) - 3 * (n_dec + 1)
+        h_stat = (12 / (n_dec * (n_dec + 1))) * sum(r_i[i] ** 2 / self._to_decimal(n_i[i]) for i in range(k)) - 3 * (
+            n_dec + 1
+        )
 
         # Calculate epsilon-squared
         epsilon_squared = h_stat / (n_dec - 1)
@@ -1098,7 +1080,7 @@ class HighPrecisionNonParametric:
             p_value=None,
             sample_sizes=n_i,
             effect_size=epsilon_squared,
-            interpretation=f"Epsilon-squared: {epsilon_squared:.4f} ({'small' if epsilon_squared < 0.06 else 'medium' if epsilon_squared < 0.14 else 'large'} effect)"
+            interpretation=f"Epsilon-squared: {epsilon_squared:.4f} ({'small' if epsilon_squared < 0.06 else 'medium' if epsilon_squared < 0.14 else 'large'} effect)",
         )
 
     def kendalls_w(self, measurements: Union[List, np.ndarray]) -> NonParametricResult:
@@ -1133,7 +1115,7 @@ class HighPrecisionNonParametric:
         # Rank within each subject (row)
         ranked_data = np.zeros_like(data, dtype=float)
         for i in range(n):
-            ranked_data[i] = stats.rankdata(data[i], method='average')
+            ranked_data[i] = stats.rankdata(data[i], method="average")
 
         # Calculate rank sums for each condition
         r_j = [self._to_decimal(np.sum(ranked_data[:, j])) for j in range(k)]
@@ -1142,9 +1124,7 @@ class HighPrecisionNonParametric:
         n_dec = self._to_decimal(n)
         k_dec = self._to_decimal(k)
 
-        chi_f = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(
-            r_j[j]**2 for j in range(k)
-        ) - 3 * n_dec * (k_dec + 1)
+        chi_f = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(r_j[j] ** 2 for j in range(k)) - 3 * n_dec * (k_dec + 1)
 
         # Calculate Kendall's W
         w = chi_f / (n_dec * (k_dec - 1))
@@ -1155,7 +1135,7 @@ class HighPrecisionNonParametric:
             p_value=None,
             sample_sizes=[n, k],
             effect_size=w,
-            interpretation=f"Kendall's W: {w:.4f} ({'weak' if w < 0.3 else 'moderate' if w < 0.7 else 'strong'} agreement)"
+            interpretation=f"Kendall's W: {w:.4f} ({'weak' if w < 0.3 else 'moderate' if w < 0.7 else 'strong'} agreement)",
         )
 
     def _count_ties(self, data: np.ndarray) -> Dict[str, Any]:
@@ -1163,17 +1143,13 @@ class HighPrecisionNonParametric:
         unique, counts = np.unique(data, return_counts=True)
         tie_counts = counts[counts > 1]
 
-        return {
-            'has_ties': len(tie_counts) > 0,
-            'n_tied_groups': len(tie_counts),
-            'tie_counts': tie_counts.tolist()
-        }
+        return {"has_ties": len(tie_counts) > 0, "n_tied_groups": len(tie_counts), "tie_counts": tie_counts.tolist()}
 
     def _calculate_mann_whitney_u_statistic(self, x, y):
         """Calculate U statistic for Mann-Whitney test"""
         x_arr = np.array(x)
         y_arr = np.array(y)
-        n1, n2 = len(x_arr), len(y_arr)
+        n1, _ = len(x_arr), len(y_arr)
 
         # Calculate ranks
         ranks = self._calculate_ranks(x_arr, y_arr)
@@ -1185,8 +1161,7 @@ class HighPrecisionNonParametric:
 
         return self._to_decimal(u1)
 
-    def _mann_whitney_exact_p(self, u: Decimal, n1: int, n2: int,
-                             alternative: str) -> Decimal:
+    def _mann_whitney_exact_p(self, u: Decimal, n1: int, n2: int, alternative: str) -> Decimal:
         """
         Calculate exact p-value for Mann-Whitney U test using the distribution of U.
 
@@ -1203,7 +1178,6 @@ class HighPrecisionNonParametric:
         Returns:
             Exact p-value as Decimal
         """
-        from scipy.special import comb
 
         # Convert U to integer for exact calculation
         u_int = int(float(u))
@@ -1215,7 +1189,7 @@ class HighPrecisionNonParametric:
         # Under H0, all rank assignments are equally likely
         # We use dynamic programming to count favorable outcomes
 
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             # Two-tailed: probability of being this extreme on either tail
             u_lower = min(u_int, max_u - u_int)
 
@@ -1225,7 +1199,7 @@ class HighPrecisionNonParametric:
             # Two-tailed probability
             p_value = 2.0 * min(prob, 0.5)
 
-        elif alternative == 'less':
+        elif alternative == "less":
             # P(U <= u)
             p_value = self._mann_whitney_cdf(u_int, n1, n2)
 
@@ -1253,7 +1227,6 @@ class HighPrecisionNonParametric:
         total = comb(n1 + n2, n1, exact=True)
 
         # Count number of rank assignments giving U <= u
-        count = 0
 
         # Use DP table: dp[i][j][k] = number of ways to get U=k with i items from group1, j from group2
         # This is memory-intensive, so for very small samples we can enumerate
@@ -1284,8 +1257,9 @@ class HighPrecisionNonParametric:
             # Next rank can go to either group
             # If it goes to group 1: contributes rem_n2 to U
             # If it goes to group 2: contributes 0 to U
-            count = (count_arrangements(remaining_u - rem_n2, rem_n1 - 1, rem_n2) +
-                    count_arrangements(remaining_u, rem_n1, rem_n2 - 1))
+            count = count_arrangements(remaining_u - rem_n2, rem_n1 - 1, rem_n2) + count_arrangements(
+                remaining_u, rem_n1, rem_n2 - 1
+            )
 
             dp[key] = count
             return count
@@ -1321,7 +1295,7 @@ class HighPrecisionNonParametric:
         # Under H0, each rank has probability 0.5 of being positive or negative
         # Total number of possible sign assignments: 2^n
 
-        if alternative == 'two-sided':
+        if alternative == "two-sided":
             # Two-tailed: use the minimum of w and max_w - w for symmetry
             w_lower = min(w_int, max_w - w_int)
 
@@ -1331,7 +1305,7 @@ class HighPrecisionNonParametric:
             # Two-tailed probability
             p_value = 2.0 * min(prob, 0.5)
 
-        elif alternative == 'less':
+        elif alternative == "less":
             # P(W <= w)
             p_value = self._wilcoxon_cdf(w_int, n)
 
@@ -1355,7 +1329,7 @@ class HighPrecisionNonParametric:
         We use DP: dp[i][s] = number of ways to get sum s using first i ranks
         """
         # Total number of possible sign assignments
-        total = 2 ** n
+        total = 2**n
 
         # Count number of sign assignments giving W <= w
         # DP table: dp[s] = number of ways to get sum exactly s
@@ -1381,102 +1355,93 @@ class HighPrecisionNonParametric:
 
         return float(favorable) / float(total)
 
-    def _apply_multiple_comparison_correction(self, p_values: List[float],
-                                            method: str) -> List[float]:
+    def _apply_multiple_comparison_correction(self, p_values: List[float], method: str) -> List[float]:
         """Apply multiple comparison correction to p-values"""
         from statsmodels.stats.multitest import multipletests
 
-        if method == 'none':
+        if method == "none":
             return p_values
 
         # Use statsmodels for correction
-        reject, corrected_p, alpha_sidak, alpha_bonf = multipletests(
-            p_values, method=method
-        )
+        reject, corrected_p, alpha_sidak, alpha_bonf = multipletests(p_values, method=method)
 
         return corrected_p.tolist()
 
-    def _interpret_mann_whitney(self, u: Decimal, p_value: Decimal,
-                               effect_size: Decimal) -> str:
+    def _interpret_mann_whitney(self, u: Decimal, p_value: Decimal, effect_size: Decimal) -> str:
         """Generate interpretation for Mann-Whitney U test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         # Effect size interpretation
         abs_effect = abs(effect_size)
-        if abs_effect < self._to_decimal('0.1'):
+        if abs_effect < self._to_decimal("0.1"):
             effect_mag = "negligible"
-        elif abs_effect < self._to_decimal('0.3'):
+        elif abs_effect < self._to_decimal("0.3"):
             effect_mag = "small"
-        elif abs_effect < self._to_decimal('0.5'):
+        elif abs_effect < self._to_decimal("0.5"):
             effect_mag = "medium"
         else:
             effect_mag = "large"
 
         return f"The Mann-Whitney U test result is {sig} (U = {u:.2f}, p = {p_value:.4f}) with a {effect_mag} effect size (r = {effect_size:.3f})"
 
-    def _interpret_wilcoxon(self, w: Decimal, p_value: Decimal,
-                          effect_size: Decimal) -> str:
+    def _interpret_wilcoxon(self, w: Decimal, p_value: Decimal, effect_size: Decimal) -> str:
         """Generate interpretation for Wilcoxon signed-rank test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         # Effect size interpretation
         abs_effect = abs(effect_size)
-        if abs_effect < self._to_decimal('0.1'):
+        if abs_effect < self._to_decimal("0.1"):
             effect_mag = "negligible"
-        elif abs_effect < self._to_decimal('0.3'):
+        elif abs_effect < self._to_decimal("0.3"):
             effect_mag = "small"
-        elif abs_effect < self._to_decimal('0.5'):
+        elif abs_effect < self._to_decimal("0.5"):
             effect_mag = "medium"
         else:
             effect_mag = "large"
 
         return f"The Wilcoxon signed-rank test result is {sig} (W = {w:.2f}, p = {p_value:.4f}) with a {effect_mag} effect size (r = {effect_size:.3f})"
 
-    def _interpret_kruskal_wallis(self, h: Decimal, p_value: Decimal,
-                                 effect_size: Decimal, k: int) -> str:
+    def _interpret_kruskal_wallis(self, h: Decimal, p_value: Decimal, effect_size: Decimal, k: int) -> str:
         """Generate interpretation for Kruskal-Wallis test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         # Effect size interpretation (epsilon-squared)
-        if effect_size < self._to_decimal('0.01'):
+        if effect_size < self._to_decimal("0.01"):
             effect_mag = "negligible"
-        elif effect_size < self._to_decimal('0.06'):
+        elif effect_size < self._to_decimal("0.06"):
             effect_mag = "small"
-        elif effect_size < self._to_decimal('0.14'):
+        elif effect_size < self._to_decimal("0.14"):
             effect_mag = "medium"
         else:
             effect_mag = "large"
 
         return f"The Kruskal-Wallis test comparing {k} groups is {sig} (H = {h:.2f}, p = {p_value:.4f}) with a {effect_mag} effect size (ε² = {effect_size:.3f})"
 
-    def _interpret_friedman(self, chi: Decimal, p_value: Decimal,
-                          w: Decimal, k: int) -> str:
+    def _interpret_friedman(self, chi: Decimal, p_value: Decimal, w: Decimal, k: int) -> str:
         """Generate interpretation for Friedman test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         # Kendall's W interpretation
-        if w < self._to_decimal('0.1'):
+        if w < self._to_decimal("0.1"):
             agreement = "very weak"
-        elif w < self._to_decimal('0.3'):
+        elif w < self._to_decimal("0.3"):
             agreement = "weak"
-        elif w < self._to_decimal('0.5'):
+        elif w < self._to_decimal("0.5"):
             agreement = "moderate"
-        elif w < self._to_decimal('0.7'):
+        elif w < self._to_decimal("0.7"):
             agreement = "strong"
         else:
             agreement = "very strong"
 
         return f"The Friedman test comparing {k} repeated measures is {sig} (χ² = {chi:.2f}, p = {p_value:.4f}) with {agreement} agreement (W = {w:.3f})"
 
-    def _interpret_sign_test(self, s: Decimal, p_value: Decimal,
-                           n_pos: int, n_neg: int, n_zero: int) -> str:
+    def _interpret_sign_test(self, s: Decimal, p_value: Decimal, n_pos: int, n_neg: int, n_zero: int) -> str:
         """Generate interpretation for sign test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"The sign test is {sig} (S = {s}, p = {p_value:.4f}). Positive differences: {n_pos}, Negative: {n_neg}, Zeros: {n_zero}"
 
-    def _interpret_moods_median(self, chi2: float, p_value: float,
-                               cramers_v: float, k: int) -> str:
+    def _interpret_moods_median(self, chi2: float, p_value: float, cramers_v: float, k: int) -> str:
         """Generate interpretation for Mood's median test"""
         sig = "statistically significant" if p_value < 0.05 else "not statistically significant"
 
@@ -1492,9 +1457,8 @@ class HighPrecisionNonParametric:
 
         return f"Mood's median test comparing {k} groups is {sig} (χ² = {chi2:.2f}, p = {p_value:.4f}) with a {effect_mag} effect size (V = {cramers_v:.3f})"
 
-    def _interpret_jonckheere(self, j: Decimal, p_value: Decimal,
-                            effect_size: Decimal, k: int) -> str:
+    def _interpret_jonckheere(self, j: Decimal, p_value: Decimal, effect_size: Decimal, k: int) -> str:
         """Generate interpretation for Jonckheere-Terpstra test"""
-        sig = "statistically significant" if p_value < self._to_decimal('0.05') else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
         return f"The Jonckheere-Terpstra test for ordered alternatives across {k} groups is {sig} (J = {j:.2f}, p = {p_value:.4f})"

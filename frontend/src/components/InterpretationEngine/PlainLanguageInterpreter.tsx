@@ -18,7 +18,6 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Divider,
 } from '@mui/material';
 import {
   Lightbulb as InsightIcon,

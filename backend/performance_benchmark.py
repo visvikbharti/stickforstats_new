@@ -17,23 +17,18 @@ import time
 import numpy as np
 import psutil
 import json
-import concurrent.futures
-from decimal import Decimal, getcontext
+from decimal import getcontext
 from datetime import datetime
-import os
 import sys
 
 # Set precision for validation
 getcontext().prec = 60
 
+
 class PerformanceBenchmark:
     def __init__(self):
         self.base_url = "http://localhost:8000/api/v1"
-        self.results = {
-            'timestamp': datetime.now().isoformat(),
-            'endpoints': {},
-            'summary': {}
-        }
+        self.results = {"timestamp": datetime.now().isoformat(), "endpoints": {}, "summary": {}}
 
     def generate_test_data(self, size, groups=2):
         """Generate test datasets of various sizes"""
@@ -44,7 +39,7 @@ class PerformanceBenchmark:
 
         data = {}
         for i in range(groups):
-            data[f'group_{i+1}'] = np.random.normal(100 + i*10, 15, size).tolist()
+            data[f"group_{i+1}"] = np.random.normal(100 + i * 10, 15, size).tolist()
         return data
 
     def measure_endpoint(self, endpoint, payload, iterations=10):
@@ -72,12 +67,12 @@ class PerformanceBenchmark:
                 print(f"Error in {endpoint}: {response.status_code}")
 
         return {
-            'avg_time_ms': np.mean(times) if times else None,
-            'min_time_ms': np.min(times) if times else None,
-            'max_time_ms': np.max(times) if times else None,
-            'std_time_ms': np.std(times) if times else None,
-            'avg_memory_mb': np.mean(memory_usage) if memory_usage else None,
-            'iterations': len(times)
+            "avg_time_ms": np.mean(times) if times else None,
+            "min_time_ms": np.min(times) if times else None,
+            "max_time_ms": np.max(times) if times else None,
+            "std_time_ms": np.std(times) if times else None,
+            "avg_memory_mb": np.mean(memory_usage) if memory_usage else None,
+            "iterations": len(times),
         }
 
     def test_concurrent_requests(self, endpoint, payload, concurrent=10):
@@ -97,10 +92,10 @@ class PerformanceBenchmark:
         success_count = sum(1 for r in results if r.status_code == 200)
 
         return {
-            'total_time_ms': (end - start) * 1000,
-            'concurrent_requests': concurrent,
-            'success_rate': (success_count / concurrent) * 100,
-            'avg_time_per_request_ms': ((end - start) * 1000) / concurrent
+            "total_time_ms": (end - start) * 1000,
+            "concurrent_requests": concurrent,
+            "success_rate": (success_count / concurrent) * 100,
+            "avg_time_per_request_ms": ((end - start) * 1000) / concurrent,
         }
 
     def validate_precision(self, endpoint, payload):
@@ -108,17 +103,17 @@ class PerformanceBenchmark:
         response = requests.post(f"{self.base_url}/{endpoint}", json=payload)
 
         if response.status_code != 200:
-            return {'error': f"Status {response.status_code}"}
+            return {"error": f"Status {response.status_code}"}
 
         data = response.json()
         precision_check = {}
 
         # Check high_precision_result field
-        if 'high_precision_result' in data:
-            for key, value in data['high_precision_result'].items():
+        if "high_precision_result" in data:
+            for key, value in data["high_precision_result"].items():
                 if isinstance(value, (int, float, str)):
                     try:
-                        decimal_places = len(str(value).split('.')[-1]) if '.' in str(value) else 0
+                        decimal_places = len(str(value).split(".")[-1]) if "." in str(value) else 0
                         precision_check[key] = min(decimal_places, 50)
                     except:
                         precision_check[key] = 0
@@ -127,85 +122,72 @@ class PerformanceBenchmark:
 
     def run_comprehensive_benchmark(self):
         """Run complete benchmark suite"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("STICKFORSTATS v1.0 - PERFORMANCE BENCHMARK SUITE")
-        print("="*80)
+        print("=" * 80)
 
         # Test configurations
         test_sizes = [10, 100, 1000, 5000]
 
         endpoints_config = {
-            'stats/ttest/': {
-                'sizes': test_sizes,
-                'generator': lambda size: {
-                    'data1': self.generate_test_data(size, 1),
-                    'data2': self.generate_test_data(size, 1),
-                    'test_type': 'two_sample'
-                }
+            "stats/ttest/": {
+                "sizes": test_sizes,
+                "generator": lambda size: {
+                    "data1": self.generate_test_data(size, 1),
+                    "data2": self.generate_test_data(size, 1),
+                    "test_type": "two_sample",
+                },
             },
-            'stats/anova/': {
-                'sizes': test_sizes,
-                'generator': lambda size: {
-                    'groups': self.generate_test_data(size, 3),
-                    'alpha': 0.05
-                }
+            "stats/anova/": {
+                "sizes": test_sizes,
+                "generator": lambda size: {"groups": self.generate_test_data(size, 3), "alpha": 0.05},
             },
-            'stats/correlation/': {
-                'sizes': test_sizes,
-                'generator': lambda size: {
-                    'x': self.generate_test_data(size, 1),
-                    'y': self.generate_test_data(size, 1),
-                    'method': 'pearson'
-                }
+            "stats/correlation/": {
+                "sizes": test_sizes,
+                "generator": lambda size: {
+                    "x": self.generate_test_data(size, 1),
+                    "y": self.generate_test_data(size, 1),
+                    "method": "pearson",
+                },
             },
-            'nonparametric/mann-whitney/': {
-                'sizes': test_sizes[:3],  # Non-parametric tests are slower
-                'generator': lambda size: {
-                    'group1': self.generate_test_data(size, 1),
-                    'group2': self.generate_test_data(size, 1),
-                    'alternative': 'two-sided'
-                }
+            "nonparametric/mann-whitney/": {
+                "sizes": test_sizes[:3],  # Non-parametric tests are slower
+                "generator": lambda size: {
+                    "group1": self.generate_test_data(size, 1),
+                    "group2": self.generate_test_data(size, 1),
+                    "alternative": "two-sided",
+                },
             },
-            'nonparametric/wilcoxon/': {
-                'sizes': test_sizes[:3],
-                'generator': lambda size: {
-                    'data': self.generate_test_data(size, 1),
-                    'alternative': 'two-sided'
-                }
+            "nonparametric/wilcoxon/": {
+                "sizes": test_sizes[:3],
+                "generator": lambda size: {"data": self.generate_test_data(size, 1), "alternative": "two-sided"},
             },
-            'nonparametric/kruskal-wallis/': {
-                'sizes': test_sizes[:3],
-                'generator': lambda size: {
-                    'groups': self.generate_test_data(size, 3)
-                }
+            "nonparametric/kruskal-wallis/": {
+                "sizes": test_sizes[:3],
+                "generator": lambda size: {"groups": self.generate_test_data(size, 3)},
             },
-            'categorical/chi-square/goodness/': {
-                'sizes': [10, 50, 100],
-                'generator': lambda size: {
-                    'observed': [int(x) for x in np.random.randint(10, 100, size).tolist()],
-                    'expected': [int(x) for x in np.random.randint(10, 100, size).tolist()]
-                }
+            "categorical/chi-square/goodness/": {
+                "sizes": [10, 50, 100],
+                "generator": lambda size: {
+                    "observed": [int(x) for x in np.random.randint(10, 100, size).tolist()],
+                    "expected": [int(x) for x in np.random.randint(10, 100, size).tolist()],
+                },
             },
-            'categorical/fishers/': {
-                'sizes': [1],  # Fisher's test uses 2x2 table
-                'generator': lambda size: {
-                    'table': [[10, 20], [30, 25]],
-                    'alternative': 'two-sided'
-                }
+            "categorical/fishers/": {
+                "sizes": [1],  # Fisher's test uses 2x2 table
+                "generator": lambda size: {"table": [[10, 20], [30, 25]], "alternative": "two-sided"},
             },
-            'stats/regression/': {
-                'sizes': test_sizes[:3],
-                'generator': lambda size: {
-                    'x': self.generate_test_data(size, 1),
-                    'y': self.generate_test_data(size, 1)
-                }
+            "stats/regression/": {
+                "sizes": test_sizes[:3],
+                "generator": lambda size: {
+                    "x": self.generate_test_data(size, 1),
+                    "y": self.generate_test_data(size, 1),
+                },
             },
-            'stats/descriptive/': {
-                'sizes': test_sizes,
-                'generator': lambda size: {
-                    'data': self.generate_test_data(size, 1)
-                }
-            }
+            "stats/descriptive/": {
+                "sizes": test_sizes,
+                "generator": lambda size: {"data": self.generate_test_data(size, 1)},
+            },
         }
 
         # Run benchmarks for each endpoint
@@ -215,16 +197,16 @@ class PerformanceBenchmark:
 
             endpoint_results = {}
 
-            for size in config['sizes']:
+            for size in config["sizes"]:
                 print(f"  Dataset size: {size}")
-                payload = config['generator'](size)
+                payload = config["generator"](size)
 
                 # Basic performance
                 perf = self.measure_endpoint(endpoint, payload, iterations=5)
-                if perf['avg_time_ms'] is not None:
+                if perf["avg_time_ms"] is not None:
                     print(f"    Avg response: {perf['avg_time_ms']:.2f}ms")
                 else:
-                    print(f"    ⚠️  Failed to measure performance")
+                    print("    ⚠️  Failed to measure performance")
 
                 # Concurrent load
                 if size <= 1000:  # Only test concurrent for smaller datasets
@@ -236,13 +218,13 @@ class PerformanceBenchmark:
                 # Precision validation
                 precision = self.validate_precision(endpoint, payload)
 
-                endpoint_results[f'size_{size}'] = {
-                    'performance': perf,
-                    'concurrent': concurrent,
-                    'precision_validation': precision
+                endpoint_results[f"size_{size}"] = {
+                    "performance": perf,
+                    "concurrent": concurrent,
+                    "precision_validation": precision,
                 }
 
-            self.results['endpoints'][endpoint] = endpoint_results
+            self.results["endpoints"][endpoint] = endpoint_results
 
         # Calculate summary statistics
         self.calculate_summary()
@@ -257,37 +239,35 @@ class PerformanceBenchmark:
         all_times = []
         all_memory = []
 
-        for endpoint, data in self.results['endpoints'].items():
+        for endpoint, data in self.results["endpoints"].items():
             for size_test, metrics in data.items():
-                if metrics['performance']['avg_time_ms']:
-                    all_times.append(metrics['performance']['avg_time_ms'])
-                if metrics['performance']['avg_memory_mb']:
-                    all_memory.append(metrics['performance']['avg_memory_mb'])
+                if metrics["performance"]["avg_time_ms"]:
+                    all_times.append(metrics["performance"]["avg_time_ms"])
+                if metrics["performance"]["avg_memory_mb"]:
+                    all_memory.append(metrics["performance"]["avg_memory_mb"])
 
-        self.results['summary'] = {
-            'overall_avg_response_ms': np.mean(all_times) if all_times else None,
-            'overall_max_response_ms': np.max(all_times) if all_times else None,
-            'overall_min_response_ms': np.min(all_times) if all_times else None,
-            'overall_avg_memory_mb': np.mean(all_memory) if all_memory else None,
-            'endpoints_tested': len(self.results['endpoints']),
-            'total_tests_run': sum(
-                len(data) for data in self.results['endpoints'].values()
-            )
+        self.results["summary"] = {
+            "overall_avg_response_ms": np.mean(all_times) if all_times else None,
+            "overall_max_response_ms": np.max(all_times) if all_times else None,
+            "overall_min_response_ms": np.min(all_times) if all_times else None,
+            "overall_avg_memory_mb": np.mean(all_memory) if all_memory else None,
+            "endpoints_tested": len(self.results["endpoints"]),
+            "total_tests_run": sum(len(data) for data in self.results["endpoints"].values()),
         }
 
     def save_results(self):
         """Save benchmark results to file"""
         filename = f"benchmark_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self.results, f, indent=2, default=str)
 
         print(f"\n✅ Results saved to: {filename}")
 
         # Print summary
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("BENCHMARK SUMMARY")
-        print("="*80)
-        summary = self.results['summary']
+        print("=" * 80)
+        summary = self.results["summary"]
         print(f"Endpoints Tested: {summary['endpoints_tested']}")
         print(f"Total Tests Run: {summary['total_tests_run']}")
         print(f"Average Response Time: {summary['overall_avg_response_ms']:.2f}ms")
@@ -296,19 +276,20 @@ class PerformanceBenchmark:
 
         # Check if we meet performance targets
         print("\n🎯 PERFORMANCE TARGETS:")
-        if summary['overall_avg_response_ms'] < 100:
+        if summary["overall_avg_response_ms"] < 100:
             print("✅ Average response < 100ms - EXCELLENT!")
-        elif summary['overall_avg_response_ms'] < 200:
+        elif summary["overall_avg_response_ms"] < 200:
             print("✅ Average response < 200ms - GOOD")
         else:
             print("⚠️ Average response > 200ms - Needs optimization")
 
-        if summary['overall_max_response_ms'] < 500:
+        if summary["overall_max_response_ms"] < 500:
             print("✅ Max response < 500ms - EXCELLENT!")
-        elif summary['overall_max_response_ms'] < 1000:
+        elif summary["overall_max_response_ms"] < 1000:
             print("✅ Max response < 1000ms - ACCEPTABLE")
         else:
             print("⚠️ Max response > 1000ms - Needs optimization")
+
 
 if __name__ == "__main__":
     print("\n🚀 Starting StickForStats Performance Benchmark...")
@@ -330,4 +311,4 @@ if __name__ == "__main__":
     results = benchmark.run_comprehensive_benchmark()
 
     print("\n✅ Benchmark complete!")
-    print("="*80)
+    print("=" * 80)

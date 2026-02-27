@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TestResult:
     """Result from executing a single statistical test."""
+
     test_name: str
     statistic: float
     p_value: float
@@ -37,6 +38,7 @@ class TestResult:
 @dataclass
 class CascadeStep:
     """Record of one step in the cascade process."""
+
     test_attempted: str
     guardian_passed: bool
     violations: List[str]
@@ -46,6 +48,7 @@ class CascadeStep:
 @dataclass
 class CascadeResult:
     """Complete result from cascade execution."""
+
     original_test: str
     final_test: str
     cascade_path: List[CascadeStep]
@@ -69,38 +72,38 @@ class AutonomousCascadeEngine:
 
     # Map test names to Guardian test_type keys
     GUARDIAN_TEST_MAP = {
-        'independent_t': 't_test',
-        'welch_t': 't_test',
-        'paired_t': 't_test',
-        'one_sample_t': 't_test',
-        'one_way_anova': 'anova',
-        'two_way_anova': 'anova',
-        'pearson': 'pearson',
-        'spearman': 'pearson',  # Still check linearity etc.
-        'kendall': 'pearson',
-        'linear_regression': 'regression',
-        'chi_square_independence': 'chi_square',
-        'fisher_exact': 'chi_square',
-        'mann_whitney_u': 'mann_whitney',
-        'kruskal_wallis': 'kruskal_wallis',
-        'wilcoxon_signed_rank': 'mann_whitney',
+        "independent_t": "t_test",
+        "welch_t": "t_test",
+        "paired_t": "t_test",
+        "one_sample_t": "t_test",
+        "one_way_anova": "anova",
+        "two_way_anova": "anova",
+        "pearson": "pearson",
+        "spearman": "pearson",  # Still check linearity etc.
+        "kendall": "pearson",
+        "linear_regression": "regression",
+        "chi_square_independence": "chi_square",
+        "fisher_exact": "chi_square",
+        "mann_whitney_u": "mann_whitney",
+        "kruskal_wallis": "kruskal_wallis",
+        "wilcoxon_signed_rank": "mann_whitney",
     }
 
     # Alternative cascade chains
     CASCADE_ALTERNATIVES = {
-        'independent_t': ['welch_t', 'mann_whitney_u', 'permutation_test'],
-        'welch_t': ['mann_whitney_u', 'permutation_test'],
-        'paired_t': ['wilcoxon_signed_rank'],
-        'one_sample_t': ['wilcoxon_signed_rank'],
-        'one_way_anova': ['kruskal_wallis'],
-        'pearson': ['spearman', 'kendall'],
-        'spearman': ['kendall'],
-        'linear_regression': ['spearman', 'kendall'],
-        'chi_square_independence': ['fisher_exact'],
-        'mann_whitney_u': [],  # Already non-parametric
-        'kruskal_wallis': [],
-        'wilcoxon_signed_rank': [],
-        'fisher_exact': [],
+        "independent_t": ["welch_t", "mann_whitney_u", "permutation_test"],
+        "welch_t": ["mann_whitney_u", "permutation_test"],
+        "paired_t": ["wilcoxon_signed_rank"],
+        "one_sample_t": ["wilcoxon_signed_rank"],
+        "one_way_anova": ["kruskal_wallis"],
+        "pearson": ["spearman", "kendall"],
+        "spearman": ["kendall"],
+        "linear_regression": ["spearman", "kendall"],
+        "chi_square_independence": ["fisher_exact"],
+        "mann_whitney_u": [],  # Already non-parametric
+        "kruskal_wallis": [],
+        "wilcoxon_signed_rank": [],
+        "fisher_exact": [],
     }
 
     def __init__(self):
@@ -247,20 +250,20 @@ class AutonomousCascadeEngine:
     def _get_executor(self, test_name: str):
         """Get the execution function for a test name."""
         executors = {
-            'independent_t': self._exec_independent_t,
-            'welch_t': self._exec_welch_t,
-            'paired_t': self._exec_paired_t,
-            'one_sample_t': self._exec_one_sample_t,
-            'mann_whitney_u': self._exec_mann_whitney,
-            'wilcoxon_signed_rank': self._exec_wilcoxon,
-            'one_way_anova': self._exec_anova,
-            'kruskal_wallis': self._exec_kruskal_wallis,
-            'pearson': self._exec_pearson,
-            'spearman': self._exec_spearman,
-            'kendall': self._exec_kendall,
-            'chi_square_independence': self._exec_chi_square,
-            'fisher_exact': self._exec_fisher_exact,
-            'linear_regression': self._exec_linear_regression,
+            "independent_t": self._exec_independent_t,
+            "welch_t": self._exec_welch_t,
+            "paired_t": self._exec_paired_t,
+            "one_sample_t": self._exec_one_sample_t,
+            "mann_whitney_u": self._exec_mann_whitney,
+            "wilcoxon_signed_rank": self._exec_wilcoxon,
+            "one_way_anova": self._exec_anova,
+            "kruskal_wallis": self._exec_kruskal_wallis,
+            "pearson": self._exec_pearson,
+            "spearman": self._exec_spearman,
+            "kendall": self._exec_kendall,
+            "chi_square_independence": self._exec_chi_square,
+            "fisher_exact": self._exec_fisher_exact,
+            "linear_regression": self._exec_linear_regression,
         }
         return executors.get(test_name)
 
@@ -270,25 +273,24 @@ class AutonomousCascadeEngine:
         stat, p = stats.ttest_ind(arrays[0], arrays[1], equal_var=True)
         n1, n2 = len(arrays[0]), len(arrays[1])
         pooled_std = np.sqrt(
-            ((n1 - 1) * np.var(arrays[0], ddof=1) + (n2 - 1) * np.var(arrays[1], ddof=1))
-            / (n1 + n2 - 2)
+            ((n1 - 1) * np.var(arrays[0], ddof=1) + (n2 - 1) * np.var(arrays[1], ddof=1)) / (n1 + n2 - 2)
         )
         cohens_d = (np.mean(arrays[0]) - np.mean(arrays[1])) / pooled_std if pooled_std > 0 else 0
         return TestResult(
-            test_name='Independent Samples t-test',
+            test_name="Independent Samples t-test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=float(cohens_d),
             effect_size_name="Cohen's d",
             degrees_of_freedom=float(n1 + n2 - 2),
             additional={
-                'mean_group1': float(np.mean(arrays[0])),
-                'mean_group2': float(np.mean(arrays[1])),
-                'std_group1': float(np.std(arrays[0], ddof=1)),
-                'std_group2': float(np.std(arrays[1], ddof=1)),
-                'n_group1': n1,
-                'n_group2': n2,
-            }
+                "mean_group1": float(np.mean(arrays[0])),
+                "mean_group2": float(np.mean(arrays[1])),
+                "std_group1": float(np.std(arrays[0], ddof=1)),
+                "std_group2": float(np.std(arrays[1], ddof=1)),
+                "n_group1": n1,
+                "n_group2": n2,
+            },
         )
 
     def _exec_welch_t(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -303,11 +305,11 @@ class AutonomousCascadeEngine:
             effect_size=float(cohens_d),
             effect_size_name="Cohen's d",
             additional={
-                'mean_group1': float(np.mean(arrays[0])),
-                'mean_group2': float(np.mean(arrays[1])),
-                'n_group1': n1,
-                'n_group2': n2,
-            }
+                "mean_group1": float(np.mean(arrays[0])),
+                "mean_group2": float(np.mean(arrays[1])),
+                "n_group1": n1,
+                "n_group2": n2,
+            },
         )
 
     def _exec_paired_t(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -315,7 +317,7 @@ class AutonomousCascadeEngine:
         diff = arrays[0] - arrays[1]
         cohens_d = float(np.mean(diff) / np.std(diff, ddof=1)) if np.std(diff, ddof=1) > 0 else 0
         return TestResult(
-            test_name='Paired Samples t-test',
+            test_name="Paired Samples t-test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=cohens_d,
@@ -327,7 +329,7 @@ class AutonomousCascadeEngine:
         stat, p = stats.ttest_1samp(arrays[0], 0)
         d = float(np.mean(arrays[0]) / np.std(arrays[0], ddof=1)) if np.std(arrays[0], ddof=1) > 0 else 0
         return TestResult(
-            test_name='One-Sample t-test',
+            test_name="One-Sample t-test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=d,
@@ -336,16 +338,16 @@ class AutonomousCascadeEngine:
         )
 
     def _exec_mann_whitney(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
-        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative='two-sided')
+        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative="two-sided")
         n1, n2 = len(arrays[0]), len(arrays[1])
         r = 1 - (2 * stat) / (n1 * n2)  # rank-biserial correlation
         return TestResult(
-            test_name='Mann-Whitney U test',
+            test_name="Mann-Whitney U test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=float(r),
-            effect_size_name='Rank-biserial correlation',
-            additional={'n_group1': n1, 'n_group2': n2},
+            effect_size_name="Rank-biserial correlation",
+            additional={"n_group1": n1, "n_group2": n2},
         )
 
     def _exec_wilcoxon(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -353,11 +355,11 @@ class AutonomousCascadeEngine:
         n = len(arrays[0])
         r = float(stat / (n * (n + 1) / 2))  # Simplified effect size
         return TestResult(
-            test_name='Wilcoxon Signed-Rank test',
+            test_name="Wilcoxon Signed-Rank test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=r,
-            effect_size_name='r (effect size)',
+            effect_size_name="r (effect size)",
         )
 
     def _exec_anova(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -370,18 +372,18 @@ class AutonomousCascadeEngine:
         k = len(arrays)
         n_total = sum(len(a) for a in arrays)
         return TestResult(
-            test_name='One-Way ANOVA',
+            test_name="One-Way ANOVA",
             statistic=float(stat),
             p_value=float(p),
             effect_size=eta_sq,
-            effect_size_name='Eta-squared',
+            effect_size_name="Eta-squared",
             degrees_of_freedom=float(k - 1),
             additional={
-                'df_between': k - 1,
-                'df_within': n_total - k,
-                'n_groups': k,
-                'group_means': [float(np.mean(a)) for a in arrays],
-            }
+                "df_between": k - 1,
+                "df_within": n_total - k,
+                "n_groups": k,
+                "group_means": [float(np.mean(a)) for a in arrays],
+            },
         )
 
     def _exec_kruskal_wallis(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -391,11 +393,11 @@ class AutonomousCascadeEngine:
         # Epsilon-squared effect size
         epsilon_sq = float((stat - k + 1) / (n_total - k)) if (n_total - k) > 0 else 0
         return TestResult(
-            test_name='Kruskal-Wallis H test',
+            test_name="Kruskal-Wallis H test",
             statistic=float(stat),
             p_value=float(p),
             effect_size=epsilon_sq,
-            effect_size_name='Epsilon-squared',
+            effect_size_name="Epsilon-squared",
             degrees_of_freedom=float(k - 1),
         )
 
@@ -403,24 +405,24 @@ class AutonomousCascadeEngine:
         r, p = stats.pearsonr(arrays[0], arrays[1])
         n = len(arrays[0])
         return TestResult(
-            test_name='Pearson Correlation',
+            test_name="Pearson Correlation",
             statistic=float(r),
             p_value=float(p),
-            effect_size=float(r ** 2),
-            effect_size_name='R-squared',
+            effect_size=float(r**2),
+            effect_size_name="R-squared",
             degrees_of_freedom=float(n - 2),
-            additional={'r': float(r), 'r_squared': float(r ** 2)},
+            additional={"r": float(r), "r_squared": float(r**2)},
         )
 
     def _exec_spearman(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         rho, p = stats.spearmanr(arrays[0], arrays[1])
         return TestResult(
-            test_name='Spearman Rank Correlation',
+            test_name="Spearman Rank Correlation",
             statistic=float(rho),
             p_value=float(p),
-            effect_size=float(rho ** 2),
-            effect_size_name='rho-squared',
-            additional={'rho': float(rho)},
+            effect_size=float(rho**2),
+            effect_size_name="rho-squared",
+            additional={"rho": float(rho)},
         )
 
     def _exec_kendall(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -430,25 +432,24 @@ class AutonomousCascadeEngine:
             statistic=float(tau),
             p_value=float(p),
             effect_size=float(abs(tau)),
-            effect_size_name='|tau|',
+            effect_size_name="|tau|",
         )
 
     def _exec_chi_square(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         # Expects a contingency table or two categorical arrays
         if len(arrays) == 2:
-            contingency = pd.crosstab(
-                pd.Series(arrays[0].astype(int)),
-                pd.Series(arrays[1].astype(int))
-            )
+            contingency = pd.crosstab(pd.Series(arrays[0].astype(int)), pd.Series(arrays[1].astype(int)))
             chi2, p, dof, expected = stats.chi2_contingency(contingency.values)
         else:
-            chi2, p, dof, expected = stats.chi2_contingency(arrays[0].reshape(-1, 2) if arrays[0].ndim == 1 else arrays[0])
+            chi2, p, dof, expected = stats.chi2_contingency(
+                arrays[0].reshape(-1, 2) if arrays[0].ndim == 1 else arrays[0]
+            )
 
         n = float(np.sum(contingency.values)) if len(arrays) == 2 else float(np.sum(arrays[0]))
         cramers_v = float(np.sqrt(chi2 / (n * (min(contingency.shape) - 1)))) if n > 0 and len(arrays) == 2 else 0
 
         return TestResult(
-            test_name='Chi-Square Test of Independence',
+            test_name="Chi-Square Test of Independence",
             statistic=float(chi2),
             p_value=float(p),
             effect_size=cramers_v,
@@ -458,10 +459,7 @@ class AutonomousCascadeEngine:
 
     def _exec_fisher_exact(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         if len(arrays) == 2:
-            contingency = pd.crosstab(
-                pd.Series(arrays[0].astype(int)),
-                pd.Series(arrays[1].astype(int))
-            )
+            contingency = pd.crosstab(pd.Series(arrays[0].astype(int)), pd.Series(arrays[1].astype(int)))
             table = contingency.values
         else:
             table = arrays[0]
@@ -478,42 +476,42 @@ class AutonomousCascadeEngine:
             statistic=float(odds_ratio),
             p_value=float(p),
             effect_size=float(odds_ratio),
-            effect_size_name='Odds Ratio',
+            effect_size_name="Odds Ratio",
         )
 
     def _exec_linear_regression(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         x, y = arrays[0], arrays[1]
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
         return TestResult(
-            test_name='Simple Linear Regression',
+            test_name="Simple Linear Regression",
             statistic=float(slope / std_err) if std_err > 0 else 0,
             p_value=float(p_value),
-            effect_size=float(r_value ** 2),
-            effect_size_name='R-squared',
+            effect_size=float(r_value**2),
+            effect_size_name="R-squared",
             additional={
-                'slope': float(slope),
-                'intercept': float(intercept),
-                'r_value': float(r_value),
-                'std_err': float(std_err),
-            }
+                "slope": float(slope),
+                "intercept": float(intercept),
+                "r_value": float(r_value),
+                "std_err": float(std_err),
+            },
         )
 
     def _report_to_dict(self, report: GuardianReport) -> Dict[str, Any]:
         """Convert GuardianReport to serializable dict."""
         return {
-            'test_type': report.test_type,
-            'can_proceed': report.can_proceed,
-            'confidence_score': report.confidence_score,
-            'assumptions_checked': report.assumptions_checked,
-            'violations': [
+            "test_type": report.test_type,
+            "can_proceed": report.can_proceed,
+            "confidence_score": report.confidence_score,
+            "assumptions_checked": report.assumptions_checked,
+            "violations": [
                 {
-                    'assumption': v.assumption,
-                    'severity': v.severity,
-                    'message': v.message,
-                    'recommendation': v.recommendation,
-                    'p_value': v.p_value,
+                    "assumption": v.assumption,
+                    "severity": v.severity,
+                    "message": v.message,
+                    "recommendation": v.recommendation,
+                    "p_value": v.p_value,
                 }
                 for v in report.violations
             ],
-            'alternative_tests': report.alternative_tests,
+            "alternative_tests": report.alternative_tests,
         }

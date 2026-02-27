@@ -28,11 +28,11 @@ export const handleApiError = (error, options = {}) => {
     onServerError,
     onValidationError,
     onOtherError,
-    showSnackbar = true
+    showSnackbar: _showSnackbar = true
   } = options;
 
   // Extract error information
-  const { type, message, fieldErrors } = error;
+  const { type, message: _message, fieldErrors } = error;
 
   // Call specific handler based on error type
   switch (type) {
@@ -180,6 +180,7 @@ export const retryApiCall = async (apiCall, options = {}) => {
       }
       
       // Wait for the current delay
+      // eslint-disable-next-line no-loop-func
       await new Promise(resolve => setTimeout(resolve, delay));
       
       // Exponential backoff

@@ -14,7 +14,6 @@ Created: February 2026
 """
 
 import hashlib
-import json
 import logging
 import time
 import uuid
@@ -28,7 +27,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from core.manuscript.manuscript_guardian import ManuscriptGuardian
 
 try:
-    from core.models import ManuscriptSubmission, ReviewReport, Journal
+    from core.models import ManuscriptSubmission
+
     MODELS_AVAILABLE = True
 except ImportError:
     MODELS_AVAILABLE = False
@@ -37,20 +37,20 @@ logger = logging.getLogger(__name__)
 
 # Limits
 MAX_BATCH_SIZE = 10
-ALLOWED_EXTENSIONS = ('.pdf', '.tex', '.latex', '.docx', '.txt')
+ALLOWED_EXTENSIONS = (".pdf", ".tex", ".latex", ".docx", ".txt")
 
 
 def _detect_file_type(name):
     """Determine file type from filename extension."""
     name_lower = name.lower()
-    if name_lower.endswith('.pdf'):
-        return 'pdf'
-    elif name_lower.endswith(('.tex', '.latex')):
-        return 'latex'
-    elif name_lower.endswith('.docx'):
-        return 'docx'
-    elif name_lower.endswith('.txt'):
-        return 'auto'
+    if name_lower.endswith(".pdf"):
+        return "pdf"
+    elif name_lower.endswith((".tex", ".latex")):
+        return "latex"
+    elif name_lower.endswith(".docx"):
+        return "docx"
+    elif name_lower.endswith(".txt"):
+        return "auto"
     return None
 
 
@@ -74,13 +74,14 @@ class BatchSubmitView(APIView):
         - submissions: List of {submission_id, file_name, status}
         - total: Number of files accepted
     """
+
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         if not MODELS_AVAILABLE:
             return Response(
-                {'error': 'Database models not available'},
+                {"error": "Database models not available"},
                 status=status.HTTP_501_NOT_IMPLEMENTED,
             )
 
@@ -90,16 +91,16 @@ class BatchSubmitView(APIView):
         # Collect uploaded files (file_0 through file_9)
         files = []
         for i in range(MAX_BATCH_SIZE):
-            key = f'file_{i}'
+            key = f"file_{i}"
             if key in request.FILES:
                 files.append(request.FILES[key])
 
         if not files:
             return Response(
                 {
-                    'error': (
-                        'No files uploaded. Send files as file_0, file_1, ..., '
-                        f'file_{MAX_BATCH_SIZE - 1} (max {MAX_BATCH_SIZE}).'
+                    "error": (
+                        "No files uploaded. Send files as file_0, file_1, ..., "
+                        f"file_{MAX_BATCH_SIZE - 1} (max {MAX_BATCH_SIZE})."
                     ),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -107,12 +108,12 @@ class BatchSubmitView(APIView):
 
         if len(files) > MAX_BATCH_SIZE:
             return Response(
-                {'error': f'Maximum {MAX_BATCH_SIZE} files per batch.'},
+                {"error": f"Maximum {MAX_BATCH_SIZE} files per batch."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        field = request.data.get('field', 'general')
-        alpha = float(request.data.get('alpha', 0.05))
+        field = request.data.get("field", "general")
+        alpha = float(request.data.get("alpha", 0.05))
         batch_id = str(uuid.uuid4())
 
         submissions = []
@@ -121,14 +122,13 @@ class BatchSubmitView(APIView):
         for idx, uploaded in enumerate(files):
             file_type = _detect_file_type(uploaded.name)
             if file_type is None:
-                errors.append({
-                    'file_index': idx,
-                    'file_name': uploaded.name,
-                    'error': (
-                        f'Unsupported file type: {uploaded.name}. '
-                        'Accepted: .pdf, .tex, .docx, .txt'
-                    ),
-                })
+                errors.append(
+                    {
+                        "file_index": idx,
+                        "file_name": uploaded.name,
+                        "error": (f"Unsupported file type: {uploaded.name}. " "Accepted: .pdf, .tex, .docx, .txt"),
+                    }
+                )
                 continue
 
             try:
@@ -144,11 +144,11 @@ class BatchSubmitView(APIView):
                     file_type=file_type,
                     file_size_bytes=uploaded.size,
                     file_hash=file_hash,
-                    status='analyzing',
+                    status="analyzing",
                     parse_result={
-                        'batch_id': batch_id,
-                        'batch_index': idx,
-                        'batch_total': len(files),
+                        "batch_id": batch_id,
+                        "batch_index": idx,
+                        "batch_total": len(files),
                     },
                 )
 
@@ -161,12 +161,13 @@ class BatchSubmitView(APIView):
 
                 # Update submission with results
                 from django.utils import timezone
-                submission.title = report.title or ''
+
+                submission.title = report.title or ""
                 submission.authors = report.authors
                 submission.word_count = report.word_count
-                submission.status = 'completed'
+                submission.status = "completed"
                 submission.sqs_score = report.sqs_score
-                submission.sqs_grade = report.sqs_grade or ''
+                submission.sqs_grade = report.sqs_grade or ""
                 submission.claims_found = report.claims_found
                 submission.claims_consistent = report.claims_consistent
                 submission.claims_inconsistent = report.claims_inconsistent
@@ -176,85 +177,89 @@ class BatchSubmitView(APIView):
                 submission.processing_time_ms = elapsed_ms
                 submission.completed_at = timezone.now()
                 submission.claim_data = (
-                    report.extraction_summary.__dict__
-                    if hasattr(report.extraction_summary, '__dict__')
-                    else {}
+                    report.extraction_summary.__dict__ if hasattr(report.extraction_summary, "__dict__") else {}
                 )
                 submission.consistency_data = {
-                    'consistent': report.claims_consistent,
-                    'inconsistent': report.claims_inconsistent,
-                    'decision_errors': report.decision_errors,
-                    'rate': report.consistency_rate,
+                    "consistent": report.claims_consistent,
+                    "inconsistent": report.claims_inconsistent,
+                    "decision_errors": report.decision_errors,
+                    "rate": report.consistency_rate,
                 }
                 submission.save()
 
-                submissions.append({
-                    'submission_id': str(submission.id),
-                    'file_name': uploaded.name,
-                    'file_index': idx,
-                    'status': 'completed',
-                    'sqs_score': report.sqs_score,
-                    'sqs_grade': report.sqs_grade,
-                    'claims_found': report.claims_found,
-                    'consistency_rate': report.consistency_rate,
-                    'processing_time_ms': elapsed_ms,
-                    'report_url': f'/api/v1/manuscript/report/{submission.id}/',
-                })
+                submissions.append(
+                    {
+                        "submission_id": str(submission.id),
+                        "file_name": uploaded.name,
+                        "file_index": idx,
+                        "status": "completed",
+                        "sqs_score": report.sqs_score,
+                        "sqs_grade": report.sqs_grade,
+                        "claims_found": report.claims_found,
+                        "consistency_rate": report.consistency_rate,
+                        "processing_time_ms": elapsed_ms,
+                        "report_url": f"/api/v1/manuscript/report/{submission.id}/",
+                    }
+                )
 
             except Exception as exc:
                 logger.exception(
-                    'Batch submission failed for file %d (%s)',
-                    idx, uploaded.name,
+                    "Batch submission failed for file %d (%s)",
+                    idx,
+                    uploaded.name,
                 )
                 # Mark failed if submission was already created
-                if 'submission' in locals() and submission.status == 'analyzing':
-                    submission.status = 'failed'
+                if "submission" in locals() and submission.status == "analyzing":
+                    submission.status = "failed"
                     submission.error_message = str(exc)
                     submission.save()
 
-                errors.append({
-                    'file_index': idx,
-                    'file_name': uploaded.name,
-                    'error': str(exc),
-                    'submission_id': (
-                        str(submission.id)
-                        if 'submission' in locals()
-                        else None
-                    ),
-                })
+                errors.append(
+                    {
+                        "file_index": idx,
+                        "file_name": uploaded.name,
+                        "error": str(exc),
+                        "submission_id": (str(submission.id) if "submission" in locals() else None),
+                    }
+                )
 
-        return Response({
-            'batch_id': batch_id,
-            'total_submitted': len(files),
-            'completed': len(submissions),
-            'failed': len(errors),
-            'submissions': submissions,
-            'errors': errors,
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "batch_id": batch_id,
+                "total_submitted": len(files),
+                "completed": len(submissions),
+                "failed": len(errors),
+                "submissions": submissions,
+                "errors": errors,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def _authenticate_journal(self, request):
         """
         Optionally authenticate a journal via API key.
         Returns Journal instance or None.
         """
-        api_key = request.META.get('HTTP_X_API_KEY', '')
+        api_key = request.META.get("HTTP_X_API_KEY", "")
         if not api_key:
             return None
 
         try:
             from core.models import JournalAPIKey
+
             prefix = api_key[:8]
             candidates = JournalAPIKey.objects.filter(
                 key_prefix=prefix,
                 is_active=True,
-            ).select_related('journal')
+            ).select_related("journal")
 
             for key_obj in candidates:
                 if key_obj.verify_key(api_key):
                     if key_obj.journal.is_active and key_obj.can_batch_submit:
                         from django.utils import timezone
+
                         key_obj.last_used_at = timezone.now()
-                        key_obj.save(update_fields=['last_used_at'])
+                        key_obj.save(update_fields=["last_used_at"])
                         return key_obj.journal
             return None
         except Exception:
@@ -276,12 +281,13 @@ class BatchStatusView(APIView):
         - completed / analyzing / failed counts
         - submissions: List of submission details with current status
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request, batch_id):
         if not MODELS_AVAILABLE:
             return Response(
-                {'error': 'Database models not available'},
+                {"error": "Database models not available"},
                 status=status.HTTP_501_NOT_IMPLEMENTED,
             )
 
@@ -289,64 +295,55 @@ class BatchStatusView(APIView):
         # batch_id is stored in parse_result.batch_id
         all_submissions = ManuscriptSubmission.objects.filter(
             parse_result__batch_id=batch_id,
-        ).order_by('parse_result__batch_index')
+        ).order_by("parse_result__batch_index")
 
         if not all_submissions.exists():
             return Response(
-                {'error': f'No submissions found for batch {batch_id}'},
+                {"error": f"No submissions found for batch {batch_id}"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         submissions_data = []
         status_counts = {
-            'pending': 0,
-            'parsing': 0,
-            'analyzing': 0,
-            'completed': 0,
-            'failed': 0,
+            "pending": 0,
+            "parsing": 0,
+            "analyzing": 0,
+            "completed": 0,
+            "failed": 0,
         }
 
         for sub in all_submissions:
             status_counts[sub.status] = status_counts.get(sub.status, 0) + 1
-            submissions_data.append({
-                'submission_id': str(sub.id),
-                'file_name': sub.file_name,
-                'batch_index': sub.parse_result.get('batch_index'),
-                'status': sub.status,
-                'title': sub.title,
-                'sqs_score': float(sub.sqs_score) if sub.sqs_score is not None else None,
-                'sqs_grade': sub.sqs_grade,
-                'claims_found': sub.claims_found,
-                'consistency_rate': (
-                    float(sub.consistency_rate)
-                    if sub.consistency_rate is not None
-                    else None
-                ),
-                'decision_errors': sub.decision_errors,
-                'processing_time_ms': sub.processing_time_ms,
-                'error_message': sub.error_message or None,
-                'submitted_at': sub.submitted_at.isoformat(),
-                'completed_at': (
-                    sub.completed_at.isoformat()
-                    if sub.completed_at
-                    else None
-                ),
-                'report_url': (
-                    f'/api/v1/manuscript/report/{sub.id}/'
-                    if sub.status == 'completed'
-                    else None
-                ),
-            })
+            submissions_data.append(
+                {
+                    "submission_id": str(sub.id),
+                    "file_name": sub.file_name,
+                    "batch_index": sub.parse_result.get("batch_index"),
+                    "status": sub.status,
+                    "title": sub.title,
+                    "sqs_score": float(sub.sqs_score) if sub.sqs_score is not None else None,
+                    "sqs_grade": sub.sqs_grade,
+                    "claims_found": sub.claims_found,
+                    "consistency_rate": (float(sub.consistency_rate) if sub.consistency_rate is not None else None),
+                    "decision_errors": sub.decision_errors,
+                    "processing_time_ms": sub.processing_time_ms,
+                    "error_message": sub.error_message or None,
+                    "submitted_at": sub.submitted_at.isoformat(),
+                    "completed_at": (sub.completed_at.isoformat() if sub.completed_at else None),
+                    "report_url": (f"/api/v1/manuscript/report/{sub.id}/" if sub.status == "completed" else None),
+                }
+            )
 
         total = all_submissions.count()
-        all_done = (
-            status_counts['completed'] + status_counts['failed'] == total
-        )
+        all_done = status_counts["completed"] + status_counts["failed"] == total
 
-        return Response({
-            'batch_id': batch_id,
-            'total': total,
-            'batch_status': 'completed' if all_done else 'in_progress',
-            'status_counts': status_counts,
-            'submissions': submissions_data,
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "batch_id": batch_id,
+                "total": total,
+                "batch_status": "completed" if all_done else "in_progress",
+                "status_counts": status_counts,
+                "submissions": submissions_data,
+            },
+            status=status.HTTP_200_OK,
+        )

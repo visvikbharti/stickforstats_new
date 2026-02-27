@@ -11,11 +11,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Stage 1: Lint (parallel, informational) ────────────────────────
+  # ── Stage 1: Lint (parallel, required) ──────────────────────────────
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     defaults:
       run:
         working-directory: backend
@@ -40,7 +39,6 @@ jobs:
   frontend-lint:
     name: Frontend Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     defaults:
       run:
         working-directory: frontend
@@ -64,7 +62,6 @@ jobs:
   sdk-lint:
     name: SDK Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 

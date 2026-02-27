@@ -22,14 +22,9 @@ Features:
 from decimal import Decimal, getcontext
 import mpmath as mp
 import numpy as np
-from scipy import stats, linalg
-from scipy.special import expit, logit
-from scipy.optimize import minimize, differential_evolution
+from scipy import stats
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import cross_val_score, KFold
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-import pandas as pd
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 import warnings
 from enum import Enum
@@ -41,6 +36,7 @@ mp.mp.dps = 50
 
 class RegressionType(Enum):
     """Types of regression analysis."""
+
     LINEAR = "linear"
     MULTIPLE = "multiple"
     POLYNOMIAL = "polynomial"
@@ -61,6 +57,7 @@ class RegressionType(Enum):
 @dataclass
 class RegressionDiagnostics:
     """Comprehensive regression diagnostics."""
+
     residuals: np.ndarray
     standardized_residuals: np.ndarray
     studentized_residuals: np.ndarray
@@ -83,6 +80,7 @@ class RegressionDiagnostics:
 @dataclass
 class RegressionResult:
     """Comprehensive regression analysis results."""
+
     regression_type: RegressionType
     coefficients: Dict[str, Decimal]
     intercept: Decimal
@@ -132,9 +130,9 @@ class HighPrecisionRegression:
         y: np.ndarray,
         feature_names: Optional[List[str]] = None,
         confidence_level: float = 0.95,
-        handle_missing: str = 'drop',
+        handle_missing: str = "drop",
         robust_standard_errors: bool = False,
-        do_cv: bool = True
+        do_cv: bool = True,
     ) -> RegressionResult:
         """
         Perform high-precision linear regression.
@@ -174,7 +172,7 @@ class HighPrecisionRegression:
         Xty = self._matrix_multiply_transpose(X_with_intercept, y_hp.reshape(-1, 1))
 
         # Check for multicollinearity
-        condition_number = self._calculate_condition_number(XtX)
+        self._calculate_condition_number(XtX)
 
         try:
             # Solve for coefficients
@@ -182,7 +180,7 @@ class HighPrecisionRegression:
             coefficients = self._matrix_multiply(XtX_inv, Xty).flatten()
         except:
             # Use ridge regression if singular
-            coefficients = self._ridge_solve(X_with_intercept, y_hp, alpha=Decimal('0.01'))
+            coefficients = self._ridge_solve(X_with_intercept, y_hp, alpha=Decimal("0.01"))
             warnings.append("Matrix near singular, used ridge regularization")
 
         # Extract intercept and coefficients
@@ -204,18 +202,14 @@ class HighPrecisionRegression:
         p_values = self._calculate_p_values(t_stats, n - len(coefficients))
 
         # Calculate confidence intervals
-        ci = self._calculate_confidence_intervals(
-            coefficients, std_errors, n - len(coefficients), confidence_level
-        )
+        ci = self._calculate_confidence_intervals(coefficients, std_errors, n - len(coefficients), confidence_level)
 
         # Calculate R-squared and adjusted R-squared
         r_squared = self._calculate_r_squared(y_hp, predictions)
         adj_r_squared = self._calculate_adjusted_r_squared(r_squared, n, len(coefficients) - 1)
 
         # F-statistic
-        f_stat, f_p_value = self._calculate_f_statistic(
-            r_squared, n, len(coefficients) - 1
-        )
+        f_stat, f_p_value = self._calculate_f_statistic(r_squared, n, len(coefficients) - 1)
 
         # Information criteria
         aic = self._calculate_aic(residuals, len(coefficients))
@@ -228,9 +222,7 @@ class HighPrecisionRegression:
         mape = self._calculate_mape(y_hp, predictions)
 
         # Comprehensive diagnostics
-        diagnostics = self._calculate_diagnostics(
-            X_with_intercept, y_hp, predictions, residuals, feature_names
-        )
+        diagnostics = self._calculate_diagnostics(X_with_intercept, y_hp, predictions, residuals, feature_names)
 
         # Cross-validation
         cv_scores = self._cross_validate(X, y, cv=5) if do_cv else None
@@ -240,16 +232,16 @@ class HighPrecisionRegression:
             feature_names = [f"X{i+1}" for i in range(X.shape[1])]
 
         coef_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coef_values)}
-        std_dict = {name: Decimal(str(se)) for name, se in zip(['intercept'] + feature_names, std_errors)}
-        t_dict = {name: Decimal(str(t)) for name, t in zip(['intercept'] + feature_names, t_stats)}
-        p_dict = {name: Decimal(str(p)) for name, p in zip(['intercept'] + feature_names, p_values)}
-        ci_dict = {name: (Decimal(str(ci[i][0])), Decimal(str(ci[i][1])))
-                   for i, name in enumerate(['intercept'] + feature_names)}
+        std_dict = {name: Decimal(str(se)) for name, se in zip(["intercept"] + feature_names, std_errors)}
+        t_dict = {name: Decimal(str(t)) for name, t in zip(["intercept"] + feature_names, t_stats)}
+        p_dict = {name: Decimal(str(p)) for name, p in zip(["intercept"] + feature_names, p_values)}
+        ci_dict = {
+            name: (Decimal(str(ci[i][0])), Decimal(str(ci[i][1])))
+            for i, name in enumerate(["intercept"] + feature_names)
+        }
 
         # Generate interpretation
-        interpretation = self._generate_interpretation(
-            coef_dict, p_dict, r_squared, diagnostics
-        )
+        interpretation = self._generate_interpretation(coef_dict, p_dict, r_squared, diagnostics)
 
         # Check assumptions
         assumptions = self._check_assumptions(diagnostics)
@@ -278,7 +270,7 @@ class HighPrecisionRegression:
             cross_validation_scores=cv_scores,
             interpretation=interpretation,
             assumptions_met=assumptions,
-            warnings=diagnostics.warnings if hasattr(diagnostics, 'warnings') else []
+            warnings=diagnostics.warnings if hasattr(diagnostics, "warnings") else [],
         )
 
     def logistic_regression(
@@ -286,11 +278,11 @@ class HighPrecisionRegression:
         X: np.ndarray,
         y: np.ndarray,
         feature_names: Optional[List[str]] = None,
-        regression_type: str = 'binary',
+        regression_type: str = "binary",
         max_iter: int = 1000,
         tol: float = 1e-8,
         regularization: Optional[str] = None,
-        alpha: float = 1.0
+        alpha: float = 1.0,
     ) -> RegressionResult:
         """
         Perform high-precision logistic regression.
@@ -316,16 +308,14 @@ class HighPrecisionRegression:
         X_with_intercept = self._add_intercept(X_hp)
         n, p = X_with_intercept.shape
 
-        if regression_type == 'binary':
+        if regression_type == "binary":
             # Binary logistic regression using Newton-Raphson
-            coefficients = self._fit_binary_logistic(
-                X_with_intercept, y_hp, max_iter, tol, regularization, alpha
-            )
+            coefficients = self._fit_binary_logistic(X_with_intercept, y_hp, max_iter, tol, regularization, alpha)
 
             # Calculate probabilities
             z = self._matrix_multiply(X_with_intercept, coefficients.reshape(-1, 1)).flatten()
             probabilities = self._sigmoid(z)
-            predictions = (probabilities > mp.mpf('0.5')).astype(int)
+            predictions = (probabilities > mp.mpf("0.5")).astype(int)
 
             # Calculate log-likelihood
             log_likelihood = self._calculate_log_likelihood(y_hp, probabilities)
@@ -343,18 +333,14 @@ class HighPrecisionRegression:
             pseudo_r_squared = self._calculate_multinomial_r_squared(y_hp, probabilities)
 
         # Calculate standard errors using Hessian
-        std_errors = self._calculate_logistic_standard_errors(
-            X_with_intercept, probabilities
-        )
+        std_errors = self._calculate_logistic_standard_errors(X_with_intercept, probabilities)
 
         # Calculate Wald statistics and p-values
         wald_stats = coefficients / std_errors
         p_values = self._calculate_p_values(wald_stats, np.inf)  # Use normal distribution
 
         # Calculate confidence intervals
-        ci = self._calculate_confidence_intervals(
-            coefficients, std_errors, np.inf, 0.95
-        )
+        ci = self._calculate_confidence_intervals(coefficients, std_errors, np.inf, 0.95)
 
         # Information criteria
         aic = -2 * log_likelihood + 2 * p
@@ -374,41 +360,37 @@ class HighPrecisionRegression:
         odds_ratios = {name: Decimal(str(mp.exp(coef))) for name, coef in coef_dict.items()}
 
         # Generate interpretation
-        interpretation = self._generate_logistic_interpretation(
-            coef_dict, odds_ratios, p_values, pseudo_r_squared
-        )
+        interpretation = self._generate_logistic_interpretation(coef_dict, odds_ratios, p_values, pseudo_r_squared)
 
         return RegressionResult(
-            regression_type=RegressionType.LOGISTIC_BINARY if regression_type == 'binary'
-                          else RegressionType.LOGISTIC_MULTINOMIAL,
+            regression_type=RegressionType.LOGISTIC_BINARY
+            if regression_type == "binary"
+            else RegressionType.LOGISTIC_MULTINOMIAL,
             coefficients=coef_dict,
             intercept=Decimal(str(intercept)),
-            standard_errors={name: Decimal(str(se)) for name, se in
-                            zip(['intercept'] + feature_names, std_errors)},
-            t_statistics={name: Decimal(str(w)) for name, w in
-                         zip(['intercept'] + feature_names, wald_stats)},
-            p_values={name: Decimal(str(p)) for name, p in
-                     zip(['intercept'] + feature_names, p_values)},
-            confidence_intervals={name: (Decimal(str(ci[i][0])), Decimal(str(ci[i][1])))
-                                 for i, name in enumerate(['intercept'] + feature_names)},
+            standard_errors={name: Decimal(str(se)) for name, se in zip(["intercept"] + feature_names, std_errors)},
+            t_statistics={name: Decimal(str(w)) for name, w in zip(["intercept"] + feature_names, wald_stats)},
+            p_values={name: Decimal(str(p)) for name, p in zip(["intercept"] + feature_names, p_values)},
+            confidence_intervals={
+                name: (Decimal(str(ci[i][0])), Decimal(str(ci[i][1])))
+                for i, name in enumerate(["intercept"] + feature_names)
+            },
             r_squared=Decimal(str(pseudo_r_squared)),
             adjusted_r_squared=Decimal(str(pseudo_r_squared)),  # Use same for logistic
-            f_statistic=Decimal('0'),  # Not applicable for logistic
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),  # Not applicable for logistic
+            f_p_value=Decimal("1"),
             aic=Decimal(str(aic)),
             bic=Decimal(str(bic)),
-            mse=Decimal('0'),  # Not meaningful for logistic
-            rmse=Decimal('0'),
-            mae=Decimal('0'),
-            mape=Decimal('0'),
+            mse=Decimal("0"),  # Not meaningful for logistic
+            rmse=Decimal("0"),
+            mae=Decimal("0"),
+            mape=Decimal("0"),
             predictions=predictions,
             residuals=y - predictions,  # Deviance residuals would be better
-            diagnostics=self._calculate_logistic_diagnostics(
-                X_with_intercept, y_hp, probabilities
-            ),
+            diagnostics=self._calculate_logistic_diagnostics(X_with_intercept, y_hp, probabilities),
             feature_importance=odds_ratios,
             regularization_param=Decimal(str(alpha)) if regularization else None,
-            interpretation=interpretation
+            interpretation=interpretation,
         )
 
     def ridge_regression(
@@ -418,7 +400,7 @@ class HighPrecisionRegression:
         alpha: float = 1.0,
         feature_names: Optional[List[str]] = None,
         cv_folds: int = 5,
-        alpha_search: bool = True
+        alpha_search: bool = True,
     ) -> RegressionResult:
         """
         Perform Ridge regression with L2 regularization.
@@ -452,9 +434,7 @@ class HighPrecisionRegression:
         effective_df = self._calculate_ridge_effective_df(X_with_intercept, Decimal(str(alpha)))
 
         # Calculate standard errors (approximate for ridge)
-        std_errors = self._calculate_ridge_standard_errors(
-            X_with_intercept, residuals, Decimal(str(alpha))
-        )
+        std_errors = self._calculate_ridge_standard_errors(X_with_intercept, residuals, Decimal(str(alpha)))
 
         # Rest of the calculations similar to linear regression
         n = len(y_hp)
@@ -477,15 +457,14 @@ class HighPrecisionRegression:
             regression_type=RegressionType.RIDGE,
             coefficients=coef_dict,
             intercept=Decimal(str(intercept)),
-            standard_errors={name: Decimal(str(se)) for name, se in
-                            zip(['intercept'] + feature_names, std_errors)},
+            standard_errors={name: Decimal(str(se)) for name, se in zip(["intercept"] + feature_names, std_errors)},
             t_statistics={},  # Not meaningful for ridge
             p_values={},  # Not meaningful for ridge
             confidence_intervals={},  # Not meaningful for ridge
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal('0'),
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),
+            f_p_value=Decimal("1"),
             aic=self._calculate_aic(residuals, effective_df),
             bic=self._calculate_bic(residuals, effective_df, n),
             mse=self._calculate_mse(residuals),
@@ -494,12 +473,10 @@ class HighPrecisionRegression:
             mape=self._calculate_mape(y_hp, predictions),
             predictions=np.array([float(p) for p in predictions]),
             residuals=np.array([float(r) for r in residuals]),
-            diagnostics=self._calculate_diagnostics(
-                X_with_intercept, y_hp, predictions, residuals, feature_names
-            ),
+            diagnostics=self._calculate_diagnostics(X_with_intercept, y_hp, predictions, residuals, feature_names),
             regularization_param=Decimal(str(alpha)),
             feature_importance=feature_importance,
-            cross_validation_scores=self._cross_validate(X, y, cv_folds)
+            cross_validation_scores=self._cross_validate(X, y, cv_folds),
         )
 
     def lasso_regression(
@@ -509,7 +486,7 @@ class HighPrecisionRegression:
         alpha: float = 1.0,
         feature_names: Optional[List[str]] = None,
         max_iter: int = 10000,
-        tol: float = 1e-8
+        tol: float = 1e-8,
     ) -> RegressionResult:
         """
         Perform Lasso regression with L1 regularization.
@@ -526,9 +503,7 @@ class HighPrecisionRegression:
         X_with_intercept = self._add_intercept(X_std)
 
         # Solve Lasso using coordinate descent
-        coefficients = self._lasso_coordinate_descent(
-            X_with_intercept, y_hp, Decimal(str(alpha)), max_iter, tol
-        )
+        coefficients = self._lasso_coordinate_descent(X_with_intercept, y_hp, Decimal(str(alpha)), max_iter, tol)
 
         # Transform coefficients back to original scale
         coefficients[1:] = coefficients[1:] / X_scale
@@ -547,8 +522,7 @@ class HighPrecisionRegression:
         coef_values = coefficients[1:]
 
         # Identify selected features (non-zero coefficients)
-        selected_features = [name for name, coef in zip(feature_names, coef_values)
-                           if abs(coef) > mp.mpf('1e-10')]
+        selected_features = [name for name, coef in zip(feature_names, coef_values) if abs(coef) > mp.mpf("1e-10")]
 
         coef_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coef_values)}
 
@@ -568,8 +542,8 @@ class HighPrecisionRegression:
             confidence_intervals={},
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal('0'),
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),
+            f_p_value=Decimal("1"),
             aic=self._calculate_aic(residuals, num_selected + 1),
             bic=self._calculate_bic(residuals, num_selected + 1, n),
             mse=self._calculate_mse(residuals),
@@ -578,12 +552,10 @@ class HighPrecisionRegression:
             mape=self._calculate_mape(y_hp, predictions),
             predictions=np.array([float(p) for p in predictions]),
             residuals=np.array([float(r) for r in residuals]),
-            diagnostics=self._calculate_diagnostics(
-                X_orig_with_intercept, y_hp, predictions, residuals, feature_names
-            ),
+            diagnostics=self._calculate_diagnostics(X_orig_with_intercept, y_hp, predictions, residuals, feature_names),
             regularization_param=Decimal(str(alpha)),
             selected_features=selected_features,
-            feature_importance={name: abs(Decimal(str(coef))) for name, coef in coef_dict.items()}
+            feature_importance={name: abs(Decimal(str(coef))) for name, coef in coef_dict.items()},
         )
 
     def polynomial_regression(
@@ -594,7 +566,7 @@ class HighPrecisionRegression:
         feature_names: Optional[List[str]] = None,
         include_interaction: bool = True,
         regularization: Optional[str] = None,
-        alpha: float = 1.0
+        alpha: float = 1.0,
     ) -> RegressionResult:
         """
         Perform polynomial regression.
@@ -609,8 +581,7 @@ class HighPrecisionRegression:
             'ridge', 'lasso', or None
         """
         # Create polynomial features
-        poly = PolynomialFeatures(degree=degree, include_bias=False,
-                                 interaction_only=not include_interaction)
+        poly = PolynomialFeatures(degree=degree, include_bias=False, interaction_only=not include_interaction)
         X_poly = poly.fit_transform(X)
 
         # Get polynomial feature names
@@ -619,9 +590,9 @@ class HighPrecisionRegression:
         poly_feature_names = poly.get_feature_names_out(feature_names)
 
         # Apply appropriate regression
-        if regularization == 'ridge':
+        if regularization == "ridge":
             result = self.ridge_regression(X_poly, y, alpha, poly_feature_names)
-        elif regularization == 'lasso':
+        elif regularization == "lasso":
             result = self.lasso_regression(X_poly, y, alpha, poly_feature_names)
         else:
             result = self.linear_regression(X_poly, y, poly_feature_names)
@@ -637,10 +608,10 @@ class HighPrecisionRegression:
         X: np.ndarray,
         y: np.ndarray,
         feature_names: Optional[List[str]] = None,
-        method: str = 'both',
+        method: str = "both",
         alpha_in: float = 0.05,
         alpha_out: float = 0.10,
-        max_features: Optional[int] = None
+        max_features: Optional[int] = None,
     ) -> RegressionResult:
         """
         Perform stepwise regression for feature selection.
@@ -661,31 +632,28 @@ class HighPrecisionRegression:
 
         n, p = X.shape
 
-        if method == 'forward':
-            selected_features = self._forward_selection(
-                X, y, feature_names, alpha_in, max_features
-            )
-        elif method == 'backward':
-            selected_features = self._backward_elimination(
-                X, y, feature_names, alpha_out
-            )
+        if method == "forward":
+            selected_features = self._forward_selection(X, y, feature_names, alpha_in, max_features)
+        elif method == "backward":
+            selected_features = self._backward_elimination(X, y, feature_names, alpha_out)
         else:  # both
-            selected_features = self._stepwise_both(
-                X, y, feature_names, alpha_in, alpha_out, max_features
-            )
+            selected_features = self._stepwise_both(X, y, feature_names, alpha_in, alpha_out, max_features)
 
         # Get indices of selected features
-        selected_indices = [i for i, name in enumerate(feature_names)
-                          if name in selected_features]
+        selected_indices = [i for i, name in enumerate(feature_names) if name in selected_features]
 
         # Perform regression with selected features
         X_selected = X[:, selected_indices]
         result = self.linear_regression(X_selected, y, selected_features)
 
         # Update regression type and selected features
-        result.regression_type = RegressionType.STEPWISE_FORWARD if method == 'forward' \
-                               else RegressionType.STEPWISE_BACKWARD if method == 'backward' \
-                               else RegressionType.STEPWISE_BOTH
+        result.regression_type = (
+            RegressionType.STEPWISE_FORWARD
+            if method == "forward"
+            else RegressionType.STEPWISE_BACKWARD
+            if method == "backward"
+            else RegressionType.STEPWISE_BOTH
+        )
         result.selected_features = selected_features
 
         return result
@@ -697,7 +665,7 @@ class HighPrecisionRegression:
         quantile: float = 0.5,
         feature_names: Optional[List[str]] = None,
         max_iter: int = 10000,
-        tol: float = 1e-8
+        tol: float = 1e-8,
     ) -> RegressionResult:
         """
         Perform quantile regression.
@@ -715,9 +683,7 @@ class HighPrecisionRegression:
         X_with_intercept = self._add_intercept(X_hp)
 
         # Solve quantile regression using iteratively reweighted least squares
-        coefficients = self._quantile_regression_irls(
-            X_with_intercept, y_hp, Decimal(str(quantile)), max_iter, tol
-        )
+        coefficients = self._quantile_regression_irls(X_with_intercept, y_hp, Decimal(str(quantile)), max_iter, tol)
 
         # Calculate predictions
         predictions = self._matrix_multiply(X_with_intercept, coefficients.reshape(-1, 1)).flatten()
@@ -740,15 +706,15 @@ class HighPrecisionRegression:
         coef_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coef_values)}
 
         # Calculate metrics
-        n = len(y_hp)
+        len(y_hp)
         mae = self._calculate_mae(residuals)
 
         # Generate interpretation
         interpretation = {
-            'quantile': f"Estimating the {quantile:.1%} quantile of the response",
-            'coefficients': f"Coefficients show the change in the {quantile:.1%} quantile for unit change in predictors",
-            'pseudo_r_squared': f"Pseudo R-squared: {pseudo_r_squared:.4f}",
-            'mae': f"Mean Absolute Error: {mae:.6f}"
+            "quantile": f"Estimating the {quantile:.1%} quantile of the response",
+            "coefficients": f"Coefficients show the change in the {quantile:.1%} quantile for unit change in predictors",
+            "pseudo_r_squared": f"Pseudo R-squared: {pseudo_r_squared:.4f}",
+            "mae": f"Mean Absolute Error: {mae:.6f}",
         }
 
         return RegressionResult(
@@ -761,30 +727,23 @@ class HighPrecisionRegression:
             confidence_intervals={},
             r_squared=Decimal(str(pseudo_r_squared)),
             adjusted_r_squared=Decimal(str(pseudo_r_squared)),
-            f_statistic=Decimal('0'),
-            f_p_value=Decimal('1'),
-            aic=Decimal('0'),  # Not standard for quantile regression
-            bic=Decimal('0'),
+            f_statistic=Decimal("0"),
+            f_p_value=Decimal("1"),
+            aic=Decimal("0"),  # Not standard for quantile regression
+            bic=Decimal("0"),
             mse=self._calculate_mse(residuals),
             rmse=mp.sqrt(self._calculate_mse(residuals)),
             mae=Decimal(str(mae)),
             mape=self._calculate_mape(y_hp, predictions),
             predictions=np.array([float(p) for p in predictions]),
             residuals=np.array([float(r) for r in residuals]),
-            diagnostics=self._calculate_diagnostics(
-                X_with_intercept, y_hp, predictions, residuals, feature_names
-            ),
+            diagnostics=self._calculate_diagnostics(X_with_intercept, y_hp, predictions, residuals, feature_names),
             quantile=quantile,
-            interpretation=interpretation
+            interpretation=interpretation,
         )
 
     def robust_regression(
-        self,
-        X: np.ndarray,
-        y: np.ndarray,
-        method: str = 'huber',
-        feature_names: Optional[List[str]] = None,
-        **kwargs
+        self, X: np.ndarray, y: np.ndarray, method: str = "huber", feature_names: Optional[List[str]] = None, **kwargs
     ) -> RegressionResult:
         """
         Perform robust regression resistant to outliers.
@@ -794,11 +753,11 @@ class HighPrecisionRegression:
         method : str
             'huber', 'ransac', or 'theil_sen'
         """
-        if method == 'huber':
+        if method == "huber":
             return self._huber_regression(X, y, feature_names, **kwargs)
-        elif method == 'ransac':
+        elif method == "ransac":
             return self._ransac_regression(X, y, feature_names, **kwargs)
-        elif method == 'theil_sen':
+        elif method == "theil_sen":
             return self._theil_sen_regression(X, y, feature_names, **kwargs)
         else:
             raise ValueError(f"Unknown robust regression method: {method}")
@@ -815,7 +774,7 @@ class HighPrecisionRegression:
     def _add_intercept(self, X: np.ndarray) -> np.ndarray:
         """Add intercept column to design matrix."""
         n = X.shape[0]
-        ones = np.array([mp.mpf('1')] * n).reshape(-1, 1)
+        ones = np.array([mp.mpf("1")] * n).reshape(-1, 1)
         return np.hstack([ones, X])
 
     def _matrix_multiply(self, A: np.ndarray, B: np.ndarray) -> np.ndarray:
@@ -824,7 +783,7 @@ class HighPrecisionRegression:
         for i in range(A.shape[0]):
             row = []
             for j in range(B.shape[1]):
-                sum_val = mp.mpf('0')
+                sum_val = mp.mpf("0")
                 for k in range(A.shape[1]):
                     sum_val += A[i, k] * B[k, j]
                 row.append(sum_val)
@@ -840,13 +799,13 @@ class HighPrecisionRegression:
         n = A.shape[0]
         A_mp = mp.matrix([[A[i, j] for j in range(n)] for i in range(n)])
         try:
-            A_inv_mp = A_mp**(-1)
+            A_inv_mp = A_mp ** (-1)
             return np.array([[A_inv_mp[i, j] for j in range(n)] for i in range(n)])
         except:
             # Add small regularization if singular
             for i in range(n):
-                A_mp[i, i] += mp.mpf('1e-10')
-            A_inv_mp = A_mp**(-1)
+                A_mp[i, i] += mp.mpf("1e-10")
+            A_inv_mp = A_mp ** (-1)
             return np.array([[A_inv_mp[i, j] for j in range(n)] for i in range(n)])
 
     def _ridge_solve(self, X: np.ndarray, y: np.ndarray, alpha: Decimal) -> np.ndarray:
@@ -877,7 +836,7 @@ class HighPrecisionRegression:
         if min(eigenvalues) > 0:
             return Decimal(str(max(eigenvalues) / min(eigenvalues)))
         else:
-            return Decimal('inf')
+            return Decimal("inf")
 
     def _calculate_standard_errors(self, X: np.ndarray, residuals: np.ndarray) -> np.ndarray:
         """Calculate standard errors of coefficients."""
@@ -930,6 +889,7 @@ class HighPrecisionRegression:
             if df == np.inf:
                 # Use normal distribution
                 from scipy import stats as sp_stats
+
                 p = 2 * (1 - sp_stats.norm.cdf(float(abs(t))))
             else:
                 # Use t-distribution
@@ -941,13 +901,13 @@ class HighPrecisionRegression:
         """Calculate CDF of t-distribution."""
         # Use relationship with incomplete beta function
         from scipy import special
+
         t_float = float(t)
         x = df / (df + t_float**2)
-        return mp.mpf(str(1 - 0.5 * special.betainc(df/2, 0.5, x)))
+        return mp.mpf(str(1 - 0.5 * special.betainc(df / 2, 0.5, x)))
 
     def _calculate_confidence_intervals(
-        self, coefficients: np.ndarray, std_errors: np.ndarray,
-        df: float, confidence_level: float
+        self, coefficients: np.ndarray, std_errors: np.ndarray, df: float, confidence_level: float
     ) -> List[Tuple[mp.mpf, mp.mpf]]:
         """Calculate confidence intervals for coefficients."""
         alpha = 1 - confidence_level
@@ -955,10 +915,11 @@ class HighPrecisionRegression:
         if df == np.inf:
             # Use normal distribution
             from scipy import stats as sp_stats
-            z = mp.mpf(str(sp_stats.norm.ppf(1 - alpha/2)))
+
+            z = mp.mpf(str(sp_stats.norm.ppf(1 - alpha / 2)))
         else:
             # Use t-distribution
-            z = self._t_quantile(1 - alpha/2, df)
+            z = self._t_quantile(1 - alpha / 2, df)
 
         ci = []
         for coef, se in zip(coefficients, std_errors):
@@ -973,13 +934,14 @@ class HighPrecisionRegression:
         # Use Newton-Raphson to find quantile
         # Initial guess using normal approximation
         from scipy import stats as sp_stats
+
         x = mp.mpf(str(sp_stats.norm.ppf(p)))
 
         for _ in range(100):
             cdf = self._t_cdf(x, df)
             pdf = self._t_pdf(x, df)
             x_new = x - (cdf - p) / pdf
-            if abs(x_new - x) < mp.mpf('1e-10'):
+            if abs(x_new - x) < mp.mpf("1e-10"):
                 break
             x = x_new
 
@@ -987,19 +949,18 @@ class HighPrecisionRegression:
 
     def _t_pdf(self, t: mp.mpf, df: float) -> mp.mpf:
         """Calculate PDF of t-distribution."""
-        return mp.gamma((df + 1) / 2) / (mp.sqrt(df * mp.pi) * mp.gamma(df / 2)) * \
-               (1 + t**2 / df) ** (-(df + 1) / 2)
+        return mp.gamma((df + 1) / 2) / (mp.sqrt(df * mp.pi) * mp.gamma(df / 2)) * (1 + t**2 / df) ** (-(df + 1) / 2)
 
     def _calculate_r_squared(self, y_true: np.ndarray, y_pred: np.ndarray) -> mp.mpf:
         """Calculate R-squared with high precision."""
-        ss_res = sum([(y_true[i] - y_pred[i])**2 for i in range(len(y_true))])
+        ss_res = sum([(y_true[i] - y_pred[i]) ** 2 for i in range(len(y_true))])
         y_mean = sum(y_true) / len(y_true)
-        ss_tot = sum([(y_true[i] - y_mean)**2 for i in range(len(y_true))])
+        ss_tot = sum([(y_true[i] - y_mean) ** 2 for i in range(len(y_true))])
 
         if ss_tot > 0:
             return 1 - ss_res / ss_tot
         else:
-            return mp.mpf('0')
+            return mp.mpf("0")
 
     def _calculate_adjusted_r_squared(self, r_squared: mp.mpf, n: int, p: int) -> mp.mpf:
         """Calculate adjusted R-squared."""
@@ -1016,26 +977,27 @@ class HighPrecisionRegression:
             p_value = 1 - self._f_cdf(f_stat, p, n - p - 1)
             return f_stat, p_value
         else:
-            return mp.mpf('0'), mp.mpf('1')
+            return mp.mpf("0"), mp.mpf("1")
 
     def _f_cdf(self, f: mp.mpf, df1: float, df2: float) -> mp.mpf:
         """Calculate CDF of F-distribution."""
         from scipy import special
+
         x = df1 * float(f) / (df1 * float(f) + df2)
-        return mp.mpf(str(special.betainc(df1/2, df2/2, x)))
+        return mp.mpf(str(special.betainc(df1 / 2, df2 / 2, x)))
 
     def _calculate_aic(self, residuals: np.ndarray, k: float) -> Decimal:
         """Calculate Akaike Information Criterion."""
         n = len(residuals)
         rss = sum([r**2 for r in residuals])
-        log_likelihood = -n/2 * mp.log(2 * mp.pi) - n/2 * mp.log(rss/n) - n/2
+        log_likelihood = -n / 2 * mp.log(2 * mp.pi) - n / 2 * mp.log(rss / n) - n / 2
         aic = -2 * log_likelihood + 2 * k
         return Decimal(str(aic))
 
     def _calculate_bic(self, residuals: np.ndarray, k: float, n: int) -> Decimal:
         """Calculate Bayesian Information Criterion."""
         rss = sum([r**2 for r in residuals])
-        log_likelihood = -n/2 * mp.log(2 * mp.pi) - n/2 * mp.log(rss/n) - n/2
+        log_likelihood = -n / 2 * mp.log(2 * mp.pi) - n / 2 * mp.log(rss / n) - n / 2
         bic = -2 * log_likelihood + k * mp.log(n)
         return Decimal(str(bic))
 
@@ -1049,17 +1011,21 @@ class HighPrecisionRegression:
 
     def _calculate_mape(self, y_true: np.ndarray, y_pred: np.ndarray) -> mp.mpf:
         """Calculate Mean Absolute Percentage Error."""
-        mape = mp.mpf('0')
+        mape = mp.mpf("0")
         count = 0
         for i in range(len(y_true)):
-            if abs(y_true[i]) > mp.mpf('1e-10'):
+            if abs(y_true[i]) > mp.mpf("1e-10"):
                 mape += abs((y_true[i] - y_pred[i]) / y_true[i])
                 count += 1
-        return mape / count * 100 if count > 0 else mp.mpf('0')
+        return mape / count * 100 if count > 0 else mp.mpf("0")
 
     def _calculate_diagnostics(
-        self, X: np.ndarray, y: np.ndarray, predictions: np.ndarray,
-        residuals: np.ndarray, feature_names: Optional[List[str]]
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        predictions: np.ndarray,
+        residuals: np.ndarray,
+        feature_names: Optional[List[str]],
     ) -> RegressionDiagnostics:
         """Calculate comprehensive regression diagnostics."""
         n, p = X.shape
@@ -1081,30 +1047,30 @@ class HighPrecisionRegression:
         # Studentized residuals
         studentized_residuals = []
         for i in range(n):
-            if 1 - leverage[i] > mp.mpf('1e-10'):
+            if 1 - leverage[i] > mp.mpf("1e-10"):
                 s_i = sigma * mp.sqrt(1 - leverage[i])
                 studentized_residuals.append(residuals[i] / s_i)
             else:
-                studentized_residuals.append(mp.mpf('0'))
+                studentized_residuals.append(mp.mpf("0"))
         studentized_residuals = np.array(studentized_residuals)
 
         # Cook's distance
         cooks_distance = []
         for i in range(n):
-            if 1 - leverage[i] > mp.mpf('1e-10'):
-                d_i = (residuals[i]**2 / (p * sigma**2)) * (leverage[i] / (1 - leverage[i])**2)
+            if 1 - leverage[i] > mp.mpf("1e-10"):
+                d_i = (residuals[i] ** 2 / (p * sigma**2)) * (leverage[i] / (1 - leverage[i]) ** 2)
             else:
-                d_i = mp.mpf('0')
+                d_i = mp.mpf("0")
             cooks_distance.append(d_i)
         cooks_distance = np.array(cooks_distance)
 
         # DFFITS
         dffits = []
         for i in range(n):
-            if 1 - leverage[i] > mp.mpf('1e-10'):
+            if 1 - leverage[i] > mp.mpf("1e-10"):
                 dffits_i = studentized_residuals[i] * mp.sqrt(leverage[i] / (1 - leverage[i]))
             else:
-                dffits_i = mp.mpf('0')
+                dffits_i = mp.mpf("0")
             dffits.append(dffits_i)
         dffits = np.array(dffits)
 
@@ -1115,40 +1081,44 @@ class HighPrecisionRegression:
                 X_j = X[:, j]
                 X_others = np.delete(X, j, axis=1)
                 # Regress X_j on other predictors
-                coef = self._ridge_solve(X_others, X_j, mp.mpf('1e-10'))
+                coef = self._ridge_solve(X_others, X_j, mp.mpf("1e-10"))
                 pred = self._matrix_multiply(X_others, coef.reshape(-1, 1)).flatten()
                 r_squared_j = self._calculate_r_squared(X_j, pred)
                 if r_squared_j < 0.999:
-                    vif[feature_names[j-1] if j-1 < len(feature_names) else f"X{j}"] = \
-                        Decimal(str(1 / (1 - r_squared_j)))
+                    vif[feature_names[j - 1] if j - 1 < len(feature_names) else f"X{j}"] = Decimal(
+                        str(1 / (1 - r_squared_j))
+                    )
                 else:
-                    vif[feature_names[j-1] if j-1 < len(feature_names) else f"X{j}"] = \
-                        Decimal('inf')
+                    vif[feature_names[j - 1] if j - 1 < len(feature_names) else f"X{j}"] = Decimal("inf")
 
         # Durbin-Watson statistic for autocorrelation
-        dw_numerator = sum([(residuals[i] - residuals[i-1])**2 for i in range(1, n)])
+        dw_numerator = sum([(residuals[i] - residuals[i - 1]) ** 2 for i in range(1, n)])
         dw_denominator = sum([r**2 for r in residuals])
-        durbin_watson = Decimal(str(dw_numerator / dw_denominator)) if dw_denominator > 0 else Decimal('0')
+        durbin_watson = Decimal(str(dw_numerator / dw_denominator)) if dw_denominator > 0 else Decimal("0")
 
         # Breusch-Pagan test for heteroscedasticity (simplified)
         residuals_squared = np.array([float(r**2) for r in residuals])
         # Regress squared residuals on X (simplified version)
         from scipy import stats as sp_stats
+
         X_np = np.array([[float(X[i, j]) for j in range(1, p)] for i in range(n)])
         if X_np.shape[1] > 0:
-            slope, intercept, r_value, p_value, std_err = sp_stats.linregress(X_np[:, 0], residuals_squared) if X_np.shape[1] == 1 else (0, 0, 0, 1, 0)
+            slope, intercept, r_value, p_value, std_err = (
+                sp_stats.linregress(X_np[:, 0], residuals_squared) if X_np.shape[1] == 1 else (0, 0, 0, 1, 0)
+            )
             bp_stat = Decimal(str(n * r_value**2))
             bp_p_value = Decimal(str(1 - sp_stats.chi2.cdf(float(bp_stat), p - 1)))
         else:
-            bp_stat = Decimal('0')
-            bp_p_value = Decimal('1')
+            bp_stat = Decimal("0")
+            bp_p_value = Decimal("1")
 
         # Jarque-Bera test for normality
         mean_res = sum(residuals) / n
-        skewness = sum([(r - mean_res)**3 for r in residuals]) / (n * sigma**3)
-        kurtosis = sum([(r - mean_res)**4 for r in residuals]) / (n * sigma**4)
-        jb_stat = n * (skewness**2 / 6 + (kurtosis - 3)**2 / 24)
+        skewness = sum([(r - mean_res) ** 3 for r in residuals]) / (n * sigma**3)
+        kurtosis = sum([(r - mean_res) ** 4 for r in residuals]) / (n * sigma**4)
+        jb_stat = n * (skewness**2 / 6 + (kurtosis - 3) ** 2 / 24)
         from scipy import stats as sp_stats
+
         jb_p_value = 1 - sp_stats.chi2.cdf(float(jb_stat), 2)
 
         # Identify outliers and influential points
@@ -1157,10 +1127,10 @@ class HighPrecisionRegression:
         influential_points = [i for i, d in enumerate(cooks_distance) if d > influential_threshold]
 
         # Check for problems
-        multicollinearity_detected = any(v > Decimal('10') for v in vif.values()) if vif else False
-        heteroscedasticity_detected = bp_p_value < Decimal('0.05')
-        autocorrelation_detected = durbin_watson < Decimal('1.5') or durbin_watson > Decimal('2.5')
-        normality_violated = jb_p_value < Decimal('0.05')
+        multicollinearity_detected = any(v > Decimal("10") for v in vif.values()) if vif else False
+        heteroscedasticity_detected = bp_p_value < Decimal("0.05")
+        autocorrelation_detected = durbin_watson < Decimal("1.5") or durbin_watson > Decimal("2.5")
+        normality_violated = jb_p_value < Decimal("0.05")
 
         return RegressionDiagnostics(
             residuals=np.array([float(r) for r in residuals]),
@@ -1171,36 +1141,35 @@ class HighPrecisionRegression:
             leverage=np.array([float(h) for h in leverage]),
             vif=vif,
             durbin_watson=durbin_watson,
-            breusch_pagan={'statistic': bp_stat, 'p_value': bp_p_value},
-            jarque_bera={'statistic': Decimal(str(jb_stat)), 'p_value': Decimal(str(jb_p_value))},
+            breusch_pagan={"statistic": bp_stat, "p_value": bp_p_value},
+            jarque_bera={"statistic": Decimal(str(jb_stat)), "p_value": Decimal(str(jb_p_value))},
             condition_number=self._calculate_condition_number(XtX),
             outliers=outliers,
             influential_points=influential_points,
             multicollinearity_detected=multicollinearity_detected,
             heteroscedasticity_detected=heteroscedasticity_detected,
             autocorrelation_detected=autocorrelation_detected,
-            normality_violated=normality_violated
+            normality_violated=normality_violated,
         )
 
     def _handle_missing_values(
-        self, X: np.ndarray, y: np.ndarray,
-        feature_names: Optional[List[str]], method: str
+        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], method: str
     ) -> Tuple[np.ndarray, np.ndarray, Optional[List[str]]]:
         """Handle missing values in data."""
         # Combine X and y for consistent handling
         data = np.column_stack([X, y])
 
-        if method == 'drop':
+        if method == "drop":
             # Remove rows with any missing values
             mask = ~np.isnan(data).any(axis=1)
             data_clean = data[mask]
-        elif method == 'impute_mean':
+        elif method == "impute_mean":
             # Impute with column means
             col_means = np.nanmean(data, axis=0)
             indices = np.where(np.isnan(data))
             data_clean = data.copy()
             data_clean[indices] = np.take(col_means, indices[1])
-        elif method == 'impute_median':
+        elif method == "impute_median":
             # Impute with column medians
             col_medians = np.nanmedian(data, axis=0)
             indices = np.where(np.isnan(data))
@@ -1219,7 +1188,7 @@ class HighPrecisionRegression:
         """Perform k-fold cross-validation."""
         n = len(y)
         fold_size = n // cv
-        scores = {'mse': [], 'mae': [], 'r2': []}
+        scores = {"mse": [], "mae": [], "r2": []}
 
         for fold in range(cv):
             # Create train/test split
@@ -1249,37 +1218,41 @@ class HighPrecisionRegression:
 
             # Calculate metrics
             residuals = y_test_hp - predictions
-            scores['mse'].append(self._calculate_mse(residuals))
-            scores['mae'].append(self._calculate_mae(residuals))
-            scores['r2'].append(self._calculate_r_squared(y_test_hp, predictions))
+            scores["mse"].append(self._calculate_mse(residuals))
+            scores["mae"].append(self._calculate_mae(residuals))
+            scores["r2"].append(self._calculate_r_squared(y_test_hp, predictions))
 
         # Average scores
         return {
-            'cv_mse': Decimal(str(sum(scores['mse']) / cv)),
-            'cv_mae': Decimal(str(sum(scores['mae']) / cv)),
-            'cv_r2': Decimal(str(sum(scores['r2']) / cv))
+            "cv_mse": Decimal(str(sum(scores["mse"]) / cv)),
+            "cv_mae": Decimal(str(sum(scores["mae"]) / cv)),
+            "cv_r2": Decimal(str(sum(scores["r2"]) / cv)),
         }
 
     def _generate_interpretation(
-        self, coefficients: Dict[str, Decimal], p_values: Dict[str, Decimal],
-        r_squared: mp.mpf, diagnostics: RegressionDiagnostics
+        self,
+        coefficients: Dict[str, Decimal],
+        p_values: Dict[str, Decimal],
+        r_squared: mp.mpf,
+        diagnostics: RegressionDiagnostics,
     ) -> Dict[str, str]:
         """Generate interpretation of regression results."""
         interpretation = {}
 
         # Model fit
-        interpretation['model_fit'] = f"The model explains {float(r_squared)*100:.1f}% of the variance"
+        interpretation["model_fit"] = f"The model explains {float(r_squared)*100:.1f}% of the variance"
 
         # Significant predictors
-        sig_predictors = [name for name, p in p_values.items() if p < Decimal('0.05')]
+        sig_predictors = [name for name, p in p_values.items() if p < Decimal("0.05")]
         if sig_predictors:
-            interpretation['significant_predictors'] = f"Significant predictors: {', '.join(sig_predictors)}"
+            interpretation["significant_predictors"] = f"Significant predictors: {', '.join(sig_predictors)}"
 
         # Coefficient interpretation
         for name, coef in coefficients.items():
-            if name in p_values and p_values[name] < Decimal('0.05'):
-                interpretation[f'coef_{name}'] = \
-                    f"A one-unit increase in {name} is associated with a {float(coef):.4f} change in the outcome"
+            if name in p_values and p_values[name] < Decimal("0.05"):
+                interpretation[
+                    f"coef_{name}"
+                ] = f"A one-unit increase in {name} is associated with a {float(coef):.4f} change in the outcome"
 
         # Diagnostic warnings
         warnings = []
@@ -1297,19 +1270,19 @@ class HighPrecisionRegression:
             warnings.append(f"{len(diagnostics.influential_points)} influential points detected")
 
         if warnings:
-            interpretation['warnings'] = "; ".join(warnings)
+            interpretation["warnings"] = "; ".join(warnings)
 
         return interpretation
 
     def _check_assumptions(self, diagnostics: RegressionDiagnostics) -> Dict[str, bool]:
         """Check regression assumptions."""
         return {
-            'linearity': True,  # Would need residual plots to properly assess
-            'independence': not diagnostics.autocorrelation_detected,
-            'homoscedasticity': not diagnostics.heteroscedasticity_detected,
-            'normality': not diagnostics.normality_violated,
-            'no_multicollinearity': not diagnostics.multicollinearity_detected,
-            'no_influential_outliers': len(diagnostics.influential_points) == 0
+            "linearity": True,  # Would need residual plots to properly assess
+            "independence": not diagnostics.autocorrelation_detected,
+            "homoscedasticity": not diagnostics.heteroscedasticity_detected,
+            "normality": not diagnostics.normality_violated,
+            "no_multicollinearity": not diagnostics.multicollinearity_detected,
+            "no_influential_outliers": len(diagnostics.influential_points) == 0,
         }
 
     # Additional helper methods for specialized regression types
@@ -1318,14 +1291,13 @@ class HighPrecisionRegression:
         return np.array([1 / (1 + mp.exp(-z_i)) for z_i in z])
 
     def _fit_binary_logistic(
-        self, X: np.ndarray, y: np.ndarray, max_iter: int,
-        tol: float, regularization: Optional[str], alpha: float
+        self, X: np.ndarray, y: np.ndarray, max_iter: int, tol: float, regularization: Optional[str], alpha: float
     ) -> np.ndarray:
         """Fit binary logistic regression using Newton-Raphson."""
         n, p = X.shape
 
         # Initialize coefficients
-        beta = np.array([mp.mpf('0')] * p)
+        beta = np.array([mp.mpf("0")] * p)
 
         for iteration in range(max_iter):
             # Calculate predictions
@@ -1336,7 +1308,7 @@ class HighPrecisionRegression:
             gradient = self._matrix_multiply_transpose(X, (p_hat - y).reshape(-1, 1)).flatten()
 
             # Add regularization to gradient if specified
-            if regularization == 'l2':
+            if regularization == "l2":
                 gradient[1:] += alpha * beta[1:]  # Don't regularize intercept
 
             # Calculate Hessian
@@ -1344,7 +1316,7 @@ class HighPrecisionRegression:
             hessian = self._matrix_multiply_transpose(X, self._matrix_multiply(W, X))
 
             # Add regularization to Hessian
-            if regularization == 'l2':
+            if regularization == "l2":
                 for i in range(1, p):
                     hessian[i, i] += alpha
 
@@ -1357,7 +1329,7 @@ class HighPrecisionRegression:
                 beta_new = beta - 0.01 * gradient
 
             # Check convergence
-            if mp.sqrt(sum([(beta_new[i] - beta[i])**2 for i in range(len(beta))])) < tol:
+            if mp.sqrt(sum([(beta_new[i] - beta[i]) ** 2 for i in range(len(beta))])) < tol:
                 break
 
             beta = beta_new
@@ -1366,7 +1338,7 @@ class HighPrecisionRegression:
 
     def _calculate_log_likelihood(self, y: np.ndarray, p_hat: np.ndarray) -> mp.mpf:
         """Calculate log-likelihood for binary logistic regression."""
-        ll = mp.mpf('0')
+        ll = mp.mpf("0")
         for i in range(len(y)):
             if p_hat[i] > 0 and p_hat[i] < 1:
                 ll += y[i] * mp.log(p_hat[i]) + (1 - y[i]) * mp.log(1 - p_hat[i])
@@ -1377,25 +1349,23 @@ class HighPrecisionRegression:
         p_null = sum(y) / len(y)
         if p_null > 0 and p_null < 1:
             return len(y) * (p_null * mp.log(p_null) + (1 - p_null) * mp.log(1 - p_null))
-        return mp.mpf('0')
+        return mp.mpf("0")
 
     def _standardize_features(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Standardize features for regularized regression."""
         X_mean = np.array([sum(X[:, j]) / X.shape[0] for j in range(X.shape[1])])
         X_centered = X - X_mean
-        X_scale = np.array([mp.sqrt(sum(X_centered[:, j]**2) / X.shape[0])
-                          for j in range(X.shape[1])])
-        X_scale = np.array([s if s > mp.mpf('1e-10') else mp.mpf('1') for s in X_scale])
+        X_scale = np.array([mp.sqrt(sum(X_centered[:, j] ** 2) / X.shape[0]) for j in range(X.shape[1])])
+        X_scale = np.array([s if s > mp.mpf("1e-10") else mp.mpf("1") for s in X_scale])
         X_std = X_centered / X_scale
         return X_std, X_mean, X_scale
 
     def _lasso_coordinate_descent(
-        self, X: np.ndarray, y: np.ndarray, alpha: Decimal,
-        max_iter: int, tol: float
+        self, X: np.ndarray, y: np.ndarray, alpha: Decimal, max_iter: int, tol: float
     ) -> np.ndarray:
         """Solve Lasso using coordinate descent."""
         n, p = X.shape
-        beta = np.array([mp.mpf('0')] * p)
+        beta = np.array([mp.mpf("0")] * p)
 
         for iteration in range(max_iter):
             beta_old = beta.copy()
@@ -1406,7 +1376,7 @@ class HighPrecisionRegression:
                 r_j = y - self._matrix_multiply(X, beta.reshape(-1, 1)).flatten() + X[:, j] * beta[j]
 
                 # Calculate update
-                x_j_squared = sum(X[:, j]**2)
+                x_j_squared = sum(X[:, j] ** 2)
                 if x_j_squared > 0:
                     rho_j = sum(X[:, j] * r_j)
 
@@ -1420,17 +1390,16 @@ class HighPrecisionRegression:
                         elif rho_j < -alpha_mp:
                             beta[j] = (rho_j + alpha_mp) / x_j_squared
                         else:
-                            beta[j] = mp.mpf('0')
+                            beta[j] = mp.mpf("0")
 
             # Check convergence
-            if mp.sqrt(sum([(beta[i] - beta_old[i])**2 for i in range(len(beta))])) < tol:
+            if mp.sqrt(sum([(beta[i] - beta_old[i]) ** 2 for i in range(len(beta))])) < tol:
                 break
 
         return beta
 
     def _forward_selection(
-        self, X: np.ndarray, y: np.ndarray, feature_names: List[str],
-        alpha_in: float, max_features: Optional[int]
+        self, X: np.ndarray, y: np.ndarray, feature_names: List[str], alpha_in: float, max_features: Optional[int]
     ) -> List[str]:
         """Forward selection for stepwise regression."""
         selected = []
@@ -1491,8 +1460,13 @@ class HighPrecisionRegression:
         return selected
 
     def _stepwise_both(
-        self, X: np.ndarray, y: np.ndarray, feature_names: List[str],
-        alpha_in: float, alpha_out: float, max_features: Optional[int]
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        feature_names: List[str],
+        alpha_in: float,
+        alpha_out: float,
+        max_features: Optional[int],
     ) -> List[str]:
         """Stepwise selection with both forward and backward steps."""
         selected = []
@@ -1537,14 +1511,13 @@ class HighPrecisionRegression:
         return selected
 
     def _quantile_regression_irls(
-        self, X: np.ndarray, y: np.ndarray, quantile: Decimal,
-        max_iter: int, tol: float
+        self, X: np.ndarray, y: np.ndarray, quantile: Decimal, max_iter: int, tol: float
     ) -> np.ndarray:
         """Solve quantile regression using iteratively reweighted least squares."""
         n, p = X.shape
 
         # Initialize with OLS solution
-        beta = self._ridge_solve(X, y, mp.mpf('1e-10'))
+        beta = self._ridge_solve(X, y, mp.mpf("1e-10"))
 
         for iteration in range(max_iter):
             # Calculate residuals
@@ -1553,8 +1526,8 @@ class HighPrecisionRegression:
             # Calculate weights
             weights = []
             for r in residuals:
-                if abs(r) < mp.mpf('1e-10'):
-                    weights.append(mp.mpf('1'))
+                if abs(r) < mp.mpf("1e-10"):
+                    weights.append(mp.mpf("1"))
                 elif r > 0:
                     weights.append(quantile / abs(r))
                 else:
@@ -1571,10 +1544,10 @@ class HighPrecisionRegression:
                 beta_new = self._matrix_multiply(XtWX_inv, XtWy).flatten()
             except:
                 # Add small regularization if singular
-                beta_new = self._ridge_solve(X, y, mp.mpf('1e-6'))
+                beta_new = self._ridge_solve(X, y, mp.mpf("1e-6"))
 
             # Check convergence
-            if mp.sqrt(sum([(beta_new[i] - beta[i])**2 for i in range(len(beta))])) < tol:
+            if mp.sqrt(sum([(beta_new[i] - beta[i]) ** 2 for i in range(len(beta))])) < tol:
                 break
 
             beta = beta_new
@@ -1584,12 +1557,12 @@ class HighPrecisionRegression:
     def _calculate_feature_importance(self, coefficients: np.ndarray, X: np.ndarray) -> Dict[str, Decimal]:
         """Calculate feature importance as absolute standardized coefficients."""
         # Standardize coefficients by feature standard deviations
-        X_std = np.array([mp.sqrt(sum((X[:, j] - sum(X[:, j])/X.shape[0])**2) / X.shape[0])
-                         for j in range(X.shape[1])])
+        X_std = np.array(
+            [mp.sqrt(sum((X[:, j] - sum(X[:, j]) / X.shape[0]) ** 2) / X.shape[0]) for j in range(X.shape[1])]
+        )
 
         standardized_coef = coefficients * X_std
-        importance = {f"X{i+1}": Decimal(str(abs(coef)))
-                     for i, coef in enumerate(standardized_coef)}
+        importance = {f"X{i+1}": Decimal(str(abs(coef))) for i, coef in enumerate(standardized_coef)}
 
         # Normalize to sum to 1
         total = sum(importance.values())
@@ -1599,8 +1572,7 @@ class HighPrecisionRegression:
         return importance
 
     def _huber_regression(
-        self, X: np.ndarray, y: np.ndarray,
-        feature_names: Optional[List[str]], **kwargs
+        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
         """
         Huber robust regression using iteratively reweighted least squares.
@@ -1623,18 +1595,14 @@ class HighPrecisionRegression:
         n, p = X.shape
 
         # Get parameters
-        epsilon = kwargs.get('epsilon', 1.35)  # Tuning constant
-        max_iter = kwargs.get('max_iter', 100)
-        tol = kwargs.get('tol', 1e-5)
-        alpha = kwargs.get('alpha', 0.0001)  # Ridge regularization
+        epsilon = kwargs.get("epsilon", 1.35)  # Tuning constant
+        max_iter = kwargs.get("max_iter", 100)
+        tol = kwargs.get("tol", 1e-5)
+        alpha = kwargs.get("alpha", 0.0001)  # Ridge regularization
 
         # Fit Huber regression using sklearn
         huber = HuberRegressor(
-            epsilon=epsilon,
-            max_iter=max_iter,
-            alpha=alpha,
-            tol=tol,
-            fit_intercept=False  # We include intercept in X
+            epsilon=epsilon, max_iter=max_iter, alpha=alpha, tol=tol, fit_intercept=False  # We include intercept in X
         )
 
         huber.fit(X, y.flatten())
@@ -1651,7 +1619,7 @@ class HighPrecisionRegression:
         robust_scale = mad * 1.4826  # Convert to std estimate
 
         # Calculate robust R-squared
-        ss_res = np.sum(residuals ** 2)
+        ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
@@ -1669,7 +1637,7 @@ class HighPrecisionRegression:
         XtWX = X.T @ W @ X
         try:
             XtWX_inv = np.linalg.inv(XtWX)
-            robust_var = robust_scale ** 2 * XtWX_inv
+            robust_var = robust_scale**2 * XtWX_inv
             std_errors = np.sqrt(np.diag(robust_var))
         except:
             std_errors = np.ones(p)
@@ -1679,45 +1647,42 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
 
         # Confidence intervals
-        _confidence_level = kwargs.get('confidence_level', 0.95)
+        _confidence_level = kwargs.get("confidence_level", 0.95)
         t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
         ci_lower = coefficients - t_crit * std_errors
         ci_upper = coefficients + t_crit * std_errors
 
         # Prepare feature names
         if feature_names is None:
-            feature_names = [f'X{i+1}' for i in range(p)]
+            feature_names = [f"X{i+1}" for i in range(p)]
 
         # Calculate AIC and BIC
         mse = ss_res / n
-        log_likelihood = -n/2 * (np.log(2*np.pi) + np.log(mse) + 1)
+        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(mse) + 1)
         aic = 2 * p - 2 * log_likelihood
         bic = np.log(n) * p - 2 * log_likelihood
 
         # Build result
-        coefficients_dict = {name: Decimal(str(coef))
-                           for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se))
-                          for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t))
-                            for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p))
-                        for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
-                                    for i, name in enumerate(feature_names)}
+        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {
+            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
+        }
 
         result = RegressionResult(
             regression_type=RegressionType.ROBUST_HUBER,
             coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
             standard_errors=std_errors_dict,
             t_statistics=t_statistics_dict,
             p_values=p_values_dict,
             confidence_intervals=confidence_intervals_dict,
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal('0'),  # Not standard for robust regression
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),  # Not standard for robust regression
+            f_p_value=Decimal("1"),
             aic=Decimal(str(aic)),
             bic=Decimal(str(bic)),
             mse=Decimal(str(mse)),
@@ -1728,7 +1693,7 @@ class HighPrecisionRegression:
             residuals=residuals.tolist(),
             fitted_values=y_pred.tolist(),
             diagnostics=None,
-            feature_names=feature_names
+            feature_names=feature_names,
         )
 
         return result
@@ -1741,8 +1706,7 @@ class HighPrecisionRegression:
         return weights
 
     def _ransac_regression(
-        self, X: np.ndarray, y: np.ndarray,
-        feature_names: Optional[List[str]], **kwargs
+        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
         """
         RANSAC (Random Sample Consensus) robust regression.
@@ -1765,10 +1729,10 @@ class HighPrecisionRegression:
         n, p = X.shape
 
         # Get parameters
-        min_samples = kwargs.get('min_samples', min(p + 1, n // 2))
-        residual_threshold = kwargs.get('residual_threshold', None)  # Auto if None
-        max_trials = kwargs.get('max_trials', 100)
-        random_state = kwargs.get('random_state', 42)
+        min_samples = kwargs.get("min_samples", min(p + 1, n // 2))
+        residual_threshold = kwargs.get("residual_threshold", None)  # Auto if None
+        max_trials = kwargs.get("max_trials", 100)
+        random_state = kwargs.get("random_state", 42)
 
         # Fit RANSAC regression using sklearn
         ransac = RANSACRegressor(
@@ -1776,7 +1740,7 @@ class HighPrecisionRegression:
             min_samples=min_samples,
             residual_threshold=residual_threshold,
             max_trials=max_trials,
-            random_state=random_state
+            random_state=random_state,
         )
 
         ransac.fit(X, y.flatten())
@@ -1793,7 +1757,7 @@ class HighPrecisionRegression:
         residuals = y.flatten() - y_pred
 
         # Calculate R-squared
-        ss_res = np.sum(residuals ** 2)
+        ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
@@ -1807,7 +1771,7 @@ class HighPrecisionRegression:
         X_inliers = X[inlier_mask]
         residuals_inliers = residuals[inlier_mask]
 
-        mse = np.sum(residuals_inliers ** 2) / df_residual if df_residual > 0 else 1.0
+        mse = np.sum(residuals_inliers**2) / df_residual if df_residual > 0 else 1.0
 
         try:
             XtX_inv = np.linalg.inv(X_inliers.T @ X_inliers)
@@ -1821,7 +1785,7 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
 
         # Confidence intervals
-        _confidence_level = kwargs.get('confidence_level', 0.95)
+        _confidence_level = kwargs.get("confidence_level", 0.95)
         if df_residual > 0:
             t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
             ci_lower = coefficients - t_crit * std_errors
@@ -1832,37 +1796,34 @@ class HighPrecisionRegression:
 
         # Prepare feature names
         if feature_names is None:
-            feature_names = [f'X{i+1}' for i in range(p)]
+            feature_names = [f"X{i+1}" for i in range(p)]
 
         # Calculate AIC and BIC
-        log_likelihood = -n_inliers/2 * (np.log(2*np.pi) + np.log(mse) + 1)
+        log_likelihood = -n_inliers / 2 * (np.log(2 * np.pi) + np.log(mse) + 1)
         aic = 2 * p - 2 * log_likelihood
         bic = np.log(n_inliers) * p - 2 * log_likelihood
 
         # Build result
-        coefficients_dict = {name: Decimal(str(coef))
-                           for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se))
-                          for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t))
-                            for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p))
-                        for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
-                                    for i, name in enumerate(feature_names)}
+        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {
+            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
+        }
 
         result = RegressionResult(
             regression_type=RegressionType.ROBUST_RANSAC,
             coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
             standard_errors=std_errors_dict,
             t_statistics=t_statistics_dict,
             p_values=p_values_dict,
             confidence_intervals=confidence_intervals_dict,
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal('0'),
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),
+            f_p_value=Decimal("1"),
             aic=Decimal(str(aic)),
             bic=Decimal(str(bic)),
             mse=Decimal(str(mse)),
@@ -1874,18 +1835,13 @@ class HighPrecisionRegression:
             fitted_values=y_pred.tolist(),
             diagnostics=None,
             feature_names=feature_names,
-            additional_info={
-                'n_inliers': n_inliers,
-                'n_outliers': n - n_inliers,
-                'inlier_ratio': n_inliers / n
-            }
+            additional_info={"n_inliers": n_inliers, "n_outliers": n - n_inliers, "inlier_ratio": n_inliers / n},
         )
 
         return result
 
     def _theil_sen_regression(
-        self, X: np.ndarray, y: np.ndarray,
-        feature_names: Optional[List[str]], **kwargs
+        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
         """
         Theil-Sen robust regression using median of slopes.
@@ -1908,10 +1864,10 @@ class HighPrecisionRegression:
         n, p = X.shape
 
         # Get parameters
-        max_subpopulation = kwargs.get('max_subpopulation', 10000)
-        max_iter = kwargs.get('max_iter', 300)
-        tol = kwargs.get('tol', 1e-3)
-        random_state = kwargs.get('random_state', 42)
+        max_subpopulation = kwargs.get("max_subpopulation", 10000)
+        max_iter = kwargs.get("max_iter", 300)
+        tol = kwargs.get("tol", 1e-3)
+        random_state = kwargs.get("random_state", 42)
 
         # Fit Theil-Sen regression using sklearn
         theilsen = TheilSenRegressor(
@@ -1919,7 +1875,7 @@ class HighPrecisionRegression:
             max_iter=max_iter,
             tol=tol,
             random_state=random_state,
-            fit_intercept=False  # We include intercept in X
+            fit_intercept=False,  # We include intercept in X
         )
 
         theilsen.fit(X, y.flatten())
@@ -1932,7 +1888,7 @@ class HighPrecisionRegression:
         residuals = y.flatten() - y_pred
 
         # Calculate robust R-squared
-        ss_res = np.sum(residuals ** 2)
+        ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
@@ -1951,7 +1907,7 @@ class HighPrecisionRegression:
         # Here we use a simplified MAD-based approach
         try:
             # Estimate covariance using residual variance
-            mse = robust_scale ** 2
+            mse = robust_scale**2
             XtX_inv = np.linalg.inv(X.T @ X)
             var_coef = mse * XtX_inv
             std_errors = np.sqrt(np.diag(var_coef))
@@ -1963,7 +1919,7 @@ class HighPrecisionRegression:
         p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
 
         # Confidence intervals
-        _confidence_level = kwargs.get('confidence_level', 0.95)
+        _confidence_level = kwargs.get("confidence_level", 0.95)
         if df_residual > 0:
             t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
             ci_lower = coefficients - t_crit * std_errors
@@ -1974,38 +1930,35 @@ class HighPrecisionRegression:
 
         # Prepare feature names
         if feature_names is None:
-            feature_names = [f'X{i+1}' for i in range(p)]
+            feature_names = [f"X{i+1}" for i in range(p)]
 
         # Calculate AIC and BIC
         mse_val = ss_res / n
-        log_likelihood = -n/2 * (np.log(2*np.pi) + np.log(mse_val) + 1)
+        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(mse_val) + 1)
         aic = 2 * p - 2 * log_likelihood
         bic = np.log(n) * p - 2 * log_likelihood
 
         # Build result
-        coefficients_dict = {name: Decimal(str(coef))
-                           for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se))
-                          for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t))
-                            for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p))
-                        for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
-                                    for i, name in enumerate(feature_names)}
+        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
+        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
+        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
+        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
+        confidence_intervals_dict = {
+            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
+        }
 
         result = RegressionResult(
             regression_type=RegressionType.ROBUST_THEIL_SEN,
             coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal('0'),
+            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
             standard_errors=std_errors_dict,
             t_statistics=t_statistics_dict,
             p_values=p_values_dict,
             confidence_intervals=confidence_intervals_dict,
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal('0'),
-            f_p_value=Decimal('1'),
+            f_statistic=Decimal("0"),
+            f_p_value=Decimal("1"),
             aic=Decimal(str(aic)),
             bic=Decimal(str(bic)),
             mse=Decimal(str(mse_val)),
@@ -2018,16 +1971,15 @@ class HighPrecisionRegression:
             diagnostics=None,
             feature_names=feature_names,
             additional_info={
-                'breakdown_point': 0.293,  # Theoretical breakdown point for Theil-Sen
-                'robust_scale_mad': robust_scale
-            }
+                "breakdown_point": 0.293,  # Theoretical breakdown point for Theil-Sen
+                "robust_scale_mad": robust_scale,
+            },
         )
 
         return result
 
     def _fit_multinomial_logistic(
-        self, X: np.ndarray, y: np.ndarray, max_iter: int,
-        tol: float, regularization: Optional[str], alpha: float
+        self, X: np.ndarray, y: np.ndarray, max_iter: int, tol: float, regularization: Optional[str], alpha: float
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Fit multinomial logistic regression for multi-class classification.
@@ -2053,29 +2005,29 @@ class HighPrecisionRegression:
         k = len(classes)
 
         # Map regularization parameter
-        if regularization == 'l1':
-            penalty = 'l1'
-            solver = 'saga'  # saga supports l1
-        elif regularization == 'l2':
-            penalty = 'l2'
-            solver = 'lbfgs'  # lbfgs is efficient for l2
-        elif regularization == 'elasticnet':
-            penalty = 'elasticnet'
-            solver = 'saga'
+        if regularization == "l1":
+            penalty = "l1"
+            solver = "saga"  # saga supports l1
+        elif regularization == "l2":
+            penalty = "l2"
+            solver = "lbfgs"  # lbfgs is efficient for l2
+        elif regularization == "elasticnet":
+            penalty = "elasticnet"
+            solver = "saga"
         else:
-            penalty = 'none'
-            solver = 'lbfgs'
+            penalty = "none"
+            solver = "lbfgs"
 
         # Fit multinomial logistic regression
         model = LogisticRegression(
-            multi_class='multinomial',  # Use multinomial (softmax)
+            multi_class="multinomial",  # Use multinomial (softmax)
             penalty=penalty,
-            C=1.0/alpha if alpha > 0 else 1e10,  # sklearn uses C = 1/alpha
+            C=1.0 / alpha if alpha > 0 else 1e10,  # sklearn uses C = 1/alpha
             solver=solver,
             max_iter=max_iter,
             tol=tol,
             fit_intercept=False,  # We include intercept in X
-            random_state=42
+            random_state=42,
         )
 
         model.fit(X, y.flatten())
@@ -2094,8 +2046,7 @@ class HighPrecisionRegression:
         probabilities = model.predict_proba(X)
 
         # Convert coefficients to mpmath format
-        coefficients_mp = np.array([[mp.mpf(str(c)) for c in row]
-                                   for row in coefficients])
+        coefficients_mp = np.array([[mp.mpf(str(c)) for c in row] for row in coefficients])
 
         return coefficients_mp, probabilities
 
@@ -2117,7 +2068,7 @@ class HighPrecisionRegression:
         """
         n = len(y)
         classes = np.unique(y)
-        k = len(classes)
+        len(classes)
 
         # Create class index mapping
         class_to_idx = {c: i for i, c in enumerate(classes)}
@@ -2167,7 +2118,7 @@ class HighPrecisionRegression:
             fisher_inv = self._matrix_inverse(fisher_info)
             std_errors = np.array([mp.sqrt(abs(fisher_inv[i, i])) for i in range(p)])
         except:
-            std_errors = np.array([mp.mpf('1')] * p)
+            std_errors = np.array([mp.mpf("1")] * p)
 
         return std_errors
 
@@ -2187,7 +2138,7 @@ class HighPrecisionRegression:
                 else:
                     d_i = -mp.sqrt(2 * abs(mp.log(1 - probabilities[i])))
             else:
-                d_i = mp.mpf('0')
+                d_i = mp.mpf("0")
             deviance_residuals.append(d_i)
 
         return RegressionDiagnostics(
@@ -2198,37 +2149,42 @@ class HighPrecisionRegression:
             dffits=np.zeros(n),
             leverage=np.zeros(n),
             vif={},
-            durbin_watson=Decimal('2'),  # Not applicable
-            breusch_pagan={'statistic': Decimal('0'), 'p_value': Decimal('1')},
-            jarque_bera={'statistic': Decimal('0'), 'p_value': Decimal('1')},
-            condition_number=Decimal('1'),
+            durbin_watson=Decimal("2"),  # Not applicable
+            breusch_pagan={"statistic": Decimal("0"), "p_value": Decimal("1")},
+            jarque_bera={"statistic": Decimal("0"), "p_value": Decimal("1")},
+            condition_number=Decimal("1"),
             outliers=[],
             influential_points=[],
             multicollinearity_detected=False,
             heteroscedasticity_detected=False,
             autocorrelation_detected=False,
-            normality_violated=False
+            normality_violated=False,
         )
 
     def _generate_logistic_interpretation(
-        self, coefficients: Dict[str, Decimal], odds_ratios: Dict[str, Decimal],
-        p_values: np.ndarray, pseudo_r_squared: mp.mpf
+        self,
+        coefficients: Dict[str, Decimal],
+        odds_ratios: Dict[str, Decimal],
+        p_values: np.ndarray,
+        pseudo_r_squared: mp.mpf,
     ) -> Dict[str, str]:
         """Generate interpretation for logistic regression."""
         interpretation = {}
 
-        interpretation['model_fit'] = f"McFadden's pseudo R-squared: {float(pseudo_r_squared):.4f}"
+        interpretation["model_fit"] = f"McFadden's pseudo R-squared: {float(pseudo_r_squared):.4f}"
 
         for name, or_value in odds_ratios.items():
             if name in coefficients:
-                if or_value > Decimal('1'):
+                if or_value > Decimal("1"):
                     change = (or_value - 1) * 100
-                    interpretation[f'odds_{name}'] = \
-                        f"A one-unit increase in {name} increases odds by {float(change):.1f}%"
+                    interpretation[
+                        f"odds_{name}"
+                    ] = f"A one-unit increase in {name} increases odds by {float(change):.1f}%"
                 else:
                     change = (1 - or_value) * 100
-                    interpretation[f'odds_{name}'] = \
-                        f"A one-unit increase in {name} decreases odds by {float(change):.1f}%"
+                    interpretation[
+                        f"odds_{name}"
+                    ] = f"A one-unit increase in {name} decreases odds by {float(change):.1f}%"
 
         return interpretation
 
@@ -2237,11 +2193,11 @@ class HighPrecisionRegression:
         # Grid search over alpha values
         alphas = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
         best_alpha = 1.0
-        best_score = float('inf')
+        best_score = float("inf")
 
         for alpha in alphas:
             result = self.ridge_regression(X, y, alpha, cv_folds=cv_folds, alpha_search=False)
-            cv_mse = float(result.cross_validation_scores.get('cv_mse', float('inf')))
+            cv_mse = float(result.cross_validation_scores.get("cv_mse", float("inf")))
 
             if cv_mse < best_score:
                 best_score = cv_mse
@@ -2263,9 +2219,7 @@ class HighPrecisionRegression:
         # For simplicity, approximating
         return float(n - alpha)
 
-    def _calculate_ridge_standard_errors(
-        self, X: np.ndarray, residuals: np.ndarray, alpha: Decimal
-    ) -> np.ndarray:
+    def _calculate_ridge_standard_errors(self, X: np.ndarray, residuals: np.ndarray, alpha: Decimal) -> np.ndarray:
         """Calculate approximate standard errors for ridge regression."""
         n, p = X.shape
 
@@ -2311,11 +2265,10 @@ def demonstrate_regression():
     true_beta2 = -0.8
     true_beta3 = 0.3
 
-    y = (true_intercept + true_beta1 * X1 + true_beta2 * X2 +
-         true_beta3 * X3 + 0.5 * np.random.randn(n))
+    y = true_intercept + true_beta1 * X1 + true_beta2 * X2 + true_beta3 * X3 + 0.5 * np.random.randn(n)
 
     X = np.column_stack([X1, X2, X3])
-    feature_names = ['X1', 'X2', 'X3']
+    feature_names = ["X1", "X2", "X3"]
 
     # Initialize regression
     hp_reg = HighPrecisionRegression(precision=50)
@@ -2325,7 +2278,7 @@ def demonstrate_regression():
     result = hp_reg.linear_regression(X, y, feature_names)
 
     print(f"Intercept: {result.intercept}")
-    print(f"Coefficients:")
+    print("Coefficients:")
     for name, coef in result.coefficients.items():
         print(f"  {name}: {coef:.10f}")
 
@@ -2346,7 +2299,7 @@ def demonstrate_regression():
     ridge_result = hp_reg.ridge_regression(X, y, alpha=1.0, feature_names=feature_names)
 
     print(f"Regularization parameter: {ridge_result.regularization_param}")
-    print(f"Coefficients:")
+    print("Coefficients:")
     for name, coef in ridge_result.coefficients.items():
         print(f"  {name}: {coef:.10f}")
     print(f"R-squared: {ridge_result.r_squared:.10f}")
@@ -2356,15 +2309,14 @@ def demonstrate_regression():
     lasso_result = hp_reg.lasso_regression(X, y, alpha=0.1, feature_names=feature_names)
 
     print(f"Selected features: {lasso_result.selected_features}")
-    print(f"Coefficients:")
+    print("Coefficients:")
     for name, coef in lasso_result.coefficients.items():
-        if abs(coef) > Decimal('1e-10'):
+        if abs(coef) > Decimal("1e-10"):
             print(f"  {name}: {coef:.10f}")
 
     print("\n4. POLYNOMIAL REGRESSION")
     print("-" * 40)
-    poly_result = hp_reg.polynomial_regression(X[:, :2], y, degree=2,
-                                              feature_names=['X1', 'X2'])
+    poly_result = hp_reg.polynomial_regression(X[:, :2], y, degree=2, feature_names=["X1", "X2"])
 
     print(f"Polynomial degree: {poly_result.polynomial_degree}")
     print(f"Number of features: {len(poly_result.coefficients)}")
@@ -2377,7 +2329,7 @@ def demonstrate_regression():
     logit_result = hp_reg.logistic_regression(X, y_binary, feature_names)
 
     print(f"Pseudo R-squared: {logit_result.r_squared:.10f}")
-    print(f"Odds ratios:")
+    print("Odds ratios:")
     for name, or_val in logit_result.feature_importance.items():
         print(f"  {name}: {or_val:.4f}")
 
@@ -2386,7 +2338,7 @@ def demonstrate_regression():
     quantile_result = hp_reg.quantile_regression(X, y, quantile=0.5, feature_names=feature_names)
 
     print(f"Quantile: {quantile_result.quantile}")
-    print(f"Coefficients:")
+    print("Coefficients:")
     for name, coef in quantile_result.coefficients.items():
         print(f"  {name}: {coef:.10f}")
 
@@ -2396,6 +2348,7 @@ def demonstrate_regression():
 
     # Show precision difference
     from sklearn.linear_model import LinearRegression
+
     sklearn_model = LinearRegression()
     sklearn_model.fit(X, y)
 

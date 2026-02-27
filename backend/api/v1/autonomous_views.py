@@ -15,9 +15,7 @@ Created: February 2026
 """
 
 import io
-import json
 import pandas as pd
-import numpy as np
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -39,12 +37,12 @@ def _parse_dataframe(request) -> pd.DataFrame:
     Supports: CSV file upload, JSON body with data, or inline arrays.
     """
     # Option 1: File upload (CSV/Excel)
-    if 'file' in request.FILES:
-        uploaded = request.FILES['file']
+    if "file" in request.FILES:
+        uploaded = request.FILES["file"]
         name = uploaded.name.lower()
-        if name.endswith('.csv'):
+        if name.endswith(".csv"):
             return pd.read_csv(uploaded)
-        elif name.endswith(('.xls', '.xlsx')):
+        elif name.endswith((".xls", ".xlsx")):
             return pd.read_excel(uploaded)
         else:
             raise ValueError(f"Unsupported file type: {name}. Use CSV or Excel.")
@@ -52,7 +50,7 @@ def _parse_dataframe(request) -> pd.DataFrame:
     # Option 2: JSON body with 'data' key (list of dicts or dict of lists)
     data = request.data
     if isinstance(data, dict):
-        raw = data.get('data')
+        raw = data.get("data")
         if raw:
             if isinstance(raw, list):
                 return pd.DataFrame(raw)
@@ -83,6 +81,7 @@ class SmartProfileView(APIView):
     - JSON body: {"data": [...]} with list of row dicts or dict of column arrays
     - Optional: "user_hint" string for guiding inference
     """
+
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -91,17 +90,17 @@ class SmartProfileView(APIView):
             df = _parse_dataframe(request)
         except Exception as e:
             return Response(
-                {'error': str(e)},
+                {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if df.empty:
             return Response(
-                {'error': 'Dataset is empty.'},
+                {"error": "Dataset is empty."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user_hint = request.data.get('user_hint') if isinstance(request.data, dict) else None
+        user_hint = request.data.get("user_hint") if isinstance(request.data, dict) else None
 
         try:
             profiler = SmartProfiler()
@@ -109,46 +108,46 @@ class SmartProfileView(APIView):
         except Exception as e:
             logger.error(f"SmartProfiler failed: {e}", exc_info=True)
             return Response(
-                {'error': f'Profiling failed: {str(e)}'},
+                {"error": f"Profiling failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         # Serialize the result
         response_data = {
-            'profile': {
-                'n_rows': result.profile.n_rows,
-                'n_columns': result.profile.n_columns,
-                'total_missing': result.profile.total_missing,
-                'missing_pattern': result.profile.missing_pattern,
+            "profile": {
+                "n_rows": result.profile.n_rows,
+                "n_columns": result.profile.n_columns,
+                "total_missing": result.profile.total_missing,
+                "missing_pattern": result.profile.missing_pattern,
             },
-            'inferred_questions': [
+            "inferred_questions": [
                 {
-                    'type': q.question_type.value,
-                    'text': q.question_text,
-                    'variables': q.variables_involved,
-                    'suggested_tests': q.suggested_tests,
-                    'confidence': q.confidence,
-                    'explanation': q.explanation,
+                    "type": q.question_type.value,
+                    "text": q.question_text,
+                    "variables": q.variables_involved,
+                    "suggested_tests": q.suggested_tests,
+                    "confidence": q.confidence,
+                    "explanation": q.explanation,
                 }
                 for q in result.inferred_questions
             ],
-            'data_health': {
-                'overall_score': result.data_health.overall_score,
-                'completeness_score': result.data_health.completeness_score,
-                'quality_score': result.data_health.quality_score,
-                'suitability_score': result.data_health.suitability_score,
-                'issues': result.data_health.issues,
-                'strengths': result.data_health.strengths,
+            "data_health": {
+                "overall_score": result.data_health.overall_score,
+                "completeness_score": result.data_health.completeness_score,
+                "quality_score": result.data_health.quality_score,
+                "suitability_score": result.data_health.suitability_score,
+                "issues": result.data_health.issues,
+                "strengths": result.data_health.strengths,
             },
-            'variables': result.variable_summary,
-            'suggested_workflow': result.suggested_workflow,
-            'recommendations': [
+            "variables": result.variable_summary,
+            "suggested_workflow": result.suggested_workflow,
+            "recommendations": [
                 {
-                    'primary_test': rec.primary_test,
-                    'confidence_score': rec.confidence_score,
-                    'alternatives': rec.alternatives,
-                    'reasoning': rec.reasoning,
-                    'warnings': rec.warnings,
+                    "primary_test": rec.primary_test,
+                    "confidence_score": rec.confidence_score,
+                    "alternatives": rec.alternatives,
+                    "reasoning": rec.reasoning,
+                    "warnings": rec.warnings,
                 }
                 for rec in result.recommendations
             ],
@@ -172,6 +171,7 @@ class AutonomousQueryView(APIView):
         "alpha": 0.05
     }
     """
+
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -180,25 +180,25 @@ class AutonomousQueryView(APIView):
             df = _parse_dataframe(request)
         except Exception as e:
             return Response(
-                {'error': str(e)},
+                {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        query_text = ''
+        query_text = ""
         mode = OutputMode.PLAIN_ENGLISH
         alpha = 0.05
 
         if isinstance(request.data, dict):
-            query_text = request.data.get('query', '')
-            mode = request.data.get('mode', OutputMode.PLAIN_ENGLISH)
+            query_text = request.data.get("query", "")
+            mode = request.data.get("mode", OutputMode.PLAIN_ENGLISH)
             try:
-                alpha = float(request.data.get('alpha', 0.05))
+                alpha = float(request.data.get("alpha", 0.05))
             except (ValueError, TypeError):
                 alpha = 0.05
 
         if not query_text:
             return Response(
-                {'error': 'A "query" field is required.'},
+                {"error": 'A "query" field is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -208,20 +208,20 @@ class AutonomousQueryView(APIView):
         except Exception as e:
             logger.error(f"AutonomousQueryHandler failed: {e}", exc_info=True)
             return Response(
-                {'error': f'Analysis failed: {str(e)}'},
+                {"error": f"Analysis failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         response_data = {
-            'query': result.query,
-            'parsed_intent': result.parsed_intent,
-            'profile_summary': result.profile_summary,
-            'cascade_result': result.cascade_result,
-            'translation': result.translation,
-            'inferred_questions': result.inferred_questions,
-            'suggested_next_steps': result.suggested_next_steps,
-            'confidence': result.confidence,
-            'warnings': result.warnings,
+            "query": result.query,
+            "parsed_intent": result.parsed_intent,
+            "profile_summary": result.profile_summary,
+            "cascade_result": result.cascade_result,
+            "translation": result.translation,
+            "inferred_questions": result.inferred_questions,
+            "suggested_next_steps": result.suggested_next_steps,
+            "confidence": result.confidence,
+            "warnings": result.warnings,
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
@@ -241,22 +241,23 @@ class CascadeExecuteView(APIView):
         "max_cascades": 3
     }
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
-        test_name = request.data.get('test')
-        data = request.data.get('data')
-        alpha = float(request.data.get('alpha', 0.05))
-        max_cascades = int(request.data.get('max_cascades', 3))
+        test_name = request.data.get("test")
+        data = request.data.get("data")
+        alpha = float(request.data.get("alpha", 0.05))
+        max_cascades = int(request.data.get("max_cascades", 3))
 
         if not test_name:
             return Response(
-                {'error': '"test" field is required.'},
+                {"error": '"test" field is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if not data:
             return Response(
-                {'error': '"data" field is required.'},
+                {"error": '"data" field is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -266,35 +267,37 @@ class CascadeExecuteView(APIView):
         except Exception as e:
             logger.error(f"CascadeEngine failed: {e}", exc_info=True)
             return Response(
-                {'error': f'Cascade execution failed: {str(e)}'},
+                {"error": f"Cascade execution failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         response_data = {
-            'original_test': result.original_test,
-            'final_test': result.final_test,
-            'n_cascades': result.n_cascades,
-            'assumptions_satisfied': result.assumptions_satisfied,
-            'confidence_score': result.confidence_score,
-            'cascade_path': [
+            "original_test": result.original_test,
+            "final_test": result.final_test,
+            "n_cascades": result.n_cascades,
+            "assumptions_satisfied": result.assumptions_satisfied,
+            "confidence_score": result.confidence_score,
+            "cascade_path": [
                 {
-                    'test': step.test_attempted,
-                    'passed': step.guardian_passed,
-                    'violations': step.violations,
-                    'alternatives': step.alternatives_suggested,
+                    "test": step.test_attempted,
+                    "passed": step.guardian_passed,
+                    "violations": step.violations,
+                    "alternatives": step.alternatives_suggested,
                 }
                 for step in result.cascade_path
             ],
-            'result': {
-                'test_name': result.result.test_name,
-                'statistic': result.result.statistic,
-                'p_value': result.result.p_value,
-                'effect_size': result.result.effect_size,
-                'effect_size_name': result.result.effect_size_name,
-                'degrees_of_freedom': result.result.degrees_of_freedom,
-                'additional': result.result.additional,
-            } if result.result else None,
-            'guardian_report': result.guardian_report,
+            "result": {
+                "test_name": result.result.test_name,
+                "statistic": result.result.statistic,
+                "p_value": result.result.p_value,
+                "effect_size": result.result.effect_size,
+                "effect_size_name": result.result.effect_size_name,
+                "degrees_of_freedom": result.result.degrees_of_freedom,
+                "additional": result.result.additional,
+            }
+            if result.result
+            else None,
+            "guardian_report": result.guardian_report,
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
@@ -314,17 +317,18 @@ class TranslateResultsView(APIView):
         "alpha": 0.05
     }
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
-        test_type = request.data.get('test_type')
-        results = request.data.get('results')
-        mode = request.data.get('mode', OutputMode.PLAIN_ENGLISH)
-        alpha = float(request.data.get('alpha', 0.05))
+        test_type = request.data.get("test_type")
+        results = request.data.get("results")
+        mode = request.data.get("mode", OutputMode.PLAIN_ENGLISH)
+        alpha = float(request.data.get("alpha", 0.05))
 
         if not test_type or not results:
             return Response(
-                {'error': '"test_type" and "results" fields are required.'},
+                {"error": '"test_type" and "results" fields are required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -334,7 +338,7 @@ class TranslateResultsView(APIView):
         except Exception as e:
             logger.error(f"Translation failed: {e}", exc_info=True)
             return Response(
-                {'error': f'Translation failed: {str(e)}'},
+                {"error": f"Translation failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -355,6 +359,7 @@ class NextStepView(APIView):
         "results_translated": false
     }
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -366,8 +371,8 @@ class NextStepView(APIView):
         except Exception as e:
             logger.error(f"NextStep failed: {e}", exc_info=True)
             return Response(
-                {'error': f'Failed to get next steps: {str(e)}'},
+                {"error": f"Failed to get next steps: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        return Response({'next_steps': steps}, status=status.HTTP_200_OK)
+        return Response({"next_steps": steps}, status=status.HTTP_200_OK)

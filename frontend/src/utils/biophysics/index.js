@@ -108,7 +108,7 @@ export {
 };
 
 // Default export with all utilities organized by category
-export default {
+const biophysics = {
   regression: {
     levenbergMarquardt,
     MODELS
@@ -132,3 +132,5 @@ export default {
     AFFINITY_CLASSIFICATION
   }
 };
+
+export default biophysics;

@@ -14,9 +14,8 @@ CRITICAL: This is the foundation for all statistical calculations.
 
 from decimal import Decimal, getcontext, ROUND_HALF_UP
 import numpy as np
-from typing import List, Tuple, Optional, Union, Dict, Any
-import math
-from scipy import special, stats
+from typing import List, Union, Dict
+from scipy import stats
 import mpmath
 
 # Set high precision globally
@@ -74,8 +73,8 @@ class HighPrecisionCalculator:
         decimal_data = self._to_decimal_array(data)
 
         # Kahan summation for numerical stability
-        sum_val = Decimal('0')
-        c = Decimal('0')  # Compensation for lost digits
+        sum_val = Decimal("0")
+        c = Decimal("0")  # Compensation for lost digits
 
         for value in decimal_data:
             y = value - c
@@ -101,9 +100,9 @@ class HighPrecisionCalculator:
             raise ValueError(f"Need at least {ddof + 1} data points")
 
         decimal_data = self._to_decimal_array(data)
-        n = Decimal('0')
-        mean_val = Decimal('0')
-        M2 = Decimal('0')
+        n = Decimal("0")
+        mean_val = Decimal("0")
+        M2 = Decimal("0")
 
         # Welford's online algorithm
         for x in decimal_data:
@@ -114,7 +113,7 @@ class HighPrecisionCalculator:
             M2 += delta * delta2
 
         if n <= ddof:
-            return Decimal('0')
+            return Decimal("0")
 
         return M2 / (n - Decimal(str(ddof)))
 
@@ -134,8 +133,9 @@ class HighPrecisionCalculator:
         # Use mpmath for high-precision square root
         return Decimal(str(mpmath.sqrt(float(var))))
 
-    def t_statistic_one_sample(self, data: Union[List, np.ndarray],
-                               mu: Union[float, Decimal] = 0) -> Dict[str, Decimal]:
+    def t_statistic_one_sample(
+        self, data: Union[List, np.ndarray], mu: Union[float, Decimal] = 0
+    ) -> Dict[str, Decimal]:
         """
         Calculate one-sample t-statistic with high precision.
 
@@ -170,21 +170,21 @@ class HighPrecisionCalculator:
         # t-distribution CDF via regularized incomplete beta (same approach as F-test)
         t_float = float(t_stat)
         x_beta = df / (df + t_float**2)
-        p_value = Decimal(str(float(mpmath.betainc(df/2, 0.5, 0, x_beta, regularized=True))))
+        p_value = Decimal(str(float(mpmath.betainc(df / 2, 0.5, 0, x_beta, regularized=True))))
 
         return {
-            't_statistic': t_stat,
-            'p_value': p_value,
-            'mean': sample_mean,
-            'std': sample_std,
-            'se': se,
-            'df': Decimal(str(df)),
-            'n': Decimal(str(n))
+            "t_statistic": t_stat,
+            "p_value": p_value,
+            "mean": sample_mean,
+            "std": sample_std,
+            "se": se,
+            "df": Decimal(str(df)),
+            "n": Decimal(str(n)),
         }
 
-    def t_statistic_two_sample(self, data1: Union[List, np.ndarray],
-                               data2: Union[List, np.ndarray],
-                               equal_var: bool = True) -> Dict[str, Decimal]:
+    def t_statistic_two_sample(
+        self, data1: Union[List, np.ndarray], data2: Union[List, np.ndarray], equal_var: bool = True
+    ) -> Dict[str, Decimal]:
         """
         Calculate two-sample t-statistic with high precision.
 
@@ -223,7 +223,7 @@ class HighPrecisionCalculator:
             pooled_std = Decimal(str(mpmath.sqrt(float(pooled_var))))
 
             # Standard error
-            se = pooled_std * Decimal(str(mpmath.sqrt(float(Decimal('1') / n1_dec + Decimal('1') / n2_dec))))
+            se = pooled_std * Decimal(str(mpmath.sqrt(float(Decimal("1") / n1_dec + Decimal("1") / n2_dec))))
 
             # Degrees of freedom
             df = n1 + n2 - 2
@@ -245,34 +245,34 @@ class HighPrecisionCalculator:
         extreme_precision_flag = False
         interpretation = None
 
-        if se == 0 or abs(se) < Decimal('1e-45'):  # Near-zero standard error
+        if se == 0 or abs(se) < Decimal("1e-45"):  # Near-zero standard error
             extreme_precision_flag = True
             # Check if means are actually different
-            if abs(mean_diff) < Decimal('1e-45'):
+            if abs(mean_diff) < Decimal("1e-45"):
                 # Both SE and mean diff are effectively zero - groups are identical
-                t_stat = Decimal('0')
-                p_value = Decimal('1.0')
+                t_stat = Decimal("0")
+                p_value = Decimal("1.0")
                 interpretation = "No detectable difference at 50 decimal precision"
             else:
                 # Mean diff exists but SE is zero - extreme evidence of difference
                 # Use capped values that are JSON-safe
                 if mean_diff > 0:
-                    t_stat = Decimal('999.999')  # Capped positive value
+                    t_stat = Decimal("999.999")  # Capped positive value
                 else:
-                    t_stat = Decimal('-999.999')  # Capped negative value
+                    t_stat = Decimal("-999.999")  # Capped negative value
                 # P-value approaches 0 (but not exactly 0 for numerical stability)
-                p_value = Decimal('1e-50')
+                p_value = Decimal("1e-50")
                 interpretation = "Extreme precision difference detected (beyond practical significance)"
         else:
             # Normal calculation
             t_stat = mean_diff / se
 
             # Cap extreme t-statistics for JSON safety
-            if abs(t_stat) > Decimal('1e10'):
+            if abs(t_stat) > Decimal("1e10"):
                 if t_stat > 0:
-                    t_stat = Decimal('999999.999')
+                    t_stat = Decimal("999999.999")
                 else:
-                    t_stat = Decimal('-999999.999')
+                    t_stat = Decimal("-999999.999")
                 extreme_precision_flag = True
                 interpretation = "Statistical difference at extreme precision"
 
@@ -283,28 +283,28 @@ class HighPrecisionCalculator:
 
                 # Two-tailed p-value via regularized incomplete beta
                 x_beta = df_float / (df_float + t_float**2)
-                p_value = Decimal(str(float(mpmath.betainc(df_float/2, 0.5, 0, x_beta, regularized=True))))
+                p_value = Decimal(str(float(mpmath.betainc(df_float / 2, 0.5, 0, x_beta, regularized=True))))
             except (OverflowError, ValueError):
                 # Handle numerical overflow in p-value calculation
-                p_value = Decimal('1e-50')
+                p_value = Decimal("1e-50")
                 interpretation = "P-value below computational limits"
 
         result = {
-            't_statistic': t_stat,
-            'p_value': p_value,
-            'mean1': mean1,
-            'mean2': mean2,
-            'mean_diff': mean_diff,
-            'se': se,
-            'df': Decimal(str(df)),
-            'n1': Decimal(str(n1)),
-            'n2': Decimal(str(n2))
+            "t_statistic": t_stat,
+            "p_value": p_value,
+            "mean1": mean1,
+            "mean2": mean2,
+            "mean_diff": mean_diff,
+            "se": se,
+            "df": Decimal(str(df)),
+            "n1": Decimal(str(n1)),
+            "n2": Decimal(str(n2)),
         }
 
         # Add interpretation if we hit extreme precision cases
         if extreme_precision_flag and interpretation:
-            result['interpretation'] = interpretation
-            result['extreme_precision'] = True
+            result["interpretation"] = interpretation
+            result["extreme_precision"] = True
 
         return result
 
@@ -339,14 +339,14 @@ class HighPrecisionCalculator:
         k = len(groups)  # Number of groups
 
         # Calculate between-group sum of squares (SSB)
-        ssb = Decimal('0')
+        ssb = Decimal("0")
         for group in decimal_groups:
             group_mean = self.mean(group)
             n_group = Decimal(str(len(group)))
             ssb += n_group * (group_mean - grand_mean) ** 2
 
         # Calculate within-group sum of squares (SSW)
-        ssw = Decimal('0')
+        ssw = Decimal("0")
         for group in decimal_groups:
             group_mean = self.mean(group)
             for value in group:
@@ -374,27 +374,37 @@ class HighPrecisionCalculator:
         # F-distribution CDF
         # p_value = 1 - F_cdf(f_stat, df1, df2)
         # Using mpmath for high precision
-        p_value = Decimal(str(1 - float(mpmath.betainc(
-            df1_float/2, df2_float/2, 0,
-            df1_float * f_float / (df1_float * f_float + df2_float),
-            regularized=True))))
+        p_value = Decimal(
+            str(
+                1
+                - float(
+                    mpmath.betainc(
+                        df1_float / 2,
+                        df2_float / 2,
+                        0,
+                        df1_float * f_float / (df1_float * f_float + df2_float),
+                        regularized=True,
+                    )
+                )
+            )
+        )
 
         return {
-            'f_statistic': f_stat,
-            'p_value': p_value,
-            'df_between': Decimal(str(df_between)),
-            'df_within': Decimal(str(df_within)),
-            'ssb': ssb,
-            'ssw': ssw,
-            'msb': msb,
-            'msw': msw,
-            'n_groups': Decimal(str(k)),
-            'n_total': Decimal(str(n_total))
+            "f_statistic": f_stat,
+            "p_value": p_value,
+            "df_between": Decimal(str(df_between)),
+            "df_within": Decimal(str(df_within)),
+            "ssb": ssb,
+            "ssw": ssw,
+            "msb": msb,
+            "msw": msw,
+            "n_groups": Decimal(str(k)),
+            "n_total": Decimal(str(n_total)),
         }
 
-    def correlation_pearson(self, x: Union[List, np.ndarray],
-                           y: Union[List, np.ndarray],
-                           confidence_level: float = 0.95) -> Dict[str, Decimal]:
+    def correlation_pearson(
+        self, x: Union[List, np.ndarray], y: Union[List, np.ndarray], confidence_level: float = 0.95
+    ) -> Dict[str, Decimal]:
         """
         Calculate Pearson correlation coefficient with high precision.
 
@@ -420,9 +430,9 @@ class HighPrecisionCalculator:
         mean_y = self.mean(y_decimal)
 
         # Calculate correlation using stable algorithm
-        sum_xy = Decimal('0')
-        sum_x2 = Decimal('0')
-        sum_y2 = Decimal('0')
+        sum_xy = Decimal("0")
+        sum_x2 = Decimal("0")
+        sum_y2 = Decimal("0")
 
         for xi, yi in zip(x_decimal, y_decimal):
             dx = xi - mean_x
@@ -439,16 +449,16 @@ class HighPrecisionCalculator:
 
         # Ensure r is in [-1, 1] due to rounding
         if r > 1:
-            r = Decimal('1')
+            r = Decimal("1")
         elif r < -1:
-            r = Decimal('-1')
+            r = Decimal("-1")
 
         # Calculate t-statistic for significance test
         if abs(r) == 1:
-            p_value = Decimal('0')
+            p_value = Decimal("0")
         else:
             df = n - 2
-            t_stat = r * Decimal(str(mpmath.sqrt(float(Decimal(str(df)) / (Decimal('1') - r * r)))))
+            t_stat = r * Decimal(str(mpmath.sqrt(float(Decimal(str(df)) / (Decimal("1") - r * r)))))
 
             # Two-tailed p-value
             t_float = float(t_stat)
@@ -456,12 +466,12 @@ class HighPrecisionCalculator:
 
             # Two-tailed p-value via regularized incomplete beta
             x_beta = df_float / (df_float + t_float**2)
-            p_value = Decimal(str(float(mpmath.betainc(df_float/2, 0.5, 0, x_beta, regularized=True))))
+            p_value = Decimal(str(float(mpmath.betainc(df_float / 2, 0.5, 0, x_beta, regularized=True))))
 
         # Fisher's z transformation for confidence interval
         if abs(r) < 1:
             z = Decimal(str(mpmath.atanh(float(r))))
-            se_z = Decimal('1') / Decimal(str(mpmath.sqrt(n - 3)))
+            se_z = Decimal("1") / Decimal(str(mpmath.sqrt(n - 3)))
 
             z_critical = Decimal(str(stats.norm.ppf(1 - (1 - confidence_level) / 2)))
             z_lower = z - z_critical * se_z
@@ -474,13 +484,7 @@ class HighPrecisionCalculator:
             ci_lower = r
             ci_upper = r
 
-        return {
-            'correlation': r,
-            'p_value': p_value,
-            'ci_lower': ci_lower,
-            'ci_upper': ci_upper,
-            'n': Decimal(str(n))
-        }
+        return {"correlation": r, "p_value": p_value, "ci_lower": ci_lower, "ci_upper": ci_upper, "n": Decimal(str(n))}
 
 
 def validate_precision():
@@ -498,14 +502,14 @@ def validate_precision():
 
     # Test one-sample t-test
     result = calc.t_statistic_one_sample(data1, mu=25)
-    print(f"\nOne-sample t-test:")
+    print("\nOne-sample t-test:")
     print(f"  t-statistic: {result['t_statistic']}")
     print(f"  p-value: {result['p_value']}")
     print(f"  Precision: {len(str(result['t_statistic']).split('.')[-1])} decimal places")
 
     # Test two-sample t-test
     result = calc.t_statistic_two_sample(data1, data2, equal_var=True)
-    print(f"\nTwo-sample t-test:")
+    print("\nTwo-sample t-test:")
     print(f"  t-statistic: {result['t_statistic']}")
     print(f"  p-value: {result['p_value']}")
     print(f"  Precision: {len(str(result['t_statistic']).split('.')[-1])} decimal places")
@@ -515,7 +519,7 @@ def validate_precision():
     group2 = [25, 26, 27, 28, 29]
     group3 = [27, 28, 29, 30, 31]
     result = calc.f_statistic_anova(group1, group2, group3)
-    print(f"\nOne-way ANOVA:")
+    print("\nOne-way ANOVA:")
     print(f"  F-statistic: {result['f_statistic']}")
     print(f"  p-value: {result['p_value']}")
     print(f"  Precision: {len(str(result['f_statistic']).split('.')[-1])} decimal places")
@@ -524,7 +528,7 @@ def validate_precision():
     x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     y = [2.1, 4.2, 5.9, 8.1, 10.2, 11.8, 14.1, 16.2, 17.9, 20.1]
     result = calc.correlation_pearson(x, y)
-    print(f"\nPearson correlation:")
+    print("\nPearson correlation:")
     print(f"  r: {result['correlation']}")
     print(f"  p-value: {result['p_value']}")
     print(f"  Precision: {len(str(result['correlation']).split('.')[-1])} decimal places")

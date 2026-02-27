@@ -22,4 +22,4 @@ try:
 except ImportError:
     pass
 
-__all__ = ['TimeSeriesService', 'TimeSeriesResults']
+__all__ = ["TimeSeriesService", "TimeSeriesResults"]

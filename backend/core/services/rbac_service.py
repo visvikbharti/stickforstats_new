@@ -17,38 +17,71 @@ logger = logging.getLogger(__name__)
 
 # Permission definitions per role
 ROLE_PERMISSIONS = {
-    'owner': {
-        'org.read', 'org.update', 'org.delete', 'org.manage_billing',
-        'member.read', 'member.invite', 'member.remove', 'member.change_role',
-        'project.read', 'project.create', 'project.update', 'project.delete', 'project.archive',
-        'analysis.read', 'analysis.create', 'analysis.delete', 'analysis.export',
-        'apikey.read', 'apikey.create', 'apikey.revoke',
-        'settings.read', 'settings.update',
-        'audit.read',
+    "owner": {
+        "org.read",
+        "org.update",
+        "org.delete",
+        "org.manage_billing",
+        "member.read",
+        "member.invite",
+        "member.remove",
+        "member.change_role",
+        "project.read",
+        "project.create",
+        "project.update",
+        "project.delete",
+        "project.archive",
+        "analysis.read",
+        "analysis.create",
+        "analysis.delete",
+        "analysis.export",
+        "apikey.read",
+        "apikey.create",
+        "apikey.revoke",
+        "settings.read",
+        "settings.update",
+        "audit.read",
     },
-    'admin': {
-        'org.read', 'org.update',
-        'member.read', 'member.invite', 'member.remove',
-        'project.read', 'project.create', 'project.update', 'project.delete', 'project.archive',
-        'analysis.read', 'analysis.create', 'analysis.delete', 'analysis.export',
-        'apikey.read', 'apikey.create', 'apikey.revoke',
-        'settings.read', 'settings.update',
-        'audit.read',
+    "admin": {
+        "org.read",
+        "org.update",
+        "member.read",
+        "member.invite",
+        "member.remove",
+        "project.read",
+        "project.create",
+        "project.update",
+        "project.delete",
+        "project.archive",
+        "analysis.read",
+        "analysis.create",
+        "analysis.delete",
+        "analysis.export",
+        "apikey.read",
+        "apikey.create",
+        "apikey.revoke",
+        "settings.read",
+        "settings.update",
+        "audit.read",
     },
-    'member': {
-        'org.read',
-        'member.read',
-        'project.read', 'project.create', 'project.update',
-        'analysis.read', 'analysis.create', 'analysis.export',
-        'apikey.read',
-        'settings.read',
+    "member": {
+        "org.read",
+        "member.read",
+        "project.read",
+        "project.create",
+        "project.update",
+        "analysis.read",
+        "analysis.create",
+        "analysis.export",
+        "apikey.read",
+        "settings.read",
     },
-    'viewer': {
-        'org.read',
-        'member.read',
-        'project.read',
-        'analysis.read',
-        'settings.read',
+    "viewer": {
+        "org.read",
+        "member.read",
+        "project.read",
+        "analysis.read",
+        "settings.read",
     },
 }
 
@@ -63,12 +96,9 @@ class RBACService:
             return None
 
         from core.models import OrganizationMembership
+
         try:
-            membership = OrganizationMembership.objects.get(
-                user=user,
-                organization=organization,
-                is_active=True
-            )
+            membership = OrganizationMembership.objects.get(user=user, organization=organization, is_active=True)
             return membership.role
         except OrganizationMembership.DoesNotExist:
             return None
@@ -94,28 +124,28 @@ class RBACService:
         """Check permission and return error response if denied."""
         if not RBACService.has_permission(user, organization, permission):
             role = RBACService.get_user_role(user, organization)
-            return Response({
-                'error': 'Permission denied',
-                'required_permission': permission,
-                'current_role': role or 'none',
-                'message': f'Your role ({role or "none"}) does not have the "{permission}" permission.',
-            }, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {
+                    "error": "Permission denied",
+                    "required_permission": permission,
+                    "current_role": role or "none",
+                    "message": f'Your role ({role or "none"}) does not have the "{permission}" permission.',
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return None
 
     @staticmethod
     def can_change_role(actor_role, target_current_role, target_new_role):
         """Check if actor can change target's role."""
-        hierarchy = {'owner': 4, 'admin': 3, 'member': 2, 'viewer': 1}
+        hierarchy = {"owner": 4, "admin": 3, "member": 2, "viewer": 1}
         actor_level = hierarchy.get(actor_role, 0)
         target_current_level = hierarchy.get(target_current_role, 0)
         target_new_level = hierarchy.get(target_new_role, 0)
 
         # Can only change roles of people below you
         # Cannot promote above your own level
-        return (
-            actor_level > target_current_level and
-            actor_level > target_new_level
-        )
+        return actor_level > target_current_level and actor_level > target_new_level
 
 
 def require_permission(permission):
@@ -123,6 +153,7 @@ def require_permission(permission):
     Decorator for DRF views that checks organization permission.
     Expects request.organization to be set by TenantContextMiddleware.
     """
+
     def decorator(view_func):
         @functools.wraps(view_func)
         def wrapper(self_or_request, request=None, *args, **kwargs):
@@ -133,12 +164,9 @@ def require_permission(permission):
             else:
                 view_self = self_or_request
 
-            org = getattr(request, 'organization', None)
+            org = getattr(request, "organization", None)
             if not org:
-                return Response(
-                    {'error': 'Organization context required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Organization context required"}, status=status.HTTP_400_BAD_REQUEST)
 
             denied = RBACService.check_permission(request.user, org, permission)
             if denied:
@@ -147,5 +175,7 @@ def require_permission(permission):
             if view_self is not None:
                 return view_func(view_self, request, *args, **kwargs)
             return view_func(request, *args, **kwargs)
+
         return wrapper
+
     return decorator

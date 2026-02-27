@@ -11,31 +11,29 @@ import os
 import re
 import sys
 
+
 def fix_imports_in_file(filepath):
     """Fix imports in a single file."""
     changes_made = []
 
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             content = f.read()
 
         original_content = content
 
         # Pattern to match problematic imports
-        patterns = [
-            (r'from stickforstats\.core\.', 'from core.'),
-            (r'import stickforstats\.core\.', 'import core.')
-        ]
+        patterns = [(r"from stickforstats\.core\.", "from core."), (r"import stickforstats\.core\.", "import core.")]
 
         for pattern, replacement in patterns:
             if re.search(pattern, content):
-                matches = re.findall(pattern + r'.*', content)
+                matches = re.findall(pattern + r".*", content)
                 for match in matches:
                     changes_made.append(f"  - {match.strip()}")
                 content = re.sub(pattern, replacement, content)
 
         if content != original_content:
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.write(content)
             return True, changes_made
     except Exception as e:
@@ -43,6 +41,7 @@ def fix_imports_in_file(filepath):
         return False, []
 
     return False, []
+
 
 def main():
     """Main function to fix all import issues."""
@@ -52,25 +51,25 @@ def main():
 
     # List of files identified with problematic imports
     files_to_fix = [
-        'core/api/workflow_navigation_views.py',
-        'core/services/visualization/visualization_service.py',
-        'core/services/auth/auth_service.py',
-        'core/services/profiling_service.py',
-        'core/services/data_processing/statistical_utils.py',
-        'core/services/workflow/workflow_service.py',
-        'core/services/report/report_service.py',
-        'core/services/analytics/machine_learning/ml_service.py',
-        'core/services/analytics/time_series/time_series_service.py',
-        'core/services/analytics/bayesian/bayesian_service.py',
-        'core/services/session/session_service.py',
-        'sqc_analysis/api/views.py',
-        'sqc_analysis/api/serializers.py',
-        'sqc_analysis/consumers.py',
-        'sqc_analysis/models.py',
-        'sqc_analysis/tasks.py',
-        'doe_analysis/api/views.py',
-        'doe_analysis/api/serializers.py',
-        'doe_analysis/models.py'
+        "core/api/workflow_navigation_views.py",
+        "core/services/visualization/visualization_service.py",
+        "core/services/auth/auth_service.py",
+        "core/services/profiling_service.py",
+        "core/services/data_processing/statistical_utils.py",
+        "core/services/workflow/workflow_service.py",
+        "core/services/report/report_service.py",
+        "core/services/analytics/machine_learning/ml_service.py",
+        "core/services/analytics/time_series/time_series_service.py",
+        "core/services/analytics/bayesian/bayesian_service.py",
+        "core/services/session/session_service.py",
+        "sqc_analysis/api/views.py",
+        "sqc_analysis/api/serializers.py",
+        "sqc_analysis/consumers.py",
+        "sqc_analysis/models.py",
+        "sqc_analysis/tasks.py",
+        "doe_analysis/api/views.py",
+        "doe_analysis/api/serializers.py",
+        "doe_analysis/models.py",
     ]
 
     fixed_count = 0
@@ -106,6 +105,7 @@ def main():
         print("\n⚠️ No files were fixed. They may already be correct.")
 
     return 0 if fixed_count > 0 else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -14,12 +14,12 @@ Created: December 26, 2025
 """
 
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import uuid
 
-from .templates import PreRegistrationTemplate, get_template, TemplateSection
+from .templates import get_template, TemplateSection
 from .hypothesis import Hypothesis, HypothesisFormulator
 from .sample_size import SampleSizeJustification
 from .analysis_plan import AnalysisPlan
@@ -28,6 +28,7 @@ from .analysis_plan import AnalysisPlan
 @dataclass
 class PreRegistration:
     """Complete pre-registration document."""
+
     id: str
     title: str
     template_name: str
@@ -45,19 +46,19 @@ class PreRegistration:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'id': self.id,
-            'title': self.title,
-            'template_name': self.template_name,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat(),
-            'status': self.status,
-            'authors': self.authors,
-            'affiliations': self.affiliations,
-            'hypotheses': [h.to_dict() for h in self.hypotheses],
-            'sample_justification': self.sample_justification.to_dict() if self.sample_justification else None,
-            'analysis_plan': self.analysis_plan.to_dict() if self.analysis_plan else None,
-            'template_data': self.template_data,
-            'metadata': self.metadata
+            "id": self.id,
+            "title": self.title,
+            "template_name": self.template_name,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "status": self.status,
+            "authors": self.authors,
+            "affiliations": self.affiliations,
+            "hypotheses": [h.to_dict() for h in self.hypotheses],
+            "sample_justification": self.sample_justification.to_dict() if self.sample_justification else None,
+            "analysis_plan": self.analysis_plan.to_dict() if self.analysis_plan else None,
+            "template_data": self.template_data,
+            "metadata": self.metadata,
         }
 
     def validate(self) -> Dict[str, List[str]]:
@@ -67,30 +68,30 @@ class PreRegistration:
 
         # Required fields
         if not self.title:
-            errors['title'] = ["Title is required"]
+            errors["title"] = ["Title is required"]
 
         if not self.hypotheses:
-            warnings['hypotheses'] = ["No hypotheses specified"]
+            warnings["hypotheses"] = ["No hypotheses specified"]
 
         if not self.sample_justification:
-            warnings['sample_size'] = ["No sample size justification provided"]
+            warnings["sample_size"] = ["No sample size justification provided"]
 
         if not self.analysis_plan:
-            warnings['analysis_plan'] = ["No analysis plan specified"]
+            warnings["analysis_plan"] = ["No analysis plan specified"]
 
         # Validate against template
         template = get_template(self.template_name)
         template_errors = template.validate(self.template_data)
         if template_errors:
-            errors['template'] = template_errors
+            errors["template"] = template_errors
 
         # Validate analysis plan
         if self.analysis_plan:
             plan_warnings = self.analysis_plan.validate()
             if plan_warnings:
-                warnings['analysis_plan_warnings'] = plan_warnings
+                warnings["analysis_plan_warnings"] = plan_warnings
 
-        return {'errors': errors, 'warnings': warnings}
+        return {"errors": errors, "warnings": warnings}
 
     def get_completion_percentage(self) -> float:
         """Calculate completion percentage."""
@@ -119,30 +120,32 @@ class PreRegistrationBuilder:
             title="",
             template_name=template_name,
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
         self.hypothesis_formulator = HypothesisFormulator()
         self._current_section = 0
 
-    def set_title(self, title: str) -> 'PreRegistrationBuilder':
+    def set_title(self, title: str) -> "PreRegistrationBuilder":
         """Set the study title."""
         self.prereg.title = title
-        self.prereg.template_data['study_title'] = title
+        self.prereg.template_data["study_title"] = title
         self.prereg.updated_at = datetime.now()
         return self
 
-    def set_authors(self, authors: List[str], affiliations: List[str] = None) -> 'PreRegistrationBuilder':
+    def set_authors(self, authors: List[str], affiliations: List[str] = None) -> "PreRegistrationBuilder":
         """Set authors and affiliations."""
         self.prereg.authors = authors
         if affiliations:
             self.prereg.affiliations = affiliations
 
         # Format for template
-        author_text = "\n".join([
-            f"{author} ({aff})" if affiliations and i < len(affiliations) else author
-            for i, (author, aff) in enumerate(zip(authors, affiliations or []))
-        ])
-        self.prereg.template_data['authors'] = author_text
+        author_text = "\n".join(
+            [
+                f"{author} ({aff})" if affiliations and i < len(affiliations) else author
+                for i, (author, aff) in enumerate(zip(authors, affiliations or []))
+            ]
+        )
+        self.prereg.template_data["authors"] = author_text
         self.prereg.updated_at = datetime.now()
         return self
 
@@ -153,23 +156,23 @@ class PreRegistrationBuilder:
         self.prereg.updated_at = datetime.now()
         return hypothesis
 
-    def set_sample_justification(self, justification: SampleSizeJustification) -> 'PreRegistrationBuilder':
+    def set_sample_justification(self, justification: SampleSizeJustification) -> "PreRegistrationBuilder":
         """Set sample size justification."""
         self.prereg.sample_justification = justification
-        self.prereg.template_data['sample_size'] = justification.target_n
-        self.prereg.template_data['sample_size_rationale'] = justification.strategy.value
-        self.prereg.template_data['power_analysis'] = justification.generate_text()
+        self.prereg.template_data["sample_size"] = justification.target_n
+        self.prereg.template_data["sample_size_rationale"] = justification.strategy.value
+        self.prereg.template_data["power_analysis"] = justification.generate_text()
         self.prereg.updated_at = datetime.now()
         return self
 
-    def set_analysis_plan(self, plan: AnalysisPlan) -> 'PreRegistrationBuilder':
+    def set_analysis_plan(self, plan: AnalysisPlan) -> "PreRegistrationBuilder":
         """Set the analysis plan."""
         self.prereg.analysis_plan = plan
-        self.prereg.template_data['statistical_analyses'] = plan.generate_text()
+        self.prereg.template_data["statistical_analyses"] = plan.generate_text()
         self.prereg.updated_at = datetime.now()
         return self
 
-    def set_field(self, field_id: str, value: Any) -> 'PreRegistrationBuilder':
+    def set_field(self, field_id: str, value: Any) -> "PreRegistrationBuilder":
         """Set a template field value."""
         self.prereg.template_data[field_id] = value
         self.prereg.updated_at = datetime.now()
@@ -186,16 +189,16 @@ class PreRegistrationBuilder:
         fields = self.template.get_fields_by_section(section)
         return [
             {
-                'id': f.id,
-                'label': f.label,
-                'description': f.description,
-                'required': f.required,
-                'field_type': f.field_type,
-                'options': f.options,
-                'placeholder': f.placeholder,
-                'help_text': f.help_text,
-                'current_value': self.prereg.template_data.get(f.id, ''),
-                'completed': f.id in self.prereg.template_data
+                "id": f.id,
+                "label": f.label,
+                "description": f.description,
+                "required": f.required,
+                "field_type": f.field_type,
+                "options": f.options,
+                "placeholder": f.placeholder,
+                "help_text": f.help_text,
+                "current_value": self.prereg.template_data.get(f.id, ""),
+                "completed": f.id in self.prereg.template_data,
             }
             for f in fields
         ]
@@ -212,7 +215,7 @@ class PreRegistrationBuilder:
         # Update hypotheses section in template data
         if self.prereg.hypotheses:
             hypotheses_text = self.hypothesis_formulator.generate_hypotheses_section()
-            self.prereg.template_data['hypotheses'] = hypotheses_text
+            self.prereg.template_data["hypotheses"] = hypotheses_text
 
         self.prereg.updated_at = datetime.now()
         return self.prereg
@@ -220,11 +223,13 @@ class PreRegistrationBuilder:
     def get_progress(self) -> Dict[str, Any]:
         """Get current progress information."""
         return {
-            'completion_percentage': self.prereg.get_completion_percentage(),
-            'current_section': self.template.sections[self._current_section].value if self._current_section < len(self.template.sections) else None,
-            'sections_completed': self._current_section,
-            'total_sections': len(self.template.sections),
-            'validation': self.prereg.validate()
+            "completion_percentage": self.prereg.get_completion_percentage(),
+            "current_section": self.template.sections[self._current_section].value
+            if self._current_section < len(self.template.sections)
+            else None,
+            "sections_completed": self._current_section,
+            "total_sections": len(self.template.sections),
+            "validation": self.prereg.validate(),
         }
 
 
@@ -239,38 +244,32 @@ def export_to_osf_json(prereg: PreRegistration) -> str:
         JSON string in OSF format
     """
     osf_data = {
-        'schema_version': '1.0',
-        'registered': datetime.now().isoformat(),
-        'registration_type': prereg.template_name,
-        'data': {
-            'q1': {  # Study Information
-                'question': 'Study Title',
-                'value': prereg.title
+        "schema_version": "1.0",
+        "registered": datetime.now().isoformat(),
+        "registration_type": prereg.template_name,
+        "data": {
+            "q1": {"question": "Study Title", "value": prereg.title},  # Study Information
+            "q2": {"question": "Authors", "value": ", ".join(prereg.authors)},
+            "q3": {
+                "question": "Hypotheses",
+                "value": "\n\n".join([h.to_formal_statement() for h in prereg.hypotheses]),
             },
-            'q2': {
-                'question': 'Authors',
-                'value': ', '.join(prereg.authors)
+            "q4": {
+                "question": "Sample Size",
+                "value": prereg.sample_justification.generate_text() if prereg.sample_justification else "",
             },
-            'q3': {
-                'question': 'Hypotheses',
-                'value': '\n\n'.join([h.to_formal_statement() for h in prereg.hypotheses])
+            "q5": {
+                "question": "Analysis Plan",
+                "value": prereg.analysis_plan.generate_text() if prereg.analysis_plan else "",
             },
-            'q4': {
-                'question': 'Sample Size',
-                'value': prereg.sample_justification.generate_text() if prereg.sample_justification else ''
-            },
-            'q5': {
-                'question': 'Analysis Plan',
-                'value': prereg.analysis_plan.generate_text() if prereg.analysis_plan else ''
-            }
         },
-        'additional_data': prereg.template_data,
-        'metadata': {
-            'created_at': prereg.created_at.isoformat(),
-            'updated_at': prereg.updated_at.isoformat(),
-            'status': prereg.status,
-            'prereg_id': prereg.id
-        }
+        "additional_data": prereg.template_data,
+        "metadata": {
+            "created_at": prereg.created_at.isoformat(),
+            "updated_at": prereg.updated_at.isoformat(),
+            "status": prereg.status,
+            "prereg_id": prereg.id,
+        },
     }
 
     return json.dumps(osf_data, indent=2)
@@ -349,47 +348,47 @@ def export_to_pdf_data(prereg: PreRegistration) -> Dict[str, Any]:
     sections = []
 
     # Title page
-    sections.append({
-        'type': 'title_page',
-        'title': prereg.title,
-        'subtitle': f'Pre-Registration ({prereg.template_name})',
-        'authors': prereg.authors,
-        'affiliations': prereg.affiliations,
-        'date': prereg.created_at.strftime('%B %d, %Y')
-    })
+    sections.append(
+        {
+            "type": "title_page",
+            "title": prereg.title,
+            "subtitle": f"Pre-Registration ({prereg.template_name})",
+            "authors": prereg.authors,
+            "affiliations": prereg.affiliations,
+            "date": prereg.created_at.strftime("%B %d, %Y"),
+        }
+    )
 
     # Hypotheses section
     if prereg.hypotheses:
         hypothesis_content = []
         for h in prereg.hypotheses:
-            hypothesis_content.append({
-                'id': h.id,
-                'description': h.description,
-                'null': h.null_hypothesis,
-                'alternative': h.alternative_hypothesis,
-                'test': h.recommended_test
-            })
-        sections.append({
-            'type': 'hypotheses',
-            'title': 'Hypotheses',
-            'content': hypothesis_content
-        })
+            hypothesis_content.append(
+                {
+                    "id": h.id,
+                    "description": h.description,
+                    "null": h.null_hypothesis,
+                    "alternative": h.alternative_hypothesis,
+                    "test": h.recommended_test,
+                }
+            )
+        sections.append({"type": "hypotheses", "title": "Hypotheses", "content": hypothesis_content})
 
     # Sample Size section
     if prereg.sample_justification:
-        sections.append({
-            'type': 'sample_size',
-            'title': 'Sample Size Justification',
-            'content': prereg.sample_justification.generate_text()
-        })
+        sections.append(
+            {
+                "type": "sample_size",
+                "title": "Sample Size Justification",
+                "content": prereg.sample_justification.generate_text(),
+            }
+        )
 
     # Analysis Plan section
     if prereg.analysis_plan:
-        sections.append({
-            'type': 'analysis_plan',
-            'title': 'Analysis Plan',
-            'content': prereg.analysis_plan.generate_text()
-        })
+        sections.append(
+            {"type": "analysis_plan", "title": "Analysis Plan", "content": prereg.analysis_plan.generate_text()}
+        )
 
     # Additional sections from template data
     template = get_template(prereg.template_name)
@@ -398,24 +397,23 @@ def export_to_pdf_data(prereg: PreRegistration) -> Dict[str, Any]:
         section_content = []
         for field_def in fields:
             if field_def.id in prereg.template_data:
-                section_content.append({
-                    'label': field_def.label,
-                    'value': prereg.template_data[field_def.id]
-                })
+                section_content.append({"label": field_def.label, "value": prereg.template_data[field_def.id]})
         if section_content:
-            sections.append({
-                'type': 'template_section',
-                'title': section.value.replace('_', ' ').title(),
-                'content': section_content
-            })
+            sections.append(
+                {
+                    "type": "template_section",
+                    "title": section.value.replace("_", " ").title(),
+                    "content": section_content,
+                }
+            )
 
     return {
-        'prereg_id': prereg.id,
-        'sections': sections,
-        'metadata': {
-            'created': prereg.created_at.isoformat(),
-            'updated': prereg.updated_at.isoformat(),
-            'template': prereg.template_name,
-            'status': prereg.status
-        }
+        "prereg_id": prereg.id,
+        "sections": sections,
+        "metadata": {
+            "created": prereg.created_at.isoformat(),
+            "updated": prereg.updated_at.isoformat(),
+            "template": prereg.template_name,
+            "status": prereg.status,
+        },
     }

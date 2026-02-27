@@ -850,7 +850,7 @@ describe('Validation System Integration Tests', () => {
       // First validation
       const startTime1 = performance.now();
       validator.validateParameter('sampleSize', 100);
-      const duration1 = performance.now() - startTime1;
+      const _duration1 = performance.now() - startTime1;
 
       // Subsequent validations should be faster due to internal optimizations
       const startTime2 = performance.now();
@@ -984,7 +984,7 @@ describe('Validation System Integration Tests', () => {
 
 describe('Validation System Stress Tests', () => {
   test('should handle rapid successive validations', async () => {
-    const validator = new StatisticalDataValidator({
+    const _validator = new StatisticalDataValidator({
       strictMode: true,
       auditConfig: { enabled: false }
     });

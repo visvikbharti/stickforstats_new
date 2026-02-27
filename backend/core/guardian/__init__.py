@@ -32,7 +32,7 @@ from .guardian_core import (
     ModalityDetector,
     LinearityValidator,
     HomoscedasticityValidator,
-    SEVERITY_WEIGHTS
+    SEVERITY_WEIGHTS,
 )
 
 from .service_integration import (
@@ -41,33 +41,30 @@ from .service_integration import (
     GuardianIntegratedService,
     guardian_protected,
     resolve_test_type,
-    TEST_TYPE_ALIASES
+    TEST_TYPE_ALIASES,
 )
 
 __all__ = [
     # Core classes
-    'GuardianCore',
-    'GuardianReport',
-    'AssumptionViolation',
-
+    "GuardianCore",
+    "GuardianReport",
+    "AssumptionViolation",
     # Validators
-    'NormalityValidator',
-    'VarianceHomogeneityValidator',
-    'IndependenceValidator',
-    'OutlierDetector',
-    'SampleSizeValidator',
-    'ModalityDetector',
-    'LinearityValidator',
-    'HomoscedasticityValidator',
-
+    "NormalityValidator",
+    "VarianceHomogeneityValidator",
+    "IndependenceValidator",
+    "OutlierDetector",
+    "SampleSizeValidator",
+    "ModalityDetector",
+    "LinearityValidator",
+    "HomoscedasticityValidator",
     # Constants
-    'SEVERITY_WEIGHTS',
-
+    "SEVERITY_WEIGHTS",
     # Service integration
-    'GuardianServiceWrapper',
-    'GuardianEnrichedResult',
-    'GuardianIntegratedService',
-    'guardian_protected',
-    'resolve_test_type',
-    'TEST_TYPE_ALIASES'
+    "GuardianServiceWrapper",
+    "GuardianEnrichedResult",
+    "GuardianIntegratedService",
+    "guardian_protected",
+    "resolve_test_type",
+    "TEST_TYPE_ALIASES",
 ]

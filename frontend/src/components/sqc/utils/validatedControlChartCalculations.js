@@ -1013,7 +1013,7 @@ export async function comprehensiveSQCAnalysis(data, options = {}) {
 /**
  * Export all validated functions
  */
-export default {
+const validatedControlChartCalculations = {
   // Variables control charts
   calculateXbarRLimits,
   calculateXbarSLimits,
@@ -1042,3 +1042,5 @@ export default {
   // Schemas for external use
   SQC_SCHEMAS
 };
+
+export default validatedControlChartCalculations;

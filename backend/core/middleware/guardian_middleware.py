@@ -19,7 +19,6 @@ Date: 2026-01-26
 
 import json
 import logging
-from typing import List, Set, Optional
 from django.conf import settings
 from django.http import JsonResponse
 
@@ -46,31 +45,31 @@ class GuardianComplianceMiddleware:
 
     # Default statistical endpoint patterns to monitor
     DEFAULT_STATISTICAL_ENDPOINTS = [
-        '/api/core/test/execute/',
-        '/api/core/bayesian/',
-        '/api/core/correlation/',
-        '/api/core/regression/',
-        '/api/core/anova/',
-        '/api/core/chi-square/',
-        '/api/core/nonparametric/',
-        '/api/core/mixed/',
-        '/api/core/causal/',
+        "/api/core/test/execute/",
+        "/api/core/bayesian/",
+        "/api/core/correlation/",
+        "/api/core/regression/",
+        "/api/core/anova/",
+        "/api/core/chi-square/",
+        "/api/core/nonparametric/",
+        "/api/core/mixed/",
+        "/api/core/causal/",
     ]
 
     # Required Guardian context fields
     REQUIRED_GUARDIAN_FIELDS = [
-        'guardian_report',
-        'assumptions_checked',
-        'violations',
-        'confidence_score',
+        "guardian_report",
+        "assumptions_checked",
+        "violations",
+        "confidence_score",
     ]
 
     # Optional but recommended Guardian context fields
     RECOMMENDED_GUARDIAN_FIELDS = [
-        'can_proceed',
-        'alternative_tests',
-        '_guardian_context',
-        '_contract_compliant',
+        "can_proceed",
+        "alternative_tests",
+        "_guardian_context",
+        "_contract_compliant",
     ]
 
     def __init__(self, get_response):
@@ -80,14 +79,12 @@ class GuardianComplianceMiddleware:
 
     def _load_configuration(self):
         """Load middleware configuration from Django settings."""
-        config = getattr(settings, 'GUARDIAN_MIDDLEWARE', {})
+        config = getattr(settings, "GUARDIAN_MIDDLEWARE", {})
 
-        self.enabled = config.get('ENABLED', True)
-        self.strict_mode = config.get('STRICT_MODE', False)
-        self.log_level = config.get('LOG_LEVEL', 'WARNING')
-        self.statistical_endpoints = set(
-            config.get('STATISTICAL_ENDPOINTS', self.DEFAULT_STATISTICAL_ENDPOINTS)
-        )
+        self.enabled = config.get("ENABLED", True)
+        self.strict_mode = config.get("STRICT_MODE", False)
+        self.log_level = config.get("LOG_LEVEL", "WARNING")
+        self.statistical_endpoints = set(config.get("STATISTICAL_ENDPOINTS", self.DEFAULT_STATISTICAL_ENDPOINTS))
 
         # Log configuration
         if self.enabled:
@@ -121,14 +118,11 @@ class GuardianComplianceMiddleware:
         # Validate Guardian compliance
         compliance_result = self._validate_guardian_compliance(response)
 
-        if not compliance_result['compliant']:
+        if not compliance_result["compliant"]:
             self._log_compliance_violation(request.path, compliance_result)
 
             if self.strict_mode:
-                return self._create_compliance_error_response(
-                    request.path,
-                    compliance_result
-                )
+                return self._create_compliance_error_response(request.path, compliance_result)
 
         return response
 
@@ -141,8 +135,8 @@ class GuardianComplianceMiddleware:
 
     def _is_json_response(self, response) -> bool:
         """Check if response is JSON content type."""
-        content_type = response.get('Content-Type', '')
-        return 'application/json' in content_type
+        content_type = response.get("Content-Type", "")
+        return "application/json" in content_type
 
     def _validate_guardian_compliance(self, response) -> dict:
         """
@@ -153,16 +147,16 @@ class GuardianComplianceMiddleware:
         """
         try:
             # Parse response content
-            content = json.loads(response.content.decode('utf-8'))
+            content = json.loads(response.content.decode("utf-8"))
 
             # Check for blocked flag (indicates Guardian blocked the analysis)
-            if content.get('blocked', False):
+            if content.get("blocked", False):
                 # Blocked responses are compliant if they include Guardian context
-                has_guardian = '_guardian_context' in content or 'guardian_report' in content
+                has_guardian = "_guardian_context" in content or "guardian_report" in content
                 return {
-                    'compliant': has_guardian,
-                    'blocked_by_guardian': True,
-                    'missing_fields': [] if has_guardian else ['guardian_report']
+                    "compliant": has_guardian,
+                    "blocked_by_guardian": True,
+                    "missing_fields": [] if has_guardian else ["guardian_report"],
                 }
 
             # Check required fields
@@ -178,28 +172,28 @@ class GuardianComplianceMiddleware:
                     missing_recommended.append(field)
 
             # Check for contract compliance flag
-            contract_compliant = content.get('_contract_compliant', False)
-            guardian_context = content.get('_guardian_context', False)
+            contract_compliant = content.get("_contract_compliant", False)
+            guardian_context = content.get("_guardian_context", False)
 
             return {
-                'compliant': len(missing_required) == 0,
-                'contract_flag_present': contract_compliant,
-                'guardian_context_flag': guardian_context,
-                'missing_required': missing_required,
-                'missing_recommended': missing_recommended,
+                "compliant": len(missing_required) == 0,
+                "contract_flag_present": contract_compliant,
+                "guardian_context_flag": guardian_context,
+                "missing_required": missing_required,
+                "missing_recommended": missing_recommended,
             }
 
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             return {
-                'compliant': False,
-                'error': f'Failed to parse response: {str(e)}',
-                'missing_required': self.REQUIRED_GUARDIAN_FIELDS,
+                "compliant": False,
+                "error": f"Failed to parse response: {str(e)}",
+                "missing_required": self.REQUIRED_GUARDIAN_FIELDS,
             }
 
     def _log_compliance_violation(self, path: str, compliance_result: dict):
         """Log Guardian compliance violation with appropriate severity."""
-        missing = compliance_result.get('missing_required', [])
-        missing_str = ', '.join(missing) if missing else 'unknown'
+        missing = compliance_result.get("missing_required", [])
+        missing_str = ", ".join(missing) if missing else "unknown"
 
         message = (
             f"DESIGN CONTRACT VIOLATION: Statistical endpoint '{path}' "
@@ -209,43 +203,41 @@ class GuardianComplianceMiddleware:
             f"without an explicit, traceable assumption context.'"
         )
 
-        if self.log_level == 'ERROR':
+        if self.log_level == "ERROR":
             logger.error(message)
-        elif self.log_level == 'WARNING':
+        elif self.log_level == "WARNING":
             logger.warning(message)
         else:
             logger.info(message)
 
-    def _create_compliance_error_response(
-        self,
-        path: str,
-        compliance_result: dict
-    ) -> JsonResponse:
+    def _create_compliance_error_response(self, path: str, compliance_result: dict) -> JsonResponse:
         """
         Create an error response when strict mode blocks non-compliant response.
 
         This enforces the Design Contract by refusing to return statistical
         results without Guardian context.
         """
-        return JsonResponse({
-            'error': 'Design Contract Violation',
-            'message': (
-                'This statistical endpoint returned results without Guardian '
-                'assumption context, violating the StickForStats Design Contract. '
-                'Statistical results must always include assumption validation.'
-            ),
-            'endpoint': path,
-            'missing_fields': compliance_result.get('missing_required', []),
-            'contract_requirement': (
-                'No statistical result may exist without an explicit, '
-                'traceable assumption context.'
-            ),
-            'resolution': (
-                'Ensure the endpoint uses GuardianStatisticalTestService or '
-                'GuardianServiceWrapper to include Guardian context in responses.'
-            ),
-            '_guardian_compliance_error': True,
-        }, status=500)
+        return JsonResponse(
+            {
+                "error": "Design Contract Violation",
+                "message": (
+                    "This statistical endpoint returned results without Guardian "
+                    "assumption context, violating the StickForStats Design Contract. "
+                    "Statistical results must always include assumption validation."
+                ),
+                "endpoint": path,
+                "missing_fields": compliance_result.get("missing_required", []),
+                "contract_requirement": (
+                    "No statistical result may exist without an explicit, " "traceable assumption context."
+                ),
+                "resolution": (
+                    "Ensure the endpoint uses GuardianStatisticalTestService or "
+                    "GuardianServiceWrapper to include Guardian context in responses."
+                ),
+                "_guardian_compliance_error": True,
+            },
+            status=500,
+        )
 
 
 class GuardianContextInjectorMiddleware:
@@ -264,8 +256,8 @@ class GuardianContextInjectorMiddleware:
     def __init__(self, get_response):
         """Initialize middleware."""
         self.get_response = get_response
-        config = getattr(settings, 'GUARDIAN_MIDDLEWARE', {})
-        self.enabled = config.get('INJECT_CONTEXT', False)
+        config = getattr(settings, "GUARDIAN_MIDDLEWARE", {})
+        self.enabled = config.get("INJECT_CONTEXT", False)
 
     def __call__(self, request):
         """Process request and inject Guardian context if needed."""
@@ -275,8 +267,8 @@ class GuardianContextInjectorMiddleware:
             return response
 
         # Only process JSON responses
-        content_type = response.get('Content-Type', '')
-        if 'application/json' not in content_type:
+        content_type = response.get("Content-Type", "")
+        if "application/json" not in content_type:
             return response
 
         # Skip error responses
@@ -284,41 +276,43 @@ class GuardianContextInjectorMiddleware:
             return response
 
         try:
-            content = json.loads(response.content.decode('utf-8'))
+            content = json.loads(response.content.decode("utf-8"))
 
             # Skip if already has Guardian context
-            if '_guardian_context' in content or 'guardian_report' in content:
+            if "_guardian_context" in content or "guardian_report" in content:
                 return response
 
             # Inject minimal Guardian context
-            content.update({
-                'guardian_report': {
-                    'test_type': 'unknown',
-                    'assumptions_checked': [],
-                    'violations': [],
-                    'can_proceed': True,
-                    'confidence_score': 0,
-                    'alternative_tests': [],
-                    '_injected_by_middleware': True,
-                    '_requires_proper_integration': True,
-                    'warning': (
-                        'This Guardian report was injected by middleware. '
-                        'The endpoint should be updated to use proper Guardian integration.'
-                    )
-                },
-                'assumptions_checked': [],
-                'violations': [],
-                'confidence_score': 0,
-                'can_proceed': True,
-                'alternative_tests': [],
-                '_guardian_context': True,
-                '_contract_compliant': False,  # Mark as NOT compliant
-                '_middleware_injected': True,
-            })
+            content.update(
+                {
+                    "guardian_report": {
+                        "test_type": "unknown",
+                        "assumptions_checked": [],
+                        "violations": [],
+                        "can_proceed": True,
+                        "confidence_score": 0,
+                        "alternative_tests": [],
+                        "_injected_by_middleware": True,
+                        "_requires_proper_integration": True,
+                        "warning": (
+                            "This Guardian report was injected by middleware. "
+                            "The endpoint should be updated to use proper Guardian integration."
+                        ),
+                    },
+                    "assumptions_checked": [],
+                    "violations": [],
+                    "confidence_score": 0,
+                    "can_proceed": True,
+                    "alternative_tests": [],
+                    "_guardian_context": True,
+                    "_contract_compliant": False,  # Mark as NOT compliant
+                    "_middleware_injected": True,
+                }
+            )
 
             # Update response content
-            response.content = json.dumps(content).encode('utf-8')
-            response['Content-Length'] = len(response.content)
+            response.content = json.dumps(content).encode("utf-8")
+            response["Content-Length"] = len(response.content)
 
         except (json.JSONDecodeError, UnicodeDecodeError):
             pass

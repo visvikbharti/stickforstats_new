@@ -76,8 +76,9 @@ export const useWorkflowAPI = () => {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   /**
    * Create a new workflow
    * 
@@ -302,8 +303,9 @@ export const useWorkflowAPI = () => {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   /**
    * Fetch execution status for a workflow
    * 

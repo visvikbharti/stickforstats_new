@@ -19,4 +19,4 @@ Version: 1.0.0
 
 from .power_analysis_service import PowerAnalysisService
 
-__all__ = ['PowerAnalysisService']
+__all__ = ["PowerAnalysisService"]

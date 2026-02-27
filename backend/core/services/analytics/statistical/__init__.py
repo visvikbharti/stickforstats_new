@@ -6,10 +6,10 @@ from .statistical_tests import StatisticalTestService
 from .types import TestType, ReplicateConfig, AnalysisOptions, VariableSelection
 
 __all__ = [
-    'AdvancedStatisticalAnalysisService',
-    'StatisticalTestService',
-    'TestType',
-    'ReplicateConfig',
-    'AnalysisOptions',
-    'VariableSelection',
+    "AdvancedStatisticalAnalysisService",
+    "StatisticalTestService",
+    "TestType",
+    "ReplicateConfig",
+    "AnalysisOptions",
+    "VariableSelection",
 ]

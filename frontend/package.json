@@ -67,7 +67,21 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": ["warn", {
+        "varsIgnorePattern": "^_",
+        "args": "none",
+        "destructuredArrayIgnorePattern": "^_",
+        "caughtErrors": "none"
+      }],
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "varsIgnorePattern": "^_",
+        "args": "none",
+        "destructuredArrayIgnorePattern": "^_",
+        "caughtErrors": "none"
+      }]
+    }
   },
   "browserslist": {
     "production": [

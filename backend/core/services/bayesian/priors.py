@@ -14,7 +14,7 @@ References:
 Created: December 26, 2025
 """
 
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple
 from dataclasses import dataclass
 import numpy as np
 from scipy import stats
@@ -22,42 +22,43 @@ from scipy import stats
 
 # Standard prior scales for effect size (Cauchy distribution)
 PRIOR_SCALES = {
-    'ultrawide': {
-        'r': np.sqrt(2),  # ≈ 1.414
-        'label': 'Ultra-wide',
-        'description': 'Expecting very large effects (d > 1.0)',
-        'typical_use': 'When prior research suggests very large effects'
+    "ultrawide": {
+        "r": np.sqrt(2),  # ≈ 1.414
+        "label": "Ultra-wide",
+        "description": "Expecting very large effects (d > 1.0)",
+        "typical_use": "When prior research suggests very large effects",
     },
-    'wide': {
-        'r': 1.0,
-        'label': 'Wide',
-        'description': 'Expecting large effects (d ≈ 0.8)',
-        'typical_use': 'When effects are expected to be large'
+    "wide": {
+        "r": 1.0,
+        "label": "Wide",
+        "description": "Expecting large effects (d ≈ 0.8)",
+        "typical_use": "When effects are expected to be large",
     },
-    'medium': {
-        'r': np.sqrt(2) / 2,  # ≈ 0.707
-        'label': 'Medium (default)',
-        'description': 'Default - moderate effect expectations (d ≈ 0.5)',
-        'typical_use': 'General purpose, no strong prior expectations'
+    "medium": {
+        "r": np.sqrt(2) / 2,  # ≈ 0.707
+        "label": "Medium (default)",
+        "description": "Default - moderate effect expectations (d ≈ 0.5)",
+        "typical_use": "General purpose, no strong prior expectations",
     },
-    'narrow': {
-        'r': 0.5,
-        'label': 'Narrow',
-        'description': 'Expecting small effects (d ≈ 0.2-0.3)',
-        'typical_use': 'When effects are expected to be small'
+    "narrow": {
+        "r": 0.5,
+        "label": "Narrow",
+        "description": "Expecting small effects (d ≈ 0.2-0.3)",
+        "typical_use": "When effects are expected to be small",
     },
-    'ultranarrow': {
-        'r': np.sqrt(2) / 4,  # ≈ 0.354
-        'label': 'Ultra-narrow',
-        'description': 'Expecting very small effects (d < 0.2)',
-        'typical_use': 'When only tiny effects are expected'
-    }
+    "ultranarrow": {
+        "r": np.sqrt(2) / 4,  # ≈ 0.354
+        "label": "Ultra-narrow",
+        "description": "Expecting very small effects (d < 0.2)",
+        "typical_use": "When only tiny effects are expected",
+    },
 }
 
 
 @dataclass
 class Prior:
     """Base class for prior distributions."""
+
     name: str
     parameters: Dict[str, float]
 
@@ -88,8 +89,8 @@ class CauchyPrior(Prior):
     """
 
     def __init__(self, location: float = 0, scale: float = 0.707):
-        self.name = 'cauchy'
-        self.parameters = {'location': location, 'scale': scale}
+        self.name = "cauchy"
+        self.parameters = {"location": location, "scale": scale}
         self.location = location
         self.scale = scale
         self._dist = stats.cauchy(loc=location, scale=scale)
@@ -119,8 +120,8 @@ class NormalPrior(Prior):
     """
 
     def __init__(self, mean: float = 0, sd: float = 1.0):
-        self.name = 'normal'
-        self.parameters = {'mean': mean, 'sd': sd}
+        self.name = "normal"
+        self.parameters = {"mean": mean, "sd": sd}
         self.mean = mean
         self.sd = sd
         self._dist = stats.norm(loc=mean, scale=sd)
@@ -148,8 +149,8 @@ class BetaPrior(Prior):
     """
 
     def __init__(self, alpha: float = 1.0, beta: float = 1.0):
-        self.name = 'beta'
-        self.parameters = {'alpha': alpha, 'beta': beta}
+        self.name = "beta"
+        self.parameters = {"alpha": alpha, "beta": beta}
         self.alpha = alpha
         self.beta = beta
         self._dist = stats.beta(alpha, beta)
@@ -182,10 +183,10 @@ def get_prior_description(scale_name: str) -> Dict[str, Any]:
     elif isinstance(scale_name, (int, float)):
         # Custom scale
         return {
-            'r': float(scale_name),
-            'label': f'Custom (r = {scale_name})',
-            'description': 'User-specified prior scale',
-            'typical_use': 'Custom analysis'
+            "r": float(scale_name),
+            "label": f"Custom (r = {scale_name})",
+            "description": "User-specified prior scale",
+            "typical_use": "Custom analysis",
         }
     else:
         raise ValueError(f"Unknown prior scale: {scale_name}")
@@ -206,16 +207,12 @@ def get_prior_scale_value(scale_name: str) -> float:
 
     scale_name = scale_name.lower()
     if scale_name in PRIOR_SCALES:
-        return PRIOR_SCALES[scale_name]['r']
+        return PRIOR_SCALES[scale_name]["r"]
     else:
         raise ValueError(f"Unknown prior scale: {scale_name}")
 
 
-def create_effect_size_prior(
-    scale: float = 0.707,
-    distribution: str = 'cauchy',
-    **kwargs
-) -> Prior:
+def create_effect_size_prior(scale: float = 0.707, distribution: str = "cauchy", **kwargs) -> Prior:
     """
     Create a prior distribution for effect size.
 
@@ -227,19 +224,15 @@ def create_effect_size_prior(
     Returns:
         Prior distribution object
     """
-    if distribution.lower() == 'cauchy':
-        return CauchyPrior(location=kwargs.get('location', 0), scale=scale)
-    elif distribution.lower() == 'normal':
-        return NormalPrior(mean=kwargs.get('mean', 0), sd=scale)
+    if distribution.lower() == "cauchy":
+        return CauchyPrior(location=kwargs.get("location", 0), scale=scale)
+    elif distribution.lower() == "normal":
+        return NormalPrior(mean=kwargs.get("mean", 0), sd=scale)
     else:
         raise ValueError(f"Unknown distribution: {distribution}")
 
 
-def prior_sensitivity_analysis(
-    data: np.ndarray,
-    scales: list = None,
-    test_func: callable = None
-) -> Dict[str, float]:
+def prior_sensitivity_analysis(data: np.ndarray, scales: list = None, test_func: callable = None) -> Dict[str, float]:
     """
     Perform prior sensitivity analysis.
 
@@ -256,11 +249,11 @@ def prior_sensitivity_analysis(
     """
     if scales is None:
         scales = [
-            ('ultranarrow', PRIOR_SCALES['ultranarrow']['r']),
-            ('narrow', PRIOR_SCALES['narrow']['r']),
-            ('medium', PRIOR_SCALES['medium']['r']),
-            ('wide', PRIOR_SCALES['wide']['r']),
-            ('ultrawide', PRIOR_SCALES['ultrawide']['r'])
+            ("ultranarrow", PRIOR_SCALES["ultranarrow"]["r"]),
+            ("narrow", PRIOR_SCALES["narrow"]["r"]),
+            ("medium", PRIOR_SCALES["medium"]["r"]),
+            ("wide", PRIOR_SCALES["wide"]["r"]),
+            ("ultrawide", PRIOR_SCALES["ultrawide"]["r"]),
         ]
 
     if test_func is None:
@@ -274,11 +267,7 @@ def prior_sensitivity_analysis(
     return results
 
 
-def visualize_prior(
-    prior: Prior,
-    x_range: Tuple[float, float] = (-3, 3),
-    n_points: int = 200
-) -> Dict[str, np.ndarray]:
+def visualize_prior(prior: Prior, x_range: Tuple[float, float] = (-3, 3), n_points: int = 200) -> Dict[str, np.ndarray]:
     """
     Generate data for prior visualization.
 
@@ -293,36 +282,31 @@ def visualize_prior(
     x = np.linspace(x_range[0], x_range[1], n_points)
     y = prior.pdf(x)
 
-    return {
-        'x': x.tolist(),
-        'y': y.tolist(),
-        'prior_type': prior.name,
-        'parameters': prior.parameters
-    }
+    return {"x": x.tolist(), "y": y.tolist(), "prior_type": prior.name, "parameters": prior.parameters}
 
 
 # Informed priors for specific domains
 INFORMED_PRIORS = {
-    'social_psychology': {
-        'description': 'Based on meta-analyses of social psychology effects',
-        'effect_size_prior': CauchyPrior(0, 0.4),  # Smaller effects typical
-        'reference': 'Richard, Bond, & Stokes-Zoota (2003)'
+    "social_psychology": {
+        "description": "Based on meta-analyses of social psychology effects",
+        "effect_size_prior": CauchyPrior(0, 0.4),  # Smaller effects typical
+        "reference": "Richard, Bond, & Stokes-Zoota (2003)",
     },
-    'cognitive_psychology': {
-        'description': 'Based on cognitive psychology effect sizes',
-        'effect_size_prior': CauchyPrior(0, 0.5),
-        'reference': 'Lakens (2013)'
+    "cognitive_psychology": {
+        "description": "Based on cognitive psychology effect sizes",
+        "effect_size_prior": CauchyPrior(0, 0.5),
+        "reference": "Lakens (2013)",
     },
-    'clinical': {
-        'description': 'Based on clinical intervention effects',
-        'effect_size_prior': CauchyPrior(0, 0.6),
-        'reference': 'Cuijpers et al. (2014)'
+    "clinical": {
+        "description": "Based on clinical intervention effects",
+        "effect_size_prior": CauchyPrior(0, 0.6),
+        "reference": "Cuijpers et al. (2014)",
     },
-    'education': {
-        'description': 'Based on educational intervention effects',
-        'effect_size_prior': CauchyPrior(0, 0.4),
-        'reference': 'Hattie (2009)'
-    }
+    "education": {
+        "description": "Based on educational intervention effects",
+        "effect_size_prior": CauchyPrior(0, 0.4),
+        "reference": "Hattie (2009)",
+    },
 }
 
 
@@ -336,7 +320,7 @@ def get_informed_prior(domain: str) -> Dict[str, Any]:
     Returns:
         Dictionary with prior and reference information
     """
-    domain = domain.lower().replace(' ', '_')
+    domain = domain.lower().replace(" ", "_")
     if domain in INFORMED_PRIORS:
         return INFORMED_PRIORS[domain]
     else:

@@ -540,7 +540,7 @@ export function checkPitfall(pitfallId, analysisResults) {
   return checks[pitfallId] ? checks[pitfallId]() : false;
 }
 
-export default {
+const pitfallsDatabase = {
   PITFALLS_BY_TEST,
   GENERAL_PITFALLS,
   getPitfallsForTest,
@@ -548,3 +548,5 @@ export default {
   getGeneralPitfalls,
   checkPitfall
 };
+
+export default pitfallsDatabase;

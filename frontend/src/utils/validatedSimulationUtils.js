@@ -1100,7 +1100,7 @@ export async function batchCalculateIntervals(requests) {
 /**
  * Export all validated functions
  */
-export default {
+const validatedSimulationUtils = {
   // Confidence interval calculations
   calculateMeanTInterval,
   calculateMeanZInterval,
@@ -1126,3 +1126,5 @@ export default {
   // Schemas for external use
   CI_SCHEMAS
 };
+
+export default validatedSimulationUtils;

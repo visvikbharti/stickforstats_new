@@ -385,7 +385,7 @@ describe('calculateProportionWilsonInterval', () => {
 
   test('should handle extreme proportions better than Wald', () => {
     // Wilson performs better for small p
-    const wald = calculateProportionWaldInterval(0, 20, 0.95);
+    const _wald = calculateProportionWaldInterval(0, 20, 0.95);
     const wilson = calculateProportionWilsonInterval(0, 20, 0.95);
 
     // Wilson should give non-zero lower bound even when x=0

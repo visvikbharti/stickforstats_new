@@ -281,7 +281,7 @@ export function calculateIMRLimits(data, mrSpan = 2) {
  * @returns {Object} Control limits and statistics
  */
 export function calculatePChartLimits(defects, sampleSizes) {
-  const k = defects.length;
+  const _k = defects.length;
 
   // Calculate proportions
   const proportions = defects.map((d, i) => d / sampleSizes[i]);
@@ -370,7 +370,7 @@ export function applyWesternElectricRules(values, cl, ucl, lcl) {
   const ucl2 = cl + 2 * sigma;
   const lcl2 = cl - 2 * sigma;
 
-  // Rule 1: One point beyond 3Ã
+  // Rule 1: One point beyond 3ï¿½
   for (let i = 0; i < n; i++) {
     if (values[i] > ucl || values[i] < lcl) {
       violations.push({
@@ -434,7 +434,7 @@ export function applyWesternElectricRules(values, cl, ucl, lcl) {
     }
   }
 
-  // Rule 5: 2 out of 3 points beyond 2Ã (same side)
+  // Rule 5: 2 out of 3 points beyond 2ï¿½ (same side)
   for (let i = 2; i < n; i++) {
     const subset = values.slice(i - 2, i + 1);
     const aboveCount = subset.filter(v => v > ucl2).length;
@@ -443,13 +443,13 @@ export function applyWesternElectricRules(values, cl, ucl, lcl) {
     if (aboveCount >= 2 || belowCount >= 2) {
       violations.push({
         rule: 5,
-        description: '2 of 3 beyond 2Ã',
+        description: '2 of 3 beyond 2ï¿½',
         points: [i - 2, i - 1, i]
       });
     }
   }
 
-  // Rule 6: 4 out of 5 points beyond 1Ã (same side)
+  // Rule 6: 4 out of 5 points beyond 1ï¿½ (same side)
   for (let i = 4; i < n; i++) {
     const subset = values.slice(i - 4, i + 1);
     const aboveCount = subset.filter(v => v > ucl1).length;
@@ -458,31 +458,31 @@ export function applyWesternElectricRules(values, cl, ucl, lcl) {
     if (aboveCount >= 4 || belowCount >= 4) {
       violations.push({
         rule: 6,
-        description: '4 of 5 beyond 1Ã',
+        description: '4 of 5 beyond 1ï¿½',
         points: Array.from({ length: 5 }, (_, j) => i - 4 + j)
       });
     }
   }
 
-  // Rule 7: 15 points within 1Ã
+  // Rule 7: 15 points within 1ï¿½
   for (let i = 14; i < n; i++) {
     const subset = values.slice(i - 14, i + 1);
     if (subset.every(v => v <= ucl1 && v >= lcl1)) {
       violations.push({
         rule: 7,
-        description: '15 points within 1Ã',
+        description: '15 points within 1ï¿½',
         points: Array.from({ length: 15 }, (_, j) => i - 14 + j)
       });
     }
   }
 
-  // Rule 8: 8 points beyond 1Ã (either side)
+  // Rule 8: 8 points beyond 1ï¿½ (either side)
   for (let i = 7; i < n; i++) {
     const subset = values.slice(i - 7, i + 1);
     if (subset.every(v => v > ucl1 || v < lcl1)) {
       violations.push({
         rule: 8,
-        description: '8 points beyond 1Ã',
+        description: '8 points beyond 1ï¿½',
         points: Array.from({ length: 8 }, (_, j) => i - 7 + j)
       });
     }
@@ -622,9 +622,9 @@ export function calculateShewhartLimits(data, k = 3) {
  * Calculate CUSUM (Cumulative Sum) chart values
  *
  * @param {Array<number>} data - Process measurements
- * @param {number} target - Target value (¼0)
- * @param {number} k - Reference value (typically 0.5Ã)
- * @param {number} h - Decision interval (typically 4Ã or 5Ã)
+ * @param {number} target - Target value (ï¿½0)
+ * @param {number} k - Reference value (typically 0.5ï¿½)
+ * @param {number} h - Decision interval (typically 4ï¿½ or 5ï¿½)
  * @returns {Object} CUSUM chart data
  */
 export function calculateCUSUM(data, target, k, h) {
@@ -670,8 +670,8 @@ export function calculateCUSUM(data, target, k, h) {
  * Calculate EWMA (Exponentially Weighted Moving Average) chart values
  *
  * @param {Array<number>} data - Process measurements
- * @param {number} target - Target value (¼0)
- * @param {number} lambda - Smoothing parameter (0 < » d 1, typically 0.2)
+ * @param {number} target - Target value (ï¿½0)
+ * @param {number} lambda - Smoothing parameter (0 < ï¿½ d 1, typically 0.2)
  * @param {number} L - Control limit width (typically 2.7 or 3)
  * @returns {Object} EWMA chart data
  */

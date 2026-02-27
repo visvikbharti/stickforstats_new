@@ -21,14 +21,11 @@ Created: October 23, 2025
 import numpy as np
 import pandas as pd
 import logging
-from typing import Dict, Any, List, Tuple, Optional, Union
+from typing import Dict, Any, List, Optional
 import uuid
-import json
 import os
 import pickle
 from core.utils.safe_pickle import safe_pickle_load
-import base64
-from pathlib import Path
 from datetime import datetime
 
 from django.conf import settings
@@ -37,12 +34,13 @@ from django.conf import settings
 try:
     from lifelines import KaplanMeierFitter, CoxPHFitter
     from lifelines.statistics import logrank_test, multivariate_logrank_test
-    from lifelines.utils import median_survival_times, concordance_index
+    from lifelines.utils import median_survival_times
+
     LIFELINES_AVAILABLE = True
 except ImportError:
     LIFELINES_AVAILABLE = False
 
-from core.services.error_handler import safe_operation, try_except
+from core.services.error_handler import safe_operation
 
 logger = logging.getLogger(__name__)
 
@@ -87,23 +85,25 @@ class SurvivalService:
             Dictionary with availability information
         """
         return {
-            'lifelines_available': self.lifelines_available,
-            'status': 'available' if self.lifelines_available else 'unavailable',
-            'recommendation': (
-                "Survival analysis is fully available." if self.lifelines_available else
-                "Install lifelines library for survival analysis. "
-                "Run: pip install lifelines"
-            )
+            "lifelines_available": self.lifelines_available,
+            "status": "available" if self.lifelines_available else "unavailable",
+            "recommendation": (
+                "Survival analysis is fully available."
+                if self.lifelines_available
+                else "Install lifelines library for survival analysis. " "Run: pip install lifelines"
+            ),
         }
 
     @safe_operation
-    def kaplan_meier_analysis(self,
-                             data: pd.DataFrame,
-                             duration_col: str,
-                             event_col: str,
-                             group_col: Optional[str] = None,
-                             confidence_level: float = 0.95,
-                             timeline: Optional[List[float]] = None) -> Dict[str, Any]:
+    def kaplan_meier_analysis(
+        self,
+        data: pd.DataFrame,
+        duration_col: str,
+        event_col: str,
+        group_col: Optional[str] = None,
+        confidence_level: float = 0.95,
+        timeline: Optional[List[float]] = None,
+    ) -> Dict[str, Any]:
         """
         Perform Kaplan-Meier survival analysis.
 
@@ -152,21 +152,18 @@ class SurvivalService:
             raise ValueError("Event column must contain only 0 (censored) or 1 (event occurred)")
 
         results = {
-            'analysis_type': 'kaplan_meier',
-            'n_subjects': len(data),
-            'n_events': int(np.sum(events)),
-            'n_censored': int(np.sum(1 - events)),
-            'confidence_level': confidence_level,
-            'timestamp': datetime.now().isoformat()
+            "analysis_type": "kaplan_meier",
+            "n_subjects": len(data),
+            "n_events": int(np.sum(events)),
+            "n_censored": int(np.sum(1 - events)),
+            "confidence_level": confidence_level,
+            "timestamp": datetime.now().isoformat(),
         }
 
         # If no grouping, perform single analysis
         if group_col is None:
             km_results = self._fit_kaplan_meier(
-                durations, events,
-                confidence_level=confidence_level,
-                timeline=timeline,
-                label='All Subjects'
+                durations, events, confidence_level=confidence_level, timeline=timeline, label="All Subjects"
             )
             results.update(km_results)
 
@@ -176,8 +173,8 @@ class SurvivalService:
                 raise ValueError(f"Group column '{group_col}' not found in data")
 
             groups = data[group_col].unique()
-            results['groups'] = {}
-            results['group_names'] = [str(g) for g in groups]
+            results["groups"] = {}
+            results["group_names"] = [str(g) for g in groups]
 
             all_survival_functions = []
 
@@ -188,36 +185,39 @@ class SurvivalService:
 
                 group_label = str(group)
                 km_results = self._fit_kaplan_meier(
-                    group_durations, group_events,
+                    group_durations,
+                    group_events,
                     confidence_level=confidence_level,
                     timeline=timeline,
-                    label=group_label
+                    label=group_label,
                 )
 
-                results['groups'][group_label] = km_results
-                all_survival_functions.append(km_results['survival_function'])
+                results["groups"][group_label] = km_results
+                all_survival_functions.append(km_results["survival_function"])
 
             # Perform log-rank test to compare groups
             if len(groups) == 2:
-                results['logrank_test'] = self._perform_logrank_test_two_groups(
+                results["logrank_test"] = self._perform_logrank_test_two_groups(
                     data, duration_col, event_col, group_col
                 )
             elif len(groups) > 2:
-                results['logrank_test'] = self._perform_logrank_test_multi_groups(
+                results["logrank_test"] = self._perform_logrank_test_multi_groups(
                     data, duration_col, event_col, group_col
                 )
 
         # Add interpretation
-        results['interpretation'] = self._interpret_kaplan_meier(results)
+        results["interpretation"] = self._interpret_kaplan_meier(results)
 
         return results
 
-    def _fit_kaplan_meier(self,
-                         durations: np.ndarray,
-                         events: np.ndarray,
-                         confidence_level: float = 0.95,
-                         timeline: Optional[List[float]] = None,
-                         label: str = 'KM_estimate') -> Dict[str, Any]:
+    def _fit_kaplan_meier(
+        self,
+        durations: np.ndarray,
+        events: np.ndarray,
+        confidence_level: float = 0.95,
+        timeline: Optional[List[float]] = None,
+        label: str = "KM_estimate",
+    ) -> Dict[str, Any]:
         """
         Fit Kaplan-Meier estimator to survival data.
 
@@ -253,36 +253,42 @@ class SurvivalService:
         event_table = kmf.event_table
 
         results = {
-            'label': label,
-            'n_subjects': len(durations),
-            'n_events': int(np.sum(events)),
-            'n_censored': int(np.sum(1 - events)),
-            'survival_function': {
-                'time': time_points,
-                'survival_probability': survival_func.values.flatten().tolist() if hasattr(survival_func, 'values') else [survival_func] if isinstance(survival_func, (int, float)) else survival_func.tolist(),
-                'confidence_lower': ci.iloc[:, 0].tolist() if len(ci.columns) > 0 else None,
-                'confidence_upper': ci.iloc[:, 1].tolist() if len(ci.columns) > 1 else None
+            "label": label,
+            "n_subjects": len(durations),
+            "n_events": int(np.sum(events)),
+            "n_censored": int(np.sum(1 - events)),
+            "survival_function": {
+                "time": time_points,
+                "survival_probability": survival_func.values.flatten().tolist()
+                if hasattr(survival_func, "values")
+                else [survival_func]
+                if isinstance(survival_func, (int, float))
+                else survival_func.tolist(),
+                "confidence_lower": ci.iloc[:, 0].tolist() if len(ci.columns) > 0 else None,
+                "confidence_upper": ci.iloc[:, 1].tolist() if len(ci.columns) > 1 else None,
             },
-            'median_survival': {
-                'time': float(median_survival) if not np.isnan(median_survival) else None,
-                'confidence_lower': float(median_ci.iloc[0, 0]) if median_ci is not None and len(median_ci) > 0 else None,
-                'confidence_upper': float(median_ci.iloc[0, 1]) if median_ci is not None and len(median_ci.columns) > 1 else None
+            "median_survival": {
+                "time": float(median_survival) if not np.isnan(median_survival) else None,
+                "confidence_lower": float(median_ci.iloc[0, 0])
+                if median_ci is not None and len(median_ci) > 0
+                else None,
+                "confidence_upper": float(median_ci.iloc[0, 1])
+                if median_ci is not None and len(median_ci.columns) > 1
+                else None,
             },
-            'event_table': {
-                'time': event_table.index.tolist(),
-                'at_risk': event_table['at_risk'].tolist(),
-                'events': event_table['observed'].tolist(),
-                'censored': event_table['censored'].tolist()
-            }
+            "event_table": {
+                "time": event_table.index.tolist(),
+                "at_risk": event_table["at_risk"].tolist(),
+                "events": event_table["observed"].tolist(),
+                "censored": event_table["censored"].tolist(),
+            },
         }
 
         return results
 
-    def _perform_logrank_test_two_groups(self,
-                                        data: pd.DataFrame,
-                                        duration_col: str,
-                                        event_col: str,
-                                        group_col: str) -> Dict[str, Any]:
+    def _perform_logrank_test_two_groups(
+        self, data: pd.DataFrame, duration_col: str, event_col: str, group_col: str
+    ) -> Dict[str, Any]:
         """
         Perform log-rank test for two groups.
 
@@ -306,27 +312,25 @@ class SurvivalService:
             durations_A=group1_data[duration_col],
             durations_B=group2_data[duration_col],
             event_observed_A=group1_data[event_col],
-            event_observed_B=group2_data[event_col]
+            event_observed_B=group2_data[event_col],
         )
 
         return {
-            'test_name': 'Log-Rank Test',
-            'groups_compared': [str(groups[0]), str(groups[1])],
-            'test_statistic': float(result.test_statistic),
-            'p_value': float(result.p_value),
-            'degrees_of_freedom': 1,
-            'is_significant': result.p_value < 0.05,
-            'interpretation': (
+            "test_name": "Log-Rank Test",
+            "groups_compared": [str(groups[0]), str(groups[1])],
+            "test_statistic": float(result.test_statistic),
+            "p_value": float(result.p_value),
+            "degrees_of_freedom": 1,
+            "is_significant": result.p_value < 0.05,
+            "interpretation": (
                 f"The survival curves are {'significantly different' if result.p_value < 0.05 else 'not significantly different'} "
                 f"between groups (p = {result.p_value:.4f})."
-            )
+            ),
         }
 
-    def _perform_logrank_test_multi_groups(self,
-                                          data: pd.DataFrame,
-                                          duration_col: str,
-                                          event_col: str,
-                                          group_col: str) -> Dict[str, Any]:
+    def _perform_logrank_test_multi_groups(
+        self, data: pd.DataFrame, duration_col: str, event_col: str, group_col: str
+    ) -> Dict[str, Any]:
         """
         Perform multivariate log-rank test for multiple groups.
 
@@ -340,34 +344,34 @@ class SurvivalService:
             Dictionary with test statistics and p-value
         """
         result = multivariate_logrank_test(
-            durations=data[duration_col],
-            groups=data[group_col],
-            event_observed=data[event_col]
+            durations=data[duration_col], groups=data[group_col], event_observed=data[event_col]
         )
 
         groups = data[group_col].unique()
 
         return {
-            'test_name': 'Multivariate Log-Rank Test',
-            'groups_compared': [str(g) for g in groups],
-            'test_statistic': float(result.test_statistic),
-            'p_value': float(result.p_value),
-            'degrees_of_freedom': len(groups) - 1,
-            'is_significant': result.p_value < 0.05,
-            'interpretation': (
+            "test_name": "Multivariate Log-Rank Test",
+            "groups_compared": [str(g) for g in groups],
+            "test_statistic": float(result.test_statistic),
+            "p_value": float(result.p_value),
+            "degrees_of_freedom": len(groups) - 1,
+            "is_significant": result.p_value < 0.05,
+            "interpretation": (
                 f"The survival curves are {'significantly different' if result.p_value < 0.05 else 'not significantly different'} "
                 f"across the {len(groups)} groups (p = {result.p_value:.4f})."
-            )
+            ),
         }
 
     @safe_operation
-    def cox_proportional_hazards(self,
-                                 data: pd.DataFrame,
-                                 duration_col: str,
-                                 event_col: str,
-                                 covariate_cols: List[str],
-                                 confidence_level: float = 0.95,
-                                 penalizer: float = 0.0) -> Dict[str, Any]:
+    def cox_proportional_hazards(
+        self,
+        data: pd.DataFrame,
+        duration_col: str,
+        event_col: str,
+        covariate_cols: List[str],
+        confidence_level: float = 0.95,
+        penalizer: float = 0.0,
+    ) -> Dict[str, Any]:
         """
         Perform Cox proportional hazards regression.
 
@@ -422,48 +426,48 @@ class SurvivalService:
         summary = cph.summary
 
         results = {
-            'analysis_type': 'cox_proportional_hazards',
-            'n_subjects': len(analysis_data),
-            'n_events': int(analysis_data[event_col].sum()),
-            'n_censored': int(len(analysis_data) - analysis_data[event_col].sum()),
-            'n_covariates': len(covariate_cols),
-            'confidence_level': confidence_level,
-            'penalizer': penalizer,
-            'covariates': {}
+            "analysis_type": "cox_proportional_hazards",
+            "n_subjects": len(analysis_data),
+            "n_events": int(analysis_data[event_col].sum()),
+            "n_censored": int(len(analysis_data) - analysis_data[event_col].sum()),
+            "n_covariates": len(covariate_cols),
+            "confidence_level": confidence_level,
+            "penalizer": penalizer,
+            "covariates": {},
         }
 
         # Organize results by covariate
         for covariate in covariate_cols:
             if covariate in summary.index:
                 row = summary.loc[covariate]
-                results['covariates'][covariate] = {
-                    'coefficient': float(row['coef']),
-                    'hazard_ratio': float(row['exp(coef)']),
-                    'se_coef': float(row['se(coef)']),
-                    'confidence_lower': float(row[f'exp(coef) lower {confidence_level:.2f}']),
-                    'confidence_upper': float(row[f'exp(coef) upper {confidence_level:.2f}']),
-                    'z_score': float(row['z']),
-                    'p_value': float(row['p']),
-                    'is_significant': row['p'] < 0.05
+                results["covariates"][covariate] = {
+                    "coefficient": float(row["coef"]),
+                    "hazard_ratio": float(row["exp(coef)"]),
+                    "se_coef": float(row["se(coef)"]),
+                    "confidence_lower": float(row[f"exp(coef) lower {confidence_level:.2f}"]),
+                    "confidence_upper": float(row[f"exp(coef) upper {confidence_level:.2f}"]),
+                    "z_score": float(row["z"]),
+                    "p_value": float(row["p"]),
+                    "is_significant": row["p"] < 0.05,
                 }
 
         # Model fit statistics
-        results['model_fit'] = {
-            'concordance_index': float(cph.concordance_index_),
-            'log_likelihood': float(cph.log_likelihood_),
-            'aic': float(cph.AIC_),
-            'partial_aic': float(cph.AIC_partial_)
+        results["model_fit"] = {
+            "concordance_index": float(cph.concordance_index_),
+            "log_likelihood": float(cph.log_likelihood_),
+            "aic": float(cph.AIC_),
+            "partial_aic": float(cph.AIC_partial_),
         }
 
         # Add interpretation
-        results['interpretation'] = self._interpret_cox_model(results)
+        results["interpretation"] = self._interpret_cox_model(results)
 
         # Store model for future predictions
         model_id = str(uuid.uuid4())
         model_path = os.path.join(self.models_dir, f"cox_model_{model_id}.pkl")
-        with open(model_path, 'wb') as f:
+        with open(model_path, "wb") as f:
             pickle.dump(cph, f)
-        results['model_id'] = model_id
+        results["model_id"] = model_id
 
         return results
 
@@ -480,9 +484,9 @@ class SurvivalService:
         interpretation = []
 
         # Basic summary
-        n_subjects = results['n_subjects']
-        n_events = results['n_events']
-        n_censored = results['n_censored']
+        n_subjects = results["n_subjects"]
+        n_events = results["n_events"]
+        n_censored = results["n_censored"]
         event_rate = (n_events / n_subjects) * 100
 
         interpretation.append(
@@ -491,22 +495,16 @@ class SurvivalService:
         )
 
         # Median survival
-        if 'median_survival' in results and results['median_survival']['time'] is not None:
-            median = results['median_survival']['time']
-            interpretation.append(
-                f"Median survival time: {median:.2f} time units."
-            )
+        if "median_survival" in results and results["median_survival"]["time"] is not None:
+            median = results["median_survival"]["time"]
+            interpretation.append(f"Median survival time: {median:.2f} time units.")
         else:
-            interpretation.append(
-                "Median survival time: Not reached (more than 50% of subjects remain event-free)."
-            )
+            interpretation.append("Median survival time: Not reached (more than 50% of subjects remain event-free).")
 
         # Group comparisons if present
-        if 'logrank_test' in results:
-            lr = results['logrank_test']
-            interpretation.append(
-                f"Log-rank test: {lr['interpretation']}"
-            )
+        if "logrank_test" in results:
+            lr = results["logrank_test"]
+            interpretation.append(f"Log-rank test: {lr['interpretation']}")
 
         return " ".join(interpretation)
 
@@ -523,47 +521,35 @@ class SurvivalService:
         interpretation = []
 
         # Model fit
-        c_index = results['model_fit']['concordance_index']
+        c_index = results["model_fit"]["concordance_index"]
         interpretation.append(
             f"Model concordance index: {c_index:.3f} "
             f"({'good' if c_index > 0.7 else 'moderate' if c_index > 0.6 else 'poor'} discrimination)."
         )
 
         # Significant covariates
-        sig_covariates = [
-            name for name, data in results['covariates'].items()
-            if data['is_significant']
-        ]
+        sig_covariates = [name for name, data in results["covariates"].items() if data["is_significant"]]
 
         if sig_covariates:
-            interpretation.append(
-                f"Significant predictors (p < 0.05): {', '.join(sig_covariates)}."
-            )
+            interpretation.append(f"Significant predictors (p < 0.05): {', '.join(sig_covariates)}.")
 
             # Describe hazard ratios
             for cov in sig_covariates[:3]:  # Limit to top 3
-                data = results['covariates'][cov]
-                hr = data['hazard_ratio']
+                data = results["covariates"][cov]
+                hr = data["hazard_ratio"]
                 if hr > 1:
-                    interpretation.append(
-                        f"{cov}: HR = {hr:.2f}, indicating {(hr-1)*100:.0f}% increased hazard."
-                    )
+                    interpretation.append(f"{cov}: HR = {hr:.2f}, indicating {(hr-1)*100:.0f}% increased hazard.")
                 else:
-                    interpretation.append(
-                        f"{cov}: HR = {hr:.2f}, indicating {(1-hr)*100:.0f}% decreased hazard."
-                    )
+                    interpretation.append(f"{cov}: HR = {hr:.2f}, indicating {(1-hr)*100:.0f}% decreased hazard.")
         else:
-            interpretation.append(
-                "No covariates reached statistical significance at α = 0.05."
-            )
+            interpretation.append("No covariates reached statistical significance at α = 0.05.")
 
         return " ".join(interpretation)
 
     @safe_operation
-    def predict_survival(self,
-                        model_id: str,
-                        new_data: pd.DataFrame,
-                        times: Optional[List[float]] = None) -> Dict[str, Any]:
+    def predict_survival(
+        self, model_id: str, new_data: pd.DataFrame, times: Optional[List[float]] = None
+    ) -> Dict[str, Any]:
         """
         Predict survival probabilities for new subjects using a fitted Cox model.
 
@@ -585,17 +571,13 @@ class SurvivalService:
             raise FileNotFoundError(f"Model with ID {model_id} not found")
 
         # Load model
-        with open(model_path, 'rb') as f:
+        with open(model_path, "rb") as f:
             cph = safe_pickle_load(f)
 
         # Make predictions
         survival_funcs = cph.predict_survival_function(new_data, times=times)
 
-        results = {
-            'model_id': model_id,
-            'n_subjects': len(new_data),
-            'predictions': []
-        }
+        results = {"model_id": model_id, "n_subjects": len(new_data), "predictions": []}
 
         for idx, subject_id in enumerate(new_data.index):
             if times is not None:
@@ -605,19 +587,19 @@ class SurvivalService:
                 survival_probs = survival_funcs.iloc[:, idx].tolist()
                 time_points = survival_funcs.index.tolist()
 
-            results['predictions'].append({
-                'subject_id': str(subject_id),
-                'survival_function': {
-                    'time': time_points,
-                    'survival_probability': survival_probs
+            results["predictions"].append(
+                {
+                    "subject_id": str(subject_id),
+                    "survival_function": {"time": time_points, "survival_probability": survival_probs},
                 }
-            })
+            )
 
         return results
 
 
 # Singleton instance
 _survival_service = None
+
 
 def get_survival_service() -> SurvivalService:
     """

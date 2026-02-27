@@ -10,24 +10,26 @@ Following Working Principle #4: Evidence-Based
 import os
 import re
 
+
 def check_model_exists(model_name):
     """Check if a model exists in core/models.py."""
-    models_file = os.path.join(os.path.dirname(__file__), 'core/models.py')
-    with open(models_file, 'r') as f:
+    models_file = os.path.join(os.path.dirname(__file__), "core/models.py")
+    with open(models_file, "r") as f:
         content = f.read()
     # Look for class definitions
-    pattern = rf'class {model_name}\(.*\):'
+    pattern = rf"class {model_name}\(.*\):"
     return bool(re.search(pattern, content))
+
 
 def fix_model_imports_in_file(filepath):
     """Fix model imports in a single file."""
     # Models that actually exist in core/models.py
-    existing_models = ['Analysis', 'StatisticalAudit', 'AuditSummary']
+    existing_models = ["Analysis", "StatisticalAudit", "AuditSummary"]
 
     changes_made = []
 
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             lines = f.readlines()
 
         modified = False
@@ -35,17 +37,17 @@ def fix_model_imports_in_file(filepath):
 
         for line in lines:
             # Skip already commented lines
-            if line.strip().startswith('#'):
+            if line.strip().startswith("#"):
                 new_lines.append(line)
                 continue
 
             # Check for model imports
-            if 'from core.models import' in line and not line.strip().startswith('#'):
+            if "from core.models import" in line and not line.strip().startswith("#"):
                 # Extract model names
-                match = re.search(r'from core\.models import (.+)', line)
+                match = re.search(r"from core\.models import (.+)", line)
                 if match:
                     models_str = match.group(1)
-                    models = [m.strip() for m in models_str.split(',')]
+                    models = [m.strip() for m in models_str.split(",")]
 
                     # Separate existing from non-existing models
                     existing = []
@@ -63,14 +65,14 @@ def fix_model_imports_in_file(filepath):
                         new_lines.append(f'from core.models import {", ".join(existing)}\n')
                         new_lines.append(f'# Missing models: {", ".join(missing)}\n')
                         for model in missing:
-                            new_lines.append(f'from typing import Any as {model}  # Type alias\n')
+                            new_lines.append(f"from typing import Any as {model}  # Type alias\n")
                         changes_made.append(f"  - Fixed mixed import: {line.strip()}")
                         modified = True
                     elif missing and not existing:
                         # All models are missing
-                        new_lines.append(f'# {line.strip()}  # Models don\'t exist yet\n')
+                        new_lines.append(f"# {line.strip()}  # Models don't exist yet\n")
                         for model in missing:
-                            new_lines.append(f'from typing import Any as {model}  # Type alias\n')
+                            new_lines.append(f"from typing import Any as {model}  # Type alias\n")
                         changes_made.append(f"  - Replaced missing models: {line.strip()}")
                         modified = True
                     else:
@@ -82,7 +84,7 @@ def fix_model_imports_in_file(filepath):
                 new_lines.append(line)
 
         if modified:
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 f.writelines(new_lines)
             return True, changes_made
     except Exception as e:
@@ -90,6 +92,7 @@ def fix_model_imports_in_file(filepath):
         return False, []
 
     return False, []
+
 
 def main():
     """Main function to fix all missing model imports."""
@@ -99,15 +102,15 @@ def main():
 
     # Files with model imports that need checking
     files_to_check = [
-        'doe_analysis/api/views.py',
-        'doe_analysis/api/serializers.py',
-        'doe_analysis/models.py',
-        'core/api/workflow_navigation_views.py',
-        'sqc_analysis/api/views.py',
-        'sqc_analysis/consumers.py',
-        'sqc_analysis/api/serializers.py',
-        'sqc_analysis/tasks.py',
-        'sqc_analysis/models.py',
+        "doe_analysis/api/views.py",
+        "doe_analysis/api/serializers.py",
+        "doe_analysis/models.py",
+        "core/api/workflow_navigation_views.py",
+        "sqc_analysis/api/views.py",
+        "sqc_analysis/consumers.py",
+        "sqc_analysis/api/serializers.py",
+        "sqc_analysis/tasks.py",
+        "sqc_analysis/models.py",
     ]
 
     fixed_count = 0
@@ -140,6 +143,7 @@ def main():
         print("Next step: Restart server to apply changes")
     else:
         print("\n⚠️ No files were fixed.")
+
 
 if __name__ == "__main__":
     main()

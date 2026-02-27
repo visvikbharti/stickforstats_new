@@ -403,7 +403,7 @@ const handleApiError = (error) => {
 // No demo mode overrides - only real API calls
 // Removed all demo mode logic
 
-export default {
+const pcaApi = {
   fetchPcaProjects,
   fetchPcaProject,
   createPcaProject,
@@ -428,3 +428,5 @@ export default {
   updateSample,
   fetchGenes
 };
+
+export default pcaApi;

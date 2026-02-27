@@ -2,4 +2,4 @@
 
 from .bayesian_service import BayesianService, get_bayesian_service
 
-__all__ = ['BayesianService', 'get_bayesian_service']
+__all__ = ["BayesianService", "get_bayesian_service"]

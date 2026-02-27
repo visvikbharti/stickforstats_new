@@ -24,4 +24,4 @@ try:
 except ImportError:
     pass
 
-__all__ = ['MultivariateService', 'MultivariateResults']
+__all__ = ["MultivariateService", "MultivariateResults"]

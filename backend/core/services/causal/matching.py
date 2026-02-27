@@ -21,8 +21,8 @@ References:
 Created: December 26, 2025
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
@@ -32,6 +32,7 @@ from scipy.optimize import linear_sum_assignment
 @dataclass
 class MatchingResult:
     """Result of propensity score matching."""
+
     matched_data: pd.DataFrame
     matched_pairs: List[Tuple[int, int]]  # (treated_idx, control_idx)
     n_treated: int
@@ -43,14 +44,14 @@ class MatchingResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'n_treated': self.n_treated,
-            'n_matched': self.n_matched,
-            'n_unmatched': self.n_unmatched,
-            'match_rate': self.n_matched / self.n_treated if self.n_treated > 0 else 0,
-            'matched_pairs': self.matched_pairs[:10],  # First 10 for API
-            'balance_after': self.balance_after,
-            'match_quality': self.match_quality,
-            'warnings': self.warnings
+            "n_treated": self.n_treated,
+            "n_matched": self.n_matched,
+            "n_unmatched": self.n_unmatched,
+            "match_rate": self.n_matched / self.n_treated if self.n_treated > 0 else 0,
+            "matched_pairs": self.matched_pairs[:10],  # First 10 for API
+            "balance_after": self.balance_after,
+            "match_quality": self.match_quality,
+            "warnings": self.warnings,
         }
 
 
@@ -59,11 +60,11 @@ def propensity_score_matching(
     treatment: str,
     propensity_scores: np.ndarray,
     outcome: Optional[str] = None,
-    method: str = 'nearest',
+    method: str = "nearest",
     ratio: int = 1,
     caliper: Optional[float] = None,
     replacement: bool = False,
-    covariates: Optional[List[str]] = None
+    covariates: Optional[List[str]] = None,
 ) -> MatchingResult:
     """
     Perform propensity score matching.
@@ -103,22 +104,12 @@ def propensity_score_matching(
         caliper = 0.2 * np.std(propensity_scores, ddof=1)
 
     # Perform matching based on method
-    if method == 'nearest':
+    if method == "nearest":
         matched_pairs = nearest_neighbor_matching(
-            propensity_scores,
-            treated_idx,
-            control_idx,
-            ratio=ratio,
-            caliper=caliper,
-            replacement=replacement
+            propensity_scores, treated_idx, control_idx, ratio=ratio, caliper=caliper, replacement=replacement
         )
-    elif method == 'optimal':
-        matched_pairs = optimal_matching(
-            propensity_scores,
-            treated_idx,
-            control_idx,
-            caliper=caliper
-        )
+    elif method == "optimal":
+        matched_pairs = optimal_matching(propensity_scores, treated_idx, control_idx, caliper=caliper)
     else:
         raise ValueError(f"Unknown method: {method}")
 
@@ -135,28 +126,20 @@ def propensity_score_matching(
     # Include matched observations (each pair appears once)
     all_matched_idx = list(set(matched_treated_idx + matched_control_idx))
     matched_data = data.iloc[all_matched_idx].copy()
-    matched_data['_match_id'] = None
+    matched_data["_match_id"] = None
 
     # Assign match IDs
     for i, (t_idx, c_idx) in enumerate(matched_pairs):
-        matched_data.loc[matched_data.index == data.index[t_idx], '_match_id'] = i
-        matched_data.loc[matched_data.index == data.index[c_idx], '_match_id'] = i
+        matched_data.loc[matched_data.index == data.index[t_idx], "_match_id"] = i
+        matched_data.loc[matched_data.index == data.index[c_idx], "_match_id"] = i
 
     # Assess balance after matching
     balance_after = {}
     if covariates:
-        balance_after = assess_balance(
-            matched_data,
-            treatment,
-            covariates
-        )
+        balance_after = assess_balance(matched_data, treatment, covariates)
 
     # Match quality metrics
-    match_quality = _assess_match_quality(
-        propensity_scores,
-        matched_pairs,
-        caliper
-    )
+    match_quality = _assess_match_quality(propensity_scores, matched_pairs, caliper)
 
     return MatchingResult(
         matched_data=matched_data,
@@ -166,7 +149,7 @@ def propensity_score_matching(
         n_unmatched=n_unmatched,
         balance_after=balance_after,
         match_quality=match_quality,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -176,7 +159,7 @@ def nearest_neighbor_matching(
     control_idx: np.ndarray,
     ratio: int = 1,
     caliper: Optional[float] = None,
-    replacement: bool = False
+    replacement: bool = False,
 ) -> List[Tuple[int, int]]:
     """
     Greedy nearest neighbor matching.
@@ -227,10 +210,7 @@ def nearest_neighbor_matching(
 
 
 def optimal_matching(
-    scores: np.ndarray,
-    treated_idx: np.ndarray,
-    control_idx: np.ndarray,
-    caliper: Optional[float] = None
+    scores: np.ndarray, treated_idx: np.ndarray, control_idx: np.ndarray, caliper: Optional[float] = None
 ) -> List[Tuple[int, int]]:
     """
     Optimal matching using Hungarian algorithm.
@@ -254,7 +234,7 @@ def optimal_matching(
     treated_scores = scores[treated_idx].reshape(-1, 1)
     control_scores = scores[control_idx].reshape(-1, 1)
 
-    dist_matrix = cdist(treated_scores, control_scores, metric='euclidean')
+    dist_matrix = cdist(treated_scores, control_scores, metric="euclidean")
 
     # Apply caliper (set large penalty for violations)
     if caliper is not None:
@@ -285,10 +265,7 @@ def optimal_matching(
 
 
 def assess_balance(
-    data: pd.DataFrame,
-    treatment: str,
-    covariates: List[str],
-    weights: Optional[np.ndarray] = None
+    data: pd.DataFrame, treatment: str, covariates: List[str], weights: Optional[np.ndarray] = None
 ) -> Dict[str, Any]:
     """
     Assess covariate balance between treatment groups.
@@ -323,13 +300,13 @@ def assess_balance(
             c_vals = control[cov].dropna().values
 
             if len(t_vals) == 0 or len(c_vals) == 0:
-                balance[cov] = {'error': 'No valid values'}
+                balance[cov] = {"error": "No valid values"}
                 continue
 
             # Weighted or unweighted means
             if w_treated is not None and w_control is not None:
-                t_mean = np.average(t_vals, weights=w_treated[:len(t_vals)])
-                c_mean = np.average(c_vals, weights=w_control[:len(c_vals)])
+                t_mean = np.average(t_vals, weights=w_treated[: len(t_vals)])
+                c_mean = np.average(c_vals, weights=w_control[: len(c_vals)])
             else:
                 t_mean = np.mean(t_vals)
                 c_mean = np.mean(c_vals)
@@ -343,43 +320,43 @@ def assess_balance(
                 smd = 0 if t_mean == c_mean else np.inf
 
             balance[cov] = {
-                'treated_mean': float(t_mean),
-                'control_mean': float(c_mean),
-                'standardized_mean_diff': float(smd),
-                'abs_smd': float(abs(smd)),
-                'balanced': abs(smd) < 0.1
+                "treated_mean": float(t_mean),
+                "control_mean": float(c_mean),
+                "standardized_mean_diff": float(smd),
+                "abs_smd": float(abs(smd)),
+                "balanced": abs(smd) < 0.1,
             }
 
         except Exception as e:
-            balance[cov] = {'error': str(e)}
+            balance[cov] = {"error": str(e)}
 
     # Summary statistics
-    smds = [abs(v.get('standardized_mean_diff', 0))
-            for v in balance.values() if isinstance(v, dict) and 'standardized_mean_diff' in v]
+    smds = [
+        abs(v.get("standardized_mean_diff", 0))
+        for v in balance.values()
+        if isinstance(v, dict) and "standardized_mean_diff" in v
+    ]
 
-    balance['_summary'] = {
-        'n_covariates': len(covariates),
-        'n_balanced': sum(1 for s in smds if s < 0.1),
-        'n_imbalanced': sum(1 for s in smds if s >= 0.1),
-        'max_smd': float(max(smds)) if smds else None,
-        'mean_smd': float(np.mean(smds)) if smds else None,
-        'imbalanced_covariates': [
-            cov for cov, v in balance.items()
-            if isinstance(v, dict) and v.get('abs_smd', 0) >= 0.1
-        ]
+    balance["_summary"] = {
+        "n_covariates": len(covariates),
+        "n_balanced": sum(1 for s in smds if s < 0.1),
+        "n_imbalanced": sum(1 for s in smds if s >= 0.1),
+        "max_smd": float(max(smds)) if smds else None,
+        "mean_smd": float(np.mean(smds)) if smds else None,
+        "imbalanced_covariates": [
+            cov for cov, v in balance.items() if isinstance(v, dict) and v.get("abs_smd", 0) >= 0.1
+        ],
     }
 
     return balance
 
 
 def _assess_match_quality(
-    scores: np.ndarray,
-    matched_pairs: List[Tuple[int, int]],
-    caliper: Optional[float]
+    scores: np.ndarray, matched_pairs: List[Tuple[int, int]], caliper: Optional[float]
 ) -> Dict[str, Any]:
     """Assess quality of matches."""
     if not matched_pairs:
-        return {'n_pairs': 0, 'warning': 'No matches'}
+        return {"n_pairs": 0, "warning": "No matches"}
 
     distances = []
     for t_idx, c_idx in matched_pairs:
@@ -389,22 +366,18 @@ def _assess_match_quality(
     distances = np.array(distances)
 
     return {
-        'n_pairs': len(matched_pairs),
-        'mean_distance': float(np.mean(distances)),
-        'median_distance': float(np.median(distances)),
-        'max_distance': float(np.max(distances)),
-        'std_distance': float(np.std(distances, ddof=1)),
-        'caliper_used': caliper,
-        'pct_within_01sd': float(np.mean(distances < 0.1 * np.std(scores, ddof=1)))
+        "n_pairs": len(matched_pairs),
+        "mean_distance": float(np.mean(distances)),
+        "median_distance": float(np.median(distances)),
+        "max_distance": float(np.max(distances)),
+        "std_distance": float(np.std(distances, ddof=1)),
+        "caliper_used": caliper,
+        "pct_within_01sd": float(np.mean(distances < 0.1 * np.std(scores, ddof=1))),
     }
 
 
 def estimate_effect_matched(
-    matched_data: pd.DataFrame,
-    treatment: str,
-    outcome: str,
-    method: str = 'simple',
-    confidence_level: float = 0.95
+    matched_data: pd.DataFrame, treatment: str, outcome: str, method: str = "simple", confidence_level: float = 0.95
 ) -> Dict[str, Any]:
     """
     Estimate treatment effect from matched data.
@@ -421,26 +394,26 @@ def estimate_effect_matched(
     treated = matched_data[matched_data[treatment] == 1][outcome].values
     control = matched_data[matched_data[treatment] == 0][outcome].values
 
-    if method == 'simple':
+    if method == "simple":
         # Simple difference in means
         effect = np.mean(treated) - np.mean(control)
         se = np.sqrt(np.var(treated, ddof=1) / len(treated) + np.var(control, ddof=1) / len(control))
 
-    elif method == 'paired':
+    elif method == "paired":
         # Paired analysis using match IDs
-        if '_match_id' not in matched_data.columns:
+        if "_match_id" not in matched_data.columns:
             raise ValueError("No match IDs found - use simple method")
 
         pair_diffs = []
-        for match_id in matched_data['_match_id'].dropna().unique():
-            pair = matched_data[matched_data['_match_id'] == match_id]
+        for match_id in matched_data["_match_id"].dropna().unique():
+            pair = matched_data[matched_data["_match_id"] == match_id]
             if len(pair) == 2:
                 t_val = pair[pair[treatment] == 1][outcome].values[0]
                 c_val = pair[pair[treatment] == 0][outcome].values[0]
                 pair_diffs.append(t_val - c_val)
 
         if len(pair_diffs) == 0:
-            return {'error': 'No complete pairs found'}
+            return {"error": "No complete pairs found"}
 
         effect = np.mean(pair_diffs)
         se = np.std(pair_diffs, ddof=1) / np.sqrt(len(pair_diffs))
@@ -450,28 +423,26 @@ def estimate_effect_matched(
 
     # Inference
     from scipy import stats as sp_stats
+
     z_crit = sp_stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = effect / se if se > 0 else np.inf
     p_value = 2 * (1 - sp_stats.t.cdf(abs(t_stat), df=len(treated) + len(control) - 2))
 
     return {
-        'effect': float(effect),
-        'se': float(se),
-        't_statistic': float(t_stat),
-        'p_value': float(p_value),
-        'ci_lower': float(effect - z_crit * se),
-        'ci_upper': float(effect + z_crit * se),
-        'n_treated': len(treated),
-        'n_control': len(control),
-        'method': method
+        "effect": float(effect),
+        "se": float(se),
+        "t_statistic": float(t_stat),
+        "p_value": float(p_value),
+        "ci_lower": float(effect - z_crit * se),
+        "ci_upper": float(effect + z_crit * se),
+        "n_treated": len(treated),
+        "n_control": len(control),
+        "method": method,
     }
 
 
 def coarsened_exact_matching(
-    data: pd.DataFrame,
-    treatment: str,
-    covariates: List[str],
-    coarsening: Optional[Dict[str, int]] = None
+    data: pd.DataFrame, treatment: str, covariates: List[str], coarsening: Optional[Dict[str, int]] = None
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Coarsened Exact Matching (CEM).
@@ -497,38 +468,36 @@ def coarsened_exact_matching(
     for cov in covariates:
         if cov in coarsening:
             n_bins = coarsening[cov]
-            df[f'_cem_{cov}'] = pd.qcut(
-                df[cov], q=n_bins, labels=False, duplicates='drop'
-            )
+            df[f"_cem_{cov}"] = pd.qcut(df[cov], q=n_bins, labels=False, duplicates="drop")
         else:
             # Categorical - use as is
-            df[f'_cem_{cov}'] = df[cov]
+            df[f"_cem_{cov}"] = df[cov]
 
     # Create strata
-    cem_cols = [f'_cem_{cov}' for cov in covariates]
-    df['_cem_strata'] = df[cem_cols].apply(lambda x: tuple(x), axis=1)
+    cem_cols = [f"_cem_{cov}" for cov in covariates]
+    df["_cem_strata"] = df[cem_cols].apply(lambda x: tuple(x), axis=1)
 
     # Find strata with both treated and control
-    strata_counts = df.groupby(['_cem_strata', treatment]).size().unstack(fill_value=0)
+    strata_counts = df.groupby(["_cem_strata", treatment]).size().unstack(fill_value=0)
 
     valid_strata = strata_counts[(strata_counts[0] > 0) & (strata_counts[1] > 0)].index
 
     # Filter to valid strata
-    matched_data = df[df['_cem_strata'].isin(valid_strata)].copy()
+    matched_data = df[df["_cem_strata"].isin(valid_strata)].copy()
 
     # Clean up
-    matched_data = matched_data.drop(columns=cem_cols + ['_cem_strata'])
+    matched_data = matched_data.drop(columns=cem_cols + ["_cem_strata"])
 
     n_original = len(data)
     n_matched = len(matched_data)
 
     info = {
-        'n_original': n_original,
-        'n_matched': n_matched,
-        'n_dropped': n_original - n_matched,
-        'match_rate': n_matched / n_original,
-        'n_strata': len(valid_strata),
-        'coarsening': coarsening
+        "n_original": n_original,
+        "n_matched": n_matched,
+        "n_dropped": n_original - n_matched,
+        "match_rate": n_matched / n_original,
+        "n_strata": len(valid_strata),
+        "coarsening": coarsening,
     }
 
     return matched_data, info

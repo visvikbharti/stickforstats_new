@@ -87,21 +87,21 @@ describe('FDA 21 CFR Part 11 Compliance Tests', () => {
       });
 
       // Create initial record
-      const entry1 = logger.log({
+      const _entry1 = logger.log({
         action: 'CREATE',
         category: 'data',
         details: { recordId: 'REC001', value: 100 }
       });
 
       // Modify record
-      const entry2 = logger.log({
+      const _entry2 = logger.log({
         action: 'UPDATE',
         category: 'data',
         details: { recordId: 'REC001', oldValue: 100, newValue: 105 }
       });
 
       // Delete record
-      const entry3 = logger.log({
+      const _entry3 = logger.log({
         action: 'DELETE',
         category: 'data',
         details: { recordId: 'REC001', value: 105 }
@@ -541,12 +541,12 @@ describe('FDA 21 CFR Part 11 Compliance Tests', () => {
       const logger = new AuditLogger({ enabled: true });
 
       // Create entries
-      const entry1 = logger.log({ action: 'DATA1', category: 'test' });
+      const _entry1 = logger.log({ action: 'DATA1', category: 'test' });
       const entry2 = logger.log({ action: 'DATA2', category: 'test' });
-      const entry3 = logger.log({ action: 'DATA3', category: 'test' });
+      const _entry3 = logger.log({ action: 'DATA3', category: 'test' });
 
       // Corrupt entry2
-      const originalHash = entry2.entry.hash;
+      const _originalHash = entry2.entry.hash;
       entry2.entry.details = { corrupted: true };
       // Hash remains same but data changed - corruption detected
 
@@ -559,7 +559,7 @@ describe('FDA 21 CFR Part 11 Compliance Tests', () => {
 
   describe('Access Controls (§11.10(d), §11.10(g))', () => {
     test('should restrict access based on user roles', async () => {
-      const logger = new AuditLogger({ enabled: true });
+      const _logger = new AuditLogger({ enabled: true });
 
       // Define role permissions
       const roles = {
@@ -1028,7 +1028,7 @@ describe('Compliance Reporting', () => {
   });
 
   test('should support regulatory inspections', async () => {
-    const logger = new AuditLogger({ enabled: true });
+    const _logger = new AuditLogger({ enabled: true });
 
     // Inspection request
     const inspectionRequest = {

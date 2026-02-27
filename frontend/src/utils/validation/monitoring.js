@@ -211,6 +211,8 @@ class MetricsCollector {
       case 'signature':
         this.metrics.compliance.signatureVerifications++;
         break;
+      default:
+        break;
     }
     this.metrics.compliance.lastAudit = Date.now();
   }
@@ -615,7 +617,7 @@ const convertMetricsToCSV = (metrics) => {
   return rows.join('\n');
 };
 
-export default {
+const monitoring = {
   recordValidation,
   recordError,
   recordCacheMetric,
@@ -626,3 +628,5 @@ export default {
   getAuditLogs,
   exportMetrics
 };
+
+export default monitoring;

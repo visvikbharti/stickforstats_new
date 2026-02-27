@@ -14,14 +14,14 @@ Features:
 Created: December 26, 2025
 """
 
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-import re
 
 
 class HypothesisType(Enum):
     """Types of statistical hypotheses."""
+
     DIRECTIONAL = "directional"  # One-tailed
     NON_DIRECTIONAL = "non_directional"  # Two-tailed
     EQUIVALENCE = "equivalence"  # TOST
@@ -31,6 +31,7 @@ class HypothesisType(Enum):
 
 class VariableRole(Enum):
     """Role of variable in hypothesis."""
+
     INDEPENDENT = "independent"
     DEPENDENT = "dependent"
     COVARIATE = "covariate"
@@ -40,6 +41,7 @@ class VariableRole(Enum):
 
 class MeasurementLevel(Enum):
     """Measurement level of variables."""
+
     NOMINAL = "nominal"
     ORDINAL = "ordinal"
     INTERVAL = "interval"
@@ -48,6 +50,7 @@ class MeasurementLevel(Enum):
 
 class EffectDirection(Enum):
     """Direction of predicted effect."""
+
     GREATER = "greater"
     LESS = "less"
     DIFFERENT = "different"
@@ -62,6 +65,7 @@ VARIABLE_TYPES = {e.name: e.value for e in MeasurementLevel}
 @dataclass
 class Variable:
     """A variable in a hypothesis."""
+
     name: str
     role: VariableRole
     measurement_level: MeasurementLevel
@@ -73,14 +77,15 @@ class Variable:
 
     def to_dict(self) -> Dict[str, Any]:
         result = asdict(self)
-        result['role'] = self.role.value
-        result['measurement_level'] = self.measurement_level.value
+        result["role"] = self.role.value
+        result["measurement_level"] = self.measurement_level.value
         return result
 
 
 @dataclass
 class Hypothesis:
     """A formal statistical hypothesis."""
+
     id: str
     description: str  # Plain language description
     hypothesis_type: HypothesisType
@@ -169,20 +174,20 @@ class Hypothesis:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'id': self.id,
-            'description': self.description,
-            'hypothesis_type': self.hypothesis_type.value,
-            'direction': self.direction.value,
-            'independent_var': self.independent_var.to_dict(),
-            'dependent_var': self.dependent_var.to_dict(),
-            'covariates': [c.to_dict() for c in self.covariates],
-            'effect_size_expected': self.effect_size_expected,
-            'effect_size_type': self.effect_size_type,
-            'null_hypothesis': self.null_hypothesis,
-            'alternative_hypothesis': self.alternative_hypothesis,
-            'recommended_test': self.recommended_test,
-            'alpha': self.alpha,
-            'rationale': self.rationale
+            "id": self.id,
+            "description": self.description,
+            "hypothesis_type": self.hypothesis_type.value,
+            "direction": self.direction.value,
+            "independent_var": self.independent_var.to_dict(),
+            "dependent_var": self.dependent_var.to_dict(),
+            "covariates": [c.to_dict() for c in self.covariates],
+            "effect_size_expected": self.effect_size_expected,
+            "effect_size_type": self.effect_size_type,
+            "null_hypothesis": self.null_hypothesis,
+            "alternative_hypothesis": self.alternative_hypothesis,
+            "recommended_test": self.recommended_test,
+            "alpha": self.alpha,
+            "rationale": self.rationale,
         }
 
     def to_formal_statement(self) -> str:
@@ -251,7 +256,7 @@ class HypothesisFormulator:
         effect_size_type: str = None,
         alpha: float = 0.05,
         rationale: str = "",
-        covariates: List[Dict[str, Any]] = None
+        covariates: List[Dict[str, Any]] = None,
     ) -> Hypothesis:
         """
         Create a new hypothesis with guided formulation.
@@ -285,7 +290,7 @@ class HypothesisFormulator:
             role=VariableRole.INDEPENDENT,
             measurement_level=MeasurementLevel[iv_measurement.upper()],
             operationalization=iv_operationalization,
-            levels=iv_levels
+            levels=iv_levels,
         )
 
         # Create dependent variable
@@ -293,19 +298,21 @@ class HypothesisFormulator:
             name=dv_name,
             role=VariableRole.DEPENDENT,
             measurement_level=MeasurementLevel[dv_measurement.upper()],
-            operationalization=dv_operationalization
+            operationalization=dv_operationalization,
         )
 
         # Create covariates
         covariate_list = []
         if covariates:
             for cov in covariates:
-                covariate_list.append(Variable(
-                    name=cov['name'],
-                    role=VariableRole.COVARIATE,
-                    measurement_level=MeasurementLevel[cov.get('measurement', 'interval').upper()],
-                    operationalization=cov.get('operationalization', '')
-                ))
+                covariate_list.append(
+                    Variable(
+                        name=cov["name"],
+                        role=VariableRole.COVARIATE,
+                        measurement_level=MeasurementLevel[cov.get("measurement", "interval").upper()],
+                        operationalization=cov.get("operationalization", ""),
+                    )
+                )
 
         # Create hypothesis
         hypothesis = Hypothesis(
@@ -319,7 +326,7 @@ class HypothesisFormulator:
             effect_size_expected=effect_size,
             effect_size_type=effect_size_type,
             alpha=alpha,
-            rationale=rationale
+            rationale=rationale,
         )
 
         self.hypotheses.append(hypothesis)
@@ -364,7 +371,9 @@ class HypothesisFormulator:
 
             # Check for directional hypothesis without clear direction
             if h.hypothesis_type == HypothesisType.DIRECTIONAL and h.direction == EffectDirection.DIFFERENT:
-                h_warnings.append("Directional hypothesis specified but direction is 'different' - consider specifying 'greater' or 'less'")
+                h_warnings.append(
+                    "Directional hypothesis specified but direction is 'different' - consider specifying 'greater' or 'less'"
+                )
 
             if h_warnings:
                 warnings[h.id] = h_warnings
@@ -389,8 +398,7 @@ class HypothesisFormulator:
         # Measurement suggestions
         if h.independent_var.measurement_level == MeasurementLevel.ORDINAL:
             suggestions.append(
-                "Consider whether ordinal variable should be treated as continuous "
-                "or categorical in analysis."
+                "Consider whether ordinal variable should be treated as continuous " "or categorical in analysis."
             )
 
         # Power suggestions

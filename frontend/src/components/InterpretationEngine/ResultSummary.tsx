@@ -19,7 +19,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
 } from '@mui/material';
 import {
   CheckCircle as SignificantIcon,

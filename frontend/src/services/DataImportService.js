@@ -179,10 +179,12 @@ export const getFormatLabel = (filename) => {
  */
 export const ACCEPT_STRING = ACCEPTED_EXTENSIONS.join(',');
 
-export default {
+const dataImportService = {
   universalImport,
   getSupportedFormats,
   isSupportedFormat,
   getFormatLabel,
   ACCEPT_STRING,
 };
+
+export default dataImportService;

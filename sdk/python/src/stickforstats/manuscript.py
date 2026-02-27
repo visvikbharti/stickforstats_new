@@ -5,7 +5,7 @@ Manuscript review module — wraps ``/api/v1/manuscript/*`` endpoints.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import ConsistencyReport, ManuscriptReport, ParseResult
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from stickforstats.client import StickForStats
 
 
-def _open_file(file_path: str) -> Dict[str, Any]:
+def _open_file(file_path: str) -> dict[str, Any]:
     """Prepare a file upload tuple for httpx."""
     filename = os.path.basename(file_path)
     # Determine MIME type from extension

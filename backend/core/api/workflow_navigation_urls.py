@@ -15,23 +15,24 @@ from .workflow_navigation_views import WorkflowNavigationViewSet, WorkflowContex
 
 # Create router for viewsets
 router = DefaultRouter()
-router.register(r'navigation', WorkflowNavigationViewSet, basename='workflow-navigation')
+router.register(r"navigation", WorkflowNavigationViewSet, basename="workflow-navigation")
 
 urlpatterns = [
     # Include viewset routes
-    path('workflow/', include(router.urls)),
-    
+    path("workflow/", include(router.urls)),
     # Context management endpoint
-    path('workflow/context/', WorkflowContextAPI.as_view(), name='workflow-context'),
-    
+    path("workflow/context/", WorkflowContextAPI.as_view(), name="workflow-context"),
     # Quick access endpoints (for convenience)
-    path('workflow/quick/initialize/<str:workflow_id>/', 
-         WorkflowNavigationViewSet.as_view({'post': 'initialize'}),
-         name='quick-initialize'),
-    
-    path('workflow/quick/navigate/<str:workflow_id>/<str:step_id>/',
-         WorkflowNavigationViewSet.as_view({'post': 'navigate'}),
-         name='quick-navigate'),
+    path(
+        "workflow/quick/initialize/<str:workflow_id>/",
+        WorkflowNavigationViewSet.as_view({"post": "initialize"}),
+        name="quick-initialize",
+    ),
+    path(
+        "workflow/quick/navigate/<str:workflow_id>/<str:step_id>/",
+        WorkflowNavigationViewSet.as_view({"post": "navigate"}),
+        name="quick-navigate",
+    ),
 ]
 
 # URL patterns will be:

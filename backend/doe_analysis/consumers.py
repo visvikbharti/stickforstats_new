@@ -16,87 +16,69 @@ User = get_user_model()
 
 class DOEAnalysisConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time DOE analysis updates"""
-    
+
     async def connect(self):
         """
         Connect to the WebSocket and join user-specific group
         """
-        user_id = self.scope['url_route']['kwargs']['user_id']
-        experiment_id = self.scope['url_route']['kwargs']['experiment_id']
-        
+        user_id = self.scope["url_route"]["kwargs"]["user_id"]
+        experiment_id = self.scope["url_route"]["kwargs"]["experiment_id"]
+
         # Verify the user has access to this experiment
         if not await self.user_has_access(user_id, experiment_id):
             await self.close()
             return
-        
+
         self.room_group_name = f"analysis_{user_id}_{experiment_id}"
-        
+
         # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
         await self.accept()
-    
+
     async def disconnect(self, close_code):
         """
         Leave room group
         """
-        if hasattr(self, 'room_group_name'):
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-    
+        if hasattr(self, "room_group_name"):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
     async def receive(self, text_data):
         """
         Receive message from WebSocket
         """
         text_data_json = json.loads(text_data)
-        message_type = text_data_json.get('type')
-        
+        message_type = text_data_json.get("type")
+
         # Handle different message types
-        if message_type == 'subscribe_analysis':
-            analysis_id = text_data_json.get('analysis_id')
+        if message_type == "subscribe_analysis":
+            analysis_id = text_data_json.get("analysis_id")
             # Get the current status of the analysis
             status = await self.get_analysis_status(analysis_id)
             # Send back the current status
             await self.channel_layer.group_send(
                 self.room_group_name,
-                {
-                    'type': 'analysis_status',
-                    'message': {
-                        'status': status,
-                        'analysis_id': analysis_id
-                    }
-                }
+                {"type": "analysis_status", "message": {"status": status, "analysis_id": analysis_id}},
             )
-    
+
     async def analysis_status(self, event):
         """
         Receive status update from room group and send to WebSocket
         """
-        message = event['message']
-        
+        message = event["message"]
+
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'type': 'analysis_status',
-            'message': message
-        }))
-    
+        await self.send(text_data=json.dumps({"type": "analysis_status", "message": message}))
+
     async def optimization_status(self, event):
         """
         Receive optimization status update from room group and send to WebSocket
         """
-        message = event['message']
-        
+        message = event["message"]
+
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'type': 'optimization_status',
-            'message': message
-        }))
-    
+        await self.send(text_data=json.dumps({"type": "optimization_status", "message": message}))
+
     @database_sync_to_async
     def user_has_access(self, user_id, experiment_id):
         """
@@ -118,7 +100,7 @@ class DOEAnalysisConsumer(AsyncWebsocketConsumer):
             return experiment.user == user
         except (User.DoesNotExist, ExperimentDesign.DoesNotExist):
             return False
-    
+
     @database_sync_to_async
     def get_analysis_status(self, analysis_id):
         """
@@ -140,75 +122,60 @@ class DOEAnalysisConsumer(AsyncWebsocketConsumer):
 
 class DOEOptimizationConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time DOE optimization updates"""
-    
+
     async def connect(self):
         """
         Connect to the WebSocket and join user-specific group
         """
-        user_id = self.scope['url_route']['kwargs']['user_id']
-        analysis_id = self.scope['url_route']['kwargs']['analysis_id']
-        
+        user_id = self.scope["url_route"]["kwargs"]["user_id"]
+        analysis_id = self.scope["url_route"]["kwargs"]["analysis_id"]
+
         # Verify the user has access to this analysis
         if not await self.user_has_access(user_id, analysis_id):
             await self.close()
             return
-        
+
         self.room_group_name = f"optimization_{user_id}_{analysis_id}"
-        
+
         # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
         await self.accept()
-    
+
     async def disconnect(self, close_code):
         """
         Leave room group
         """
-        if hasattr(self, 'room_group_name'):
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-    
+        if hasattr(self, "room_group_name"):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
     async def receive(self, text_data):
         """
         Receive message from WebSocket
         """
         text_data_json = json.loads(text_data)
-        message_type = text_data_json.get('type')
-        
+        message_type = text_data_json.get("type")
+
         # Handle different message types
-        if message_type == 'subscribe_optimization':
-            optimization_id = text_data_json.get('optimization_id')
+        if message_type == "subscribe_optimization":
+            optimization_id = text_data_json.get("optimization_id")
             # Get the current status of the optimization
             status = await self.get_optimization_status(optimization_id)
             # Send back the current status
             await self.channel_layer.group_send(
                 self.room_group_name,
-                {
-                    'type': 'optimization_status',
-                    'message': {
-                        'status': status,
-                        'optimization_id': optimization_id
-                    }
-                }
+                {"type": "optimization_status", "message": {"status": status, "optimization_id": optimization_id}},
             )
-    
+
     async def optimization_status(self, event):
         """
         Receive status update from room group and send to WebSocket
         """
-        message = event['message']
-        
+        message = event["message"]
+
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'type': 'optimization_status',
-            'message': message
-        }))
-    
+        await self.send(text_data=json.dumps({"type": "optimization_status", "message": message}))
+
     @database_sync_to_async
     def user_has_access(self, user_id, analysis_id):
         """
@@ -230,7 +197,7 @@ class DOEOptimizationConsumer(AsyncWebsocketConsumer):
             return analysis.user == user
         except (User.DoesNotExist, ModelAnalysis.DoesNotExist):
             return False
-    
+
     @database_sync_to_async
     def get_optimization_status(self, optimization_id):
         """

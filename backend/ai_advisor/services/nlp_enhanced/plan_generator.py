@@ -16,24 +16,19 @@ Created: December 27, 2025
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
-from .query_parser import (
-    ParsedQuery,
-    QueryIntent,
-    AnalysisType,
-    ExtractedVariable,
-    QueryStep
-)
+from .query_parser import ParsedQuery, QueryIntent, AnalysisType, QueryStep
 
 logger = logging.getLogger(__name__)
 
 
 class StepStatus(Enum):
     """Status of an analysis step."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -43,6 +38,7 @@ class StepStatus(Enum):
 
 class AssumptionCheck(Enum):
     """Types of assumption checks."""
+
     NORMALITY = "normality"
     HOMOGENEITY = "homogeneity_of_variance"
     INDEPENDENCE = "independence"
@@ -57,6 +53,7 @@ class AssumptionCheck(Enum):
 @dataclass
 class AssumptionCheckStep:
     """Represents an assumption check in the plan."""
+
     check_type: AssumptionCheck
     description: str
     test_name: str
@@ -68,6 +65,7 @@ class AssumptionCheckStep:
 @dataclass
 class AnalysisStep:
     """Represents a single step in the analysis plan."""
+
     step_id: str
     step_number: int
     title: str
@@ -99,7 +97,7 @@ class AnalysisStep:
                     "test_name": ac.test_name,
                     "critical": ac.critical,
                     "alternative_if_violated": ac.alternative_if_violated,
-                    "threshold": ac.threshold
+                    "threshold": ac.threshold,
                 }
                 for ac in self.assumption_checks
             ],
@@ -109,13 +107,14 @@ class AnalysisStep:
             "alternatives": self.alternatives,
             "depends_on": self.depends_on,
             "status": self.status.value,
-            "notes": self.notes
+            "notes": self.notes,
         }
 
 
 @dataclass
 class AnalysisPlan:
     """Complete analysis plan with all steps."""
+
     plan_id: str
     created_at: datetime
     original_query: str
@@ -142,7 +141,7 @@ class AnalysisPlan:
             "warnings": self.warnings,
             "recommendations": self.recommendations,
             "confidence_score": self.confidence_score,
-            "step_count": len(self.steps)
+            "step_count": len(self.steps),
         }
 
 
@@ -166,7 +165,7 @@ class AnalysisPlanGenerator:
                 {"condition": "Non-normal data", "method": "Mann-Whitney U Test"},
                 {"condition": "Unequal variances", "method": "Welch's t-test"},
             ],
-            "output": ["t-statistic", "p-value", "Cohen's d", "95% CI for difference"]
+            "output": ["t-statistic", "p-value", "Cohen's d", "95% CI for difference"],
         },
         (QueryIntent.COMPARISON, AnalysisType.ANOVA): {
             "method": "One-Way ANOVA",
@@ -175,7 +174,7 @@ class AnalysisPlanGenerator:
                 {"condition": "Non-normal data", "method": "Kruskal-Wallis H Test"},
                 {"condition": "Unequal variances", "method": "Welch's ANOVA"},
             ],
-            "output": ["F-statistic", "p-value", "eta-squared", "Post-hoc comparisons"]
+            "output": ["F-statistic", "p-value", "eta-squared", "Post-hoc comparisons"],
         },
         (QueryIntent.RELATIONSHIP, AnalysisType.CORRELATION): {
             "method": "Pearson Correlation",
@@ -184,19 +183,21 @@ class AnalysisPlanGenerator:
                 {"condition": "Non-normal or ordinal data", "method": "Spearman Correlation"},
                 {"condition": "Outliers present", "method": "Robust correlation (percentage bend)"},
             ],
-            "output": ["r coefficient", "p-value", "95% CI", "R-squared"]
+            "output": ["r coefficient", "p-value", "95% CI", "R-squared"],
         },
         (QueryIntent.PREDICTION, AnalysisType.REGRESSION): {
             "method": "Multiple Linear Regression",
             "assumptions": [
-                AssumptionCheck.LINEARITY, AssumptionCheck.NORMALITY,
-                AssumptionCheck.HOMOSCEDASTICITY, AssumptionCheck.MULTICOLLINEARITY
+                AssumptionCheck.LINEARITY,
+                AssumptionCheck.NORMALITY,
+                AssumptionCheck.HOMOSCEDASTICITY,
+                AssumptionCheck.MULTICOLLINEARITY,
             ],
             "alternatives": [
                 {"condition": "Binary outcome", "method": "Logistic Regression"},
                 {"condition": "Non-linear relationship", "method": "Polynomial Regression"},
             ],
-            "output": ["R-squared", "Adjusted R-squared", "Coefficients", "F-test", "Residual plots"]
+            "output": ["R-squared", "Adjusted R-squared", "Coefficients", "F-test", "Residual plots"],
         },
         (QueryIntent.COMPARISON, AnalysisType.MIXED_MODEL): {
             "method": "Linear Mixed Model",
@@ -204,7 +205,7 @@ class AnalysisPlanGenerator:
             "alternatives": [
                 {"condition": "Non-normal residuals", "method": "GLMM"},
             ],
-            "output": ["Fixed effects", "Random effects", "ICC", "Model comparison"]
+            "output": ["Fixed effects", "Random effects", "ICC", "Model comparison"],
         },
         (QueryIntent.COMPARISON, AnalysisType.CAUSAL): {
             "method": "Propensity Score Matching",
@@ -213,7 +214,7 @@ class AnalysisPlanGenerator:
                 {"condition": "Small sample", "method": "Exact Matching"},
                 {"condition": "Many confounders", "method": "Inverse Probability Weighting"},
             ],
-            "output": ["ATE", "ATT", "Balance diagnostics", "Sensitivity analysis"]
+            "output": ["ATE", "ATT", "Balance diagnostics", "Sensitivity analysis"],
         },
         (QueryIntent.RELATIONSHIP, AnalysisType.MEDIATION): {
             "method": "Baron-Kenny Mediation",
@@ -221,7 +222,7 @@ class AnalysisPlanGenerator:
             "alternatives": [
                 {"condition": "Binary mediator/outcome", "method": "Causal Mediation Analysis"},
             ],
-            "output": ["Direct effect", "Indirect effect", "Total effect", "Sobel test", "Bootstrap CI"]
+            "output": ["Direct effect", "Indirect effect", "Total effect", "Sobel test", "Bootstrap CI"],
         },
         (QueryIntent.COMPARISON, AnalysisType.DID): {
             "method": "Difference-in-Differences",
@@ -229,7 +230,7 @@ class AnalysisPlanGenerator:
             "alternatives": [
                 {"condition": "Staggered treatment", "method": "Staggered DiD (Callaway-Sant'Anna)"},
             ],
-            "output": ["DiD estimate", "Standard error", "Parallel trends test", "Event study plot"]
+            "output": ["DiD estimate", "Standard error", "Parallel trends test", "Event study plot"],
         },
     }
 
@@ -239,55 +240,55 @@ class AnalysisPlanGenerator:
             "description": "Test if the data follows a normal distribution",
             "test_name": "Shapiro-Wilk test",
             "threshold": "p > 0.05 indicates normality",
-            "alternative": "Use non-parametric alternative"
+            "alternative": "Use non-parametric alternative",
         },
         AssumptionCheck.HOMOGENEITY: {
             "description": "Test if groups have equal variances",
             "test_name": "Levene's test",
             "threshold": "p > 0.05 indicates equal variances",
-            "alternative": "Use Welch's correction"
+            "alternative": "Use Welch's correction",
         },
         AssumptionCheck.INDEPENDENCE: {
             "description": "Verify observations are independent",
             "test_name": "Study design review",
             "threshold": "Based on data collection",
-            "alternative": "Use mixed models for nested data"
+            "alternative": "Use mixed models for nested data",
         },
         AssumptionCheck.LINEARITY: {
             "description": "Check for linear relationship between variables",
             "test_name": "Scatter plot / Residual plot",
             "threshold": "Visual inspection",
-            "alternative": "Consider non-linear transformation"
+            "alternative": "Consider non-linear transformation",
         },
         AssumptionCheck.HOMOSCEDASTICITY: {
             "description": "Check for constant variance of residuals",
             "test_name": "Breusch-Pagan test",
             "threshold": "p > 0.05 indicates homoscedasticity",
-            "alternative": "Use robust standard errors"
+            "alternative": "Use robust standard errors",
         },
         AssumptionCheck.MULTICOLLINEARITY: {
             "description": "Check for high correlation among predictors",
             "test_name": "VIF (Variance Inflation Factor)",
             "threshold": "VIF < 5 (or < 10)",
-            "alternative": "Remove or combine correlated predictors"
+            "alternative": "Remove or combine correlated predictors",
         },
         AssumptionCheck.OUTLIERS: {
             "description": "Identify extreme values",
             "test_name": "IQR method / Z-scores",
             "threshold": "> 1.5 IQR or |Z| > 3",
-            "alternative": "Use robust methods or remove with justification"
+            "alternative": "Use robust methods or remove with justification",
         },
         AssumptionCheck.SAMPLE_SIZE: {
             "description": "Check if sample size is adequate",
             "test_name": "Power analysis",
             "threshold": "n per group >= 20 recommended",
-            "alternative": "Consider effect size interpretation"
+            "alternative": "Consider effect size interpretation",
         },
         AssumptionCheck.PARALLEL_TRENDS: {
             "description": "Verify pre-treatment trends are parallel",
             "test_name": "Pre-trend test / Event study",
             "threshold": "Non-significant pre-treatment effects",
-            "alternative": "Consider different control group"
+            "alternative": "Consider different control group",
         },
     }
 
@@ -295,11 +296,7 @@ class AnalysisPlanGenerator:
         """Initialize the plan generator."""
         self._plan_counter = 0
 
-    def generate_plan(
-        self,
-        parsed_query: ParsedQuery,
-        data_context: Optional[Dict[str, Any]] = None
-    ) -> AnalysisPlan:
+    def generate_plan(self, parsed_query: ParsedQuery, data_context: Optional[Dict[str, Any]] = None) -> AnalysisPlan:
         """
         Generate a complete analysis plan from a parsed query.
 
@@ -325,9 +322,7 @@ class AnalysisPlanGenerator:
         if parsed_query.is_multi_step:
             # Handle multi-step queries
             for query_step in parsed_query.steps:
-                step = self._create_step_from_query_step(
-                    query_step, parsed_query, data_context, len(steps) + 1
-                )
+                step = self._create_step_from_query_step(query_step, parsed_query, data_context, len(steps) + 1)
                 if step:
                     steps.append(step)
         else:
@@ -363,13 +358,11 @@ class AnalysisPlanGenerator:
             data_requirements=data_requirements,
             warnings=warnings,
             recommendations=recommendations,
-            confidence_score=parsed_query.confidence_score
+            confidence_score=parsed_query.confidence_score,
         )
 
     def _create_descriptive_step(
-        self,
-        parsed_query: ParsedQuery,
-        data_context: Optional[Dict[str, Any]]
+        self, parsed_query: ParsedQuery, data_context: Optional[Dict[str, Any]]
     ) -> AnalysisStep:
         """Create the initial descriptive statistics step."""
         variables = [v.name for v in parsed_query.variables]
@@ -386,14 +379,14 @@ class AnalysisPlanGenerator:
                     check_type=AssumptionCheck.OUTLIERS,
                     description="Identify potential outliers",
                     test_name="IQR method and box plots",
-                    critical=False
+                    critical=False,
                 ),
                 AssumptionCheckStep(
                     check_type=AssumptionCheck.SAMPLE_SIZE,
                     description="Check adequate sample size",
                     test_name="Count observations",
-                    critical=True
-                )
+                    critical=True,
+                ),
             ],
             required_variables=variables if variables else ["All relevant variables"],
             parameters={"include_visualizations": True},
@@ -401,19 +394,16 @@ class AnalysisPlanGenerator:
                 "Mean, SD, median, range for continuous variables",
                 "Frequencies and percentages for categorical variables",
                 "Missing data summary",
-                "Distribution plots (histograms, box plots)"
+                "Distribution plots (histograms, box plots)",
             ],
             alternatives=[],
             depends_on=[],
             status=StepStatus.PENDING,
-            notes="Always start with understanding your data before formal analysis"
+            notes="Always start with understanding your data before formal analysis",
         )
 
     def _create_main_analysis_step(
-        self,
-        parsed_query: ParsedQuery,
-        data_context: Optional[Dict[str, Any]],
-        step_number: int
+        self, parsed_query: ParsedQuery, data_context: Optional[Dict[str, Any]], step_number: int
     ) -> Optional[AnalysisStep]:
         """Create the main analysis step based on query intent."""
         intent = parsed_query.primary_intent
@@ -442,14 +432,16 @@ class AnalysisPlanGenerator:
         assumption_checks = []
         for check_type in recommendation.get("assumptions", []):
             details = self.ASSUMPTION_DETAILS.get(check_type, {})
-            assumption_checks.append(AssumptionCheckStep(
-                check_type=check_type,
-                description=details.get("description", str(check_type.value)),
-                test_name=details.get("test_name", "Manual check"),
-                critical=True,
-                alternative_if_violated=details.get("alternative"),
-                threshold=details.get("threshold")
-            ))
+            assumption_checks.append(
+                AssumptionCheckStep(
+                    check_type=check_type,
+                    description=details.get("description", str(check_type.value)),
+                    test_name=details.get("test_name", "Manual check"),
+                    critical=True,
+                    alternative_if_violated=details.get("alternative"),
+                    threshold=details.get("threshold"),
+                )
+            )
 
         # Build alternatives
         alternatives = recommendation.get("alternatives", [])
@@ -470,23 +462,16 @@ class AnalysisPlanGenerator:
             method=recommendation["method"],
             assumption_checks=assumption_checks,
             required_variables=required_vars,
-            parameters={
-                "alpha": parsed_query.alpha_level,
-                "groups": parsed_query.comparison_groups
-            },
+            parameters={"alpha": parsed_query.alpha_level, "groups": parsed_query.comparison_groups},
             expected_output=recommendation.get("output", ["Test statistic", "p-value"]),
             alternatives=alternatives,
             depends_on=["step_001"],
             status=StepStatus.PENDING,
-            notes=""
+            notes="",
         )
 
     def _create_step_from_query_step(
-        self,
-        query_step: QueryStep,
-        parsed_query: ParsedQuery,
-        data_context: Optional[Dict[str, Any]],
-        step_number: int
+        self, query_step: QueryStep, parsed_query: ParsedQuery, data_context: Optional[Dict[str, Any]], step_number: int
     ) -> Optional[AnalysisStep]:
         """Create an analysis step from a query step."""
         intent = query_step.intent
@@ -520,20 +505,22 @@ class AnalysisPlanGenerator:
                 alternatives=[],
                 depends_on=[f"step_{d:03d}" for d in query_step.depends_on] if query_step.depends_on else [],
                 status=StepStatus.PENDING,
-                notes="Requires further specification"
+                notes="Requires further specification",
             )
 
         assumption_checks = []
         for check_type in recommendation.get("assumptions", []):
             details = self.ASSUMPTION_DETAILS.get(check_type, {})
-            assumption_checks.append(AssumptionCheckStep(
-                check_type=check_type,
-                description=details.get("description", str(check_type.value)),
-                test_name=details.get("test_name", "Manual check"),
-                critical=True,
-                alternative_if_violated=details.get("alternative"),
-                threshold=details.get("threshold")
-            ))
+            assumption_checks.append(
+                AssumptionCheckStep(
+                    check_type=check_type,
+                    description=details.get("description", str(check_type.value)),
+                    test_name=details.get("test_name", "Manual check"),
+                    critical=True,
+                    alternative_if_violated=details.get("alternative"),
+                    threshold=details.get("threshold"),
+                )
+            )
 
         return AnalysisStep(
             step_id=f"step_{step_number:03d}",
@@ -549,14 +536,10 @@ class AnalysisPlanGenerator:
             alternatives=recommendation.get("alternatives", []),
             depends_on=[f"step_{d:03d}" for d in query_step.depends_on] if query_step.depends_on else [],
             status=StepStatus.PENDING,
-            notes=""
+            notes="",
         )
 
-    def _create_generic_step(
-        self,
-        parsed_query: ParsedQuery,
-        step_number: int
-    ) -> AnalysisStep:
+    def _create_generic_step(self, parsed_query: ParsedQuery, step_number: int) -> AnalysisStep:
         """Create a generic analysis step when no specific match found."""
         return AnalysisStep(
             step_id=f"step_{step_number:03d}",
@@ -570,7 +553,7 @@ class AnalysisPlanGenerator:
                     check_type=AssumptionCheck.NORMALITY,
                     description="Check data distribution",
                     test_name="Shapiro-Wilk test",
-                    critical=True
+                    critical=True,
                 )
             ],
             required_variables=[v.name for v in parsed_query.variables],
@@ -579,7 +562,7 @@ class AnalysisPlanGenerator:
             alternatives=[],
             depends_on=["step_001"],
             status=StepStatus.PENDING,
-            notes="Please provide more details about your research question for specific recommendations"
+            notes="Please provide more details about your research question for specific recommendations",
         )
 
     def _create_effect_size_step(self, step_number: int) -> AnalysisStep:
@@ -597,12 +580,12 @@ class AnalysisPlanGenerator:
             expected_output=[
                 "Effect size value (Cohen's d, eta-squared, r, etc.)",
                 "Confidence interval for effect size",
-                "Interpretation (small/medium/large)"
+                "Interpretation (small/medium/large)",
             ],
             alternatives=[],
             depends_on=[f"step_{step_number-1:03d}"],
             status=StepStatus.PENDING,
-            notes="Effect sizes are essential for understanding practical significance beyond p-values"
+            notes="Effect sizes are essential for understanding practical significance beyond p-values",
         )
 
     def _create_reporting_step(self, step_number: int) -> AnalysisStep:
@@ -621,19 +604,15 @@ class AnalysisPlanGenerator:
                 "Methods section paragraph",
                 "Results section paragraph",
                 "Statistical notation (italics, formatting)",
-                "Tables and figures with proper formatting"
+                "Tables and figures with proper formatting",
             ],
             alternatives=[],
             depends_on=[f"step_{step_number-1:03d}"],
             status=StepStatus.PENDING,
-            notes="Ensure all statistics include effect sizes and confidence intervals"
+            notes="Ensure all statistics include effect sizes and confidence intervals",
         )
 
-    def _generate_warnings(
-        self,
-        parsed_query: ParsedQuery,
-        data_context: Optional[Dict[str, Any]]
-    ) -> List[str]:
+    def _generate_warnings(self, parsed_query: ParsedQuery, data_context: Optional[Dict[str, Any]]) -> List[str]:
         """Generate warnings based on query and context."""
         warnings = []
 
@@ -643,7 +622,9 @@ class AnalysisPlanGenerator:
 
         # Sample size warning
         if parsed_query.sample_size_mentioned and parsed_query.sample_size_mentioned < 30:
-            warnings.append(f"Sample size (n={parsed_query.sample_size_mentioned}) may be too small for reliable inference.")
+            warnings.append(
+                f"Sample size (n={parsed_query.sample_size_mentioned}) may be too small for reliable inference."
+            )
 
         # Multi-step complexity warning
         if parsed_query.is_multi_step and len(parsed_query.steps) > 3:
@@ -659,11 +640,7 @@ class AnalysisPlanGenerator:
 
         return warnings
 
-    def _generate_recommendations(
-        self,
-        parsed_query: ParsedQuery,
-        steps: List[AnalysisStep]
-    ) -> List[str]:
+    def _generate_recommendations(self, parsed_query: ParsedQuery, steps: List[AnalysisStep]) -> List[str]:
         """Generate general recommendations."""
         recommendations = []
 
@@ -682,11 +659,7 @@ class AnalysisPlanGenerator:
 
         return recommendations
 
-    def _collect_data_requirements(
-        self,
-        parsed_query: ParsedQuery,
-        steps: List[AnalysisStep]
-    ) -> List[str]:
+    def _collect_data_requirements(self, parsed_query: ParsedQuery, steps: List[AnalysisStep]) -> List[str]:
         """Collect all data requirements from the plan."""
         requirements = set()
 
@@ -706,11 +679,7 @@ class AnalysisPlanGenerator:
 
         return list(requirements)
 
-    def _generate_summary(
-        self,
-        parsed_query: ParsedQuery,
-        steps: List[AnalysisStep]
-    ) -> str:
+    def _generate_summary(self, parsed_query: ParsedQuery, steps: List[AnalysisStep]) -> str:
         """Generate a plan summary."""
         intent_desc = {
             QueryIntent.COMPARISON: "compare groups",

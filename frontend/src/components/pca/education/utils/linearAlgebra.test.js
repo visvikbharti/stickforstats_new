@@ -317,7 +317,7 @@ describe('Maximum Variance Finding', () => {
       { x: 4, y: 4 }
     ];
 
-    const { angle, variance, eigenvector } = findMaxVarianceAngleExact(points);
+    const { angle, variance: _variance, eigenvector } = findMaxVarianceAngleExact(points);
 
     // Should find 45° (diagonal)
     expect(angle).toBeCloseTo(Math.PI / 4, 2);

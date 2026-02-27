@@ -290,6 +290,7 @@ export function levenbergMarquardt(model, xData, yData, initialParams, options =
     const Jtr = matrixVectorMultiply(matrixTranspose(Jw), residuals);
 
     // Add damping: (J^T * J + lambda * diag(J^T * J)) * delta = J^T * r
+    // eslint-disable-next-line no-loop-func
     const JtJdamped = JtJ.map((row, i) =>
       row.map((val, j) => i === j ? val * (1 + lambda) : val)
     );
@@ -567,7 +568,7 @@ export const MODELS = {
    * Y = Bottom + (Top - Bottom) / (1 + exp((Tm - T) / slope))
    */
   boltzmann: (T, params) => {
-    const { Bottom, Top, Tm, slope } = params;
+    const { Bottom, Top, slope } = params;
     return Bottom + (Top - Bottom) / (1 + Math.exp((params.Tm - T) / slope));
   },
 
@@ -833,7 +834,7 @@ export function fitThermalDenaturation(temperature, signal, options = {}) {
   );
 }
 
-export default {
+const nonLinearRegression = {
   levenbergMarquardt,
   MODELS,
   fitMichaelisMenten,
@@ -845,3 +846,5 @@ export default {
   calculateAIC,
   calculateBIC
 };
+
+export default nonLinearRegression;

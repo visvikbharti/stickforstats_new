@@ -61,9 +61,7 @@ class Migration(migrations.Migration):
                 ("logo_url", models.URLField(blank=True)),
                 (
                     "primary_color",
-                    models.CharField(
-                        blank=True, help_text="Hex color e.g. #1976d2", max_length=7
-                    ),
+                    models.CharField(blank=True, help_text="Hex color e.g. #1976d2", max_length=7),
                 ),
                 ("contact_email", models.EmailField(blank=True, max_length=254)),
                 ("website", models.URLField(blank=True)),
@@ -91,21 +89,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        help_text="Descriptive name for this key", max_length=100
-                    ),
+                    models.CharField(help_text="Descriptive name for this key", max_length=100),
                 ),
                 (
                     "key_prefix",
-                    models.CharField(
-                        help_text="First 8 chars for identification", max_length=8
-                    ),
+                    models.CharField(help_text="First 8 chars for identification", max_length=8),
                 ),
                 (
                     "key_hash",
-                    models.CharField(
-                        help_text="SHA-256 hash of full key", max_length=128
-                    ),
+                    models.CharField(help_text="SHA-256 hash of full key", max_length=128),
                 ),
                 (
                     "scopes",
@@ -164,15 +156,11 @@ class Migration(migrations.Migration):
                 ("description", models.TextField(blank=True)),
                 (
                     "price_monthly_cents",
-                    models.IntegerField(
-                        default=0, help_text="Monthly price in cents (0=free)"
-                    ),
+                    models.IntegerField(default=0, help_text="Monthly price in cents (0=free)"),
                 ),
                 (
                     "price_yearly_cents",
-                    models.IntegerField(
-                        default=0, help_text="Yearly price in cents (discount)"
-                    ),
+                    models.IntegerField(default=0, help_text="Yearly price in cents (discount)"),
                 ),
                 (
                     "stripe_price_id_monthly",
@@ -200,9 +188,7 @@ class Migration(migrations.Migration):
                 ("is_active", models.BooleanField(default=True)),
                 (
                     "is_default",
-                    models.BooleanField(
-                        default=False, help_text="Default tier for new orgs"
-                    ),
+                    models.BooleanField(default=False, help_text="Default tier for new orgs"),
                 ),
                 ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
@@ -271,9 +257,7 @@ class Migration(migrations.Migration):
                 ("credits_consumed", models.IntegerField(default=1)),
                 (
                     "timestamp",
-                    models.DateTimeField(
-                        db_index=True, default=django.utils.timezone.now
-                    ),
+                    models.DateTimeField(db_index=True, default=django.utils.timezone.now),
                 ),
                 (
                     "api_key",

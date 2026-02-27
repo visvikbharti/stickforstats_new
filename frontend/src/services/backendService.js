@@ -554,7 +554,7 @@ export const exportService = {
 };
 
 // Export all services as default
-export default {
+const backendService = {
   descriptiveStatistics: descriptiveStatisticsService,
   tTest: tTestService,
   anova: anovaService,
@@ -566,3 +566,5 @@ export default {
   dataValidation: dataValidationService,
   export: exportService
 };
+
+export default backendService;

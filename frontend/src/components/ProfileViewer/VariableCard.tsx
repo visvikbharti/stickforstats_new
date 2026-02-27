@@ -10,14 +10,12 @@ import React, { useState } from 'react';
 import {
   Card,
   CardContent,
-  CardActions,
   Typography,
   Box,
   Chip,
   IconButton,
   Collapse,
   Checkbox,
-  Tooltip,
   LinearProgress,
   List,
   ListItem,
@@ -29,8 +27,6 @@ import {
   ExpandLess as ExpandLessIcon,
   Info as InfoIcon,
   Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  TrendingUp as TrendingUpIcon,
   ShowChart as ShowChartIcon,
   BarChart as BarChartIcon,
 } from '@mui/icons-material';

@@ -46,7 +46,7 @@ export function useValidation(options = {}) {
     schema = {},
     mode = 'onChange', // 'onChange', 'onBlur', 'onSubmit', 'realtime'
     debounceMs = 300,
-    showSuccessIndicator = true,
+    showSuccessIndicator: _showSuccessIndicator = true,
     enableAudit = true
   } = options;
 
@@ -343,6 +343,7 @@ export function useFormValidation(initialValues = {}, schema = {}, options = {})
     Object.entries(initialValues).forEach(([key, value]) => {
       validation.setFieldValue(key, value);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only on mount
 
   /**
@@ -546,9 +547,11 @@ export function useLiveValidation(value, schema, options = {}) {
   };
 }
 
-export default {
+const validationHooks = {
   useValidation,
   useFormValidation,
   useArrayValidation,
   useLiveValidation
 };
+
+export default validationHooks;

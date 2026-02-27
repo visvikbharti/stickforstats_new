@@ -359,7 +359,7 @@ export function generateJSONReport(report) {
  * @returns {string} - Summary statement
  */
 export function generateSummaryStatement(report) {
-  const { qualitySummary, statisticalSummary, issues } = report;
+  const { qualitySummary, statisticalSummary, issues: _issues } = report;
 
   const parts = [];
 
@@ -387,10 +387,12 @@ export function generateSummaryStatement(report) {
   return parts.join(' ');
 }
 
-export default {
+const reportGenerator = {
   JARS_CHECKLIST,
   generateReport,
   generateTextReport,
   generateJSONReport,
   generateSummaryStatement
 };
+
+export default reportGenerator;

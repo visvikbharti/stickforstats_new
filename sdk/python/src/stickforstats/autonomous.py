@@ -4,7 +4,7 @@ Autonomous Intelligence module — wraps ``/api/v1/autonomous/*`` endpoints.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any
 
 from stickforstats.models import CascadeResult, ProfileResult, QueryResult, TranslateResult
 
@@ -25,7 +25,7 @@ class AutonomousModule:
 
     def profile(
         self,
-        data: Union[Dict[str, List[Any]], List[Dict[str, Any]]],
+        data: dict[str, list[Any]] | list[dict[str, Any]],
         **kwargs: Any,
     ) -> ProfileResult:
         """
@@ -42,14 +42,14 @@ class AutonomousModule:
         -------
         ProfileResult
         """
-        payload: Dict[str, Any] = {"data": data, **kwargs}
+        payload: dict[str, Any] = {"data": data, **kwargs}
         resp = self._client.post("autonomous/profile/", json=payload)
         return ProfileResult.model_validate(resp)
 
     def query(
         self,
         question: str,
-        data: Union[Dict[str, List[Any]], List[Dict[str, Any]]],
+        data: dict[str, list[Any]] | list[dict[str, Any]],
         *,
         alpha: float = 0.05,
         **kwargs: Any,
@@ -72,7 +72,7 @@ class AutonomousModule:
         -------
         QueryResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "question": question,
             "data": data,
             "alpha": alpha,
@@ -83,7 +83,7 @@ class AutonomousModule:
 
     def cascade(
         self,
-        data: Union[Dict[str, List[Any]], List[Dict[str, Any]]],
+        data: dict[str, list[Any]] | list[dict[str, Any]],
         test: str,
         *,
         alpha: float = 0.05,
@@ -107,7 +107,7 @@ class AutonomousModule:
         -------
         CascadeResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "data": data,
             "test": test,
             "alpha": alpha,
@@ -118,7 +118,7 @@ class AutonomousModule:
 
     def translate(
         self,
-        results: Dict[str, Any],
+        results: dict[str, Any],
         *,
         audience: str = "general",
         **kwargs: Any,
@@ -137,7 +137,7 @@ class AutonomousModule:
         -------
         TranslateResult
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "results": results,
             "audience": audience,
             **kwargs,

@@ -622,7 +622,7 @@ export async function batchCalculate(calculations) {
 /**
  * Export all validated functions
  */
-export default {
+const validatedDistributions = {
   // Individual calculations
   normalPdf,
   binomialPmf,
@@ -648,3 +648,5 @@ export default {
   // Schemas for external use
   DISTRIBUTION_SCHEMAS
 };
+
+export default validatedDistributions;

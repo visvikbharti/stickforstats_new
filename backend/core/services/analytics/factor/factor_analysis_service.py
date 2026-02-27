@@ -24,14 +24,11 @@ Created: October 23, 2025
 import numpy as np
 import pandas as pd
 import logging
-from typing import Dict, Any, List, Tuple, Optional, Union
+from typing import Dict, Any, List, Optional
 import uuid
-import json
 import os
 import pickle
 from core.utils.safe_pickle import safe_pickle_load
-from pathlib import Path
-from datetime import datetime
 
 from django.conf import settings
 
@@ -39,19 +36,20 @@ from django.conf import settings
 try:
     from factor_analyzer import FactorAnalyzer
     from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity, calculate_kmo
+
     FACTOR_ANALYZER_AVAILABLE = True
 except ImportError:
     FACTOR_ANALYZER_AVAILABLE = False
 
 # Fallback to sklearn if factor_analyzer not available
 try:
-    from sklearn.decomposition import FactorAnalysis as SklearnFA
+    pass
+
     SKLEARN_FA_AVAILABLE = True
 except ImportError:
     SKLEARN_FA_AVAILABLE = False
 
-from scipy import stats
-from core.services.error_handler import safe_operation, try_except
+from core.services.error_handler import safe_operation
 
 logger = logging.getLogger(__name__)
 
@@ -98,15 +96,16 @@ class FactorAnalysisService:
             Dictionary with availability information
         """
         return {
-            'factor_analyzer_available': self.factor_analyzer_available,
-            'sklearn_available': self.sklearn_available,
-            'recommended_library': 'factor_analyzer' if self.factor_analyzer_available else 'sklearn',
-            'status': 'available' if (self.factor_analyzer_available or self.sklearn_available) else 'unavailable',
-            'recommendation': (
-                "Full factor analysis is available with factor_analyzer." if self.factor_analyzer_available else
-                "Basic factor analysis is available with sklearn. For full features, install factor_analyzer. "
+            "factor_analyzer_available": self.factor_analyzer_available,
+            "sklearn_available": self.sklearn_available,
+            "recommended_library": "factor_analyzer" if self.factor_analyzer_available else "sklearn",
+            "status": "available" if (self.factor_analyzer_available or self.sklearn_available) else "unavailable",
+            "recommendation": (
+                "Full factor analysis is available with factor_analyzer."
+                if self.factor_analyzer_available
+                else "Basic factor analysis is available with sklearn. For full features, install factor_analyzer. "
                 "Run: pip install factor-analyzer"
-            )
+            ),
         }
 
     @safe_operation
@@ -130,8 +129,7 @@ class FactorAnalysisService:
         """
         if not self.factor_analyzer_available:
             raise RuntimeError(
-                "factor_analyzer library required for adequacy tests. "
-                "Install with: pip install factor-analyzer"
+                "factor_analyzer library required for adequacy tests. " "Install with: pip install factor-analyzer"
             )
 
         # Validate data
@@ -154,54 +152,54 @@ class FactorAnalysisService:
             raise ValueError("All variables must be numeric for factor analysis")
 
         results = {
-            'n_observations': len(numeric_data),
-            'n_variables': numeric_data.shape[1],
-            'adequacy_status': 'unknown'
+            "n_observations": len(numeric_data),
+            "n_variables": numeric_data.shape[1],
+            "adequacy_status": "unknown",
         }
 
         # Bartlett's test of sphericity
         try:
             chi_square, p_value = calculate_bartlett_sphericity(numeric_data)
-            results['bartlett_test'] = {
-                'chi_square': float(chi_square),
-                'p_value': float(p_value),
-                'degrees_of_freedom': numeric_data.shape[1] * (numeric_data.shape[1] - 1) // 2,
-                'is_significant': p_value < 0.05,
-                'interpretation': (
+            results["bartlett_test"] = {
+                "chi_square": float(chi_square),
+                "p_value": float(p_value),
+                "degrees_of_freedom": numeric_data.shape[1] * (numeric_data.shape[1] - 1) // 2,
+                "is_significant": p_value < 0.05,
+                "interpretation": (
                     "Data is suitable for factor analysis (correlation matrix differs from identity)"
-                    if p_value < 0.05 else
-                    "Warning: Data may not be suitable (correlation matrix similar to identity)"
-                )
+                    if p_value < 0.05
+                    else "Warning: Data may not be suitable (correlation matrix similar to identity)"
+                ),
             }
         except Exception as e:
             logger.error(f"Bartlett's test failed: {str(e)}")
-            results['bartlett_test'] = {'error': str(e)}
+            results["bartlett_test"] = {"error": str(e)}
 
         # KMO measure
         try:
             kmo_all, kmo_model = calculate_kmo(numeric_data)
-            results['kmo_test'] = {
-                'overall_kmo': float(kmo_model),
-                'variable_kmo': {col: float(kmo_all[i]) for i, col in enumerate(numeric_data.columns)},
-                'interpretation': self._interpret_kmo(kmo_model)
+            results["kmo_test"] = {
+                "overall_kmo": float(kmo_model),
+                "variable_kmo": {col: float(kmo_all[i]) for i, col in enumerate(numeric_data.columns)},
+                "interpretation": self._interpret_kmo(kmo_model),
             }
         except Exception as e:
             logger.error(f"KMO test failed: {str(e)}")
-            results['kmo_test'] = {'error': str(e)}
+            results["kmo_test"] = {"error": str(e)}
 
         # Overall adequacy assessment
-        bartlett_ok = results.get('bartlett_test', {}).get('is_significant', False)
-        kmo_ok = results.get('kmo_test', {}).get('overall_kmo', 0) > 0.5
+        bartlett_ok = results.get("bartlett_test", {}).get("is_significant", False)
+        kmo_ok = results.get("kmo_test", {}).get("overall_kmo", 0) > 0.5
 
         if bartlett_ok and kmo_ok:
-            results['adequacy_status'] = 'excellent'
-            results['recommendation'] = "Data is well-suited for factor analysis. Proceed with confidence."
+            results["adequacy_status"] = "excellent"
+            results["recommendation"] = "Data is well-suited for factor analysis. Proceed with confidence."
         elif bartlett_ok or kmo_ok:
-            results['adequacy_status'] = 'acceptable'
-            results['recommendation'] = "Data is acceptable for factor analysis, but interpret with caution."
+            results["adequacy_status"] = "acceptable"
+            results["recommendation"] = "Data is acceptable for factor analysis, but interpret with caution."
         else:
-            results['adequacy_status'] = 'poor'
-            results['recommendation'] = "Data may not be suitable for factor analysis. Consider alternative methods."
+            results["adequacy_status"] = "poor"
+            results["recommendation"] = "Data may not be suitable for factor analysis. Consider alternative methods."
 
         return results
 
@@ -229,9 +227,9 @@ class FactorAnalysisService:
             return "Unacceptable (KMO < 0.50)"
 
     @safe_operation
-    def determine_n_factors(self,
-                           data: pd.DataFrame,
-                           methods: List[str] = ['kaiser', 'scree', 'parallel']) -> Dict[str, Any]:
+    def determine_n_factors(
+        self, data: pd.DataFrame, methods: List[str] = ["kaiser", "scree", "parallel"]
+    ) -> Dict[str, Any]:
         """
         Determine optimal number of factors using multiple methods.
 
@@ -251,53 +249,50 @@ class FactorAnalysisService:
         if numeric_data.shape[1] < 3:
             raise ValueError("Need at least 3 variables for factor analysis")
 
-        results = {
-            'n_variables': numeric_data.shape[1],
-            'methods': {}
-        }
+        results = {"n_variables": numeric_data.shape[1], "methods": {}}
 
         # Kaiser criterion (eigenvalue > 1)
-        if 'kaiser' in methods:
+        if "kaiser" in methods:
             fa_test = FactorAnalyzer(n_factors=numeric_data.shape[1], rotation=None)
             fa_test.fit(numeric_data)
             eigenvalues, _ = fa_test.get_eigenvalues()
 
             n_factors_kaiser = np.sum(eigenvalues > 1)
 
-            results['methods']['kaiser'] = {
-                'name': 'Kaiser Criterion',
-                'n_factors_recommended': int(n_factors_kaiser),
-                'eigenvalues': eigenvalues.tolist(),
-                'criterion': 'Eigenvalue > 1.0',
-                'interpretation': f"Retain {n_factors_kaiser} factors with eigenvalues greater than 1.0"
+            results["methods"]["kaiser"] = {
+                "name": "Kaiser Criterion",
+                "n_factors_recommended": int(n_factors_kaiser),
+                "eigenvalues": eigenvalues.tolist(),
+                "criterion": "Eigenvalue > 1.0",
+                "interpretation": f"Retain {n_factors_kaiser} factors with eigenvalues greater than 1.0",
             }
 
         # Scree plot (visual elbow method)
-        if 'scree' in methods:
-            if 'kaiser' not in methods:  # Get eigenvalues if not already done
+        if "scree" in methods:
+            if "kaiser" not in methods:  # Get eigenvalues if not already done
                 fa_test = FactorAnalyzer(n_factors=numeric_data.shape[1], rotation=None)
                 fa_test.fit(numeric_data)
                 eigenvalues, _ = fa_test.get_eigenvalues()
             else:
-                eigenvalues = np.array(results['methods']['kaiser']['eigenvalues'])
+                eigenvalues = np.array(results["methods"]["kaiser"]["eigenvalues"])
 
             # Find elbow using differences
             eigenvalue_diffs = np.diff(eigenvalues)
             elbow_idx = np.argmax(eigenvalue_diffs[:-1] - eigenvalue_diffs[1:]) + 1
 
-            results['methods']['scree'] = {
-                'name': 'Scree Plot',
-                'n_factors_recommended': int(elbow_idx),
-                'scree_data': {
-                    'factor_numbers': list(range(1, len(eigenvalues) + 1)),
-                    'eigenvalues': eigenvalues.tolist(),
-                    'cumulative_variance': np.cumsum(eigenvalues / eigenvalues.sum()).tolist()
+            results["methods"]["scree"] = {
+                "name": "Scree Plot",
+                "n_factors_recommended": int(elbow_idx),
+                "scree_data": {
+                    "factor_numbers": list(range(1, len(eigenvalues) + 1)),
+                    "eigenvalues": eigenvalues.tolist(),
+                    "cumulative_variance": np.cumsum(eigenvalues / eigenvalues.sum()).tolist(),
                 },
-                'interpretation': f"Elbow detected at factor {elbow_idx}"
+                "interpretation": f"Elbow detected at factor {elbow_idx}",
             }
 
         # Parallel analysis (compare to random data)
-        if 'parallel' in methods:
+        if "parallel" in methods:
             n_iterations = 100
             n_obs, n_vars = numeric_data.shape
 
@@ -312,52 +307,50 @@ class FactorAnalysisService:
             mean_random_eigenvalues = np.mean(random_eigenvalues, axis=0)
 
             # Get actual eigenvalues
-            if 'kaiser' not in methods and 'scree' not in methods:
+            if "kaiser" not in methods and "scree" not in methods:
                 fa_test = FactorAnalyzer(n_factors=numeric_data.shape[1], rotation=None)
                 fa_test.fit(numeric_data)
                 eigenvalues, _ = fa_test.get_eigenvalues()
             else:
-                eigenvalues = np.array(results['methods'][
-                    'kaiser' if 'kaiser' in methods else 'scree'
-                ]['eigenvalues' if 'kaiser' in methods else 'scree_data']['eigenvalues'])
+                eigenvalues = np.array(
+                    results["methods"]["kaiser" if "kaiser" in methods else "scree"][
+                        "eigenvalues" if "kaiser" in methods else "scree_data"
+                    ]["eigenvalues"]
+                )
 
             # Count factors where actual > random
             n_factors_parallel = np.sum(eigenvalues > mean_random_eigenvalues)
 
-            results['methods']['parallel'] = {
-                'name': 'Parallel Analysis',
-                'n_factors_recommended': int(n_factors_parallel),
-                'actual_eigenvalues': eigenvalues.tolist(),
-                'random_eigenvalues': mean_random_eigenvalues.tolist(),
-                'criterion': 'Actual eigenvalue > random eigenvalue',
-                'interpretation': f"Retain {n_factors_parallel} factors exceeding random data eigenvalues"
+            results["methods"]["parallel"] = {
+                "name": "Parallel Analysis",
+                "n_factors_recommended": int(n_factors_parallel),
+                "actual_eigenvalues": eigenvalues.tolist(),
+                "random_eigenvalues": mean_random_eigenvalues.tolist(),
+                "criterion": "Actual eigenvalue > random eigenvalue",
+                "interpretation": f"Retain {n_factors_parallel} factors exceeding random data eigenvalues",
             }
 
         # Consensus recommendation
-        recommendations = [
-            results['methods'][method]['n_factors_recommended']
-            for method in results['methods']
-        ]
+        recommendations = [results["methods"][method]["n_factors_recommended"] for method in results["methods"]]
 
-        results['consensus'] = {
-            'recommended_n_factors': int(np.median(recommendations)),
-            'range': [int(min(recommendations)), int(max(recommendations))],
-            'agreement': len(set(recommendations)) == 1,
-            'interpretation': (
-                f"All methods agree on {recommendations[0]} factors" if len(set(recommendations)) == 1
+        results["consensus"] = {
+            "recommended_n_factors": int(np.median(recommendations)),
+            "range": [int(min(recommendations)), int(max(recommendations))],
+            "agreement": len(set(recommendations)) == 1,
+            "interpretation": (
+                f"All methods agree on {recommendations[0]} factors"
+                if len(set(recommendations)) == 1
                 else f"Methods suggest between {min(recommendations)} and {max(recommendations)} factors. "
-                     f"Median recommendation: {int(np.median(recommendations))} factors"
-            )
+                f"Median recommendation: {int(np.median(recommendations))} factors"
+            ),
         }
 
         return results
 
     @safe_operation
-    def exploratory_factor_analysis(self,
-                                    data: pd.DataFrame,
-                                    n_factors: Optional[int] = None,
-                                    rotation: str = 'varimax',
-                                    method: str = 'minres') -> Dict[str, Any]:
+    def exploratory_factor_analysis(
+        self, data: pd.DataFrame, n_factors: Optional[int] = None, rotation: str = "varimax", method: str = "minres"
+    ) -> Dict[str, Any]:
         """
         Perform Exploratory Factor Analysis (EFA).
 
@@ -382,8 +375,7 @@ class FactorAnalysisService:
         """
         if not self.factor_analyzer_available:
             raise RuntimeError(
-                "factor_analyzer library required for full EFA. "
-                "Install with: pip install factor-analyzer"
+                "factor_analyzer library required for full EFA. " "Install with: pip install factor-analyzer"
             )
 
         # Clean data
@@ -396,8 +388,8 @@ class FactorAnalysisService:
 
         # Determine n_factors if not provided
         if n_factors is None:
-            factor_selection = self.determine_n_factors(numeric_data, methods=['kaiser'])
-            n_factors = factor_selection['methods']['kaiser']['n_factors_recommended']
+            factor_selection = self.determine_n_factors(numeric_data, methods=["kaiser"])
+            n_factors = factor_selection["methods"]["kaiser"]["n_factors_recommended"]
             logger.info(f"Automatically selected {n_factors} factors using Kaiser criterion")
 
         # Validate n_factors
@@ -419,71 +411,64 @@ class FactorAnalysisService:
         variance = fa.get_factor_variance()
 
         results = {
-            'analysis_type': 'exploratory_factor_analysis',
-            'n_observations': len(numeric_data),
-            'n_variables': len(variable_names),
-            'n_factors': n_factors,
-            'rotation': rotation,
-            'extraction_method': method,
-            'variable_names': variable_names
+            "analysis_type": "exploratory_factor_analysis",
+            "n_observations": len(numeric_data),
+            "n_variables": len(variable_names),
+            "n_factors": n_factors,
+            "rotation": rotation,
+            "extraction_method": method,
+            "variable_names": variable_names,
         }
 
         # Factor loadings
-        results['factor_loadings'] = {
-            'matrix': loadings.tolist(),
-            'variables': variable_names,
-            'factors': [f'Factor_{i+1}' for i in range(n_factors)],
-            'interpretation': self._interpret_loadings(loadings, variable_names, threshold=0.3)
+        results["factor_loadings"] = {
+            "matrix": loadings.tolist(),
+            "variables": variable_names,
+            "factors": [f"Factor_{i+1}" for i in range(n_factors)],
+            "interpretation": self._interpret_loadings(loadings, variable_names, threshold=0.3),
         }
 
         # Communalities
-        results['communalities'] = {
-            variable: float(comm)
-            for variable, comm in zip(variable_names, communalities)
-        }
+        results["communalities"] = {variable: float(comm) for variable, comm in zip(variable_names, communalities)}
 
         # Uniquenesses
-        results['uniquenesses'] = {
-            variable: float(uniq)
-            for variable, uniq in zip(variable_names, uniquenesses)
-        }
+        results["uniquenesses"] = {variable: float(uniq) for variable, uniq in zip(variable_names, uniquenesses)}
 
         # Variance explained
-        results['variance_explained'] = {
-            'variance_per_factor': variance[0].tolist(),
-            'proportional_variance': variance[1].tolist(),
-            'cumulative_variance': variance[2].tolist(),
-            'total_variance_explained': float(variance[2][-1])
+        results["variance_explained"] = {
+            "variance_per_factor": variance[0].tolist(),
+            "proportional_variance": variance[1].tolist(),
+            "cumulative_variance": variance[2].tolist(),
+            "total_variance_explained": float(variance[2][-1]),
         }
 
         # Factor scores
         try:
             factor_scores = fa.transform(numeric_data)
-            results['factor_scores'] = {
-                'scores': factor_scores.tolist(),
-                'n_observations': len(factor_scores),
-                'factor_names': [f'Factor_{i+1}' for i in range(n_factors)]
+            results["factor_scores"] = {
+                "scores": factor_scores.tolist(),
+                "n_observations": len(factor_scores),
+                "factor_names": [f"Factor_{i+1}" for i in range(n_factors)],
             }
         except Exception as e:
             logger.warning(f"Could not compute factor scores: {str(e)}")
-            results['factor_scores'] = None
+            results["factor_scores"] = None
 
         # Overall interpretation
-        results['interpretation'] = self._interpret_fa_results(results)
+        results["interpretation"] = self._interpret_fa_results(results)
 
         # Store model
         model_id = str(uuid.uuid4())
         model_path = os.path.join(self.models_dir, f"fa_model_{model_id}.pkl")
-        with open(model_path, 'wb') as f:
+        with open(model_path, "wb") as f:
             pickle.dump(fa, f)
-        results['model_id'] = model_id
+        results["model_id"] = model_id
 
         return results
 
-    def _interpret_loadings(self,
-                           loadings: np.ndarray,
-                           variable_names: List[str],
-                           threshold: float = 0.3) -> Dict[str, List[str]]:
+    def _interpret_loadings(
+        self, loadings: np.ndarray, variable_names: List[str], threshold: float = 0.3
+    ) -> Dict[str, List[str]]:
         """
         Interpret factor loadings by identifying which variables load on which factors.
 
@@ -499,21 +484,18 @@ class FactorAnalysisService:
         interpretation = {}
 
         for factor_idx in range(n_factors):
-            factor_name = f'Factor_{factor_idx + 1}'
+            factor_name = f"Factor_{factor_idx + 1}"
             factor_loadings = loadings[:, factor_idx]
 
             # Find variables with significant loadings
             significant_vars = [
-                {
-                    'variable': variable_names[i],
-                    'loading': float(factor_loadings[i])
-                }
+                {"variable": variable_names[i], "loading": float(factor_loadings[i])}
                 for i in range(len(variable_names))
                 if abs(factor_loadings[i]) >= threshold
             ]
 
             # Sort by absolute loading value
-            significant_vars.sort(key=lambda x: abs(x['loading']), reverse=True)
+            significant_vars.sort(key=lambda x: abs(x["loading"]), reverse=True)
 
             interpretation[factor_name] = significant_vars
 
@@ -531,9 +513,9 @@ class FactorAnalysisService:
         """
         interpretation = []
 
-        n_factors = results['n_factors']
-        n_vars = results['n_variables']
-        total_var = results['variance_explained']['total_variance_explained']
+        n_factors = results["n_factors"]
+        n_vars = results["n_variables"]
+        total_var = results["variance_explained"]["total_variance_explained"]
 
         interpretation.append(
             f"Extracted {n_factors} factors from {n_vars} variables, "
@@ -541,24 +523,18 @@ class FactorAnalysisService:
         )
 
         # Describe each factor
-        for factor_name, variables in results['factor_loadings']['interpretation'].items():
+        for factor_name, variables in results["factor_loadings"]["interpretation"].items():
             if variables:
-                top_vars = [v['variable'] for v in variables[:3]]
-                interpretation.append(
-                    f"{factor_name} primarily loads on: {', '.join(top_vars)}"
-                )
+                top_vars = [v["variable"] for v in variables[:3]]
+                interpretation.append(f"{factor_name} primarily loads on: {', '.join(top_vars)}")
 
         # Adequacy
-        interpretation.append(
-            f"Used {results['rotation']} rotation with {results['extraction_method']} extraction."
-        )
+        interpretation.append(f"Used {results['rotation']} rotation with {results['extraction_method']} extraction.")
 
         return " ".join(interpretation)
 
     @safe_operation
-    def transform_to_factors(self,
-                            model_id: str,
-                            new_data: pd.DataFrame) -> Dict[str, Any]:
+    def transform_to_factors(self, model_id: str, new_data: pd.DataFrame) -> Dict[str, Any]:
         """
         Transform new data to factor scores using a fitted model.
 
@@ -575,7 +551,7 @@ class FactorAnalysisService:
             raise FileNotFoundError(f"Model with ID {model_id} not found")
 
         # Load model
-        with open(model_path, 'rb') as f:
+        with open(model_path, "rb") as f:
             fa = safe_pickle_load(f)
 
         # Transform data
@@ -583,11 +559,11 @@ class FactorAnalysisService:
         factor_scores = fa.transform(numeric_data)
 
         results = {
-            'model_id': model_id,
-            'n_observations': len(factor_scores),
-            'n_factors': factor_scores.shape[1],
-            'factor_scores': factor_scores.tolist(),
-            'factor_names': [f'Factor_{i+1}' for i in range(factor_scores.shape[1])]
+            "model_id": model_id,
+            "n_observations": len(factor_scores),
+            "n_factors": factor_scores.shape[1],
+            "factor_scores": factor_scores.tolist(),
+            "factor_names": [f"Factor_{i+1}" for i in range(factor_scores.shape[1])],
         }
 
         return results
@@ -595,6 +571,7 @@ class FactorAnalysisService:
 
 # Singleton instance
 _factor_service = None
+
 
 def get_factor_service() -> FactorAnalysisService:
     """

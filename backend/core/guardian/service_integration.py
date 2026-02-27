@@ -14,11 +14,9 @@ Author: StickForStats Development Team
 Date: 2025-01-26
 """
 
-from typing import Dict, Any, List, Optional, Callable, Union
+from typing import Dict, Any, List, Callable
 from functools import wraps
-import numpy as np
-import pandas as pd
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 from .guardian_core import GuardianCore, GuardianReport, AssumptionViolation
 
@@ -31,6 +29,7 @@ class GuardianEnrichedResult:
     This ensures compliance with the design contract that no statistical
     result can exist without its assumption context.
     """
+
     statistical_results: Dict[str, Any]
     guardian_report: Dict[str, Any]
     assumptions_checked: List[str]
@@ -43,17 +42,17 @@ class GuardianEnrichedResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
-            'statistical_results': self.statistical_results,
-            'guardian_report': self.guardian_report,
-            'assumptions_checked': self.assumptions_checked,
-            'violations': self.violations,
-            'confidence_score': self.confidence_score,
-            'can_proceed': self.can_proceed,
-            'alternative_tests': self.alternative_tests,
-            'expert_mode_override': self.expert_mode_override,
+            "statistical_results": self.statistical_results,
+            "guardian_report": self.guardian_report,
+            "assumptions_checked": self.assumptions_checked,
+            "violations": self.violations,
+            "confidence_score": self.confidence_score,
+            "can_proceed": self.can_proceed,
+            "alternative_tests": self.alternative_tests,
+            "expert_mode_override": self.expert_mode_override,
             # Metadata for frontend
-            '_guardian_context': True,  # Flag indicating Guardian was invoked
-            '_contract_compliant': True  # Flag for design contract compliance
+            "_guardian_context": True,  # Flag indicating Guardian was invoked
+            "_contract_compliant": True,  # Flag for design contract compliance
         }
 
 
@@ -75,12 +74,7 @@ class GuardianServiceWrapper:
         self.guardian = GuardianCore()
 
     def execute_with_guardian(
-        self,
-        test_type: str,
-        data: Any,
-        compute_function: Callable,
-        alpha: float = 0.05,
-        expert_mode: bool = False
+        self, test_type: str, data: Any, compute_function: Callable, alpha: float = 0.05, expert_mode: bool = False
     ) -> GuardianEnrichedResult:
         """
         Execute a statistical computation with Guardian pre-check.
@@ -106,9 +100,9 @@ class GuardianServiceWrapper:
             # Return result with failed Guardian check but no statistical results
             return GuardianEnrichedResult(
                 statistical_results={
-                    'blocked': True,
-                    'reason': 'Critical assumption violations detected',
-                    'message': 'Enable Expert Mode to proceed despite violations'
+                    "blocked": True,
+                    "reason": "Critical assumption violations detected",
+                    "message": "Enable Expert Mode to proceed despite violations",
                 },
                 guardian_report=self._report_to_dict(guardian_report),
                 assumptions_checked=guardian_report.assumptions_checked,
@@ -116,7 +110,7 @@ class GuardianServiceWrapper:
                 confidence_score=guardian_report.confidence_score,
                 can_proceed=False,
                 alternative_tests=guardian_report.alternative_tests,
-                expert_mode_override=False
+                expert_mode_override=False,
             )
 
         # Step 3: Execute statistical computation
@@ -131,34 +125,34 @@ class GuardianServiceWrapper:
             confidence_score=guardian_report.confidence_score,
             can_proceed=guardian_report.can_proceed,
             alternative_tests=guardian_report.alternative_tests,
-            expert_mode_override=expert_mode and not guardian_report.can_proceed
+            expert_mode_override=expert_mode and not guardian_report.can_proceed,
         )
 
     def _report_to_dict(self, report: GuardianReport) -> Dict[str, Any]:
         """Convert GuardianReport to dictionary."""
         return {
-            'test_type': report.test_type,
-            'data_summary': report.data_summary,
-            'assumptions_checked': report.assumptions_checked,
-            'violations': [self._violation_to_dict(v) for v in report.violations],
-            'can_proceed': report.can_proceed,
-            'alternative_tests': report.alternative_tests,
-            'confidence_score': report.confidence_score,
-            'visual_evidence': report.visual_evidence,
-            'effect_size_report': report.effect_size_report
+            "test_type": report.test_type,
+            "data_summary": report.data_summary,
+            "assumptions_checked": report.assumptions_checked,
+            "violations": [self._violation_to_dict(v) for v in report.violations],
+            "can_proceed": report.can_proceed,
+            "alternative_tests": report.alternative_tests,
+            "confidence_score": report.confidence_score,
+            "visual_evidence": report.visual_evidence,
+            "effect_size_report": report.effect_size_report,
         }
 
     def _violation_to_dict(self, violation: AssumptionViolation) -> Dict[str, Any]:
         """Convert AssumptionViolation to dictionary."""
         return {
-            'assumption': violation.assumption,
-            'test_name': violation.test_name,
-            'severity': violation.severity,
-            'p_value': violation.p_value,
-            'statistic': violation.statistic,
-            'message': violation.message,
-            'recommendation': violation.recommendation,
-            'visual_evidence': violation.visual_evidence
+            "assumption": violation.assumption,
+            "test_name": violation.test_name,
+            "severity": violation.severity,
+            "p_value": violation.p_value,
+            "statistic": violation.statistic,
+            "message": violation.message,
+            "recommendation": violation.recommendation,
+            "visual_evidence": violation.visual_evidence,
         }
 
 
@@ -178,11 +172,12 @@ def guardian_protected(test_type: str):
     2. Return GuardianEnrichedResult instead of raw results
     3. Block on critical violations unless expert_mode=True
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(self, data, *args, expert_mode: bool = False, alpha: float = 0.05, **kwargs):
             # Get or create Guardian instance
-            if not hasattr(self, '_guardian_wrapper'):
+            if not hasattr(self, "_guardian_wrapper"):
                 self._guardian_wrapper = GuardianServiceWrapper()
 
             # Define the computation function
@@ -191,13 +186,11 @@ def guardian_protected(test_type: str):
 
             # Execute with Guardian
             return self._guardian_wrapper.execute_with_guardian(
-                test_type=test_type,
-                data=data,
-                compute_function=compute,
-                alpha=alpha,
-                expert_mode=expert_mode
+                test_type=test_type, data=data, compute_function=compute, alpha=alpha, expert_mode=expert_mode
             )
+
         return wrapper
+
     return decorator
 
 
@@ -225,12 +218,7 @@ class GuardianIntegratedService:
         self._wrapper = GuardianServiceWrapper()
 
     def execute_with_guardian(
-        self,
-        test_type: str,
-        data: Any,
-        compute_function: Callable,
-        alpha: float = 0.05,
-        expert_mode: bool = False
+        self, test_type: str, data: Any, compute_function: Callable, alpha: float = 0.05, expert_mode: bool = False
     ) -> GuardianEnrichedResult:
         """
         Execute computation with Guardian protection.
@@ -238,19 +226,10 @@ class GuardianIntegratedService:
         See GuardianServiceWrapper.execute_with_guardian for details.
         """
         return self._wrapper.execute_with_guardian(
-            test_type=test_type,
-            data=data,
-            compute_function=compute_function,
-            alpha=alpha,
-            expert_mode=expert_mode
+            test_type=test_type, data=data, compute_function=compute_function, alpha=alpha, expert_mode=expert_mode
         )
 
-    def check_assumptions_only(
-        self,
-        test_type: str,
-        data: Any,
-        alpha: float = 0.05
-    ) -> Dict[str, Any]:
+    def check_assumptions_only(self, test_type: str, data: Any, alpha: float = 0.05) -> Dict[str, Any]:
         """
         Check assumptions without running computation.
 
@@ -264,33 +243,28 @@ class GuardianIntegratedService:
 # Maps user-friendly names to Guardian test_requirements keys
 TEST_TYPE_ALIASES = {
     # T-tests
-    'one_sample_t': 't_test',
-    'independent_t': 't_test',
-    'paired_t': 't_test',
-    'welch_t': 't_test',
-
+    "one_sample_t": "t_test",
+    "independent_t": "t_test",
+    "paired_t": "t_test",
+    "welch_t": "t_test",
     # ANOVA
-    'one_way_anova': 'anova',
-    'two_way_anova': 'anova',
-    'repeated_measures_anova': 'anova',
-
+    "one_way_anova": "anova",
+    "two_way_anova": "anova",
+    "repeated_measures_anova": "anova",
     # Correlation
-    'pearson_correlation': 'pearson',
-    'spearman_correlation': 'pearson',  # Uses similar assumptions but less strict
-
+    "pearson_correlation": "pearson",
+    "spearman_correlation": "pearson",  # Uses similar assumptions but less strict
     # Regression
-    'linear_regression': 'regression',
-    'multiple_regression': 'regression',
-    'logistic_regression': 'regression',
-
+    "linear_regression": "regression",
+    "multiple_regression": "regression",
+    "logistic_regression": "regression",
     # Non-parametric
-    'mann_whitney_u': 'mann_whitney',
-    'wilcoxon_signed_rank': 'mann_whitney',
-    'kruskal_wallis_h': 'kruskal_wallis',
-
+    "mann_whitney_u": "mann_whitney",
+    "wilcoxon_signed_rank": "mann_whitney",
+    "kruskal_wallis_h": "kruskal_wallis",
     # Chi-square
-    'chi_square_independence': 'chi_square',
-    'chi_square_goodness_of_fit': 'chi_square',
+    "chi_square_independence": "chi_square",
+    "chi_square_goodness_of_fit": "chi_square",
 }
 
 
@@ -304,5 +278,5 @@ def resolve_test_type(test_type: str) -> str:
     Returns:
         Normalized test type for Guardian lookup
     """
-    normalized = test_type.lower().replace(' ', '_').replace('-', '_')
+    normalized = test_type.lower().replace(" ", "_").replace("-", "_")
     return TEST_TYPE_ALIASES.get(normalized, normalized)

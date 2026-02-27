@@ -74,7 +74,7 @@ export const buildTestSelectionPrompt = (context) => {
     researchQuestion,
     dependentVariable,
     independentVariables,
-    variableTypes,
+    variableTypes: _variableTypes,
     sampleSize,
     groupCount,
     dataCharacteristics,
@@ -457,7 +457,7 @@ export const generateAPAResult = (results) => {
   return apa;
 };
 
-export default {
+const promptTemplates = {
   SYSTEM_PROMPT,
   buildTestSelectionPrompt,
   buildInterpretationPrompt,
@@ -468,3 +468,5 @@ export default {
   formatStatistic,
   generateAPAResult,
 };
+
+export default promptTemplates;

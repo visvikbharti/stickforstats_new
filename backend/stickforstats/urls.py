@@ -8,29 +8,27 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 
+
 # Simple view for testing
 def index(request):
     return HttpResponse("<h1>StickForStats v1.0 Production</h1><p>Statistical Analysis Platform is running.</p>")
 
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', index, name='index'),
-
+    path("admin/", admin.site.urls),
+    path("", index, name="index"),
     # Core API - include directly from api_urls
-    path('api/', include('core.api_urls')),
-
+    path("api/", include("core.api_urls")),
     # Authentication endpoints
-    path('api/auth/', include('authentication.urls')),
-
+    path("api/auth/", include("authentication.urls")),
     # High-Precision API v1 - NEW!
-    path('api/v1/', include('api.v1.urls')),
-
+    path("api/v1/", include("api.v1.urls")),
     # Statistical Analysis Modules
-    path('api/v1/confidence-intervals/', include('confidence_intervals.api.urls')),
-    path('api/v1/probability-distributions/', include('probability_distributions.api.urls')),
-    path('api/v1/sqc-analysis/', include('sqc_analysis.api.urls')),  # ← ENABLED for backend integration
-    path('api/v1/doe-analysis/', include('doe_analysis.api.urls')),
-    path('api/v1/pca-analysis/', include('pca_analysis.urls')),
+    path("api/v1/confidence-intervals/", include("confidence_intervals.api.urls")),
+    path("api/v1/probability-distributions/", include("probability_distributions.api.urls")),
+    path("api/v1/sqc-analysis/", include("sqc_analysis.api.urls")),  # ← ENABLED for backend integration
+    path("api/v1/doe-analysis/", include("doe_analysis.api.urls")),
+    path("api/v1/pca-analysis/", include("pca_analysis.urls")),
 ]
 
 # Serve media files in development

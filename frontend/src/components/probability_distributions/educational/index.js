@@ -11,7 +11,9 @@ export {
   CLTSimulator
 };
 
-export default {
+const educationalComponents = {
   DistributionAnimation,
   CLTSimulator
 };
+
+export default educationalComponents;
