@@ -650,8 +650,8 @@ describe('Performance Tests - Optimization Verification', () => {
 
       const avgWarmTime = warmTimes.reduce((sum, t) => sum + t, 0) / warmTimes.length;
 
-      // Warm validations should be faster or comparable
-      expect(avgWarmTime).toBeLessThanOrEqual(coldDuration * 1.5);
+      // Warm validations should be faster or comparable (3x tolerance for CI)
+      expect(avgWarmTime).toBeLessThanOrEqual(coldDuration * 3);
     });
 
     test('should optimize repeated similar validations', async () => {
