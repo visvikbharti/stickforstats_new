@@ -178,9 +178,9 @@ print("TEST 7: High-Precision Arithmetic")
 print("-" * 70)
 try:
     import mpmath as mp
-    mp.dps = 50
+    mp.mp.dps = 50
     print("✅ mpmath library imported successfully")
-    print(f"   - Precision set to: {mp.dps} decimal places")
+    print(f"   - Precision set to: {mp.mp.dps} decimal places")
 
     # Test high precision calculation
     result = mp.sqrt(2)

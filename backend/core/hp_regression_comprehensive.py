@@ -36,7 +36,7 @@ from enum import Enum
 
 # Set precision for high-precision calculations
 getcontext().prec = 50
-mp.dps = 50
+mp.mp.dps = 50
 
 
 class RegressionType(Enum):
@@ -124,7 +124,7 @@ class HighPrecisionRegression:
         """Initialize with specified precision."""
         self.precision = precision
         getcontext().prec = precision
-        mp.dps = precision
+        mp.mp.dps = precision
 
     def linear_regression(
         self,
