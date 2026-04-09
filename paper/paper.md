@@ -162,8 +162,7 @@ reference datasets (Fisher's Iris [@fisher1936use], UCI Wine Quality
 
 # AI Disclosure
 
-Development of StickForStats was assisted by Claude (Anthropic). AI was used
-for code generation, test writing, documentation drafting, and debugging. All
+Development of StickForStats was assisted by Claude (Anthropic). All
 AI-generated code was reviewed, tested against reference implementations, and
 validated through the project's continuous integration pipeline (515 backend
 tests, 573 frontend tests, all passing). Statistical correctness was verified
