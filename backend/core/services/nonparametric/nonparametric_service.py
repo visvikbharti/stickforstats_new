@@ -619,9 +619,23 @@ class NonParametricService:
         # Calculate correlation
         tau, p_value = kendalltau(x, y)
 
-        # Confidence interval (approximation)
+        # Tie-corrected variance for Kendall's tau-b (Hollander & Wolfe, 1999)
+        from collections import Counter
         n = len(x)
-        se = np.sqrt(2 * (2 * n + 5)) / (3 * n * np.sqrt(n))
+        n0 = n * (n - 1) / 2
+        x_ties = list(Counter(x.tolist()).values())
+        y_ties = list(Counter(y.tolist()).values())
+        t1 = sum(t * (t - 1) * (2 * t + 5) for t in x_ties)
+        t2 = sum(t * (t - 1) * (2 * t + 5) for t in y_ties)
+        v0 = n * (n - 1) * (2 * n + 5)
+        var_num = (v0 - t1 - t2) / 18
+        v1 = sum(t * (t - 1) * (t - 2) for t in x_ties)
+        v2 = sum(t * (t - 1) * (t - 2) for t in y_ties)
+        var_num += v1 * v2 / (9 * n * (n - 1) * (n - 2)) if n > 2 else 0
+        v1_2 = sum(t * (t - 1) for t in x_ties)
+        v2_2 = sum(t * (t - 1) for t in y_ties)
+        var_num += v1_2 * v2_2 / (2 * n * (n - 1))
+        se = np.sqrt(var_num) / n0 if n0 > 0 else 0
         z_critical = stats.norm.ppf(1 - (1 - confidence_level) / 2)
 
         ci_lower = tau - z_critical * se

@@ -11,7 +11,7 @@ REST endpoints for GDPR data subject rights:
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -25,21 +25,15 @@ class ConsentStatusView(APIView):
     Update consent for a specific processing activity.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.services.gdpr_service import GDPRService
 
         consents = GDPRService.get_consent_status(request.user)
         return Response({"consents": consents})
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         consent_type = request.data.get("consent_type")
         granted = request.data.get("granted")
 
@@ -65,12 +59,9 @@ class DataExportView(APIView):
     Returns JSON with all data categories.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.services.gdpr_service import GDPRService
 
         export = GDPRService.export_user_data(request.user)
@@ -84,12 +75,9 @@ class DataErasureView(APIView):
     Requires explicit confirmation via confirm=true in request body.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         confirm = request.data.get("confirm", False)
 
         from core.services.gdpr_service import GDPRService

@@ -7,7 +7,7 @@ REST endpoints for university/institutional site license management.
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class SiteLicenseTiersView(APIView):
     List available institutional license tiers.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         from core.services.site_license_service import SiteLicenseService
@@ -37,12 +37,9 @@ class SiteLicenseCreateView(APIView):
     Create a new institutional site license.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.services.site_license_service import SiteLicenseService
 
         required = ["institution_name", "tier", "admin_email", "domain"]
@@ -70,7 +67,7 @@ class SiteLicenseVerifyView(APIView):
     Verify if a user is eligible under an institutional license.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         email = request.data.get("email", "")
@@ -103,12 +100,9 @@ class SiteLicenseUsageView(APIView):
     Get usage statistics for a site license.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, license_key):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.services.site_license_service import SiteLicenseService
 
         validation = SiteLicenseService.validate_license_key(license_key)
@@ -125,12 +119,9 @@ class SiteLicenseReportView(APIView):
     Generate a usage report for institutional administrators.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, license_key):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.services.site_license_service import SiteLicenseService
 
         period = request.query_params.get("period", "monthly")

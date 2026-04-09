@@ -15,7 +15,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import JSONParser
 
 logger = logging.getLogger(__name__)
@@ -58,14 +58,11 @@ class OrganizationCreateView(APIView):
     Create a new organization. The creating user becomes the owner.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
 
     def get(self, request):
         """List organizations for the current user."""
-        if not request.user.is_authenticated:
-            return Response({"organizations": []})
-
         from core.models import OrganizationMembership
 
         memberships = OrganizationMembership.objects.filter(user=request.user, is_active=True).select_related(
@@ -116,13 +113,12 @@ class OrganizationCreateView(APIView):
         )
 
         # Make the creator the owner
-        if request.user.is_authenticated:
-            OrganizationMembership.objects.create(
-                organization=org,
-                user=request.user,
-                role="owner",
-                invitation_accepted=True,
-            )
+        OrganizationMembership.objects.create(
+            organization=org,
+            user=request.user,
+            role="owner",
+            invitation_accepted=True,
+        )
 
         return Response(
             {
@@ -141,7 +137,7 @@ class OrganizationDetailView(APIView):
     View or update organization details.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, org_slug):
         from core.models import Organization
@@ -195,7 +191,7 @@ class OrganizationMembersView(APIView):
     List members of an organization.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, org_slug):
         from core.models import Organization, OrganizationMembership
@@ -234,7 +230,7 @@ class InviteMemberView(APIView):
     Invite a user to an organization by email.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, org_slug):
         from core.models import Organization, OrganizationMembership
@@ -284,7 +280,7 @@ class InviteMemberView(APIView):
                 organization=org,
                 user=user,
                 role=role,
-                invited_by=request.user if request.user.is_authenticated else None,
+                invited_by=request.user,
                 invitation_email=email,
                 invitation_accepted=False,
                 invitation_token=token,
@@ -295,7 +291,7 @@ class InviteMemberView(APIView):
                 organization=org,
                 user_id=1,  # placeholder — will be resolved on registration
                 role=role,
-                invited_by=request.user if request.user.is_authenticated else None,
+                invited_by=request.user,
                 invitation_email=email,
                 invitation_accepted=False,
                 invitation_token=token,
@@ -324,7 +320,7 @@ class UsageDashboardView(APIView):
     Query params: ?days=30 (default 30)
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         org = getattr(request, "organization", None)
@@ -379,7 +375,7 @@ class BillingView(APIView):
     Create a checkout session for tier upgrade.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         org = getattr(request, "organization", None)
@@ -460,7 +456,7 @@ class APIKeyManageView(APIView):
     Revoke an API key.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         org = getattr(request, "organization", None)
@@ -525,7 +521,7 @@ class APIKeyManageView(APIView):
 
         key_obj = PlatformAPIKey.objects.create(
             organization=org,
-            created_by=request.user if request.user.is_authenticated else None,
+            created_by=request.user,
             name=name,
             key_prefix=key_prefix,
             key_hash=key_hash,
@@ -547,7 +543,7 @@ class APIKeyManageView(APIView):
 class APIKeyRevokeView(APIView):
     """DELETE /api/v1/platform/api-keys/<key_id>/"""
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, key_id):
         from core.models import PlatformAPIKey

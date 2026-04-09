@@ -502,9 +502,30 @@ class HighPrecisionCorrelation:
         tau_scipy, p_scipy = stats.kendalltau(x_arr, y_arr)
         p_value = Decimal(str(p_scipy))
 
-        # Standard error using simplified formula (for CI calculation below)
-        var = Decimal(4 * n + 10) / Decimal(9 * n * (n - 1))
-        se = var.sqrt()
+        # Tie-corrected variance for Kendall's tau-b (Hollander & Wolfe, 1999)
+        # Group ties in x and y
+        from collections import Counter
+        x_tie_counts = list(Counter(x_arr.tolist()).values())
+        y_tie_counts = list(Counter(y_arr.tolist()).values())
+
+        n0 = Decimal(n * (n - 1)) / 2
+        n1 = sum(Decimal(t * (t - 1)) / 2 for t in x_tie_counts)  # tied pairs in x
+        n2 = sum(Decimal(t * (t - 1)) / 2 for t in y_tie_counts)  # tied pairs in y
+
+        # Variance components
+        t1 = sum(Decimal(t * (t - 1)) * (2 * t + 5) for t in x_tie_counts)
+        t2 = sum(Decimal(t * (t - 1)) * (2 * t + 5) for t in y_tie_counts)
+
+        v0 = Decimal(n * (n - 1)) * (2 * n + 5)
+        var_num = (v0 - t1 - t2) / 18
+        v1_num = sum(Decimal(t * (t - 1)) * (t - 2) for t in x_tie_counts)
+        v2_num = sum(Decimal(t * (t - 1)) * (t - 2) for t in y_tie_counts)
+        var_num += v1_num * v2_num / (Decimal(9 * n * (n - 1) * (n - 2)))
+        v1_2 = sum(Decimal(t * (t - 1)) for t in x_tie_counts)
+        v2_2 = sum(Decimal(t * (t - 1)) for t in y_tie_counts)
+        var_num += v1_2 * v2_2 / (Decimal(2 * n * (n - 1)))
+
+        se = var_num.sqrt() / n0 if n0 > 0 else Decimal(0)
 
         # Z-statistic for reporting
         z_stat = tau / se if se > 0 else Decimal(0)

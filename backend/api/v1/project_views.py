@@ -10,7 +10,7 @@ import logging
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class ProjectListCreateView(APIView):
     Create a new project.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         org = getattr(request, "organization", None)
@@ -44,10 +44,6 @@ class ProjectListCreateView(APIView):
         from core.models import Project
 
         projects = Project.objects.filter(organization=org, is_archived=False).select_related("created_by")
-
-        # Filter by visibility based on user role
-        if not request.user.is_authenticated:
-            projects = projects.filter(visibility="public")
 
         return Response(
             {
@@ -102,7 +98,7 @@ class ProjectListCreateView(APIView):
             slug=slug,
             description=request.data.get("description", ""),
             visibility=request.data.get("visibility", "team"),
-            created_by=request.user if request.user.is_authenticated else None,
+            created_by=request.user,
         )
 
         return Response(
@@ -121,7 +117,7 @@ class ProjectDetailView(APIView):
     GET/PATCH/DELETE /api/v1/platform/projects/<slug>/
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, project_slug):
         org = getattr(request, "organization", None)
@@ -207,7 +203,7 @@ class RBACPermissionsView(APIView):
     Get current user's permissions for the active organization.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         org = getattr(request, "organization", None)
@@ -221,12 +217,12 @@ class RBACPermissionsView(APIView):
                 except Organization.DoesNotExist:
                     pass
 
-        if not org or not request.user.is_authenticated:
+        if not org:
             return Response(
                 {
                     "role": None,
                     "permissions": [],
-                    "message": "Not authenticated or no organization context",
+                    "message": "No organization context",
                 }
             )
 
@@ -250,12 +246,9 @@ class MemberRoleUpdateView(APIView):
     Change a member's role. Enforces role hierarchy.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, org_slug, member_id):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         from core.models import Organization, OrganizationMembership
         from core.services.rbac_service import RBACService
 

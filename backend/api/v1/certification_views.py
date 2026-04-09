@@ -7,7 +7,7 @@ REST endpoints for the StickForStats Certified Analyst program.
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class CertificationLevelsView(APIView):
     List all certification levels with requirements.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         from core.services.certification_service import CertificationService
@@ -33,7 +33,7 @@ class CertificationLevelDetailView(APIView):
     Get details for a specific certification level.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, level_id):
         from core.services.certification_service import CertificationService
@@ -42,9 +42,7 @@ class CertificationLevelDetailView(APIView):
         if not level:
             return Response({"error": "Certification level not found"}, status=404)
 
-        prereq_check = None
-        if request.user.is_authenticated:
-            prereq_check = CertificationService.check_prerequisites(request.user, level_id)
+        prereq_check = CertificationService.check_prerequisites(request.user, level_id)
 
         return Response(
             {
@@ -60,12 +58,9 @@ class ExamStartView(APIView):
     Start a certification exam. Returns questions without answers.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         level_id = request.data.get("level_id")
         if not level_id:
             return Response({"error": "level_id is required"}, status=400)
@@ -96,12 +91,9 @@ class ExamSubmitView(APIView):
     Body: { "level_id": "foundations", "answers": {"f001": 0, "f002": 1, ...} }
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         level_id = request.data.get("level_id")
         answers = request.data.get("answers", {})
 
@@ -125,7 +117,7 @@ class CertificateVerifyView(APIView):
     Public endpoint to verify a certificate's authenticity.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, certificate_id):
         from core.services.certification_service import CertificationService
@@ -141,12 +133,9 @@ class UserCertificationsView(APIView):
     List current user's certifications and exam history.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         # In production, query CertificationRecord model
         return Response(
             {

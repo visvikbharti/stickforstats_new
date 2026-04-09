@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Box, 
+import DOMPurify from 'dompurify';
+import {
+  Box,
   Typography, 
   Paper, 
   Grid, 
@@ -1129,7 +1130,7 @@ const EmailArrivalsD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
             zIndex: 1000,
             maxWidth: '200px'
           }}
-          dangerouslySetInnerHTML={{ __html: tooltip.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tooltip.content) }}
         />
       )}
     </Box>

@@ -1001,6 +1001,8 @@ class TestOrganizationEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_create_org_missing_name_returns_400(self):
         """POST without name returns 400."""
+        user = self.create_user(username="org_missing_name_user")
+        self.authenticate(user)
         response = self.client.post(
             "/api/v1/platform/organizations/",
             {"description": "No name"},
@@ -1010,6 +1012,8 @@ class TestOrganizationEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_get_organization_detail(self):
         """GET org detail by slug returns full info."""
+        user = self.create_user(username="org_detail_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1023,11 +1027,15 @@ class TestOrganizationEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_get_nonexistent_org_returns_404(self):
         """GET with unknown slug returns 404."""
+        user = self.create_user(username="org_nonexistent_user")
+        self.authenticate(user)
         response = self.client.get("/api/v1/platform/organizations/nonexistent/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_patch_organization(self):
         """PATCH updates allowed fields."""
+        user = self.create_user(username="org_patch_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1066,6 +1074,7 @@ class TestOrganizationMembersEndpoint(SecureAPITestCase, OrgMixin):
         tier = self.create_tier()
         org = self.create_org(tier=tier)
         user = self.create_user()
+        self.authenticate(user)
         self.create_membership(org, user)
 
         response = self.client.get(f"/api/v1/platform/organizations/{org.slug}/members/")
@@ -1078,6 +1087,8 @@ class TestOrganizationMembersEndpoint(SecureAPITestCase, OrgMixin):
 
     def test_members_nonexistent_org(self):
         """GET members for unknown org returns 404."""
+        user = self.create_user(username="members_nonexist_user")
+        self.authenticate(user)
         response = self.client.get("/api/v1/platform/organizations/doesnotexist/members/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -1087,6 +1098,8 @@ class TestInviteMemberEndpoint(SecureAPITestCase, OrgMixin):
 
     def test_invite_member_success(self):
         """POST invite with valid email creates membership."""
+        user = self.create_user(username="invite_owner")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
         _ = self.create_user(username="invitee", email="invitee@example.com")
@@ -1105,6 +1118,8 @@ class TestInviteMemberEndpoint(SecureAPITestCase, OrgMixin):
 
     def test_invite_missing_email_returns_400(self):
         """POST invite without email returns 400."""
+        user = self.create_user(username="invite_missing_email_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1117,6 +1132,8 @@ class TestInviteMemberEndpoint(SecureAPITestCase, OrgMixin):
 
     def test_invite_invalid_role_returns_400(self):
         """POST invite with invalid role returns 400."""
+        user = self.create_user(username="invite_invalid_role_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1135,6 +1152,8 @@ class TestUsageDashboardEndpoint(SecureAPITestCase, OrgMixin):
 
     def test_usage_no_org_context(self):
         """GET without org context returns message."""
+        user = self.create_user(username="usage_no_org_user")
+        self.authenticate(user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -1143,6 +1162,8 @@ class TestUsageDashboardEndpoint(SecureAPITestCase, OrgMixin):
     @patch("core.services.billing_service.BillingService")
     def test_usage_with_org_slug(self, MockBilling):
         """GET with ?org=slug returns usage data."""
+        user = self.create_user(username="usage_with_org_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1170,6 +1191,8 @@ class TestAPIKeyEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_list_api_keys_no_org(self):
         """GET without org returns empty list."""
+        user = self.create_user(username="apikey_no_org_user")
+        self.authenticate(user)
         response = self.client.get("/api/v1/platform/api-keys/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -1180,6 +1203,7 @@ class TestAPIKeyEndpoints(SecureAPITestCase, OrgMixin):
         tier = self.create_tier()
         org = self.create_org(tier=tier)
         user = self.create_user()
+        self.authenticate(user)
 
         # Create a key
         raw_key, prefix, key_hash = PlatformAPIKey.generate_key()
@@ -1203,6 +1227,7 @@ class TestAPIKeyEndpoints(SecureAPITestCase, OrgMixin):
         tier = self.create_tier()
         org = self.create_org(tier=tier)
         user = self.create_user()
+        self.authenticate(user)
 
         raw_key, prefix, key_hash = PlatformAPIKey.generate_key()
         key_obj = PlatformAPIKey.objects.create(
@@ -1221,6 +1246,8 @@ class TestAPIKeyEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_revoke_nonexistent_key_returns_404(self):
         """DELETE with unknown key_id returns 404."""
+        user = self.create_user(username="apikey_revoke_404_user")
+        self.authenticate(user)
         fake_id = uuid.uuid4()
         response = self.client.delete(f"/api/v1/platform/api-keys/{fake_id}/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1236,6 +1263,8 @@ class TestProjectEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_list_projects_no_org(self):
         """GET without org returns empty projects."""
+        user = self.create_user(username="proj_no_org_user")
+        self.authenticate(user)
         response = self.client.get("/api/v1/platform/projects/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["projects"], [])
@@ -1287,6 +1316,8 @@ class TestProjectEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_get_nonexistent_project_returns_404(self):
         """GET with unknown slug returns 404."""
+        user = self.create_user(username="proj_nonexist_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 
@@ -1321,11 +1352,9 @@ class TestRBACPermissionsEndpoint(SecureAPITestCase, OrgMixin):
     url = "/api/v1/platform/permissions/"
 
     def test_permissions_unauthenticated(self):
-        """GET without auth returns null role."""
+        """GET without auth returns 401."""
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()
-        self.assertIsNone(data["role"])
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @patch("core.services.rbac_service.RBACService")
     def test_permissions_authenticated_with_org(self, MockRBAC):
@@ -1809,6 +1838,8 @@ class TestBillingEndpoints(SecureAPITestCase, OrgMixin):
 
     def test_billing_no_org(self):
         """GET without org returns message."""
+        user = self.create_user(username="billing_no_org_user")
+        self.authenticate(user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.json())
@@ -1816,6 +1847,8 @@ class TestBillingEndpoints(SecureAPITestCase, OrgMixin):
     @patch("core.services.billing_service.BillingService")
     def test_billing_with_org(self, MockBilling):
         """GET with org returns subscription status."""
+        user = self.create_user(username="billing_with_org_user")
+        self.authenticate(user)
         tier = self.create_tier()
         org = self.create_org(tier=tier)
 

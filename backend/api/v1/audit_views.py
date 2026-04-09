@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from core.models import StatisticalAudit
 
@@ -28,7 +28,7 @@ class AuditSummaryView(APIView):
     If no data exists, returns appropriate empty state response.
     """
 
-    permission_classes = [AllowAny]  # Allow access without authentication
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """
@@ -223,7 +223,7 @@ class AuditRecordView(APIView):
     Creates new audit records when analyses are performed.
     """
 
-    permission_classes = [AllowAny]  # Allow access without authentication
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """
@@ -301,7 +301,7 @@ class AuditMetricsView(APIView):
     Provides specific audit metrics for different views.
     """
 
-    permission_classes = [AllowAny]  # Allow access without authentication
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, metric_type):
         """
@@ -381,7 +381,7 @@ class AuditMetricsView(APIView):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def audit_health_check(request):
     """
     Health check endpoint for audit system.

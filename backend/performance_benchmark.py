@@ -70,7 +70,7 @@ class PerformanceBenchmark:
             "avg_time_ms": np.mean(times) if times else None,
             "min_time_ms": np.min(times) if times else None,
             "max_time_ms": np.max(times) if times else None,
-            "std_time_ms": np.std(times) if times else None,
+            "std_time_ms": np.std(times, ddof=1) if times else None,
             "avg_memory_mb": np.mean(memory_usage) if memory_usage else None,
             "iterations": len(times),
         }

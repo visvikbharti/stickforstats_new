@@ -7,7 +7,7 @@ Execute installed plugins and manage plugin configuration.
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,9 @@ class PluginExecuteView(APIView):
     Execute an installed plugin with provided data.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, plugin_slug):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
@@ -60,12 +57,9 @@ class PluginConfigUpdateView(APIView):
     Update plugin configuration for the current organization.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, plugin_slug):
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=401)
-
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
