@@ -509,8 +509,6 @@ class HighPrecisionCorrelation:
         y_tie_counts = list(Counter(y_arr.tolist()).values())
 
         n0 = Decimal(n * (n - 1)) / 2
-        n1 = sum(Decimal(t * (t - 1)) / 2 for t in x_tie_counts)  # tied pairs in x
-        n2 = sum(Decimal(t * (t - 1)) / 2 for t in y_tie_counts)  # tied pairs in y
 
         # Variance components
         t1 = sum(Decimal(t * (t - 1)) * (2 * t + 5) for t in x_tie_counts)

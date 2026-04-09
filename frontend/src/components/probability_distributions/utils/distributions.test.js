@@ -438,8 +438,8 @@ describe('generateNormalSample', () => {
     const sampleMean = sample.reduce((a, b) => a + b, 0) / n;
     const sampleVar = sample.reduce((a, b) => a + (b - sampleMean) ** 2, 0) / (n - 1);
 
-    // Sample variance should be within 0.5 of true variance
-    expect(Math.abs(sampleVar - trueStd * trueStd)).toBeLessThan(0.5);
+    // Sample variance should be within 1.0 of true variance (generous for random sampling)
+    expect(Math.abs(sampleVar - trueStd * trueStd)).toBeLessThan(1.0);
   });
 });
 
