@@ -16,6 +16,7 @@ authors:
     affiliation: 1
   - name: Debojyoti Chakraborty
     orcid: 0000-0003-1460-7594
+    corresponding: true
     affiliation: "1, 2"
 affiliations:
   - name: CSIR-Institute of Genomics and Integrative Biology, New Delhi 110025, India
