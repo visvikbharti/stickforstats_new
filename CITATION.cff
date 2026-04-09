@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "StickForStats"
+abstract: >-
+  A statistical analysis platform with automatic assumption validation
+  via the Guardian system, autonomous test selection, manuscript
+  statistical review, and multi-tenant collaboration. Designed for
+  researchers who need rigorous, reproducible statistical analyses
+  without deep statistical expertise.
+authors:
+  - family-names: Bharti
+    given-names: Vishal
+    orcid: "https://orcid.org/0009-0003-1431-4457"
+    affiliation: "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India"
+  - family-names: Chakraborty
+    given-names: Debojyoti
+    orcid: "https://orcid.org/0000-0003-1460-7594"
+    affiliation: "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India; Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India"
+version: 1.0.0
+date-released: "2026-04-09"
+license: MIT
+repository-code: "https://github.com/visvikbharti/stickforstats_new"
+url: "https://github.com/visvikbharti/stickforstats_new"
+keywords:
+  - statistics
+  - assumption-validation
+  - reproducibility
+  - guardian-system
+  - meta-analysis
+  - power-analysis
+  - manuscript-review
+  - statistical-quality
+  - open-science
