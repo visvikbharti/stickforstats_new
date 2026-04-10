@@ -1,0 +1,41 @@
+variant_id,gene,disease,strategy,modality,topsis_score,safety_score,feasibility_score,complexity_score,risk_score,confidence_score,evidence_tier,num_dsbs,p53_active,rank
+HBB_SCD,HBB,Sickle cell disease,ABE8e Base Editing,ABE,0.5779,1.0,0.794,0.028,0.1,1.0,A,0,True,1
+HBB_SCD,HBB,Sickle cell disease,Prime Editing (PE3),PE,0.4366,0.5,0.84,0.042,0.1,1.0,A,1,True,2
+HBB_SCD,HBB,Sickle cell disease,HDR (ssODN),HDR_SSODN,0.2548,0.6,0.3326,0.0915,0.4,0.7,B,1,False,3
+HBB_SCD,HBB,Sickle cell disease,HDR (cssDNA),HDR_CSSDNA,0.1384,0.3,0.4114,0.0975,0.7,0.7,B,2,False,4
+LMNA_HGPS,LMNA,Hutchinson-Gilford progeria,ABE8e Base Editing,ABE,0.6153,1.0,0.942,0.026,0.1,1.0,A,0,True,1
+LMNA_HGPS,LMNA,Hutchinson-Gilford progeria,Prime Editing (PE3),PE,0.4208,0.5,0.777,0.042,0.1,1.0,A,1,True,2
+LMNA_HGPS,LMNA,Hutchinson-Gilford progeria,HDR (ssODN),HDR_SSODN,0.2831,0.6,0.436,0.0795,0.4,0.7,B,1,False,3
+LMNA_HGPS,LMNA,Hutchinson-Gilford progeria,HDR (cssDNA),HDR_CSSDNA,0.1191,0.3,0.3377,0.1015,0.7,0.7,B,2,False,4
+COL7A1_DEB,COL7A1,Dystrophic epidermolysis bullosa,ABE8e Base Editing,ABE,0.5746,1.0,0.773,0.018,0.1,1.0,A,0,True,1
+COL7A1_DEB,COL7A1,Dystrophic epidermolysis bullosa,Prime Editing (PE3),PE,0.4436,0.5,0.868,0.042,0.1,1.0,A,1,True,2
+COL7A1_DEB,COL7A1,Dystrophic epidermolysis bullosa,HDR (ssODN),HDR_SSODN,0.2988,0.6,0.4894,0.0675,0.4,0.7,B,1,False,3
+COL7A1_DEB,COL7A1,Dystrophic epidermolysis bullosa,HDR (cssDNA),HDR_CSSDNA,0.1124,0.3,0.3091,0.0995,0.7,0.7,B,2,False,4
+CFTR_CF,CFTR,Cystic fibrosis,ABE8e Base Editing,ABE,0.6136,1.0,0.937,0.028,0.1,1.0,A,0,True,1
+CFTR_CF,CFTR,Cystic fibrosis,Prime Editing (PE3),PE,0.426,0.5,0.796,0.04,0.1,1.0,A,1,True,2
+CFTR_CF,CFTR,Cystic fibrosis,HDR (ssODN),HDR_SSODN,0.2989,0.6,0.4912,0.0695,0.4,0.7,B,1,False,3
+CFTR_CF,CFTR,Cystic fibrosis,HDR (cssDNA),HDR_CSSDNA,0.0954,0.3,0.2683,0.1335,0.7,0.7,B,2,False,4
+DMD_DMD,DMD,Duchenne muscular dystrophy,ABE8e Base Editing,ABE,0.5718,1.0,0.765,0.022,0.1,1.0,A,0,True,1
+DMD_DMD,DMD,Duchenne muscular dystrophy,Prime Editing (PE3),PE,0.432,0.5,0.828,0.05,0.1,1.0,A,1,True,2
+DMD_DMD,DMD,Duchenne muscular dystrophy,HDR (ssODN),HDR_SSODN,0.2937,0.6,0.4865,0.0895,0.4,0.7,B,1,False,3
+DMD_DMD,DMD,Duchenne muscular dystrophy,HDR (cssDNA),HDR_CSSDNA,0.1602,0.3,0.5163,0.1195,0.7,0.7,B,2,False,4
+PCSK9_FH,PCSK9,Familial hypercholesterolemia,ABE8e Base Editing,ABE,0.6151,1.0,0.93,0.012,0.1,1.0,A,0,True,1
+PCSK9_FH,PCSK9,Familial hypercholesterolemia,Prime Editing (PE3),PE,0.4151,0.5,0.757,0.046,0.1,1.0,A,1,True,2
+PCSK9_FH,PCSK9,Familial hypercholesterolemia,HDR (ssODN),HDR_SSODN,0.2733,0.6,0.4066,0.0915,0.4,0.7,B,1,False,3
+PCSK9_FH,PCSK9,Familial hypercholesterolemia,HDR (cssDNA),HDR_CSSDNA,0.1046,0.3,0.2924,0.1175,0.7,0.7,B,2,False,4
+SCN1A_DS,SCN1A,Dravet syndrome,ABE8e Base Editing,ABE,0.5635,1.0,0.735,0.026,0.1,1.0,A,0,True,1
+SCN1A_DS,SCN1A,Dravet syndrome,Prime Editing (PE3),PE,0.4487,0.5,0.898,0.054,0.1,1.0,A,1,True,2
+SCN1A_DS,SCN1A,Dravet syndrome,HDR (ssODN),HDR_SSODN,0.2545,0.6,0.3311,0.0915,0.4,0.7,B,1,False,3
+SCN1A_DS,SCN1A,Dravet syndrome,HDR (cssDNA),HDR_CSSDNA,0.1384,0.3,0.4356,0.1275,0.7,0.7,B,2,False,4
+PAH_PKU,PAH,Phenylketonuria,ABE8e Base Editing,ABE,0.5612,1.0,0.719,0.018,0.1,1.0,A,0,True,1
+PAH_PKU,PAH,Phenylketonuria,Prime Editing (PE3),PE,0.4444,0.5,0.879,0.052,0.1,1.0,A,1,True,2
+PAH_PKU,PAH,Phenylketonuria,HDR (ssODN),HDR_SSODN,0.2651,0.6,0.3609,0.0755,0.4,0.7,B,1,False,3
+PAH_PKU,PAH,Phenylketonuria,HDR (cssDNA),HDR_CSSDNA,0.1215,0.3,0.3632,0.1215,0.7,0.7,B,2,False,4
+NF1_NF,NF1,Neurofibromatosis type 1,ABE8e Base Editing,ABE,0.6115,1.0,0.922,0.02,0.1,1.0,A,0,True,1
+NF1_NF,NF1,Neurofibromatosis type 1,Prime Editing (PE3),PE,0.4385,0.5,0.857,0.054,0.1,1.0,A,1,True,2
+NF1_NF,NF1,Neurofibromatosis type 1,HDR (ssODN),HDR_SSODN,0.3067,0.6,0.5318,0.0815,0.4,0.7,B,1,False,3
+NF1_NF,NF1,Neurofibromatosis type 1,HDR (cssDNA),HDR_CSSDNA,0.1218,0.3,0.3452,0.0975,0.7,0.7,B,2,False,4
+TP53_LFS,TP53,Li-Fraumeni syndrome,ABE8e Base Editing,ABE,0.5644,1.0,0.727,0.012,0.1,1.0,A,0,True,1
+TP53_LFS,TP53,Li-Fraumeni syndrome,Prime Editing (PE3),PE,0.4243,0.5,0.797,0.05,0.1,1.0,A,1,True,2
+TP53_LFS,TP53,Li-Fraumeni syndrome,HDR (ssODN),HDR_SSODN,0.2968,0.6,0.4907,0.0795,0.4,0.7,B,1,False,3
+TP53_LFS,TP53,Li-Fraumeni syndrome,HDR (cssDNA),HDR_CSSDNA,0.1205,0.3,0.3416,0.0995,0.7,0.7,B,2,False,4

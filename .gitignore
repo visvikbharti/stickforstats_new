@@ -132,3 +132,8 @@ RELEASE_PREPARATION_COMPLETE.md
 # Exception: Include JSS submission package
 !paper/JSS_SUBMISSION/
 !paper/JSS_SUBMISSION/**
+
+# Internal planning docs (not for public repo)
+paper/plos_compbio/IMPLEMENTATION_TRACKER.md
+paper/plos_compbio/SUBMISSION_ASSESSMENT.md
+paper/plos_compbio/FEATURE_PLAN.md

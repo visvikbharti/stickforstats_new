@@ -199,6 +199,7 @@ from . import lms_views
 from . import certification_views
 from . import sso_views
 from . import site_license_views, plugin_runtime_views
+from .genomics_views import differential_expression, volcano_plot_data
 
 app_name = "api-v1"
 
@@ -474,6 +475,9 @@ urlpatterns = [
         plugin_runtime_views.PluginConfigUpdateView.as_view(),
         name="plugin-config",
     ),
+    # Genomics analysis
+    path("genomics/differential-expression/", differential_expression, name="genomics-de"),
+    path("genomics/volcano-plot/", volcano_plot_data, name="genomics-volcano"),
     # OpenAPI Schema & Documentation
     path("schema/", OpenAPISchemaView.as_view(), name="openapi-schema"),
     path("schema/swagger/", SwaggerUIView.as_view(), name="swagger-ui"),

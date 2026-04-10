@@ -55,6 +55,7 @@ const SQCAnalysisPage = lazy(() => import('../pages/SQCAnalysisPage'));
 const DOEAnalysisPage = lazy(() => import('../pages/DOEAnalysisPage'));
 const PCAAnalysisPage = lazy(() => import('../pages/PCAAnalysisPage'));
 const SurvivalAnalysisPage = lazy(() => import('../pages/SurvivalAnalysisPage'));
+const GenomicsAnalysisPage = lazy(() => import('../pages/GenomicsAnalysisPage'));
 const FactorAnalysisPage = lazy(() => import('../pages/FactorAnalysisPage'));
 const PCAEducationHub = lazy(() => import('../components/pca/education/PCAEducationHub'));
 const CIEducationHub = lazy(() => import('../components/confidence_intervals/education/CIEducationHub'));
@@ -173,6 +174,7 @@ const ROUTE_CONFIG = [
   { path: '/doe-analysis/*', component: DOEAnalysisPage, loadingMessage: 'Loading DOE Analysis Module...' },
   { path: '/pca-analysis/*', component: PCAAnalysisPage, loadingMessage: 'Loading PCA Analysis Module...' },
   { path: '/survival-analysis/*', component: SurvivalAnalysisPage, loadingMessage: 'Loading Survival Analysis Module...' },
+  { path: '/genomics-analysis', component: GenomicsAnalysisPage, loadingMessage: 'Loading Genomics Analysis...' },
   { path: '/factor-analysis/*', component: FactorAnalysisPage, loadingMessage: 'Loading Factor Analysis Module...' },
   { path: '/meta-analysis', component: MetaAnalysisHub, loadingMessage: 'Loading Meta-Analysis...' },
   { path: '/publication-plots', component: PublicationPlotsPage, loadingMessage: 'Loading Publication Plot Builder...' },
