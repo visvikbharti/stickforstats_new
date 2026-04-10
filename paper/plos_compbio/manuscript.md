@@ -57,8 +57,8 @@ Guardian is designed around four principles: (1) *Comprehensiveness*---check the
 
 1. **Normality** --- Shapiro-Wilk [16] (n <= 5000) and Anderson-Darling [17] (n > 5000 or as confirmation).
 2. **Variance homogeneity** --- Levene's test [18] with Brown-Forsythe median correction [19].
-3. **Independence** --- Durbin-Watson statistic [20] with runs test for randomness.
-4. **Outlier detection** --- Combined IQR fencing, modified Z-score, and Grubbs' test [21].
+3. **Independence** --- Lag-1 autocorrelation analysis [20] detecting temporal or spatial dependencies in observations.
+4. **Outlier detection** --- Combined IQR fencing and Z-score method [21] with configurable sensitivity thresholds.
 5. **Sample size adequacy** --- Rule-based thresholds calibrated per test type from power analysis literature [22].
 6. **Modality** --- Kernel density estimation with Silverman bandwidth for multimodality detection.
 7. **Linearity** --- R-squared comparison (linear vs. quadratic) with Wald-Wolfowitz runs test [23] and RESET test.
@@ -104,7 +104,7 @@ Scores above 0.8 indicate high confidence; 0.6--0.8 signals caution; below 0.6 t
 
 **Multiple testing correction.** Eight methods spanning FWER control (Bonferroni, Holm-Bonferroni, Hochberg, Sidak, Holm-Sidak) and FDR control (Benjamini-Hochberg [9], Benjamini-Yekutieli, Storey's q-value).
 
-**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Seven validators assess completeness, consistency, power reporting, multiple-comparison corrections, assumption documentation, effect-size reporting, and reproducibility. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards.
+**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Eight validators assess completeness, consistency, power reporting, multiple-comparison corrections, assumption documentation, effect-size reporting, reproducibility, and methodological appropriateness. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards.
 
 **Causal inference.** DAG analysis with adjustment set identification, propensity score matching, inverse probability weighting, doubly robust estimation, difference-in-differences, and mediation analysis.
 
@@ -327,6 +327,6 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 
 **Fig 3. Case study results.** (A) CRISPR genome editing strategy comparison showing TOPSIS composite scores across four modalities (ABE, PE, HDR-ssODN, HDR-cssDNA) for 10 pathogenic variants scored by CRISPRArchitect v3. Guardian detected normality WARNING and cascaded to Kruskal-Wallis (p < 0.001). ABE achieves highest scores driven by DSB-free safety profile. (B) Random-effects meta-analysis forest plot of 12 RCTs. Guardian detected publication bias via Egger's test (p = 0.024) and recommended sensitivity analysis.
 
-**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and language model hybrid, verifies each claim against seven specialized validators with discipline-aware profiles (CONSORT, STROBE, ICH-E9, JARS-Quant), and produces a statistical quality report with severity-classified findings.
+**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and language model hybrid, verifies each claim against eight specialized validators with discipline-aware profiles (CONSORT, STROBE, ICH-E9, JARS-Quant), and produces a statistical quality report with severity-classified findings.
 
 **Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations (SciPy, R, statsmodels, G\*Power) across 10 statistical test categories, demonstrating 10--16 decimal places of agreement. (B) Feature comparison heatmap of StickForStats vs. R, SPSS, jamovi, and JASP on 10 capabilities relevant to assumption validation and biomedical research.
