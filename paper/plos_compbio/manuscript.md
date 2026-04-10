@@ -5,7 +5,7 @@
 1. CSIR-Institute of Genomics and Integrative Biology, New Delhi 110025, India
 2. Academy of Scientific and Innovative Research (AcSIR), Ghaziabad 201002, India
 
-\* Corresponding authors: vishalvikashbharti@gmail.com, debojyoti@igib.res.in
+\* Corresponding authors: vishalvikashbharti@gmail.com, debojyoti.chakraborty@igib.in
 
 ---
 
