@@ -24,7 +24,7 @@ Test Coverage:
 
 import pytest
 import numpy as np
-from backend.core.power_analysis import (
+from core.power_analysis import (
     PowerAnalyzer,
     TestType,
     EffectSizeCalculator,

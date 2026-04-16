@@ -101,8 +101,8 @@ export const CorrelationHeatmap = ({ correlationMatrix, pValues, columnNames }) 
           Correlation Heatmap
         </Typography>
 
-        <Box sx={{ position: 'relative', width: '100%', overflow: 'auto' }}>
-          <svg width={gridSize * cellSize + 150} height={gridSize * cellSize + 150}>
+        <Box sx={{ position: 'relative', width: '100%', overflow: 'auto' }} role="img" aria-label={`Correlation heatmap for ${columnNames.length} variables: ${columnNames.join(', ')}. Values range from -1 (strong negative) to +1 (strong positive).`}>
+          <svg width={gridSize * cellSize + 150} height={gridSize * cellSize + 150} aria-hidden="true">
             {/* Y-axis labels */}
             {columnNames.map((name, i) => (
               <text
@@ -168,6 +168,46 @@ export const CorrelationHeatmap = ({ correlationMatrix, pValues, columnNames }) 
               </g>
             ))}
           </svg>
+
+          {/* Screen-reader accessible data table (visually hidden) */}
+          <Box
+            component="table"
+            sx={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              padding: 0,
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0, 0, 0, 0)',
+              whiteSpace: 'nowrap',
+              border: 0,
+            }}
+            aria-label="Correlation matrix data"
+          >
+            <caption>Pairwise correlation values</caption>
+            <thead>
+              <tr>
+                <th scope="col">{' '}</th>
+                {columnNames.map((name) => (
+                  <th key={name} scope="col">{name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {correlationMatrix.map((row, i) => (
+                <tr key={columnNames[i]}>
+                  <th scope="row">{columnNames[i]}</th>
+                  {row.map((value, j) => (
+                    <td key={j}>
+                      {value !== null ? value.toFixed(3) : 'N/A'}
+                      {pValues[i][j] < 0.05 ? ' (significant)' : ''}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </Box>
         </Box>
 
         {/* Color scale legend */}

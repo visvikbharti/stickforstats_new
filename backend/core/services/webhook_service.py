@@ -3,10 +3,12 @@ Webhook Delivery Service — Journal Integration (Pillar 2)
 =========================================================
 
 Delivers review report notifications to journals via webhook callbacks.
-Uses HMAC-SHA256 signatures for payload verification.
+Uses HMAC-SHA256 signatures for payload verification with replay-attack
+protection via timestamped signature inputs.
 
 Features:
-- Signed payloads (HMAC-SHA256) for authenticity verification
+- Signed payloads (HMAC-SHA256) with timestamp for replay-attack prevention
+- Replay window: 5 minutes (300 seconds)
 - Retry with exponential backoff (3 attempts: 1s, 4s, 16s)
 - Delivery tracking on ReviewReport model
 - Graceful fallback: urllib if requests is unavailable
@@ -41,6 +43,73 @@ MAX_RETRIES = 3
 BACKOFF_BASE = 1  # seconds
 BACKOFF_EXPONENT = 2  # backoff = base * (exponent ^ attempt) → 1s, 4s, 16s
 DELIVERY_TIMEOUT = 30  # seconds per attempt
+
+# Maximum age of a webhook timestamp before it's considered a replay (5 minutes)
+REPLAY_WINDOW_SECONDS = 300
+
+
+def verify_webhook_signature(payload, signature_header, timestamp_header, secret):
+    """
+    Verify an incoming StickForStats webhook signature.
+
+    Consumers (journals, integrations) should call this function to verify
+    that a webhook payload was genuinely sent by StickForStats and has not
+    been replayed.
+
+    The signature is computed as::
+
+        HMAC-SHA256(secret, "{timestamp}.{canonical_json}")
+
+    where canonical_json uses compact separators and sorted keys.
+
+    Args:
+        payload (str or bytes): Raw request body (JSON string).
+        signature_header (str): Value of ``X-StickForStats-Signature`` header
+            (e.g. ``"sha256=abcdef..."``).
+        timestamp_header (str): Value of ``X-StickForStats-Timestamp`` header
+            (Unix epoch seconds as a string).
+        secret (str): Shared webhook secret for this journal.
+
+    Returns:
+        bool: True if the signature is valid and the timestamp is within the
+        replay window (5 minutes). False otherwise.
+    """
+    if not signature_header or not timestamp_header or not secret:
+        return False
+
+    # Replay-attack check: reject timestamps older than REPLAY_WINDOW_SECONDS
+    try:
+        ts = int(timestamp_header)
+    except (ValueError, TypeError):
+        return False
+
+    now = int(time.time())
+    if abs(now - ts) > REPLAY_WINDOW_SECONDS:
+        return False
+
+    # Recompute expected signature
+    if isinstance(payload, bytes):
+        payload_str = payload.decode("utf-8")
+    else:
+        payload_str = payload
+
+    # Canonicalize the payload the same way the sender does
+    try:
+        payload_obj = json.loads(payload_str)
+        canonical = json.dumps(payload_obj, separators=(",", ":"), sort_keys=True)
+    except (json.JSONDecodeError, TypeError):
+        # If we can't parse as JSON, use raw payload
+        canonical = payload_str
+
+    signature_input = f"{timestamp_header}.{canonical}"
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        signature_input.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    expected_header = f"sha256={expected}"
+
+    return hmac.compare_digest(expected_header, signature_header)
 
 
 class WebhookDeliveryService:
@@ -77,15 +146,21 @@ class WebhookDeliveryService:
             return False
 
         payload = WebhookDeliveryService.build_payload(submission, report)
-        payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
+        # Canonical JSON: compact separators, sorted keys (matches verification)
+        payload_str = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+        payload_bytes = payload_str.encode("utf-8")
 
-        # Sign the payload
+        # Sign the payload with timestamp for replay-attack prevention
         secret = journal.webhook_secret or ""
-        signature = WebhookDeliveryService.sign_payload(payload_bytes, secret)
+        timestamp = str(int(time.time()))
+        signature = WebhookDeliveryService.sign_payload(
+            payload_str, secret, timestamp
+        )
 
         headers = {
             "Content-Type": "application/json",
             "X-StickForStats-Signature": signature,
+            "X-StickForStats-Timestamp": timestamp,
             "X-StickForStats-Event": "report.completed",
             "X-StickForStats-Delivery": str(uuid.uuid4()),
         }
@@ -192,39 +267,53 @@ class WebhookDeliveryService:
         }
 
     @staticmethod
-    def sign_payload(payload_bytes, secret):
+    def sign_payload(payload_str, secret, timestamp):
         """
         Compute HMAC-SHA256 signature for webhook payload verification.
 
+        The signature input is ``"{timestamp}.{payload_str}"`` to bind the
+        timestamp to the payload, preventing replay attacks.
+
         Args:
-            payload_bytes (bytes): JSON-encoded payload.
+            payload_str (str): Canonical JSON payload string (compact
+                separators, sorted keys).
             secret (str): The journal's webhook secret.
+            timestamp (str): Unix epoch seconds as a string.
 
         Returns:
-            str: Hex-encoded HMAC-SHA256 signature prefixed with 'sha256='.
+            str: Hex-encoded HMAC-SHA256 signature prefixed with ``'sha256='``.
         """
         key = secret.encode("utf-8") if isinstance(secret, str) else secret
-        digest = hmac.new(key, payload_bytes, hashlib.sha256).hexdigest()
+        signature_input = f"{timestamp}.{payload_str}"
+        digest = hmac.new(
+            key, signature_input.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
         return f"sha256={digest}"
 
     @staticmethod
-    def verify_signature(payload_bytes, signature, secret):
+    def verify_signature(payload_bytes, signature, timestamp, secret):
         """
         Verify an incoming webhook signature for authenticity.
 
         Journals (or any receiver) can use this logic to verify that a
-        webhook payload was genuinely sent by StickForStats.
+        webhook payload was genuinely sent by StickForStats. Also checks
+        that the timestamp is within the replay window.
+
+        For a standalone utility that doesn't require the class, see
+        :func:`verify_webhook_signature` at module level.
 
         Args:
             payload_bytes (bytes): Raw request body.
-            signature (str): Value of X-StickForStats-Signature header.
+            signature (str): Value of ``X-StickForStats-Signature`` header.
+            timestamp (str): Value of ``X-StickForStats-Timestamp`` header.
             secret (str): Shared webhook secret.
 
         Returns:
-            bool: True if the signature is valid.
+            bool: True if the signature is valid and not replayed.
         """
-        expected = WebhookDeliveryService.sign_payload(payload_bytes, secret)
-        return hmac.compare_digest(expected, signature)
+        return verify_webhook_signature(
+            payload_bytes, signature, timestamp, secret
+        )
 
     @staticmethod
     def _post(url, payload_bytes, headers):

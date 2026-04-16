@@ -42,7 +42,7 @@ apiClient.interceptors.request.use(
     // Add auth token if available
     const token = localStorage.getItem('authToken');
     if (token) {
-      config.headers.Authorization = `Token ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Add request ID for tracking
@@ -79,16 +79,27 @@ apiClient.interceptors.response.use(
       throw new ApiError('Network error. Please check your connection.', 'NETWORK_ERROR');
     }
 
-    // Handle 401 Unauthorized
+    // Handle 401 with token refresh
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      // Clear token and redirect to login
-      localStorage.removeItem('authToken');
-
-      // Only redirect if not already on login page
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post(
+            `${API_BASE_URL}/auth/token/refresh/`,
+            { refresh: refreshToken }
+          );
+          localStorage.setItem('authToken', data.access);
+          if (data.refresh) {
+            localStorage.setItem('refreshToken', data.refresh);
+          }
+          originalRequest.headers.Authorization = `Bearer ${data.access}`;
+          return apiClient(originalRequest);
+        } catch (refreshError) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          window.dispatchEvent(new Event('auth:logout'));
+        }
       }
       throw new ApiError('Authentication failed. Please login again.', 'AUTH_FAILED');
     }
@@ -119,20 +130,22 @@ function generateRequestId() {
 }
 
 async function refreshAuthToken() {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) {
     throw new Error('No refresh token available');
   }
 
-  const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-    refresh_token: refreshToken
+  const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
+    refresh: refreshToken
   });
 
-  const { access_token, refresh_token: newRefreshToken } = response.data;
-  localStorage.setItem('authToken', access_token);
-  localStorage.setItem('refresh_token', newRefreshToken);
+  const { access, refresh: newRefreshToken } = response.data;
+  localStorage.setItem('authToken', access);
+  if (newRefreshToken) {
+    localStorage.setItem('refreshToken', newRefreshToken);
+  }
 
-  return access_token;
+  return access;
 }
 
 // Retry logic for failed requests

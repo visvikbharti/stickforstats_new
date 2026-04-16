@@ -7,9 +7,9 @@ import AccessDeniedPage from '../pages/AccessDeniedPage';
 import TermsOfServicePage from '../pages/TermsOfServicePage';
 import ROUTE_CONFIG from './routeConfig';
 
-const SuspenseRoute = ({ component: Component, loadingMessage, protected: isProtected, requiredRole, props }) => {
+const SuspenseRoute = ({ component: Component, loadingMessage, skeleton, protected: isProtected, requiredRole, props }) => {
   const element = (
-    <Suspense fallback={<LoadingFallback message={loadingMessage} />}>
+    <Suspense fallback={<LoadingFallback message={loadingMessage} skeleton={skeleton} />}>
       <Component {...props} />
     </Suspense>
   );

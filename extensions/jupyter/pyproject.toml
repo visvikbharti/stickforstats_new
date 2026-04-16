@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "stickforstats-jupyter"
+version = "0.2.0"
+description = "Jupyter extension for StickForStats — magic commands and rich display"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    { name = "StickForStats Team" },
+]
+keywords = ["jupyter", "statistics", "stickforstats", "magic-commands"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Jupyter",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "ipython>=7.0",
+]
+
+[project.optional-dependencies]
+full = [
+    "stickforstats>=0.2.0",
+    "scipy>=1.7",
+    "pandas>=1.3",
+]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1",
+]
+
+[project.urls]
+Homepage = "https://stickforstats.com"
+Documentation = "https://docs.stickforstats.com/jupyter"
+Repository = "https://github.com/stickforstats/stickforstats-jupyter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stickforstats_jupyter"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 99
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]

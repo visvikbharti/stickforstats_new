@@ -1,0 +1,65 @@
+groups:
+  - name: stickforstats
+    rules:
+      - alert: HighErrorRate
+        expr: rate(django_http_responses_total{status=~"5.."}[5m]) / rate(django_http_responses_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate (> 5%)"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(django_http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency (> 500ms)"
+          description: "95th percentile latency is {{ $value }}s."
+
+      - alert: CeleryQueueBacklog
+        expr: celery_tasks_pending > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery task backlog growing"
+          description: "{{ $value }} tasks pending in queue."
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory > 85%"
+          description: "Redis is using {{ $value | humanizePercentage }} of max memory."
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connections > 80"
+          description: "Active connections: {{ $value }}."
+
+      - alert: GuardianCheckFailureRate
+        expr: rate(guardian_checks_failed_total[10m]) / rate(guardian_checks_total[10m]) > 0.20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Guardian validation failure rate > 20%"
+          description: "{{ $value | humanizePercentage }} of Guardian checks are failing."
+
+      - alert: BackendPodCrashLoop
+        expr: rate(kube_pod_container_status_restarts_total{namespace="stickforstats", container="backend"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend pod restarting"
+          description: "Backend container has restarted {{ $value }} times in 15 minutes."

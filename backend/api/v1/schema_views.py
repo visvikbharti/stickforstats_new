@@ -17,6 +17,8 @@ Mount these in ``urls.py`` like::
 """
 
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -2233,6 +2235,7 @@ class OpenAPISchemaView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []  # No auth required to read schema
 
+    @method_decorator(cache_page(3600))  # Cache for 1 hour
     def get(self, request):
         spec = build_openapi_spec()
 

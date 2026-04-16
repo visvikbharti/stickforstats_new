@@ -9,6 +9,7 @@ Role hierarchy: owner > admin > member > viewer
 
 import logging
 import functools
+from django.core.cache import cache
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -106,10 +107,36 @@ class RBACService:
     @staticmethod
     def has_permission(user, organization, permission):
         """Check if user has a specific permission in an organization."""
+        if not user or not user.is_authenticated:
+            return False
+
+        cache_key = f"rbac:{user.id}:{organization.id}:{permission}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         role = RBACService.get_user_role(user, organization)
         if role is None:
-            return False
-        return permission in ROLE_PERMISSIONS.get(role, set())
+            result = False
+        else:
+            result = permission in ROLE_PERMISSIONS.get(role, set())
+
+        cache.set(cache_key, result, timeout=300)  # 5 minutes
+        return result
+
+    @staticmethod
+    def clear_permission_cache(user_id, org_id):
+        """Invalidate all cached permissions for a user in an organization.
+
+        Call this when a user's role changes to ensure permission checks
+        reflect the new role immediately.
+        """
+        for role_perms in ROLE_PERMISSIONS.values():
+            for perm in role_perms:
+                cache.delete(f"rbac:{user_id}:{org_id}:{perm}")
+        logger.info(
+            "Cleared RBAC cache for user=%s org=%s", user_id, org_id
+        )
 
     @staticmethod
     def get_user_permissions(user, organization):

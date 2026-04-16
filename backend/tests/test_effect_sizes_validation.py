@@ -24,13 +24,13 @@ Test Coverage:
 import pytest
 import numpy as np
 from scipy import stats
-from backend.core.effect_sizes import (
+from core.effect_sizes import (
     EffectSizeCalculator,
     EffectSizeType,
     CIMethod,
     EffectSizeConverter,
 )
-from backend.core.robust_estimators import RobustEstimator, RobustMethod, RobustComparison
+from core.robust_estimators import RobustEstimator, RobustMethod, RobustComparison
 
 
 class TestEffectSizeValidation:

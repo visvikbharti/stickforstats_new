@@ -8,7 +8,8 @@ Validates assumptions before analysis and provides actionable recommendations.
 import numpy as np
 from scipy import stats
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
 from decimal import getcontext
 import warnings
 
@@ -27,6 +28,119 @@ SEVERITY_WEIGHTS = {
     "warning": 2.0,  # Moderate issues requiring attention
     "minor": 1.0,  # Small concerns, usually acceptable
 }
+
+# Methodological citations for Guardian assumption checks and recommendations.
+# Each entry maps to a seminal paper or textbook that justifies the check.
+GUARDIAN_CITATIONS = {
+    "normality_robust_large_n": {
+        "text": (
+            "Lumley, T., Diehr, P., Emerson, S., & Chen, L. (2002). "
+            "The importance of the normality assumption in large public "
+            "health data sets."
+        ),
+        "journal": "Annual Review of Public Health, 23, 151-169",
+        "key_finding": (
+            "For N>30, parametric tests are robust to non-normality "
+            "due to CLT"
+        ),
+    },
+    "anova_robust_balanced": {
+        "text": (
+            "Box, G. E. P. (1954). Some theorems on quadratic forms "
+            "applied in the study of analysis of variance problems."
+        ),
+        "journal": "Annals of Mathematical Statistics, 25(3), 290-302",
+        "key_finding": (
+            "ANOVA is robust to variance heterogeneity with balanced "
+            "group sizes"
+        ),
+    },
+    "welch_vs_student": {
+        "text": (
+            "Delacre, M., Lakens, D., & Leys, C. (2017). Why "
+            "psychologists should by default use Welch's t-test "
+            "instead of Student's t-test."
+        ),
+        "journal": (
+            "International Review of Social Psychology, 30(1), 92-101"
+        ),
+        "key_finding": (
+            "Welch's t-test should be the default as it performs "
+            "well even with equal variances"
+        ),
+    },
+    "boneau_ttest_robust": {
+        "text": (
+            "Boneau, C. A. (1960). The effects of violations of "
+            "assumptions underlying the t test."
+        ),
+        "journal": "Psychological Bulletin, 57(1), 49-64",
+        "key_finding": (
+            "t-test is robust to moderate non-normality, especially "
+            "with equal sample sizes"
+        ),
+    },
+    "kruskal_alternative": {
+        "text": (
+            "Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks "
+            "in one-criterion variance analysis."
+        ),
+        "journal": (
+            "Journal of the American Statistical Association, "
+            "47(260), 583-621"
+        ),
+        "key_finding": (
+            "Non-parametric alternative when ANOVA assumptions are "
+            "severely violated"
+        ),
+    },
+    "shapiro_wilk_test": {
+        "text": (
+            "Shapiro, S. S., & Wilk, M. B. (1965). An analysis of "
+            "variance test for normality."
+        ),
+        "journal": "Biometrika, 52(3-4), 591-611",
+        "key_finding": (
+            "Gold standard normality test for small to moderate "
+            "samples"
+        ),
+    },
+    "levene_test": {
+        "text": (
+            "Levene, H. (1960). Robust tests for equality of "
+            "variances."
+        ),
+        "journal": (
+            "Contributions to Probability and Statistics, 278-292"
+        ),
+        "key_finding": "Robust test for variance homogeneity",
+    },
+    "bootstrap_ci": {
+        "text": (
+            "Efron, B., & Tibshirani, R. J. (1993). An Introduction "
+            "to the Bootstrap."
+        ),
+        "journal": "Chapman & Hall/CRC",
+        "key_finding": (
+            "Bootstrap provides valid confidence intervals without "
+            "distributional assumptions"
+        ),
+    },
+}
+
+
+@dataclass
+class GuardianAuditEntry:
+    """Single audit trail entry for a Guardian check."""
+
+    timestamp: str  # ISO 8601 format
+    assumption: str
+    test_performed: str
+    result: str  # "pass", "violation", "skipped"
+    severity: str  # "critical", "warning", "minor", "none"
+    p_value: Optional[float] = None
+    context_adjustment: Optional[str] = None
+    citation: Optional[str] = None
 
 
 @dataclass
@@ -56,6 +170,175 @@ class GuardianReport:
     confidence_score: float
     visual_evidence: Dict[str, Any]
     effect_size_report: Optional[Dict[str, Any]] = None
+    audit_trail: List[GuardianAuditEntry] = field(default_factory=list)
+    context_adjustments_applied: bool = False
+
+
+class ContextualSeverityAdjuster:
+    """
+    Adjusts Guardian violation severity based on statistical context.
+
+    Key principles from the statistical literature:
+    - Large samples (N>30/group) make parametric tests robust to
+      non-normality (Central Limit Theorem; Lumley et al., 2002)
+    - ANOVA is robust to moderate variance inequality when group
+      sizes are equal (Box, 1954; Glass et al., 1972)
+    - Slight non-normality (|skewness| < 1) has minimal impact on
+      t-test validity (Boneau, 1960)
+    """
+
+    # Robustness thresholds from statistical literature
+    LARGE_SAMPLE_THRESHOLD = 30  # per group
+    MODERATE_SKEWNESS = 1.0
+    BALANCED_GROUP_TOLERANCE = 0.2  # max ratio difference from 1.0
+
+    @staticmethod
+    def adjust_normality_severity(
+        violation, sample_sizes, test_type
+    ):
+        """
+        Downgrade normality violations when CLT applies.
+
+        Reference: Lumley et al. (2002). The importance of the
+        normality assumption in large public health data sets.
+        Annual Review of Public Health, 23, 151-169.
+        """
+        min_n = min(sample_sizes) if sample_sizes else 0
+
+        if min_n >= 30 and test_type in (
+            "t_test", "anova", "pearson",
+        ):
+            if violation.severity == "critical":
+                return replace(
+                    violation,
+                    severity="warning",
+                    message=(
+                        violation.message
+                        + f" (downgraded: N={min_n} per group; "
+                        "CLT provides robustness "
+                        "\u2014 Lumley et al., 2002)"
+                    ),
+                )
+            elif violation.severity == "warning":
+                return replace(
+                    violation,
+                    severity="minor",
+                    message=(
+                        violation.message
+                        + f" (downgraded: N={min_n} per group "
+                        "provides CLT robustness)"
+                    ),
+                )
+        return violation
+
+    @staticmethod
+    def adjust_variance_severity(
+        violation, group_sizes, test_type
+    ):
+        """
+        Downgrade variance homogeneity violations for balanced
+        designs.
+
+        Reference: Box, G. E. P. (1954). Some theorems on quadratic
+        forms applied in the study of analysis of variance problems.
+        """
+        if not group_sizes or test_type != "anova":
+            return violation
+
+        max_n = max(group_sizes)
+        min_n = min(group_sizes)
+        if min_n > 0 and (max_n / min_n) <= 1.5:
+            if violation.severity == "critical":
+                return replace(
+                    violation,
+                    severity="warning",
+                    message=(
+                        violation.message
+                        + " (downgraded: balanced design provides "
+                        "robustness \u2014 Box, 1954)"
+                    ),
+                )
+        return violation
+
+    @staticmethod
+    def adjust_for_p_value_magnitude(violation):
+        """
+        Consider the magnitude of the assumption test p-value.
+        p=0.04 (borderline) is less concerning than p=0.001
+        (clear violation).
+        """
+        if violation.p_value is None:
+            return violation
+
+        if violation.p_value > 0.01:
+            # Borderline violation -- downgrade severity
+            if violation.severity == "critical":
+                return replace(
+                    violation,
+                    severity="warning",
+                    message=(
+                        violation.message
+                        + f" (borderline: p={violation.p_value:.4f}"
+                        ", close to threshold)"
+                    ),
+                )
+        return violation
+
+    def adjust_all(
+        self, violations, sample_sizes, group_sizes, test_type
+    ):
+        """Apply all contextual adjustments to a list of violations.
+
+        Returns a tuple of (adjusted_violations, adjustment_descriptions)
+        where adjustment_descriptions is a list of strings describing
+        each adjustment made (empty strings for unmodified violations).
+        """
+        adjusted = []
+        descriptions = []
+        for v in violations:
+            original_severity = v.severity
+            desc_parts = []
+
+            if v.assumption in (
+                "normality", "shapiro_wilk", "normalcy",
+            ):
+                v = self.adjust_normality_severity(
+                    v, sample_sizes, test_type
+                )
+                if v.severity != original_severity:
+                    desc_parts.append(
+                        f"normality {original_severity}->"
+                        f"{v.severity} (CLT, N>="
+                        f"{min(sample_sizes) if sample_sizes else 0})"
+                    )
+                    original_severity = v.severity
+
+            if v.assumption in (
+                "variance_homogeneity", "levene",
+                "homoscedasticity",
+            ):
+                before = v.severity
+                v = self.adjust_variance_severity(
+                    v, group_sizes, test_type
+                )
+                if v.severity != before:
+                    desc_parts.append(
+                        f"variance {before}->{v.severity} "
+                        "(balanced design)"
+                    )
+
+            before = v.severity
+            v = self.adjust_for_p_value_magnitude(v)
+            if v.severity != before:
+                desc_parts.append(
+                    f"p-value {before}->{v.severity} "
+                    f"(borderline p={v.p_value:.4f})"
+                )
+
+            adjusted.append(v)
+            descriptions.append("; ".join(desc_parts))
+
+        return adjusted, descriptions
 
 
 class GuardianCore:
@@ -121,6 +404,9 @@ class GuardianCore:
         self.viz_generator = VisualizationGenerator()
         self.effect_calculator = EffectSizeCalculator()
 
+        # Context-aware severity adjuster (v2)
+        self.severity_adjuster = ContextualSeverityAdjuster()
+
     def check(self, data: Any, test_type: str, alpha: float = 0.05) -> GuardianReport:
         """
         Main Guardian check - validates all assumptions for a given test
@@ -147,8 +433,10 @@ class GuardianCore:
 
         violations = []
         visual_evidence = {}
+        audit_trail = []
 
         # Check each assumption
+        now_iso = datetime.now(timezone.utc).isoformat()
         for req in requirements:
             if req in self.validators:
                 validator = self.validators[req]
@@ -167,12 +455,89 @@ class GuardianCore:
                             visual_evidence=result.get("visual_data"),
                         )
                     )
+                    # Audit: record violation
+                    audit_trail.append(
+                        GuardianAuditEntry(
+                            timestamp=now_iso,
+                            assumption=req,
+                            test_performed=result["test_name"],
+                            result="violation",
+                            severity=result["severity"],
+                            p_value=result.get("p_value"),
+                            citation=self._get_citation_for_assumption(req),
+                        )
+                    )
+                else:
+                    # Audit: record pass
+                    audit_trail.append(
+                        GuardianAuditEntry(
+                            timestamp=now_iso,
+                            assumption=req,
+                            test_performed=result.get(
+                                "test_name", req
+                            ),
+                            result="pass",
+                            severity="none",
+                            p_value=result.get("p_value"),
+                            citation=self._get_citation_for_assumption(req),
+                        )
+                    )
 
                 if result.get("visual_data"):
                     visual_evidence[req] = result["visual_data"]
+            else:
+                # Validator not available for this requirement
+                audit_trail.append(
+                    GuardianAuditEntry(
+                        timestamp=now_iso,
+                        assumption=req,
+                        test_performed="N/A",
+                        result="skipped",
+                        severity="none",
+                    )
+                )
+
+        # Apply context-aware severity adjustments (Guardian v2)
+        sample_sizes = [len(arr) for arr in data_arrays]
+        group_sizes = (
+            sample_sizes if len(data_arrays) > 1 else []
+        )
+        context_adjusted = False
+
+        if violations:
+            adjusted_violations, adj_descriptions = (
+                self.severity_adjuster.adjust_all(
+                    violations, sample_sizes,
+                    group_sizes, test_type,
+                )
+            )
+
+            # Update audit trail with context adjustments
+            violation_idx = 0
+            for entry in audit_trail:
+                if entry.result == "violation":
+                    if (
+                        violation_idx < len(adj_descriptions)
+                        and adj_descriptions[violation_idx]
+                    ):
+                        entry.context_adjustment = (
+                            adj_descriptions[violation_idx]
+                        )
+                        context_adjusted = True
+                    # Update severity in audit if it changed
+                    if violation_idx < len(adjusted_violations):
+                        entry.severity = (
+                            adjusted_violations[violation_idx]
+                            .severity
+                        )
+                    violation_idx += 1
+
+            violations = adjusted_violations
 
         # Determine if we can proceed
-        critical_violations = [v for v in violations if v.severity == "critical"]
+        critical_violations = [
+            v for v in violations if v.severity == "critical"
+        ]
         can_proceed = len(critical_violations) == 0
 
         # Get alternative tests if needed
@@ -214,6 +579,8 @@ class GuardianCore:
             confidence_score=confidence,
             visual_evidence=visual_evidence,
             effect_size_report=effect_size_report,
+            audit_trail=audit_trail,
+            context_adjustments_applied=context_adjusted,
         )
 
     def _prepare_data(self, data) -> List[np.ndarray]:
@@ -295,6 +662,26 @@ class GuardianCore:
         confidence = max(0, 1 - (total_penalty / (max_possible_penalty * 1.2)))
 
         return round(confidence, 3)
+
+    @staticmethod
+    def _get_citation_for_assumption(assumption):
+        """Map an assumption name to its methodological citation key."""
+        _assumption_citation_map = {
+            "normality": "shapiro_wilk_test",
+            "shapiro_wilk": "shapiro_wilk_test",
+            "variance_homogeneity": "levene_test",
+            "levene": "levene_test",
+            "homoscedasticity": "levene_test",
+            "independence": "boneau_ttest_robust",
+            "outliers": "bootstrap_ci",
+            "sample_size": "normality_robust_large_n",
+            "linearity": "boneau_ttest_robust",
+            "modality": "kruskal_alternative",
+        }
+        key = _assumption_citation_map.get(assumption)
+        if key and key in GUARDIAN_CITATIONS:
+            return GUARDIAN_CITATIONS[key]["text"]
+        return None
 
 
 class NormalityValidator:

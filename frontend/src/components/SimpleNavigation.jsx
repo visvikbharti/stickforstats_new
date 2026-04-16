@@ -207,9 +207,9 @@ const SimpleNavigation = () => {
   });
 
   return (
-    <AppBar position="static" elevation={1}>
+    <AppBar position="static" elevation={1} component="header">
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 56, md: 64 } }}>
+        <Toolbar disableGutters sx={{ minHeight: { xs: 56, md: 64 } }} component="nav" role="navigation" aria-label="Main navigation">
           {/* Logo */}
           <Typography
             variant="h6"
@@ -237,6 +237,7 @@ const SimpleNavigation = () => {
               to="/"
               startIcon={<HomeIcon fontSize="small" />}
               sx={getButtonSx(location.pathname === '/')}
+              aria-current={location.pathname === '/' ? 'page' : undefined}
             >
               Home
             </Button>
@@ -267,6 +268,8 @@ const SimpleNavigation = () => {
                       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                     }} />}
                     sx={getButtonSx(isActive)}
+                    aria-expanded={isOpen}
+                    aria-haspopup="true"
                   >
                     {category.label}
                   </Button>
@@ -311,6 +314,7 @@ const SimpleNavigation = () => {
                           key={item.path}
                           onClick={() => handleNavigate(item.path, key)}
                           selected={itemActive}
+                          aria-current={itemActive ? 'page' : undefined}
                           sx={{
                             py: 1,
                             px: 2,
@@ -420,7 +424,7 @@ const SimpleNavigation = () => {
           <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
             StickForStats
           </Typography>
-          <IconButton onClick={() => setDrawerOpen(false)} size="small">
+          <IconButton onClick={() => setDrawerOpen(false)} size="small" aria-label="Close navigation menu">
             <CloseIcon />
           </IconButton>
         </Box>
@@ -430,6 +434,7 @@ const SimpleNavigation = () => {
           <ListItemButton
             onClick={() => handleMobileNavigate('/')}
             selected={location.pathname === '/'}
+            aria-current={location.pathname === '/' ? 'page' : undefined}
             sx={{ borderRadius: 1, mb: 0.5 }}
           >
             <ListItemIcon sx={{ minWidth: 36 }}>
@@ -448,6 +453,7 @@ const SimpleNavigation = () => {
               <React.Fragment key={key}>
                 <ListItemButton
                   onClick={() => toggleMobileSection(key)}
+                  aria-expanded={isOpen}
                   sx={{
                     borderRadius: 1,
                     mb: 0.25,
@@ -472,6 +478,7 @@ const SimpleNavigation = () => {
                           key={item.path}
                           onClick={() => handleMobileNavigate(item.path)}
                           selected={itemActive}
+                          aria-current={itemActive ? 'page' : undefined}
                           sx={{ pl: 4, borderRadius: 1, mx: 1, mb: 0.25 }}
                         >
                           <ListItemIcon sx={{ minWidth: 28, color: itemActive ? 'primary.main' : 'text.secondary' }}>

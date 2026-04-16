@@ -338,24 +338,25 @@ const ScatterPlot = ({
             exclusive
             onChange={(e, v) => v && setPlotType(v)}
             size="small"
+            aria-label="Plot type"
           >
-            <ToggleButton value="scatter">
+            <ToggleButton value="scatter" aria-label="Scatter plot">
               <Tooltip title="Scatter Plot">
                 <ScatterIcon />
               </Tooltip>
             </ToggleButton>
-            <ToggleButton value="bubble">
+            <ToggleButton value="bubble" aria-label="Bubble plot">
               <Tooltip title="Bubble Plot">
                 <BubbleIcon />
               </Tooltip>
             </ToggleButton>
           </ToggleButtonGroup>
 
-          <IconButton onClick={() => setShowOptions(!showOptions)} size="small">
+          <IconButton onClick={() => setShowOptions(!showOptions)} size="small" aria-label="Plot settings" aria-expanded={showOptions}>
             <SettingsIcon />
           </IconButton>
 
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
+          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small" aria-label="Export data">
             <DownloadIcon />
           </IconButton>
 
@@ -417,6 +418,7 @@ const ScatterPlot = ({
         </Box>
       )}
 
+      <Box role="img" aria-label={`${title}: scatter plot of ${xLabel} vs ${yLabel} with ${processedData.length} data points${correlation ? `. Correlation r=${correlation.r.toFixed(3)} (${correlation.interpretation})` : ''}`}>
       <ResponsiveContainer width="100%" height={height}>
         <ScatterChart margin={{ top: 20, right: 20, bottom: 60, left: 60 }}>
           <CartesianGrid strokeDasharray="3 3" display={showGridState ? 'block' : 'none'} />
@@ -448,6 +450,7 @@ const ScatterPlot = ({
           {renderRegressionLine()}
         </ScatterChart>
       </ResponsiveContainer>
+      </Box>
 
       {regression && showTrendline && (
         <Box sx={{ mt: 2, p: 1, bgcolor: 'background.default', borderRadius: 1 }}>

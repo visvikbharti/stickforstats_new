@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
           console.error('Failed to fetch user:', error);
           if (error.response?.status === 401) {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
             setToken(null);
             setUser(null);
           }
@@ -36,6 +37,18 @@ export const AuthProvider = ({ children }) => {
 
     loadUser();
   }, [token]);
+
+  // Listen for forced logout events from the API interceptor (refresh token expired)
+  useEffect(() => {
+    const handleForceLogout = () => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+    return () => window.removeEventListener('auth:logout', handleForceLogout);
+  }, []);
 
   const _fetchUser = async () => {
     try {
@@ -54,10 +67,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await apiClient.post('/auth/login/', credentials);
-      const { token, user } = response.data;
+      const { access, refresh, user } = response.data;
 
-      localStorage.setItem('authToken', token);
-      setToken(token);
+      localStorage.setItem('authToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      setToken(access);
       setUser(user);
 
       return { success: true };
@@ -72,10 +86,11 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await apiClient.post('/auth/register/', userData);
-      const { token, user } = response.data;
+      const { access, refresh, user } = response.data;
 
-      localStorage.setItem('authToken', token);
-      setToken(token);
+      localStorage.setItem('authToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      setToken(access);
       setUser(user);
 
       return { success: true };
@@ -87,8 +102,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        await apiClient.post('/auth/logout/', { refresh: refreshToken });
+      }
+    } catch (error) {
+      // Proceed with local logout even if server logout fails
+      console.error('Server logout failed:', error);
+    }
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     setToken(null);
     setUser(null);
   };

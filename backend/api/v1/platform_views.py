@@ -12,6 +12,8 @@ REST API endpoints for the Universal Platform layer:
 
 import logging
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -34,6 +36,7 @@ class TierInfoView(APIView):
 
     permission_classes = [AllowAny]
 
+    @method_decorator(cache_page(1800))  # Cache for 30 min — tiers rarely change
     def get(self, request):
         from core.services.billing_service import BillingService
 

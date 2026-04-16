@@ -15,6 +15,8 @@ Endpoints:
 import re
 import logging
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -211,6 +213,7 @@ class SQSRulesView(APIView):
 
     permission_classes = [AllowAny]  # Public endpoint
 
+    @method_decorator(cache_page(3600))  # Cache for 1 hour — rules are static
     def get(self, request):
         category = request.query_params.get("category")
         severity = request.query_params.get("severity")
@@ -254,6 +257,7 @@ class SQSFieldsView(APIView):
 
     permission_classes = [AllowAny]  # Public endpoint
 
+    @method_decorator(cache_page(3600))  # Cache for 1 hour — fields are static
     def get(self, request):
         fields = []
         for field_name, weights in FIELD_WEIGHTS.items():
@@ -292,6 +296,7 @@ class SQSCategoriesView(APIView):
 
     permission_classes = [AllowAny]  # Public endpoint
 
+    @method_decorator(cache_page(3600))  # Cache for 1 hour — categories are static
     def get(self, request):
         categories = []
         for cat_id, cat_info in CATEGORIES.items():

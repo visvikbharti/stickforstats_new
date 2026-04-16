@@ -142,6 +142,7 @@ from .autonomous_views import (
     CascadeExecuteView,
     TranslateResultsView,
     NextStepView,
+    autonomous_followup,
 )
 from .manuscript_views import (
     ManuscriptAnalyzeView,
@@ -363,6 +364,7 @@ urlpatterns = [
     path("autonomous/cascade/", CascadeExecuteView.as_view(), name="autonomous-cascade"),
     path("autonomous/translate/", TranslateResultsView.as_view(), name="autonomous-translate"),
     path("autonomous/next-step/", NextStepView.as_view(), name="autonomous-next-step"),
+    path("autonomous/followup/", autonomous_followup, name="autonomous-followup"),
     # Manuscript Review / Journal Integration endpoints (Pillar 2)
     path("manuscript/analyze/", ManuscriptAnalyzeView.as_view(), name="manuscript-analyze"),
     path("manuscript/parse/", ManuscriptParseView.as_view(), name="manuscript-parse"),

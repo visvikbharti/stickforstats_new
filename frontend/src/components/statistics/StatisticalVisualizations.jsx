@@ -111,6 +111,7 @@ export const Histogram = ({ data, columnName, bins = 20, showNormalCurve = true 
           Distribution: {columnName}
         </Typography>
 
+        <Box role="img" aria-label={`Histogram showing the distribution of ${columnName}${stats ? `. Mean: ${stats.mean.toFixed(3)}, Median: ${stats.median.toFixed(3)}, Standard deviation: ${stats.std.toFixed(3)}` : ''}`}>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={histogramData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -146,6 +147,7 @@ export const Histogram = ({ data, columnName, bins = 20, showNormalCurve = true 
             )}
           </ComposedChart>
         </ResponsiveContainer>
+        </Box>
 
         {stats && (
           <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>

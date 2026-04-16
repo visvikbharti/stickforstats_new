@@ -4,6 +4,7 @@ Django settings for the StickForStats v1.0 Production project.
 
 import os
 import secrets
+from datetime import timedelta
 from pathlib import Path
 from .env_settings import get_database_config, get_platform_config, get_s3_config
 
@@ -32,7 +33,10 @@ INSTALLED_APPS = [
     # Third party apps
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "channels",
     # StickForStats apps - Core
     "core.apps.CoreConfig",
     "authentication",
@@ -46,7 +50,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django.middleware.gzip.GZipMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # Security headers (CSP, Permissions-Policy, Referrer-Policy) — production only
+    "core.middleware.SecurityHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -55,6 +62,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Request logging with correlation IDs (after auth, before rate limiting)
+    "core.middleware.RequestLoggingMiddleware",
+    # Rate limiting (API key limits + IP-based fallback)
+    "core.middleware.RateLimitMiddleware",
     # Guardian Design Contract Compliance Middleware
     # Ensures all statistical API responses include assumption context
     "core.middleware.GuardianComplianceMiddleware",
@@ -83,6 +94,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "stickforstats.wsgi.application"
+
+# ASGI application (Django Channels / WebSocket support)
+ASGI_APPLICATION = "stickforstats.asgi.application"
 
 # Database — supports DATABASE_URL env var, falls back to SQLite
 DATABASES = {"default": get_database_config(BASE_DIR)}
@@ -128,7 +142,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # REST Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -140,6 +154,17 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer" if DEBUG else "rest_framework.renderers.JSONRenderer",
     ],
+}
+
+# JWT Authentication settings
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
 # CORS settings
@@ -231,11 +256,14 @@ LOGGING = {
             "format": "{levelname} {message}",
             "style": "{",
         },
+        "json": {
+            "()": "core.logging.JsonFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json" if not DEBUG else "verbose",
         },
     },
     "root": {
@@ -290,6 +318,14 @@ GUARDIAN_MIDDLEWARE = {
 }
 
 # =============================================================================
+# RATE LIMITING
+# =============================================================================
+# Disabled in DEBUG mode by default. Override with ENABLE_RATE_LIMITING=true env var.
+RATE_LIMIT_ENABLED = not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
+RATE_LIMIT_DEFAULT_AUTHENTICATED = 60   # requests per minute (IP-based, logged-in users)
+RATE_LIMIT_DEFAULT_ANONYMOUS = 20       # requests per minute (IP-based, anonymous users)
+
+# =============================================================================
 # SECURITY HARDENING
 # =============================================================================
 # Always-on security headers (safe for both development and production)
@@ -307,6 +343,7 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = True
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
 # =============================================================================
 # PLATFORM CONFIGURATION (Pillar 3 — Universal Platform)
@@ -338,3 +375,20 @@ CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/2")
 CELERY_TASK_ALWAYS_EAGER = os.environ.get("CELERY_TASK_ALWAYS_EAGER", "True").lower() == "true"  # Sync in dev
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# ── Channel Layers (WebSocket backend) ───────────────────────
+if REDIS_AVAILABLE:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/1")],
+            },
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }

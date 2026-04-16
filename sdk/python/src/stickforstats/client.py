@@ -68,7 +68,7 @@ class StickForStats:
 
         headers: dict[str, str] = {
             "Accept": "application/json",
-            "User-Agent": "stickforstats-python/0.1.0",
+            "User-Agent": "stickforstats-python/0.2.0",
         }
         if api_key:
             if platform_key:

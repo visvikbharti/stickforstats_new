@@ -15,7 +15,15 @@ export const GlobalSearch = lazy(() => import('../components/common/GlobalSearch
 // Authentication pages
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/RegisterPage'));
-const DebugLoginPage = lazy(() => import('../pages/DebugLoginPage'));
+
+// Debug login — only loaded in development; in production the route
+// redirects to /login so this chunk is never fetched.
+const isDevMode =
+  process.env.NODE_ENV === 'development' ||
+  process.env.REACT_APP_DEBUG === 'true';
+const DebugLoginPage = isDevMode
+  ? lazy(() => import('../pages/DebugLoginPage'))
+  : lazy(() => import('../pages/LoginPage'));
 
 // Main statistical pages
 const EnhancedStatisticalAnalysis = lazy(() => import('../pages/EnhancedStatisticalAnalysis'));
@@ -117,23 +125,23 @@ const APIDocsPage = lazy(() => import('../pages/APIDocsPage'));
 
 const ROUTE_CONFIG = [
   // Home
-  { path: '/', component: ShowcaseHomePage, loadingMessage: 'Loading Home...' },
+  { path: '/', component: ShowcaseHomePage, loadingMessage: 'Loading Home...', skeleton: 'dashboard' },
 
   // v2.0 Pillar routes
-  { path: '/smart-analysis', component: SmartAnalysisPage, loadingMessage: 'Loading Smart Analysis...' },
-  { path: '/manuscript-review', component: ManuscriptReviewPage, loadingMessage: 'Loading Manuscript Review...' },
-  { path: '/journal-analytics', component: JournalAnalyticsPage, loadingMessage: 'Loading Journal Analytics...' },
-  { path: '/platform', component: PlatformDashboardPage, loadingMessage: 'Loading Platform Dashboard...' },
+  { path: '/smart-analysis', component: SmartAnalysisPage, loadingMessage: 'Loading Smart Analysis...', skeleton: 'analysis' },
+  { path: '/manuscript-review', component: ManuscriptReviewPage, loadingMessage: 'Loading Manuscript Review...', skeleton: 'form' },
+  { path: '/journal-analytics', component: JournalAnalyticsPage, loadingMessage: 'Loading Journal Analytics...', skeleton: 'dashboard' },
+  { path: '/platform', component: PlatformDashboardPage, loadingMessage: 'Loading Platform Dashboard...', skeleton: 'dashboard' },
 
   // Main statistical pages
-  { path: '/dashboard', component: StatisticalDashboard, loadingMessage: 'Loading Statistical Dashboard...' },
-  { path: '/analysis', component: StatisticalAnalysisHub, loadingMessage: 'Loading Analysis Interface...' },
-  { path: '/enhanced-analysis', component: EnhancedStatisticalAnalysis, loadingMessage: 'Loading Enhanced Analysis...' },
+  { path: '/dashboard', component: StatisticalDashboard, loadingMessage: 'Loading Statistical Dashboard...', skeleton: 'dashboard' },
+  { path: '/analysis', component: StatisticalAnalysisHub, loadingMessage: 'Loading Analysis Interface...', skeleton: 'analysis' },
+  { path: '/enhanced-analysis', component: EnhancedStatisticalAnalysis, loadingMessage: 'Loading Enhanced Analysis...', skeleton: 'analysis' },
 
   // Test modules
-  { path: '/modules/t-test', component: TTestCompleteModule, loadingMessage: 'Loading T-Test Module...' },
-  { path: '/modules/anova', component: ANOVACompleteModule, loadingMessage: 'Loading ANOVA Module...' },
-  { path: '/test-universe', component: TestSelectionDashboard, loadingMessage: 'Loading Test Universe...' },
+  { path: '/modules/t-test', component: TTestCompleteModule, loadingMessage: 'Loading T-Test Module...', skeleton: 'analysis' },
+  { path: '/modules/anova', component: ANOVACompleteModule, loadingMessage: 'Loading ANOVA Module...', skeleton: 'analysis' },
+  { path: '/test-universe', component: TestSelectionDashboard, loadingMessage: 'Loading Test Universe...', skeleton: 'dashboard' },
   {
     path: '/guardian-demo',
     component: GuardianWarning,
@@ -142,7 +150,7 @@ const ROUTE_CONFIG = [
   },
   { path: '/test-runner', component: MasterTestRunner, loadingMessage: 'Loading Master Test Runner...' },
   { path: '/unified-test', component: UnifiedTestExecutor, loadingMessage: 'Loading Unified Test Executor...' },
-  { path: '/audit', component: AuditDashboard, loadingMessage: 'Loading Audit Dashboard...' },
+  { path: '/audit', component: AuditDashboard, loadingMessage: 'Loading Audit Dashboard...', skeleton: 'table' },
 
   // Real backend modules (50-decimal precision)
   { path: '/modules/t-test-real', component: TTestRealBackend, loadingMessage: 'Loading Real T-Test with Backend...' },
@@ -156,30 +164,31 @@ const ROUTE_CONFIG = [
   { path: '/modules/multiplicity', component: MultiplicityCorrectionPanel, loadingMessage: 'Loading Multiplicity Correction...' },
 
   // Authentication
-  { path: '/login', component: LoginPage, loadingMessage: 'Loading login...' },
-  { path: '/register', component: RegisterPage, loadingMessage: 'Loading registration...' },
+  { path: '/login', component: LoginPage, loadingMessage: 'Loading login...', skeleton: 'form' },
+  { path: '/register', component: RegisterPage, loadingMessage: 'Loading registration...', skeleton: 'form' },
+  // In production, DebugLoginPage resolves to LoginPage (see top of file)
   { path: '/debug-login', component: DebugLoginPage, loadingMessage: 'Loading debug login...' },
 
   // Protected module routes
-  { path: '/statistics/*', component: StatisticsPage, loadingMessage: 'Loading Statistics Module...', protected: true },
-  { path: '/advanced-statistics/*', component: AdvancedStatisticsPage, loadingMessage: 'Loading Advanced Statistics Module...', protected: true },
-  { path: '/visualization-studio/*', component: VisualizationStudioPage, loadingMessage: 'Loading Visualization Studio...', protected: true },
-  { path: '/workflows/*', component: WorkflowManagementPage, loadingMessage: 'Loading Workflow Management Module...', protected: true },
-  { path: '/reports/*', component: ReportManagementPage, loadingMessage: 'Loading Report Management Module...', protected: true },
-  { path: '/reporting-studio/*', component: ReportingStudioPage, loadingMessage: 'Loading Reporting Studio...', protected: true },
-  { path: '/enterprise', component: EnterpriseDashboard, loadingMessage: 'Loading Enterprise Dashboard...', protected: true },
+  { path: '/statistics/*', component: StatisticsPage, loadingMessage: 'Loading Statistics Module...', protected: true, skeleton: 'analysis' },
+  { path: '/advanced-statistics/*', component: AdvancedStatisticsPage, loadingMessage: 'Loading Advanced Statistics Module...', protected: true, skeleton: 'analysis' },
+  { path: '/visualization-studio/*', component: VisualizationStudioPage, loadingMessage: 'Loading Visualization Studio...', protected: true, skeleton: 'dashboard' },
+  { path: '/workflows/*', component: WorkflowManagementPage, loadingMessage: 'Loading Workflow Management Module...', protected: true, skeleton: 'table' },
+  { path: '/reports/*', component: ReportManagementPage, loadingMessage: 'Loading Report Management Module...', protected: true, skeleton: 'table' },
+  { path: '/reporting-studio/*', component: ReportingStudioPage, loadingMessage: 'Loading Reporting Studio...', protected: true, skeleton: 'dashboard' },
+  { path: '/enterprise', component: EnterpriseDashboard, loadingMessage: 'Loading Enterprise Dashboard...', protected: true, skeleton: 'dashboard' },
 
   // Analysis pages (not protected)
-  { path: '/sqc-analysis/*', component: SQCAnalysisPage, loadingMessage: 'Loading SQC Analysis Module...' },
-  { path: '/doe-analysis/*', component: DOEAnalysisPage, loadingMessage: 'Loading DOE Analysis Module...' },
-  { path: '/pca-analysis/*', component: PCAAnalysisPage, loadingMessage: 'Loading PCA Analysis Module...' },
-  { path: '/survival-analysis/*', component: SurvivalAnalysisPage, loadingMessage: 'Loading Survival Analysis Module...' },
-  { path: '/genomics-analysis', component: GenomicsAnalysisPage, loadingMessage: 'Loading Genomics Analysis...' },
-  { path: '/factor-analysis/*', component: FactorAnalysisPage, loadingMessage: 'Loading Factor Analysis Module...' },
-  { path: '/meta-analysis', component: MetaAnalysisHub, loadingMessage: 'Loading Meta-Analysis...' },
-  { path: '/publication-plots', component: PublicationPlotsPage, loadingMessage: 'Loading Publication Plot Builder...' },
-  { path: '/paper-parser', component: PaperParserHub, loadingMessage: 'Loading Paper Parser...' },
-  { path: '/statistical-analysis-tools', component: StatisticalAnalysisHub, loadingMessage: 'Loading Statistical Analysis Platform...' },
+  { path: '/sqc-analysis/*', component: SQCAnalysisPage, loadingMessage: 'Loading SQC Analysis Module...', skeleton: 'analysis' },
+  { path: '/doe-analysis/*', component: DOEAnalysisPage, loadingMessage: 'Loading DOE Analysis Module...', skeleton: 'analysis' },
+  { path: '/pca-analysis/*', component: PCAAnalysisPage, loadingMessage: 'Loading PCA Analysis Module...', skeleton: 'analysis' },
+  { path: '/survival-analysis/*', component: SurvivalAnalysisPage, loadingMessage: 'Loading Survival Analysis Module...', skeleton: 'analysis' },
+  { path: '/genomics-analysis', component: GenomicsAnalysisPage, loadingMessage: 'Loading Genomics Analysis...', skeleton: 'analysis' },
+  { path: '/factor-analysis/*', component: FactorAnalysisPage, loadingMessage: 'Loading Factor Analysis Module...', skeleton: 'analysis' },
+  { path: '/meta-analysis', component: MetaAnalysisHub, loadingMessage: 'Loading Meta-Analysis...', skeleton: 'analysis' },
+  { path: '/publication-plots', component: PublicationPlotsPage, loadingMessage: 'Loading Publication Plot Builder...', skeleton: 'dashboard' },
+  { path: '/paper-parser', component: PaperParserHub, loadingMessage: 'Loading Paper Parser...', skeleton: 'form' },
+  { path: '/statistical-analysis-tools', component: StatisticalAnalysisHub, loadingMessage: 'Loading Statistical Analysis Platform...', skeleton: 'dashboard' },
   { path: '/probability-distributions/*', component: ProbabilityDistributionsPage, loadingMessage: 'Loading Probability Distributions Module...' },
   { path: '/confidence-intervals/*', component: ConfidenceIntervalsPage, loadingMessage: 'Loading Confidence Intervals Module...' },
 
@@ -209,10 +218,10 @@ const ROUTE_CONFIG = [
   { path: '/search', component: SearchResultsPage, loadingMessage: 'Loading Search Results...' },
 
   // v2.0 platform pages
-  { path: '/privacy', component: PrivacyDashboardPage, loadingMessage: 'Loading Privacy Dashboard...' },
-  { path: '/marketplace', component: MarketplacePage, loadingMessage: 'Loading Plugin Marketplace...' },
-  { path: '/certification', component: CertificationPage, loadingMessage: 'Loading Certification Program...' },
-  { path: '/api-docs', component: APIDocsPage, loadingMessage: 'Loading API Documentation...' },
+  { path: '/privacy', component: PrivacyDashboardPage, loadingMessage: 'Loading Privacy Dashboard...', skeleton: 'dashboard' },
+  { path: '/marketplace', component: MarketplacePage, loadingMessage: 'Loading Plugin Marketplace...', skeleton: 'dashboard' },
+  { path: '/certification', component: CertificationPage, loadingMessage: 'Loading Certification Program...', skeleton: 'form' },
+  { path: '/api-docs', component: APIDocsPage, loadingMessage: 'Loading API Documentation...', skeleton: 'table' },
 ];
 
 export default ROUTE_CONFIG;

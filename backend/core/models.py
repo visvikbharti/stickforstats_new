@@ -19,8 +19,9 @@ Scientific Rigor: MAXIMUM
 Enterprise Grade: PRODUCTION-READY
 """
 
-import uuid
 import hashlib
+import hmac
+import uuid
 
 from django.conf import settings
 from django.db import models
@@ -397,8 +398,9 @@ class JournalAPIKey(models.Model):
         return raw_key, key_prefix, key_hash
 
     def verify_key(self, raw_key: str) -> bool:
-        """Verify a raw API key against stored hash."""
-        return hashlib.sha256(raw_key.encode()).hexdigest() == self.key_hash
+        """Verify a raw API key against stored hash (timing-safe)."""
+        computed = hashlib.sha256(raw_key.encode()).hexdigest()
+        return hmac.compare_digest(computed, self.key_hash)
 
 
 class ManuscriptSubmission(models.Model):
@@ -809,8 +811,9 @@ class PlatformAPIKey(models.Model):
         return raw_key, key_prefix, key_hash
 
     def verify_key(self, raw_key: str) -> bool:
-        """Verify a raw API key against stored hash."""
-        return hashlib.sha256(raw_key.encode()).hexdigest() == self.key_hash
+        """Verify a raw API key against stored hash (timing-safe)."""
+        computed = hashlib.sha256(raw_key.encode()).hexdigest()
+        return hmac.compare_digest(computed, self.key_hash)
 
     def is_expired(self):
         if self.expires_at is None:

@@ -13,6 +13,7 @@ import { SearchProvider } from './context/SearchContext';
 import { OnboardingProvider } from './context/OnboardingContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { TourProvider } from './components/onboarding';
+import { LiveRegionProvider } from './components/common/LiveRegion';
 import { mathJaxConfig, prefetchOptions } from './config/appConfig';
 
 const snackbarProps = {
@@ -49,6 +50,7 @@ const Providers = ({ onError, children }) =>
       [CommandPaletteProvider],
       [SettingsProvider],
       [TourProvider],
+      [LiveRegionProvider],
     ],
     children
   );

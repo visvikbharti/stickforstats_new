@@ -24,6 +24,8 @@ from .guardian_core import (
     GuardianCore,
     GuardianReport,
     AssumptionViolation,
+    GuardianAuditEntry,
+    ContextualSeverityAdjuster,
     NormalityValidator,
     VarianceHomogeneityValidator,
     IndependenceValidator,
@@ -33,6 +35,7 @@ from .guardian_core import (
     LinearityValidator,
     HomoscedasticityValidator,
     SEVERITY_WEIGHTS,
+    GUARDIAN_CITATIONS,
 )
 
 from .service_integration import (
@@ -49,6 +52,8 @@ __all__ = [
     "GuardianCore",
     "GuardianReport",
     "AssumptionViolation",
+    "GuardianAuditEntry",
+    "ContextualSeverityAdjuster",
     # Validators
     "NormalityValidator",
     "VarianceHomogeneityValidator",
@@ -60,6 +65,7 @@ __all__ = [
     "HomoscedasticityValidator",
     # Constants
     "SEVERITY_WEIGHTS",
+    "GUARDIAN_CITATIONS",
     # Service integration
     "GuardianServiceWrapper",
     "GuardianEnrichedResult",

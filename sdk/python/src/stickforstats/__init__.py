@@ -9,10 +9,13 @@ Quick start::
     from stickforstats import StickForStats
 
     client = StickForStats(api_key="your-api-key")
-    result = client.stats.ttest(data={"group1": [1, 2, 3], "group2": [4, 5, 6]})
+    result = client.stats.ttest(
+        data={"group1": [1, 2, 3], "group2": [4, 5, 6]}
+    )
     print(result)
 """
 
+from stickforstats import quick
 from stickforstats.client import StickForStats
 from stickforstats.exceptions import (
     APIError,
@@ -22,7 +25,7 @@ from stickforstats.exceptions import (
     ValidationError,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "StickForStats",
     "StickForStatsError",
@@ -30,5 +33,6 @@ __all__ = [
     "AuthenticationError",
     "ValidationError",
     "TimeoutError",
+    "quick",
     "__version__",
 ]

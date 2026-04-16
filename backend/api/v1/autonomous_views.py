@@ -19,6 +19,7 @@ import pandas as pd
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 import logging
@@ -27,6 +28,9 @@ from core.services.smart_profiler import SmartProfiler
 from core.services.cascade_engine import AutonomousCascadeEngine
 from core.services.plain_language_translator import PlainLanguageTranslator, OutputMode
 from core.services.autonomous_query_handler import AutonomousQueryHandler
+from core.services.suggestions_engine import SuggestionsEngine
+from core.services.analysis_context import AnalysisContext
+from core.services.followup_resolver import FollowUpResolver
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +228,31 @@ class AutonomousQueryView(APIView):
             "warnings": result.warnings,
         }
 
+        # Add smart suggestions based on the analysis results
+        try:
+            suggestions_input = {}
+            cascade = result.cascade_result
+            if cascade and isinstance(cascade, dict):
+                inner = cascade.get("result") or {}
+                suggestions_input["test_type"] = cascade.get(
+                    "final_test"
+                )
+                suggestions_input["p_value"] = inner.get("p_value")
+                suggestions_input["effect_size"] = inner.get(
+                    "effect_size"
+                )
+                report = cascade.get("guardian_report") or {}
+                violations = report.get("violations", [])
+                suggestions_input["guardian_violations"] = len(violations)
+
+            engine = SuggestionsEngine()
+            response_data["suggestions"] = engine.get_suggestions(
+                suggestions_input
+            )
+        except Exception as e:
+            logger.warning(f"Suggestions engine failed: {e}")
+            response_data["suggestions"] = []
+
         return Response(response_data, status=status.HTTP_200_OK)
 
 
@@ -376,3 +405,48 @@ class NextStepView(APIView):
             )
 
         return Response({"next_steps": steps}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def autonomous_followup(request):
+    """
+    POST /api/v1/autonomous/followup/
+
+    Process a follow-up query using session context.
+
+    Request body:
+    {
+        "query": "Try without outliers",
+        "session_id": "abc123"
+    }
+
+    Returns the resolved intent plus session context so the
+    frontend can dispatch the appropriate action.
+    """
+    query = request.data.get("query", "")
+    session_id = request.data.get("session_id", "")
+
+    if not query:
+        return Response(
+            {"error": "Query is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not session_id:
+        return Response(
+            {"error": "session_id is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    context = AnalysisContext(session_id)
+    state = context.get_state()
+
+    resolver = FollowUpResolver()
+    resolution = resolver.resolve(query, state)
+
+    return Response({
+        "resolution": resolution,
+        "session_context": context.get_context_for_query(),
+        "history_length": len(state.get("history", [])),
+    })

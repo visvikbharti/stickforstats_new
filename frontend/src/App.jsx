@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { ServiceWorkerUpdater, PWAInstallPrompt } from './components/common';
 import LoadingFallback from './components/common/LoadingFallback';
+import SkipNavigation from './components/common/SkipNavigation';
 import SimpleNavigation from './components/SimpleNavigation';
 import Footer from './components/Footer';
 import { WelcomeModal, HelpButton } from './components/onboarding';
@@ -55,6 +56,7 @@ function App() {
   return (
     <Providers onError={handleGlobalError}>
       <div className="App">
+        <SkipNavigation />
         <SimpleNavigation />
         <Suspense fallback={null}>
           <CommandPalette />
@@ -63,7 +65,7 @@ function App() {
         </Suspense>
         <WelcomeModal />
         <HelpButton />
-        <main style={{ minHeight: 'calc(100vh - 120px)', padding: '0' }}>
+        <main id="main-content" style={{ minHeight: 'calc(100vh - 120px)', padding: '0' }}>
           <AppRoutes />
         </main>
         <Footer />
