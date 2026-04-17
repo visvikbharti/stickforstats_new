@@ -187,36 +187,15 @@ body.theme-transition svg {
   transition: transform var(--transition-base) !important;
 }
 
-/* Fix Material-UI overrides for dark mode */
-.MuiPaper-root {
-  background-color: var(--color-surface) !important;
-  color: var(--color-text-primary) !important;
-}
-
-.MuiButton-root {
-  text-transform: none !important;
-}
-
-.MuiInputBase-root {
-  color: var(--color-text-primary) !important;
-  background-color: var(--color-surface) !important;
-}
-
-.MuiInputBase-input {
-  padding: var(--spacing-sm) var(--spacing-md) !important;
-}
-
-.MuiOutlinedInput-notchedOutline {
-  border-color: var(--color-divider) !important;
-}
-
-.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-  border-color: var(--color-text-secondary) !important;
-}
-
-.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: var(--color-primary-500) !important;
-}
+/*
+ * MUI element styling lives in src/theme.js (the canonical design system)
+ * since the 2026-04-17 redesign. Earlier global `!important` overrides in
+ * this file referenced `var(--color-surface)` etc. — CSS custom properties
+ * that were never defined — which resolved to `rgba(0,0,0,0)` and forced
+ * every Paper / InputBase transparent, defeating the theme. The rules were
+ * removed; theme.js's MuiPaper / MuiOutlinedInput / MuiInputBase overrides
+ * now apply correctly.
+ */
 
 /* Loading skeleton animation */
 .loading-skeleton {
