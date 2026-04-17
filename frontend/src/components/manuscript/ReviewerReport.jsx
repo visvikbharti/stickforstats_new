@@ -22,10 +22,12 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  AlertTitle,
   Box,
   Button,
   Chip,
   IconButton,
+  LinearProgress,
   Paper,
   Snackbar,
   Stack,
@@ -33,6 +35,7 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  Assignment as ChecklistIcon,
   CheckCircleOutline,
   ContentCopy,
   ErrorOutline,
@@ -63,6 +66,30 @@ const SEVERITY_CFG = {
   major: { color: 'warning', label: 'Major', Icon: WarningAmber },
   moderate: { color: 'info', label: 'Moderate', Icon: InfoOutlined },
   minor: { color: 'info', label: 'Minor', Icon: InfoOutlined },
+};
+
+// Pretty-print finding categories. Backend emits snake_case keys like
+// "multiple_testing" from the 7 advanced validators; the fallback below
+// humanises anything not explicitly listed.
+const CATEGORY_LABELS = {
+  consistency: 'Consistency',
+  reporting: 'Reporting',
+  methodology: 'Methodology',
+  sqs: 'SQS',
+  multiple_testing: 'Multiple testing',
+  effect_size: 'Effect size',
+  power: 'Statistical power',
+  reproducibility: 'Reproducibility',
+  checklist: 'Checklist',
+};
+
+export const formatCategory = (cat) => {
+  if (!cat) return '';
+  const key = String(cat).toLowerCase();
+  if (CATEGORY_LABELS[key]) return CATEGORY_LABELS[key];
+  // Fallback: underscore→space, capitalise first letter.
+  const words = key.replace(/_/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 };
 
 // Assessment → verdict card styling + copy.
@@ -238,7 +265,100 @@ const AtAGlance = ({ report }) => {
         tone={(report?.gross_errors ?? 0) > 0 ? 'error' : 'default'}
         helperText="Recomputed statistic differs from reported value by an order of magnitude or more."
       />
+      {typeof report?.checklist_completion_pct === 'number' && (
+        <StatChip
+          label="Checklist"
+          value={`${Math.round(report.checklist_completion_pct)}%`}
+          tone={
+            report.checklist_completion_pct >= 80
+              ? 'success'
+              : report.checklist_completion_pct >= 50
+              ? 'warning'
+              : 'error'
+          }
+          helperText={
+            report?.discipline_guideline
+              ? `Compliance with the ${report.discipline_guideline} reporting checklist.`
+              : 'Discipline-specific reporting-checklist completion.'
+          }
+        />
+      )}
     </Stack>
+  );
+};
+
+const DisciplineCompliancePanel = ({ report }) => {
+  const profile = report?.discipline_profile;
+  const guideline = report?.discipline_guideline;
+  const pct = report?.checklist_completion_pct;
+  const missing = report?.checklist_missing_required || [];
+
+  // If no discipline profile was applied (field='general' or unknown),
+  // the panel is a no-op. Keeps the UI honest: we only make CONSORT-style
+  // compliance claims when a profile was actually selected.
+  if (!profile && pct == null) return null;
+
+  const pctNum = typeof pct === 'number' && Number.isFinite(pct) ? pct : null;
+  const tone = pctNum == null
+    ? 'info'
+    : pctNum >= 80 ? 'success' : pctNum >= 50 ? 'warning' : 'error';
+
+  return (
+    <Paper
+      variant="outlined"
+      data-testid="discipline-panel"
+      data-guideline={guideline || ''}
+      sx={{ p: 2.5 }}
+    >
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+        <ChecklistIcon color={tone} />
+        <Typography variant="subtitle1" fontWeight={600}>
+          {guideline
+            ? `${guideline} compliance`
+            : 'Discipline checklist'}
+        </Typography>
+        {profile && (
+          <Chip
+            size="small"
+            label={profile}
+            variant="outlined"
+            sx={{ textTransform: 'capitalize' }}
+          />
+        )}
+        {pctNum != null && (
+          <Chip
+            size="small"
+            label={`${Math.round(pctNum)}%`}
+            color={tone}
+            variant="outlined"
+          />
+        )}
+      </Stack>
+
+      {pctNum != null && (
+        <LinearProgress
+          variant="determinate"
+          value={Math.max(0, Math.min(100, pctNum))}
+          color={tone}
+          sx={{ mb: missing.length > 0 ? 1.5 : 0, height: 6, borderRadius: 3 }}
+        />
+      )}
+
+      {missing.length > 0 && (
+        <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
+          <AlertTitle sx={{ mb: 0.5 }}>
+            {missing.length} required item{missing.length === 1 ? '' : 's'} missing
+          </AlertTitle>
+          <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {missing.map((name) => (
+              <li key={name}>
+                <Typography variant="body2">{name}</Typography>
+              </li>
+            ))}
+          </Box>
+        </Alert>
+      )}
+    </Paper>
   );
 };
 
@@ -260,7 +380,11 @@ const ConcernCard = ({ finding }) => {
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <Chip size="small" label={cfg.label} color={cfg.color} variant="outlined" />
             {finding.category && (
-              <Chip size="small" label={finding.category} variant="outlined" />
+              <Chip
+                size="small"
+                label={formatCategory(finding.category)}
+                variant="outlined"
+              />
             )}
           </Stack>
           <Typography variant="subtitle2" fontWeight={600}>
@@ -377,6 +501,7 @@ const ReviewerReport = ({ report, submissionId, onAnalyzeAnother }) => {
 
       <VerdictBanner report={report} />
       <AtAGlance report={report} />
+      <DisciplineCompliancePanel report={report} />
 
       {/* Top concerns */}
       <Box>

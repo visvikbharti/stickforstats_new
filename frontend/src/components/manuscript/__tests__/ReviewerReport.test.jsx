@@ -21,6 +21,7 @@ import { ThemeProvider } from '@mui/material/styles';
 
 import ReviewerReport, {
   SEVERITY_ORDER,
+  formatCategory,
   pickTopConcerns,
   resolveVerdict,
 } from '../ReviewerReport';
@@ -216,5 +217,131 @@ describe('ReviewerReport rendering', () => {
   it('renders an info alert when called with a null report', () => {
     wrap(<ReviewerReport report={null} />);
     expect(screen.getByText(/No report loaded\./i)).toBeInTheDocument();
+  });
+});
+
+describe('formatCategory — pretty-print finding categories', () => {
+  it('maps known snake_case keys to human labels', () => {
+    expect(formatCategory('multiple_testing')).toBe('Multiple testing');
+    expect(formatCategory('effect_size')).toBe('Effect size');
+    expect(formatCategory('power')).toBe('Statistical power');
+    expect(formatCategory('reproducibility')).toBe('Reproducibility');
+    expect(formatCategory('checklist')).toBe('Checklist');
+  });
+
+  it('keeps legacy labels stable', () => {
+    expect(formatCategory('consistency')).toBe('Consistency');
+    expect(formatCategory('reporting')).toBe('Reporting');
+    expect(formatCategory('methodology')).toBe('Methodology');
+    expect(formatCategory('sqs')).toBe('SQS');
+  });
+
+  it('humanises unknown keys rather than printing raw snake_case', () => {
+    expect(formatCategory('prereg_compliance')).toBe('Prereg compliance');
+    expect(formatCategory('OUTCOME_SWAP')).toBe('Outcome swap');
+  });
+
+  it('returns empty string on null / empty input', () => {
+    expect(formatCategory(null)).toBe('');
+    expect(formatCategory('')).toBe('');
+    expect(formatCategory(undefined)).toBe('');
+  });
+});
+
+describe('ReviewerReport — discipline compliance panel', () => {
+  it('does NOT render the panel when discipline_profile is absent', () => {
+    wrap(<ReviewerReport report={makeReport()} />);
+    expect(screen.queryByTestId('discipline-panel')).toBeNull();
+  });
+
+  it('renders the guideline chip + completion percentage when a profile is set', () => {
+    wrap(
+      <ReviewerReport
+        report={makeReport({
+          discipline_profile: 'medicine',
+          discipline_guideline: 'CONSORT',
+          checklist_completion_pct: 67,
+          checklist_missing_required: [],
+        })}
+      />
+    );
+    const panel = screen.getByTestId('discipline-panel');
+    expect(panel).toHaveAttribute('data-guideline', 'CONSORT');
+    expect(screen.getByText(/CONSORT compliance/i)).toBeInTheDocument();
+    // Both the panel chip and the AtAGlance StatChip render 67%; check the
+    // panel surface specifically to avoid a false positive on the stats row.
+    expect(panel).toHaveTextContent('67%');
+  });
+
+  it('lists each missing-required item by name', () => {
+    wrap(
+      <ReviewerReport
+        report={makeReport({
+          discipline_profile: 'medicine',
+          discipline_guideline: 'CONSORT',
+          checklist_completion_pct: 50,
+          checklist_missing_required: [
+            'Randomization method described',
+            'Allocation concealment described',
+          ],
+        })}
+      />
+    );
+    expect(
+      screen.getByText(/2 required items missing/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Randomization method described/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Allocation concealment described/i)
+    ).toBeInTheDocument();
+  });
+
+  it('uses singular copy when exactly one required item is missing', () => {
+    wrap(
+      <ReviewerReport
+        report={makeReport({
+          discipline_profile: 'psychology',
+          discipline_guideline: 'JARS-Quant',
+          checklist_completion_pct: 90,
+          checklist_missing_required: ['Pre-registration cited'],
+        })}
+      />
+    );
+    expect(
+      screen.getByText(/1 required item missing/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows the Checklist stat in AtAGlance when a pct is present', () => {
+    wrap(
+      <ReviewerReport
+        report={makeReport({
+          discipline_profile: 'medicine',
+          discipline_guideline: 'CONSORT',
+          checklist_completion_pct: 83,
+          checklist_missing_required: [],
+        })}
+      />
+    );
+    // The 83% tile sits in the stats row — just prove it renders somewhere.
+    expect(screen.getAllByText('83%').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('pretty-prints advanced-validator categories on concern cards', () => {
+    const findings = [
+      {
+        severity: 'major',
+        category: 'multiple_testing',
+        title: 'Uncorrected multiple comparisons',
+        description: '18 tests reported without FDR/FWER correction.',
+      },
+    ];
+    wrap(<ReviewerReport report={makeReport({ findings })} />);
+    // Chip on the concern card should display "Multiple testing", not
+    // the raw "multiple_testing" key.
+    expect(screen.getByText('Multiple testing')).toBeInTheDocument();
+    expect(screen.queryByText('multiple_testing')).toBeNull();
   });
 });
