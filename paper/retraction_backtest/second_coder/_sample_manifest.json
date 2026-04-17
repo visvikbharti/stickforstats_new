@@ -1,0 +1,18 @@
+{
+  "prng_seed": 20260417,
+  "n_per_class_requested": 50,
+  "n_sampled": 150,
+  "n_total_candidates": 20750,
+  "stratum_sizes_in_sample": {
+    "stat": 50,
+    "nonstat": 50,
+    "ambiguous": 50
+  },
+  "generated_at_utc": "2026-04-17T20:15:11.084553+00:00",
+  "retraction_watch_csv_path": "paper/retraction_backtest/data/retraction-watch-data/retraction_watch.csv",
+  "retraction_watch_csv_sha1": "e3c2bcd60bad032d2317a1285061296a6b6efe6f",
+  "retraction_watch_csv_size_bytes": 63921203,
+  "git_commit_sha": "6cf606a",
+  "codebook_source": "paper/retraction_backtest/code/harvest.py::_label_statistical_reason",
+  "protocol_ref": "paper/retraction_backtest/PROTOCOL.md \u00a79.1 (commit 3da1c65 or later)"
+}
