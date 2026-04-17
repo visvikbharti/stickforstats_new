@@ -50,6 +50,7 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { analyzeManuscript } from '../../services/ManuscriptService';
+import { DisciplineCompliancePanel } from './ReviewerReport';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -1024,6 +1025,14 @@ const ManuscriptAnalyzer = () => {
         <Box>
           {/* 3a. Overview Cards */}
           <OverviewCards report={report} theme={theme} />
+
+          {/* 3a'. Discipline compliance (CONSORT/STROBE/ICH-E9/JARS-Quant) —
+               only rendered when the backend resolved a profile for the
+               caller's `field`. The panel itself is defined in
+               ReviewerReport.jsx so the two surfaces stay consistent. */}
+          <Box sx={{ mb: 3 }}>
+            <DisciplineCompliancePanel report={report} />
+          </Box>
 
           <Divider sx={{ mb: 3 }} />
 

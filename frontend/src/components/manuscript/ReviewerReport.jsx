@@ -287,7 +287,7 @@ const AtAGlance = ({ report }) => {
   );
 };
 
-const DisciplineCompliancePanel = ({ report }) => {
+export const DisciplineCompliancePanel = ({ report }) => {
   const profile = report?.discipline_profile;
   const guideline = report?.discipline_guideline;
   const pct = report?.checklist_completion_pct;

@@ -20,6 +20,7 @@ import '@testing-library/jest-dom';
 import { ThemeProvider } from '@mui/material/styles';
 
 import ReviewerReport, {
+  DisciplineCompliancePanel,
   SEVERITY_ORDER,
   formatCategory,
   pickTopConcerns,
@@ -343,5 +344,28 @@ describe('ReviewerReport — discipline compliance panel', () => {
     // the raw "multiple_testing" key.
     expect(screen.getByText('Multiple testing')).toBeInTheDocument();
     expect(screen.queryByText('multiple_testing')).toBeNull();
+  });
+
+  // DisciplineCompliancePanel is consumed as a named import by
+  // ManuscriptAnalyzer.jsx (the full author-facing surface). This smoke
+  // test pins it as a public export so an accidental `const` → private
+  // regression breaks the frontend build instead of silently shipping.
+  it('DisciplineCompliancePanel is a public named export and renders standalone', () => {
+    wrap(
+      <DisciplineCompliancePanel
+        report={{
+          discipline_profile: 'medicine',
+          discipline_guideline: 'CONSORT',
+          checklist_completion_pct: 72,
+          checklist_missing_required: ['Allocation concealment described'],
+        }}
+      />
+    );
+    const panel = screen.getByTestId('discipline-panel');
+    expect(panel).toHaveAttribute('data-guideline', 'CONSORT');
+    expect(screen.getByText(/CONSORT compliance/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Allocation concealment described/i)
+    ).toBeInTheDocument();
   });
 });
