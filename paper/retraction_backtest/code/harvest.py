@@ -77,8 +77,10 @@ import logging
 import random
 import re
 import shutil
+import io
 import subprocess
 import sys
+import tarfile
 import time
 import urllib.parse
 from dataclasses import dataclass, field
@@ -346,6 +348,39 @@ def _http_get_raw(url: str, timeout: int = 60) -> Tuple[int, Dict[str, str], str
     if r.status_code in (429,) or 500 <= r.status_code < 600:
         raise RetryableHttpError(f"HTTP {r.status_code} on {url}")
     return r.status_code, dict(r.headers), r.text
+
+
+@retry(
+    reraise=True,
+    retry=retry_if_exception_type(RetryableHttpError),
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=30),
+)
+def _http_get_bytes(url: str, timeout: int = 180) -> Tuple[int, bytes]:
+    """GET a binary resource with retry-on-429/5xx. Returns (status, bytes).
+
+    Used for PMC OA bulk tarball downloads (which are up to ~10 MB each
+    for articles with many figures). Longer default timeout than the
+    text variant.
+    """
+    r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
+    if r.status_code in (429,) or 500 <= r.status_code < 600:
+        raise RetryableHttpError(f"HTTP {r.status_code} on {url}")
+    return r.status_code, r.content
+
+
+def _https_from_ftp(url: str) -> str:
+    """Rewrite an NCBI ``ftp://`` URL to the HTTPS mirror at the same path.
+
+    NCBI serves the FTP tree over HTTPS at ``https://ftp.ncbi.nlm.nih.gov``
+    (documented and stable). Using HTTPS lets us reuse the ``requests``-based
+    retry/rate-limit machinery and avoids flaky FTP connections behind
+    corporate proxies. Non-NCBI-FTP URLs are returned unchanged.
+    """
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme == "ftp" and parsed.netloc.endswith("ncbi.nlm.nih.gov"):
+        return urllib.parse.urlunsplit(("https", parsed.netloc, parsed.path, "", ""))
+    return url
 
 
 def cached_get(url: str, rate_limiter: RateLimiter, logger: logging.Logger) -> Dict[str, Any]:
@@ -787,8 +822,76 @@ def _extract_nxml_dois(xml_bytes: bytes) -> set:
     return dois
 
 
+def fetch_pmc_oa_bulk(
+    pmcid: str, tgz_href: str, logger: logging.Logger
+) -> Optional[bytes]:
+    """Download the PMC OA bulk tarball and return the first ``.nxml`` blob.
+
+    Used as a secondary source when Europe PMC ``fullTextXML`` fails
+    (HTTP error, empty body, or XML parse failure). The tarball URL is
+    obtained from ``oa.fcgi`` and stored on the ``OALookup``; it looks
+    like ``ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_package/XX/YY/PMC####.tar.gz``.
+
+    We rewrite to the HTTPS mirror so we can reuse the standard
+    retry/rate-limit machinery, stream the tarball into memory, and
+    extract the first ``*.nxml`` or ``*.xml`` member. Tarballs carry
+    figures/supplements that we do *not* need — only the NXML is kept.
+
+    Returns the NXML bytes on success, ``None`` on any failure. Errors
+    are logged but never raised; the caller stays in full control of
+    attrition accounting.
+    """
+    url = _https_from_ftp(tgz_href)
+    RL_NCBI.wait()
+    logger.debug("pmc-oa-bulk: GET %s", url)
+    try:
+        status, body = _http_get_bytes(url)
+    except requests.RequestException as exc:
+        logger.warning("pmc-oa-bulk: %s network error: %s", pmcid, exc)
+        return None
+    except RetryableHttpError as exc:
+        logger.warning("pmc-oa-bulk: %s giving up after retries: %s", pmcid, exc)
+        return None
+    if status != 200 or not body:
+        logger.warning("pmc-oa-bulk: %s HTTP %s (len=%d)", pmcid, status, len(body or b""))
+        return None
+
+    try:
+        with tarfile.open(fileobj=io.BytesIO(body), mode="r:gz") as tf:
+            nxml_member = next(
+                (
+                    m for m in tf.getmembers()
+                    if m.isfile() and m.name.lower().endswith((".nxml", ".xml"))
+                ),
+                None,
+            )
+            if nxml_member is None:
+                logger.warning("pmc-oa-bulk: %s tarball has no .nxml/.xml member", pmcid)
+                return None
+            extracted = tf.extractfile(nxml_member)
+            if extracted is None:
+                logger.warning("pmc-oa-bulk: %s extractfile returned None", pmcid)
+                return None
+            nxml_bytes = extracted.read()
+    except tarfile.TarError as exc:
+        logger.warning("pmc-oa-bulk: %s tarball error: %s", pmcid, exc)
+        return None
+
+    try:
+        ET.fromstring(nxml_bytes)
+    except ET.ParseError as exc:
+        logger.warning("pmc-oa-bulk: %s NXML parse failed: %s", pmcid, exc)
+        return None
+
+    return nxml_bytes
+
+
 def fetch_fulltext_nxml(
-    pmcid: str, logger: logging.Logger, dry_run: bool, expected_doi: Optional[str] = None
+    pmcid: str,
+    logger: logging.Logger,
+    dry_run: bool,
+    expected_doi: Optional[str] = None,
+    tgz_fallback_href: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
     """Fetch + gzip + atomically write ``{PMCID}.nxml.gz``. Returns (ok, path).
 
@@ -796,6 +899,16 @@ def fetch_fulltext_nxml(
     DOI in an ``<article-id pub-id-type="doi">`` element or the file is
     rejected. Guards against the ambiguous-esearch substitution found by
     the critical reviewer (case_0019 → EFSA document).
+
+    Full-text sources are tried in cascade:
+
+      1. Europe PMC ``{PMCID}/fullTextXML`` (fast, single GET).
+      2. PMC OA bulk tarball via ``tgz_fallback_href`` (from ``oa.fcgi``),
+         used only when Europe PMC returns a non-200 / empty / unparseable
+         response. Skipped if ``tgz_fallback_href`` is ``None``.
+
+    DOI verification, parse verification, and atomic gzip write are the
+    same regardless of which source supplied the bytes.
     """
     out_path = FULLTEXT_DIR / f"{pmcid}.nxml.gz"
     rel_path = out_path.relative_to(STUDY_ROOT).as_posix()
@@ -829,37 +942,56 @@ def fetch_fulltext_nxml(
     if dry_run:
         return False, None
 
+    # ---- Primary source: Europe PMC fullTextXML ----
+    nxml_bytes: Optional[bytes] = None
+    source = "epmc"
     url = f"{EPMC_BASE}/{pmcid}/fullTextXML"
     RL_EPMC.wait()
     logger.debug("GET %s", url)
     try:
         r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=120)
     except requests.RequestException as exc:
-        logger.warning("fulltext: %s network error: %s", pmcid, exc)
-        return False, None
-    if r.status_code != 200 or not r.content:
-        logger.warning("fulltext: %s HTTP %s (len=%d)", pmcid, r.status_code, len(r.content or b""))
-        return False, None
-    try:
-        ET.fromstring(r.content)
-    except ET.ParseError as exc:
-        logger.warning("fulltext: %s XML parse failed: %s", pmcid, exc)
+        logger.warning("fulltext: %s EPMC network error: %s", pmcid, exc)
+        r = None
+
+    if r is not None:
+        if r.status_code != 200 or not r.content:
+            logger.warning(
+                "fulltext: %s EPMC HTTP %s (len=%d)", pmcid, r.status_code, len(r.content or b"")
+            )
+        else:
+            try:
+                ET.fromstring(r.content)
+                nxml_bytes = r.content
+            except ET.ParseError as exc:
+                logger.warning("fulltext: %s EPMC XML parse failed: %s", pmcid, exc)
+
+    # ---- Fallback source: PMC OA bulk tarball ----
+    if nxml_bytes is None and tgz_fallback_href:
+        logger.info("fulltext: %s falling back to PMC OA bulk tarball", pmcid)
+        fallback_bytes = fetch_pmc_oa_bulk(pmcid, tgz_fallback_href, logger)
+        if fallback_bytes is not None:
+            nxml_bytes = fallback_bytes
+            source = "pmc_oa_bulk"
+
+    if nxml_bytes is None:
         return False, None
 
     if expected_lc is not None:
-        dois = _extract_nxml_dois(r.content)
+        dois = _extract_nxml_dois(nxml_bytes)
         if expected_lc not in dois:
             logger.warning(
-                "fulltext: %s DOI mismatch (wanted %s, got %s); discarding",
-                pmcid, expected_lc, sorted(dois) or "<none>",
+                "fulltext: %s DOI mismatch via %s (wanted %s, got %s); discarding",
+                pmcid, source, expected_lc, sorted(dois) or "<none>",
             )
             return False, None
 
     FULLTEXT_DIR.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
     with gzip.open(tmp, "wb") as fh:
-        fh.write(r.content)
+        fh.write(nxml_bytes)
     tmp.replace(out_path)
+    logger.info("fulltext: %s source=%s bytes=%d", pmcid, source, len(nxml_bytes))
     return True, rel_path
 
 
@@ -1244,9 +1376,13 @@ def run_pilot(
             logger.info("DROP no_meta | pmid=%s", cand.pmid)
             continue
 
-        # Step 7: full text (DOI-verified).
+        # Step 7: full text (DOI-verified, EPMC -> PMC OA bulk cascade).
         ok, ft_path = fetch_fulltext_nxml(
-            pmcid, logger, args.dry_run, expected_doi=cand.original_doi
+            pmcid,
+            logger,
+            args.dry_run,
+            expected_doi=cand.doi,
+            tgz_fallback_href=oa.tgz_ftp_href,
         )
         if not ok or not ft_path:
             counts["drop_fulltext"] += 1
@@ -1297,7 +1433,11 @@ def run_pilot(
             if meta_c is None:
                 continue
             ok_c, path_c = fetch_fulltext_nxml(
-                hit.pmcid, logger, args.dry_run, expected_doi=hit.doi
+                hit.pmcid,
+                logger,
+                args.dry_run,
+                expected_doi=hit.doi,
+                tgz_fallback_href=oa2.tgz_ftp_href,
             )
             if not ok_c or not path_c:
                 logger.debug("control-drop fulltext: %s", hit.pmcid)
