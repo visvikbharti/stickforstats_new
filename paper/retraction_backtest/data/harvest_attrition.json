@@ -1,0 +1,15 @@
+{
+  "_schema_version": 1,
+  "_source": "paper/retraction_backtest/code/harvest_log.txt final SUMMARY (2026-04-17T13:01:37Z pilot run)",
+  "_note": "Stage counts for pilot v1 (pre-reviewer-fix). case_0019 + its two controls were later removed offline to address critical reviewer finding C1; n_with_controls reflects the 19 remaining valid cases.",
+  "n_retraction_watch_total": 69709,
+  "n_after_date_filter": 20750,
+  "n_after_language": 20750,
+  "n_after_stat_cause_label": 3460,
+  "n_with_pmcid": 3286,
+  "n_oa_license_pass": 3175,
+  "n_parser_pass": 20,
+  "n_with_controls": 19,
+  "n_scored": 57,
+  "n_in_analysis": 57
+}

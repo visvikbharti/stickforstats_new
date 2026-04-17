@@ -1,0 +1,4 @@
+data/retraction-watch-data/
+data/.cache/
+data/full_text/
+# manifest_v1.csv IS committed — it is the study's data-provenance record.

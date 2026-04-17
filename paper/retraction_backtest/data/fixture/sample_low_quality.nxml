@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article article-type="research-article" xml:lang="en">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="nlm-ta">Fixture Bio Lett</journal-id>
+      <issn pub-type="epub">1111-1111</issn>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="pmcid">PMCFIXTURE002</article-id>
+      <title-group>
+        <article-title>A low-quality fixture paper with sparse reporting</article-title>
+      </title-group>
+      <pub-date pub-type="epub"><year>2015</year></pub-date>
+      <abstract><p>We investigated a treatment. Results were significant (p &lt; .05).</p></abstract>
+    </article-meta>
+  </front>
+  <body>
+    <sec>
+      <title>Methods</title>
+      <p>We recruited participants and gave them a drug. The data were analysed with Excel. No other
+         details were recorded in this fixture low-quality paper. No sample size calculation was
+         performed and we did not check assumptions.</p>
+    </sec>
+    <sec>
+      <title>Results</title>
+      <p>The treatment group did better than control (p &lt; .05). Some differences were seen. No
+         effect sizes, confidence intervals, degrees of freedom, or exact test statistics are reported.
+         No software version is given. No data availability statement is included.</p>
+    </sec>
+    <sec>
+      <title>Discussion</title>
+      <p>We conclude the treatment works.</p>
+    </sec>
+  </body>
+</article>

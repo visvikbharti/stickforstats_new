@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="research-article" xml:lang="en">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="nlm-ta">Fixture J Psychol</journal-id>
+      <issn pub-type="epub">0000-0000</issn>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="pmcid">PMCFIXTURE001</article-id>
+      <title-group>
+        <article-title>A high-quality fixture paper with full reporting</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author"><name><surname>Doe</surname><given-names>Jane</given-names></name></contrib>
+      </contrib-group>
+      <pub-date pub-type="epub"><year>2022</year></pub-date>
+      <abstract><p>We examined the effect of cognitive training on working memory (N = 120).
+        Participants were randomly assigned to treatment (n = 60) or control (n = 60).
+        We report Cohen's d = 0.45 with 95% CI [0.08, 0.81].</p></abstract>
+    </article-meta>
+  </front>
+  <body>
+    <sec>
+      <title>Methods</title>
+      <p>Participants (N = 120) were randomly assigned to treatment (n = 60) or control (n = 60) conditions.
+         A priori power analysis (G*Power) indicated this sample size would provide 80% power to detect a
+         medium effect size (d = 0.5) at alpha = .05, two-tailed. Normality was assessed using the
+         Shapiro-Wilk test. Levene's test indicated homogeneity of variance, F(1, 118) = 0.34, p = .562.
+         Outliers (&gt; 3 SD) were removed. Bonferroni correction was applied for multiple comparisons.</p>
+      <p>Analyses were conducted using R version 4.2.1 with the lme4 package. Data are available at OSF
+         (https://osf.io/fixture). Analysis code is available at GitHub. Study was pre-registered at OSF.
+         Random seed was set to 42.</p>
+    </sec>
+    <sec>
+      <title>Results</title>
+      <p>An independent samples t-test revealed a significant difference between groups,
+         t(118) = 2.45, p = .016, Cohen's d = 0.45, 95% CI [0.08, 0.81], representing a medium effect size.
+         Pearson correlation between training hours and improvement was r = .42, p = .003.
+         A one-way ANOVA yielded F(2, 117) = 4.56, p = .012, eta-squared = 0.07.</p>
+      <table-wrap id="T1">
+        <label>Table 1</label>
+        <caption><p>Descriptive statistics by group.</p></caption>
+        <table>
+          <thead>
+            <tr><th>Group</th><th>M</th><th>SD</th><th>n</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Treatment</td><td>M = 4.56</td><td>SD = 1.23</td><td>n = 60</td></tr>
+            <tr><td>Control</td><td>M = 3.12</td><td>SD = 1.45</td><td>n = 60</td></tr>
+          </tbody>
+        </table>
+      </table-wrap>
+    </sec>
+    <sec>
+      <title>Discussion</title>
+      <p>The findings suggest that cognitive training produces a medium effect on working memory capacity.</p>
+    </sec>
+  </body>
+  <back>
+    <ref-list>
+      <ref id="R1"><element-citation publication-type="journal"><article-title>Irrelevant ref content</article-title></element-citation></ref>
+    </ref-list>
+  </back>
+</article>

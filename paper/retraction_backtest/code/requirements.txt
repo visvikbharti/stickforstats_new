@@ -1,0 +1,29 @@
+# Retraction-backtest harvester + scorer + analysis pinned deps.
+# Pins chosen to be compatible with Python 3.9+ (project's observed runtime).
+# Tested 2026-04-17 with Python 3.9.16.
+
+# --- HTTP / IO ---
+requests==2.32.3
+urllib3==2.2.2
+
+# --- Data handling ---
+pandas==2.2.2
+numpy==1.26.4
+
+# --- XML parsing (NXML full-text) ---
+lxml==5.2.2
+
+# --- Retry with exponential back-off ---
+tenacity==8.5.0
+
+# --- Scoring / analysis (used by downstream harness; pinned here so the
+#     whole study has one lock file) ---
+scipy==1.13.1
+scikit-learn==1.5.1
+statsmodels==0.14.2
+
+# --- Cohen's kappa and resampling utilities ---
+# (statsmodels already provides cohen_kappa_score support; no extra dep)
+
+# --- Progress bars for the harvest (optional, keeps the log readable) ---
+tqdm==4.66.4

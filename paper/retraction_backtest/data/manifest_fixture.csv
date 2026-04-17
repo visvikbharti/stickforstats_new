@@ -1,0 +1,6 @@
+record_id,class,case_id,doi,pmid,pmcid,journal,issn,pub_year,retraction_date,retraction_reasons_raw,retraction_is_statistical,license,oa_group,mesh_top5,full_text_local_path,fetched_at,harvester_version
+FIX001,case,C001,10.0000/fixture.001,00000001,PMCFIXTURE001,Fixture J Psychol,0000-0000,2022,,,,CC-BY,1,Psychology|Cognition|Behavior|Memory|Attention,data/fixture/sample_high_quality.nxml,2026-04-17T00:00:00Z,fixture-0.0
+FIX002,control,,10.0000/fixture.002,00000002,PMCFIXTURE001,Fixture J Psychol,0000-0000,2022,,,,CC-BY,1,Psychology|Cognition,data/fixture/sample_high_quality.nxml,2026-04-17T00:00:00Z,fixture-0.0
+FIX003,case,C002,10.0000/fixture.003,00000003,PMCFIXTURE002,Fixture Bio Lett,1111-1111,2015,2018-01-01,Error in Analyses,True,CC-BY,1,Biology|Genetics,data/fixture/sample_low_quality.nxml,2026-04-17T00:00:00Z,fixture-0.0
+FIX004,control,,10.0000/fixture.004,00000004,PMCFIXTURE002,Fixture Bio Lett,1111-1111,2015,,,,CC-BY,1,Biology|Genetics,data/fixture/sample_low_quality.nxml,2026-04-17T00:00:00Z,fixture-0.0
+FIX005,case,C003,10.0000/fixture.005,00000005,PMCNONEXISTENT,Nonexistent J,2222-2222,2020,2023-01-01,Error in Statistical Analysis,True,CC-BY,1,Medicine,data/fixture/does_not_exist.nxml,2026-04-17T00:00:00Z,fixture-0.0

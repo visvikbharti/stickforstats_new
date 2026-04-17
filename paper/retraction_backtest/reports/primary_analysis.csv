@@ -1,0 +1,2 @@
+auc,ci_lower,ci_upper,n_cases,n_controls,n_bootstrap,outcome,seed
+0.5727146814404432,0.4051246537396122,0.7167763157894735,19,38,2000,NULL,20260417
