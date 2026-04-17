@@ -366,6 +366,71 @@ class HighPrecisionANOVA:
         # - Hotelling-Lawley trace
         # - Roy's largest root
 
+    _POST_HOC_ALIASES = {
+        "tukey": PostHocTest.TUKEY_HSD,
+        "tukey_hsd": PostHocTest.TUKEY_HSD,
+        "tukeyhsd": PostHocTest.TUKEY_HSD,
+        "bonferroni": PostHocTest.BONFERRONI,
+        "scheffe": PostHocTest.SCHEFFE,
+        "games_howell": PostHocTest.GAMES_HOWELL,
+        "gameshowell": PostHocTest.GAMES_HOWELL,
+    }
+
+    _CORRECTION_ALIASES = {
+        "bonferroni": MultipleComparisonCorrection.BONFERRONI,
+        "holm": MultipleComparisonCorrection.HOLM,
+        "holm_bonferroni": MultipleComparisonCorrection.HOLM,
+        "benjamini_hochberg": MultipleComparisonCorrection.BENJAMINI_HOCHBERG,
+        "fdr_bh": MultipleComparisonCorrection.BENJAMINI_HOCHBERG,
+        "sidak": MultipleComparisonCorrection.SIDAK,
+        "holm_sidak": MultipleComparisonCorrection.HOLM_SIDAK,
+    }
+
+    def post_hoc_test(self, *groups, method: str = "tukey", correction: str = "none") -> Dict[str, Any]:
+        """Run a pairwise post-hoc test on the given one-way ANOVA groups.
+
+        Accepts the same variadic ``*groups`` signature as
+        :meth:`one_way_anova` plus the string method / correction names
+        used by the REST API. Runs one-way ANOVA internally to obtain
+        ``ms_within`` and ``df_within``.
+        """
+        if len(groups) < 2:
+            raise ValueError("post_hoc_test requires at least two groups")
+
+        method_key = (method or "tukey").lower().strip()
+        enum_method = self._POST_HOC_ALIASES.get(method_key)
+        if enum_method is None:
+            supported = sorted(set(self._POST_HOC_ALIASES))
+            raise ValueError(
+                f"Unsupported post-hoc method '{method}'. Supported: {supported}."
+            )
+
+        anova = self.one_way_anova(*groups)
+        decimal_groups = [self._to_decimal_array(g) for g in groups]
+        pairwise = self._perform_post_hoc(
+            decimal_groups, anova.ms_within, anova.df_within, enum_method
+        )
+
+        correction_key = (correction or "none").lower().strip()
+        if correction_key not in ("", "none"):
+            corr_enum = self._CORRECTION_ALIASES.get(correction_key)
+            if corr_enum is None:
+                supported = sorted(set(self._CORRECTION_ALIASES))
+                raise ValueError(
+                    f"Unsupported correction '{correction}'. Supported: {supported}."
+                )
+            p_values = {
+                label: stats["p_value"]
+                for label, stats in pairwise.items()
+                if isinstance(stats, dict) and "p_value" in stats
+            }
+            if p_values:
+                adjusted = self._apply_correction(p_values, corr_enum)
+                for label, adj_p in adjusted.items():
+                    pairwise[label]["p_value_adjusted"] = adj_p
+
+        return pairwise
+
     def _perform_post_hoc(
         self, groups: List[List[Decimal]], ms_within: Decimal, df_within: int, test_type: PostHocTest
     ) -> Dict[str, Any]:

@@ -563,7 +563,9 @@ class HighPrecisionANOVAView(APIView):
             # Step 4: Perform post-hoc tests if requested
             if post_hoc and len(groups) >= 3:
                 logger.info(f"Performing {post_hoc} post-hoc test")
-                post_hoc_results = anova_calculator.post_hoc_test(*groups, post_hoc, correction)
+                post_hoc_results = anova_calculator.post_hoc_test(
+                    *groups, method=post_hoc, correction=correction
+                )
 
                 # Convert post-hoc results to string format
                 formatted_post_hoc = {}
