@@ -49,19 +49,19 @@ export const gradients = {
   space: 'linear-gradient(135deg, #000428 0%, #004e92 100%)'
 };
 
-// Glass morphism styles for beautiful cards
+// Glass morphism styles — solid backgrounds for readability
 export const glassMorphism = {
   light: {
-    background: 'rgba(255, 255, 255, 0.25)',
+    background: 'rgba(255, 255, 255, 0.97)',
     backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
+    border: '1px solid rgba(102, 126, 234, 0.15)',
+    boxShadow: '0 2px 12px 0 rgba(0, 0, 0, 0.08)'
   },
   dark: {
-    background: 'rgba(17, 25, 40, 0.75)',
+    background: 'rgba(26, 31, 58, 0.98)',
     backdropFilter: 'blur(16px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.125)',
-    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+    border: '1px solid rgba(102, 126, 234, 0.25)',
+    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.5)'
   }
 };
 
@@ -211,7 +211,78 @@ const ProfessionalContainer = ({
             fontWeight: 600
           }
         }
-      }
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: darkMode ? '#1e1e3a' : '#ffffff',
+            backgroundImage: 'none',
+            border: darkMode ? '1px solid #3d3d6b' : '1px solid #e0e0e0',
+            boxShadow: darkMode
+              ? '0 8px 32px rgba(0,0,0,0.5)'
+              : '0 8px 24px rgba(0,0,0,0.12)',
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.875rem',
+            padding: '10px 16px',
+            minHeight: 40,
+            color: darkMode ? '#e2e8f0' : '#1a202c',
+            '&:hover': {
+              backgroundColor: darkMode ? '#2d2d55' : '#f0f4ff',
+            },
+            '&.Mui-selected': {
+              backgroundColor: darkMode ? '#3d3d6b' : '#e3ecff',
+              '&:hover': {
+                backgroundColor: darkMode ? '#4a4a7a' : '#d0dcff',
+              },
+            },
+          },
+        },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: darkMode ? '#1e1e3a' : '#ffffff',
+            backgroundImage: 'none',
+            border: darkMode ? '1px solid #3d3d6b' : '1px solid #e0e0e0',
+            boxShadow: darkMode
+              ? '0 8px 32px rgba(0,0,0,0.5)'
+              : '0 8px 24px rgba(0,0,0,0.12)',
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            fontSize: '0.875rem',
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            backgroundColor: darkMode ? '#12122a' : '#ffffff',
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#667eea',
+            },
+          },
+          notchedOutline: {
+            borderColor: darkMode ? '#3d3d6b' : '#cbd5e0',
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          shrink: {
+            backgroundColor: darkMode ? '#1a1f3a' : '#ffffff',
+            padding: '0 6px',
+          },
+        },
+      },
     }
   });
 

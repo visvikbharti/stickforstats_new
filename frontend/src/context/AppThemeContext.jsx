@@ -354,7 +354,170 @@ export const AppThemeProvider = ({ children }) => {
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
           }
         }
-      }
+      },
+      // ── Dropdown / Select / Menu fixes ──────────────────────
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: darkMode ? '#1e1e3a' : '#ffffff',
+            backgroundImage: 'none',
+            border: darkMode ? '1px solid #3d3d6b' : '1px solid #e0e0e0',
+            boxShadow: darkMode
+              ? '0 8px 32px rgba(0,0,0,0.5)'
+              : '0 8px 24px rgba(0,0,0,0.12)',
+            borderRadius: 8,
+          },
+          list: {
+            padding: '4px 0',
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.875rem',
+            padding: '10px 16px',
+            minHeight: 40,
+            color: darkMode ? '#e2e8f0' : '#1a202c',
+            '&:hover': {
+              backgroundColor: darkMode ? '#2d2d55' : '#f0f4ff',
+            },
+            '&.Mui-selected': {
+              backgroundColor: darkMode ? '#3d3d6b' : '#e3ecff',
+              fontWeight: 600,
+              '&:hover': {
+                backgroundColor: darkMode ? '#4a4a7a' : '#d0dcff',
+              },
+            },
+          },
+        },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: darkMode ? '#1e1e3a' : '#ffffff',
+            backgroundImage: 'none',
+            border: darkMode ? '1px solid #3d3d6b' : '1px solid #e0e0e0',
+            boxShadow: darkMode
+              ? '0 8px 32px rgba(0,0,0,0.5)'
+              : '0 8px 24px rgba(0,0,0,0.12)',
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            fontSize: '0.875rem',
+            padding: '10px 14px',
+            backgroundColor: 'transparent',
+          },
+          icon: {
+            color: darkMode ? '#a0aec0' : '#718096',
+          },
+        },
+        defaultProps: {
+          size: 'small',
+          variant: 'outlined',
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.875rem',
+            borderRadius: 8,
+            backgroundColor: darkMode ? '#12122a' : '#ffffff',
+            transition: 'all 0.2s ease',
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: darkMode ? '#667eea' : '#667eea',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#667eea',
+              borderWidth: 2,
+            },
+          },
+          notchedOutline: {
+            borderColor: darkMode ? '#3d3d6b' : '#cbd5e0',
+          },
+          input: {
+            padding: '10px 14px',
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.875rem',
+            color: darkMode ? '#a0aec0' : '#718096',
+            '&.Mui-focused': {
+              color: '#667eea',
+            },
+          },
+          shrink: {
+            transform: 'translate(14px, -9px) scale(0.75)',
+            backgroundColor: darkMode ? '#1a1a35' : '#ffffff',
+            padding: '0 6px',
+          },
+        },
+      },
+      MuiFormControl: {
+        styleOverrides: {
+          root: {
+            marginBottom: '8px',
+          },
+        },
+        defaultProps: {
+          size: 'small',
+          margin: 'normal',
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            color: darkMode ? '#a0aec0' : '#4a5568',
+          },
+        },
+      },
+      MuiAutocomplete: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: darkMode ? '#1e1e3a' : '#ffffff',
+            backgroundImage: 'none',
+            border: darkMode ? '1px solid #3d3d6b' : '1px solid #e0e0e0',
+            boxShadow: darkMode
+              ? '0 8px 32px rgba(0,0,0,0.5)'
+              : '0 8px 24px rgba(0,0,0,0.12)',
+          },
+          listbox: {
+            padding: '4px 0',
+            '& .MuiAutocomplete-option': {
+              fontSize: '0.875rem',
+              padding: '10px 16px',
+              minHeight: 40,
+            },
+          },
+        },
+      },
+      MuiInputBase: {
+        styleOverrides: {
+          root: {
+            fontSize: '0.875rem',
+          },
+        },
+      },
+      // ── Native select styling (for components using <select>) ──
+      MuiNativeSelect: {
+        styleOverrides: {
+          select: {
+            fontSize: '0.875rem',
+            padding: '10px 14px',
+            backgroundColor: darkMode ? '#12122a' : '#ffffff',
+            color: darkMode ? '#e2e8f0' : '#1a202c',
+            borderRadius: 8,
+          },
+        },
+      },
     }
   });
 

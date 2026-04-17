@@ -12,7 +12,7 @@ import {
   Box, Typography, IconButton, Tooltip, Snackbar, Alert,
   useTheme, useMediaQuery
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+
 import {
   Brush as BrushIcon,
   ChevronLeft as CollapseIcon,
@@ -66,7 +66,7 @@ const PublicationPlotBuilderInner = () => {
             flexShrink: 0,
             borderRight: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
             overflowY: 'auto',
-            bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.5) : '#fafafa',
+            bgcolor: isDarkMode ? theme.palette.background.paper : '#fafafa',
             p: 1.5,
             display: 'flex',
             flexDirection: 'column',
@@ -100,7 +100,7 @@ const PublicationPlotBuilderInner = () => {
               flexShrink: 0,
               borderLeft: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
               overflowY: 'auto',
-              bgcolor: isDarkMode ? alpha(theme.palette.background.paper, 0.5) : '#fafafa',
+              bgcolor: isDarkMode ? theme.palette.background.paper : '#fafafa',
               transition: 'width 0.2s',
               position: 'relative',
             }}

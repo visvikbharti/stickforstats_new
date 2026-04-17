@@ -357,14 +357,154 @@ const getComponentOverrides = (mode) => ({
     },
   },
   MuiFormControl: {
+    styleOverrides: {
+      root: {
+        marginTop: '4px',
+        marginBottom: '4px',
+      },
+    },
     defaultProps: {
       size: 'small',
-      margin: 'dense',
+      margin: 'normal',
+    },
+  },
+  MuiFormLabel: {
+    styleOverrides: {
+      root: {
+        fontSize: '13px',
+        fontWeight: 500,
+        marginBottom: '2px',
+      },
+    },
+  },
+  MuiFormHelperText: {
+    styleOverrides: {
+      root: {
+        fontSize: '11px',
+        marginTop: '2px',
+      },
     },
   },
   MuiSelect: {
+    styleOverrides: {
+      select: {
+        fontSize: '13px',
+        padding: '8px 12px',
+      },
+    },
     defaultProps: {
       size: 'small',
+    },
+  },
+  MuiOutlinedInput: {
+    styleOverrides: {
+      root: {
+        fontSize: '13px',
+        backgroundColor: mode === 'dark' ? '#2a2a2a' : '#ffffff',
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: mode === 'dark' ? '#90caf9' : '#1976d2',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: mode === 'dark' ? '#90caf9' : '#1976d2',
+        },
+      },
+      notchedOutline: {
+        borderColor: mode === 'dark' ? '#555555' : '#c4c4c4',
+      },
+      input: {
+        padding: '8px 12px',
+      },
+    },
+  },
+  MuiInputLabel: {
+    styleOverrides: {
+      root: {
+        fontSize: '13px',
+        color: mode === 'dark' ? '#b3b3b3' : '#666666',
+        '&.Mui-focused': {
+          color: mode === 'dark' ? '#90caf9' : '#1976d2',
+        },
+      },
+    },
+  },
+  MuiPaper: {
+    styleOverrides: {
+      root: {
+        backgroundImage: 'none',
+        backgroundColor: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+      },
+    },
+  },
+  MuiMenu: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+        backgroundImage: 'none',
+        border: mode === 'dark' ? '1px solid #444444' : '1px solid #e0e0e0',
+        boxShadow: mode === 'dark'
+          ? '0 8px 24px rgba(0,0,0,0.4)'
+          : '0 8px 24px rgba(0,0,0,0.12)',
+      },
+      list: {
+        padding: '4px 0',
+      },
+    },
+  },
+  MuiMenuItem: {
+    styleOverrides: {
+      root: {
+        fontSize: '13px',
+        padding: '8px 16px',
+        minHeight: '36px',
+        color: mode === 'dark' ? '#e0e0e0' : '#212121',
+        '&:hover': {
+          backgroundColor: mode === 'dark' ? '#3d3d3d' : '#f0f0f0',
+        },
+        '&.Mui-selected': {
+          backgroundColor: mode === 'dark' ? '#1976d2' : '#e3f2fd',
+          '&:hover': {
+            backgroundColor: mode === 'dark' ? '#1565c0' : '#bbdefb',
+          },
+        },
+      },
+    },
+  },
+  MuiPopover: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+        backgroundImage: 'none',
+        border: mode === 'dark' ? '1px solid #444444' : '1px solid #e0e0e0',
+        boxShadow: mode === 'dark'
+          ? '0 8px 24px rgba(0,0,0,0.4)'
+          : '0 8px 24px rgba(0,0,0,0.12)',
+      },
+    },
+  },
+  MuiAutocomplete: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+        backgroundImage: 'none',
+        border: mode === 'dark' ? '1px solid #444444' : '1px solid #e0e0e0',
+      },
+      listbox: {
+        padding: '4px 0',
+        '& .MuiAutocomplete-option': {
+          fontSize: '13px',
+          padding: '8px 16px',
+          minHeight: '36px',
+        },
+      },
+    },
+  },
+  MuiTooltip: {
+    styleOverrides: {
+      tooltip: {
+        fontSize: '12px',
+        backgroundColor: mode === 'dark' ? '#444444' : '#616161',
+        padding: '6px 12px',
+      },
     },
   },
   MuiCheckbox: {
@@ -405,18 +545,21 @@ const getComponentOverrides = (mode) => ({
   MuiCard: {
     styleOverrides: {
       root: {
-        boxShadow: mode === 'dark' 
-          ? '0 2px 8px rgba(0,0,0,0.3)' 
-          : '0 2px 8px rgba(0,0,0,0.1)',
+        backgroundImage: 'none',
+        backgroundColor: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+        border: mode === 'dark' ? '1px solid #333333' : '1px solid #e8e8e8',
+        boxShadow: mode === 'dark'
+          ? '0 2px 8px rgba(0,0,0,0.3)'
+          : '0 2px 8px rgba(0,0,0,0.08)',
       },
     },
   },
   MuiCardContent: {
     styleOverrides: {
       root: {
-        padding: '12px',
+        padding: '16px',
         '&:last-child': {
-          paddingBottom: '12px',
+          paddingBottom: '16px',
         },
       },
     },
