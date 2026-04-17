@@ -35,6 +35,18 @@ from .consistency_validator import (
     ConsistencyValidator,
     ValidationSummary,
 )
+from .advanced_validators import (
+    run_all_validators,
+    ValidatorFinding,
+)
+from .discipline_profiles import (
+    get_profile,
+    evaluate_checklist,
+    apply_discipline_weights,
+    checklist_summary,
+    DisciplineProfile,
+    ChecklistResult,
+)
 
 try:
     from core.sqs_scoring import SQSScorer
@@ -44,6 +56,20 @@ except ImportError:
     SQS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+
+# Map advanced-validator class names to short category keys used in
+# ReviewFinding.category. Anything not in this table falls back to
+# "methodology".
+_VALIDATOR_CATEGORY: Dict[str, str] = {
+    "StatisticalConsistencyValidator": "consistency",
+    "MultipleTestingValidator": "multiple_testing",
+    "EffectSizeCompletenessValidator": "effect_size",
+    "PowerReportingValidator": "power",
+    "ReproducibilityValidator": "reproducibility",
+    "MethodologicalAppropriatenessValidator": "methodology",
+    "ReportingCompletenessValidator": "reporting",
+}
 
 
 # =====================================================================
@@ -98,6 +124,18 @@ class ManuscriptReviewReport:
     # Structured findings
     findings: List[ReviewFinding] = field(default_factory=list)
     positive_findings: List[ReviewFinding] = field(default_factory=list)
+
+    # Advanced validator output (per-validator, retained for transparency).
+    # Findings from these validators are also folded into `findings` /
+    # `positive_findings` via ReviewFinding conversion.
+    advanced_findings: List[ValidatorFinding] = field(default_factory=list)
+
+    # Discipline profile evaluation
+    discipline_profile: Optional[str] = None  # e.g. "medicine"
+    discipline_guideline: Optional[str] = None  # e.g. "CONSORT"
+    checklist_results: List[ChecklistResult] = field(default_factory=list)
+    checklist_completion_pct: Optional[float] = None
+    checklist_missing_required: List[str] = field(default_factory=list)
 
     # Overall assessment
     overall_assessment: str = "pass"  # pass, minor_issues, major_issues, critical
@@ -166,6 +204,36 @@ class ManuscriptReviewReport:
                     "note": r.note,
                 }
                 for r in self.consistency_summary.results
+            ],
+            "advanced_findings": [
+                {
+                    "validator": vf.validator,
+                    "severity": vf.severity,
+                    "confidence": vf.confidence,
+                    "title": vf.title,
+                    "description": vf.description,
+                    "evidence": vf.evidence,
+                    "recommendation": vf.recommendation,
+                    "section": vf.section,
+                }
+                for vf in self.advanced_findings
+            ],
+            "discipline_profile": self.discipline_profile,
+            "discipline_guideline": self.discipline_guideline,
+            "checklist_completion_pct": self.checklist_completion_pct,
+            "checklist_missing_required": self.checklist_missing_required,
+            "checklist_results": [
+                {
+                    "item_id": cr.item.id,
+                    "item_name": cr.item.name,
+                    "category": cr.item.category,
+                    "required": cr.item.required,
+                    "found": cr.found,
+                    "severity": cr.severity,
+                    "section_searched": cr.section_searched,
+                    "matched_text": cr.matched_text,
+                }
+                for cr in self.checklist_results
             ],
             "processing_time_ms": self.processing_time_ms,
             "warnings": self.warnings,
@@ -376,14 +444,49 @@ class ManuscriptGuardian:
                 logger.warning("SQS scoring failed: %s", exc)
                 warnings.append(f"SQS scoring issue: {exc}")
 
-        # ---- Stage 5: Generate findings ----
+        # ---- Stage 5: Advanced validators (7 manuscript-level validators) ----
+        advanced_findings: List[ValidatorFinding] = []
+        try:
+            sections_dict = {sec.section_type: sec.content for sec in parsed.sections}
+            advanced_findings = run_all_validators(
+                parsed.full_text or "",
+                claims,
+                sections_dict,
+            )
+        except Exception as exc:
+            logger.warning("Advanced validators failed: %s", exc)
+            warnings.append(f"Advanced validator issue: {exc}")
+
+        # ---- Stage 6: Discipline profile + checklist ----
+        profile: Optional[DisciplineProfile] = None
+        checklist_results: List[ChecklistResult] = []
+        try:
+            profile = get_profile(self.field)
+        except ValueError:
+            # Unknown or generic field — profile-agnostic review
+            profile = None
+
+        if profile is not None:
+            try:
+                checklist_results = evaluate_checklist(profile, parsed)
+            except Exception as exc:
+                logger.warning("Checklist evaluation failed: %s", exc)
+                warnings.append(f"Checklist evaluation issue: {exc}")
+
+        # ---- Stage 7: Generate findings (incl. advanced + checklist) ----
         findings, positive_findings = self._generate_findings(
             parsed=parsed,
             claims=claims,
             extraction_summary=extraction_summary,
             consistency_summary=consistency_summary,
             sqs_report=sqs_report,
+            advanced_findings=advanced_findings,
+            checklist_results=checklist_results,
         )
+
+        # ---- Stage 8: Apply discipline severity weights ----
+        if profile is not None:
+            findings = apply_discipline_weights(profile, findings)
 
         # ---- Determine overall assessment ----
         overall = self._determine_assessment(
@@ -391,6 +494,14 @@ class ManuscriptGuardian:
             consistency_summary=consistency_summary,
             sqs_score=sqs_score,
         )
+
+        # Checklist summary metrics
+        checklist_completion_pct: Optional[float] = None
+        missing_required: List[str] = []
+        if checklist_results:
+            summary = checklist_summary(checklist_results)
+            checklist_completion_pct = summary["completion_pct"]
+            missing_required = [r.item.name for r in checklist_results if not r.found and r.item.required]
 
         processing_time_ms = int((time.time() - start_time) * 1000)
 
@@ -413,6 +524,12 @@ class ManuscriptGuardian:
             gross_errors=consistency_summary.gross_errors,
             findings=findings,
             positive_findings=positive_findings,
+            advanced_findings=advanced_findings,
+            discipline_profile=profile.field if profile is not None else None,
+            discipline_guideline=profile.guideline if profile is not None else None,
+            checklist_results=checklist_results,
+            checklist_completion_pct=checklist_completion_pct,
+            checklist_missing_required=missing_required,
             overall_assessment=overall,
             processing_time_ms=processing_time_ms,
             warnings=warnings,
@@ -446,6 +563,8 @@ class ManuscriptGuardian:
         extraction_summary: ExtractionSummary,
         consistency_summary: ValidationSummary,
         sqs_report: Optional[Any],
+        advanced_findings: Optional[List[ValidatorFinding]] = None,
+        checklist_results: Optional[List[ChecklistResult]] = None,
     ) -> tuple:
         """Generate structured findings and positive findings."""
         findings: List[ReviewFinding] = []
@@ -659,6 +778,46 @@ class ManuscriptGuardian:
                     ),
                 )
             )
+
+        # --- Advanced validator findings (7 manuscript-level validators) ---
+        if advanced_findings:
+            for vf in advanced_findings:
+                category = _VALIDATOR_CATEGORY.get(vf.validator, "methodology")
+                rf = ReviewFinding(
+                    severity=vf.severity,
+                    category=category,
+                    title=vf.title,
+                    description=vf.description,
+                    evidence=vf.evidence,
+                    recommendation=vf.recommendation,
+                )
+                if vf.severity == "positive":
+                    positives.append(rf)
+                else:
+                    findings.append(rf)
+
+        # --- Discipline checklist results ---
+        if checklist_results:
+            for cr in checklist_results:
+                if cr.found:
+                    positives.append(
+                        ReviewFinding(
+                            severity="positive",
+                            category="checklist",
+                            title=f"Reports: {cr.item.name}",
+                            description=cr.item.description,
+                        )
+                    )
+                else:
+                    findings.append(
+                        ReviewFinding(
+                            severity=cr.severity,
+                            category="checklist",
+                            title=f"Missing: {cr.item.name}",
+                            description=cr.item.description,
+                            recommendation=(f"Include information about: {cr.item.name}."),
+                        )
+                    )
 
         return findings, positives
 

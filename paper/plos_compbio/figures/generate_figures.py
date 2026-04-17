@@ -326,12 +326,95 @@ def fig1_architecture():
     plt.close()
 
 
+# ═══════════════════════════════════════════════════════════════════
+# Figure 4: Manuscript Review Pipeline (programmatic)
+# ═══════════════════════════════════════════════════════════════════
+
+
+def fig4_manuscript_review():
+    """Manuscript review pipeline flowchart (Pillar 2)."""
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.set_xlim(0, 13)
+    ax.set_ylim(0, 14)
+    ax.axis('off')
+
+    def draw_box(x, y, w, h, text, color='#E3F2FD', edge='#1565C0', fontsize=9):
+        box = FancyBboxPatch((x - w/2, y - h/2), w, h,
+                             boxstyle="round,pad=0.15",
+                             facecolor=color, edgecolor=edge, linewidth=1.5)
+        ax.add_patch(box)
+        ax.text(x, y, text, ha='center', va='center',
+                fontsize=fontsize, fontweight='bold')
+
+    def arrow(x1, y1, x2, y2):
+        ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
+                    arrowprops=dict(arrowstyle='->', color='#333', lw=1.5))
+
+    # Main pipeline, centered column at x=5
+    draw_box(5, 13, 3.8, 0.9, 'Manuscript\n(PDF / LaTeX / DOCX)', '#BBDEFB')
+    draw_box(5, 11.3, 3.8, 0.9, '1. Parse\n(GROBID / pandoc / python-docx)', '#E3F2FD')
+    draw_box(5, 9.6, 3.8, 0.9, '2. Extract Claims\n(regex + LLM hybrid)', '#E3F2FD')
+    draw_box(5, 7.9, 3.8, 0.9, '3. Select Discipline Profile\n(CONSORT / STROBE / ICH-E9 / JARS)',
+             '#E3F2FD')
+    draw_box(5, 6.2, 3.8, 0.9, '4. Validate\n(8 validators in parallel)', '#E3F2FD')
+    draw_box(5, 4.5, 3.8, 0.9, '5. Apply Discipline Weights\n(escalate category-relevant findings)',
+             '#E3F2FD')
+    draw_box(5, 2.8, 3.8, 0.9, '6. Classify Findings\n(blocking / major / moderate / minor)',
+             '#E3F2FD')
+    draw_box(5, 1.1, 3.8, 0.9, 'Statistical Quality Report',
+             '#C8E6C9', '#388E3C')
+
+    # Arrows between consecutive boxes
+    for y1, y2 in [(12.55, 11.75), (10.85, 10.05), (9.15, 8.35),
+                   (7.45, 6.65), (5.75, 4.95), (4.05, 3.25),
+                   (2.35, 1.55)]:
+        arrow(5, y1, 5, y2)
+
+    # Left-side annotation: supported input formats
+    ax.text(0.3, 13.4, 'Input formats:', fontsize=8,
+            fontweight='bold', color='#1565C0')
+    for i, f in enumerate(['PDF (GROBID)', 'LaTeX', 'DOCX']):
+        ax.text(0.3, 13.0 - i * 0.24, f'• {f}', fontsize=7, color='#555')
+
+    # Right-side annotation: 4 discipline profiles (next to stage 3)
+    ax.text(9.1, 8.4, 'Discipline profiles:', fontsize=8,
+            fontweight='bold', color='#1565C0')
+    for i, p in enumerate(['CONSORT (RCTs)',
+                           'STROBE (observational)',
+                           'ICH-E9 (clinical trials)',
+                           'JARS-Quant (psychology)']):
+        ax.text(9.1, 8.05 - i * 0.24, f'• {p}', fontsize=7, color='#555')
+
+    # Right-side annotation: 8 validators (next to stage 4)
+    ax.text(9.1, 6.7, '8 validators:', fontsize=8,
+            fontweight='bold', color='#1565C0')
+    validators = [
+        'Consistency (p-value recompute)',
+        'Statistical consistency',
+        'Multiple testing correction',
+        'Effect size completeness',
+        'Power reporting',
+        'Reproducibility',
+        'Methodological appropriateness',
+        'Reporting completeness',
+    ]
+    for i, v in enumerate(validators):
+        ax.text(9.1, 6.35 - i * 0.24, f'• {v}', fontsize=7, color='#555')
+
+    ax.set_title('Manuscript Review Workflow',
+                 fontsize=14, fontweight='bold', pad=10)
+
+    plt.savefig(os.path.join(BASE, 'fig4_manuscript_review.png'))
+    plt.savefig(os.path.join(BASE, 'fig4_manuscript_review.pdf'))
+    print("Saved fig4_manuscript_review.png/pdf")
+    plt.close()
+
+
 if __name__ == '__main__':
     print("Generating PLOS Comp Bio figures...\n")
     fig1_architecture()
     fig2_guardian_flowchart()
     fig3_case_studies()
+    fig4_manuscript_review()
     fig5_validation()
     print("\nAll figures generated successfully!")
-    print("Note: Fig 4 (Manuscript review workflow) should be created")
-    print("with a diagramming tool for best quality.")

@@ -331,7 +331,17 @@ class TestFullManuscriptPipelineIntegration(TestCase):
         report = guardian.review_text(MANUSCRIPT_MULTI_TEST)
 
         valid_severities = {"blocking", "major", "moderate", "minor", "positive"}
-        valid_categories = {"consistency", "reporting", "methodology", "sqs"}
+        valid_categories = {
+            "consistency",
+            "reporting",
+            "methodology",
+            "sqs",
+            "multiple_testing",
+            "effect_size",
+            "power",
+            "reproducibility",
+            "checklist",
+        }
 
         all_findings = report.findings + report.positive_findings
         for f in all_findings:
@@ -618,3 +628,116 @@ class TestManuscriptAPIIntegration(APITestCase):
             "results" in data or "summary" in data or "consistency" in data,
             f"Response missing expected keys: {list(data.keys())}",
         )
+
+
+# ===================================================================
+# TEST CLASS 6: Advanced Validators + Discipline Profile Integration
+# ===================================================================
+
+
+class TestAdvancedValidatorIntegration(TestCase):
+    """The full review pipeline now runs 1 basic consistency validator +
+    7 manuscript-level advanced validators + (optionally) a discipline
+    checklist. These tests pin that contract end-to-end."""
+
+    def test_advanced_findings_populated(self):
+        """Review runs all 7 advanced validators and surfaces their
+        findings in `advanced_findings`. Not every validator emits a
+        finding on every manuscript (some stay silent when there's
+        nothing to flag), but the orchestrator must wire them all in."""
+        from core.manuscript.advanced_validators import ALL_VALIDATORS
+
+        guardian = ManuscriptGuardian(field="general")
+        report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
+
+        # Integration contract: the orchestrator uses the full 7-validator
+        # registry.
+        self.assertEqual(len(ALL_VALIDATORS), 7)
+
+        # At least a majority of the validators should fire on a typical
+        # psychology manuscript (the test text is realistic enough that
+        # effect-size, reporting, reproducibility, power gaps will trip).
+        validators_seen = {vf.validator for vf in report.advanced_findings}
+        self.assertGreaterEqual(
+            len(validators_seen),
+            4,
+            f"Too few advanced validators produced findings: {validators_seen}",
+        )
+
+    def test_advanced_findings_folded_into_review_findings(self):
+        """Non-positive advanced findings end up in report.findings with
+        the category mapped by _VALIDATOR_CATEGORY."""
+        guardian = ManuscriptGuardian(field="general")
+        report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
+
+        categories = {f.category for f in report.findings}
+        # At least one of the new validator-derived categories should
+        # appear in the main findings list.
+        advanced_cats = {
+            "multiple_testing",
+            "effect_size",
+            "power",
+            "reproducibility",
+        }
+        self.assertTrue(
+            categories & advanced_cats,
+            f"No advanced-validator categories in findings: {categories}",
+        )
+
+    def test_discipline_profile_populated_for_known_field(self):
+        """Known field ('medicine') resolves to the CONSORT profile and
+        produces checklist_results + a completion percentage."""
+        guardian = ManuscriptGuardian(field="medicine")
+        report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
+
+        self.assertEqual(report.discipline_profile, "medicine")
+        self.assertEqual(report.discipline_guideline, "CONSORT")
+        self.assertGreater(len(report.checklist_results), 0)
+        self.assertIsNotNone(report.checklist_completion_pct)
+        self.assertGreaterEqual(report.checklist_completion_pct, 0.0)
+        self.assertLessEqual(report.checklist_completion_pct, 100.0)
+
+    def test_unknown_field_leaves_profile_empty(self):
+        """Unknown field ('general') produces no checklist and no
+        discipline guideline — the pipeline still completes cleanly."""
+        guardian = ManuscriptGuardian(field="general")
+        report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
+
+        self.assertIsNone(report.discipline_profile)
+        self.assertIsNone(report.discipline_guideline)
+        self.assertEqual(report.checklist_results, [])
+        self.assertIsNone(report.checklist_completion_pct)
+
+    def test_checklist_missing_items_become_findings(self):
+        """Required CONSORT items not mentioned in a psychology manuscript
+        show up as findings with category='checklist'."""
+        guardian = ManuscriptGuardian(field="medicine")
+        report = guardian.review_text(MANUSCRIPT_PSYCHOLOGY)
+
+        checklist_findings = [f for f in report.findings if f.category == "checklist"]
+        self.assertGreater(
+            len(checklist_findings),
+            0,
+            "Expected CONSORT checklist gaps to produce findings, got none",
+        )
+
+    def test_to_dict_includes_new_fields(self):
+        """Serialized report exposes advanced_findings, discipline info,
+        and checklist_results for downstream API consumers."""
+        guardian = ManuscriptGuardian(field="medicine")
+        data = guardian.review_text(MANUSCRIPT_PSYCHOLOGY).to_dict()
+
+        for key in (
+            "advanced_findings",
+            "discipline_profile",
+            "discipline_guideline",
+            "checklist_results",
+            "checklist_completion_pct",
+            "checklist_missing_required",
+        ):
+            self.assertIn(key, data, f"to_dict missing {key}")
+
+        self.assertEqual(data["discipline_profile"], "medicine")
+        self.assertEqual(data["discipline_guideline"], "CONSORT")
+        self.assertIsInstance(data["advanced_findings"], list)
+        self.assertIsInstance(data["checklist_results"], list)

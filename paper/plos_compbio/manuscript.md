@@ -104,7 +104,9 @@ Scores above 0.8 indicate high confidence; 0.6--0.8 signals caution; below 0.6 t
 
 **Multiple testing correction.** Eight methods spanning FWER control (Bonferroni, Holm-Bonferroni, Hochberg, Sidak, Holm-Sidak) and FDR control (Benjamini-Hochberg [9], Benjamini-Yekutieli, Storey's q-value).
 
-**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Eight validators assess completeness, consistency, power reporting, multiple-comparison corrections, assumption documentation, effect-size reporting, reproducibility, and methodological appropriateness. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards.
+**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Eight validators assess completeness, consistency, power reporting, multiple-comparison corrections, assumption documentation, effect-size reporting, reproducibility, and methodological appropriateness. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards (Fig 4).
+
+![**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and LLM-hybrid extraction, selects a discipline profile (CONSORT, STROBE, ICH-E9, or JARS-Quant), runs eight validators in parallel, applies discipline-specific severity weights, and returns a classified statistical quality report.](figures/fig4_manuscript_review.png){ width=85% }
 
 **Causal inference.** DAG analysis with adjustment set identification, propensity score matching, inverse probability weighting, doubly robust estimation, difference-in-differences, and mediation analysis.
 
