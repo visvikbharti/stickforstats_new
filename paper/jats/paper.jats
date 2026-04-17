@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front>
+<journal-meta>
+<journal-id></journal-id>
+<journal-title-group>
+<journal-title>Journal of Open Source Software</journal-title>
+<abbrev-journal-title>JOSS</abbrev-journal-title>
+</journal-title-group>
+<issn publication-format="electronic">2475-9066</issn>
+<publisher>
+<publisher-name>Open Journals</publisher-name>
+</publisher>
+</journal-meta>
+<article-meta>
+<article-id pub-id-type="publisher-id">0</article-id>
+<article-id pub-id-type="doi">N/A</article-id>
+<title-group>
+<article-title>StickForStats: A Statistical Analysis Platform with
+Automatic Assumption Validation</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author" corresp="yes">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0009-0003-1431-4457</contrib-id>
+<name>
+<surname>Bharti</surname>
+<given-names>Vishal</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
+</contrib>
+<contrib contrib-type="author" corresp="yes">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0003-1460-7594</contrib-id>
+<name>
+<surname>Chakraborty</surname>
+<given-names>Debojyoti</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="aff" rid="aff-2"/>
+<xref ref-type="corresp" rid="cor-2"><sup>*</sup></xref>
+</contrib>
+<aff id="aff-1">
+<institution-wrap>
+<institution>CSIR-Institute of Genomics and Integrative Biology, New
+Delhi 110025, India</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-2">
+<institution-wrap>
+<institution>Academy of Scientific and Innovative Research (AcSIR),
+Ghaziabad 201002, India</institution>
+</institution-wrap>
+</aff>
+</contrib-group>
+<author-notes>
+<corresp id="cor-1">* E-mail: <email></email></corresp>
+<corresp id="cor-2">* E-mail: <email></email></corresp>
+</author-notes>
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2026-04-09">
+<day>9</day>
+<month>4</month>
+<year>2026</year>
+</pub-date>
+<volume>¿VOL?</volume>
+<issue>¿ISSUE?</issue>
+<fpage>¿PAGE?</fpage>
+<permissions>
+<copyright-statement>Authors of papers retain copyright and release the
+work under a Creative Commons Attribution 4.0 International License (CC
+BY 4.0)</copyright-statement>
+<copyright-year>1970</copyright-year>
+<copyright-holder>The article authors</copyright-holder>
+<license license-type="open-access" xlink:href="https://creativecommons.org/licenses/by/4.0/">
+<license-p>Authors of papers retain copyright and release the work under
+a Creative Commons Attribution 4.0 International License (CC BY
+4.0)</license-p>
+</license>
+</permissions>
+<kwd-group kwd-group-type="author">
+<kwd>Python</kwd>
+<kwd>Django</kwd>
+<kwd>React</kwd>
+<kwd>statistics</kwd>
+<kwd>assumption validation</kwd>
+<kwd>reproducibility</kwd>
+<kwd>meta-analysis</kwd>
+<kwd>power analysis</kwd>
+</kwd-group>
+</article-meta>
+</front>
+<body>
+<sec id="summary">
+  <title>Summary</title>
+  <p>StickForStats is an open-source, web-based statistical analysis
+  platform that automatically validates the assumptions underlying every
+  statistical test before execution. Its core innovation is the Guardian
+  system—a pipeline of eight validators that intercept each analysis
+  request, check assumptions such as normality, variance homogeneity,
+  independence, and outlier presence, and either proceed with full
+  confidence reporting or automatically cascade to an appropriate
+  nonparametric alternative. The platform pairs this validation layer
+  with a natural-language interface that lets researchers describe their
+  question in plain English, an autonomous test-selection engine,
+  plain-language result interpretation, and a manuscript review module
+  that extracts and re-checks statistical claims from uploaded papers.
+  StickForStats is built with a Django REST backend serving 195 API
+  endpoints, a React frontend with 25 pages supporting 16 languages, and
+  optional Celery-based asynchronous processing for long-running
+  analyses.</p>
+</sec>
+<sec id="statement-of-need">
+  <title>Statement of Need</title>
+  <p>Statistical assumption violations are pervasive in published
+  research. Surveys across psychology, education, and biomedicine
+  consistently find that researchers rarely verify the assumptions of
+  the tests they apply
+  (<xref alt="Hoekstra et al., 2012" rid="ref-hoekstra2012assumptions" ref-type="bibr">Hoekstra
+  et al., 2012</xref>;
+  <xref alt="Keselman et al., 1998" rid="ref-keselman1998statistical" ref-type="bibr">Keselman
+  et al., 1998</xref>). When assumptions such as normality or
+  homogeneity of variance are violated, Type I and Type II error rates
+  can deviate substantially from their nominal levels
+  (<xref alt="Zimmerman, 2004" rid="ref-zimmerman2004note" ref-type="bibr">Zimmerman,
+  2004</xref>), undermining the validity of conclusions. The
+  consequences compound at scale: the broader reproducibility crisis in
+  science has been attributed in part to widespread statistical
+  misapplication
+  (<xref alt="Baker, 2016" rid="ref-baker2016reproducibility" ref-type="bibr">Baker,
+  2016</xref>;
+  <xref alt="Ioannidis, 2005" rid="ref-ioannidis2005why" ref-type="bibr">Ioannidis,
+  2005</xref>;
+  <xref alt="Open Science Collaboration, 2015" rid="ref-osc2015reproducibility" ref-type="bibr">Open
+  Science Collaboration, 2015</xref>).</p>
+  <p>Existing statistical software places the burden of assumption
+  checking entirely on the analyst. General-purpose environments such as
+  R (<xref alt="R Core Team, 2023" rid="ref-rcore2023" ref-type="bibr">R
+  Core Team, 2023</xref>) and Python’s SciPy
+  (<xref alt="Virtanen &amp; others, 2020" rid="ref-virtanen2020scipy" ref-type="bibr">Virtanen
+  &amp; others, 2020</xref>) require users to explicitly call separate
+  diagnostic tests and interpret the results themselves. GUI-based tools
+  like JASP
+  (<xref alt="JASP Team, 2023" rid="ref-jasp2023" ref-type="bibr">JASP
+  Team, 2023</xref>) and jamovi
+  (<xref alt="The jamovi project, 2023" rid="ref-jamovi2023" ref-type="bibr">The
+  jamovi project, 2023</xref>) simplify test execution but still leave
+  assumption verification as an optional, manual step. No widely adopted
+  platform currently intercepts the analysis pipeline to enforce
+  assumption checking automatically and transparently.</p>
+  <p>StickForStats addresses this gap. Its target users are researchers
+  in the social, behavioral, and biomedical sciences who regularly apply
+  parametric statistical tests but may lack the expertise or time to
+  conduct comprehensive assumption diagnostics. The platform is equally
+  useful for statistics instructors who want students to learn correct
+  analytical workflows, and for journal editors and reviewers who need
+  to verify reported statistics in manuscripts.</p>
+</sec>
+<sec id="the-guardian-system">
+  <title>The Guardian System</title>
+  <p>The Guardian is a middleware layer that wraps every statistical
+  test endpoint. When an analysis request arrives, the Guardian selects
+  the relevant subset of its eight validators and runs them against the
+  submitted data before the primary test executes.</p>
+  <p>The eight validators and their methods are:</p>
+  <list list-type="order">
+    <list-item>
+      <p><bold>Normality</bold> — Shapiro-Wilk
+      (<xref alt="Shapiro &amp; Wilk, 1965" rid="ref-shapiro1965analysis" ref-type="bibr">Shapiro
+      &amp; Wilk, 1965</xref>) and Anderson-Darling
+      (<xref alt="Anderson &amp; Darling, 1954" rid="ref-anderson1954test" ref-type="bibr">Anderson
+      &amp; Darling, 1954</xref>) tests on each group.</p>
+    </list-item>
+    <list-item>
+      <p><bold>Variance homogeneity</bold> — Levene’s test
+      (<xref alt="Levene, 1960" rid="ref-levene1960robust" ref-type="bibr">Levene,
+      1960</xref>) with Brown-Forsythe correction
+      (<xref alt="Brown &amp; Forsythe, 1974" rid="ref-brown1974robust" ref-type="bibr">Brown
+      &amp; Forsythe, 1974</xref>).</p>
+    </list-item>
+    <list-item>
+      <p><bold>Independence</bold> — Autocorrelation analysis (lag-1
+      through lag-5) with Durbin-Watson statistic
+      (<xref alt="Durbin &amp; Watson, 1951" rid="ref-durbin1951testing" ref-type="bibr">Durbin
+      &amp; Watson, 1951</xref>).</p>
+    </list-item>
+    <list-item>
+      <p><bold>Outlier detection</bold> — Combined IQR fencing and
+      modified Z-score method
+      (<xref alt="Grubbs, 1969" rid="ref-grubbs1969procedures" ref-type="bibr">Grubbs,
+      1969</xref>).</p>
+    </list-item>
+    <list-item>
+      <p><bold>Sample size adequacy</bold> — Rule-based minimum
+      thresholds calibrated per test type, informed by power analysis
+      literature
+      (<xref alt="Cohen, 1988" rid="ref-cohen1988statistical" ref-type="bibr">Cohen,
+      1988</xref>).</p>
+    </list-item>
+    <list-item>
+      <p><bold>Modality</bold> — Kernel density estimation with
+      bandwidth selection to detect multimodal distributions.</p>
+    </list-item>
+    <list-item>
+      <p><bold>Linearity</bold> — Comparison of linear and polynomial
+      <inline-formula><alternatives>
+      <tex-math><![CDATA[R^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msup><mml:mi>R</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:math></alternatives></inline-formula>
+      values supplemented by the Wald-Wolfowitz runs test
+      (<xref alt="Wald &amp; Wolfowitz, 1940" rid="ref-wald1940test" ref-type="bibr">Wald
+      &amp; Wolfowitz, 1940</xref>).</p>
+    </list-item>
+    <list-item>
+      <p><bold>Homoscedasticity</bold> — Breusch-Pagan test
+      (<xref alt="Breusch &amp; Pagan, 1979" rid="ref-breusch1979simple" ref-type="bibr">Breusch
+      &amp; Pagan, 1979</xref>) for regression residuals.</p>
+    </list-item>
+  </list>
+  <p>Each validator returns a severity level (critical, warning, or
+  minor) and a weight (<inline-formula><alternatives>
+  <tex-math><![CDATA[w = 3.0, 2.0, 1.0]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>w</mml:mi><mml:mo>=</mml:mo><mml:mn>3.0</mml:mn><mml:mo>,</mml:mo><mml:mn>2.0</mml:mn><mml:mo>,</mml:mo><mml:mn>1.0</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>
+  respectively). The Guardian computes a composite confidence score:</p>
+  <p><disp-formula><tex-math><![CDATA[C = \max\!\Bigl(0,\; 1 - \frac{\sum w_i}{W_{\max} \times 1.2}\Bigr)]]></tex-math></disp-formula></p>
+  <p>where <inline-formula><alternatives>
+  <tex-math><![CDATA[W_{\max}]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msub><mml:mi>W</mml:mi><mml:mi>max</mml:mi><mml:mo>&#8289;</mml:mo></mml:msub></mml:math></alternatives></inline-formula>
+  is the maximum possible penalty for the test type. A score above 0.8
+  indicates the analysis can proceed with confidence; between 0.6 and
+  0.8 signals caution; below 0.6 triggers review. When any critical
+  violation is detected, the AutonomousCascadeEngine automatically
+  re-routes the analysis to the most appropriate nonparametric
+  alternative (e.g., Mann-Whitney U for a failed independent
+  <inline-formula><alternatives>
+  <tex-math><![CDATA[t]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>t</mml:mi></mml:math></alternatives></inline-formula>-test)
+  with full documentation of the decision path.</p>
+  <p>The Guardian system is validated by 38 automated tests (22
+  integration, 16 middleware) that run in continuous integration on
+  every commit.</p>
+</sec>
+<sec id="additional-capabilities">
+  <title>Additional Capabilities</title>
+  <p><bold>Autonomous analysis pipeline.</bold> The SmartProfiler module
+  automatically detects variable types, distributions, and data quality
+  issues from uploaded datasets. Combined with intent detection from
+  natural-language queries, the platform selects and executes the
+  appropriate test without requiring the user to specify it. Results are
+  translated into plain-language summaries via a template-based
+  PlainLanguageTranslator.</p>
+  <p><bold>Manuscript statistical review.</bold> StickForStats can parse
+  PDF, LaTeX, and DOCX manuscripts, extract statistical claims using a
+  regex and LLM hybrid pipeline, and re-check each claim for internal
+  consistency in the style of STATCHECK
+  (<xref alt="Bakker &amp; Wicherts, 2011" rid="ref-bakker2011misreporting" ref-type="bibr">Bakker
+  &amp; Wicherts, 2011</xref>). Seven specialized validators assess
+  completeness, consistency, power reporting, multiple-comparison
+  corrections, assumption documentation, effect-size reporting, and
+  reproducibility. Discipline-aware profiles (medicine, psychology,
+  economics) weight validators according to field-specific reporting
+  standards such as CONSORT
+  (<xref alt="Schulz et al., 2010" rid="ref-schulz2010consort" ref-type="bibr">Schulz
+  et al., 2010</xref>) and JARS-Quant
+  (<xref alt="Appelbaum et al., 2018" rid="ref-appelbaum2018jars" ref-type="bibr">Appelbaum
+  et al., 2018</xref>).</p>
+  <p><bold>Comprehensive statistical coverage.</bold> The platform
+  implements parametric and nonparametric tests, correlation and
+  regression (including ridge and lasso), categorical tests,
+  meta-analysis with DerSimonian-Laird random effects
+  (<xref alt="DerSimonian &amp; Laird, 1986" rid="ref-dersimonian1986meta" ref-type="bibr">DerSimonian
+  &amp; Laird, 1986</xref>) and Egger’s publication bias test
+  (<xref alt="Egger et al., 1997" rid="ref-egger1997bias" ref-type="bibr">Egger
+  et al., 1997</xref>), power analysis validated against G*Power
+  (<xref alt="Faul et al., 2007" rid="ref-faul2007gpower" ref-type="bibr">Faul
+  et al., 2007</xref>), survival analysis, factor analysis, causal
+  inference (DAGs, propensity scores, mediation,
+  difference-in-differences), mixed models, and missing-data
+  handling.</p>
+  <p><bold>High-precision computing.</bold> An optional 50-decimal-digit
+  precision mode using mpmath
+  (<xref alt="Johansson, 2013" rid="ref-johansson2013mpmath" ref-type="bibr">Johansson,
+  2013</xref>) is available for all core calculations, critical for
+  validation studies where floating-point accumulation matters.</p>
+  <p><bold>Statistical Quality Score.</bold> Forty-five rules across six
+  categories (test selection, assumption reporting, effect sizes,
+  confidence intervals, multiple comparisons, reproducibility) produce
+  an automated quality score (0–100) for any analysis or manuscript.</p>
+</sec>
+<sec id="validation">
+  <title>Validation</title>
+  <p>All statistical calculations are validated against SciPy
+  (<xref alt="Virtanen &amp; others, 2020" rid="ref-virtanen2020scipy" ref-type="bibr">Virtanen
+  &amp; others, 2020</xref>) and R
+  (<xref alt="R Core Team, 2023" rid="ref-rcore2023" ref-type="bibr">R
+  Core Team, 2023</xref>) reference implementations. Parametric tests
+  agree to 14–16 decimal places; meta-analysis results agree to 10
+  decimal places; power analysis results agree with G*Power within 1%.
+  Reproducibility scripts and reference datasets (Fisher’s Iris
+  (<xref alt="Fisher, 1936" rid="ref-fisher1936use" ref-type="bibr">Fisher,
+  1936</xref>), UCI Wine Quality
+  (<xref alt="Cortez et al., 2009" rid="ref-cortez2009wine" ref-type="bibr">Cortez
+  et al., 2009</xref>)) are provided in the repository under
+  <monospace>paper/replication/</monospace>.</p>
+</sec>
+<sec id="ai-disclosure">
+  <title>AI Disclosure</title>
+  <p>Development of StickForStats was assisted by Claude (Anthropic).
+  All AI-generated code was reviewed, tested against reference
+  implementations, and validated through the project’s continuous
+  integration pipeline (515 backend tests, 573 frontend tests, all
+  passing). Statistical correctness was verified independently against
+  SciPy, R, and G*Power.</p>
+</sec>
+<sec id="acknowledgements">
+  <title>Acknowledgements</title>
+  <p>We acknowledge CSIR-Institute of Genomics and Integrative Biology
+  for institutional support. We thank the developers of NumPy
+  (<xref alt="Harris &amp; others, 2020" rid="ref-harris2020numpy" ref-type="bibr">Harris
+  &amp; others, 2020</xref>), SciPy
+  (<xref alt="Virtanen &amp; others, 2020" rid="ref-virtanen2020scipy" ref-type="bibr">Virtanen
+  &amp; others, 2020</xref>), statsmodels
+  (<xref alt="Seabold &amp; Perktold, 2010" rid="ref-seabold2010statsmodels" ref-type="bibr">Seabold
+  &amp; Perktold, 2010</xref>), and mpmath
+  (<xref alt="Johansson, 2013" rid="ref-johansson2013mpmath" ref-type="bibr">Johansson,
+  2013</xref>) whose libraries form the computational foundation of
+  StickForStats.</p>
+</sec>
+</body>
+<back>
+<ref-list>
+  <title></title>
+  <ref id="ref-baker2016reproducibility">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Baker</surname><given-names>Monya</given-names></name>
+      </person-group>
+      <article-title>1,500 scientists lift the lid on reproducibility</article-title>
+      <source>Nature</source>
+      <year iso-8601-date="2016">2016</year>
+      <volume>533</volume>
+      <issue>7604</issue>
+      <pub-id pub-id-type="doi">10.1038/533452a</pub-id>
+      <fpage>452</fpage>
+      <lpage>454</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-ioannidis2005why">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Ioannidis</surname><given-names>John P. A.</given-names></name>
+      </person-group>
+      <article-title>Why most published research findings are false</article-title>
+      <source>PLoS Medicine</source>
+      <year iso-8601-date="2005">2005</year>
+      <volume>2</volume>
+      <issue>8</issue>
+      <pub-id pub-id-type="doi">10.1371/journal.pmed.0020124</pub-id>
+      <fpage>e124</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-osc2015reproducibility">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <string-name>Open Science Collaboration</string-name>
+      </person-group>
+      <article-title>Estimating the reproducibility of psychological science</article-title>
+      <source>Science</source>
+      <year iso-8601-date="2015">2015</year>
+      <volume>349</volume>
+      <issue>6251</issue>
+      <pub-id pub-id-type="doi">10.1126/science.aac4716</pub-id>
+      <fpage>aac4716</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-hoekstra2012assumptions">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Hoekstra</surname><given-names>Rink</given-names></name>
+        <name><surname>Kiers</surname><given-names>Henk A. L.</given-names></name>
+        <name><surname>Johnson</surname><given-names>Addie</given-names></name>
+      </person-group>
+      <article-title>Are assumptions of well-known statistical techniques checked, and why (not)?</article-title>
+      <source>Frontiers in Psychology</source>
+      <year iso-8601-date="2012">2012</year>
+      <volume>3</volume>
+      <pub-id pub-id-type="doi">10.3389/fpsyg.2012.00137</pub-id>
+      <fpage>137</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-keselman1998statistical">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Keselman</surname><given-names>H. J.</given-names></name>
+        <name><surname>Huberty</surname><given-names>Carl J.</given-names></name>
+        <name><surname>Lix</surname><given-names>Lisa M.</given-names></name>
+        <name><surname>Olejnik</surname><given-names>Stephen</given-names></name>
+        <name><surname>Cribbie</surname><given-names>Robert A.</given-names></name>
+        <name><surname>Donahue</surname><given-names>Barbara</given-names></name>
+        <name><surname>Kowalchuk</surname><given-names>Rhonda K.</given-names></name>
+        <name><surname>Lowman</surname><given-names>Laureen L.</given-names></name>
+        <name><surname>Petoskey</surname><given-names>Martha D.</given-names></name>
+        <name><surname>Keselman</surname><given-names>Joanne C.</given-names></name>
+        <name><surname>Levin</surname><given-names>Joel R.</given-names></name>
+      </person-group>
+      <article-title>Statistical practices of educational researchers: An analysis of their ANOVA, MANOVA, and ANCOVA analyses</article-title>
+      <source>Review of Educational Research</source>
+      <year iso-8601-date="1998">1998</year>
+      <volume>68</volume>
+      <issue>3</issue>
+      <pub-id pub-id-type="doi">10.3102/00346543068003350</pub-id>
+      <fpage>350</fpage>
+      <lpage>386</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-zimmerman2004note">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Zimmerman</surname><given-names>Donald W.</given-names></name>
+      </person-group>
+      <article-title>A note on preliminary tests of equality of variances</article-title>
+      <source>British Journal of Mathematical and Statistical Psychology</source>
+      <year iso-8601-date="2004">2004</year>
+      <volume>57</volume>
+      <issue>1</issue>
+      <pub-id pub-id-type="doi">10.1348/000711004849222</pub-id>
+      <fpage>173</fpage>
+      <lpage>181</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-cohen1988statistical">
+    <element-citation publication-type="book">
+      <person-group person-group-type="author">
+        <name><surname>Cohen</surname><given-names>Jacob</given-names></name>
+      </person-group>
+      <source>Statistical power analysis for the behavioral sciences</source>
+      <publisher-name>Lawrence Erlbaum Associates</publisher-name>
+      <publisher-loc>Hillsdale, NJ</publisher-loc>
+      <year iso-8601-date="1988">1988</year>
+      <edition>2nd</edition>
+    </element-citation>
+  </ref>
+  <ref id="ref-shapiro1965analysis">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Shapiro</surname><given-names>S. S.</given-names></name>
+        <name><surname>Wilk</surname><given-names>M. B.</given-names></name>
+      </person-group>
+      <article-title>An analysis of variance test for normality (complete samples)</article-title>
+      <source>Biometrika</source>
+      <year iso-8601-date="1965">1965</year>
+      <volume>52</volume>
+      <issue>3-4</issue>
+      <pub-id pub-id-type="doi">10.1093/biomet/52.3-4.591</pub-id>
+      <fpage>591</fpage>
+      <lpage>611</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-anderson1954test">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Anderson</surname><given-names>T. W.</given-names></name>
+        <name><surname>Darling</surname><given-names>D. A.</given-names></name>
+      </person-group>
+      <article-title>A test of goodness of fit</article-title>
+      <source>Journal of the American Statistical Association</source>
+      <year iso-8601-date="1954">1954</year>
+      <volume>49</volume>
+      <issue>268</issue>
+      <pub-id pub-id-type="doi">10.1080/01621459.1954.10501232</pub-id>
+      <fpage>765</fpage>
+      <lpage>769</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-levene1960robust">
+    <element-citation publication-type="chapter">
+      <person-group person-group-type="author">
+        <name><surname>Levene</surname><given-names>Howard</given-names></name>
+      </person-group>
+      <article-title>Robust tests for equality of variances</article-title>
+      <source>Contributions to probability and statistics</source>
+      <person-group person-group-type="editor">
+        <name><surname>Olkin</surname><given-names>Ingram</given-names></name>
+      </person-group>
+      <publisher-name>Stanford University Press</publisher-name>
+      <publisher-loc>Palo Alto, CA</publisher-loc>
+      <year iso-8601-date="1960">1960</year>
+      <fpage>278</fpage>
+      <lpage>292</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-brown1974robust">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Brown</surname><given-names>Morton B.</given-names></name>
+        <name><surname>Forsythe</surname><given-names>Alan B.</given-names></name>
+      </person-group>
+      <article-title>Robust tests for the equality of variances</article-title>
+      <source>Journal of the American Statistical Association</source>
+      <year iso-8601-date="1974">1974</year>
+      <volume>69</volume>
+      <issue>346</issue>
+      <pub-id pub-id-type="doi">10.1080/01621459.1974.10482955</pub-id>
+      <fpage>364</fpage>
+      <lpage>367</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-durbin1951testing">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Durbin</surname><given-names>J.</given-names></name>
+        <name><surname>Watson</surname><given-names>G. S.</given-names></name>
+      </person-group>
+      <article-title>Testing for serial correlation in least squares regression. II</article-title>
+      <source>Biometrika</source>
+      <year iso-8601-date="1951">1951</year>
+      <volume>38</volume>
+      <issue>1/2</issue>
+      <pub-id pub-id-type="doi">10.2307/2332325</pub-id>
+      <fpage>159</fpage>
+      <lpage>177</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-grubbs1969procedures">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Grubbs</surname><given-names>Frank E.</given-names></name>
+      </person-group>
+      <article-title>Procedures for detecting outlying observations in samples</article-title>
+      <source>Technometrics</source>
+      <year iso-8601-date="1969">1969</year>
+      <volume>11</volume>
+      <issue>1</issue>
+      <pub-id pub-id-type="doi">10.1080/00401706.1969.10490657</pub-id>
+      <fpage>1</fpage>
+      <lpage>21</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-wald1940test">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Wald</surname><given-names>Abraham</given-names></name>
+        <name><surname>Wolfowitz</surname><given-names>Jacob</given-names></name>
+      </person-group>
+      <article-title>On a test whether two samples are from the same population</article-title>
+      <source>The Annals of Mathematical Statistics</source>
+      <year iso-8601-date="1940">1940</year>
+      <volume>11</volume>
+      <issue>2</issue>
+      <pub-id pub-id-type="doi">10.1214/aoms/1177731909</pub-id>
+      <fpage>147</fpage>
+      <lpage>162</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-breusch1979simple">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Breusch</surname><given-names>T. S.</given-names></name>
+        <name><surname>Pagan</surname><given-names>A. R.</given-names></name>
+      </person-group>
+      <article-title>A simple test for heteroscedasticity and random coefficient variation</article-title>
+      <source>Econometrica</source>
+      <year iso-8601-date="1979">1979</year>
+      <volume>47</volume>
+      <issue>5</issue>
+      <pub-id pub-id-type="doi">10.2307/1911963</pub-id>
+      <fpage>1287</fpage>
+      <lpage>1294</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-dersimonian1986meta">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>DerSimonian</surname><given-names>Rebecca</given-names></name>
+        <name><surname>Laird</surname><given-names>Nan</given-names></name>
+      </person-group>
+      <article-title>Meta-analysis in clinical trials</article-title>
+      <source>Controlled Clinical Trials</source>
+      <year iso-8601-date="1986">1986</year>
+      <volume>7</volume>
+      <issue>3</issue>
+      <pub-id pub-id-type="doi">10.1016/0197-2456(86)90046-2</pub-id>
+      <fpage>177</fpage>
+      <lpage>188</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-egger1997bias">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Egger</surname><given-names>Matthias</given-names></name>
+        <name><surname>Davey Smith</surname><given-names>George</given-names></name>
+        <name><surname>Schneider</surname><given-names>Martin</given-names></name>
+        <name><surname>Minder</surname><given-names>Christoph</given-names></name>
+      </person-group>
+      <article-title>Bias in meta-analysis detected by a simple, graphical test</article-title>
+      <source>BMJ</source>
+      <year iso-8601-date="1997">1997</year>
+      <volume>315</volume>
+      <issue>7109</issue>
+      <pub-id pub-id-type="doi">10.1136/bmj.315.7109.629</pub-id>
+      <fpage>629</fpage>
+      <lpage>634</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-faul2007gpower">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Faul</surname><given-names>Franz</given-names></name>
+        <name><surname>Erdfelder</surname><given-names>Edgar</given-names></name>
+        <name><surname>Lang</surname><given-names>Albert-Georg</given-names></name>
+        <name><surname>Buchner</surname><given-names>Axel</given-names></name>
+      </person-group>
+      <article-title>G*Power 3: A flexible statistical power analysis program for the social, behavioral, and biomedical sciences</article-title>
+      <source>Behavior Research Methods</source>
+      <year iso-8601-date="2007">2007</year>
+      <volume>39</volume>
+      <issue>2</issue>
+      <pub-id pub-id-type="doi">10.3758/BF03193146</pub-id>
+      <fpage>175</fpage>
+      <lpage>191</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-bakker2011misreporting">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Bakker</surname><given-names>Marjan</given-names></name>
+        <name><surname>Wicherts</surname><given-names>Jelte M.</given-names></name>
+      </person-group>
+      <article-title>The (mis)reporting of statistical results in psychology journals</article-title>
+      <source>Behavior Research Methods</source>
+      <year iso-8601-date="2011">2011</year>
+      <volume>43</volume>
+      <issue>3</issue>
+      <pub-id pub-id-type="doi">10.3758/s13428-011-0089-5</pub-id>
+      <fpage>666</fpage>
+      <lpage>678</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-schulz2010consort">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Schulz</surname><given-names>Kenneth F.</given-names></name>
+        <name><surname>Altman</surname><given-names>Douglas G.</given-names></name>
+        <name><surname>Moher</surname><given-names>David</given-names></name>
+      </person-group>
+      <article-title>CONSORT 2010 statement: Updated guidelines for reporting parallel group randomised trials</article-title>
+      <source>BMJ</source>
+      <year iso-8601-date="2010">2010</year>
+      <volume>340</volume>
+      <pub-id pub-id-type="doi">10.1136/bmj.c332</pub-id>
+      <fpage>c332</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-appelbaum2018jars">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Appelbaum</surname><given-names>Mark</given-names></name>
+        <name><surname>Cooper</surname><given-names>Harris</given-names></name>
+        <name><surname>Kline</surname><given-names>Rex B.</given-names></name>
+        <name><surname>Mayo-Wilson</surname><given-names>Evan</given-names></name>
+        <name><surname>Nezu</surname><given-names>Arthur M.</given-names></name>
+        <name><surname>Rao</surname><given-names>Stephen M.</given-names></name>
+      </person-group>
+      <article-title>Journal article reporting standards for quantitative research in psychology: The APA publications and communications board task force report</article-title>
+      <source>American Psychologist</source>
+      <year iso-8601-date="2018">2018</year>
+      <volume>73</volume>
+      <issue>1</issue>
+      <pub-id pub-id-type="doi">10.1037/amp0000191</pub-id>
+      <fpage>3</fpage>
+      <lpage>25</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-harris2020numpy">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Harris</surname><given-names>Charles R.</given-names></name>
+        <name><surname>others</surname></name>
+      </person-group>
+      <article-title>Array programming with NumPy</article-title>
+      <source>Nature</source>
+      <year iso-8601-date="2020">2020</year>
+      <volume>585</volume>
+      <issue>7825</issue>
+      <pub-id pub-id-type="doi">10.1038/s41586-020-2649-2</pub-id>
+      <fpage>357</fpage>
+      <lpage>362</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-virtanen2020scipy">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Virtanen</surname><given-names>Pauli</given-names></name>
+        <name><surname>others</surname></name>
+      </person-group>
+      <article-title>SciPy 1.0: Fundamental algorithms for scientific computing in Python</article-title>
+      <source>Nature Methods</source>
+      <year iso-8601-date="2020">2020</year>
+      <volume>17</volume>
+      <issue>3</issue>
+      <pub-id pub-id-type="doi">10.1038/s41592-019-0686-2</pub-id>
+      <fpage>261</fpage>
+      <lpage>272</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-seabold2010statsmodels">
+    <element-citation publication-type="paper-conference">
+      <person-group person-group-type="author">
+        <name><surname>Seabold</surname><given-names>Skipper</given-names></name>
+        <name><surname>Perktold</surname><given-names>Josef</given-names></name>
+      </person-group>
+      <article-title>Statsmodels: Econometric and statistical modeling with Python</article-title>
+      <source>Proceedings of the 9th python in science conference</source>
+      <year iso-8601-date="2010">2010</year>
+      <pub-id pub-id-type="doi">10.25080/Majora-92bf1922-011</pub-id>
+      <fpage>57</fpage>
+      <lpage>61</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-johansson2013mpmath">
+    <element-citation>
+      <person-group person-group-type="author">
+        <name><surname>Johansson</surname><given-names>Fredrik</given-names></name>
+      </person-group>
+      <article-title>Mpmath: A Python library for arbitrary-precision floating-point arithmetic</article-title>
+      <year iso-8601-date="2013">2013</year>
+      <uri>http://mpmath.org/</uri>
+    </element-citation>
+  </ref>
+  <ref id="ref-rcore2023">
+    <element-citation publication-type="book">
+      <person-group person-group-type="author">
+        <string-name>R Core Team</string-name>
+      </person-group>
+      <source>R: A language and environment for statistical computing</source>
+      <publisher-name>R Foundation for Statistical Computing</publisher-name>
+      <publisher-loc>Vienna, Austria</publisher-loc>
+      <year iso-8601-date="2023">2023</year>
+      <uri>https://www.R-project.org/</uri>
+    </element-citation>
+  </ref>
+  <ref id="ref-jasp2023">
+    <element-citation publication-type="book">
+      <person-group person-group-type="author">
+        <string-name>JASP Team</string-name>
+      </person-group>
+      <source>JASP (version 0.17.3)</source>
+      <year iso-8601-date="2023">2023</year>
+      <uri>https://jasp-stats.org/</uri>
+    </element-citation>
+  </ref>
+  <ref id="ref-jamovi2023">
+    <element-citation publication-type="book">
+      <person-group person-group-type="author">
+        <string-name>The jamovi project</string-name>
+      </person-group>
+      <source>Jamovi (version 2.4)</source>
+      <year iso-8601-date="2023">2023</year>
+      <uri>https://www.jamovi.org/</uri>
+    </element-citation>
+  </ref>
+  <ref id="ref-fisher1936use">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Fisher</surname><given-names>R. A.</given-names></name>
+      </person-group>
+      <article-title>The use of multiple measurements in taxonomic problems</article-title>
+      <source>Annals of Eugenics</source>
+      <year iso-8601-date="1936">1936</year>
+      <volume>7</volume>
+      <issue>2</issue>
+      <pub-id pub-id-type="doi">10.1111/j.1469-1809.1936.tb02137.x</pub-id>
+      <fpage>179</fpage>
+      <lpage>188</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-cortez2009wine">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Cortez</surname><given-names>Paulo</given-names></name>
+        <name><surname>Cerdeira</surname><given-names>António</given-names></name>
+        <name><surname>Almeida</surname><given-names>Fernando</given-names></name>
+        <name><surname>Matos</surname><given-names>Telmo</given-names></name>
+        <name><surname>Reis</surname><given-names>José</given-names></name>
+      </person-group>
+      <article-title>Modeling wine preferences by data mining from physicochemical properties</article-title>
+      <source>Decision Support Systems</source>
+      <year iso-8601-date="2009">2009</year>
+      <volume>47</volume>
+      <issue>4</issue>
+      <pub-id pub-id-type="doi">10.1016/j.dss.2009.05.016</pub-id>
+      <fpage>547</fpage>
+      <lpage>553</lpage>
+    </element-citation>
+  </ref>
+</ref-list>
+</back>
+</article>
