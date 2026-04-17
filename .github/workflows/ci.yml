@@ -148,6 +148,98 @@ jobs:
       - name: Run Python SDK tests
         run: pytest sdk/python/ --tb=short -q || echo "SDK tests require a live backend — skipped"
 
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    needs: [backend-test, frontend-test]
+    env:
+      DJANGO_DEBUG: "True"
+      CELERY_TASK_ALWAYS_EAGER: "True"
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      PLAYWRIGHT_BASE_URL: "http://localhost:3000"
+      PLAYWRIGHT_BACKEND_URL: "http://localhost:8000"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install backend deps
+        run: pip install -r backend/requirements.txt || pip install django djangorestframework django-cors-headers scipy numpy mpmath pandas
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Install e2e deps
+        working-directory: e2e
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          python manage.py runserver 0.0.0.0:8000 &
+          echo $! > /tmp/backend.pid
+          # Wait up to 60 s for the server to respond.
+          for i in $(seq 1 60); do
+            if curl -fs http://localhost:8000/api/v1/health/ >/dev/null 2>&1; then
+              echo "Backend up after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Start frontend (static build via npx serve)
+        working-directory: frontend
+        run: |
+          npx --yes serve -s build -l 3000 &
+          echo $! > /tmp/frontend.pid
+          for i in $(seq 1 60); do
+            if curl -fs http://localhost:3000/ >/dev/null 2>&1; then
+              echo "Frontend up after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+      - name: Stop servers
+        if: always()
+        run: |
+          kill $(cat /tmp/backend.pid) 2>/dev/null || true
+          kill $(cat /tmp/frontend.pid) 2>/dev/null || true
+
   # ── Stage 3: Docker build (main only) ──────────────────────────────
   docker-build:
     name: Docker Build

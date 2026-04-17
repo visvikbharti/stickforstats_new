@@ -1,0 +1,16 @@
+{
+  "name": "stickforstats-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright end-to-end tests for StickForStats. Exercises the dev backend + frontend from the browser.",
+  "scripts": {
+    "install-browsers": "playwright install --with-deps chromium",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.47.2"
+  }
+}
