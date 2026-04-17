@@ -96,6 +96,7 @@ const SmartAnalysisPage = lazy(() => import('../pages/SmartAnalysisPage'));
 
 // Journal Integration / Manuscript Review (Pillar 2)
 const ManuscriptReviewPage = lazy(() => import('../pages/ManuscriptReviewPage'));
+const ReviewerModePage = lazy(() => import('../pages/ReviewerModePage'));
 
 // Platform Dashboard
 const PlatformDashboardPage = lazy(() => import('../pages/PlatformDashboardPage'));
@@ -130,6 +131,8 @@ const ROUTE_CONFIG = [
   // v2.0 Pillar routes
   { path: '/smart-analysis', component: SmartAnalysisPage, loadingMessage: 'Loading Smart Analysis...', skeleton: 'analysis' },
   { path: '/manuscript-review', component: ManuscriptReviewPage, loadingMessage: 'Loading Manuscript Review...', skeleton: 'form' },
+  { path: '/reviewer', component: ReviewerModePage, loadingMessage: 'Loading Reviewer Mode...', skeleton: 'form' },
+  { path: '/review/:submissionId', component: ReviewerModePage, loadingMessage: 'Loading review...', skeleton: 'form' },
   { path: '/journal-analytics', component: JournalAnalyticsPage, loadingMessage: 'Loading Journal Analytics...', skeleton: 'dashboard' },
   { path: '/platform', component: PlatformDashboardPage, loadingMessage: 'Loading Platform Dashboard...', skeleton: 'dashboard' },
 
