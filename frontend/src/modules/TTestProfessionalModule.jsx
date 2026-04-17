@@ -88,21 +88,13 @@ import {
 } from '../components/statistical';
 
 // Custom styled components
-const GradientCard = ({ gradient, children, elevation = 3, ...props }) => {
-  const theme = useTheme();
+const GradientCard = ({ gradient, children, elevation = 1, ...props }) => {
   return (
     <Card
       elevation={elevation}
       sx={{
-        background: gradient,
-        color: 'white',
         position: 'relative',
         overflow: 'visible',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-8px) scale(1.02)',
-          boxShadow: theme.shadows[20]
-        },
         ...props.sx
       }}
       {...props}
@@ -113,22 +105,13 @@ const GradientCard = ({ gradient, children, elevation = 3, ...props }) => {
 };
 
 const StatCard = ({ icon, title, value, subtitle, color, trend }) => {
-  const theme = useTheme();
   return (
     <Card
       sx={{
         position: 'relative',
         overflow: 'visible',
-        background: theme.palette.mode === 'dark'
-          ? 'rgba(17, 25, 40, 0.75)'
-          : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: 'background.paper',
         border: `1px solid ${alpha(color, 0.2)}`,
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: `0 12px 24px ${alpha(color, 0.25)}`
-        }
       }}
     >
       <CardContent>
@@ -260,7 +243,7 @@ const simulationTemplates = {
 const TTestProfessionalModule = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { darkMode, toggleDarkMode, gradients, glassMorphism } = useAppTheme();
+  const { darkMode, toggleDarkMode } = useAppTheme();
   const theme = useTheme();
 
   // State management
@@ -422,7 +405,7 @@ const TTestProfessionalModule = () => {
     <Grid container spacing={3}>
       {/* Hero Section */}
       <Grid item xs={12}>
-        <GradientCard gradient={gradients.primary}>
+        <GradientCard>
           <CardContent sx={{ p: 4 }}>
             <Typography variant="h3" sx={{ mb: 2, fontWeight: 'bold' }}>
               Student's t-Test
@@ -471,7 +454,7 @@ const TTestProfessionalModule = () => {
 
       {/* Mathematical Foundation */}
       <Grid item xs={12} md={6}>
-        <Card sx={{ height: '100%', ...glassMorphism }}>
+        <Card sx={{ height: '100%' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <FunctionsIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -554,7 +537,7 @@ const TTestProfessionalModule = () => {
 
       {/* Assumptions & Requirements */}
       <Grid item xs={12} md={6}>
-        <Card sx={{ height: '100%', ...glassMorphism }}>
+        <Card sx={{ height: '100%' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <CheckCircleIcon sx={{ mr: 1, color: 'success.main' }} />
@@ -610,7 +593,7 @@ const TTestProfessionalModule = () => {
 
       {/* Mathematical Proofs */}
       <Grid item xs={12}>
-        <Card sx={{ ...glassMorphism }}>
+        <Card>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <CodeIcon sx={{ mr: 1, color: 'secondary.main' }} />
@@ -651,7 +634,7 @@ const TTestProfessionalModule = () => {
 
       {/* Interactive Learning Path */}
       <Grid item xs={12}>
-        <Card sx={{ ...glassMorphism }}>
+        <Card>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <SchoolIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -682,7 +665,7 @@ const TTestProfessionalModule = () => {
                   fullWidth
                   variant="contained"
                   startIcon={<PlayIcon />}
-                  sx={{ background: gradients.success }}
+                  color="success"
                 >
                   Start Tutorial
                 </Button>
@@ -725,7 +708,7 @@ const TTestProfessionalModule = () => {
     <Grid container spacing={3}>
       {/* Configuration Card */}
       <Grid item xs={12} lg={4}>
-        <Card sx={{ ...glassMorphism, position: 'sticky', top: 20 }}>
+        <Card sx={{ position: 'sticky', top: 20 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Test Configuration
@@ -794,12 +777,6 @@ const TTestProfessionalModule = () => {
               startIcon={<CalculateIcon />}
               onClick={performTTest}
               disabled={loading || data.sample1.length === 0}
-              sx={{
-                background: gradients.primary,
-                '&:hover': {
-                  background: gradients.purple
-                }
-              }}
             >
               {loading ? 'Calculating...' : 'Perform Analysis'}
             </Button>
@@ -878,7 +855,7 @@ const TTestProfessionalModule = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Card sx={{ ...glassMorphism }}>
+                <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       Effect Size Visualization
@@ -918,7 +895,7 @@ const TTestProfessionalModule = () => {
     <Grid container spacing={3}>
       {/* Simulation Selection */}
       <Grid item xs={12}>
-        <Card sx={{ ...glassMorphism }}>
+        <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Interactive Simulations
@@ -965,7 +942,7 @@ const TTestProfessionalModule = () => {
 
       {/* Simulation Visualization */}
       <Grid item xs={12} lg={8}>
-        <Card sx={{ ...glassMorphism }}>
+        <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Simulation Results
@@ -1072,9 +1049,7 @@ const TTestProfessionalModule = () => {
               </IconButton>
               <Box>
                 <Typography variant="h4" sx={{
-                  background: darkMode ? gradients.blue : gradients.primary,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: 'primary.main',
                   fontWeight: 'bold'
                 }}>
                   T-Test Complete Module
@@ -1114,7 +1089,7 @@ const TTestProfessionalModule = () => {
       </Box>
 
       {/* Main Content */}
-      <Paper sx={{ ...glassMorphism, p: 0 }}>
+      <Paper sx={{ p: 0 }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}

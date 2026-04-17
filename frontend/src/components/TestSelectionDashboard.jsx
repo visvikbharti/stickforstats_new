@@ -3,8 +3,7 @@ import {
   Box, Grid, Card, CardContent, Typography, Button, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions,
   Alert, Tooltip, TextField, InputAdornment,
-  Accordion, AccordionSummary, AccordionDetails, Fade, Switch, FormControlLabel,
-  ThemeProvider, createTheme, CssBaseline, alpha
+  Accordion, AccordionSummary, AccordionDetails, Fade,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -14,8 +13,6 @@ import {
   Search as SearchIcon,
   Speed as SpeedIcon,
   Psychology as PsychologyIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -123,43 +120,11 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [showGuardianDialog, setShowGuardianDialog] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState('parametric');
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check localStorage for saved preference
-    const savedMode = localStorage.getItem('testUniverseDarkMode');
-    return savedMode === 'true' || false;
-  });
   const [stats, setStats] = useState({
     totalTests: 0,
     guardianProtected: 0,
     precisionTests: 0
   });
-
-  // Create theme based on dark mode
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: '#FFD700',
-      },
-      secondary: {
-        main: '#764ba2',
-      },
-      background: {
-        default: darkMode ? '#0a0a0a' : '#f5f5f5',
-        paper: darkMode ? '#1a1a1a' : '#ffffff',
-      },
-    },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    },
-  });
-
-  // Handle dark mode toggle
-  const handleDarkModeToggle = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('testUniverseDarkMode', newMode.toString());
-  };
 
   useEffect(() => {
     // Calculate statistics
@@ -221,41 +186,11 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Box sx={{
         p: 3,
         minHeight: '100vh',
         bgcolor: 'background.default',
-        transition: 'background-color 0.3s ease'
       }}>
-        {/* Dark Mode Toggle */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={darkMode}
-                onChange={handleDarkModeToggle}
-                icon={<LightModeIcon />}
-                checkedIcon={<DarkModeIcon />}
-                sx={{
-                  width: 62,
-                  height: 34,
-                  '& .MuiSwitch-switchBase': {
-                    margin: 1,
-                    padding: 0,
-                    transform: 'translateX(6px)',
-                    '&.Mui-checked': {
-                      transform: 'translateX(22px)',
-                    },
-                  },
-                }}
-              />
-            }
-            label={darkMode ? 'Dark Mode' : 'Light Mode'}
-          />
-        </Box>
-
         {/* Header with Golden Ratio styling */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -267,9 +202,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
             sx={{
               textAlign: 'center',
               mb: 2,
-              background: 'linear-gradient(90deg, #FFD700, #FFA500)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: 'primary.main',
               fontWeight: 'bold'
             }}
           >
@@ -278,7 +211,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           <Typography variant="subtitle1" sx={{
             textAlign: 'center',
             mb: 3,
-            color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'
+            color: 'text.secondary'
           }}>
             Choose from {stats.totalTests} advanced statistical tests • {stats.guardianProtected} Guardian Protected • {stats.precisionTests} with 50-decimal precision
           </Typography>
@@ -291,8 +224,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
             icon={<ShieldIcon />}
             sx={{
               mb: 3,
-              bgcolor: darkMode ? alpha(theme.palette.background.paper, 0.8) : undefined,
-              borderColor: darkMode ? alpha('#FFD700', 0.3) : undefined
+              bgcolor: 'background.paper',
             }}
           >
           {guardianStatus === 'active'
@@ -304,13 +236,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
       {/* Statistics Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
-          <Card sx={{
-            background: darkMode
-              ? 'linear-gradient(135deg, #4a5ab8 0%, #5a3980 100%)'
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-          }}>
+          <Card sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText' }}>
             <CardContent>
               <Typography variant="h4">{stats.totalTests}</Typography>
               <Typography variant="body2">Total Tests Available</Typography>
@@ -318,13 +244,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           </Card>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Card sx={{
-            background: darkMode
-              ? 'linear-gradient(135deg, #b06bc9 0%, #c14154 100%)'
-              : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            color: 'white',
-            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-          }}>
+          <Card sx={{ backgroundColor: 'error.main', color: 'error.contrastText' }}>
             <CardContent>
               <Typography variant="h4">{stats.guardianProtected}</Typography>
               <Typography variant="body2">Guardian Protected</Typography>
@@ -332,13 +252,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           </Card>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Card sx={{
-            background: darkMode
-              ? 'linear-gradient(135deg, #3a8acb 0%, #00b8cb 100%)'
-              : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            color: 'white',
-            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-          }}>
+          <Card sx={{ backgroundColor: 'info.main', color: 'info.contrastText' }}>
             <CardContent>
               <Typography variant="h4">{stats.precisionTests}</Typography>
               <Typography variant="body2">50-Decimal Precision</Typography>
@@ -346,13 +260,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           </Card>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Card sx={{
-            background: darkMode
-              ? 'linear-gradient(135deg, #32b15c 0%, #2bc1a6 100%)'
-              : 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            color: 'white',
-            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-          }}>
+          <Card sx={{ backgroundColor: 'success.main', color: 'success.contrastText' }}>
             <CardContent>
               <Typography variant="h4">φ</Typography>
               <Typography variant="body2">Golden Ratio: {PHI.toFixed(3)}</Typography>
@@ -370,7 +278,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           sx={{
             mb: 3,
             '& .MuiOutlinedInput-root': {
-              bgcolor: darkMode ? alpha(theme.palette.background.paper, 0.8) : 'background.paper',
+              bgcolor: 'background.paper',
             }
           }}
           InputProps={{
@@ -390,8 +298,7 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
           onChange={() => setExpandedCategory(expandedCategory === key ? null : key)}
           sx={{
             mb: 2,
-            bgcolor: darkMode ? alpha(theme.palette.background.paper, 0.6) : 'background.paper',
-            borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : undefined
+            bgcolor: 'background.paper',
           }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -418,16 +325,11 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
                     <Card
                       sx={{
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease',
                         border: '1px solid',
-                        borderColor: test.guardian
-                          ? (darkMode ? alpha('#FFD700', 0.5) : '#FFD700')
-                          : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'divider'),
-                        bgcolor: darkMode ? alpha(theme.palette.background.paper, 0.6) : 'background.paper',
+                        borderColor: test.guardian ? '#FFD700' : 'divider',
+                        bgcolor: 'background.paper',
                         '&:hover': {
-                          boxShadow: darkMode ? '0 8px 16px rgba(0, 0, 0, 0.4)' : 6,
-                          borderColor: darkMode ? alpha(category.color, 0.8) : category.color,
-                          bgcolor: darkMode ? alpha(theme.palette.background.paper, 0.9) : 'background.paper'
+                          borderColor: category.color,
                         }
                       }}
                       onClick={() => handleTestSelect(test, key)}
@@ -503,7 +405,6 @@ const TestSelectionDashboard = ({ onSelectTest }) => {
         </DialogActions>
       </Dialog>
       </Box>
-    </ThemeProvider>
   );
 };
 

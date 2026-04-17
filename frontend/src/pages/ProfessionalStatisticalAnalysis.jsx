@@ -24,9 +24,7 @@ import {
   Tab,
   Divider,
   alpha,
-  ThemeProvider,
-  createTheme,
-  CssBaseline
+  useTheme,
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
@@ -52,18 +50,18 @@ import { Line, BarChart, Bar, ScatterChart, Scatter,
   Legend, ResponsiveContainer, Area, AreaChart, Cell
 } from 'recharts';
 
-// Beautiful gradient color schemes
+// Semantic solid color mapping (no gradients on functional UI)
 const gradients = {
-  primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  success: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  info: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-  dark: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-  ocean: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-  sunset: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-  forest: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-  night: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  aurora: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)'
+  primary: 'primary.main',
+  success: 'success.main',
+  info: 'info.main',
+  warning: 'warning.main',
+  dark: 'secondary.main',
+  ocean: 'info.main',
+  sunset: 'error.main',
+  forest: 'warning.main',
+  night: 'secondary.main',
+  aurora: 'secondary.main',
 };
 
 // Chart color palette
@@ -79,7 +77,8 @@ const chartColors = {
 
 const ProfessionalStatisticalAnalysis = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const [darkMode, setDarkMode] = useState(false);
+  const theme = useTheme();
+  const darkMode = theme.palette.mode === 'dark';
   const [analysisType, setAnalysisType] = useState('descriptive');
   const [inputData, setInputData] = useState('');
   const [inputData2, setInputData2] = useState('');
@@ -88,36 +87,6 @@ const ProfessionalStatisticalAnalysis = () => {
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [showVisualization, setShowVisualization] = useState(true);
-
-  // Create custom theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: '#667eea',
-      },
-      secondary: {
-        main: '#764ba2',
-      },
-      background: {
-        default: darkMode ? '#0a0e27' : '#f8f9fa',
-        paper: darkMode ? '#1a1f3a' : '#ffffff',
-      },
-    },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-      h3: {
-        fontWeight: 700,
-        background: darkMode ? gradients.night : gradients.primary,
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-      },
-    },
-    shape: {
-      borderRadius: 16,
-    },
-  });
 
   // Parse comma-separated values
   const parseData = (dataString) => {
@@ -340,19 +309,12 @@ const ProfessionalStatisticalAnalysis = () => {
   };
 
   // Render beautiful result cards
-  const renderResultCard = (title, value, icon, gradient, suffix = '') => (
+  const renderResultCard = (title, value, icon, colorKey, suffix = '') => (
     <Zoom in={true} timeout={500}>
       <Card
         sx={{
-          background: gradient,
-          color: 'white',
-          borderRadius: 3,
-          boxShadow: '0 10px 35px rgba(0,0,0,0.2)',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-5px)',
-            boxShadow: '0 15px 45px rgba(0,0,0,0.3)',
-          },
+          backgroundColor: colorKey,
+          color: 'common.white',
         }}
       >
         <CardContent>
@@ -610,14 +572,10 @@ const ProfessionalStatisticalAnalysis = () => {
   const requiresTwoInputs = ['ttest', 'correlation', 'regression'].includes(analysisType);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Box
         sx={{
           minHeight: '100vh',
-          background: darkMode
-            ? 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)'
-            : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          backgroundColor: 'background.default',
           py: 4,
         }}
       >
@@ -638,18 +596,17 @@ const ProfessionalStatisticalAnalysis = () => {
                   color="primary"
                   sx={{ fontWeight: 600 }}
                 />
-                <Tooltip title="Toggle Dark Mode">
-                  <IconButton
-                    onClick={() => setDarkMode(!darkMode)}
-                    sx={{
-                      background: alpha(theme.palette.primary.main, 0.1),
-                      '&:hover': {
-                        background: alpha(theme.palette.primary.main, 0.2),
-                      },
-                    }}
-                  >
-                    {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-                  </IconButton>
+                <Tooltip title="Theme is controlled globally">
+                  <span>
+                    <IconButton
+                      disabled
+                      sx={{
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      }}
+                    >
+                      {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </Box>
             </Box>
@@ -713,16 +670,9 @@ const ProfessionalStatisticalAnalysis = () => {
                     <Button
                       variant="contained"
                       fullWidth
+                      color="info"
                       onClick={loadExampleData}
-                      sx={{
-                        mb: 2,
-                        borderRadius: 2,
-                        background: gradients.info,
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                        '&:hover': {
-                          background: gradients.dark,
-                        },
-                      }}
+                      sx={{ mb: 2 }}
                       startIcon={<CopyIcon />}
                     >
                       Load Example Data
@@ -837,14 +787,6 @@ const ProfessionalStatisticalAnalysis = () => {
                         variant="contained"
                         onClick={performAnalysis}
                         disabled={isAnalyzing || !inputData.trim()}
-                        sx={{
-                          borderRadius: 2,
-                          background: gradients.primary,
-                          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                          '&:hover': {
-                            background: gradients.dark,
-                          },
-                        }}
                         startIcon={isAnalyzing ? <CircularProgress size={20} color="inherit" /> : <CalculateIcon />}
                       >
                         {isAnalyzing ? 'Analyzing...' : 'Perform Analysis'}
@@ -937,7 +879,6 @@ const ProfessionalStatisticalAnalysis = () => {
           </Grid>
         </Container>
       </Box>
-    </ThemeProvider>
   );
 };
 

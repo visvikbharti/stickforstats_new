@@ -172,8 +172,7 @@ const VisualizationSuite = ({ data, setData, onComplete }) => {
                       opacity: type.available ? 1 : 0.5,
                       '&:hover': type.available ? {
                         boxShadow: 4,
-                        transform: 'translateY(-2px)',
-                        transition: 'all 0.3s'
+                        transition: 'box-shadow 0.3s'
                       } : {}
                     }}
                     onClick={() => type.available && setAnalysisType(type.id)}

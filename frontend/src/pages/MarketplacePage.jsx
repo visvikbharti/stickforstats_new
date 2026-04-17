@@ -115,10 +115,9 @@ function PluginCard({ plugin, onViewDetails, onInstall, onUninstall, installing 
         flexDirection: 'column',
         border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.08)',
         borderRadius: 2,
-        transition: 'box-shadow 0.2s, transform 0.2s',
+        transition: 'box-shadow 0.2s',
         '&:hover': {
           boxShadow: theme.shadows[4],
-          transform: 'translateY(-2px)',
         },
       }}
     >

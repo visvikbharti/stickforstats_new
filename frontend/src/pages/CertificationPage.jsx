@@ -711,9 +711,8 @@ const CertificationPage = () => {
                   flexDirection: 'column',
                   borderTop: `4px solid ${level.badge_color}`,
                   bgcolor: cardBg,
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  transition: 'box-shadow 0.2s ease',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
                     boxShadow: `0 8px 24px ${darkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)'}`,
                   },
                 }}

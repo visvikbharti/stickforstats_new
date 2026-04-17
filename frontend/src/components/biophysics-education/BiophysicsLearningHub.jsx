@@ -310,10 +310,9 @@ const BiophysicsLearningHub = () => {
                   sx={{
                     height: '100%',
                     opacity: isLocked ? 0.7 : 1,
-                    transition: 'all 0.3s',
+                    transition: 'box-shadow 0.3s',
                     border: isCompleted ? '2px solid #4caf50' : 'none',
                     '&:hover': {
-                      transform: isLocked ? 'none' : 'translateY(-4px)',
                       boxShadow: isLocked ? undefined : 6
                     }
                   }}

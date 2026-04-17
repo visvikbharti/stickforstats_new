@@ -13,7 +13,7 @@ import { Info, School, Assessment,
   ExpandMore, NavigateNext, Casino
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import ProfessionalContainer, { glassMorphism } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 import { BarChart as RechartsBarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   Legend, ResponsiveContainer, ReferenceLine, Cell
 } from 'recharts';
@@ -32,49 +32,15 @@ import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 // Initialize service
 const service = new HighPrecisionStatisticalService();
 
-// Styled Components - Now using Professional UI glassMorphism
+// Styled Components
 const GradientCard = styled(Card)(({ theme }) => ({
-  ...glassMorphism[theme.palette.mode === 'dark' ? 'dark' : 'light'],
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
-  }
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
-const StyledTab = styled(Tab)(({ theme }) => ({
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '1rem',
-  marginRight: theme.spacing(2),
-  minHeight: 48,
-  '&.Mui-selected': {
-    color: theme.palette.primary.main
-  }
-}));
-
-const AnimatedProgress = styled(LinearProgress)(({ theme }) => ({
+const AnimatedProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 4,
-  '& .MuiLinearProgress-bar': {
-    borderRadius: 4,
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-  }
-}));
-
-const PulseButton = styled(Button)(({ theme }) => ({
-  animation: 'pulse 2s infinite',
-  '@keyframes pulse': {
-    '0%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0.7)'
-    },
-    '70%': {
-      boxShadow: '0 0 0 10px rgba(102, 126, 234, 0)'
-    },
-    '100%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0)'
-    }
-  }
 }));
 
 // Type I & Type II Error Simulation with Real Backend
@@ -720,7 +686,7 @@ const PValueDistributionExplorer = ({ darkMode }) => {
 
 // Main Module Component
 const HypothesisTestingModuleReal = () => {
-  const { darkMode, gradients } = useAppTheme();
+  const { darkMode } = useAppTheme();
   const [animationKey, setAnimationKey] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [completedSections, setCompletedSections] = useState([]);
@@ -838,10 +804,10 @@ const HypothesisTestingModuleReal = () => {
           variant="scrollable"
           scrollButtons="auto"
         >
-          <StyledTab icon={<Psychology />} label="Theory" />
-          <StyledTab icon={<Warning />} label="Type I & II Errors" />
-          <StyledTab icon={<BarChart />} label="P-Values" />
-          <StyledTab icon={<Functions />} label="Real Examples" />
+          <Tab icon={<Psychology />} label="Theory" />
+          <Tab icon={<Warning />} label="Type I & II Errors" />
+          <Tab icon={<BarChart />} label="P-Values" />
+          <Tab icon={<Functions />} label="Real Examples" />
         </Tabs>
       </Paper>
 
@@ -852,8 +818,8 @@ const HypothesisTestingModuleReal = () => {
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <GradientCard gradient={gradients.primary}>
-                    <CardContent sx={{ color: 'white' }}>
+                  <GradientCard>
+                    <CardContent>
                       <Typography variant="h5" gutterBottom>
                         The Foundation of Statistical Inference
                       </Typography>
@@ -861,7 +827,7 @@ const HypothesisTestingModuleReal = () => {
                         Hypothesis testing is the cornerstone of scientific research, providing a framework
                         for making decisions based on data.
                       </Typography>
-                      <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
+                      <Divider sx={{ my: 2 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Concepts:
                       </Typography>
@@ -870,28 +836,24 @@ const HypothesisTestingModuleReal = () => {
                           <ListItemText
                             primary="Null Hypothesis (H₀)"
                             secondary="The default assumption of no effect or no difference"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Alternative Hypothesis (H₁)"
                             secondary="The research hypothesis claiming an effect exists"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Test Statistic"
                             secondary="A value calculated from data to test the hypothesis"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="P-value"
                             secondary="Probability of observing data as extreme under H₀"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                       </List>
@@ -978,18 +940,18 @@ const HypothesisTestingModuleReal = () => {
 
                 {exampleDatasets.map((dataset, index) => (
                   <Grid item xs={12} md={4} key={index}>
-                    <GradientCard gradient={gradients.success}>
-                      <CardContent sx={{ color: 'white' }}>
-                        <Typography variant="h6" gutterBottom>
+                    <GradientCard>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom color="success.main">
                           {dataset.name}
                         </Typography>
                         <Typography variant="body2" paragraph>
                           {dataset.description}
                         </Typography>
-                        <Typography variant="caption">
+                        <Typography variant="caption" color="text.secondary">
                           Source: {dataset.source}
                         </Typography>
-                        <Divider sx={{ my: 1, bgcolor: 'rgba(255,255,255,0.2)' }} />
+                        <Divider sx={{ my: 1 }} />
                         <Typography variant="body2">
                           Sample size: {dataset.sampleSize}<br/>
                           Expected: {dataset.expectedOutcome}

@@ -37,7 +37,6 @@ import {
   Fade,
   Zoom,
   Grow,
-  alpha
 } from '@mui/material';
 
 import {
@@ -53,7 +52,7 @@ import {
 } from '@mui/icons-material';
 
 // Import Professional Container for consistent UI
-import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 
 // Import the existing NonParametricTestsService which connects to backend
 import { NonParametricTestsService } from '../services/NonParametricTestsService';
@@ -296,10 +295,7 @@ const NonParametricTestsRealProfessional = () => {
   // Render data input section with professional styling
   const renderDataInput = () => (
     <Zoom in timeout={600} key={`input-${animationKey}`}>
-      <Card sx={{
-        ...glassMorphism[darkMode ? 'dark' : 'light'],
-        mb: 3
-      }}>
+      <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <DataUsageIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -389,14 +385,7 @@ const NonParametricTestsRealProfessional = () => {
               variant="contained"
               onClick={performTest}
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : <CalculateIcon />}
-              sx={{
-                background: gradients[testConfigs[selectedTest].color],
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: 4
-                }
-              }}
+              startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
             >
               {loading ? 'Calculating...' : 'Perform Test'}
             </Button>
@@ -404,14 +393,6 @@ const NonParametricTestsRealProfessional = () => {
               variant="outlined"
               onClick={resetCalculator}
               startIcon={<RefreshIcon />}
-              sx={{
-                borderWidth: 2,
-                '&:hover': {
-                  borderWidth: 2,
-                  transform: 'rotate(180deg)',
-                  transition: 'transform 0.3s'
-                }
-              }}
             >
               Reset
             </Button>
@@ -419,12 +400,6 @@ const NonParametricTestsRealProfessional = () => {
               variant="outlined"
               onClick={loadExampleData}
               startIcon={<CloudUploadIcon />}
-              sx={{
-                borderWidth: 2,
-                '&:hover': {
-                  borderWidth: 2
-                }
-              }}
             >
               Load Example Data
             </Button>
@@ -440,10 +415,7 @@ const NonParametricTestsRealProfessional = () => {
 
     return (
       <Fade in timeout={800}>
-        <Card sx={{
-          ...glassMorphism[darkMode ? 'dark' : 'light'],
-          mt: 3
-        }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6">
@@ -455,7 +427,6 @@ const NonParametricTestsRealProfessional = () => {
                 icon={<CheckCircleIcon />}
                 sx={{
                   fontWeight: 600,
-                  background: gradients.success
                 }}
               />
             </Box>
@@ -472,18 +443,12 @@ const NonParametricTestsRealProfessional = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <Zoom in timeout={600}>
-                    <Paper sx={{
-                      p: 3,
-                      ...glassMorphism[darkMode ? 'dark' : 'light']
-                    }}>
+                    <Paper sx={{ p: 3 }}>
                       <Typography variant="h6" gutterBottom>
                         Test Statistic
                       </Typography>
                       <Typography variant="h3" sx={{
-                        background: gradients.primary,
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
+                        color: 'primary.main',
                         fontWeight: 700
                       }}>
                         {formatNumber(results.statistic || results.u_statistic || results.w_statistic || results.h_statistic || results.chi_squared)}
@@ -500,10 +465,7 @@ const NonParametricTestsRealProfessional = () => {
 
                 <Grid item xs={12} md={6}>
                   <Zoom in timeout={800}>
-                    <Paper sx={{
-                      p: 3,
-                      ...glassMorphism[darkMode ? 'dark' : 'light']
-                    }}>
+                    <Paper sx={{ p: 3 }}>
                       <Typography variant="h6" gutterBottom>
                         Statistical Significance
                       </Typography>
@@ -512,10 +474,7 @@ const NonParametricTestsRealProfessional = () => {
                       </Typography>
                       <Alert
                         severity={results.p_value < 0.05 ? 'success' : 'info'}
-                        sx={{
-                          mt: 2,
-                          ...glassMorphism[darkMode ? 'dark' : 'light']
-                        }}
+                        sx={{ mt: 2 }}
                       >
                         {results.p_value < 0.05
                           ? 'Result is statistically significant (p < 0.05)'
@@ -528,17 +487,14 @@ const NonParametricTestsRealProfessional = () => {
                 {/* High Precision Display */}
                 <Grid item xs={12}>
                   <Grow in timeout={1000}>
-                    <Paper sx={{
-                      p: 2,
-                      ...glassMorphism[darkMode ? 'dark' : 'light']
-                    }}>
+                    <Paper sx={{ p: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
                         High Precision Values (50 decimals)
                       </Typography>
                       <Typography variant="body2" sx={{
                         fontFamily: 'monospace',
                         fontSize: '0.85rem',
-                        background: alpha(gradients.primary, 0.1),
+                        backgroundColor: 'action.hover',
                         p: 1,
                         borderRadius: 1
                       }}>
@@ -599,10 +555,7 @@ const NonParametricTestsRealProfessional = () => {
 
       {/* Test Selection with glass effect */}
       <Zoom in timeout={400}>
-        <Card sx={{
-          mb: 3,
-          ...glassMorphism[darkMode ? 'dark' : 'light']
-        }}>
+        <Card sx={{ mb: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               {testConfigs[selectedTest].icon}
@@ -640,10 +593,7 @@ const NonParametricTestsRealProfessional = () => {
 
             <Alert
               severity="info"
-              sx={{
-                mt: 2,
-                ...glassMorphism[darkMode ? 'dark' : 'light']
-              }}
+              sx={{ mt: 2 }}
             >
               <AlertTitle>{testConfigs[selectedTest].name}</AlertTitle>
               {testConfigs[selectedTest].description}

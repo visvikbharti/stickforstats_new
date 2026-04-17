@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   Button, TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, CircularProgress, Chip, Fade, Tabs, Tab, Divider, alpha, ThemeProvider,
-  createTheme, CssBaseline, Accordion, AccordionSummary,
+  Alert, CircularProgress, Chip, Fade, Tabs, Tab, Divider, alpha,
+  Accordion, AccordionSummary,
   AccordionDetails, Slider, Switch, FormControlLabel, List,
   ListItem, ListItemIcon, ListItemText, Table, TableBody, TableCell, TableContainer, TableRow
 } from '@mui/material';
@@ -81,19 +81,6 @@ const TTestCompleteModule = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [quizMode, setQuizMode] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({});
-
-  // Create custom theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: { main: colors.primary },
-      secondary: { main: colors.secondary },
-    },
-    typography: {
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    },
-    shape: { borderRadius: 12 },
-  });
 
   // Parse data helper
   const parseData = (dataString) => {
@@ -726,9 +713,6 @@ const TTestCompleteModule = () => {
                 variant="contained"
                 onClick={performTTest}
                 startIcon={<CalculateIcon />}
-                sx={{
-                  background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`
-                }}
               >
                 Perform Analysis
               </Button>
@@ -945,12 +929,10 @@ const TTestCompleteModule = () => {
             <Button
               variant="contained"
               fullWidth
+              color="success"
               onClick={runSimulation}
               disabled={simRunning}
               startIcon={simRunning ? <CircularProgress size={20} /> : <PlayIcon />}
-              sx={{
-                background: `linear-gradient(135deg, ${colors.success} 0%, ${colors.info} 100%)`
-              }}
             >
               {simRunning ? 'Running Simulation...' : 'Run Simulation'}
             </Button>
@@ -1033,8 +1015,6 @@ const TTestCompleteModule = () => {
 
   // Main render
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ mb: 4, textAlign: 'center' }}>
@@ -1073,7 +1053,6 @@ const TTestCompleteModule = () => {
           </Box>
         </Fade>
       </Container>
-    </ThemeProvider>
   );
 };
 

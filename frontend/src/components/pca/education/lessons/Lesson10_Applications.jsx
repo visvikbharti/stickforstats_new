@@ -158,9 +158,8 @@ const Lesson10_Applications = ({ onComplete }) => {
                       sx={{
                         height: '100%',
                         borderLeft: `4px solid ${domain.color}`,
-                        transition: 'transform 0.2s',
+                        transition: 'box-shadow 0.2s',
                         '&:hover': {
-                          transform: 'translateY(-4px)',
                           boxShadow: 4
                         }
                       }}

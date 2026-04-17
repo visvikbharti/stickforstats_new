@@ -9,7 +9,7 @@ import { School, Assessment, Science, ScatterPlot,
   Analytics, AutoGraph, GridOn
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import ProfessionalContainer, { glassMorphism } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 import { Line, Area, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   Legend, ResponsiveContainer, ReferenceLine,
   ComposedChart
@@ -29,14 +29,10 @@ import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 // Initialize service
 const service = new HighPrecisionStatisticalService();
 
-// Styled Components - Now using Professional UI glassMorphism
+// Styled Components
 const GradientCard = styled(Card)(({ theme }) => ({
-  ...glassMorphism[theme.palette.mode === 'dark' ? 'dark' : 'light'],
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
-  }
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
 const HeatmapCell = styled(Box)(({ theme, value }) => {
@@ -57,22 +53,12 @@ const HeatmapCell = styled(Box)(({ theme, value }) => {
     fontWeight: 600,
     color: intensity > 0.5 ? 'white' : theme.palette.text.primary,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'scale(1.1)',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      zIndex: 10
-    }
   };
 });
 
-const AnimatedProgress = styled(LinearProgress)(({ theme }) => ({
+const AnimatedProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 4,
-  '& .MuiLinearProgress-bar': {
-    borderRadius: 4,
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-  }
 }));
 
 // Interactive Correlation with Real Backend
@@ -946,7 +932,7 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
 
 // Main Module Component
 const CorrelationRegressionModuleReal = () => {
-  const { darkMode, gradients } = useAppTheme();
+  const { darkMode } = useAppTheme();
   const [animationKey, setAnimationKey] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [notification, setNotification] = useState(null);

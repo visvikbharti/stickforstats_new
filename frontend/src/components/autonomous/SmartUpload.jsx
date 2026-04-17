@@ -113,9 +113,8 @@ const ScoreGauge = styled(Box)(({ theme, score }) => {
 
 const QuestionCard = styled(Card)(({ theme }) => ({
   height: '100%',
-  transition: 'transform 0.2s, box-shadow 0.2s',
+  transition: 'box-shadow 0.2s',
   '&:hover': {
-    transform: 'translateY(-3px)',
     boxShadow: theme.shadows[6],
   },
 }));

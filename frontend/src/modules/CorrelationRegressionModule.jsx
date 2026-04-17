@@ -20,16 +20,9 @@ import { useAppTheme } from '../context/AppThemeContext';
 import jStat from 'jstat';
 
 // Styled Components
-const GradientCard = styled(Card)(({ theme, gradient }) => ({
-  background: gradient || theme.palette.background.gradient,
-  backdropFilter: 'blur(10px)',
-  borderRadius: 16,
-  border: '1px solid rgba(255, 255, 255, 0.18)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
-  }
+const GradientCard = styled(Card)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
 const HeatmapCell = styled(Box)(({ theme, value }) => {
@@ -50,22 +43,12 @@ const HeatmapCell = styled(Box)(({ theme, value }) => {
     fontWeight: 600,
     color: intensity > 0.5 ? 'white' : theme.palette.text.primary,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'scale(1.1)',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      zIndex: 10
-    }
   };
 });
 
-const AnimatedProgress = styled(LinearProgress)(({ theme }) => ({
+const AnimatedProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 4,
-  '& .MuiLinearProgress-bar': {
-    borderRadius: 4,
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-  }
 }));
 
 // Simulation Components
@@ -800,7 +783,7 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
 
 // Main Module Component
 const CorrelationRegressionModule = () => {
-  const { darkMode, gradients } = useAppTheme();
+  const { darkMode } = useAppTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [completedSections, setCompletedSections] = useState([]);
 
@@ -821,10 +804,7 @@ const CorrelationRegressionModule = () => {
           variant="h3"
           sx={{
             fontWeight: 800,
-            background: darkMode ? gradients.blue : gradients.primary,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: 'primary.main',
             mb: 2
           }}
         >
@@ -887,12 +867,12 @@ const CorrelationRegressionModule = () => {
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <GradientCard gradient={gradients.success}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h5" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h5" gutterBottom color="success.main">
                         Correlation Analysis
                       </Typography>
-                      <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
+                      <Divider sx={{ my: 2 }} />
 
                       <Typography variant="h6" gutterBottom>
                         Types of Correlation
@@ -902,21 +882,18 @@ const CorrelationRegressionModule = () => {
                           <ListItemText
                             primary="Pearson Correlation (r)"
                             secondary="Measures linear relationship between continuous variables"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Spearman's Rank (ρ)"
                             secondary="Non-parametric measure for monotonic relationships"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Kendall's Tau (τ)"
                             secondary="Rank correlation for ordinal data"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                       </List>
@@ -935,12 +912,12 @@ const CorrelationRegressionModule = () => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <GradientCard gradient={gradients.info}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h5" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h5" gutterBottom color="info.main">
                         Regression Analysis
                       </Typography>
-                      <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
+                      <Divider sx={{ my: 2 }} />
 
                       <Typography variant="h6" gutterBottom>
                         Regression Models
@@ -950,28 +927,24 @@ const CorrelationRegressionModule = () => {
                           <ListItemText
                             primary="Simple Linear Regression"
                             secondary="Y = β₀ + β₁X + ε"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Multiple Regression"
                             secondary="Y = β₀ + β₁X₁ + β₂X₂ + ... + ε"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Polynomial Regression"
                             secondary="Y = β₀ + β₁X + β₂X² + ... + ε"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Logistic Regression"
                             secondary="log(p/(1-p)) = β₀ + β₁X"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                       </List>
@@ -1068,9 +1041,9 @@ const CorrelationRegressionModule = () => {
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.warning}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="warning.main">
                         Finance & Economics
                       </Typography>
                       <Typography variant="body2">
@@ -1082,9 +1055,9 @@ const CorrelationRegressionModule = () => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.purple}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="secondary.main">
                         Healthcare & Medicine
                       </Typography>
                       <Typography variant="body2">
@@ -1096,9 +1069,9 @@ const CorrelationRegressionModule = () => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.success}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="success.main">
                         Marketing & Sales
                       </Typography>
                       <Typography variant="body2">

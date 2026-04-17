@@ -53,7 +53,7 @@ import {
 } from '@mui/icons-material';
 
 // Import Professional Container for consistent UI
-import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 
 // Import axios for backend calls
 import axios from 'axios';
@@ -309,7 +309,7 @@ const PowerAnalysisReal = () => {
   // Render parameter inputs
   const renderParameterInputs = () => (
     <Fade in timeout={800}>
-      <Card sx={{ ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+      <Card>
         <CardContent>
         <Typography variant="h6" gutterBottom>
           Parameters
@@ -481,13 +481,6 @@ const PowerAnalysisReal = () => {
             onClick={performCalculation}
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
-            sx={{
-              background: gradients.primary,
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 4
-              }
-            }}
           >
             {loading ? 'Calculating...' : 'Calculate'}
           </Button>
@@ -495,14 +488,6 @@ const PowerAnalysisReal = () => {
             variant="outlined"
             onClick={resetCalculator}
             startIcon={<RefreshIcon />}
-            sx={{
-              borderWidth: 2,
-              '&:hover': {
-                borderWidth: 2,
-                transform: 'rotate(180deg)',
-                transition: 'transform 0.3s'
-              }
-            }}
           >
             Reset
           </Button>
@@ -518,7 +503,7 @@ const PowerAnalysisReal = () => {
 
     return (
       <Zoom in timeout={600}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">
@@ -535,17 +520,14 @@ const PowerAnalysisReal = () => {
             {/* Main Result */}
             <Grid item xs={12} md={6}>
               <Grow in timeout={800}>
-                <Paper sx={{ p: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+                <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   {calculationMode === 'power' && 'Statistical Power'}
                   {calculationMode === 'sampleSize' && 'Required Sample Size'}
                   {calculationMode === 'effectSize' && 'Detectable Effect Size'}
                 </Typography>
                 <Typography variant="h3" sx={{
-                  background: gradients.primary,
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: 'primary.main',
                   fontWeight: 700
                 }}>
                   {calculationMode === 'power' && formatNumber(results.power || results.calculated_power, 4)}
@@ -564,7 +546,7 @@ const PowerAnalysisReal = () => {
             {/* Additional Info */}
             <Grid item xs={12} md={6}>
               <Grow in timeout={1000}>
-                <Paper sx={{ p: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+                <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   Test Configuration
                 </Typography>
@@ -667,7 +649,7 @@ const PowerAnalysisReal = () => {
 
     return (
       <Fade in timeout={1000}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
             <TimelineIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -750,7 +732,7 @@ const PowerAnalysisReal = () => {
         {/* Left Column - Settings */}
         <Grid item xs={12} md={4}>
           <Fade in timeout={600}>
-            <Card sx={{ ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+            <Card>
               <CardContent>
               <Typography variant="h6" gutterBottom>
                 Configuration

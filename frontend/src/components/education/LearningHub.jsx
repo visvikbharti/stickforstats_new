@@ -393,9 +393,8 @@ const LearningHub = () => {
                   elevation={3}
                   sx={{
                     height: '100%',
-                    transition: 'all 0.3s',
+                    transition: 'box-shadow 0.3s',
                     '&:hover': {
-                      transform: 'translateY(-8px)',
                       boxShadow: 6
                     },
                     border: isCompleted ? `2px solid ${theme.palette.success.main}` : 'none'

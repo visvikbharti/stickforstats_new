@@ -230,9 +230,8 @@ const DOEEducationHub = () => {
                     height: '100%',
                     opacity: isLocked ? 0.6 : 1,
                     position: 'relative',
-                    transition: 'all 0.3s',
+                    transition: 'box-shadow 0.3s',
                     '&:hover': {
-                      transform: isLocked ? 'none' : 'translateY(-4px)',
                       boxShadow: isLocked ? undefined : 6
                     }
                   }}

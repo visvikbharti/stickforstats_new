@@ -40,9 +40,8 @@ const RecommendationCard = styled(Card)(({ theme, severity }) => {
     marginBottom: theme.spacing(2),
     position: 'relative',
     overflow: 'hidden',
-    transition: 'transform 0.2s, box-shadow 0.2s',
+    transition: 'box-shadow 0.2s',
     '&:hover': {
-      transform: 'translateY(-2px)',
       boxShadow: theme.shadows[4]
     },
     '&::before': {

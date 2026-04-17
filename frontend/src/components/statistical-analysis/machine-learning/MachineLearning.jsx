@@ -188,9 +188,8 @@ const MachineLearning = ({ data, setData, onComplete }) => {
                 sx={{
                   height: '100%',
                   opacity: isUnderDevelopment ? 0.6 : 1,
-                  transition: 'all 0.3s',
+                  transition: 'box-shadow 0.3s',
                   '&:hover': {
-                    transform: isUnderDevelopment ? 'none' : 'translateY(-4px)',
                     boxShadow: isUnderDevelopment ? undefined : 6
                   }
                 }}

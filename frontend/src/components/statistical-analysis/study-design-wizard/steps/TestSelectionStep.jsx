@@ -550,9 +550,8 @@ const TestSelectionStep = ({ data, updateData, errors }) => {
                       ? `2px solid ${theme.palette.success.main}`
                       : `1px solid ${theme.palette.divider}`,
                   position: 'relative',
-                  transition: 'all 0.3s',
+                  transition: 'box-shadow 0.3s',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
                     boxShadow: 4,
                   },
                 }}

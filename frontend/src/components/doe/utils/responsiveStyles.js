@@ -101,13 +101,9 @@ export const responsiveCard = (theme) => ({
       xs: 1,
       md: 2
     },
-    transition: 'box-shadow 0.3s ease-in-out, transform 0.2s ease',
+    transition: 'box-shadow 0.3s ease-in-out',
     '&:hover': {
-      boxShadow: 3,
-      transform: {
-        xs: 'none',
-        md: 'translateY(-4px)'
-      }
+      boxShadow: 3
     }
   },
   cardHeader: {

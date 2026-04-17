@@ -67,9 +67,8 @@ import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
 // Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
-  transition: 'transform 0.2s, box-shadow 0.2s',
+  transition: 'box-shadow 0.2s',
   '&:hover': {
-    transform: 'translateY(-2px)',
     boxShadow: theme.shadows[4]
   }
 }));

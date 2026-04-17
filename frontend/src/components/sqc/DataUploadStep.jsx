@@ -92,10 +92,9 @@ const DataPreviewGrid = styled(Box)(({ theme }) => ({
 
 const ExampleCard = styled(Card)(({ theme }) => ({
   height: '100%',
-  transition: 'transform 0.3s, box-shadow 0.3s',
+  transition: 'box-shadow 0.3s',
   cursor: 'pointer',
   '&:hover': {
-    transform: 'translateY(-4px)',
     boxShadow: theme.shadows[8]
   }
 }));

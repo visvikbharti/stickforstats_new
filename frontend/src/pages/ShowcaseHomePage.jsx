@@ -192,9 +192,8 @@ const ShowcaseHomePage = () => {
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: '0.3s',
+                  transition: 'box-shadow 0.3s',
                   '&:hover': {
-                    transform: 'translateY(-5px)',
                     boxShadow: 6
                   }
                 }}

@@ -401,10 +401,9 @@ const PowerAnalysisEducationHub = () => {
                   elevation={3}
                   sx={{
                     height: '100%',
-                    transition: 'all 0.3s',
+                    transition: 'box-shadow 0.3s',
                     opacity: lesson.available ? 1 : 0.6,
                     '&:hover': lesson.available ? {
-                      transform: 'translateY(-8px)',
                       boxShadow: 6
                     } : {},
                     border: isCompleted ? `2px solid ${theme.palette.success.main}` : 'none'

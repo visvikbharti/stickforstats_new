@@ -174,8 +174,7 @@ const StatisticalTests = ({ data, setData, onComplete }) => {
                       opacity: category.available ? 1 : 0.5,
                       '&:hover': category.available ? {
                         boxShadow: 4,
-                        transform: 'translateY(-2px)',
-                        transition: 'all 0.3s'
+                        transition: 'box-shadow 0.3s'
                       } : {}
                     }}
                     onClick={() => category.available && setTestCategory(category.id)}

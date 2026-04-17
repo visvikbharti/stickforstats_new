@@ -44,7 +44,6 @@ const ChartTypeCard = styled(Card)(({ theme, selected }) => ({
   border: selected ? `2px solid ${theme.palette.primary.main}` : '1px solid transparent',
   backgroundColor: selected ? theme.palette.primary.lightest || theme.palette.action.selected : theme.palette.background.paper,
   '&:hover': {
-    transform: selected ? 'scale(1)' : 'translateY(-4px)',
     boxShadow: selected ? theme.shadows[4] : theme.shadows[8]
   }
 }));

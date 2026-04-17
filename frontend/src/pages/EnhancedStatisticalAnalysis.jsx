@@ -31,21 +31,6 @@ import {
   Legend, ResponsiveContainer
 } from 'recharts';
 
-// Enhanced gradient color schemes
-const gradients = {
-  primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  success: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  info: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-  dark: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-  theory: 'linear-gradient(135deg, #667eea 0%, #4facfe 100%)',
-  simulation: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  application: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-  medical: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
-  business: 'linear-gradient(135deg, #ffd89b 0%, #19547b 100%)',
-  environment: 'linear-gradient(135deg, #96e6a1 0%, #4bc0c8 100%)'
-};
-
 const EnhancedStatisticalAnalysis = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
@@ -66,13 +51,10 @@ const EnhancedStatisticalAnalysis = () => {
   const [simulationResults, setSimulationResults] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Gradient heading style
+  // Heading style
   const gradientHeadingSx = {
     fontWeight: 700,
-    background: darkMode ? gradients.dark : gradients.primary,
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: 'primary.main',
   };
 
   // Parse comma-separated values
@@ -482,10 +464,7 @@ const EnhancedStatisticalAnalysis = () => {
                 onClick={runSimulation}
                 disabled={isSimulating}
                 startIcon={isSimulating ? <CircularProgress size={20} /> : <TimelineIcon />}
-                sx={{
-                  background: gradients.simulation,
-                  '&:hover': { background: gradients.dark }
-                }}
+                color="secondary"
               >
                 {isSimulating ? 'Running...' : 'Run Simulation'}
               </Button>
@@ -545,13 +524,9 @@ const EnhancedStatisticalAnalysis = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card sx={{
-            height: '100%',
-            background: gradients.medical,
-            color: 'white'
-          }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom color="error.main">
                 <MedicalIcon sx={{ mr: 1 }} />
                 Clinical Trials
               </Typography>
@@ -562,25 +537,19 @@ const EnhancedStatisticalAnalysis = () => {
                 <ListItem>
                   <ListItemText
                     primary="Treatment Effect Estimation"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Determining if a new drug is more effective than placebo
-                    </Typography>}
+                    secondary="Determining if a new drug is more effective than placebo"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Bioequivalence Studies"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Assessing if generic drugs perform similarly to brand-name drugs
-                    </Typography>}
+                    secondary="Assessing if generic drugs perform similarly to brand-name drugs"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Safety Monitoring"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Tracking adverse event rates with uncertainty bounds
-                    </Typography>}
+                    secondary="Tracking adverse event rates with uncertainty bounds"
                   />
                 </ListItem>
               </List>
@@ -589,13 +558,9 @@ const EnhancedStatisticalAnalysis = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card sx={{
-            height: '100%',
-            background: gradients.business,
-            color: 'white'
-          }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom color="warning.main">
                 <MarketingIcon sx={{ mr: 1 }} />
                 A/B Testing & Marketing
               </Typography>
@@ -606,25 +571,19 @@ const EnhancedStatisticalAnalysis = () => {
                 <ListItem>
                   <ListItemText
                     primary="Conversion Rate Optimization"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Testing website changes to improve user engagement
-                    </Typography>}
+                    secondary="Testing website changes to improve user engagement"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Campaign Performance"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Measuring marketing campaign effectiveness
-                    </Typography>}
+                    secondary="Measuring marketing campaign effectiveness"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Customer Satisfaction"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Tracking NPS scores with confidence bounds
-                    </Typography>}
+                    secondary="Tracking NPS scores with confidence bounds"
                   />
                 </ListItem>
               </List>
@@ -633,13 +592,9 @@ const EnhancedStatisticalAnalysis = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card sx={{
-            height: '100%',
-            background: gradients.environment,
-            color: 'white'
-          }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom color="success.main">
                 <EnvironmentIcon sx={{ mr: 1 }} />
                 Environmental Monitoring
               </Typography>
@@ -650,25 +605,19 @@ const EnhancedStatisticalAnalysis = () => {
                 <ListItem>
                   <ListItemText
                     primary="Air Quality Assessment"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Monitoring pollution levels with uncertainty
-                    </Typography>}
+                    secondary="Monitoring pollution levels with uncertainty"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Water Contamination"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Testing water safety within regulatory limits
-                    </Typography>}
+                    secondary="Testing water safety within regulatory limits"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Climate Research"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Analyzing temperature trends with confidence bands
-                    </Typography>}
+                    secondary="Analyzing temperature trends with confidence bands"
                   />
                 </ListItem>
               </List>
@@ -677,13 +626,9 @@ const EnhancedStatisticalAnalysis = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card sx={{
-            height: '100%',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white'
-          }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom color="primary.main">
                 <FactoryIcon sx={{ mr: 1 }} />
                 Manufacturing Quality Control
               </Typography>
@@ -694,25 +639,19 @@ const EnhancedStatisticalAnalysis = () => {
                 <ListItem>
                   <ListItemText
                     primary="Process Capability"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Measuring Cp and Cpk indices with confidence
-                    </Typography>}
+                    secondary="Measuring Cp and Cpk indices with confidence"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Defect Rate Estimation"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Calculating PPM with uncertainty bounds
-                    </Typography>}
+                    secondary="Calculating PPM with uncertainty bounds"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Reliability Analysis"
-                    secondary={<Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Estimating MTBF with confidence intervals
-                    </Typography>}
+                    secondary="Estimating MTBF with confidence intervals"
                   />
                 </ListItem>
               </List>
@@ -863,9 +802,7 @@ const EnhancedStatisticalAnalysis = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: darkMode
-            ? 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)'
-            : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          backgroundColor: 'background.default',
           py: 4,
         }}
       >
@@ -958,7 +895,8 @@ const EnhancedStatisticalAnalysis = () => {
                           variant="contained"
                           fullWidth
                           onClick={loadExampleData}
-                          sx={{ mb: 2, background: gradients.info }}
+                          color="info"
+                          sx={{ mb: 2 }}
                           startIcon={<CopyIcon />}
                         >
                           Load Example Data
@@ -1043,7 +981,6 @@ const EnhancedStatisticalAnalysis = () => {
                             variant="contained"
                             onClick={performAnalysis}
                             disabled={isAnalyzing || !inputData.trim()}
-                            sx={{ background: gradients.primary }}
                             startIcon={isAnalyzing ? <CircularProgress size={20} /> : <CalculateIcon />}
                           >
                             {isAnalyzing ? 'Analyzing...' : 'Perform Analysis'}

@@ -34,22 +34,22 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 
-// Beautiful gradient schemes
+// Solid color mapping (professional research-software aesthetic)
 const gradients = {
-  primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  success: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  info: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  warning: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-  dark: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-  ocean: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-  sunset: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-  forest: 'linear-gradient(135deg, #96e6a1 0%, #4bc0c8 100%)',
-  gold: 'linear-gradient(135deg, #ffd89b 0%, #19547b 100%)',
-  purple: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-  blue: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
-  green: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-  red: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
-  orange: 'linear-gradient(135deg, #f46b45 0%, #eea849 100%)'
+  primary: 'primary.main',
+  success: 'success.main',
+  info: 'info.main',
+  warning: 'warning.main',
+  dark: 'secondary.main',
+  ocean: 'info.main',
+  sunset: 'error.main',
+  forest: 'success.main',
+  gold: 'warning.main',
+  purple: 'secondary.main',
+  blue: 'primary.main',
+  green: 'success.main',
+  red: 'error.main',
+  orange: 'warning.main',
 };
 
 // Module categories
@@ -292,7 +292,6 @@ const StatisticalDashboard = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
-  const darkMode = theme.palette.mode === 'dark';
   const [selectedTab, setSelectedTab] = useState(0);
   const [userProgress, setUserProgress] = useState({
     totalModules: 0,
@@ -348,11 +347,6 @@ const StatisticalDashboard = () => {
           position: 'relative',
           cursor: module.status !== 'locked' ? 'pointer' : 'not-allowed',
           opacity: module.status === 'locked' ? 0.6 : 1,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: module.status !== 'locked' ? 'translateY(-5px)' : 'none',
-            boxShadow: module.status !== 'locked' ? '0 12px 24px rgba(0,0,0,0.15)' : 'default'
-          }
         }}
         onClick={() => handleModuleClick(module)}
       >
@@ -389,7 +383,7 @@ const StatisticalDashboard = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Avatar
                 sx={{
-                  background: categoryColor,
+                  bgcolor: categoryColor,
                   width: 56,
                   height: 56,
                   mr: 2
@@ -446,10 +440,6 @@ const StatisticalDashboard = () => {
                     height: 6,
                     borderRadius: 3,
                     backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                      background: module.progress === 100 ? gradients.success : categoryColor
-                    }
                   }}
                 />
               </Box>
@@ -481,7 +471,7 @@ const StatisticalDashboard = () => {
 
   // Render user stats card
   const renderUserStats = () => (
-    <Card sx={{ background: gradients.purple, color: 'white' }}>
+    <Card sx={{ backgroundColor: 'secondary.main', color: 'secondary.contrastText' }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
           Your Progress
@@ -531,8 +521,7 @@ const StatisticalDashboard = () => {
               borderRadius: 4,
               backgroundColor: 'rgba(255,255,255,0.2)',
               '& .MuiLinearProgress-bar': {
-                borderRadius: 4,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
               }
             }}
           />
@@ -546,20 +535,11 @@ const StatisticalDashboard = () => {
     <Grid container spacing={3}>
       {learningPaths.map((path) => (
         <Grid item xs={12} sm={6} md={3} key={path.id}>
-          <Card
-            sx={{
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-              }
-            }}
-          >
+          <Card sx={{ cursor: 'pointer' }}>
             <CardContent>
               <Avatar
                 sx={{
-                  background: path.color,
+                  bgcolor: path.color,
                   width: 48,
                   height: 48,
                   mb: 2
@@ -601,9 +581,7 @@ const StatisticalDashboard = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: darkMode
-            ? 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%)'
-            : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          backgroundColor: 'background.default',
           pb: 4
         }}
       >
@@ -614,10 +592,7 @@ const StatisticalDashboard = () => {
               variant="h3"
               gutterBottom
               sx={{
-                background: gradients.primary,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'primary.main',
                 fontWeight: 700,
                 textAlign: 'center'
               }}
@@ -665,7 +640,7 @@ const StatisticalDashboard = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Avatar
                       sx={{
-                        background: category.color,
+                        bgcolor: category.color,
                         width: 48,
                         height: 48,
                         mr: 2
@@ -709,7 +684,7 @@ const StatisticalDashboard = () => {
                           height: 64,
                           margin: '0 auto',
                           mb: 2,
-                          background: achievement.unlocked ? gradients.gold : 'grey'
+                          bgcolor: achievement.unlocked ? gradients.gold : 'grey'
                         }}
                       >
                         {achievement.icon}
@@ -744,7 +719,6 @@ const StatisticalDashboard = () => {
               position: 'fixed',
               bottom: 24,
               right: 24,
-              background: gradients.primary
             }}
             onClick={() => navigate('/enhanced-analysis')}
           >

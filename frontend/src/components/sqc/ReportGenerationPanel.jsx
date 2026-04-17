@@ -46,7 +46,6 @@ const ReportOptionCard = styled(Card)(({ theme, selected }) => ({
   position: 'relative',
   height: '100%',
   '&:hover': {
-    transform: selected ? 'scale(1)' : 'translateY(-4px)',
     boxShadow: selected ? theme.shadows[4] : theme.shadows[8]
   }
 }));

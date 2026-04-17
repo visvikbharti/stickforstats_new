@@ -201,9 +201,8 @@ const StudyTypeStep = ({ data, updateData, errors }) => {
                   border: studyType.design === design.id
                     ? `3px solid ${design.color}`
                     : `1px solid ${theme.palette.divider}`,
-                  transition: 'all 0.3s',
+                  transition: 'box-shadow 0.3s',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
                     boxShadow: 4,
                   },
                 }}

@@ -18,7 +18,7 @@ import {
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
-import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 
 // Guardian Design Contract compliance
@@ -138,7 +138,7 @@ const TTestRealBackend = () => {
 
     return (
       <Fade in timeout={800}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -160,17 +160,14 @@ const TTestRealBackend = () => {
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <Zoom in timeout={600}>
-                <Paper sx={{ p: 2, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+                <Paper sx={{ p: 2 }}>
                   <Typography variant="body2" color="textSecondary">
                     T-Statistic
                   </Typography>
                   <Typography variant="h6" sx={{
                     fontFamily: 'monospace',
                     wordBreak: 'break-all',
-                    background: gradients.primary,
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    color: 'primary.main',
                     fontWeight: 700
                   }}>
                     {results.t_statistic}
@@ -179,7 +176,7 @@ const TTestRealBackend = () => {
                     label={`${results.t_statistic.split('.')[1]?.length || 0} decimal places`}
                     color="success"
                     size="small"
-                    sx={{ mt: 1, background: gradients.success }}
+                    sx={{ mt: 1 }}
                   />
                 </Paper>
               </Zoom>
@@ -187,7 +184,7 @@ const TTestRealBackend = () => {
 
             <Grid item xs={12} md={6}>
               <Zoom in timeout={800}>
-                <Paper sx={{ p: 2, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+                <Paper sx={{ p: 2 }}>
                   <Typography variant="body2" color="textSecondary">
                     P-Value
                   </Typography>
@@ -453,7 +450,7 @@ const TTestRealBackend = () => {
         {/* Proof of real backend */}
         {results && (
           <Grow in timeout={1200}>
-            <Alert severity="success" sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+            <Alert severity="success" sx={{ mt: 3 }}>
               <Typography variant="body2">
                 ✅ This calculation used the REAL backend API with 50 decimal precision.
                 No Math.random() or simulations were used.

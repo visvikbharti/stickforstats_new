@@ -34,10 +34,9 @@ const FooterLink = styled(Link)(({ theme }) => ({
 
 const SocialButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  transition: 'all 0.3s ease',
+  transition: 'color 0.3s ease',
   '&:hover': {
     color: theme.palette.primary.main,
-    transform: 'translateY(-2px)',
   },
 }));
 

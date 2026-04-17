@@ -253,10 +253,9 @@ export const QuickLearnCard = ({ module = 'pca' }) => {
       sx={{
         p: 2,
         cursor: 'pointer',
-        transition: 'all 0.2s',
+        transition: 'box-shadow 0.2s',
         '&:hover': {
-          boxShadow: 3,
-          transform: 'translateY(-2px)'
+          boxShadow: 3
         }
       }}
       onClick={() => navigate(config.route)}

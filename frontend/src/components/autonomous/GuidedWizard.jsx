@@ -310,10 +310,9 @@ const GuidedWizard = ({ dataFile, profileResult, onComplete, onProfileData, onRu
                   variant="outlined"
                   sx={{
                     height: '100%',
-                    transition: 'box-shadow 0.2s, transform 0.2s',
+                    transition: 'box-shadow 0.2s',
                     '&:hover': {
-                      boxShadow: 6,
-                      transform: 'translateY(-2px)'
+                      boxShadow: 6
                     }
                   }}
                 >

@@ -26,51 +26,14 @@ import {
 } from '../services/backendService';
 
 // Styled Components
-const GradientCard = styled(Card)(({ theme, gradient }) => ({
-  background: gradient || theme.palette.background.gradient,
-  backdropFilter: 'blur(10px)',
-  borderRadius: 16,
-  border: '1px solid rgba(255, 255, 255, 0.18)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
-  }
+const GradientCard = styled(Card)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
-const StyledTab = styled(Tab)(({ theme }) => ({
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '1rem',
-  marginRight: theme.spacing(2),
-  minHeight: 48,
-  '&.Mui-selected': {
-    color: theme.palette.primary.main
-  }
-}));
-
-const AnimatedProgress = styled(LinearProgress)(({ theme }) => ({
+const AnimatedProgress = styled(LinearProgress)(() => ({
   height: 8,
   borderRadius: 4,
-  '& .MuiLinearProgress-bar': {
-    borderRadius: 4,
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-  }
-}));
-
-const PulseButton = styled(Button)(({ theme }) => ({
-  animation: 'pulse 2s infinite',
-  '@keyframes pulse': {
-    '0%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0.7)'
-    },
-    '70%': {
-      boxShadow: '0 0 0 10px rgba(102, 126, 234, 0)'
-    },
-    '100%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0)'
-    }
-  }
 }));
 
 // Simulation Components with Real Backend Integration
@@ -560,24 +523,24 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
             </Box>
           </Paper>
 
-          <Paper sx={{ p: 2, mt: 2, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-            <Typography variant="h6" sx={{ color: 'white' }}>
+          <Paper sx={{ p: 2, mt: 2, backgroundColor: 'primary.main', color: 'primary.contrastText' }}>
+            <Typography variant="h6">
               Required Sample Size
             </Typography>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <CircularProgress sx={{ color: 'white' }} />
+                <CircularProgress color="inherit" />
               </Box>
             ) : (
               <>
-                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
+                <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
                   n = {requiredSampleSize}
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', mt: 1 }}>
+                <Typography variant="body2" sx={{ mt: 1 }}>
                   Per group for {(desiredPower * 100).toFixed(0)}% power
                 </Typography>
                 {error && (
-                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', display: 'block', mt: 1 }}>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.85 }}>
                     (Local calculation)
                   </Typography>
                 )}
@@ -634,10 +597,10 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
 
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item xs={12} md={4}>
-              <GradientCard gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+              <GradientCard>
                 <CardContent>
-                  <Typography variant="h6" sx={{ color: 'white' }}>Effect Size</Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                  <Typography variant="h6">Effect Size</Typography>
+                  <Typography variant="body2" color="text.secondary">
                     Cohen's d = {effectSize}<br/>
                     {effectSize <= 0.2 ? 'Small' : effectSize <= 0.5 ? 'Medium' : effectSize <= 0.8 ? 'Large' : 'Very Large'} Effect
                   </Typography>
@@ -646,10 +609,10 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <GradientCard gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+              <GradientCard>
                 <CardContent>
-                  <Typography variant="h6" sx={{ color: 'white' }}>Type I Error</Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                  <Typography variant="h6">Type I Error</Typography>
+                  <Typography variant="body2" color="text.secondary">
                     α = {alpha}<br/>
                     {(alpha * 100).toFixed(0)}% False Positive Rate
                   </Typography>
@@ -658,10 +621,10 @@ const PowerAnalysisSimulation = ({ darkMode }) => {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <GradientCard gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+              <GradientCard>
                 <CardContent>
-                  <Typography variant="h6" sx={{ color: 'white' }}>Statistical Power</Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                  <Typography variant="h6">Statistical Power</Typography>
+                  <Typography variant="body2" color="text.secondary">
                     1 - β = {desiredPower}<br/>
                     {(desiredPower * 100).toFixed(0)}% True Positive Rate
                   </Typography>
@@ -954,7 +917,7 @@ const PValueDistributionExplorer = ({ darkMode }) => {
 
 // Main Module Component
 const HypothesisTestingModule = () => {
-  const { darkMode, gradients } = useAppTheme();
+  const { darkMode } = useAppTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [completedSections, setCompletedSections] = useState([]);
   const [notification, setNotification] = useState(null);
@@ -999,10 +962,7 @@ const HypothesisTestingModule = () => {
           variant="h3"
           sx={{
             fontWeight: 800,
-            background: darkMode ? gradients.blue : gradients.primary,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: 'primary.main',
             mb: 2
           }}
         >
@@ -1050,11 +1010,11 @@ const HypothesisTestingModule = () => {
           variant="scrollable"
           scrollButtons="auto"
         >
-          <StyledTab icon={<Psychology />} label="Theory" />
-          <StyledTab icon={<Warning />} label="Type I & II Errors" />
-          <StyledTab icon={<TrendingUp />} label="Power Analysis" />
-          <StyledTab icon={<BarChart />} label="P-Values" />
-          <StyledTab icon={<Functions />} label="Applications" />
+          <Tab icon={<Psychology />} label="Theory" />
+          <Tab icon={<Warning />} label="Type I & II Errors" />
+          <Tab icon={<TrendingUp />} label="Power Analysis" />
+          <Tab icon={<BarChart />} label="P-Values" />
+          <Tab icon={<Functions />} label="Applications" />
         </Tabs>
       </Paper>
 
@@ -1065,8 +1025,8 @@ const HypothesisTestingModule = () => {
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <GradientCard gradient={gradients.primary}>
-                    <CardContent sx={{ color: 'white' }}>
+                  <GradientCard>
+                    <CardContent>
                       <Typography variant="h5" gutterBottom>
                         The Foundation of Statistical Inference
                       </Typography>
@@ -1074,7 +1034,7 @@ const HypothesisTestingModule = () => {
                         Hypothesis testing is the cornerstone of scientific research, providing a framework
                         for making decisions based on data.
                       </Typography>
-                      <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.2)' }} />
+                      <Divider sx={{ my: 2 }} />
                       <Typography variant="h6" gutterBottom>
                         Key Concepts:
                       </Typography>
@@ -1083,28 +1043,24 @@ const HypothesisTestingModule = () => {
                           <ListItemText
                             primary="Null Hypothesis (H₀)"
                             secondary="The default assumption of no effect or no difference"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Alternative Hypothesis (H₁)"
                             secondary="The research hypothesis claiming an effect exists"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="Test Statistic"
                             secondary="A value calculated from data to test the hypothesis"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                         <ListItem>
                           <ListItemText
                             primary="P-value"
                             secondary="Probability of observing data as extreme under H₀"
-                            secondaryTypographyProps={{ style: { color: 'rgba(255,255,255,0.9)' } }}
                           />
                         </ListItem>
                       </List>
@@ -1192,9 +1148,9 @@ const HypothesisTestingModule = () => {
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.success}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="success.main">
                         Medical Research
                       </Typography>
                       <Typography variant="body2">
@@ -1206,9 +1162,9 @@ const HypothesisTestingModule = () => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.info}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="info.main">
                         Quality Control
                       </Typography>
                       <Typography variant="body2">
@@ -1220,9 +1176,9 @@ const HypothesisTestingModule = () => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <GradientCard gradient={gradients.warning}>
-                    <CardContent sx={{ color: 'white' }}>
-                      <Typography variant="h6" gutterBottom>
+                  <GradientCard>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom color="warning.main">
                         Business Analytics
                       </Typography>
                       <Typography variant="body2">

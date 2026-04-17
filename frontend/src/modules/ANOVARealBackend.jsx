@@ -17,7 +17,7 @@ import {
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
-import ProfessionalContainer, { glassMorphism, gradients } from '../components/common/ProfessionalContainer';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
 
 // Guardian Design Contract compliance
 // "No statistical result may exist without an explicit, traceable assumption context."
@@ -140,7 +140,7 @@ const ANOVARealBackend = () => {
 
     return (
       <Fade in timeout={800}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
           <Typography variant="h6" gutterBottom color="primary">
             ✅ Assumption Checks (Assumption-First Approach)
@@ -207,7 +207,7 @@ const ANOVARealBackend = () => {
 
     return (
       <Zoom in timeout={600}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="h6" color="primary">
@@ -253,10 +253,7 @@ const ANOVARealBackend = () => {
                     <Box>
                       <Typography variant="body2" sx={{
                         fontFamily: 'monospace',
-                        background: gradients.primary,
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
+                        color: 'primary.main',
                         fontWeight: 700
                       }}>
                         {String(results.f_statistic).substring(0, 15)}...
@@ -331,7 +328,7 @@ const ANOVARealBackend = () => {
 
     return (
       <Grow in timeout={1000}>
-        <Card sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
           <Typography variant="h6" gutterBottom color="primary">
             📈 Effect Sizes (50 Decimal Precision)
@@ -343,10 +340,7 @@ const ANOVARealBackend = () => {
               <Typography variant="body2" color="textSecondary">Eta-squared (η²)</Typography>
               <Typography variant="h6" sx={{
                 fontFamily: 'monospace',
-                background: gradients.primary,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'primary.main',
                 fontWeight: 700
               }}>
                 {String(effectSizes.eta_squared).substring(0, 10)}...
@@ -454,27 +448,12 @@ const ANOVARealBackend = () => {
             onClick={performRealANOVA}
             disabled={loading || groups.every(g => !g.data)}
             size="large"
-            sx={{
-              background: gradients.primary,
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 4
-              }
-            }}
           >
             Run ANOVA (Real Backend)
           </Button>
           <Button
             variant="outlined"
             startIcon={<Clear />}
-            sx={{
-              borderWidth: 2,
-              '&:hover': {
-                borderWidth: 2,
-                transform: 'rotate(180deg)',
-                transition: 'transform 0.3s'
-              }
-            }}
             onClick={() => {
               setGroups([
                 { name: 'Group 1', data: '' },
@@ -523,7 +502,7 @@ const ANOVARealBackend = () => {
         {/* Proof of real backend */}
         {results && (
           <Grow in timeout={1200}>
-            <Alert severity="success" sx={{ mt: 3, ...glassMorphism[darkMode ? 'dark' : 'light'] }}>
+            <Alert severity="success" sx={{ mt: 3 }}>
               <Typography variant="body2">
                 ✅ This calculation used the REAL backend API with 50 decimal precision.
                 No Math.random() or simulations. F-statistic has {String(results.f_statistic).split('.')[1]?.length || 0} decimal places!

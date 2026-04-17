@@ -48,7 +48,6 @@ body.dark {
 
 .card:hover {
   box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
 }
 
 /* Professional data table styling */
@@ -146,12 +145,10 @@ body.dark {
 .btn:hover {
   background-color: var(--color-primary-600);
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .btn:active {
   background-color: var(--color-primary-700);
-  transform: translateY(0);
 }
 
 .btn-secondary {

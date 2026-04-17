@@ -49,21 +49,13 @@ import { useSnackbar } from 'notistack';
 import { useAppTheme } from '../context/AppThemeContext';
 
 // Reusable styled components
-const GradientCard = ({ gradient, children, elevation = 3, ...props }) => {
-  const theme = useTheme();
+const GradientCard = ({ gradient, children, elevation = 1, ...props }) => {
   return (
     <Card
       elevation={elevation}
       sx={{
-        background: gradient,
-        color: 'white',
         position: 'relative',
         overflow: 'visible',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-8px) scale(1.02)',
-          boxShadow: theme.shadows[20]
-        },
         ...props.sx
       }}
       {...props}
@@ -74,27 +66,18 @@ const GradientCard = ({ gradient, children, elevation = 3, ...props }) => {
 };
 
 const GlassCard = ({ children, ...props }) => {
-  const { glassMorphism } = useAppTheme();
   return (
-    <Card sx={{ ...glassMorphism, ...props.sx }} {...props}>
+    <Card sx={{ ...props.sx }} {...props}>
       {children}
     </Card>
   );
 };
 
 const StatCard = ({ icon, title, value, subtitle, color, trend }) => {
-  const theme = useTheme();
-  const { glassMorphism } = useAppTheme();
-
   return (
     <Card sx={{
-      ...glassMorphism,
+      backgroundColor: 'background.paper',
       border: `1px solid ${alpha(color, 0.2)}`,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-4px)',
-        boxShadow: `0 12px 24px ${alpha(color, 0.25)}`
-      }
     }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -174,7 +157,7 @@ const StatisticalModuleTemplate = ({
 }) => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { darkMode, toggleDarkMode, gradients, glassMorphism } = useAppTheme();
+  const { darkMode, toggleDarkMode } = useAppTheme();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -447,9 +430,7 @@ const StatisticalModuleTemplate = ({
             </IconButton>
             <Box>
               <Typography variant="h4" sx={{
-                background: darkMode ? gradients.blue : gradients.primary,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'primary.main',
                 fontWeight: 'bold'
               }}>
                 {moduleName}
@@ -493,11 +474,7 @@ const StatisticalModuleTemplate = ({
           mt: 2,
           height: 8,
           borderRadius: 4,
-          background: alpha(theme.palette.primary.main, 0.1),
-          '& .MuiLinearProgress-bar': {
-            background: gradients.primary,
-            borderRadius: 4
-          }
+          backgroundColor: alpha(theme.palette.primary.main, 0.1),
         }}
       />
     </Box>
@@ -509,7 +486,7 @@ const StatisticalModuleTemplate = ({
       <Grid container spacing={3}>
         {/* Hero Section */}
         <Grid item xs={12}>
-          <GradientCard gradient={gradients.primary}>
+          <GradientCard>
             <CardContent sx={{ p: 4 }}>
               <Grid container spacing={3} alignItems="center">
                 <Grid item xs={12} md={8}>
@@ -678,10 +655,6 @@ const StatisticalModuleTemplate = ({
                 startIcon={<CalculateIcon />}
                 onClick={handleAnalysis}
                 disabled={loading || !inputData}
-                sx={{
-                  background: gradients.primary,
-                  '&:hover': { background: gradients.purple }
-                }}
               >
                 {loading ? 'Calculating...' : 'Perform Analysis'}
               </Button>
@@ -1024,8 +997,8 @@ const StatisticalModuleTemplate = ({
               <Button
                 fullWidth
                 variant="contained"
+                color="warning"
                 startIcon={<PremiumIcon />}
-                sx={{ background: gradients.gold }}
               >
                 Get Certificate
               </Button>
@@ -1105,7 +1078,7 @@ const StatisticalModuleTemplate = ({
       <ModuleHeader />
 
       {/* Main Content Area */}
-      <Paper sx={{ ...glassMorphism, p: 0 }}>
+      <Paper sx={{ p: 0 }}>
         {/* Navigation Tabs */}
         <Tabs
           value={activeTab}
