@@ -127,11 +127,11 @@ class TestSSOValidateToken(TestCase):
         self.assertIsNone(claims, "Forged-signature token must be rejected")
 
     def test_alg_none_rejected(self):
-        from jose import jwt as _j
         # jose refuses to encode with alg=none unless explicitly requested
         # — but a hand-crafted token with alg=none in the header is what
         # an attacker would send.
-        import base64, json
+        import base64
+        import json
         header = base64.urlsafe_b64encode(
             json.dumps({"alg": "none", "kid": "test-key-1"}).encode()
         ).rstrip(b"=").decode()
@@ -284,7 +284,8 @@ class TestLTILaunchValidation(TestCase):
         self.assertIsNone(self._validate(token))
 
     def test_alg_none_rejected(self):
-        import base64, json
+        import base64
+        import json
         header = base64.urlsafe_b64encode(
             json.dumps({"alg": "none", "kid": "test-key-1"}).encode()
         ).rstrip(b"=").decode()

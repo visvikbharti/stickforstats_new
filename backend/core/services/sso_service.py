@@ -5,7 +5,6 @@ OIDC/SAML authentication via Keycloak or any standard identity provider.
 Handles token validation, user provisioning, and role mapping.
 """
 
-import json
 import logging
 import time
 from urllib.parse import urlencode
