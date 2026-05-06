@@ -1,9 +1,32 @@
 """
 Plugin Runtime Engine
 =====================
-Executes installed plugins within a sandboxed context.
-Supports: custom statistical tests, SQS rule packs,
-visualization templates, data connectors, and report templates.
+In-process plugin extension API. Executes installed plugins inside the
+Django worker process with the same privileges as the application code.
+
+This module is NOT a sandbox. Plugins have full access to the Python
+interpreter, the filesystem, the database, and the network --- exactly
+the same as any package installed via pip. Only deploy plugins whose
+source you have reviewed yourself; treat plugin authors with the same
+trust you would extend to a contributor on the main repository.
+
+Time limits in TIME_LIMITS are advisory only --- they are checked after
+the plugin returns and produce a log warning, but cannot interrupt a
+runaway plugin in flight. Resource isolation, syscall filtering, and
+preemptive timeouts would require either subprocess + setrlimit/seccomp
+(POSIX-only) or a container runtime; both are outside the scope of this
+module. See ``docs/CRITICAL_REVIEW_2026-05-06.md`` (P1-12) and the
+``WORK_PLAN_2026-05-06.md`` P2.5 decision log for the rationale.
+
+Supported plugin types:
+  - statistical_test:  custom statistical tests (4 built-ins shipped:
+                       ``robust_ttest``, ``bootstrap_ci``,
+                       ``permutation_test``, ``bayesian_ab``;
+                       custom-function loading is not yet implemented)
+  - sqs_rule_pack:     custom SQS regex rule packs
+  - visualization:     Recharts/D3 chart configurations
+  - data_connector:    external data source descriptors
+  - report_template:   PDF/HTML report templates
 """
 
 import logging
@@ -12,9 +35,18 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# Public flag for callers / tests / docs that need to know whether the
+# runtime enforces isolation. Always False for the in-process engine.
+IS_SANDBOXED = False
+
 
 class PluginContext:
-    """Sandboxed execution context for plugins."""
+    """Per-execution context for a plugin (timing, logging, metadata).
+
+    Note: this is *context* (organization, user, logs, timing) --- not
+    isolation. The plugin code runs in-process; see the module docstring
+    for the trust model.
+    """
 
     def __init__(self, plugin, organization, user=None):
         self.plugin = plugin
@@ -42,11 +74,15 @@ class PluginContext:
 
 
 class PluginRuntime:
-    """
-    Executes plugins based on their type and entry point configuration.
+    """In-process dispatcher that executes plugins by type and entry point.
+
+    NOT a sandbox --- see the module docstring for the trust model. All
+    plugin code runs with the privileges of the Django worker process.
     """
 
-    # Maximum execution time per plugin type (seconds)
+    # Advisory soft limits per plugin type (seconds). These produce a log
+    # warning AFTER the plugin returns; they do NOT interrupt a runaway
+    # plugin in flight. See module docstring.
     TIME_LIMITS = {
         "statistical_test": 30,
         "sqs_rule_pack": 10,
@@ -145,10 +181,21 @@ class PluginRuntime:
         if test_function in builtin_tests:
             return builtin_tests[test_function](data, config or {})
 
+        # Custom-function loading is not yet implemented. Plugins must use
+        # one of the built-in functions registered above; this is an
+        # explicit limit of the in-process plugin API, not a sandbox
+        # restriction. The caller receives a structured error so the
+        # frontend can surface it instead of silently treating the
+        # placeholder text as a successful result.
         return {
-            "message": f'Custom test "{test_function}" from module "{test_module}" would be loaded dynamically in production',
-            "data_received": bool(data),
-            "config": config or {},
+            "error": "custom_function_not_supported",
+            "message": (
+                f"The function '{test_function}' from module '{test_module}' "
+                "is not a built-in plugin function. Custom-function loading "
+                "is not implemented in this release; available built-ins are: "
+                "robust_ttest, bootstrap_ci, permutation_test, bayesian_ab."
+            ),
+            "available_builtins": list(builtin_tests.keys()),
         }
 
     @classmethod

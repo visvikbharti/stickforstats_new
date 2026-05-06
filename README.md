@@ -128,7 +128,14 @@ StickForStats scales from a single researcher to an entire institution.
 ### Plugin Marketplace
 
 - Browse, install, and review community-contributed plugins
-- **Sandboxed plugin runtime** -- plugins execute in an isolated environment
+- **In-process plugin extension API** -- plugins run with the same
+  privileges as the host application; only install plugins whose source
+  you have reviewed yourself, the same way you trust any package
+  installed via pip. See `backend/core/services/plugin_runtime.py`
+  module docstring for the trust model.
+- Four built-in statistical-test functions (robust t-test, bootstrap CI,
+  permutation test, Bayesian A/B); custom-function loading is documented
+  but not yet implemented.
 - Plugin configuration management
 - 7 marketplace and runtime endpoints
 

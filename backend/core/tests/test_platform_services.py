@@ -9,7 +9,7 @@ Comprehensive tests for all Pillar 3 platform services:
 - DataImportService: CSV/Excel/JSON import with type detection
 - BillingService: Usage tracking, tier enforcement, analytics
 - SiteLicenseService: Institutional license management
-- PluginRuntime: Sandboxed plugin execution engine
+- PluginRuntime: In-process plugin execution engine (NOT sandboxed; see module docstring)
 - PluginMarketplace: Plugin CRUD via Django models (Plugin, PluginInstallation, PluginReview)
 
 @author StickForStats Test Suite
@@ -953,7 +953,13 @@ class TestSiteLicenseService(TestCase):
 
 
 class TestPluginRuntime(TestCase):
-    """Tests for sandboxed plugin execution engine (plugin_runtime.py)."""
+    """Tests for the in-process plugin execution engine (plugin_runtime.py).
+
+    The runtime is NOT a sandbox: plugins run with full Django-worker
+    privileges. These tests pin the public contract (built-in dispatch,
+    execution context/logging, advisory time limits, and the documented
+    error response when a plugin requests an unknown custom function).
+    """
 
     def setUp(self):
         seed_tiers()
@@ -1132,6 +1138,44 @@ class TestPluginRuntime(TestCase):
         """Time limits are defined for all plugin types."""
         for ptype in ["statistical_test", "sqs_rule_pack", "visualization", "data_connector", "report_template"]:
             self.assertIn(ptype, PluginRuntime.TIME_LIMITS)
+
+    def test_runtime_is_not_sandboxed_flag(self):
+        """The module exposes IS_SANDBOXED = False so callers cannot be
+        confused by docstring drift."""
+        from core.services.plugin_runtime import IS_SANDBOXED
+
+        self.assertFalse(IS_SANDBOXED)
+
+    def test_unknown_custom_function_returns_documented_error(self):
+        """A statistical_test plugin requesting a non-built-in function
+        receives a structured error (not the old 'would be loaded
+        dynamically in production' placeholder)."""
+        plugin = self._create_plugin(
+            plugin_type="statistical_test",
+            slug="test-custom-fn",
+            entry_point={"function": "my_unknown_test", "module": "user_module"},
+        )
+
+        result = PluginRuntime.execute(plugin, {"x": [1, 2, 3]})
+
+        # Top-level execute() reports success=False because the inner
+        # result contains an "error" key.
+        self.assertFalse(result["success"])
+        self.assertIn("result", result)
+        inner = result["result"]
+        self.assertEqual(inner.get("error"), "custom_function_not_supported")
+        # Message must mention the requested function and module so the
+        # frontend can surface a useful error to the plugin author.
+        self.assertIn("my_unknown_test", inner["message"])
+        self.assertIn("user_module", inner["message"])
+        # Available built-ins must be enumerated so the caller can choose
+        # an alternative without reading the source.
+        self.assertEqual(
+            set(inner["available_builtins"]),
+            {"robust_ttest", "bootstrap_ci", "permutation_test", "bayesian_ab"},
+        )
+        # Regression: the old placeholder message must not appear.
+        self.assertNotIn("would be loaded dynamically in production", inner["message"])
 
 
 # =============================================================================
