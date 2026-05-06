@@ -353,13 +353,32 @@ class AutonomousCascadeEngine:
     def _exec_wilcoxon(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         stat, p = stats.wilcoxon(arrays[0], arrays[1])
         n = len(arrays[0])
-        r = float(stat / (n * (n + 1) / 2))  # Simplified effect size
+        # Effect size r = |Z| / sqrt(N) (Rosenthal 1991; Fritz, Morris &
+        # Richler 2012 J Exp Psychol). Z is recovered from the
+        # Wilcoxon test statistic W via the normal approximation:
+        #   mu_W    = n(n+1) / 4
+        #   sigma_W = sqrt(n(n+1)(2n+1) / 24)
+        #   Z       = (W - mu_W) / sigma_W
+        # Bug history: prior code computed W / max(W) = W / (n(n+1)/2)
+        # and labelled it "r (effect size)". That formula is not on the
+        # Cohen r scale and was misleading when displayed alongside
+        # Pearson r elsewhere in the pipeline. See
+        # docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
+        if n > 0:
+            mu_w = n * (n + 1) / 4.0
+            sigma_w = float(np.sqrt(n * (n + 1) * (2 * n + 1) / 24.0))
+            z = (float(stat) - mu_w) / sigma_w if sigma_w > 0 else 0.0
+            r = abs(z) / float(np.sqrt(n)) if n > 0 else 0.0
+        else:
+            z = 0.0
+            r = 0.0
         return TestResult(
             test_name="Wilcoxon Signed-Rank test",
             statistic=float(stat),
             p_value=float(p),
-            effect_size=r,
-            effect_size_name="r (effect size)",
+            effect_size=float(r),
+            effect_size_name="r (|Z|/sqrt(N), Rosenthal 1991)",
+            additional={"z_approx": float(z), "n_pairs": int(n)},
         )
 
     def _exec_anova(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
@@ -390,15 +409,29 @@ class AutonomousCascadeEngine:
         stat, p = stats.kruskal(*arrays)
         n_total = sum(len(a) for a in arrays)
         k = len(arrays)
-        # Epsilon-squared effect size
-        epsilon_sq = float((stat - k + 1) / (n_total - k)) if (n_total - k) > 0 else 0
+        # Two effect sizes are commonly reported for Kruskal-Wallis
+        # (Tomczak & Tomczak 2014; Mangiafico, rcompanion). The default
+        # `effect_size` field uses the unbiased eta-squared form:
+        #   eta_squared_H = (H - k + 1) / (n - k)     (range [0, 1])
+        # The simpler epsilon-squared is also reported alongside:
+        #   epsilon_squared = H / (n - 1)             (range [0, 1])
+        # Bug history: prior code labelled the unbiased eta-squared
+        # formula as "Epsilon-squared" --- numerically defensible (some
+        # sources use that name for this expression) but inconsistent
+        # with the Tomczak & Tomczak nomenclature now standard in JASP
+        # and rcompanion. See docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
+        eta_sq_h = (
+            float((stat - k + 1) / (n_total - k)) if (n_total - k) > 0 else 0.0
+        )
+        epsilon_sq = float(stat / (n_total - 1)) if n_total > 1 else 0.0
         return TestResult(
             test_name="Kruskal-Wallis H test",
             statistic=float(stat),
             p_value=float(p),
-            effect_size=epsilon_sq,
-            effect_size_name="Epsilon-squared",
+            effect_size=eta_sq_h,
+            effect_size_name="eta-squared H (unbiased; Tomczak & Tomczak 2014)",
             degrees_of_freedom=float(k - 1),
+            additional={"epsilon_squared": epsilon_sq, "n_total": int(n_total)},
         )
 
     def _exec_pearson(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
