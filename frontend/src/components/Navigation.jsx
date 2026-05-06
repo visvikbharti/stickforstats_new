@@ -97,7 +97,12 @@ const testPages = [
 
 const monitoringPages = [
   { name: 'WebSocket Monitor', path: '/monitoring/websocket', iconName: 'network' },
-  { name: 'RAG Performance', path: '/monitoring/rag-performance', iconName: 'storage' }
+  // RAG Performance link removed 2026-05-06: the dashboard previously
+  // displayed Math.random()-generated metrics. The /monitoring/rag-
+  // performance route still resolves but renders a "feature
+  // unavailable" stub. Re-add this entry when a real RAG metrics
+  // backend is wired in. See docs/CRITICAL_REVIEW_2026-05-06.md
+  // §P1-9 (Phase 3 P3.15).
 ];
 
 const adminPages = [
