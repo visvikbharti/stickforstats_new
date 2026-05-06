@@ -76,49 +76,136 @@ class SSOService:
     }
 
     @classmethod
-    def validate_token(cls, token, expected_audience=None):
-        """
-        Validate an OIDC access/ID token.
-        In production, this verifies JWT signature against JWKS.
+    def validate_token(cls, token, expected_audience=None, expected_issuer=None,
+                       jwks_uri=None):
+        """Validate an OIDC access / ID token by full JWT signature
+        verification against the issuer's JWKS.
+
+        Parameters
+        ----------
+        token
+            Compact-serialized JWT (header.payload.signature).
+        expected_audience
+            ``aud`` claim the token must contain. If None, falls back
+            to ``SSOConfiguration.get_config()["client_id"]``.
+        expected_issuer
+            ``iss`` claim the token must equal. If None, falls back to
+            ``SSOConfiguration.get_config()["issuer_url"]``.
+        jwks_uri
+            JWKS URL to fetch the signing keys from. If None, falls
+            back to ``SSOConfiguration.get_config()["jwks_uri"]``.
+
+        Returns
+        -------
+        dict or None
+            The verified claims dict on success; ``None`` on any
+            verification failure (signature, expiry, audience, issuer,
+            or JWKS fetch error).
+
+        Notes
+        -----
+        Earlier versions of this method decoded the JWT payload via
+        base64 + json.loads and checked exp/aud only --- the signature
+        was never verified, so any forged JWT with valid claim names
+        was accepted. That bypass is fixed here by routing the
+        validation through ``jose.jwt.decode`` against the issuer's
+        cached JWKS. See docs/CRITICAL_REVIEW_2026-05-06.md §P0-2.
         """
         if not token:
             return None
 
-        # In production: fetch JWKS, verify signature, check claims
-        # For now, return basic structure validation
-        try:
-            import base64
+        from jose import jwt as jose_jwt
+        from jose.exceptions import (
+            ExpiredSignatureError,
+            JWSError,
+            JWTClaimsError,
+            JWTError,
+        )
 
-            parts = token.split(".")
-            if len(parts) != 3:
-                return None
+        from core.services.jwks_cache import (
+            JWKSError,
+            find_signing_key,
+            get_jwks,
+            invalidate_cache,
+        )
 
-            # Decode payload (add padding)
-            payload = parts[1]
-            padding = 4 - len(payload) % 4
-            if padding != 4:
-                payload += "=" * padding
-            claims = json.loads(base64.urlsafe_b64decode(payload))
+        config = SSOConfiguration.get_config()
+        if expected_audience is None:
+            expected_audience = config.get("client_id")
+        if expected_issuer is None:
+            expected_issuer = config.get("issuer_url")
+        if jwks_uri is None:
+            jwks_uri = config.get("jwks_uri")
 
-            # Check expiration
-            if claims.get("exp", 0) < time.time():
-                logger.warning("SSO token expired")
-                return None
-
-            # Check audience
-            if expected_audience:
-                aud = claims.get("aud", "")
-                if isinstance(aud, list):
-                    if expected_audience not in aud:
-                        return None
-                elif aud != expected_audience:
-                    return None
-
-            return claims
-
-        except Exception as e:
-            logger.error(f"Token validation error: {e}")
+        if not jwks_uri:
+            logger.error("SSO token validation: jwks_uri not configured")
             return None
+
+        # Read the JWT header to find the kid (key id) and alg.
+        try:
+            header = jose_jwt.get_unverified_header(token)
+        except JWTError as exc:
+            logger.warning("SSO token has invalid JWT header: %s", exc)
+            return None
+
+        kid = header.get("kid")
+        alg = header.get("alg") or "RS256"
+        # Restrict to asymmetric algorithms; reject "none" and HS*
+        # (HMAC-with-shared-secret would be vulnerable to JWKS-key
+        # confusion attacks).
+        if alg.lower().startswith(("hs", "none")):
+            logger.warning("SSO token uses unsupported alg %s; rejecting", alg)
+            return None
+
+        # Fetch JWKS, retry once with cache bust if kid not found
+        # (handles issuer key rotation gracefully).
+        try:
+            jwks = get_jwks(jwks_uri)
+            signing_key = find_signing_key(jwks, kid)
+            if signing_key is None:
+                invalidate_cache(jwks_uri)
+                jwks = get_jwks(jwks_uri, force_refresh=True)
+                signing_key = find_signing_key(jwks, kid)
+        except JWKSError as exc:
+            logger.error("SSO JWKS lookup failed: %s", exc)
+            return None
+
+        if signing_key is None:
+            logger.warning("SSO token kid=%r not found in JWKS at %s", kid, jwks_uri)
+            return None
+
+        # Verify signature + standard claims.
+        try:
+            claims = jose_jwt.decode(
+                token,
+                signing_key,
+                algorithms=[alg],
+                audience=expected_audience,
+                issuer=expected_issuer,
+                options={
+                    "verify_signature": True,
+                    "verify_exp": True,
+                    "verify_iat": True,
+                    "verify_aud": expected_audience is not None,
+                    "verify_iss": expected_issuer is not None,
+                },
+            )
+        except ExpiredSignatureError:
+            logger.warning("SSO token expired")
+            return None
+        except JWTClaimsError as exc:
+            logger.warning("SSO token failed claim validation: %s", exc)
+            return None
+        except (JWSError, JWTError) as exc:
+            logger.warning("SSO token signature verification failed: %s", exc)
+            return None
+
+        # exp is also enforced by jose.jwt above, but defence-in-depth:
+        if claims.get("exp", 0) < time.time():
+            logger.warning("SSO token expired (post-decode check)")
+            return None
+
+        return claims
 
     @classmethod
     def provision_user(cls, claims):

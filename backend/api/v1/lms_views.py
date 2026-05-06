@@ -204,23 +204,21 @@ class LTIJWKSView(APIView):
     """
     GET /api/v1/lti/jwks/
     Public JWKS endpoint for tool signature verification.
+
+    Serves the tool's RSA public key in JWKS form so LMS platforms
+    can verify our outgoing LTI service requests (e.g. AGS grade
+    passback). The private key is loaded from the
+    ``LTI_RSA_PRIVATE_KEY`` env var; in dev environments without the
+    env var set, an ephemeral keypair is generated on first use and a
+    warning is logged. See ``backend/core/services/lti_keys.py``.
+
+    Previously returned a hardcoded ``"n": "placeholder_modulus"`` —
+    fixed per docs/CRITICAL_REVIEW_2026-05-06.md §P0-2.
     """
 
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # In production, this returns the tool's public RSA key
-        return Response(
-            {
-                "keys": [
-                    {
-                        "kty": "RSA",
-                        "alg": "RS256",
-                        "use": "sig",
-                        "kid": "stickforstats-lti-key-1",
-                        "n": "placeholder_modulus",
-                        "e": "AQAB",
-                    }
-                ]
-            }
-        )
+        from core.services.lti_keys import get_public_jwks
+
+        return Response(get_public_jwks())

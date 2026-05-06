@@ -108,39 +108,204 @@ class LTIService:
     ]
 
     @classmethod
-    def validate_launch_request(cls, request_data, platform_config):
+    def validate_launch_request(cls, id_token, platform_config):
+        """Validate an LTI 1.3 launch request via full JWT signature
+        verification against the platform's published JWKS, and reject
+        nonce-replay attempts.
+
+        Parameters
+        ----------
+        id_token
+            The LTI launch ``id_token`` (compact-serialized JWT). For
+            backward compatibility this method also accepts an already-
+            decoded claims dict --- but in that mode it ONLY checks the
+            structural claim presence, not the signature; this should
+            be used only by tests and is rejected at runtime if the
+            ``LTI_REQUIRE_JWT_SIGNATURE`` setting (default True) is on.
+        platform_config
+            Dict describing the LTI platform. Must include:
+              - ``jwks_url``   : platform's JWKS endpoint
+              - ``client_id``  : tool's audience for this platform
+              - ``issuer``     : platform's iss value (or omit for any)
+
+        Returns
+        -------
+        dict or None
+            Verified claims on success; None on any verification or
+            replay-detection failure.
+
+        Notes
+        -----
+        Earlier implementation accepted an already-decoded claims dict
+        with NO signature check --- so any caller who could POST a JSON
+        blob with valid claim names was treated as a launched LTI user.
+        Fixed here per docs/CRITICAL_REVIEW_2026-05-06.md §P0-2.
         """
-        Validate an LTI 1.3 launch request.
-        Returns decoded claims if valid, None otherwise.
-        """
+        from django.conf import settings
+
+        require_jwt = getattr(settings, "LTI_REQUIRE_JWT_SIGNATURE", True)
+        platform_config = platform_config or {}
+
+        # Backward-compat: a dict was passed in (legacy callers + tests).
+        # If we require signatures (default), reject this path.
+        if isinstance(id_token, dict):
+            if require_jwt:
+                logger.warning(
+                    "LTI launch: pre-decoded claims dict rejected — set "
+                    "LTI_REQUIRE_JWT_SIGNATURE=False to re-enable for tests"
+                )
+                return None
+            return cls._validate_claims_structure(id_token)
+
+        if not isinstance(id_token, str) or not id_token:
+            logger.warning("LTI launch: id_token must be a non-empty JWT string")
+            return None
+
+        from jose import jwt as jose_jwt
+        from jose.exceptions import (
+            ExpiredSignatureError,
+            JWSError,
+            JWTClaimsError,
+            JWTError,
+        )
+
+        from core.services.jwks_cache import (
+            JWKSError,
+            find_signing_key,
+            get_jwks,
+            invalidate_cache,
+        )
+
+        jwks_url = platform_config.get("jwks_url")
+        if not jwks_url:
+            logger.error("LTI launch: platform_config missing jwks_url")
+            return None
+
+        try:
+            header = jose_jwt.get_unverified_header(id_token)
+        except JWTError as exc:
+            logger.warning("LTI launch: invalid JWT header: %s", exc)
+            return None
+
+        kid = header.get("kid")
+        alg = header.get("alg") or "RS256"
+        if alg.lower().startswith(("hs", "none")):
+            logger.warning("LTI launch: unsupported alg %s; rejecting", alg)
+            return None
+
+        try:
+            jwks = get_jwks(jwks_url)
+            signing_key = find_signing_key(jwks, kid)
+            if signing_key is None:
+                invalidate_cache(jwks_url)
+                jwks = get_jwks(jwks_url, force_refresh=True)
+                signing_key = find_signing_key(jwks, kid)
+        except JWKSError as exc:
+            logger.error("LTI launch: JWKS lookup failed: %s", exc)
+            return None
+
+        if signing_key is None:
+            logger.warning(
+                "LTI launch: kid=%r not found in JWKS at %s", kid, jwks_url
+            )
+            return None
+
+        expected_audience = platform_config.get("client_id")
+        expected_issuer = platform_config.get("issuer")
+        try:
+            claims = jose_jwt.decode(
+                id_token,
+                signing_key,
+                algorithms=[alg],
+                audience=expected_audience,
+                issuer=expected_issuer,
+                options={
+                    "verify_signature": True,
+                    "verify_exp": True,
+                    "verify_iat": True,
+                    "verify_aud": expected_audience is not None,
+                    "verify_iss": expected_issuer is not None,
+                },
+            )
+        except ExpiredSignatureError:
+            logger.warning("LTI launch: token expired")
+            return None
+        except JWTClaimsError as exc:
+            logger.warning("LTI launch: claim validation failed: %s", exc)
+            return None
+        except (JWSError, JWTError) as exc:
+            logger.warning("LTI launch: signature verification failed: %s", exc)
+            return None
+
+        # Required LTI structural claims.
+        structural = cls._validate_claims_structure(claims)
+        if structural is None:
+            return None
+
+        # Replay protection: refuse to accept the same (issuer, nonce)
+        # pair twice within the JWT exp window.
+        if not cls._record_nonce(claims):
+            return None
+
+        return claims
+
+    @staticmethod
+    def _validate_claims_structure(claims):
+        """Check the LTI 1.3 required-claim set is present (and that
+        ``exp`` hasn't passed). Used by both the JWT and dict paths."""
         required_claims = [
-            "iss",  # Issuer (LMS platform)
-            "sub",  # Subject (user ID)
-            "aud",  # Audience (our client_id)
-            "exp",  # Expiration
-            "iat",  # Issued at
-            "nonce",  # Replay prevention
+            "iss",
+            "sub",
+            "aud",
+            "exp",
+            "iat",
+            "nonce",
             "https://purl.imsglobal.org/spec/lti/claim/message_type",
             "https://purl.imsglobal.org/spec/lti/claim/version",
             "https://purl.imsglobal.org/spec/lti/claim/resource_link",
         ]
-
-        # In production, this would verify JWT signature against platform's JWKS
-        # For now, extract and validate structure
-        claims = request_data if isinstance(request_data, dict) else {}
-
+        if not isinstance(claims, dict):
+            return None
         missing = [c for c in required_claims if c not in claims]
         if missing:
             logger.warning(f"LTI launch missing claims: {missing}")
             return None
-
-        # Check expiration
-        exp = claims.get("exp", 0)
-        if time.time() > exp:
-            logger.warning("LTI launch token expired")
+        if time.time() > claims.get("exp", 0):
+            logger.warning("LTI launch token expired (structural check)")
             return None
-
         return claims
+
+    @staticmethod
+    def _record_nonce(claims):
+        """Record (issuer, nonce) so the same JWT cannot be replayed.
+
+        Returns True if the nonce was novel (proceed), False if it has
+        already been seen (reject).
+        """
+        issuer = claims.get("iss") or ""
+        nonce = claims.get("nonce") or ""
+        exp = claims.get("exp") or 0
+        if not issuer or not nonce or not exp:
+            # Already caught by _validate_claims_structure; defensive.
+            return False
+        from datetime import datetime, timezone
+
+        from django.db import IntegrityError
+
+        from core.models import LTINonceUsed
+
+        expires_at = datetime.fromtimestamp(int(exp), tz=timezone.utc)
+        try:
+            LTINonceUsed.objects.create(
+                issuer=issuer, nonce=nonce, expires_at=expires_at
+            )
+        except IntegrityError:
+            logger.warning(
+                "LTI launch: nonce replay detected for issuer=%s nonce=%s",
+                issuer[:60], nonce[:32],
+            )
+            return False
+        return True
 
     @classmethod
     def extract_user_info(cls, claims):

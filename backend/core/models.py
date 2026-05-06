@@ -1045,6 +1045,40 @@ class PluginReview(models.Model):
         ordering = ["-created_at"]
 
 
+class LTINonceUsed(models.Model):
+    """Replay-attack protection for LTI 1.3 launches.
+
+    Each LTI launch JWT carries a ``nonce`` claim that the platform
+    expects us to record so we can reject the same JWT being
+    re-submitted (within its ``exp`` window) by an attacker. We index
+    by ``(issuer, nonce)`` because nonces are only required to be
+    unique per issuer.
+
+    Rows expire at ``expires_at`` (mirroring the JWT ``exp`` claim);
+    the periodic ``cleanup_expired_lti_nonces`` Celery task deletes
+    them, since the JWT could no longer be replayed by then anyway.
+
+    See docs/CRITICAL_REVIEW_2026-05-06.md §P0-2.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    issuer = models.CharField(max_length=512, db_index=True)
+    nonce = models.CharField(max_length=512)
+    used_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = ("issuer", "nonce")
+        indexes = [
+            models.Index(fields=["expires_at"]),
+        ]
+        verbose_name = "LTI Nonce (used)"
+        verbose_name_plural = "LTI Nonces (used)"
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.issuer[:40]} -> {self.nonce[:16]}..."
+
+
 __all__ = [
     "Analysis",
     "Report",
@@ -1066,4 +1100,5 @@ __all__ = [
     "Plugin",
     "PluginInstallation",
     "PluginReview",
+    "LTINonceUsed",
 ]
