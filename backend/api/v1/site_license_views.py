@@ -65,6 +65,13 @@ class SiteLicenseVerifyView(APIView):
     """
     POST /api/v1/licensing/verify/
     Verify if a user is eligible under an institutional license.
+
+    Body: ``{"email": "...", "license_key": "SFS-INST-..."}``
+
+    Looks up the license by key, then runs the eligibility check
+    using the REAL configured domain + verification method on that
+    license (not a fabrication of license_data from the user's own
+    email, as the previous implementation did).
     """
 
     permission_classes = [IsAuthenticated]
@@ -82,15 +89,8 @@ class SiteLicenseVerifyView(APIView):
         if not validation.get("valid"):
             return Response(validation, status=404)
 
-        # For demo purposes, create a mock license_data
-        eligibility = SiteLicenseService.verify_user_eligibility(
-            email,
-            {
-                "domain": email.split("@")[-1] if "@" in email else "",
-                "verification_method": "email_domain",
-            },
-        )
-
+        license_data = validation["license"]
+        eligibility = SiteLicenseService.verify_user_eligibility(email, license_data)
         return Response(eligibility)
 
 

@@ -1045,6 +1045,107 @@ class PluginReview(models.Model):
         ordering = ["-created_at"]
 
 
+class SiteLicense(models.Model):
+    """Institutional / university site license.
+
+    Replaces the in-memory stub in
+    ``backend/core/services/site_license_service.py`` --- which
+    accepted any ``SFS-INST-`` prefixed string as valid, returned
+    zeros for usage stats, and never persisted licenses to the DB.
+    See docs/CRITICAL_REVIEW_2026-05-06.md §P1-12.
+    """
+
+    TIER_CHOICES = [
+        ("department", "Department"),
+        ("school", "School/College"),
+        ("university", "University-Wide"),
+    ]
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("suspended", "Suspended"),
+        ("expired", "Expired"),
+        ("cancelled", "Cancelled"),
+    ]
+    VERIFICATION_METHOD_CHOICES = [
+        ("email_domain", "Email Domain"),
+        ("ip_range", "IP Range"),
+        ("saml_sso", "SAML SSO"),
+        ("manual", "Manual"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    license_key = models.CharField(max_length=64, unique=True, db_index=True)
+    institution_name = models.CharField(max_length=256)
+    tier = models.CharField(max_length=32, choices=TIER_CHOICES, db_index=True)
+    admin_email = models.EmailField()
+    domain = models.CharField(max_length=255)
+    verification_method = models.CharField(
+        max_length=32,
+        choices=VERIFICATION_METHOD_CHOICES,
+        default="email_domain",
+    )
+    # Tier-derived limits (cached at create time so historical limits
+    # survive a tier-config change).
+    max_users = models.IntegerField()  # -1 means unlimited
+    max_analyses_per_month = models.IntegerField()  # -1 means unlimited
+    features = models.JSONField(default=list)  # list of feature flags
+    price_yearly = models.IntegerField(default=0)
+    duration_years = models.PositiveSmallIntegerField(default=1)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField()
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="active", db_index=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Site License"
+        verbose_name_plural = "Site Licenses"
+        indexes = [models.Index(fields=["domain"])]
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.license_key} ({self.institution_name}, {self.tier})"
+
+    def is_currently_active(self) -> bool:
+        if self.status != "active":
+            return False
+        return self.end_date > timezone.now()
+
+
+class SiteLicenseUsageRecord(models.Model):
+    """A single platform-usage event attributed to a site license.
+
+    Aggregated by ``SiteLicenseService.get_license_usage`` and
+    ``generate_usage_report``. Each row corresponds to one analysis
+    run, manuscript review, or other tracked feature use under the
+    license.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    license = models.ForeignKey(
+        SiteLicense,
+        on_delete=models.CASCADE,
+        related_name="usage_records",
+    )
+    user_email = models.EmailField(db_index=True)
+    feature = models.CharField(max_length=64, db_index=True)
+    analysis_type = models.CharField(max_length=64, blank=True)
+    occurred_at = models.DateTimeField(default=timezone.now, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-occurred_at"]
+        verbose_name = "Site License Usage Record"
+        verbose_name_plural = "Site License Usage Records"
+        indexes = [
+            models.Index(fields=["license", "occurred_at"]),
+            models.Index(fields=["license", "feature"]),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.license_id} {self.feature} {self.occurred_at}"
+
+
 class CertificationQuestion(models.Model):
     """A question in the certification exam bank.
 
@@ -1234,5 +1335,7 @@ __all__ = [
     "CertificationQuestion",
     "CertificationExamAttempt",
     "CertificationRecord",
+    "SiteLicense",
+    "SiteLicenseUsageRecord",
     "LTINonceUsed",
 ]
