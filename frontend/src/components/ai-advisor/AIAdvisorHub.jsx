@@ -150,6 +150,12 @@ const AIAdvisorHub = ({
     guardianWarningStatus,
     askAboutGuardianIssues,
     registerGuardianResult,
+    // True when the hook fell back to mockAIResponse() because the
+    // backend AI service is unavailable (HTTP 503 / network error).
+    // Surfaced as a "DEGRADED" banner below so users don't mistake
+    // template-based offline responses for real Claude output. See
+    // docs/CRITICAL_REVIEW_2026-05-06.md §P1-9.
+    usingMockResponses,
   } = useAIAdvisor();
 
   // Refs
@@ -550,6 +556,24 @@ const AIAdvisorHub = ({
 
       {/* Guardian Warning Banner */}
       {renderGuardianBanner()}
+
+      {/* DEGRADED-mode banner: visible when the backend AI service is
+          unavailable and the hook fell back to template-based offline
+          responses. Without this banner users could mistake an offline
+          response for live Claude output. See P1-9 in the audit. */}
+      {usingMockResponses && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          sx={{ mx: 2, mt: 1 }}
+          icon={<span aria-hidden="true">⚠️</span>}
+        >
+          <strong>AI service unavailable —</strong> showing offline
+          template responses based on Guardian context. Connect to the
+          backend (set <code>ANTHROPIC_API_KEY</code> and restart the
+          server) for live AI guidance.
+        </Alert>
+      )}
 
       {messages.length === 0 && !isLoading && (
         <>

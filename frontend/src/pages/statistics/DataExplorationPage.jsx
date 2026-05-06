@@ -30,6 +30,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
+import Alert from '@mui/material/Alert';
 
 // Mock data
 const mockDatasets = [
@@ -84,6 +85,14 @@ function DataExplorationPage() {
       <Typography variant="h5" gutterBottom>
         Data Exploration
       </Typography>
+      <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+        <strong>Demo / sample view.</strong> The datasets and charts on
+        this page are illustrative placeholders. For real analysis
+        with your own data, use{' '}
+        <a href="/smart-analysis">Smart Analysis</a> or one of the
+        dedicated module pages (PCA, DOE, SQC, Confidence Intervals,
+        Probability Distributions) from the sidebar.
+      </Alert>
       <Typography variant="body1" paragraph>
         Explore your datasets with visualizations and summary statistics.
       </Typography>

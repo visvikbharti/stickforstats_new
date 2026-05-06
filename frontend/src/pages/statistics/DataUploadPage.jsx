@@ -90,6 +90,14 @@ function DataUploadPage() {
       <Typography variant="h5" gutterBottom>
         Data Upload
       </Typography>
+      <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+        <strong>Demo / sample view.</strong> The "upload" on this page
+        only simulates a successful upload (the file is not sent to
+        the server). For real data uploads that feed the analysis
+        pipeline, use{' '}
+        <a href="/smart-analysis">Smart Analysis</a> or the data-import
+        flow inside any specific module page.
+      </Alert>
       <Typography variant="body1" paragraph>
         Upload your dataset files for statistical analysis.
       </Typography>

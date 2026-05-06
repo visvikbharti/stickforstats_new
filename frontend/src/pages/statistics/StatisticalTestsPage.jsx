@@ -259,7 +259,16 @@ function StatisticalTestsPage() {
       <Typography variant="h4" gutterBottom>
         Statistical Tests
       </Typography>
-      
+      <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+        <strong>Demo / sample view.</strong> The dataset list and
+        result panels on this page are illustrative placeholders. For
+        real statistical tests with your own data, use{' '}
+        <a href="/smart-analysis">Smart Analysis</a> (autonomous test
+        selection with Guardian assumption checks) or the dedicated
+        confidence-intervals / probability-distributions / DOE / SQC
+        modules.
+      </Alert>
+
       <Grid container spacing={3}>
         {/* Test Selection Panel */}
         <Grid item xs={12} md={4}>
