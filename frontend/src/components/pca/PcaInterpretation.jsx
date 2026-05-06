@@ -161,14 +161,31 @@ const PcaInterpretation = ({ projectId, resultId, onNext }) => {
     }
   };
 
-  // Simulated pathway enrichment visualization
+  // Pathway enrichment visualization is DISABLED.
+  //
+  // Earlier code in this function rendered a d3 plot using a hardcoded
+  // pathwayData array (Cell Adhesion / Signal Transduction / Metabolic
+  // Process / etc.) with fixed enrichmentScore and p-values that did
+  // not depend on the user's actual data. The plot was labelled
+  // "Pathway enrichment based on PCA gene contributions" and would
+  // mislead anyone interpreting the visualisation as real biological
+  // enrichment results. See docs/CRITICAL_REVIEW_2026-05-06.md §P1-9.
+  //
+  // Real pathway enrichment requires integration with KEGG /
+  // Reactome / MSigDB or an equivalent gene-set library and is
+  // tracked under WORK_PLAN P3.16. Until that lands the visualisation
+  // is intentionally not rendered; a feature-disabled message is
+  // shown in the UI block (see render of pathwayPlotRef below).
   const renderPathwayEnrichmentPlot = () => {
-    if (!pathwayPlotRef.current || !visualizationData) return;
-
-    // Clear previous visualization
+    if (!pathwayPlotRef.current) return;
+    // Clear any previous visualisation in case the user just enabled
+    // this code path during development.
     d3.select(pathwayPlotRef.current).selectAll("*").remove();
-
-    // Sample pathway enrichment data based on PCA gene contributions
+    return;
+    // The block below intentionally retains the original sample-data
+    // array as a reference for the future real implementation. It is
+    // never executed because of the early return above.
+    // eslint-disable-next-line no-unreachable
     const pathwayData = [
       { pathway: "Cell Adhesion", enrichmentScore: 4.2, pValue: 0.0001, geneCount: 12 },
       { pathway: "Signal Transduction", enrichmentScore: 3.8, pValue: 0.0003, geneCount: 18 },
@@ -759,30 +776,36 @@ const PcaInterpretation = ({ projectId, resultId, onNext }) => {
                 <Card elevation={3}>
                   <CardHeader
                     title="Pathway Enrichment Analysis"
-                    subheader="Biological pathways enriched in genes contributing to PCs"
+                    subheader="Pending real KEGG / Reactome integration"
                   />
                   <CardContent>
+                    <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
+                      <strong>Feature unavailable.</strong> Live pathway
+                      enrichment requires integration with KEGG, Reactome,
+                      MSigDB, or an equivalent gene-set library. The
+                      previous visualisation in this block displayed a
+                      hardcoded pathway list (Cell Adhesion / Signal
+                      Transduction / Metabolic Process / etc.) with fixed
+                      p-values that did not depend on the analysed data.
+                      It has been disabled until a real gene-set source
+                      is wired in (tracked under WORK_PLAN <code>P3.16</code>).
+                    </Alert>
                     <Typography paragraph>
-                      The genes with high loadings on principal components were analyzed for enrichment in biological pathways
-                      and Gene Ontology terms to identify the biological processes driving the observed patterns.
+                      Once enabled, this section will report the
+                      biological pathways enriched among the genes with
+                      the highest loadings on each principal component,
+                      with enrichment scores and adjusted p-values
+                      computed against a chosen background gene set.
                     </Typography>
-
+                    {/* Plot ref retained so that the disabled
+                        renderPathwayEnrichmentPlot can no-op cleanly
+                        when re-enabled in development. The Box is
+                        deliberately not rendered visually. */}
                     <Box
                       ref={pathwayPlotRef}
-                      sx={{
-                        width: '100%',
-                        height: 400,
-                        mt: 2,
-                        mb: 3,
-                        display: 'flex',
-                        justifyContent: 'center'
-                      }}
+                      aria-hidden="true"
+                      sx={{ display: 'none' }}
                     />
-
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Note:</strong> Larger circles indicate more genes in the pathway, while red color intensity
-                      corresponds to lower p-values (higher statistical significance).
-                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>

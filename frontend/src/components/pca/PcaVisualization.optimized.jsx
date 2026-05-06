@@ -1067,14 +1067,20 @@ const GeneContributionPlot = React.memo(({
 }) => {
   const theme = useTheme();
   
-  // Memoize mockPathways for stability
-  const mockPathways = useMemo(() => [
-    { id: 'p1', name: 'Cell Signaling', color: '#8dd3c7' },
-    { id: 'p2', name: 'Metabolism', color: '#ffffb3' },
-    { id: 'p3', name: 'Immune Response', color: '#bebada' },
-    { id: 'p4', name: 'Cell Structure', color: '#fb8072' },
-    { id: 'p5', name: 'Development', color: '#80b1d3' }
-  ], []);
+  // Pathway color-coding has been removed.
+  //
+  // Earlier code in this component bound each top gene to a "pathway"
+  // by matching the FIRST LETTER of its gene name (genes whose name
+  // contained 'a' or 'b' were tagged "Cell Signaling", 'c'/'d' →
+  // "Metabolism", etc., with random fallback). That assignment had
+  // no biological basis and would mislead anyone reading the chart
+  // into thinking the colour-coded pathways were inferred from the
+  // PCA loadings. See docs/CRITICAL_REVIEW_2026-05-06.md §P1-9
+  // (Phase 3 P3.16). Real pathway annotation requires KEGG /
+  // Reactome / MSigDB lookup keyed on the actual gene identifiers,
+  // which is tracked under WORK_PLAN P3.16. The plot below now shows
+  // gene loadings to PCs without any pathway colour-coding (real
+  // numeric data, no fake biology).
   
   useEffect(() => {
     if (!data || !data.gene_loadings || data.gene_loadings.length === 0 || !plotRef.current) {
@@ -1097,29 +1103,6 @@ const GeneContributionPlot = React.memo(({
     
     // Take top N genes
     const topGenes = sortedGenes.slice(0, topGenesCount);
-    
-    // Assign pathways to genes based on some pattern in gene name
-    const genePathways = topGenes.map(gene => {
-      const geneName = gene.gene_name.toLowerCase();
-      let pathwayIds = [];
-      
-      // Simple rule-based assignment for demo purposes
-      if (geneName.includes('a') || geneName.includes('b')) pathwayIds.push('p1');
-      if (geneName.includes('c') || geneName.includes('d')) pathwayIds.push('p2');
-      if (geneName.includes('e') || geneName.includes('f')) pathwayIds.push('p3');
-      if (geneName.includes('g') || geneName.includes('h')) pathwayIds.push('p4');
-      if (geneName.includes('i') || geneName.includes('j')) pathwayIds.push('p5');
-      
-      // If no pathways matched, assign a random one
-      if (pathwayIds.length === 0) {
-        pathwayIds.push(mockPathways[Math.floor(Math.random() * mockPathways.length)].id);
-      }
-      
-      return {
-        ...gene,
-        pathways: pathwayIds.map(id => mockPathways.find(p => p.id === id))
-      };
-    });
     
     // Set up dimensions and margins
     const margin = { top: 40, right: 120, bottom: 60, left: 180 };
@@ -1196,9 +1179,9 @@ const GeneContributionPlot = React.memo(({
       .attr("stroke-width", 1)
       .attr("stroke-dasharray", "3,3");
     
-    // Plot horizontal bars
+    // Plot horizontal bars (real PCA loadings; no pathway colour-coding)
     svg.selectAll(".gene-bar")
-      .data(genePathways)
+      .data(topGenes)
       .enter()
       .append("rect")
       .attr("class", "gene-bar")
@@ -1217,29 +1200,12 @@ const GeneContributionPlot = React.memo(({
       .attr("stroke", "#fff")
       .attr("stroke-width", 1);
     
-    // Add pathway indicators (small colored circles) next to gene names
-    const pathwayIndicators = svg.append("g")
-      .attr("class", "pathway-indicators");
-    
-    genePathways.forEach((gene) => {
-      // Calculate position based on gene name
-      const y = yScale(gene.gene_name) + yScale.bandwidth() / 2;
-      
-      // For each pathway, add a small colored circle
-      gene.pathways.forEach((pathway, idx) => {
-        pathwayIndicators.append("circle")
-          .attr("cx", -margin.left + 150 + (idx * 15)) // Position circles in front of gene names
-          .attr("cy", y)
-          .attr("r", 5)
-          .attr("fill", pathway.color)
-          .attr("stroke", "#fff")
-          .attr("stroke-width", 0.5)
-          .attr("data-pathway", pathway.id)
-          .append("title")
-          .text(`${pathway.name} pathway`);
-      });
-    });
-    
+    // (Pathway colour-coded indicator circles previously rendered
+    // here have been removed — they were derived from a fake
+    // first-letter-of-gene-name rule. See block comment near the
+    // top of this component for context.)
+
+
     // Add loading values
     svg.selectAll(".gene-value")
       .data(topGenes)
@@ -1301,50 +1267,12 @@ const GeneContributionPlot = React.memo(({
       .attr("dy", "1.2em")
       .text("Positive values indicate the gene increases in the direction of the PC, negative values decrease.");
     
-    description.append("tspan")
-      .attr("x", width / 2)
-      .attr("dy", "1.2em")
-      .text("Colored circles indicate associated biological pathways.");
-    
-    // Add pathway legend
-    const pathwayLegend = svg.append("g")
-      .attr("transform", `translate(${width + 20}, 70)`);
-    
-    pathwayLegend.append("text")
-      .attr("font-weight", "bold")
-      .attr("font-size", "12px")
-      .text("Biological Pathways:");
-    
-    mockPathways.forEach((pathway, idx) => {
-      pathwayLegend.append("circle")
-        .attr("cx", 7.5)
-        .attr("cy", 20 + (idx * 20))
-        .attr("r", 5)
-        .attr("fill", pathway.color)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 0.5);
-      
-      pathwayLegend.append("text")
-        .attr("x", 20)
-        .attr("y", 24 + (idx * 20))
-        .attr("font-size", "11px")
-        .text(pathway.name);
-    });
-    
-    // Add interactive highlighting for pathways
-    d3.selectAll("[data-pathway]").on("mouseover", function() {
-      const pathway = d3.select(this).attr("data-pathway");
-      d3.selectAll(`[data-pathway="${pathway}"]`)
-        .attr("stroke-width", 2)
-        .attr("r", 6);
-    }).on("mouseout", function() {
-      const pathway = d3.select(this).attr("data-pathway");
-      d3.selectAll(`[data-pathway="${pathway}"]`)
-        .attr("stroke-width", 0.5)
-        .attr("r", 5);
-    });
-    
-  }, [data, xComponent, topGenesCount, plotRef, theme, mockPathways]);
+    // Pathway-related description line, legend, and interactive
+    // highlighting (previously rendered here) have all been removed
+    // because they referenced the fake pathway colour-coding. See
+    // block comment at the top of this component.
+
+  }, [data, xComponent, topGenesCount, plotRef, theme]);
 
   return (
     <>
