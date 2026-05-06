@@ -3,10 +3,10 @@ Discipline-Specific Review Configurations for Manuscript Review
 ===============================================================
 
 Provides guideline-aware checklist evaluation for academic manuscripts
-across seven major research disciplines. Each :class:`DisciplineProfile`
+across eight major research disciplines. Each :class:`DisciplineProfile`
 encodes the reporting requirements of a recognised guideline (CONSORT 2010,
-STROBE, APA JARS-Quant, etc.) and can adjust SQS category weights and
-finding severities accordingly.
+STROBE, APA JARS-Quant, ICH-E9(R1), etc.) and can adjust SQS category
+weights and finding severities accordingly.
 
 The profiles are consumed by :class:`~core.manuscript.manuscript_guardian.ManuscriptGuardian`
 to produce discipline-tailored review reports.
@@ -1533,6 +1533,138 @@ SOCIAL_SCIENCE_PROFILE = DisciplineProfile(
 
 
 # =====================================================================
+# 8. ICH-E9(R1) — Estimands framework (regulatory clinical trials)
+#
+# Built on top of CLINICAL_TRIAL_PROFILE: inherits its 19 items and adds
+# four estimands-specific checks introduced by ICH E9(R1) Addendum (2019):
+#   1. Treatment effect defined as an estimand
+#   2. Intercurrent events identified and a strategy specified
+#   3. Sensitivity analysis for the chosen estimand strategy
+#   4. Missing-data assumption (MAR / MNAR) explicitly stated
+# Reference: ICH Harmonised Guideline E9(R1), 2019.
+# =====================================================================
+
+_ICH_E9_EXTRA_CHECKLIST: List[ChecklistItem] = [
+    ChecklistItem(
+        id="iche9_estimand_defined",
+        name="Treatment effect specified as an estimand",
+        description=(
+            "ICH E9(R1) §A.3: The treatment effect of interest must be "
+            "defined as an estimand with five attributes — population, "
+            "treatment, endpoint, intercurrent-event handling strategy, "
+            "and population-level summary."
+        ),
+        required=True,
+        detection_pattern=(
+            r"\bestimand"
+            r"|treatment\s+effect\s+(?:of\s+interest\s+)?(?:defin|specifi)"
+            r"|(?:primary|secondary)\s+estimand"
+        ),
+        section_hint="methods",
+        category="design",
+    ),
+    ChecklistItem(
+        id="iche9_intercurrent_events",
+        name="Intercurrent events and handling strategy",
+        description=(
+            "ICH E9(R1) §A.3.3: Intercurrent events (treatment "
+            "discontinuation, rescue medication, terminal events, "
+            "switching) must be enumerated and a strategy specified for "
+            "each — composite / while-on-treatment / hypothetical / "
+            "principal-stratum / treatment-policy."
+        ),
+        required=True,
+        detection_pattern=(
+            r"intercurrent\s+event"
+            r"|(?:composite|while[\s-]on[\s-]treatment|hypothetical|principal[\s-]stratum|treatment[\s-]policy)\s+(?:strategy|approach|estimand)"
+            r"|(?:rescue\s+(?:medication|treatment)|treatment\s+(?:discontinuation|switch))"
+        ),
+        section_hint="methods",
+        category="analysis",
+    ),
+    ChecklistItem(
+        id="iche9_sensitivity_for_estimand",
+        name="Sensitivity analysis for estimand assumptions",
+        description=(
+            "ICH E9(R1) §A.5.2: A sensitivity analysis must be planned "
+            "for the assumptions underpinning the chosen intercurrent-"
+            "event strategy and missing-data handling."
+        ),
+        required=True,
+        detection_pattern=(
+            r"sensitivity\s+analy"
+            r"|(?:tipping[\s-]?point|delta[\s-]?adjust|pattern[\s-]?mixture|selection\s+model)"
+            r"|robustness\s+(?:check|analy)"
+        ),
+        section_hint="methods",
+        category="analysis",
+    ),
+    ChecklistItem(
+        id="iche9_missing_data_assumption",
+        name="Missing-data assumption stated (MAR / MNAR)",
+        description=(
+            "ICH E9(R1) §A.5: The assumed missing-data mechanism (MCAR, "
+            "MAR, or MNAR) and the imputation approach (multiple "
+            "imputation, mixed-models, last-observation-carried-forward, "
+            "etc.) must be stated explicitly."
+        ),
+        required=True,
+        detection_pattern=(
+            r"missing\s+(?:at\s+random|not\s+at\s+random|completely\s+at\s+random)"
+            r"|\bM(?:C)?AR\b|\bMNAR\b"
+            r"|multiple\s+imputation"
+            r"|(?:LOCF|last\s+observation\s+carried\s+forward)"
+            r"|mixed[\s-]?effects?\s+(?:model|repeated\s+measures|MMRM)"
+        ),
+        section_hint="methods",
+        category="analysis",
+    ),
+]
+
+
+_ICH_E9_CHECKLIST: List[ChecklistItem] = (
+    _CLINICAL_TRIAL_CHECKLIST + _ICH_E9_EXTRA_CHECKLIST
+)
+
+
+ICH_E9_PROFILE = DisciplineProfile(
+    name="Clinical Trials (ICH-E9(R1) Estimands)",
+    field="ich_e9",
+    guideline="ICH-E9(R1)",
+    description=(
+        "Regulatory-grade review for clinical trials following the "
+        "ICH E9(R1) 2019 Addendum on estimands and sensitivity analyses. "
+        "Extends the Clinical Trials profile with four estimands-specific "
+        "checks (estimand definition, intercurrent events, sensitivity "
+        "analysis, missing-data assumption)."
+    ),
+    checklist=_ICH_E9_CHECKLIST,
+    category_weights={
+        "effect_sizes": 1.5,
+        "assumptions": 1.5,
+        "sample_power": 1.5,
+        "precision": 1.5,
+        "reproducibility": 1.5,
+        "guidelines": 2.0,  # heavier than CLINICAL_TRIAL — regulatory submission grade
+    },
+    severity_overrides={
+        "missing_effect_size": "blocking",
+        "missing_ci": "blocking",
+        "missing_power_analysis": "blocking",
+        "missing_registration": "blocking",
+        "missing_adverse_events": "blocking",
+        "missing_estimand_definition": "blocking",
+        "missing_intercurrent_event_strategy": "blocking",
+        "missing_sensitivity_analysis": "major",
+        "missing_missing_data_assumption": "major",
+        "p_value_only": "major",
+        "missing_itt_analysis": "blocking",
+    },
+    required_sections=["abstract", "methods", "results", "discussion"],
+)
+
+
+# =====================================================================
 # Profile registry
 # =====================================================================
 
@@ -1544,6 +1676,7 @@ _PROFILE_REGISTRY: Dict[str, DisciplineProfile] = {
     "economics": ECONOMICS_PROFILE,
     "education": EDUCATION_PROFILE,
     "clinical_trials": CLINICAL_TRIAL_PROFILE,
+    "ich_e9": ICH_E9_PROFILE,
     "social_science": SOCIAL_SCIENCE_PROFILE,
 }
 
@@ -1559,6 +1692,10 @@ _PROFILE_REGISTRY["edu"] = EDUCATION_PROFILE
 _PROFILE_REGISTRY["clinical"] = CLINICAL_TRIAL_PROFILE
 _PROFILE_REGISTRY["trial"] = CLINICAL_TRIAL_PROFILE
 _PROFILE_REGISTRY["trials"] = CLINICAL_TRIAL_PROFILE
+_PROFILE_REGISTRY["ich-e9"] = ICH_E9_PROFILE
+_PROFILE_REGISTRY["ich_e9_r1"] = ICH_E9_PROFILE
+_PROFILE_REGISTRY["estimands"] = ICH_E9_PROFILE
+_PROFILE_REGISTRY["regulatory"] = ICH_E9_PROFILE
 _PROFILE_REGISTRY["sociology"] = SOCIAL_SCIENCE_PROFILE
 _PROFILE_REGISTRY["political_science"] = SOCIAL_SCIENCE_PROFILE
 

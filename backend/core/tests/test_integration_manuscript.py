@@ -741,3 +741,72 @@ class TestAdvancedValidatorIntegration(TestCase):
         self.assertEqual(data["discipline_guideline"], "CONSORT")
         self.assertIsInstance(data["advanced_findings"], list)
         self.assertIsInstance(data["checklist_results"], list)
+
+    def test_ich_e9_profile_registered_and_extends_clinical_trials(self):
+        """The ICH-E9(R1) profile is registered and inherits the
+        clinical-trials checklist plus four estimands-specific items."""
+        from core.manuscript.discipline_profiles import (
+            CLINICAL_TRIAL_PROFILE,
+            ICH_E9_PROFILE,
+            get_profile,
+            list_profiles,
+        )
+
+        self.assertIs(get_profile("ich_e9"), ICH_E9_PROFILE)
+        self.assertIs(get_profile("ich-e9"), ICH_E9_PROFILE)
+        self.assertIs(get_profile("ich_e9_r1"), ICH_E9_PROFILE)
+        self.assertIs(get_profile("estimands"), ICH_E9_PROFILE)
+        self.assertIs(get_profile("regulatory"), ICH_E9_PROFILE)
+
+        # ICH-E9 inherits the clinical-trials checklist and adds four items.
+        ich_ids = {item.id for item in ICH_E9_PROFILE.checklist}
+        ct_ids = {item.id for item in CLINICAL_TRIAL_PROFILE.checklist}
+        self.assertTrue(ct_ids.issubset(ich_ids), "ICH-E9 should inherit all CT items")
+
+        ich_specific = ich_ids - ct_ids
+        self.assertEqual(
+            ich_specific,
+            {
+                "iche9_estimand_defined",
+                "iche9_intercurrent_events",
+                "iche9_sensitivity_for_estimand",
+                "iche9_missing_data_assumption",
+            },
+        )
+
+        # list_profiles surfaces ICH-E9 alongside the other seven.
+        fields = {p["field"] for p in list_profiles()}
+        self.assertIn("ich_e9", fields)
+        self.assertGreaterEqual(len(fields), 8)
+
+    def test_ich_e9_estimand_detection_pattern(self):
+        """The estimand-detection regex matches typical ICH-E9 wording."""
+        from core.manuscript.discipline_profiles import ICH_E9_PROFILE
+
+        items = {item.id: item for item in ICH_E9_PROFILE.checklist}
+        estimand_item = items["iche9_estimand_defined"]
+        intercurrent_item = items["iche9_intercurrent_events"]
+        sensitivity_item = items["iche9_sensitivity_for_estimand"]
+        missing_data_item = items["iche9_missing_data_assumption"]
+
+        positive_text = (
+            "The primary estimand was defined per ICH E9(R1) with a "
+            "treatment-policy strategy for intercurrent events. "
+            "We pre-specified a sensitivity analysis using a tipping-point "
+            "approach, assuming missing not at random (MNAR)."
+        )
+        negative_text = "We compared two groups using a two-sample t-test."
+
+        for item, label in (
+            (estimand_item, "estimand"),
+            (intercurrent_item, "intercurrent"),
+            (sensitivity_item, "sensitivity"),
+            (missing_data_item, "missing data"),
+        ):
+            self.assertRegex(
+                positive_text,
+                item.detection_pattern,
+                f"ICH-E9 {label} regex failed to match positive text",
+            )
+            with self.assertRaises(AssertionError, msg=f"{label} regex falsely matched negative text"):
+                self.assertRegex(negative_text, item.detection_pattern)
