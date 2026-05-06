@@ -219,21 +219,24 @@ class AssumptionCheckingService:
             test_ref = "Shapiro & Wilk (1965)"
 
         elif method == "anderson":
+            # scipy.stats.anderson returns the test statistic plus a
+            # five-row table of critical values. Earlier code stepped
+            # through that table and assigned the p-value to one of
+            # {0.15, 0.10, 0.05, 0.025, 0.01, 0.001} — a categorical
+            # value that downstream code treated as a continuous p.
+            # Replaced with the D'Agostino-Stephens 1986 closed-form
+            # continuous approximation. See
+            # backend/core/utils/anderson_darling.py and
+            # docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
+            from core.utils.anderson_darling import (
+                anderson_pvalue_continuous,
+            )
             result = stats.anderson(series, dist="norm")
-            stat = result.statistic
-            critical_values = result.critical_values
-            significance_levels = result.significance_level
-
-            # Find p-value approximation
-            for i, cv in enumerate(critical_values):
-                if stat < cv:
-                    p_value = significance_levels[i] / 100
-                    break
-            else:
-                p_value = 0.001  # Very significant
+            stat = float(result.statistic)
+            p_value = anderson_pvalue_continuous(stat, len(series))
 
             test_name = "Anderson-Darling test"
-            test_ref = "Anderson & Darling (1952)"
+            test_ref = "Anderson & Darling (1952); p-value via D'Agostino & Stephens (1986)"
 
         elif method == "dagostino":
             stat, p_value = stats.normaltest(series)

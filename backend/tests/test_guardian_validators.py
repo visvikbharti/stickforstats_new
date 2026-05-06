@@ -119,7 +119,14 @@ class IndependenceValidatorTests(TestCase):
         self.assertFalse(result["violated"])
 
     def test_autocorrelated_data_fails(self):
-        """Strongly autocorrelated data (AR(1) process) should be flagged."""
+        """Strongly autocorrelated data (AR(1) process) should be flagged.
+
+        Updated 2026-05-06: the validator was renamed from "Durbin-Watson"
+        (which it never actually was) to "Lag-1 Autocorrelation"; the
+        violation message now reports the lag-1 r and p-value rather
+        than a generic "autocorr=" string. See
+        docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
+        """
         n = 200
         ar_data = np.zeros(n)
         ar_data[0] = np.random.normal()
@@ -127,7 +134,12 @@ class IndependenceValidatorTests(TestCase):
             ar_data[i] = 0.8 * ar_data[i - 1] + np.random.normal(0, 0.5)
         result = self.validator.validate([ar_data])
         self.assertTrue(result["violated"])
-        self.assertIn("autocorr", result["message"])
+        # Message includes the lag-1 r value and the new label.
+        self.assertIn("lag-1", result["message"].lower())
+        self.assertIn("Lag-1 Autocorrelation", result["test_name"])
+        # The validator now reports a real p-value (was None before).
+        self.assertIsNotNone(result.get("p_value"))
+        self.assertLess(result["p_value"], 0.05)
 
     def test_small_sample_skipped(self):
         """Samples < 10 should be skipped (not enough data for autocorrelation)."""

@@ -706,12 +706,20 @@ class NormalityValidator:
                 stat, p_value = stats.shapiro(arr)
                 test_name = "Shapiro-Wilk"
             else:
-                # Anderson-Darling for large samples
-                result = stats.anderson(arr, dist="norm")
-                stat = result.statistic
-                # Get p-value for 5% significance level
-                critical_value = result.critical_values[2]
-                p_value = 0.05 if stat > critical_value else 0.10
+                # Anderson-Darling for large samples. scipy.stats.anderson
+                # only returns critical values at 5 fixed significance
+                # levels; convert to a continuous p-value via the
+                # D'Agostino-Stephens 1986 closed-form approximation so
+                # downstream severity logic that compares against
+                # non-table thresholds (e.g., alpha/10) still works.
+                # See backend/core/utils/anderson_darling.py and
+                # docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
+                from core.utils.anderson_darling import (
+                    anderson_pvalue_continuous,
+                )
+                ad_result = stats.anderson(arr, dist="norm")
+                stat = float(ad_result.statistic)
+                p_value = anderson_pvalue_continuous(stat, len(arr))
                 test_name = "Anderson-Darling"
 
             results.append({"p_value": p_value, "statistic": stat, "test_name": test_name})
@@ -809,39 +817,89 @@ class VarianceHomogeneityValidator:
 
 
 class IndependenceValidator:
-    """Validates independence of observations"""
+    """Validates independence of observations via lag-1 autocorrelation.
+
+    NOTE: This is **not** the Durbin-Watson test. Durbin-Watson is
+    defined on regression residuals (DW = sum((e_i - e_{i-1})^2) / sum(e_i^2),
+    range 0-4); it is meaningful only after a model has been fit. The
+    pre-test independence check below works on the *raw* observations
+    via the lag-1 Pearson autocorrelation r_1 = corr(x[1:], x[:-1])
+    and tests H0: rho_1 = 0 against H1: rho_1 != 0 using
+    scipy.stats.pearsonr's exact t-distribution p-value.
+
+    IMPORTANT ASSUMPTION: this test only makes sense when the data
+    rows represent successive time points or sequential measurements.
+    If the rows have been shuffled or come from independent units
+    in unspecified order, the lag-1 autocorrelation is meaningless.
+    Callers using this validator on cross-sectional data should ignore
+    its verdict (or use Expert Mode to suppress it).
+    """
 
     def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
-        """Check independence using Durbin-Watson test for autocorrelation"""
+        """Test for lag-1 serial autocorrelation in each input array.
 
-        max_autocorr = 0
+        Returns a violation if any group's lag-1 autocorrelation is
+        statistically significant at the given alpha AND practically
+        meaningful (|r| > 0.3 warning / |r| > 0.5 critical).
+        """
+        max_autocorr = 0.0
+        max_p = 1.0
         for arr in data_arrays:
             if len(arr) < 10:
                 continue
 
-            # Simple autocorrelation check
-            autocorr = np.corrcoef(arr[:-1], arr[1:])[0, 1]
-            max_autocorr = max(abs(max_autocorr), abs(autocorr))
+            # Lag-1 Pearson autocorrelation with proper p-value.
+            # scipy.stats.pearsonr returns (r, two-sided p-value) using
+            # the t-distribution under H0: r = 0.
+            try:
+                r, p = stats.pearsonr(arr[:-1], arr[1:])
+            except Exception:
+                continue
+            autocorr = float(r)
+            p_value = float(p)
 
-            if abs(autocorr) > 0.3:  # Threshold based on practical significance
+            if abs(autocorr) > abs(max_autocorr):
+                max_autocorr = autocorr
+                max_p = p_value
+
+            # Combine practical-significance threshold with statistical
+            # significance: an autocorrelation of |r|=0.3 in n=10000 may
+            # be statistically significant but practically negligible,
+            # while |r|=0.6 in n=12 may not reach significance but is
+            # likely a structural problem. Require BOTH p < alpha and
+            # |r| > 0.3 to flag a warning, p < alpha and |r| > 0.5 for
+            # critical.
+            if p_value < alpha and abs(autocorr) > 0.3:
                 severity = "critical" if abs(autocorr) > 0.5 else "warning"
-
                 return {
                     "violated": True,
-                    "test_name": "Autocorrelation Test",
+                    "test_name": "Lag-1 Autocorrelation (Pearson)",
                     "severity": severity,
                     "statistic": autocorr,
-                    "p_value": None,
-                    "message": f"Independence assumption violated (autocorr={autocorr:.3f})",
-                    "recommendation": "Check for time-series structure or repeated measures",
+                    "p_value": p_value,
+                    "message": (
+                        f"Independence assumption violated "
+                        f"(lag-1 r={autocorr:.3f}, p={p_value:.4f}). "
+                        "NOTE: assumes rows are in time/sequence order; "
+                        "ignore if data are cross-sectional."
+                    ),
+                    "recommendation": (
+                        "Check for time-series structure or repeated "
+                        "measures; if data are cross-sectional, this "
+                        "test is not informative — use Expert Mode to "
+                        "proceed."
+                    ),
                 }
 
-        # Return autocorrelation statistic even when assumption is satisfied
         return {
             "violated": False,
-            "test_name": "Autocorrelation Test",
-            "statistic": max_autocorr if max_autocorr > 0 else None,
-            "p_value": None,
+            "test_name": "Lag-1 Autocorrelation (Pearson)",
+            "statistic": max_autocorr if abs(max_autocorr) > 0 else None,
+            "p_value": max_p if abs(max_autocorr) > 0 else None,
+            "message": (
+                "No significant lag-1 autocorrelation detected. "
+                "(Result assumes rows are in time/sequence order.)"
+            ),
         }
 
 
