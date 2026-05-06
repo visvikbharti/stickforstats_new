@@ -29,7 +29,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class GeneResult:
-    """Result for a single gene's differential expression analysis."""
+    """Result for a single gene's differential expression analysis.
+
+    When ``test_failed`` is True, ``raw_p_value`` and
+    ``adjusted_p_value`` are NaN and the gene is reported as
+    inconclusive rather than as "not significant" --- the previous
+    behaviour silently substituted ``(0.0, 1.0)`` on test failure,
+    which marked thousands of true-positive genes "not significant"
+    without telling the user the test could not be computed. See
+    docs/CRITICAL_REVIEW_2026-05-06.md §P0-1 (genomics fallback) and
+    §P1-12 (silent exception swallows).
+    """
     gene_name: str
     test_used: str  # 't_test', 'mann_whitney', 'anova', 'kruskal_wallis'
     statistic: float
@@ -42,14 +52,33 @@ class GeneResult:
     assumptions_passed: bool = True
     cascaded: bool = False  # True if Guardian triggered nonparametric cascade
     violations: List[str] = field(default_factory=list)
+    test_failed: bool = False
+    test_failure_reason: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
+        # When the test failed, raw_p_value is NaN. JSON does not
+        # support NaN, so emit None and flag the failure for the
+        # caller. "significant" is False in this case (we cannot
+        # claim significance from a failed test).
+        raw_p = self.raw_p_value
+        adj_p = self.adjusted_p_value
+        if self.test_failed or (
+            isinstance(raw_p, float) and np.isnan(raw_p)
+        ):
+            raw_p_out: Any = None
+            adj_p_out: Any = None
+            significant = False
+        else:
+            raw_p_out = raw_p
+            adj_p_out = adj_p
+            significant = adj_p < 0.05
+
         return {
             "gene_name": self.gene_name,
             "test_used": self.test_used,
-            "statistic": round(self.statistic, 6),
-            "raw_p_value": self.raw_p_value,
-            "adjusted_p_value": self.adjusted_p_value,
+            "statistic": round(self.statistic, 6) if not np.isnan(self.statistic) else None,
+            "raw_p_value": raw_p_out,
+            "adjusted_p_value": adj_p_out,
             "log2_fold_change": round(self.log2_fold_change, 4),
             "mean_group1": round(self.mean_group1, 4),
             "mean_group2": round(self.mean_group2, 4),
@@ -57,7 +86,9 @@ class GeneResult:
             "assumptions_passed": self.assumptions_passed,
             "cascaded": self.cascaded,
             "violations": self.violations,
-            "significant": self.adjusted_p_value < 0.05,
+            "test_failed": self.test_failed,
+            "test_failure_reason": self.test_failure_reason,
+            "significant": significant,
         }
 
 
@@ -242,29 +273,65 @@ class DifferentialExpressionService:
         confidence_penalty = 0.0
         cascaded = False
 
-        # Check normality for each group
+        # Check normality for each group. When Shapiro-Wilk cannot be
+        # computed --- either because it raises (n too small in some
+        # scipy versions) or because it silently returns NaN (modern
+        # scipy on all-tied / all-NaN data) --- do NOT mark the group
+        # as passing normality. Force a cascade to nonparametric so
+        # the parametric test is not run on data whose assumptions
+        # could not be verified.
         norm_pass = True
         for label, data in [("group1", group1), ("group2", group2)]:
             if len(data) >= 3:
                 try:
                     w, p = stats.shapiro(data)
-                    if p < self.normality_alpha:
-                        violations.append(f"Normality violation ({label}): W={w:.4f}, p={p:.4f}")
-                        norm_pass = False
-                        confidence_penalty += 2.0 if p >= 0.01 else 3.0
-                except Exception:
-                    pass
+                except Exception as exc:
+                    violations.append(
+                        f"Normality test could not be computed ({label}): {exc}"
+                    )
+                    norm_pass = False
+                    confidence_penalty += 2.0
+                    logger.debug(
+                        "shapiro raised for %s: %s", gene_name, exc, exc_info=False
+                    )
+                    continue
+                # NaN result also means the test could not be evaluated
+                # (e.g., zero-variance input). Treat as un-checkable.
+                if np.isnan(p) or np.isnan(w):
+                    violations.append(
+                        f"Normality test returned NaN ({label}); likely zero-variance or degenerate input"
+                    )
+                    norm_pass = False
+                    confidence_penalty += 2.0
+                elif p < self.normality_alpha:
+                    violations.append(f"Normality violation ({label}): W={w:.4f}, p={p:.4f}")
+                    norm_pass = False
+                    confidence_penalty += 2.0 if p >= 0.01 else 3.0
 
-        # Check variance homogeneity
+        # Check variance homogeneity. Same conservative handling as
+        # above: if Levene cannot be computed (raised or returned NaN),
+        # force the cascade.
         var_pass = True
         try:
             f_lev, p_lev = stats.levene(group1, group2)
-            if p_lev < self.normality_alpha:
-                violations.append(f"Variance heterogeneity: Levene F={f_lev:.4f}, p={p_lev:.4f}")
+        except Exception as exc:
+            violations.append(f"Variance test could not be computed: {exc}")
+            var_pass = False
+            confidence_penalty += 2.0
+            logger.debug("levene raised for %s: %s", gene_name, exc, exc_info=False)
+        else:
+            if np.isnan(p_lev) or np.isnan(f_lev):
+                violations.append(
+                    "Variance test returned NaN; likely zero-variance input"
+                )
+                var_pass = False
+                confidence_penalty += 2.0
+            elif p_lev < self.normality_alpha:
+                violations.append(
+                    f"Variance heterogeneity: Levene F={f_lev:.4f}, p={p_lev:.4f}"
+                )
                 var_pass = False
                 confidence_penalty += 2.0 if p_lev >= 0.01 else 3.0
-        except Exception:
-            pass
 
         # Compute confidence score
         max_penalty = 3 * 3.0  # 3 checks × max weight
@@ -281,13 +348,40 @@ class DifferentialExpressionService:
             test_used = "welch_t_test"
             cascaded = True
         else:
-            # Nonparametric: Mann-Whitney U
-            try:
-                stat, p_val = stats.mannwhitneyu(group1, group2, alternative="two-sided")
-            except ValueError:
-                stat, p_val = 0.0, 1.0
+            # Nonparametric: Mann-Whitney U. When the test cannot be
+            # computed (e.g., all values tied across both groups), do
+            # NOT silently substitute (0.0, 1.0) --- that marked
+            # potentially-true-positive genes "not significant" without
+            # the user knowing. Emit NaN and flag test_failed so the
+            # caller can exclude/inspect the gene.
             test_used = "mann_whitney"
             cascaded = True
+            try:
+                stat, p_val = stats.mannwhitneyu(group1, group2, alternative="two-sided")
+                test_failed_local = False
+                failure_reason = ""
+            except ValueError as exc:
+                stat = float("nan")
+                p_val = float("nan")
+                test_failed_local = True
+                failure_reason = f"mannwhitneyu raised ValueError: {exc}"
+                logger.debug(
+                    "mannwhitneyu failed for %s: %s", gene_name, exc, exc_info=False
+                )
+                violations.append(failure_reason)
+
+            return GeneResult(
+                gene_name=gene_name,
+                test_used=test_used,
+                statistic=float(stat),
+                raw_p_value=float(p_val),
+                guardian_confidence=confidence,
+                assumptions_passed=norm_pass and var_pass,
+                cascaded=cascaded,
+                violations=violations,
+                test_failed=test_failed_local,
+                test_failure_reason=failure_reason,
+            )
 
         return GeneResult(
             gene_name=gene_name,
@@ -308,29 +402,63 @@ class DifferentialExpressionService:
         confidence_penalty = 0.0
         cascaded = False
 
-        # Check normality per group
+        # Check normality per group. When Shapiro-Wilk cannot be
+        # computed (raised or returned NaN), force the cascade rather
+        # than silently letting the parametric test run on un-checkable
+        # data.
         norm_pass = True
         for i, data in enumerate(groups):
             if len(data) >= 3:
                 try:
                     w, p = stats.shapiro(data)
-                    if p < self.normality_alpha:
-                        violations.append(f"Normality violation (group {i+1}): p={p:.4f}")
-                        norm_pass = False
-                        confidence_penalty += 2.0
-                except Exception:
-                    pass
+                except Exception as exc:
+                    violations.append(
+                        f"Normality test could not be computed (group {i+1}): {exc}"
+                    )
+                    norm_pass = False
+                    confidence_penalty += 2.0
+                    logger.debug(
+                        "shapiro raised for %s group %d: %s",
+                        gene_name, i + 1, exc, exc_info=False,
+                    )
+                    continue
+                if np.isnan(p) or np.isnan(w):
+                    violations.append(
+                        f"Normality test returned NaN (group {i+1}); "
+                        "likely zero-variance or degenerate input"
+                    )
+                    norm_pass = False
+                    confidence_penalty += 2.0
+                elif p < self.normality_alpha:
+                    violations.append(
+                        f"Normality violation (group {i+1}): p={p:.4f}"
+                    )
+                    norm_pass = False
+                    confidence_penalty += 2.0
 
-        # Check variance homogeneity
+        # Check variance homogeneity (multi-group Levene). Same
+        # conservative handling as above.
         var_pass = True
         try:
             f_lev, p_lev = stats.levene(*groups)
-            if p_lev < self.normality_alpha:
+        except Exception as exc:
+            violations.append(f"Variance test could not be computed: {exc}")
+            var_pass = False
+            confidence_penalty += 2.0
+            logger.debug(
+                "levene raised for %s: %s", gene_name, exc, exc_info=False
+            )
+        else:
+            if np.isnan(p_lev) or np.isnan(f_lev):
+                violations.append(
+                    "Variance test returned NaN; likely zero-variance input"
+                )
+                var_pass = False
+                confidence_penalty += 2.0
+            elif p_lev < self.normality_alpha:
                 violations.append(f"Variance heterogeneity: p={p_lev:.4f}")
                 var_pass = False
                 confidence_penalty += 2.0
-        except Exception:
-            pass
 
         max_penalty = (len(groups) + 1) * 3.0
         confidence = max(0, 1 - confidence_penalty / (max_penalty * 1.2))

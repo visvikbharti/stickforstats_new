@@ -153,9 +153,21 @@ def _compute_correlation_bf(r: float, n: int, kappa: float = 1.0) -> float:
         return np.exp(log_lik) * prior
 
     try:
-        # Numerical integration
+        # Numerical integration. scipy.integrate.quad can raise
+        # IntegrationWarning, ValueError on degenerate integrands, or
+        # RuntimeError on convergence failure. We catch only those
+        # families (NOT bare ``except:``, which used to swallow
+        # KeyboardInterrupt and SystemExit too) and fall back to the
+        # BIC approximation below. Failure is logged so it does not
+        # vanish silently. See docs/CRITICAL_REVIEW_2026-05-06.md
+        # §P1-12.
         marginal_h1, _ = integrate.quad(integrand, -0.999, 0.999, limit=100)
-    except:
+    except (ValueError, RuntimeError, ArithmeticError) as exc:
+        import logging as _logging
+        _logging.getLogger(__name__).debug(
+            "BF10 quad integration failed (r=%s, n=%s): %s; falling back to BIC",
+            r, n, exc,
+        )
         marginal_h1 = 0
 
     # Likelihood under H0: rho = 0

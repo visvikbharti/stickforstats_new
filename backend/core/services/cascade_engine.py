@@ -227,8 +227,12 @@ class AutonomousCascadeEngine:
             executor = self._get_executor(test_name)
             if executor:
                 return executor(data_arrays, alpha)
-        except Exception as e:
-            logger.error(f"Failed to execute {test_name}: {e}")
+        except Exception as exc:
+            # Use logger.exception so the traceback lands in logs;
+            # silently returning None made it impossible to diagnose
+            # which test failed and why. See
+            # docs/CRITICAL_REVIEW_2026-05-06.md §P1-12.
+            logger.exception("Failed to execute test '%s': %s", test_name, exc)
             return None
 
         return None
