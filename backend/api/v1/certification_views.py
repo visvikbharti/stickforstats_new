@@ -56,6 +56,12 @@ class ExamStartView(APIView):
     """
     POST /api/v1/certification/exam/start/
     Start a certification exam. Returns questions without answers.
+
+    Body: ``{"level_id": "foundations"}``
+
+    Response includes ``attempt_id`` --- the client must echo this
+    back to /exam/submit/ so the server can grade against the original
+    question-id snapshot and reject re-submission.
     """
 
     permission_classes = [IsAuthenticated]
@@ -77,7 +83,7 @@ class ExamStartView(APIView):
                 status=403,
             )
 
-        exam = CertificationService.generate_exam(level_id)
+        exam = CertificationService.generate_exam(level_id, user=request.user)
         if not exam:
             return Response({"error": "Could not generate exam"}, status=500)
 
@@ -88,23 +94,32 @@ class ExamSubmitView(APIView):
     """
     POST /api/v1/certification/exam/submit/
     Submit exam answers for grading.
-    Body: { "level_id": "foundations", "answers": {"f001": 0, "f002": 1, ...} }
+
+    Body: ``{"level_id": "foundations", "attempt_id": "<uuid>",
+             "answers": {"<question_uuid>": 0, ...}}``
+
+    The attempt_id is required so the server can grade against the
+    same question-id snapshot it issued at /exam/start/ AND so an
+    already-submitted attempt cannot be re-graded (replay protection).
     """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         level_id = request.data.get("level_id")
+        attempt_id = request.data.get("attempt_id")
         answers = request.data.get("answers", {})
 
         if not level_id:
             return Response({"error": "level_id is required"}, status=400)
-        if not answers:
-            return Response({"error": "answers are required"}, status=400)
+        if not isinstance(answers, dict) or not answers:
+            return Response({"error": "answers (dict of question_id -> option_index) are required"}, status=400)
 
         from core.services.certification_service import CertificationService
 
-        result = CertificationService.grade_exam(level_id, answers)
+        result = CertificationService.grade_exam(
+            level_id, answers, attempt_id=attempt_id, user=request.user
+        )
         if "error" in result:
             return Response(result, status=400)
 
@@ -131,16 +146,21 @@ class UserCertificationsView(APIView):
     """
     GET /api/v1/certification/my-certifications/
     List current user's certifications and exam history.
+
+    Both lists come from the DB-backed ``CertificationRecord`` and
+    ``CertificationExamAttempt`` models; an empty list means the user
+    has no records / attempts on file (not that the feature is
+    unimplemented, as it did pre-2026-05-06).
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # In production, query CertificationRecord model
+        from core.services.certification_service import CertificationService
+
         return Response(
             {
-                "certifications": [],
-                "exam_history": [],
-                "message": "Certification records will be stored in the database in production",
+                "certifications": CertificationService.get_user_certifications(request.user),
+                "exam_history": CertificationService.get_user_exam_history(request.user),
             }
         )

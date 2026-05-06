@@ -1045,6 +1045,137 @@ class PluginReview(models.Model):
         ordering = ["-created_at"]
 
 
+class CertificationQuestion(models.Model):
+    """A question in the certification exam bank.
+
+    Replaces the previous in-memory ``QUESTION_BANK`` dict in
+    ``certification_service.py`` --- which had 10 hardcoded questions
+    total and could not be expanded without editing source. The DB-
+    backed bank lets operators add / retire questions without code
+    changes and supports randomized exam generation.
+
+    See docs/CRITICAL_REVIEW_2026-05-06.md §P1-12 (certification stub).
+    """
+
+    LEVEL_CHOICES = [
+        ("foundations", "Foundations"),
+        ("practitioner", "Practitioner"),
+        ("expert", "Expert"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    level = models.CharField(max_length=32, choices=LEVEL_CHOICES, db_index=True)
+    question_text = models.TextField()
+    options = models.JSONField(default=list)  # list of strings
+    correct_index = models.PositiveSmallIntegerField()
+    explanation = models.TextField(blank=True)
+    topic = models.CharField(max_length=128, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["level", "topic", "id"]
+        verbose_name = "Certification Question"
+        verbose_name_plural = "Certification Questions"
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"[{self.level}] {self.topic}: {self.question_text[:60]}..."
+
+
+class CertificationExamAttempt(models.Model):
+    """A user's attempt at a certification exam.
+
+    Each call to ``ExamStartView`` creates an attempt with a fixed
+    snapshot of question UUIDs (so the user sees the same questions
+    on refresh) and an empty ``answers`` dict. Submitting via
+    ``ExamSubmitView`` populates ``answers``, computes score, and
+    stamps ``submitted_at`` so the same attempt cannot be re-submitted.
+    """
+
+    STATUS_CHOICES = [
+        ("in_progress", "In Progress"),
+        ("submitted", "Submitted"),
+        ("expired", "Expired"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cert_attempts"
+    )
+    level = models.CharField(max_length=32, choices=CertificationQuestion.LEVEL_CHOICES, db_index=True)
+    question_ids = models.JSONField(default=list)  # list of question UUIDs (str form)
+    answers = models.JSONField(default=dict, blank=True)  # {question_id: option_index}
+    started_at = models.DateTimeField(default=timezone.now)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
+    passed = models.BooleanField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="in_progress", db_index=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+        indexes = [models.Index(fields=["user", "level"])]
+        verbose_name = "Certification Exam Attempt"
+        verbose_name_plural = "Certification Exam Attempts"
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.user_id} {self.level} {self.status} score={self.score}"
+
+
+class CertificationRecord(models.Model):
+    """A persistent record of a passed certification exam.
+
+    Each row corresponds to a successfully-completed exam and carries
+    an HMAC-SHA256-signed ``certificate_id`` (signature stored
+    separately so the verify endpoint can check it without trusting
+    the prefix). See ``CertificationService.verify_certificate`` --
+    previously that method returned ``valid: True`` for any string
+    starting with ``SFS-``, regardless of whether the certificate had
+    actually been issued. This model + the signing helpers fix that.
+
+    See docs/CRITICAL_REVIEW_2026-05-06.md §P1-12.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cert_records"
+    )
+    level = models.CharField(max_length=32, choices=CertificationQuestion.LEVEL_CHOICES, db_index=True)
+    certificate_id = models.CharField(max_length=64, unique=True, db_index=True)
+    signature = models.CharField(max_length=128)  # hex of HMAC-SHA256
+    score = models.FloatField()
+    issued_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    attempt = models.ForeignKey(
+        "CertificationExamAttempt",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="records",
+    )
+    is_revoked = models.BooleanField(default=False, db_index=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    revocation_reason = models.CharField(max_length=256, blank=True)
+
+    class Meta:
+        ordering = ["-issued_at"]
+        indexes = [
+            models.Index(fields=["user", "level"]),
+            models.Index(fields=["expires_at"]),
+        ]
+        verbose_name = "Certification Record"
+        verbose_name_plural = "Certification Records"
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.certificate_id} ({self.level}, {self.user_id})"
+
+    def is_currently_valid(self) -> bool:
+        """True iff the record is not revoked and not expired."""
+        if self.is_revoked:
+            return False
+        return self.expires_at > timezone.now()
+
+
 class LTINonceUsed(models.Model):
     """Replay-attack protection for LTI 1.3 launches.
 
@@ -1100,5 +1231,8 @@ __all__ = [
     "Plugin",
     "PluginInstallation",
     "PluginReview",
+    "CertificationQuestion",
+    "CertificationExamAttempt",
+    "CertificationRecord",
     "LTINonceUsed",
 ]

@@ -2,18 +2,56 @@
 Certification Program Service
 ==============================
 Manages the "StickForStats Certified Analyst" certification program.
-Tracks exam attempts, issues certificates, and validates credentials.
+Tracks exam attempts, issues HMAC-signed certificates, and validates
+credentials.
+
+History (2026-05-06)
+--------------------
+The previous implementation kept the entire question bank in an
+in-memory ``QUESTION_BANK`` dict (10 questions total across three
+levels), reported "Prerequisites met" as a constant True, returned
+the same five questions on every exam (no randomization), and
+issued / verified certificates by string-prefix only --
+``verify_certificate`` returned ``valid: True`` for any string
+beginning with ``SFS-``, regardless of whether such a certificate had
+ever actually been issued. See docs/CRITICAL_REVIEW_2026-05-06.md
+§P1-12.
+
+This rewrite moves all four flows to the DB-backed models in
+``core.models``:
+
+  * ``CertificationQuestion``  -- the active question bank (initial 10
+                                  seeded by migration 0010, expandable)
+  * ``CertificationExamAttempt`` -- one row per started exam, holding
+                                    the question-id snapshot and the
+                                    submitted answers
+  * ``CertificationRecord``    -- one row per passed exam, with an
+                                  HMAC-SHA256-signed certificate id
+
+Certificates are signed with HMAC-SHA256 against either
+``settings.CERT_SIGNING_KEY`` (preferred) or ``settings.SECRET_KEY``
+(fallback). Verification recomputes the signature and checks the
+record exists, has not been revoked, and has not expired.
 """
 
+from __future__ import annotations
+
 import hashlib
+import hmac
 import logging
+import random
+import secrets
 import uuid
-from datetime import datetime
+from datetime import timedelta
+from typing import Dict, List, Optional
+
+from django.conf import settings
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
-# Certification levels
+# Certification levels (configuration, not user data — kept in source).
 CERTIFICATION_LEVELS = [
     {
         "id": "foundations",
@@ -83,125 +121,46 @@ CERTIFICATION_LEVELS = [
     },
 ]
 
-# Sample question bank (in production this would be database-backed)
-QUESTION_BANK = {
-    "foundations": [
-        {
-            "id": "f001",
-            "question": "Which statistical test is most appropriate for comparing means of two independent groups with normally distributed data?",
-            "options": [
-                "Independent samples t-test",
-                "Paired samples t-test",
-                "Chi-square test",
-                "Mann-Whitney U test",
-            ],
-            "correct": 0,
-            "explanation": "The independent samples t-test compares means of two unrelated groups when data is normally distributed.",
-            "topic": "Hypothesis Testing Fundamentals",
-        },
-        {
-            "id": "f002",
-            "question": "What does a p-value of 0.03 mean?",
-            "options": [
-                "There is a 3% probability the null hypothesis is true",
-                "There is a 3% probability of observing data this extreme if the null hypothesis is true",
-                "The effect size is 0.03",
-                "The result is 97% accurate",
-            ],
-            "correct": 1,
-            "explanation": "A p-value represents the probability of observing data as extreme as the sample data, assuming the null hypothesis is true.",
-            "topic": "Hypothesis Testing Fundamentals",
-        },
-        {
-            "id": "f003",
-            "question": "Which measure of central tendency is most robust to outliers?",
-            "options": ["Mean", "Median", "Mode", "Standard deviation"],
-            "correct": 1,
-            "explanation": "The median is resistant to extreme values because it depends only on the middle value(s).",
-            "topic": "Descriptive Statistics",
-        },
-        {
-            "id": "f004",
-            "question": "What does the Guardian system's NormalityValidator check?",
-            "options": [
-                "Whether group sizes are equal",
-                "Whether variances are homogeneous",
-                "Whether data follows a normal distribution",
-                "Whether observations are independent",
-            ],
-            "correct": 2,
-            "explanation": "The NormalityValidator uses the Shapiro-Wilk test (n <= 5000) or D'Agostino-Pearson test (n > 5000) to check normality.",
-            "topic": "Using StickForStats Interface",
-        },
-        {
-            "id": "f005",
-            "question": "When should you use Spearman correlation instead of Pearson?",
-            "options": [
-                "When both variables are normally distributed",
-                "When the relationship is linear",
-                "When data is ordinal or the relationship is monotonic but not linear",
-                "When sample size is large",
-            ],
-            "correct": 2,
-            "explanation": "Spearman rank correlation handles ordinal data and monotonic non-linear relationships.",
-            "topic": "Correlation (Pearson, Spearman)",
-        },
-    ],
-    "practitioner": [
-        {
-            "id": "p001",
-            "question": "What does the Guardian's VarianceHomogeneityValidator use to test equal variances?",
-            "options": ["Bartlett's test", "Levene's test (median-based)", "F-test", "Brown-Forsythe test"],
-            "correct": 1,
-            "explanation": "StickForStats uses Levene's test with the median, which is robust to non-normality.",
-            "topic": "Guardian Statistical Protection System",
-        },
-        {
-            "id": "p002",
-            "question": "What is Cohen's d = 0.8 generally considered?",
-            "options": ["Small effect", "Medium effect", "Large effect", "Very large effect"],
-            "correct": 2,
-            "explanation": "Cohen's conventions: d = 0.2 (small), d = 0.5 (medium), d = 0.8 (large).",
-            "topic": "Effect Size Interpretation",
-        },
-        {
-            "id": "p003",
-            "question": "When Guardian blocks a t-test due to non-normality, what alternative does it suggest?",
-            "options": ["ANOVA", "Mann-Whitney U test", "Chi-square test", "Linear regression"],
-            "correct": 1,
-            "explanation": "The Mann-Whitney U test is the non-parametric alternative to the independent t-test.",
-            "topic": "Guardian Statistical Protection System",
-        },
-    ],
-    "expert": [
-        {
-            "id": "e001",
-            "question": 'What does the SQS engine check for in the "Assumption Reporting" category?',
-            "options": [
-                "Whether the paper has an abstract",
-                "Whether statistical assumptions were tested and reported",
-                "Whether the sample size is adequate",
-                "Whether references are formatted correctly",
-            ],
-            "correct": 1,
-            "explanation": "The SQS assumption reporting rules verify that authors documented their assumption checks (normality, homogeneity, etc.).",
-            "topic": "SQS Manuscript Quality Scoring",
-        },
-        {
-            "id": "e002",
-            "question": "In the autonomous analysis pipeline, when does the system invoke Claude AI?",
-            "options": [
-                "For every query",
-                "Only when the parser confidence is below 0.6",
-                "Only for visualization generation",
-                "Never — all analysis is deterministic",
-            ],
-            "correct": 1,
-            "explanation": "The autonomous pipeline uses template-based parsing first and only calls Claude when confidence < 0.6, minimizing cost.",
-            "topic": "Autonomous Analysis Pipeline",
-        },
-    ],
-}
+
+def _signing_key() -> bytes:
+    """Return the HMAC signing key for certificates as bytes.
+
+    Uses ``settings.CERT_SIGNING_KEY`` if defined (recommended in
+    production so certificate signatures survive a Django SECRET_KEY
+    rotation), otherwise falls back to ``settings.SECRET_KEY``.
+    """
+    key = getattr(settings, "CERT_SIGNING_KEY", None) or settings.SECRET_KEY
+    return key.encode("utf-8") if isinstance(key, str) else bytes(key)
+
+
+def _signature_payload(certificate_id: str, user_id, level: str, issued_iso: str) -> bytes:
+    """Canonical bytes-to-sign for a certificate.
+
+    Includes the certificate_id, user_id, level, and ISO-formatted
+    issued_at timestamp. Order is fixed and pipe-delimited so that
+    rearranging fields cannot produce a forgeable signature.
+    """
+    return f"{certificate_id}|{user_id}|{level}|{issued_iso}".encode("utf-8")
+
+
+def _compute_signature(certificate_id: str, user_id, level: str, issued_iso: str) -> str:
+    return hmac.new(
+        _signing_key(),
+        _signature_payload(certificate_id, user_id, level, issued_iso),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def _generate_certificate_id(level_id: str) -> str:
+    """Generate a fresh certificate ID with a level-prefixed namespace.
+
+    Format: ``SFS-{LVL}-{12-char-hex}``. The hex is 48 random bits
+    drawn from secrets.token_hex (cryptographically secure), so the
+    namespace cannot be guessed by sequential enumeration.
+    """
+    rand = secrets.token_hex(6).upper()  # 12 hex chars
+    prefix = level_id[:3].upper()
+    return f"SFS-{prefix}-{rand}"
 
 
 class CertificationService:
@@ -222,91 +181,226 @@ class CertificationService:
 
     @classmethod
     def check_prerequisites(cls, user, level_id):
-        """Check if user meets prerequisites for a certification level."""
+        """Check if user holds active prerequisite certifications.
+
+        Was: returned ``met=True`` regardless of records. Now: queries
+        ``CertificationRecord`` for unrevoked, unexpired records at
+        each prerequisite level and only returns met=True if all are
+        present.
+        """
         level = cls.get_level_details(level_id)
         if not level:
             return {"met": False, "error": "Level not found"}
 
-        # In production, check CertificationRecord model
-        # For now, return prerequisite info
+        prerequisites = level["prerequisites"]
+        if not prerequisites:
+            return {
+                "met": True,
+                "prerequisites": [],
+                "message": "No prerequisites required for this level.",
+            }
+
+        if user is None or not getattr(user, "is_authenticated", False):
+            return {
+                "met": False,
+                "prerequisites": prerequisites,
+                "message": "Authenticated user required to check prerequisites.",
+            }
+
+        from core.models import CertificationRecord
+
+        held = set(
+            CertificationRecord.objects.filter(
+                user=user,
+                level__in=prerequisites,
+                is_revoked=False,
+                expires_at__gt=timezone.now(),
+            ).values_list("level", flat=True)
+        )
+        missing = [p for p in prerequisites if p not in held]
+        if missing:
+            return {
+                "met": False,
+                "prerequisites": prerequisites,
+                "missing": missing,
+                "message": f"Missing or expired prerequisite certifications: {', '.join(missing)}.",
+            }
         return {
             "met": True,
-            "prerequisites": level["prerequisites"],
-            "message": "Prerequisites met"
-            if not level["prerequisites"]
-            else f"Requires: {', '.join(level['prerequisites'])}",
+            "prerequisites": prerequisites,
+            "message": "All prerequisites met.",
         }
 
     @classmethod
-    def generate_exam(cls, level_id, seed=None):
-        """Generate an exam with randomized questions for a level."""
+    def generate_exam(cls, level_id, user=None, seed: Optional[int] = None):
+        """Generate a randomized exam for ``level_id``.
+
+        Samples up to ``level["question_count"]`` active questions from
+        the DB. Persists the question-id snapshot in a new
+        ``CertificationExamAttempt`` row so the user sees the same
+        questions on refresh and so we can grade against the snapshot
+        even if the bank is edited between start and submit.
+        """
         level = cls.get_level_details(level_id)
         if not level:
             return None
 
-        questions = QUESTION_BANK.get(level_id, [])
+        from core.models import CertificationExamAttempt, CertificationQuestion
 
-        # In production, randomly select question_count from a larger bank
-        exam_id = str(uuid.uuid4())
+        active_qs = list(
+            CertificationQuestion.objects.filter(level=level_id, is_active=True)
+        )
+        if not active_qs:
+            logger.error("No active questions in DB for level %s", level_id)
+            return None
+
+        # Random sample without replacement up to question_count.
+        rng = random.Random(seed) if seed is not None else random.Random()
+        sample_size = min(level["question_count"], len(active_qs))
+        sampled = rng.sample(active_qs, sample_size)
+        question_ids = [str(q.id) for q in sampled]
+
+        attempt = None
+        if user is not None and getattr(user, "is_authenticated", False):
+            attempt = CertificationExamAttempt.objects.create(
+                user=user,
+                level=level_id,
+                question_ids=question_ids,
+                status="in_progress",
+            )
 
         return {
-            "exam_id": exam_id,
+            "exam_id": str(attempt.id) if attempt else str(uuid.uuid4()),
+            "attempt_id": str(attempt.id) if attempt else None,
             "level": level_id,
             "level_name": level["name"],
-            "question_count": len(questions),
+            "question_count": len(sampled),
             "time_limit_minutes": level["time_limit_minutes"],
             "passing_score": level["passing_score"],
             "questions": [
                 {
-                    "id": q["id"],
-                    "question": q["question"],
-                    "options": q["options"],
-                    "topic": q["topic"],
-                    # Don't include correct answer!
+                    "id": str(q.id),
+                    "question": q.question_text,
+                    "options": q.options,
+                    "topic": q.topic,
+                    # correct_index intentionally omitted from client payload.
                 }
-                for q in questions
+                for q in sampled
             ],
         }
 
     @classmethod
-    def grade_exam(cls, level_id, answers):
+    def grade_exam(cls, level_id, answers, attempt_id=None, user=None):
+        """Grade a submitted exam.
+
+        Parameters
+        ----------
+        level_id
+            One of ``foundations``/``practitioner``/``expert``.
+        answers
+            Dict ``{question_id: option_index}``.
+        attempt_id
+            Optional UUID of a ``CertificationExamAttempt``. If
+            provided, grading uses the question-id snapshot stored on
+            the attempt and refuses to grade an already-submitted
+            attempt (replay protection). If not provided, grades
+            against any active questions matching the supplied answer
+            keys (legacy path; only used by tests).
+        user
+            Authenticated user. Required to issue a
+            ``CertificationRecord`` on pass.
         """
-        Grade a submitted exam.
-        answers: dict mapping question_id -> selected_option_index
-        """
-        questions = QUESTION_BANK.get(level_id, [])
         level = cls.get_level_details(level_id)
-        if not level or not questions:
+        if not level:
             return {"error": "Invalid level"}
 
-        correct = 0
-        total = len(questions)
-        results = []
+        from core.models import (
+            CertificationExamAttempt,
+            CertificationQuestion,
+            CertificationRecord,
+        )
 
-        for q in questions:
-            user_answer = answers.get(q["id"])
-            is_correct = user_answer == q["correct"]
+        attempt = None
+        if attempt_id:
+            try:
+                attempt = CertificationExamAttempt.objects.get(id=attempt_id)
+            except (CertificationExamAttempt.DoesNotExist, ValueError):
+                return {"error": "Exam attempt not found"}
+            if attempt.status != "in_progress":
+                return {"error": f"Exam attempt already {attempt.status}; cannot regrade."}
+            if user is not None and attempt.user_id != user.id:
+                return {"error": "Exam attempt does not belong to this user"}
+            question_ids = attempt.question_ids
+        else:
+            question_ids = list(answers.keys())
+
+        if not question_ids:
+            return {"error": "No questions to grade"}
+
+        questions = list(
+            CertificationQuestion.objects.filter(id__in=question_ids)
+        )
+        # Preserve the order from question_ids snapshot
+        by_id = {str(q.id): q for q in questions}
+        ordered = [by_id[qid] for qid in question_ids if qid in by_id]
+        if not ordered:
+            return {"error": "Questions in attempt no longer exist in the bank"}
+
+        correct = 0
+        total = len(ordered)
+        results = []
+        for q in ordered:
+            user_answer = answers.get(str(q.id))
+            try:
+                user_answer_idx = int(user_answer) if user_answer is not None else None
+            except (TypeError, ValueError):
+                user_answer_idx = None
+            is_correct = user_answer_idx == q.correct_index
             if is_correct:
                 correct += 1
-            results.append(
-                {
-                    "question_id": q["id"],
-                    "correct": is_correct,
-                    "your_answer": user_answer,
-                    "correct_answer": q["correct"],
-                    "explanation": q["explanation"],
-                    "topic": q["topic"],
-                }
-            )
+            results.append({
+                "question_id": str(q.id),
+                "correct": is_correct,
+                "your_answer": user_answer_idx,
+                "correct_answer": q.correct_index,
+                "explanation": q.explanation,
+                "topic": q.topic,
+            })
 
-        score = round((correct / max(total, 1)) * 100, 1)
+        score = round((correct / total) * 100, 1)
         passed = score >= level["passing_score"]
 
-        # Generate certificate ID if passed
+        # Persist attempt
+        if attempt is not None:
+            attempt.answers = {str(qid): answers.get(str(qid)) for qid in question_ids}
+            attempt.status = "submitted"
+            attempt.submitted_at = timezone.now()
+            attempt.score = score
+            attempt.passed = passed
+            attempt.save(update_fields=[
+                "answers", "status", "submitted_at", "score", "passed"
+            ])
+
+        # Issue certificate on pass.
         certificate_id = None
-        if passed:
-            raw = f"{level_id}-{datetime.utcnow().isoformat()}-{uuid.uuid4()}"
-            certificate_id = f"SFS-{level_id[:3].upper()}-{hashlib.sha256(raw.encode()).hexdigest()[:12].upper()}"
+        signature = None
+        expires_at = None
+        if passed and user is not None and getattr(user, "is_authenticated", False):
+            issued = timezone.now()
+            expires_at = issued + timedelta(days=365 * level["validity_years"])
+            certificate_id = _generate_certificate_id(level_id)
+            issued_iso = issued.isoformat()
+            signature = _compute_signature(certificate_id, user.id, level_id, issued_iso)
+            CertificationRecord.objects.create(
+                user=user,
+                level=level_id,
+                certificate_id=certificate_id,
+                signature=signature,
+                score=score,
+                issued_at=issued,
+                expires_at=expires_at,
+                attempt=attempt,
+            )
 
         return {
             "score": score,
@@ -318,6 +412,7 @@ class CertificationService:
             "level": level_id,
             "level_name": level["name"],
             "validity_years": level["validity_years"] if passed else None,
+            "expires_at": expires_at.isoformat() if expires_at else None,
             "results": results,
             "topic_breakdown": cls._topic_breakdown(results),
         }
@@ -325,7 +420,7 @@ class CertificationService:
     @classmethod
     def _topic_breakdown(cls, results):
         """Calculate score breakdown by topic."""
-        topics = {}
+        topics: Dict[str, Dict[str, int]] = {}
         for r in results:
             topic = r["topic"]
             if topic not in topics:
@@ -346,13 +441,152 @@ class CertificationService:
 
     @classmethod
     def verify_certificate(cls, certificate_id):
-        """Verify a certificate ID is valid."""
-        if not certificate_id or not certificate_id.startswith("SFS-"):
+        """Verify a certificate by HMAC signature + DB lookup.
+
+        The previous implementation returned ``valid: True`` for any
+        string starting with ``SFS-``. Now performs:
+          1. DB lookup of ``CertificationRecord`` by certificate_id.
+          2. Recompute HMAC-SHA256 signature against the stored
+             record's user_id + level + issued_at and compare with
+             constant-time comparison.
+          3. Reject revoked records.
+          4. Reject expired records.
+
+        Returns a structured dict including the user's holder name and
+        level/issue/expiry info on success.
+        """
+        if not certificate_id or not isinstance(certificate_id, str):
             return {"valid": False, "error": "Invalid certificate format"}
 
-        # In production, look up in CertificationRecord model
+        from core.models import CertificationRecord
+
+        try:
+            record = CertificationRecord.objects.select_related("user").get(
+                certificate_id=certificate_id
+            )
+        except CertificationRecord.DoesNotExist:
+            return {
+                "valid": False,
+                "certificate_id": certificate_id,
+                "error": "Certificate not found",
+            }
+
+        expected_sig = _compute_signature(
+            record.certificate_id,
+            record.user_id,
+            record.level,
+            record.issued_at.isoformat(),
+        )
+        if not hmac.compare_digest(expected_sig, record.signature):
+            logger.warning(
+                "Certificate %s failed signature check (possible tampering)",
+                certificate_id,
+            )
+            return {
+                "valid": False,
+                "certificate_id": certificate_id,
+                "error": "Signature verification failed",
+            }
+
+        if record.is_revoked:
+            return {
+                "valid": False,
+                "certificate_id": certificate_id,
+                "error": "Certificate revoked",
+                "revoked_at": record.revoked_at.isoformat() if record.revoked_at else None,
+                "revocation_reason": record.revocation_reason,
+            }
+
+        if record.expires_at <= timezone.now():
+            return {
+                "valid": False,
+                "certificate_id": certificate_id,
+                "error": "Certificate expired",
+                "expired_at": record.expires_at.isoformat(),
+            }
+
+        # Pull the level metadata for a friendly response.
+        level_info = cls.get_level_details(record.level) or {}
+        holder = record.user
+        holder_name = (
+            holder.get_full_name() or holder.get_username()
+            if holder is not None
+            else "Unknown holder"
+        )
+
         return {
             "valid": True,
             "certificate_id": certificate_id,
-            "message": "Certificate verification would check the database in production",
+            "level": record.level,
+            "level_name": level_info.get("name", record.level),
+            "holder": holder_name,
+            "score": record.score,
+            "issued_at": record.issued_at.isoformat(),
+            "expires_at": record.expires_at.isoformat(),
         }
+
+    @classmethod
+    def revoke_certificate(cls, certificate_id, reason: str = ""):
+        """Mark a certificate as revoked.
+
+        Future verify_certificate calls on this certificate_id will
+        return ``valid: False`` with the revocation reason.
+        """
+        from core.models import CertificationRecord
+
+        try:
+            record = CertificationRecord.objects.get(certificate_id=certificate_id)
+        except CertificationRecord.DoesNotExist:
+            return {"ok": False, "error": "Certificate not found"}
+        if record.is_revoked:
+            return {"ok": False, "error": "Already revoked"}
+        record.is_revoked = True
+        record.revoked_at = timezone.now()
+        record.revocation_reason = reason or "(no reason given)"
+        record.save(update_fields=["is_revoked", "revoked_at", "revocation_reason"])
+        return {"ok": True, "certificate_id": certificate_id}
+
+    @classmethod
+    def get_user_certifications(cls, user) -> List[Dict]:
+        """Return current user's active + expired + revoked records."""
+        if user is None or not getattr(user, "is_authenticated", False):
+            return []
+        from core.models import CertificationRecord
+
+        records = CertificationRecord.objects.filter(user=user).order_by("-issued_at")
+        out = []
+        for r in records:
+            level_info = cls.get_level_details(r.level) or {}
+            out.append({
+                "certificate_id": r.certificate_id,
+                "level": r.level,
+                "level_name": level_info.get("name", r.level),
+                "score": r.score,
+                "issued_at": r.issued_at.isoformat(),
+                "expires_at": r.expires_at.isoformat(),
+                "is_revoked": r.is_revoked,
+                "is_expired": r.expires_at <= timezone.now(),
+                "is_currently_valid": r.is_currently_valid(),
+            })
+        return out
+
+    @classmethod
+    def get_user_exam_history(cls, user) -> List[Dict]:
+        """Return current user's exam attempt history (most recent first)."""
+        if user is None or not getattr(user, "is_authenticated", False):
+            return []
+        from core.models import CertificationExamAttempt
+
+        attempts = CertificationExamAttempt.objects.filter(user=user).order_by("-started_at")
+        out = []
+        for a in attempts:
+            out.append({
+                "attempt_id": str(a.id),
+                "level": a.level,
+                "started_at": a.started_at.isoformat(),
+                "submitted_at": a.submitted_at.isoformat() if a.submitted_at else None,
+                "status": a.status,
+                "score": a.score,
+                "passed": a.passed,
+            })
+        return out
