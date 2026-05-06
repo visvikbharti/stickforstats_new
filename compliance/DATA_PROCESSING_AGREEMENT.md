@@ -250,11 +250,11 @@ provisions.
 The Controller provides general authorization for the Processor to engage the
 following Sub-Processors:
 
-| Sub-Processor | Purpose | Data Processed | Location |
-|---|---|---|---|
-| Cloud Infrastructure Provider | Server hosting, compute, storage, networking | All Platform data (encrypted) | As selected by deployment region |
-| Stripe, Inc. | Payment processing and subscription billing | Billing contact name, email, payment method | United States (EU SCCs) |
-| Keycloak (Self-Hosted) | Identity provider for enterprise SSO | Authentication credentials, session data | Same region as Platform deployment |
+| Sub-Processor | Purpose | Data Processed | Location | Engagement |
+|---|---|---|---|---|
+| Cloud Infrastructure Provider | Server hosting, compute, storage, networking | All Platform data (encrypted) | As selected by deployment region | Always (deployment-dependent provider) |
+| Stripe, Inc. | Payment processing and subscription billing | Billing contact name, email, payment method | United States (EU SCCs) | **Conditional** -- only when paid billing is enabled (`STRIPE_SECRET_KEY` configured); not engaged in self-hosted free-tier deployments |
+| Keycloak (Self-Hosted) | Identity provider for enterprise SSO | Authentication credentials, session data | Same region as Platform deployment | Optional -- only when SSO is enabled |
 
 ### 6.2 Sub-Processor Changes
 
@@ -390,7 +390,7 @@ the following safeguards apply:
 | Transfer Scenario | Mechanism | Reference |
 |---|---|---|
 | Cloud infrastructure in non-EEA region | EU Standard Contractual Clauses (SCCs) per Commission Decision 2021/914 | GDPR Art. 46(2)(c) |
-| Stripe payment processing (US) | EU-US Data Privacy Framework + SCCs | GDPR Art. 45, 46(2)(c) |
+| Stripe payment processing (US) -- *only when paid billing enabled* | EU-US Data Privacy Framework + SCCs | GDPR Art. 45, 46(2)(c) |
 | Sub-Processor in non-EEA country | SCCs + supplementary measures assessment | GDPR Art. 46(2)(c) |
 
 ### 9.2 Data Residency Options
@@ -629,8 +629,8 @@ within 30 days of receiving written notice.
 | Sub-Processor | Service | Data Categories | Location | Safeguards |
 |---|---|---|---|---|
 | Cloud Provider | Infrastructure hosting | All Platform data | Per deployment region | SOC 2 Type II, encryption |
-| Stripe, Inc. | Payment processing | Billing data | US | EU-US DPF, SCCs, PCI DSS |
-| Keycloak (Self-Hosted) | Identity management | Auth credentials | Same as Platform | Self-hosted, no external transfer |
+| Stripe, Inc. *(conditional -- only when paid billing enabled)* | Payment processing | Billing data | US | EU-US DPF, SCCs, PCI DSS |
+| Keycloak (Self-Hosted) *(optional -- only when SSO enabled)* | Identity management | Auth credentials | Same as Platform | Self-hosted, no external transfer |
 
 ### Annex C -- Data Processing Activities Register
 
