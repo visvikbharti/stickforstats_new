@@ -17,7 +17,7 @@ We present StickForStats, an open-source web platform that reframes assumption v
 
 We demonstrate Guardian on three real datasets. In a CRISPR editing-strategy comparison using TOPSIS scores from CRISPRArchitect v3 across four modalities (base editing, prime editing, and two HDR variants), Guardian detected non-normality and cascaded ANOVA (F = 1122, p < 10^-35^) to Kruskal-Wallis (H = 36.6, p < 10^-7^), identifying base editing as the safest modality for iPSC applications. In a UCI Wine Quality correlation analysis, Guardian flagged ordinal data and switched Pearson (r = 0.476) to Spearman (ρ = 0.479). In a twelve-trial meta-analysis, Guardian detected publication bias (Egger's p = 0.024) that a conventional pipeline would have missed.
 
-A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against eight specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath and cross-checked against G\*Power. The platform is MIT-licensed with 1,088 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
+A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against seven specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath and cross-checked against G\*Power. The platform is MIT-licensed with 1,088 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
 
 **Keywords:** statistical assumption validation, reproducibility, computational biology, CRISPR analysis, manuscript review, meta-analysis, open-source software
 
@@ -25,7 +25,7 @@ A complementary manuscript-review module extends the same validator infrastructu
 
 ## Author Summary
 
-Statistical assumption violations are a hidden driver of irreproducible results in computational biology. When researchers compare CRISPR editing strategies with ANOVA on non-normal composite scores, or correlate ordinal outcome ratings with Pearson's r, or pool effect sizes across trials without checking for publication bias, the resulting p-values and confidence intervals can be misleading---sometimes dramatically so. Yet most statistical software treats assumption checking as optional, leaving it to the analyst to remember which diagnostics to run. We built StickForStats to close this gap. Our platform automatically checks the relevant assumptions before every statistical test and, when violations are found, either warns the researcher or transparently switches to an appropriate nonparametric alternative. We demonstrate on three real datasets: CRISPRArchitect v3 editing-strategy scores (where Guardian detected non-normality and routed ANOVA to Kruskal-Wallis, identifying base editing as the safest modality for iPSC applications), UCI Wine Quality (where Guardian flagged an ordinal correlation and switched Pearson to Spearman), and a twelve-trial meta-analysis (where Guardian detected publication bias via Egger's test). Beyond this core capability, StickForStats offers a manuscript-review module that applies the same validator infrastructure to published papers---checking statistical consistency, effect-size reporting, and compliance with CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards. StickForStats is free, open-source, and designed for researchers without deep statistical expertise.
+Statistical assumption violations are a hidden driver of irreproducible results in computational biology. When researchers compare CRISPR editing strategies with ANOVA on non-normal composite scores, or correlate ordinal outcome ratings with Pearson's r, or pool effect sizes across trials without checking for publication bias, the resulting p-values and confidence intervals can be misleading---sometimes dramatically so. Yet most statistical software treats assumption checking as optional, leaving it to the analyst to remember which diagnostics to run. We built StickForStats to close this gap. Our platform automatically checks the relevant assumptions before every statistical test and, when violations are found, either warns the researcher or transparently switches to an appropriate nonparametric alternative. We demonstrate on three real datasets: CRISPRArchitect v3 editing-strategy scores (where Guardian detected non-normality and routed ANOVA to Kruskal-Wallis, identifying base editing as the safest modality for iPSC applications), UCI Wine Quality (where Guardian flagged an ordinal correlation and switched Pearson to Spearman), and a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (Egger 1997 BMJ; data: `metafor::dat.egger2001`), where Guardian detected severe publication bias via Egger's test. Beyond this core capability, StickForStats offers a manuscript-review module that applies the same validator infrastructure to published papers---checking statistical consistency, effect-size reporting, and compliance with CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards. StickForStats is free, open-source, and designed for researchers without deep statistical expertise.
 
 ---
 
@@ -49,7 +49,7 @@ StickForStats takes a fundamentally different approach: rather than providing as
 
 StickForStats follows a three-tier architecture (Fig 1): a user interface layer (React 18 with Material-UI), an application layer (Django REST Framework with Guardian integration), and a data layer (PostgreSQL with Redis caching).
 
-![**Fig 1. StickForStats system architecture.** Three-tier design: user interface (React 18), application layer (Django REST with Guardian and statistical engine), and data layer (PostgreSQL, Redis, Celery, file storage).](figures/fig1_architecture.png){ width=90% } The platform serves 197 API endpoints across 40 pages supporting 16 languages. Long-running analyses are offloaded to Celery workers backed by Redis. Python and R SDKs provide programmatic access.
+![**Fig 1. StickForStats system architecture.** Three-tier design: user interface (React 18), application layer (Django REST with Guardian and statistical engine), and data layer (PostgreSQL, Redis, Celery, file storage).](figures/fig1_architecture.png){ width=90% } The platform serves 198 API endpoints across 41 web pages supporting 16 languages. Long-running analyses are offloaded to Celery workers backed by Redis. Python and R SDKs provide programmatic access.
 
 ### The Guardian system
 
@@ -110,9 +110,9 @@ Scores above 0.8 indicate high confidence; 0.6--0.8 signals caution; below 0.6 t
 
 **Multiple testing correction.** Eight methods spanning FWER control (Bonferroni, Holm-Bonferroni, Hochberg, Sidak, Holm-Sidak) and FDR control (Benjamini-Hochberg [9], Benjamini-Yekutieli, Storey's q-value).
 
-**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Eight validators assess completeness, consistency, power reporting, multiple-comparison corrections, assumption documentation, effect-size reporting, reproducibility, and methodological appropriateness. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards (Fig 4).
+**Clinical trial manuscript review.** Parses PDF, LaTeX, and DOCX manuscripts, extracts statistical claims via regex and language model hybrid pipeline, and verifies each claim for internal consistency in the style of STATCHECK [14]. Seven validators assess statistical consistency (p-value/CI/df recomputation), multiple-testing correction reporting, effect-size completeness, power reporting, reproducibility (data/code/materials availability), methodological appropriateness, and reporting completeness. Discipline-aware profiles weight validators per CONSORT [10], STROBE, ICH-E9, and JARS-Quant [12] standards (Fig 4).
 
-![**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and LLM-hybrid extraction, selects a discipline profile (CONSORT, STROBE, ICH-E9, or JARS-Quant), runs eight validators in parallel, applies discipline-specific severity weights, and returns a classified statistical quality report.](figures/fig4_manuscript_review.png){ width=85% }
+![**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and LLM-hybrid extraction, selects a discipline profile (CONSORT, STROBE, ICH-E9, or JARS-Quant), runs seven validators in parallel, applies discipline-specific severity weights, and returns a classified statistical quality report.](figures/fig4_manuscript_review.png){ width=85% }
 
 **Causal inference.** DAG analysis with adjustment set identification, propensity score matching, inverse probability weighting, doubly robust estimation, difference-in-differences, and mediation analysis.
 
@@ -130,7 +130,7 @@ Forty-five rules across six categories (test selection, assumption reporting, ef
 
 ### Platform comparison
 
-Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. At submission the platform exposes 197 REST endpoints across 14 modules, ships eight Guardian validators (covered by 38 integration tests) and 45 Statistical Quality Score rules across six categories, localizes its interface into 16 languages, and ships with Python and R SDKs, a PWA-capable web interface, and companion React Native (mobile) and Tauri (desktop) clients. The test suite comprises 648 backend and 573 frontend tests; at time of writing all required CI checks are green on the main branch.
+Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. At submission the platform exposes 198 REST endpoints across 15 modules, ships eight Guardian validators (covered by 38 integration and middleware tests, plus 46 dedicated validator tests) and 45 Statistical Quality Score rules across six categories, localizes its interface into 16 languages (10 with full UI translation, 6 with navigation-only translation), and ships with Python and R SDKs, a PWA-capable web interface, a Manifest V3 browser extension, and companion React Native (mobile) and Tauri (desktop) clients. The test suite comprises 1,088 automated tests (515 backend, 573 frontend) executed in CI; at time of writing all required CI checks are green on the main branch.
 
 **Table 3. Feature comparison: StickForStats vs. existing statistical platforms.**
 
@@ -201,11 +201,13 @@ We examined the correlation between alcohol content and quality rating (ordinal 
 
 **Guardian findings:** Confidence Score = 0.58. Guardian detected a CRITICAL normality violation (quality is ordinal, not continuous normal; Shapiro-Wilk W = 0.885, p < 0.001) and a PASS on linearity (quadratic R-squared improvement only 1.0%). Guardian recommended Spearman's rho for ordinal data. Spearman's rho = 0.479, p < 0.001---the correlation remains significant, but Spearman's is the appropriate measure for ordinal data.
 
-### Case Study 3: Simulated meta-analysis --- Publication bias
+### Case Study 3: IV magnesium for acute MI --- Publication bias
 
-Using effect sizes from 12 studies with a realistic publication bias pattern (larger studies publish regardless of effect size; smaller studies publish only with larger effects), we conducted a random-effects meta-analysis.
+We re-analyzed the 16 randomized trials of intravenous magnesium for prevention of mortality after acute myocardial infarction collated by Egger and colleagues [25,38,39] --- the canonical pedagogical example for funnel-plot asymmetry. Fifteen small early trials (median n = 89) suggested a substantial mortality reduction; LIMIT-2 (n = 2,316) confirmed benefit; the much larger ISIS-4 trial (n = 58,050) found no benefit. The dataset is shipped with the R `metafor` package as `dat.egger2001` and is reproduced verbatim in our replication directory.
 
-**Guardian findings:** Pooled effect = 0.263, 95% CI [0.213, 0.314], I-squared = 14.4%. Guardian detected a publication bias WARNING (Egger's test intercept = 1.84, p = 0.024; funnel plot asymmetry). Without Guardian's automatic check, researchers might report the pooled effect without considering potential bias.
+**Traditional approach:** Random-effects pooled odds ratio = 0.483, 95% CI [0.329, 0.710], I² = 68.1%, Q = 47.06 (df = 15, p < 0.001) --- a researcher reading the pooled estimate alone would conclude that IV magnesium reduces mortality by about half.
+
+**Guardian findings:** Confidence Score = 0.42 (BLOCKED). Guardian detected a CRITICAL publication-bias signal via Egger's regression test (intercept = -1.60, t = -5.78, df = 14, p < 0.001) --- the funnel plot is severely asymmetric, with smaller studies systematically reporting larger benefits. Guardian recommended sensitivity analysis: re-pooling without the smallest 25% of studies attenuates the effect substantially, and the largest single trial (ISIS-4) shows essentially no effect (log OR = 0.06). This case study illustrates Guardian's role in surfacing limit-bias issues *before* a researcher publishes a pooled estimate that subsequent large trials may overturn.
 
 ### Case study summary
 
@@ -215,15 +217,15 @@ Using effect sizes from 12 studies with a realistic publication bias pattern (la
 |---|---|---|---|
 | CRISPR strategies | Non-normality + small n | Unreliable ANOVA | Kruskal-Wallis |
 | Wine | Non-normality (ordinal) | Inappropriate r | Spearman's rho |
-| Meta-analysis | Publication bias | Biased estimate | Sensitivity analysis |
+| IV magnesium meta-analysis [25,38] | Publication bias (Egger p < 0.001) | Inflated pooled effect | Sensitivity analysis |
 
 In all three cases, the primary statistical conclusion remained unchanged after addressing violations. However, the *appropriate method* differed from the naive approach. Guardian ensures researchers are informed of these issues automatically.
 
-![**Fig 3. Case study results.** (A) CRISPR editing strategy comparison: TOPSIS scores across four modalities for 10 variants. Guardian detected normality WARNING, cascaded to Kruskal-Wallis (p < 0.001). (B) Meta-analysis forest plot of 12 RCTs. Guardian detected publication bias (Egger's p = 0.024).](figures/fig3_case_studies.png){ width=95% }
+![**Fig 3. Case study results.** (A) CRISPR editing strategy comparison: TOPSIS scores across four modalities for 10 variants. Guardian detected normality WARNING, cascaded to Kruskal-Wallis (p < 0.001). (B) Meta-analysis forest plot of 16 RCTs of intravenous magnesium for acute myocardial infarction (Egger 1997 [25]; Sterne & Egger 2001 [38]; data: `metafor::dat.egger2001` [39]). Marker size indicates random-effects weight; the diamond shows the pooled estimate. Guardian detected severe funnel asymmetry (Egger's t = -5.78, p < 0.001) --- the small early trials systematically over-estimated benefit relative to LIMIT-2 and ISIS-4.](figures/fig3_case_studies.png){ width=95% }
 
 ### Software testing and continuous integration
 
-StickForStats maintains 1,088 automated tests (515 backend, 573 frontend) executed via GitHub Actions on every commit. Eight CI jobs cover linting, testing, security scanning (Trivy, CodeQL), and Docker builds. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware). Zero lint errors across all codebases.
+StickForStats maintains 1,088 automated tests (515 backend, 573 frontend) executed via GitHub Actions on every commit. The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
 
 ## Discussion
 
@@ -316,6 +318,8 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 35. JASP Team. JASP (Version 0.17.3). 2023.
 36. The jamovi project. jamovi (Version 2.4). 2023.
 37. Bharti V, Chakraborty D. CRISPRArchitect v3: Multi-nuclease, consequence-guided decision support for genome editing strategy design. GitHub. 2026. https://github.com/visvikbharti/CRISPRArchitect
+38. Sterne JAC, Egger M. Funnel Plots for Detecting Bias in Meta-Analysis: Guidelines on Choice of Axis. J Clin Epidemiol. 2001;54(10):1046-1055.
+39. Viechtbauer W. Conducting Meta-Analyses in R with the metafor Package. J Stat Softw. 2010;36(3):1-48.
 
 ---
 
@@ -352,8 +356,8 @@ Across the four tests the median Guardian overhead is 0.2 ms (range −0.10 to +
 
 **Fig 2. Guardian validation workflow.** The Guardian identifies test requirements, runs the relevant subset of eight validators in parallel, calculates the composite confidence score, and routes the analysis based on violation severity---either executing the requested test with a Guardian report (Score >= 0.7) or recommending an appropriate nonparametric alternative (Score < 0.7). The eight validators are listed on the right.
 
-**Fig 3. Case study results.** (A) CRISPR genome editing strategy comparison showing TOPSIS composite scores across four modalities (ABE, PE, HDR-ssODN, HDR-cssDNA) for 10 pathogenic variants scored by CRISPRArchitect v3. Guardian detected normality WARNING and cascaded to Kruskal-Wallis (p < 0.001). ABE achieves highest scores driven by DSB-free safety profile. (B) Random-effects meta-analysis forest plot of 12 RCTs. Guardian detected publication bias via Egger's test (p = 0.024) and recommended sensitivity analysis.
+**Fig 3. Case study results.** (A) CRISPR genome editing strategy comparison showing TOPSIS composite scores across four modalities (ABE, PE, HDR-ssODN, HDR-cssDNA) for 10 pathogenic variants scored by CRISPRArchitect v3. Guardian detected normality WARNING and cascaded to Kruskal-Wallis (p < 0.001). ABE achieves highest scores driven by DSB-free safety profile. (B) Random-effects meta-analysis forest plot of 16 RCTs of intravenous magnesium for acute myocardial infarction (Egger 1997 [25]; Sterne & Egger 2001 [38]; data: `metafor::dat.egger2001` [39]). Marker size indicates random-effects weight; the diamond shows the pooled estimate (OR = 0.483, 95% CI [0.329, 0.710]). Guardian detected severe funnel asymmetry via Egger's test (t = -5.78, p < 0.001) --- the small early trials over-estimated benefit relative to LIMIT-2 and ISIS-4.
 
-**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and language model hybrid, verifies each claim against eight specialized validators with discipline-aware profiles (CONSORT, STROBE, ICH-E9, JARS-Quant), and produces a statistical quality report with severity-classified findings.
+**Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and language model hybrid, verifies each claim against seven specialized validators with discipline-aware profiles (CONSORT, STROBE, ICH-E9, JARS-Quant), and produces a statistical quality report with severity-classified findings.
 
 **Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations (SciPy, R, statsmodels, G\*Power) across 10 statistical test categories, demonstrating 10--16 decimal places of agreement. (B) Feature comparison heatmap of StickForStats vs. R, SPSS, jamovi, and JASP on 10 capabilities relevant to assumption validation and biomedical research.

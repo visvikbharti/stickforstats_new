@@ -26,6 +26,7 @@ print("Running all verification scripts...\n")
 scripts = [
     ("run_all_validations.py", "SciPy Statistical Validation"),
     ("verify_case_studies_FINAL.py", "Case Studies Verification"),
+    ("verify_meta_analysis_real.py", "Real Meta-Analysis (IV Magnesium / Egger 1997)"),
     ("additional_real_data_analysis.py", "Additional Datasets Validation"),
 ]
 
@@ -45,20 +46,26 @@ for script, description in scripts:
             timeout=120
         )
 
-        # Check for PASS/VERIFIED in output
+        # Authoritative pass/fail signal is the subprocess exit code.
+        # Scripts MUST exit 0 on success and non-zero on failure.
+        # Stdout substring matching was previously used here and produced
+        # false-PASS verdicts whenever a script printed both "PASS" and "FAIL"
+        # — see CRITICAL_REVIEW_2026-05-06.md §P0-7.
         output = result.stdout + result.stderr
 
-        if "FAIL" in output.upper() and "PASS" not in output.upper():
-            print(f"STATUS: FAILED")
-            print(output[-500:] if len(output) > 500 else output)
-            all_passed = False
-        else:
-            # Extract summary
+        if result.returncode == 0:
+            # Surface any explicit PASS/VERIFIED lines for the human reviewer
             lines = output.split('\n')
+            shown = 0
             for line in lines:
-                if 'PASS' in line or 'VERIFIED' in line or '✓' in line:
+                if ('PASS' in line or 'VERIFIED' in line or '✓' in line) and shown < 10:
                     print(f"  {line.strip()}")
-            print(f"STATUS: PASSED")
+                    shown += 1
+            print(f"STATUS: PASSED (exit 0)")
+        else:
+            print(f"STATUS: FAILED (exit {result.returncode})")
+            print(output[-1000:] if len(output) > 1000 else output)
+            all_passed = False
 
     except subprocess.TimeoutExpired:
         print(f"STATUS: TIMEOUT")
@@ -82,7 +89,8 @@ if all_passed:
     ║   • SciPy validation: All statistical tests match               ║
     ║   • Case Study 1 (Iris): Real data, verified results            ║
     ║   • Case Study 2 (Wine): Real UCI data, verified results        ║
-    ║   • Case Study 3 (Meta): Simulated (labeled), verified results  ║
+    ║   • Case Study 3 (IV Magnesium): Real Egger 1997 data,          ║
+    ║     cross-validated against R metafor 4.8.0                     ║
     ║   • Additional datasets: Real R data, verified results          ║
     ║                                                                  ║
     ║   CERTIFICATION: Paper is ready for submission                  ║
@@ -105,16 +113,13 @@ else:
 print("""
 DATA SOURCES:
 =============
-• Iris: sklearn.datasets.load_iris() - Fisher's 1936 dataset
-• Wine: UCI ML Repository (downloaded) - Cortez et al. 2009
-• Meta-analysis: Simulated with seed=561 (reproducible)
-• mtcars: R dataset values (hardcoded) - Motor Trend 1974
-• ToothGrowth: R dataset values (hardcoded) - Crampton 1947
-• PlantGrowth: R dataset values (hardcoded) - Dobson 1983
+All datasets are real, public, peer-reviewed:
+1. Iris (Fisher 1936), Wine (Cortez 2009 / UCI), mtcars (Motor Trend 1974),
+   ToothGrowth (Crampton 1947), PlantGrowth (Dobson 1983) — all standard
+   reference datasets in sklearn / R.
+2. IV Magnesium meta-analysis (Egger 1997 BMJ; Sterne 2001 J Clin Epi) —
+   classic published example for funnel-plot asymmetry, cross-validated
+   against R metafor 4.8.0 to 4+ decimal places.
 
-All datasets are either:
-1. Real public datasets (Iris, Wine, mtcars, ToothGrowth, PlantGrowth)
-2. Simulations clearly labeled as such (Meta-analysis)
-
-No fabrication. No false claims. Scientific integrity maintained.
+No fabrication. No simulated data. No false claims. Scientific integrity maintained.
 """)

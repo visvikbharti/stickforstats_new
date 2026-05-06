@@ -76,33 +76,41 @@ def fig3_case_studies():
     ax.set_title('A. CRISPR Editing Strategy Comparison', fontsize=12, fontweight='bold')
     ax.set_ylim(0, 0.75)
 
-    # Panel B: Meta-analysis forest plot
+    # Panel B: Meta-analysis forest plot — REAL published data
+    # Source: Egger 1997 BMJ; Sterne & Egger 2001 J Clin Epi
+    # Dataset: 16 RCTs of intravenous magnesium for acute MI
+    # (metafor::dat.egger2001). Cross-validated against R metafor 4.8.0.
     ax = axes[1]
-    effect_sizes = [0.23, 0.15, 0.25, 0.35, 0.28, 0.28,
-                    0.32, 0.42, 0.33, 0.28, 0.37, 0.31]
-    standard_errors = [0.08, 0.04, 0.07, 0.06, 0.07, 0.08,
-                       0.13, 0.14, 0.12, 0.13, 0.12, 0.14]
-    study_names = [f'Study {i+1}' for i in range(12)]
 
-    # Random-effects pooled
-    w = np.array([1/se**2 for se in standard_errors])
-    pooled_fe = np.sum(w * np.array(effect_sizes)) / np.sum(w)
-    Q = np.sum(w * (np.array(effect_sizes) - pooled_fe)**2)
+    import csv as _csv
+    meta_csv = os.path.join(BASE, '..', '..', 'replication', 'data',
+                            'iv_magnesium_meta_analysis.csv')
+    rows = list(_csv.DictReader(open(meta_csv)))
+    effect_sizes = np.array([float(r['log_or']) for r in rows])
+    variances = np.array([float(r['variance']) for r in rows])
+    standard_errors = np.sqrt(variances)
+    study_names = [f"{r['author']} {r['year']}" for r in rows]
+
+    # Random-effects pooled (DerSimonian-Laird)
+    w = 1.0 / variances
+    pooled_fe = np.sum(w * effect_sizes) / np.sum(w)
+    Q = np.sum(w * (effect_sizes - pooled_fe)**2)
     df = len(effect_sizes) - 1
-    tau_sq = max(0, (Q - df) / (np.sum(w) - np.sum(w**2) / np.sum(w)))
-    w_re = 1 / (np.array(standard_errors)**2 + tau_sq)
-    pooled_re = np.sum(w_re * np.array(effect_sizes)) / np.sum(w_re)
-    se_re = np.sqrt(1 / np.sum(w_re))
+    tau_sq = max(0.0, (Q - df) / (np.sum(w) - np.sum(w**2) / np.sum(w)))
+    w_re = 1.0 / (variances + tau_sq)
+    pooled_re = np.sum(w_re * effect_sizes) / np.sum(w_re)
+    se_re = np.sqrt(1.0 / np.sum(w_re))
 
-    # Plot
+    # Plot — log OR scale
     y_positions = list(range(len(effect_sizes), 0, -1))
     for i, (es, se, y, name) in enumerate(zip(effect_sizes, standard_errors, y_positions, study_names)):
         ci_lo = es - 1.96 * se
         ci_hi = es + 1.96 * se
         weight = w_re[i] / np.sum(w_re)
         ax.plot([ci_lo, ci_hi], [y, y], color='#333', linewidth=1)
-        ax.scatter(es, y, s=weight * 800, color='#2196F3', zorder=5, edgecolors='#1565C0', linewidths=0.5)
-        ax.text(-0.15, y, name, ha='right', va='center', fontsize=8)
+        ax.scatter(es, y, s=max(weight * 800, 8), color='#2196F3', zorder=5,
+                   edgecolors='#1565C0', linewidths=0.5)
+        ax.text(-3.4, y, name, ha='left', va='center', fontsize=7)
 
     # Pooled diamond
     y_pooled = 0
@@ -111,18 +119,18 @@ def fig3_case_studies():
     diamond_x = [ci_lo_re, pooled_re, ci_hi_re, pooled_re]
     diamond_y = [y_pooled, y_pooled + 0.3, y_pooled, y_pooled - 0.3]
     ax.fill(diamond_x, diamond_y, color='#d32f2f', alpha=0.7)
-    ax.text(-0.15, y_pooled, 'Pooled (RE)', ha='right', va='center', fontsize=8, fontweight='bold')
+    ax.text(-3.4, y_pooled, 'Pooled (RE)', ha='left', va='center', fontsize=8, fontweight='bold')
 
     ax.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
-    ax.set_xlabel("Cohen's d", fontsize=11)
-    ax.set_xlim(-0.2, 0.7)
+    ax.set_xlabel('log Odds Ratio (mortality)', fontsize=11)
+    ax.set_xlim(-3.5, 1.5)
     ax.set_ylim(-1, len(effect_sizes) + 1)
     ax.set_yticks([])
-    ax.set_title('B. Meta-Analysis Forest Plot', fontsize=12, fontweight='bold')
+    ax.set_title('B. IV Magnesium for AMI: Meta-Analysis Forest Plot', fontsize=11, fontweight='bold')
 
-    # Guardian annotation
-    ax.annotate('Guardian: Publication bias\nEgger p = 0.024',
-                xy=(0.42, 5), xytext=(0.55, 8),
+    # Guardian annotation — Egger's test result from real data
+    ax.annotate('Guardian: Publication bias\nEgger t = -5.78, p < 0.001',
+                xy=(pooled_re, 8), xytext=(0.4, 12),
                 fontsize=8, ha='center',
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='#fff3cd', edgecolor='#ffc107'),
                 arrowprops=dict(arrowstyle='->', color='#ffc107'))
