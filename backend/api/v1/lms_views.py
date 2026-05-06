@@ -137,6 +137,28 @@ class LTIGradePassbackView(APIView):
     """
     POST /api/v1/lti/grade/
     Submit a grade back to the LMS.
+
+    Body::
+
+        {
+          "assignment_type": "run_analysis",
+          "lti_user_id": "...",
+          "result_data": { ... },
+          # Optional AGS endpoints (echoed by the LTI launch JWT under
+          # the "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint"
+          # claim). When supplied, the score is actually POSTed to the
+          # LMS gradebook via OAuth client-credentials. When absent,
+          # the view returns the computed payload without posting (the
+          # legacy "build only" mode, useful for client-side preview).
+          "lineitem_url": "https://lms.example/...lineitem",
+          "token_url": "https://lms.example/login/oauth2/token",
+          "client_id": "tool-client-id-on-this-platform"
+        }
+
+    Previously, this view always built the payload and returned the
+    legacy ``"In production, this would be sent..."`` message --- the
+    LMS gradebook never actually received any scores. See
+    docs/CRITICAL_REVIEW_2026-05-06.md §P1-12 (LMS grade passback).
     """
 
     permission_classes = [AllowAny]
@@ -155,12 +177,33 @@ class LTIGradePassbackView(APIView):
             return Response({"error": "assignment_type and lti_user_id are required"}, status=400)
 
         score = LTIService.compute_assignment_score(assignment_type, result_data)
-
         grade_payload = LTIService.build_grade_passback(
             score=score,
             max_score=100,
             user_id=lti_user_id,
         )
+
+        lineitem_url = request.data.get("lineitem_url")
+        token_url = request.data.get("token_url")
+        client_id = request.data.get("client_id")
+
+        # If the caller supplied AGS endpoints, actually POST the score.
+        if lineitem_url and token_url and client_id:
+            post_result = LTIService.post_score_to_lms(
+                lineitem_url=lineitem_url,
+                token_url=token_url,
+                client_id=client_id,
+                score_payload=grade_payload,
+            )
+            return Response(
+                {
+                    "status": "grade_posted" if post_result.get("posted") else "grade_post_failed",
+                    "score": score,
+                    "max_score": 100,
+                    "grade_payload": grade_payload,
+                    "lms_post": post_result,
+                }
+            )
 
         return Response(
             {
@@ -168,7 +211,12 @@ class LTIGradePassbackView(APIView):
                 "score": score,
                 "max_score": 100,
                 "grade_payload": grade_payload,
-                "message": "Grade passback payload ready. In production, this would be sent to the LMS AGS endpoint.",
+                "message": (
+                    "Grade payload computed but NOT posted to LMS — "
+                    "supply lineitem_url, token_url, and client_id "
+                    "(from the LTI launch JWT's AGS endpoint claim) "
+                    "to actually submit the score."
+                ),
             }
         )
 

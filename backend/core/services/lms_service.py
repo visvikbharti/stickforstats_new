@@ -8,6 +8,9 @@ Handles launch requests, grade passback, and deep linking.
 import logging
 import time
 from datetime import datetime
+from typing import Any, Dict
+
+import requests  # module-level so unittest.mock.patch can locate it
 
 logger = logging.getLogger(__name__)
 
@@ -352,9 +355,7 @@ class LTIService:
     def build_grade_passback(
         cls, score, max_score, user_id, activity_progress="Completed", grading_progress="FullyGraded"
     ):
-        """
-        Build an LTI AGS (Assignment and Grade Services) score payload.
-        """
+        """Build an LTI AGS (Assignment and Grade Services) score payload."""
         return {
             "userId": user_id,
             "scoreGiven": score,
@@ -362,6 +363,150 @@ class LTIService:
             "activityProgress": activity_progress,
             "gradingProgress": grading_progress,
             "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    # ---- LMS AGS grade-passback transport ------------------------------
+
+    AGS_SCORE_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/score"
+
+    @classmethod
+    def _client_credentials_jwt(cls, token_url: str, client_id: str) -> str:
+        """Build the client-credentials JWT used to obtain an LMS
+        access token.
+
+        LTI 1.3 platforms accept ``client_assertion_type=...:jwt-bearer``
+        flow: the tool signs a short-lived JWT with its private key
+        (the same key the platform fetches from our /api/v1/lti/jwks/
+        endpoint) and posts it to the platform's token endpoint to
+        receive an access_token.
+        """
+        import time as _time
+        import uuid as _uuid
+
+        from jose import jwt as jose_jwt
+
+        from core.services.lti_keys import get_keypair, get_private_pem
+
+        _, _, kid = get_keypair()
+        pem = get_private_pem()
+        now = int(_time.time())
+        claims = {
+            "iss": client_id,
+            "sub": client_id,
+            "aud": token_url,
+            "iat": now,
+            "exp": now + 300,  # 5-minute window
+            "jti": str(_uuid.uuid4()),
+        }
+        return jose_jwt.encode(
+            claims, pem.decode("utf-8") if isinstance(pem, bytes) else pem,
+            algorithm="RS256", headers={"kid": kid},
+        )
+
+    @classmethod
+    def fetch_platform_access_token(
+        cls,
+        token_url: str,
+        client_id: str,
+        scope: str = AGS_SCORE_SCOPE,
+        timeout: float = 10.0,
+    ) -> Dict[str, Any]:
+        """Exchange a client-credentials JWT for an LMS access token.
+
+        Returns ``{"ok": True, "access_token": "...", "expires_in": ...}``
+        on success, or ``{"ok": False, "error": "..."}`` on failure.
+        """
+        try:
+            assertion = cls._client_credentials_jwt(token_url, client_id)
+        except Exception as exc:
+            logger.exception("Failed to build client-credentials JWT")
+            return {"ok": False, "error": f"client_assertion_build_failed: {exc}"}
+
+        try:
+            resp = requests.post(
+                token_url,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "client_assertion": assertion,
+                    "scope": scope,
+                },
+                timeout=timeout,
+            )
+        except requests.RequestException as exc:
+            logger.warning("LMS token endpoint unreachable: %s", exc)
+            return {"ok": False, "error": f"token_endpoint_unreachable: {exc}"}
+
+        if resp.status_code != 200:
+            return {
+                "ok": False,
+                "error": f"token_endpoint_status_{resp.status_code}",
+                "body": resp.text[:512],
+            }
+        try:
+            data = resp.json()
+        except ValueError as exc:
+            return {"ok": False, "error": f"token_endpoint_bad_json: {exc}"}
+        if "access_token" not in data:
+            return {"ok": False, "error": "token_endpoint_missing_access_token", "body": data}
+        return {
+            "ok": True,
+            "access_token": data["access_token"],
+            "expires_in": data.get("expires_in"),
+            "token_type": data.get("token_type", "Bearer"),
+            "scope": data.get("scope"),
+        }
+
+    @classmethod
+    def post_score_to_lms(
+        cls,
+        lineitem_url: str,
+        token_url: str,
+        client_id: str,
+        score_payload: Dict[str, Any],
+        timeout: float = 10.0,
+    ) -> Dict[str, Any]:
+        """POST an AGS Score payload to the LMS lineitem URL.
+
+        End-to-end: fetch a fresh access token via client-credentials,
+        then POST the JSON to ``{lineitem_url}/scores`` with the
+        AGS-specified content type.
+
+        Replaces the previous behaviour where the view built the
+        payload but never sent it (LMS gradebooks therefore never
+        received scores). See docs/CRITICAL_REVIEW_2026-05-06.md
+        §P1-12 (LMS grade passback).
+        """
+        token_resp = cls.fetch_platform_access_token(token_url, client_id)
+        if not token_resp.get("ok"):
+            return {"posted": False, **token_resp}
+
+        access_token = token_resp["access_token"]
+        # AGS spec: scores are POSTed to {lineitem_url}/scores with
+        # the application/vnd.ims.lis.v1.score+json content type.
+        url = lineitem_url.rstrip("/") + "/scores"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/vnd.ims.lis.v1.score+json",
+            "Accept": "application/json",
+        }
+        try:
+            resp = requests.post(url, json=score_payload, headers=headers, timeout=timeout)
+        except requests.RequestException as exc:
+            logger.warning("AGS lineitem unreachable: %s", exc)
+            return {"posted": False, "error": f"lineitem_unreachable: {exc}"}
+
+        if 200 <= resp.status_code < 300:
+            return {
+                "posted": True,
+                "status_code": resp.status_code,
+                "lineitem_url": lineitem_url,
+            }
+        return {
+            "posted": False,
+            "status_code": resp.status_code,
+            "error": f"ags_post_status_{resp.status_code}",
+            "body": resp.text[:512] if hasattr(resp, "text") else "",
         }
 
     @classmethod
