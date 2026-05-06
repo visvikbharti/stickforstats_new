@@ -16,14 +16,12 @@ export const GlobalSearch = lazy(() => import('../components/common/GlobalSearch
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/RegisterPage'));
 
-// Debug login — only loaded in development; in production the route
-// redirects to /login so this chunk is never fetched.
-const isDevMode =
-  process.env.NODE_ENV === 'development' ||
-  process.env.REACT_APP_DEBUG === 'true';
-const DebugLoginPage = isDevMode
-  ? lazy(() => import('../pages/DebugLoginPage'))
-  : lazy(() => import('../pages/LoginPage'));
+// /debug-login was historically a dev-only quick-login page bundling
+// hardcoded test credentials. The page (and its credential strings)
+// were removed in 2026-05-06 — see docs/CRITICAL_REVIEW_2026-05-06.md
+// §P0-5. The route is preserved as an alias to the regular login page
+// so bookmarks do not 404.
+const DebugLoginPage = LoginPage;
 
 // Main statistical pages
 const EnhancedStatisticalAnalysis = lazy(() => import('../pages/EnhancedStatisticalAnalysis'));
@@ -169,8 +167,8 @@ const ROUTE_CONFIG = [
   // Authentication
   { path: '/login', component: LoginPage, loadingMessage: 'Loading login...', skeleton: 'form' },
   { path: '/register', component: RegisterPage, loadingMessage: 'Loading registration...', skeleton: 'form' },
-  // In production, DebugLoginPage resolves to LoginPage (see top of file)
-  { path: '/debug-login', component: DebugLoginPage, loadingMessage: 'Loading debug login...' },
+  // /debug-login is now an alias for /login (see top of file)
+  { path: '/debug-login', component: DebugLoginPage, loadingMessage: 'Loading login...' },
 
   // Protected module routes
   { path: '/statistics/*', component: StatisticsPage, loadingMessage: 'Loading Statistics Module...', protected: true, skeleton: 'analysis' },
