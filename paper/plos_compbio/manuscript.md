@@ -116,7 +116,7 @@ Scores above 0.8 indicate high confidence; 0.6--0.8 signals caution; below 0.6 t
 
 **Causal inference.** DAG analysis with adjustment set identification, propensity score matching, inverse probability weighting, doubly robust estimation, difference-in-differences, and mediation analysis.
 
-**Power analysis.** Sample size determination and post-hoc power for t-tests, ANOVA, correlations, regression, and chi-square tests, with 50-decimal-digit precision via mpmath [26], validated against G\*Power [27].
+**Power analysis.** Sample size determination and post-hoc power for t-tests, ANOVA, correlations, regression, and chi-square tests, with 50-decimal-digit precision via mpmath [26]. Closed-form cross-validation against G*Power [27] is planned (the in-app validation toggle currently reports "not implemented" rather than a fake match) and tracked in the project's audit remediation plan.
 
 **Effect sizes.** 15+ measures (Cohen's d, Hedges' g, eta-squared, omega-squared, Cramer's V, NNT) with confidence intervals via parametric, bootstrap, and noncentral distribution methods.
 
@@ -172,7 +172,6 @@ All statistical calculations were validated against SciPy and R. Table 4 summari
 | Shapiro-Wilk | W-statistic | SciPy | Exact (10 digits) |
 | Linear regression | Coefficients | statsmodels | Exact (12 digits) |
 | Meta-analysis | Pooled effect | R metafor | Exact (10 digits) |
-| Power analysis | Sample size | G\*Power | Within 1% |
 
 Reproducibility scripts and reference datasets (Fisher's Iris [28], UCI Wine Quality [29]) are provided under `paper/replication/`.
 
@@ -265,7 +264,7 @@ The genomics module performs per-gene differential expression analysis with Guar
 
 ### Validation methodology
 
-Reference calculations were performed independently in R 4.3.2 and Python (SciPy 1.11) for all statistical tests. For each test type, we computed results on standard reference datasets and compared values to the maximum available floating-point precision. Meta-analysis results were validated against R's metafor package. Power analysis results were compared with G\*Power 3.1.9.7 outputs. Seven Python scripts and one R script independently verify all reported values. Reproducibility scripts are provided in the repository under `paper/replication/`.
+Reference calculations were performed independently in R 4.3.2 and Python (SciPy 1.11) for all statistical tests. For each test type, we computed results on standard reference datasets and compared values to the maximum available floating-point precision. Meta-analysis results were cross-validated against R's metafor package (DerSimonian-Laird estimator) to four-plus decimal places (see `paper/replication/verify_meta_analysis_real.py` for the 11-check verifier). G*Power cross-validation of power-analysis output is planned but not yet wired in this release; the in-app validation toggle reports "not implemented" rather than a fake match, and the manuscript's validation summary therefore omits the power-analysis row. Seven Python scripts and one R script independently verify all reported values. Reproducibility scripts are provided in the repository under `paper/replication/`.
 
 ### Guardian evaluation
 

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import packageJson from '../../../package.json';
 import './EnvironmentCapture.scss';
 
 // Environment categories
@@ -194,19 +195,36 @@ const EnvironmentCapture = () => {
     return info;
   }, []);
   
-  // Capture package information
+  // Capture package information from the real frontend package.json.
+  //
+  // Earlier code hard-coded six version strings (React 18.2.0, Redux
+  // 4.2.1, React-Redux 8.1.3, D3.js 7.8.5, Lodash 4.17.21, Axios 1.6.0)
+  // and stamped them into "reproducibility bundles" — defeating the
+  // purpose of the bundle. Some of those entries (Redux, React-Redux)
+  // were not even in package.json at all. See
+  // docs/CRITICAL_REVIEW_2026-05-06.md §P1-9.
+  //
+  // CRA supports importing JSON modules at build time, so we get the
+  // versions from the same manifest npm install consumes. React's own
+  // version is read at runtime via React.version (which can drift from
+  // package.json if a transitive dep pins an older copy).
   const capturePackageInfo = useCallback(() => {
     const info = {};
-    
-    // This would normally read from package.json
-    // For demonstration, using mock data structure
-    info['React'] = '18.2.0';
-    info['Redux'] = '4.2.1';
-    info['React-Redux'] = '8.1.3';
-    info['D3.js'] = '7.8.5';
-    info['Lodash'] = '4.17.21';
-    info['Axios'] = '1.6.0';
-    
+    const deps = (packageJson && packageJson.dependencies) || {};
+
+    // React: prefer runtime version (most accurate); fall back to
+    // package.json caret-stripped value if React.version is not yet
+    // available (extremely unlikely).
+    info['React (runtime)'] = React.version;
+
+    // Spread all production deps that the manifest declares. Strip
+    // npm range characters so the value reads as a plain version.
+    Object.keys(deps).sort().forEach((name) => {
+      const raw = deps[name] || '';
+      const cleaned = raw.replace(/^[\^~>=<*\s]+/, '').trim();
+      info[name] = cleaned || raw;
+    });
+
     return info;
   }, []);
   

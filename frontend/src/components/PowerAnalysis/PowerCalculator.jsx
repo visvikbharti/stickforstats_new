@@ -6,7 +6,7 @@ const PowerCalculator = ({
   testType: initialTestType = 't_test',
   calculationMode: initialCalcMode = 'power',
   onCalculation,
-  validationMode: initialValidationMode = true,
+  validationMode: initialValidationMode = false,  // off until G*Power integration lands (WORK_PLAN P3.18)
   className = ''
 }) => {
   const [testType, setTestType] = useState(initialTestType);
@@ -424,20 +424,25 @@ const PowerCalculator = ({
     }
   };
 
-  // G*Power validation
+  // G*Power cross-validation (not implemented).
+  //
+  // Earlier code in this function set gpowerValue = calculated and
+  // then reported `passed: true, percentDiff: '0.00'` --- a self-loop
+  // pretending to be a cross-validation. That fake "PASS" was visible
+  // in the UI and was cited in the PLOS Comp Bio manuscript Table 4
+  // as "Power analysis ... Within 1% (G*Power)". See
+  // docs/CRITICAL_REVIEW_2026-05-06.md §P1-9.
+  //
+  // Real cross-validation against G*Power requires either bundling
+  // G*Power's CLI (Linux + Windows binaries with their own license)
+  // or shelling out to R's `pwr` package via a backend endpoint. Both
+  // are tracked under WORK_PLAN P3.18; until they land, the UI now
+  // shows "validation not available" rather than a fake green check.
   const validateAgainstGPower = (calculated) => {
-    // Backend power validation not connected in this version
-    // Returns the frontend-calculated value without cross-validation
-    const tolerance = 0.01; // 1% tolerance
-    const gpowerValue = calculated; // Use actual calculated value, not fake
-
     return {
-      passed: true, // Will validate against backend in production
+      enabled: false,
       calculated,
-      gpower: gpowerValue,
-      difference: 0,
-      percentDiff: '0.00',
-      note: 'Backend validation pending'
+      message: 'G*Power cross-validation is not implemented. The shown power value comes from the in-app calculation only.',
     };
   };
 
@@ -616,13 +621,13 @@ const PowerCalculator = ({
               Calculate {calculationMode.charAt(0).toUpperCase() + calculationMode.slice(1)}
             </button>
             
-            <label className="checkbox-label">
-              <input 
+            <label className="checkbox-label" title="G*Power cross-validation is planned but not yet implemented (WORK_PLAN P3.18). Toggling this only shows the disclosure banner.">
+              <input
                 type="checkbox"
                 checked={validationMode}
                 onChange={(e) => setValidationMode(e.target.checked)}
               />
-              Validate with G*Power
+              Validate with G*Power (not yet implemented)
             </label>
 
             <label className="checkbox-label">
@@ -663,7 +668,13 @@ const PowerCalculator = ({
                 </span>
               </div>
 
-              {validationResults.passed !== undefined && (
+              {validationResults.enabled === false && validationResults.message && (
+                <div className="validation-status pending" role="status">
+                  <span className="validation-icon" aria-hidden="true">ⓘ</span>
+                  <span className="validation-text">{validationResults.message}</span>
+                </div>
+              )}
+              {validationResults.enabled === true && validationResults.percentDiff !== undefined && (
                 <div className={`validation-status ${validationResults.passed ? 'passed' : 'failed'}`}>
                   <span className="validation-icon">
                     {validationResults.passed ? '✓' : '⚠'}

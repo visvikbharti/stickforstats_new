@@ -280,31 +280,61 @@ const BundleComparison = () => {
     URL.revokeObjectURL(url);
   }, [generateReport]);
   
-  // Generate difference matrix
+  // Compute pairwise similarity score between two bundles using the
+  // same field-by-field comparison logic ``compareValues`` uses for
+  // the primary side-by-side view. Returns a number in [0, 100]
+  // equal to (identical_fields / total_fields) * 100 across all
+  // ComparisonCategories. Was a Math.random()-based placeholder; see
+  // docs/CRITICAL_REVIEW_2026-05-06.md §P1-9.
+  const computePairwiseSimilarity = useCallback((b1, b2) => {
+    if (!b1 || !b2) return 0;
+    let identical = 0;
+    let total = 0;
+    Object.entries(ComparisonCategories).forEach(([catKey, category]) => {
+      category.fields.forEach((field) => {
+        total += 1;
+        const v1 = getNestedValue(b1.data, catKey.toLowerCase(), field);
+        const v2 = getNestedValue(b2.data, catKey.toLowerCase(), field);
+        if (compareValues(v1, v2).type === 'IDENTICAL') {
+          identical += 1;
+        }
+      });
+    });
+    return total === 0 ? 0 : (identical / total) * 100;
+  }, []);
+
+  // Generate difference matrix.
+  //
+  // Each off-diagonal cell is a real pairwise similarity score
+  // computed by ``computePairwiseSimilarity`` (above) — NOT a random
+  // number. The diagonal is forced to 100 (a bundle compared with
+  // itself is identical by definition).
   const generateDifferenceMatrix = useCallback(() => {
     if (bundles.length < 2) return [];
-    
+
     const matrix = [];
-    
     for (let i = 0; i < bundles.length; i++) {
       const row = [];
       for (let j = 0; j < bundles.length; j++) {
         if (i === j) {
           row.push({ score: 100, type: 'IDENTICAL' });
         } else {
-          // Simple similarity calculation
-          const similarity = Math.random() * 30 + 70; // Placeholder
-          row.push({ 
+          const similarity = computePairwiseSimilarity(bundles[i], bundles[j]);
+          row.push({
             score: similarity,
-            type: similarity > 95 ? 'IDENTICAL' : similarity > 85 ? 'MINOR' : 'MAJOR'
+            type:
+              similarity > 95
+                ? 'IDENTICAL'
+                : similarity > 85
+                ? 'MINOR'
+                : 'MAJOR',
           });
         }
       }
       matrix.push(row);
     }
-    
     return matrix;
-  }, [bundles]);
+  }, [bundles, computePairwiseSimilarity]);
   
   // Auto-compare when bundles selected
   useEffect(() => {
