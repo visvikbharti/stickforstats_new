@@ -86,8 +86,10 @@ The eight validators and their methods are:
    [@anderson1954test] tests on each group.
 2. **Variance homogeneity** --- Levene's test [@levene1960robust] with
    Brown-Forsythe correction [@brown1974robust].
-3. **Independence** --- Autocorrelation analysis (lag-1 through lag-5) with
-   Durbin-Watson statistic [@durbin1951testing].
+3. **Independence** --- Lag-1 Pearson autocorrelation on observation order.
+   Distinct from the Durbin-Watson statistic [@durbin1951testing], which is
+   restricted to regression residuals; our implementation operates on the raw
+   observation series and reports the inferential p-value from the Pearson test.
 4. **Outlier detection** --- Combined IQR fencing and modified Z-score method
    [@grubbs1969procedures].
 5. **Sample size adequacy** --- Rule-based minimum thresholds calibrated per

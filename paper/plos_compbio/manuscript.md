@@ -15,7 +15,7 @@ Reproducible computational biology depends on a chain of statistical decisions t
 
 We present StickForStats, an open-source web platform that reframes assumption validation from an optional post-hoc diagnostic into a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators for normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity---checks each test's assumptions before execution; when critical violations are detected, an autonomous cascade engine reroutes the analysis to an appropriate nonparametric alternative with a documented decision trail.
 
-We demonstrate Guardian on three real datasets. In a CRISPR editing-strategy comparison using TOPSIS scores from CRISPRArchitect v3 across four modalities (base editing, prime editing, and two HDR variants), Guardian detected non-normality and cascaded ANOVA (F = 1122, p < 10^-35^) to Kruskal-Wallis (H = 36.6, p < 10^-7^), identifying base editing as the safest modality for iPSC applications. In a UCI Wine Quality correlation analysis, Guardian flagged ordinal data and switched Pearson (r = 0.476) to Spearman (ρ = 0.479). In a twelve-trial meta-analysis, Guardian detected publication bias (Egger's p = 0.024) that a conventional pipeline would have missed.
+We demonstrate Guardian on three real datasets. In a CRISPR editing-strategy comparison using TOPSIS scores from CRISPRArchitect v3 across four modalities (base editing, prime editing, and two HDR variants), Guardian detected non-normality and cascaded ANOVA (F = 1122, p < 10^-35^) to Kruskal-Wallis (H = 36.6, p < 10^-7^), identifying base editing as the safest modality for iPSC applications. In a UCI Wine Quality correlation analysis, Guardian flagged ordinal data and switched Pearson (r = 0.476) to Spearman (ρ = 0.479). In a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (data: `metafor::dat.egger2001`), Guardian detected severe publication bias (Egger's t = -5.78, p < 0.001) that a conventional pipeline would have missed.
 
 A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against seven specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath and cross-checked against G\*Power. The platform is MIT-licensed with more than 1,500 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
 
@@ -63,12 +63,12 @@ Guardian is designed around four principles: (1) *Comprehensiveness*---check the
 
 1. **Normality** --- Shapiro-Wilk [16] (n <= 5000) and Anderson-Darling [17] (n > 5000 or as confirmation).
 2. **Variance homogeneity** --- Levene's test [18] with Brown-Forsythe median correction [19].
-3. **Independence** --- Lag-1 autocorrelation analysis [20] detecting temporal or spatial dependencies in observations.
+3. **Independence** --- Lag-1 Pearson autocorrelation on observation order, detecting temporal or spatial dependencies in observations. Distinct from the Durbin-Watson statistic [20], which is restricted to regression residuals; our implementation operates on the raw observation series and reports the inferential p-value from the Pearson test.
 4. **Outlier detection** --- Combined IQR fencing and Z-score method [21] with configurable sensitivity thresholds.
 5. **Sample size adequacy** --- Rule-based thresholds calibrated per test type from power analysis literature [22].
 6. **Modality** --- Kernel density estimation with Silverman bandwidth for multimodality detection.
 7. **Linearity** --- R-squared comparison (linear vs. quadratic) with Wald-Wolfowitz runs test [23] and RESET test.
-8. **Homoscedasticity** --- Breusch-Pagan [24] and White's test for non-constant variance.
+8. **Homoscedasticity** --- Breusch-Pagan test [24] on residuals from a fitted linear model.
 
 Table 1 shows which validators are activated for each test type.
 
@@ -162,8 +162,8 @@ All statistical calculations were validated against SciPy and R. Table 4 summari
 
 | Test | Metric | Reference | Agreement |
 |---|---|---|---|
-| t-test (independent) | t-statistic | SciPy | Exact (16 digits) |
-| t-test (paired) | t-statistic | SciPy | Exact (16 digits) |
+| t-test (independent) | t-statistic | SciPy | Exact (14 digits) |
+| t-test (paired) | t-statistic | SciPy | Exact (14 digits) |
 | ANOVA (one-way) | F-statistic | SciPy | Exact (14 digits) |
 | Pearson correlation | r | SciPy | Exact (16 digits) |
 | Spearman correlation | rho | SciPy | Exact (16 digits) |
@@ -171,7 +171,7 @@ All statistical calculations were validated against SciPy and R. Table 4 summari
 | Mann-Whitney U | U-statistic | SciPy | Exact |
 | Shapiro-Wilk | W-statistic | SciPy | Exact (10 digits) |
 | Linear regression | Coefficients | statsmodels | Exact (12 digits) |
-| Meta-analysis | Pooled effect | R metafor | Exact (10 digits) |
+| Meta-analysis | Pooled effect | R metafor | 3 decimal places |
 
 Reproducibility scripts and reference datasets (Fisher's Iris [28], UCI Wine Quality [29]) are provided under `paper/replication/`.
 
@@ -190,7 +190,7 @@ To demonstrate StickForStats' integration with computational biology pipelines, 
 
 **Traditional approach (ANOVA):** F = 1122.10, p = 1.34e-35. A researcher might conclude significant differences and stop here.
 
-**Guardian-augmented approach:** Guardian detected a normality WARNING in the ABE group (Shapiro-Wilk W = 0.793, p = 0.012) and a sample size WARNING (n = 10 per group). Confidence score = 0.72 (CAUTION). Guardian cascaded to Kruskal-Wallis H test, which yielded H = 36.59, p = 5.62e-08 with epsilon-squared = 0.93 (large effect). All six pairwise Mann-Whitney comparisons were significant after Benjamini-Hochberg correction (all adjusted p < 0.001). Base editing consistently achieved the highest composite scores (mean = 0.587), driven by its superior safety profile (safety = 1.0, no DSBs)---aligning with iPSC safety concerns regarding p53-mediated selection of TP53-mutant clones. This case study demonstrates that even highly significant ANOVA results (p = 10^-35) should not exempt the analysis from assumption checking; Guardian catches the normality violation regardless of the effect magnitude.
+**Guardian-augmented approach:** Guardian detected a normality WARNING in the ABE group (Shapiro-Wilk W = 0.793, p = 0.012) and a sample size WARNING (n = 10 per group). Confidence score = 0.72 (CAUTION). Guardian cascaded to Kruskal-Wallis H test, which yielded H = 36.59, p = 5.62e-08 with eta-squared H = 0.93 (unbiased form per Tomczak & Tomczak 2014; large effect). All six pairwise Mann-Whitney comparisons were significant after Benjamini-Hochberg correction (all adjusted p < 0.001). Base editing consistently achieved the highest composite scores (mean = 0.587), driven by its superior safety profile (safety = 1.0, no DSBs)---aligning with iPSC safety concerns regarding p53-mediated selection of TP53-mutant clones. This case study demonstrates that even highly significant ANOVA results (p = 10^-35) should not exempt the analysis from assumption checking; Guardian catches the normality violation regardless of the effect magnitude.
 
 ### Case Study 2: UCI Wine Quality --- Correlation assumptions
 
@@ -330,7 +330,7 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 
 **S3 Text. Additional case studies.** Guardian validation results on mtcars (regression), ToothGrowth (two-sample t-test), and PlantGrowth (ANOVA) datasets from R's standard library.
 
-**S4 Table. Guardian test suite coverage.** Complete breakdown of 38 backend tests (22 integration, 16 middleware) and 55 frontend tests with coverage areas.
+**S4 Table. Guardian test suite coverage.** Complete breakdown of 38 backend tests (22 integration, 16 middleware) and 59 frontend tests with coverage areas.
 
 **S5 Table. Performance benchmarks.** End-to-end API latency for the four statistical tests cited in the manuscript, measured against a local Django development server on an Apple M-series laptop (macOS, Python 3.9, `DJANGO_DEBUG=True`). Each cell reports mean ± SD over 100 successive requests following 10 warm-up requests; inputs are fixed-seed synthetic samples (t-test: two groups of n = 50; ANOVA: four groups of n = 30; correlation: n = 100 paired observations; regression: n = 100, two predictors). The *standard* column disables the assumption-validation pipeline (`check_assumptions = false`); the *Guardian* column enables the full eight-validator pipeline with result validation (`check_assumptions = true`).
 
