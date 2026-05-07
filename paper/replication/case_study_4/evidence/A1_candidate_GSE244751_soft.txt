@@ -1,0 +1,8 @@
+
+1. ALS-associated FUS mutation reshapes the RNA and protein composition and dynamic of Stress Granules.
+(Submitter supplied) Stress Granules (SG) formation is a cellular protection mechanism in harmful conditions, constituting a storage for untranslated mRNAs and RNA-binding proteins (RBPs); however, these condensates can turn into pathological aggregates, that in neurons are related to the onset of neurodegenerative diseases, like Amyotrophic Lateral Sclerosis (ALS). Mutations in the RBP FUS, leading to its cytoplasmic mis-localization, are causatively linked to ALS, since they mediate its accumulation in SGs, triggering their transition towards cytotoxic inclusions. more...
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL24676 16 Samples
+FTP download: GEO (TSV) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE244nnn/GSE244751/
+Series		Accession: GSE244751	ID: 200244751

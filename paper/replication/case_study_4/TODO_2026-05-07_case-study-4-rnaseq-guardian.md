@@ -15,8 +15,8 @@
 
 | Phase | Status | Started | Completed | Notes |
 |---|---|---|---|---|
-| A — Dataset selection | ⬜ pending | — | — | Awaiting kickoff |
-| B — Data download & sanity | ⬜ pending | — | — | Blocked on A |
+| A — Dataset selection | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:30 | GSE219027 chosen; awaiting PI sign-off |
+| B — Data download & sanity | ⬜ pending | — | — | Blocked on PI sign-off of A |
 | C — Reproduce original analysis | ⬜ pending | — | — | Blocked on B |
 | D — Guardian-augmented analysis | ⬜ pending | — | — | Blocked on C |
 | E — Write manuscript section | ⬜ pending | — | — | Blocked on D |
@@ -29,25 +29,31 @@
 
 ### Tasks
 
-- [ ] **A.1** Spawn dataset-scouting subagent with anti-fabrication instructions
-- [ ] **A.2** Query NCBI eutils GEO datasets API (`db=gds`) for candidate RNA-seq studies meeting criteria
-- [ ] **A.3** Fetch top 5-10 candidate GSE records via efetch
-- [ ] **A.4** For each candidate, fetch the linked PubMed record
-- [ ] **A.5** For each candidate, fetch the PMC full-text record (filter to open-access papers)
-- [ ] **A.6** Read the Methods section of each open-access candidate, identify the differential expression test used
-- [ ] **A.7** Pick the first candidate that meets all selection criteria (see `PLAN.md` Phase A)
-- [ ] **A.8** Present chosen dataset to PI for sign-off
+- [x] **A.1** Spawn dataset-scouting subagent with anti-fabrication instructions
+- [x] **A.2** Query NCBI eutils GEO datasets API (`db=gds`) for candidate RNA-seq studies meeting criteria — 5 query variants saved at `evidence/A0_geo_search_*.xml`
+- [x] **A.3** Fetch top candidates via esummary + acc.cgi — 60+ candidate briefs at `evidence/A1_candidate_*_brief.txt` and `evidence/A1_candidate_*_samples.txt`
+- [x] **A.4** For top 6 candidates, fetched the linked PubMed record at `evidence/A2_candidate_*_pubmed.xml`
+- [x] **A.5** Fetched the PMC full-text record for 4 open-access candidates: PMC10068310 (chosen), PMC9624514, PMC11291271, PMC11474141
+- [x] **A.6** Read the Methods section of each open-access candidate and identified the differential expression test
+- [x] **A.7** Picked GSE219027 — meets all 8 selection criteria
+- [ ] **A.8** Present chosen dataset to PI for sign-off ← awaiting PI
 
 ### Checkpoints
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **A1** | GEO record verified via eutils efetch | ⬜ | `evidence/A1_geo_record.xml` | — |
-| **A2** | PubMed record verified via eutils efetch | ⬜ | `evidence/A2_pubmed.xml` | — |
-| **A3** | Open-access status confirmed via PMC | ⬜ | `evidence/A3_pmc_check.xml` | — |
-| **A4** | Original analysis identified, Methods sentence quoted | ⬜ | `evidence/A4_methods_quote.md` | — |
+| **A1** | GEO record verified via eutils + acc.cgi | ✅ | `evidence/A1_verdict.md` (+ raw `A1_candidate_GSE219027_brief.txt` and `A1_candidate_GSE219027_samples.txt`) | PASS |
+| **A2** | PubMed record verified via eutils efetch | ✅ | `evidence/A2_verdict.md` (+ raw `A2_candidate_GSE219027_pubmed.xml`) | PASS |
+| **A3** | Open-access status confirmed via PMC | ✅ | `evidence/A3_verdict.md` (+ raw `A3_candidate_PMC10068310_fulltext.xml`) | PASS |
+| **A4** | Original analysis identified, Methods sentence quoted | ✅ | `evidence/A4_verdict.md` | PASS |
 
 **Phase A complete when:** all four checkpoints PASS and PI has signed off on the chosen dataset.
+
+**Chosen dataset:**
+- GSE219027 — bulk RNA-seq, n = 24 (12 obese + 12 normal-weight osteoarthritis patients)
+- Paper: Wijesinghe et al. 2023, *Clin Transl Med* 13(4):e1232 (PMID 37006170, PMC10068310, DOI 10.1002/ctm2.1232)
+- Test to reproduce: DESeq2 with VST transformation (per-paper Methods §2.3)
+- Headline result to match: 416 DEGs at FC ±1.5, p<0.05; named genes MMP9, S100A8, TYROBP, ARG2, IKBKE, PALB2, UQCC3, COL4*
 
 ---
 
@@ -183,6 +189,8 @@ Date-stamped record of decisions taken during execution.
 
 - **2026-05-07** — PI approved the plan and the anti-fabrication charter as written. Phase A pending start.
 - **2026-05-07** — Domain preference left to executing agent's discretion. Default lean: cancer-vs-normal (rationale: most reviewer-relevant, GEO has strong selection).
+- **2026-05-07** — Phase A scouting agent ran. Default cancer-vs-normal preference relaxed to broader "comp-bio relevant disease vs healthy" because the strict cancer-vs-normal filter intersected with all other criteria (n≥8/group, two-group only, raw counts, PMC OA, reproducible test) returned no clean candidates after evaluating ~60 datasets. The chosen dataset (GSE219027, osteoarthritis obese vs normal-weight synovial fibroblasts) is in the inflammation/immunology space — relevant for comp bio but not strictly cancer.
+- **2026-05-07** — Two named candidates were rejected for important methodological reasons documented in `evidence/A1_verdict.md`'s rejection list. Most-relevant rejection: GSE264492 (HeLa + Streptococcus agalactiae) used the time-series tool TiSA rather than a clean two-group test, breaking the "we can reproduce this" criterion.
 
 ---
 

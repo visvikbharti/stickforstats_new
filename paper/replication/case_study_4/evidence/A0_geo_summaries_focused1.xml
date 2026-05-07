@@ -1,0 +1,2997 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN" "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
+<eSummaryResult>
+<DocSum>
+	<Id>200285461</Id>
+	<Item Name="Accession" Type="String">GSE285461</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Endogenous fine-mapping of functional regulatory elements in complex genetic loci in HAP1 [scRNA-seq]</Item>
+	<Item Name="summary" Type="String">The majority of genetic loci linked to polygenic complex traits are found in non-coding regions of the human genome. These loci often exhibit complex gene regulatory relationships and linkage disequilibrium (LD) configurations, making it challenging to accurately identify causal variants and their target genes. We used multiplexed single-cell CRISPR interference and activation perturbations to investigate cis-regulatory element (CRE) and target gene expression relationships within tight LD in the endogenous chromatin context. We demonstrated the prevalence of multiple causality in perfect LD (pLD) for independent expression quantitative trait locus (eQTL) and uncovered fine-grained genetic effects on gene expression within pLD, which are difficult to decipher using traditional eQTL fine-mapping or existing computational methods. We found that over one third of the causal CREs lack classical epigenetic markers, and we functionally validated one of these hidden regulatory mechanisms. Leveraging Multiome single-cell epigenetic and sequence perturbations, we highlighted the regulatory plasticity of the human genome. Our study will guide the exploration of missing causal mechanisms in molecular trait formation and disease development.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">285461</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">MTX, TSV, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702818</Item>
+			<Item Name="Title" Type="String">CRISPRa, transcriptomes scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702824</Item>
+			<Item Name="Title" Type="String">CRISPRa, transcriptomes scRNA-seq, rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702821</Item>
+			<Item Name="Title" Type="String">CRISPRa, transcriptomes scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702827</Item>
+			<Item Name="Title" Type="String">CRISPRko, sgRNA enrichment scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702830</Item>
+			<Item Name="Title" Type="String">CRISPRko, sgRNA enrichment scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702826</Item>
+			<Item Name="Title" Type="String">CRISPRa, sgRNA enrichment scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702823</Item>
+			<Item Name="Title" Type="String">CRISPRko, transcriptomes scRNA-seq, rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702829</Item>
+			<Item Name="Title" Type="String">CRISPRa, sgRNA enrichment scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702828</Item>
+			<Item Name="Title" Type="String">CRISPRi, sgRNA enrichment scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702831</Item>
+			<Item Name="Title" Type="String">CRISPRi, sgRNA enrichment scRNA-seq, rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702832</Item>
+			<Item Name="Title" Type="String">CRISPRa, sgRNA enrichment scRNA-seq, rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702817</Item>
+			<Item Name="Title" Type="String">CRISPRko, transcriptomes scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702825</Item>
+			<Item Name="Title" Type="String">CRISPRi, sgRNA enrichment scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702820</Item>
+			<Item Name="Title" Type="String">CRISPRko, transcriptomes scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702822</Item>
+			<Item Name="Title" Type="String">CRISPRi, transcriptomes scRNA-seq,rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702819</Item>
+			<Item Name="Title" Type="String">CRISPRi, transcriptomes scRNA-seq, rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702816</Item>
+			<Item Name="Title" Type="String">CRISPRi, transcriptomes scRNA-seq, rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702833</Item>
+			<Item Name="Title" Type="String">CRISPRko, sgRNA enrichment scRNA-seq, rep3</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40882622</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE285nnn/GSE285461/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200285301</Id>
+	<Item Name="Accession" Type="String">GSE285301</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Exosomal circ_0006896 promotes AML progression via interaction with HDAC1 and restriction of antitumor immunity</Item>
+	<Item Name="summary" Type="String">Drug resistance and immune escape continue to contribute to poor prognosis in AML. Increasing evidence suggests that exosomes play a crucial role in AML immune microenvironment. We aimed to find a functional exosomal circRNAs/lncRNA/mRNA correlating with the progression of AML patients and further analyze its underlying mechanism in AML cells and tumor microenvironment immune cells. We find a new crucial exosomal circRNA, circ_0006896, is upregulated in both AML cells and exosomes and correlates with the prognosis and relapse of AML. In vitro and in vivo studies suggest that circ_0006896 significantly promotes AML cell proliferation, reduces chemotherapy sensitivity, and more importantly, impairs the efficacy of adoptive T cell-transfer immunotherapy.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">285301</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">XLSX</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700444</Item>
+			<Item Name="Title" Type="String">molm-13 sh-circ 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700436</Item>
+			<Item Name="Title" Type="String">healthy1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700433</Item>
+			<Item Name="Title" Type="String">AML4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700430</Item>
+			<Item Name="Title" Type="String">AML1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700432</Item>
+			<Item Name="Title" Type="String">AML3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700435</Item>
+			<Item Name="Title" Type="String">AML6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700438</Item>
+			<Item Name="Title" Type="String">healthy3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700441</Item>
+			<Item Name="Title" Type="String">molm-13 NC-circ 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700437</Item>
+			<Item Name="Title" Type="String">healthy2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700431</Item>
+			<Item Name="Title" Type="String">AML2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700434</Item>
+			<Item Name="Title" Type="String">AML5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700442</Item>
+			<Item Name="Title" Type="String">molm-13 NC-circ 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700439</Item>
+			<Item Name="Title" Type="String">healthy4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700445</Item>
+			<Item Name="Title" Type="String">molm-13 sh-circ 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700443</Item>
+			<Item Name="Title" Type="String">molm-13 sh-circ 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8700440</Item>
+			<Item Name="Title" Type="String">molm-13 NC-circ 1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">16</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39762891</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE285nnn/GSE285301/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200264182</Id>
+	<Item Name="Accession" Type="String">GSE264182</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Iron-induced oxidative stress alters the transcriptome of bronchoalveolar lavage cells in silicosis</Item>
+	<Item Name="summary" Type="String">Elevated iron levels are observed in silicosis patients, leading alveolar macrophages to increase ferritin production in response to this cellular stress. Our study employed a multi-omic approach to investigate how excess iron/ferritin influences the molecular profile of bronchoalveolar lavage (BAL) cells. Thirty-one participants were included, with RNA sequencing conducted on BAL cells from stone benchtop industry workers diagnosed with simple or complicated silicosis, compared to a cohort with no disease. BAL fluid (BALF) was analysed using gas chromatography-mass spectrometry (GC-MS) to screen for 498 volatile organic compounds (VOCs). Compared to no disease, simple silicosis showed 172 differentially expressed genes (DEGs), while complicated silicosis displayed 531 DEGs. Spearman correlation analysis revealed 1072 genes significantly positively association with BALF ferritin. Gene set variation analysis revealed upregulation in glutathione metabolism pathways in BAL cells, including ferroptosis repressor genes (GCLC/GCLM, GSR, SLC7A11, TXNRD1, and AIFM2). In the BALF, 116 VOCs were detected, with 4 showing reduced levels in silicosis patients, independent of smoking status. Notably, the abundance of these VOCs exhibited an inverse association with ferritin levels. In summary, antioxidant defence pathways, incorporating genes that encode proteins to prevent ferroptosis, an iron-dependent non-apoptotic form of cell death, are upregulated in BAL from silicosis patients. Excess iron/ferritin was also associated with a reduction in multiple VOCs present in BALF, which may reflect their oxidative metabolism. We propose that BAL macrophages loaded with iron experience oxidative stress, leading to the activation of an anti-ferroptotic gene network that prolongs the survival of this dysfunctional BAL cell population.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">264182</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">CSV, XLS</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213663</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213666</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213669</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213672</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213675</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213658</Item>
+			<Item Name="Title" Type="String">BAL Cells, Chronic Cough, Control Patient 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213661</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed No Disease, Control Patient 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213670</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213664</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213673</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213676</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213667</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213659</Item>
+			<Item Name="Title" Type="String">BAL Cells, Chronic Cough, Control Patient 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213662</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed No Disease, Control Patient 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213660</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed No Disease, Control Patient 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213665</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213668</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Simple Silicosis, Patient 6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213671</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8213674</Item>
+			<Item Name="Title" Type="String">BAL Cells, Silica Exposed, Complicated Silicosis, Patient 6</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">19</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39485079</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE264nnn/GSE264182/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200263125</Id>
+	<Item Name="Accession" Type="String">GSE263125</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Macrophage-induced enteric neurodegeneration leads to motility impairment during gut inflammation</Item>
+	<Item Name="summary" Type="String">Background: Current studies provide compelling evidence that the enteric nervous system and neighboring resident macrophages in the muscularis externa modulate neuroimmune processes in the gut after abdominal surgery. While substantial knowledge exists about macrophage-enteric glia interactions, the fate of enteric neurons, which have an indispensable role in gut homeostasis and gastrointestinal motility, has not been thoroughly investigated during enteric neuroinflammation. Therefore, we investigated the impact of enteric neuron-macrophage interactions on postoperative trauma and subsequent motility disturbances, i.e., postoperative ileus. Methods: Neuroinflammation and postoperative ileus were induced in various transgenic mice by surgical manipulation of the small intestine. We studied enteric neurons and macrophage-specific transcriptomes using bulk RNA-Seq in neuron-specific RiboTag mice and sorted CX3CR1-GFP+ macrophages. To investigate their intercellular communication, we treated CX3CR1-GFP+ mice with CSFR1-antibody to deplete macrophages and subsequently induce POI through surgical trauma. These mice were examined for gastrointestinal motility, immune cell infiltration, and neuronal function. Ultimately, we validated the murine data in human gut samples collected early and late during abdominal surgery to understand the impact of surgical manipulation on patients' enteric nervous system function. Results: We detected strong neuronal activation in the early postsurgical phase, followed, after 24h, by transcriptional signatures of neuronal proliferation, neuronal death, and synaptic degradation. Neuron-specific transcriptome analysis confirmed these changes and verified the neuronal responses to the inflammatory environment. Simultaneously, our study revealed a neurodegenerative profile in macrophage-specific transcriptomes during POI. Depletion of macrophages before surgical manipulation led to decreased neuronal death, less synaptic decay, and improved GI motility, emphasizing the essential role of macrophages in neurodegeneration during intestinal neuroinflammation. In human jejunal muscularis externa samples, taken at early and late stages of pancreatectomies, we detected reactive and dying neurons with dysregulated gene expression of synaptic signaling and neurogenic processes. Conclusion: Surgical trauma and acute intestinal inflammation activate enteric neurons and induce neurodegeneration with severe synaptic decay, predominantly mediated by resident macrophages. Future studies should focus on neuroprotective mechanisms to dampen neurodegeneration and promote faster recovery from postoperative inflammation and motility disturbances.</Item>
+	<Item Name="GPL" Type="String">24676;24247</Item>
+	<Item Name="GSE" Type="String">263125</Item>
+	<Item Name="taxon" Type="String">Homo sapiens; Mus musculus</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186183</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186180</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186192</Item>
+			<Item Name="Title" Type="String">IM3h_RiboTag IP_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186189</Item>
+			<Item Name="Title" Type="String">Naive_RiboTag IP_5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186186</Item>
+			<Item Name="Title" Type="String">Naive_RiboTag IP_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186195</Item>
+			<Item Name="Title" Type="String">IM24h_RiboTag IP_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186198</Item>
+			<Item Name="Title" Type="String">IM24h_RiboTag IP_4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186178</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186184</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186181</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186193</Item>
+			<Item Name="Title" Type="String">IM3h_RiboTag IP_4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186187</Item>
+			<Item Name="Title" Type="String">Naive_RiboTag IP_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186182</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186199</Item>
+			<Item Name="Title" Type="String">IM24h_RiboTag IP_5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186179</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186190</Item>
+			<Item Name="Title" Type="String">IM3h_RiboTag IP_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186185</Item>
+			<Item Name="Title" Type="String">Naive_RiboTag IP_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186196</Item>
+			<Item Name="Title" Type="String">IM24h_RiboTag IP_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186188</Item>
+			<Item Name="Title" Type="String">Naive_RiboTag IP_4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186191</Item>
+			<Item Name="Title" Type="String">IM3h_RiboTag IP_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186194</Item>
+			<Item Name="Title" Type="String">IM3h_RiboTag IP_5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186177</Item>
+			<Item Name="Title" Type="String">Human-Patient-Sample 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8186197</Item>
+			<Item Name="Title" Type="String">IM24h_RiboTag IP_3</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">23</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39762650</Item>
+		<Item Name="int" Type="Integer">41722854</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE263nnn/GSE263125/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200253447</Id>
+	<Item Name="Accession" Type="String">GSE253447</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Transcriptomic changes in a KRASG12C mutant cell line (H358 cells) treated with the allosteric SHP2 inhibitor TNO155 for different times</Item>
+	<Item Name="summary" Type="String">Allosteric SHP2 inhibitors have been shown to be effective against RTKs and certain KRAS mutation-driven tumors in preclinical models. However, the comprehensive effects of SHP2 inhibitors on cellular signaling, particularly the inhibition of its phosphatase function, remain unclear.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">253447</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020860</Item>
+			<Item Name="Title" Type="String">DMSO_24h, biol rep 1 [con_24_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020866</Item>
+			<Item Name="Title" Type="String">DMSO_4h, biol rep 1 [con_4_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020863</Item>
+			<Item Name="Title" Type="String">SHP2i_4h, biol rep 1 [T5_4_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020852</Item>
+			<Item Name="Title" Type="String">SHP2i_48h, biol rep 2 [T5_48_2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020868</Item>
+			<Item Name="Title" Type="String">DMSO_4h, biol rep 3 [con_4_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020865</Item>
+			<Item Name="Title" Type="String">SHP2i_4h, biol rep 3 [T5_4_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020857</Item>
+			<Item Name="Title" Type="String">SHP2i_24h, biol rep 1 [T5_24_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020851</Item>
+			<Item Name="Title" Type="String">SHP2i_48h, biol rep 1 [T5_48_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020854</Item>
+			<Item Name="Title" Type="String">DMSO_48h, biol rep 1 [con_48_1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020853</Item>
+			<Item Name="Title" Type="String">SHP2i_48h, biol rep 3 [T5_48_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020859</Item>
+			<Item Name="Title" Type="String">SHP2i_24h, biol rep 3 [T5_24_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020856</Item>
+			<Item Name="Title" Type="String">DMSO_48h, biol rep 3 [con_48_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020862</Item>
+			<Item Name="Title" Type="String">DMSO_24h, biol rep 3 [con_24_3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020858</Item>
+			<Item Name="Title" Type="String">SHP2i_24h, biol rep 2 [T5_24_2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020855</Item>
+			<Item Name="Title" Type="String">DMSO_48h, biol rep 2 [con_48_2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020861</Item>
+			<Item Name="Title" Type="String">DMSO_24h, biol rep 2 [con_24_2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020867</Item>
+			<Item Name="Title" Type="String">DMSO_4h, biol rep 2 [con_4_2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8020864</Item>
+			<Item Name="Title" Type="String">SHP2i_4h, biol rep 2 [T5_4_2]</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE253nnn/GSE253447/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200252773</Id>
+	<Item Name="Accession" Type="String">GSE252773</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Pharmacological inhibition of SIRT1 limits the growth of ovarian granulosa cell tumors in vitro and in preclinical mouse models</Item>
+	<Item Name="summary" Type="String">RNA-sequencing was used to analyze the impact of EX-527 treatment (SIRT1 inhibitor) on gene expression and molecular pathways</Item>
+	<Item Name="GPL" Type="String">24676;24247</Item>
+	<Item Name="GSE" Type="String">252773</Item>
+	<Item Name="taxon" Type="String">Mus musculus; Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006800</Item>
+			<Item Name="Title" Type="String">KGN-CTR-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006803</Item>
+			<Item Name="Title" Type="String">KGN-Ex-50uM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006809</Item>
+			<Item Name="Title" Type="String">COV-Ex50uM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006812</Item>
+			<Item Name="Title" Type="String">AT29-CTR-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006806</Item>
+			<Item Name="Title" Type="String">COV-CTR-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006808</Item>
+			<Item Name="Title" Type="String">COV-CTR-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006805</Item>
+			<Item Name="Title" Type="String">KGN-Ex-50uM-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006817</Item>
+			<Item Name="Title" Type="String">AT29-Ex50uM-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006810</Item>
+			<Item Name="Title" Type="String">COV-Ex50uM-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006813</Item>
+			<Item Name="Title" Type="String">AT29-CTR-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006811</Item>
+			<Item Name="Title" Type="String">COV-Ex50uM-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006814</Item>
+			<Item Name="Title" Type="String">AT29-CTR-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006816</Item>
+			<Item Name="Title" Type="String">AT29-Ex50uM-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006802</Item>
+			<Item Name="Title" Type="String">KGN-CTR-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006807</Item>
+			<Item Name="Title" Type="String">COV-CTR-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006815</Item>
+			<Item Name="Title" Type="String">AT29-Ex50uM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006801</Item>
+			<Item Name="Title" Type="String">KGN-CTR-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8006804</Item>
+			<Item Name="Title" Type="String">KGN-Ex-50uM-2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40165749</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE252nnn/GSE252773/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200252245</Id>
+	<Item Name="Accession" Type="String">GSE252245</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Exploiting the therapeutic vulnerability of IDH-mutant gliomas with zotiraciclib</Item>
+	<Item Name="summary" Type="String">Isocitrate dehydrogenase (IDH)-mutant gliomas have distinctive metabolic and biological traits that may render them susceptible to targeted treatments. Here, by conducting a high-throughput drug screen, we pinpointed a specific susceptibility of IDH-mutant gliomas to zotiraciclib (ZTR). ZTR exhibited selective growth inhibition across multiple IDH-mutant glioma in vitro and in vivo models. Mechanistically, ZTR at low doses suppressed CDK9 and RNA Pol II phosphorylation in IDH-mutant cells, disrupting mitochondrial function and NAD+ production, causing oxidative stress.,. Integrated biochemical profiling of ZTR kinase targets and transcriptomics unveiled that ZTR-induced bioenergetic failure was linked to the suppression of PIM kinase activity. We posit that the combination of mitochondrial dysfunction and an inability to adapt to oxidative stress resulted in significant cell death upon ZTR treatment, ultimately increasing the therapeutic vulnerability of IDH-mutant gliomas. These findings prompted a clinical trial evaluating ZTR in IDH-mutant gliomas towards precision medicine (NCT05588141).</Item>
+	<Item Name="GPL" Type="String">30173</Item>
+	<Item Name="GSE" Type="String">252245</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997974</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 24 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997977</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 24 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997983</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 48 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997971</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 24 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997986</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 48 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997982</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 48 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997976</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 24 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997980</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 48 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997979</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 48 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997985</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 48 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997988</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 48 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997967</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 24 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997968</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 24 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997973</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 24 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997984</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 48 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997970</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 24 hours, Biological replicate 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997972</Item>
+			<Item Name="Title" Type="String">TS603 cells, Control, 24 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997987</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 48 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997966</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 24 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997969</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 24 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997989</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 48 hours, Biological replicate 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997981</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Treated, 48 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997975</Item>
+			<Item Name="Title" Type="String">TS603 cells, Treated, 24 hours, Biological replicate 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7997978</Item>
+			<Item Name="Title" Type="String">GSC923 cells, Control, 48 hours, Biological replicate 1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">24</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40241769</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE252nnn/GSE252245/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200249437</Id>
+	<Item Name="Accession" Type="String">GSE249437</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">GATA2 up-regulation restores androgen receptor chromatin association and advances darolutamide resistance in prostate cancer</Item>
+	<Item Name="summary" Type="String">Darolutamide is an anti-androgen drug clinically used for prostate cancer therapy. Despite its efficacy, potential drug resistance poses significant challenges in the clinical setting. To better understand the molecular changes resulting from prolonged exposure to darolutamide, we developed a darolutamide-resistant model using LNCaP prostate cancer cells. Through ChIP-seq analysis, we found that a temporary treatment of cells with darolutamide effectively disrupts AR binding to chromatin. However, in darolutamide-resistant cells, the chromatin binding of AR is largely restored. By an integrative analysis of ChIP-seq and RNA-seq, we further identified GATA2, a pioneer factor for AR, substantially upregulated in darolutamide-resistant cells. GATA2 plays an essential role in promoting the proliferation of darolutamide-resistant cells and directly contributes to drug resistance. The ablation of GATA2 by siRNA abolished AR's recruitment to chromatin, leading to a significant reduction in gene expression regulated by AR in these resistant cells. Conversely, the overexpression of GATA2 in prostate cancer cells promoted cell proliferation and resistance to darolutamide. This study demonstrates the significance of GATA2 in the development of darolutamide resistance and suggests GATA2 as a promising therapeutic target to overcome this resistance.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">249437</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing; Genome binding/occupancy profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">BW, NARROWPEAK</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947344</Item>
+			<Item Name="Title" Type="String">R1881_ChIP_IN</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947341</Item>
+			<Item Name="Title" Type="String">DMSO_ChIP_AR</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947361</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_SIGA1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947358</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_CTL2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947347</Item>
+			<Item Name="Title" Type="String">DaroR_ChIP_AR</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947350</Item>
+			<Item Name="Title" Type="String">Veh_RNA_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947346</Item>
+			<Item Name="Title" Type="String">Daro_ChIP_IN</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947343</Item>
+			<Item Name="Title" Type="String">R1881_ChIP_AR</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947349</Item>
+			<Item Name="Title" Type="String">Veh_RNA_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947355</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947354</Item>
+			<Item Name="Title" Type="String">Daro_RNA_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947352</Item>
+			<Item Name="Title" Type="String">R1881_RNA_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947357</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_CTL1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947360</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_SIAR2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947356</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947351</Item>
+			<Item Name="Title" Type="String">R1881_RNA_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947353</Item>
+			<Item Name="Title" Type="String">Daro_RNA_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947348</Item>
+			<Item Name="Title" Type="String">DaroR_ChIP_IN</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947359</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_SIAR1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947362</Item>
+			<Item Name="Title" Type="String">DaroR_RNA_SIGA2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947342</Item>
+			<Item Name="Title" Type="String">DMSO_ChIP_IN</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7947345</Item>
+			<Item Name="Title" Type="String">Daro_ChIP_AR</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">22</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40201140</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE249nnn/GSE249437/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200247762</Id>
+	<Item Name="Accession" Type="String">GSE247762</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">In vivo CRISPR screening identifies geranylgeranyl diphosphate as a pancreatic cancer tumor growth dependency.</Item>
+	<Item Name="summary" Type="String">Cancer cells must maintain lipid supplies for their proliferation and do so by upregulating lipid metabolic gene expression. The sterol regulatory element-binding proteins (SREBPs) act as modulators of lipid homeostasis by acting as transcriptional activators of fatty acid and cholesterol synthesis genes. SREBPs have been recognized as chemotherapeutic targets in multiple cancers, however, it is not understood which lipid metabolic genes are essential for tumorigenesis.Using an in vivo CRISPR knockout screening method, we identified the mevalonate pathway genes as essential for pancreatic ductal adenocarcinoma (PDAC) tumor development. Specifically, we identify geranylgeranyldiphosphate (GGPP) as an essential lipid for tumor growth. Additionally, we propose a combination drug treatment to improve cancer cell killing in statin treated PDAC cells that prevents restoration of lipid homeostasis through SREBPs. Our findings suggest that PDAC tumors selectively require GGPP over other lipids such as cholesterol and fatty acids and that this is a targetable vulnerability of cancer cells.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">247762</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900438</Item>
+			<Item Name="Title" Type="String">PF + Fluvastatin biol rep 1 [CK11]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900446</Item>
+			<Item Name="Title" Type="String">TMDP + Fluvastatin mevalonate biol rep 1 [CK19]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900435</Item>
+			<Item Name="Title" Type="String">PF biol rep 2 [CK8]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900429</Item>
+			<Item Name="Title" Type="String">Vehicle biol rep 2 [CK2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900432</Item>
+			<Item Name="Title" Type="String">Fluvastatin biol rep 1 [CK5]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900430</Item>
+			<Item Name="Title" Type="String">TMDP biol rep 1 [CK3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900433</Item>
+			<Item Name="Title" Type="String">Fluvastatin biol rep 2 [CK6]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900447</Item>
+			<Item Name="Title" Type="String">TMDP + Fluvastatin mevalonate biol rep 2 [CK20]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900441</Item>
+			<Item Name="Title" Type="String">Vehicle mevalonate biol rep 2 [CK14]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900444</Item>
+			<Item Name="Title" Type="String">Fluvastatin mevalonate biol rep 1 [CK17]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900436</Item>
+			<Item Name="Title" Type="String">TMDP + Fluvastatin biol rep 1 [CK9]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900428</Item>
+			<Item Name="Title" Type="String">Vehicle biol rep 1 [CK1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900445</Item>
+			<Item Name="Title" Type="String">Fluvastatin mevalonate biol rep 2 [CK18]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900440</Item>
+			<Item Name="Title" Type="String">Vehicle mevalonate biol rep 1 [CK13]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900443</Item>
+			<Item Name="Title" Type="String">TMDP mevalonate biol rep 2 [CK16]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900439</Item>
+			<Item Name="Title" Type="String">PF + Fluvastatin biol rep 2 [CK12]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900437</Item>
+			<Item Name="Title" Type="String">TMDP + Fluvastatin biol rep 2 [CK10]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900431</Item>
+			<Item Name="Title" Type="String">TMDP biol rep 2 [CK4]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900442</Item>
+			<Item Name="Title" Type="String">TMDP mevalonate biol rep 1 [CK15]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7900434</Item>
+			<Item Name="Title" Type="String">PF biol rep 1 [CK7]</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">20</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">38823776</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE247nnn/GSE247762/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200244628</Id>
+	<Item Name="Accession" Type="String">GSE244628</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Coxiella burnetii type IV secretion-mediated activation of host cell Nrf2 signaling</Item>
+	<Item Name="summary" Type="String">Coxiella burnetii is the causative agent of human Q fever, which presents with either acute flu-like symptoms or progresses to chronic endocarditis. Alveolar macrophages engulf C. burnetii after human inhalation, and the pathogen transitions through the phagolysosomal maturation pathway to form a parasitophorous vacuole (PV) for intracellular replication. PV generation requires a type IV secretion system (T4SS) that serves as a critical C. burnetii modulator of host cell activity. We previously showed C. burnetii infection activates the antioxidant Nrf2-Keap1 pathway, stabilizing Nrf2, a transcription factor that translocates to the nucleus. Here, we further investigated the role of Nrf2 during C. burnetii infection of human macrophage-like cells and potential important downstream events that influence infection. We show Nrf2 is activated in a T4SS-dependent manner and that inhibition of Nrf2 activity negatively impacts PV formation and C. burnetii replication. Assessment of oxidative stress-related gene expression revealed that nox4, nqo1, sod1, and sod2 expression increase during infection. Nrf2 inhibition also increases levels of the autophagic proteins LC3, p62, and phosphorylated p62, suggesting dysregulated autophagy is deleterious to infection. Additionally, RNA sequencing analysis determined that Nrf2 inhibition has a significant impact on gene expression involving multiple pathways including oxidative stress, the unfolded protein response, and cell survival signaling. Overall, this study advances understanding of Nrf2 importance during C. burnetii infection and the cellular signaling pathways controlled by Nrf2 in response to an intracellular bacterial pathogen.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">244628</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822373</Item>
+			<Item Name="Title" Type="String">Infected with WT + K67 (Nrf2 Inhibitor) Rep1 [IK-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822379</Item>
+			<Item Name="Title" Type="String">Uninfected Rep3 [UI-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822376</Item>
+			<Item Name="Title" Type="String">Ionomycin Oxidative Stress positive control Rep 3 [ion-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822364</Item>
+			<Item Name="Title" Type="String">Infected with WT Coxiella burnetii Rep2 [I-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822370</Item>
+			<Item Name="Title" Type="String">Infected with IcmD mutant (T4SS mutant) Rep3 [IDK-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822367</Item>
+			<Item Name="Title" Type="String">Infected with IcmD mutant (T4SS mutant) Rep3 [ID-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822374</Item>
+			<Item Name="Title" Type="String">Ionomycin Oxidative Stress positive control Rep 1 [ion-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822368</Item>
+			<Item Name="Title" Type="String">Infected with IcmD mutant (T4SS mutant) Rep1 [IDK-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822365</Item>
+			<Item Name="Title" Type="String">Infected with WT Coxiella burnetii Rep3 [I-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822371</Item>
+			<Item Name="Title" Type="String">Infected with WT + K67 (Nrf2 Inhibitor) Rep1 [IK-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822382</Item>
+			<Item Name="Title" Type="String">Uninfected with K67 Nrf2 Inhibitor addition Rep3 [UIK-3]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822363</Item>
+			<Item Name="Title" Type="String">Infected with WT Coxiella burnetii Rep1 [I-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822366</Item>
+			<Item Name="Title" Type="String">Infected with IcmD mutant (T4SS mutant) Rep2 [ID-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822381</Item>
+			<Item Name="Title" Type="String">Uninfected with K67 Nrf2 Inhibitor addition Rep2 [UIK-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822378</Item>
+			<Item Name="Title" Type="String">Uninfected Rep2 [UI-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822380</Item>
+			<Item Name="Title" Type="String">Uninfected with K67 Nrf2 Inhibitor addition Rep1 [UIK-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822372</Item>
+			<Item Name="Title" Type="String">Infected with WT + K67 (Nrf2 Inhibitor) Rep2 [IK-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822369</Item>
+			<Item Name="Title" Type="String">Infected with IcmD mutant (T4SS mutant) Rep2 [IDK-2]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822377</Item>
+			<Item Name="Title" Type="String">Uninfected Rep1 [UI-1]</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7822375</Item>
+			<Item Name="Title" Type="String">Ionomycin Oxidative Stress positive control Rep 2 [ion-2]</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">20</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE244nnn/GSE244628/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200243315</Id>
+	<Item Name="Accession" Type="String">GSE243315</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Identification and Characterization of Human Retinal Stem-Like Cells with Regenerative Potential</Item>
+	<Item Name="summary" Type="String">This SuperSeries is composed of the SubSeries listed below.</Item>
+	<Item Name="GPL" Type="String">20301;24676</Item>
+	<Item Name="GSE" Type="String">243315</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">MTX, RESULTS, TSV, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561724</Item>
+			<Item Name="Title" Type="String">MECOM_KO, 2, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748218</Item>
+			<Item Name="Title" Type="String">D60, 05, CMZ, scRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748221</Item>
+			<Item Name="Title" Type="String">D60, 40, CMZ, scRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748219</Item>
+			<Item Name="Title" Type="String">D60, 10, CMZ, scRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748216</Item>
+			<Item Name="Title" Type="String">D60, 0, NR, snRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561725</Item>
+			<Item Name="Title" Type="String">MECOM_KO, 3, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783215</Item>
+			<Item Name="Title" Type="String">D20, 3, NR, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783218</Item>
+			<Item Name="Title" Type="String">D80, 3, CMZ, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561720</Item>
+			<Item Name="Title" Type="String">Contrl, 1, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783216</Item>
+			<Item Name="Title" Type="String">D80, 1, CMZ, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561723</Item>
+			<Item Name="Title" Type="String">MECOM_KO, 1, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561722</Item>
+			<Item Name="Title" Type="String">Contrl, 3, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783213</Item>
+			<Item Name="Title" Type="String">D20, 1, NR, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7816142</Item>
+			<Item Name="Title" Type="String">D90, CMZ, snRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748217</Item>
+			<Item Name="Title" Type="String">D60, 0, CMZ, scRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8561721</Item>
+			<Item Name="Title" Type="String">Contrl, 2, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7748220</Item>
+			<Item Name="Title" Type="String">D60, 20, CMZ, scRNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783214</Item>
+			<Item Name="Title" Type="String">D20, 2, NR, bulk RNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7783217</Item>
+			<Item Name="Title" Type="String">D80, 2, CMZ, bulk RNA</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">19</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE243nnn/GSE243315/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200241254</Id>
+	<Item Name="Accession" Type="String">GSE241254</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">FTO-mediated RNA m6A demethylation regulates aggressive behavior and inflammation of fibroblast-like synoviocytes</Item>
+	<Item Name="summary" Type="String">This SuperSeries is composed of the SubSeries listed below.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">241254</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing; Other</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String"></Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720089</Item>
+			<Item Name="Title" Type="String">RA3 shCONTROL input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720086</Item>
+			<Item Name="Title" Type="String">RA1 shFTO ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720103</Item>
+			<Item Name="Title" Type="String">RA5 shFTO ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720083</Item>
+			<Item Name="Title" Type="String">RA1 shFTO input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720080</Item>
+			<Item Name="Title" Type="String">RA1 shCONTROL ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720077</Item>
+			<Item Name="Title" Type="String">RA1 shCONTROL input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720100</Item>
+			<Item Name="Title" Type="String">RA5 shCONTROL input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720014</Item>
+			<Item Name="Title" Type="String">RA3 shFTO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720015</Item>
+			<Item Name="Title" Type="String">RA5 shCONTROL</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720012</Item>
+			<Item Name="Title" Type="String">RA1 shFTO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720101</Item>
+			<Item Name="Title" Type="String">RA5 shCONTROL ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720099</Item>
+			<Item Name="Title" Type="String">RA3 shFTO ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720016</Item>
+			<Item Name="Title" Type="String">RA5 shFTO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720096</Item>
+			<Item Name="Title" Type="String">RA3 shFTO input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720013</Item>
+			<Item Name="Title" Type="String">RA3 shCONTROL</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720093</Item>
+			<Item Name="Title" Type="String">RA3 shCONTROL ip</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720102</Item>
+			<Item Name="Title" Type="String">RA5 shFTO input</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7720011</Item>
+			<Item Name="Title" Type="String">RA1 shCONTROL</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE241nnn/GSE241254/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200241209</Id>
+	<Item Name="Accession" Type="String">GSE241209</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Tissue factor binds to and inhibits interferon-α receptor-1 signaling</Item>
+	<Item Name="summary" Type="String">Tissue factor (TF), which is a member of the cytokine receptor family, promotes coagulation and coagulation-dependent inflammation. TF also exerts protective effects through unknown mechanisms. Here, we showed that TF binds to interferon-α receptor 1 (IFNAR1) and antagonizes its signaling, preventing spontaneous sterile inflammation and maintaining immune homeostasis. Structural modeling and direct binding studies revealed binding of the TF C-terminal fibronectin III domain to IFNAR1, which restricted the expression of interferon-stimulated genes (ISGs). Podocyte-specific loss of TF in mice (TFΔPOD) resulted in sterile renal inflammation, which was characterized by JAK/STAT signaling, proinflammatory cytokine expression, disrupted immune homeostasis, and glomerulopathy. Inhibiting IFNAR1 signaling or the loss of IFNAR1 expression in podocytes attenuated or prevented these effects in TFΔPOD mice, respectively. Intriguingly, in the heteromer, TF and IFNAR1 are both inactive, while dissociation of the TF-IFNAR1 heteromer promotes TF activity and IFNAR1 signaling. These data suggest that the TF-IFNAR1 heteromer is a new molecular switch that controls thrombo-inflammation.</Item>
+	<Item Name="GPL" Type="String">24676;24247</Item>
+	<Item Name="GSE" Type="String">241209</Item>
+	<Item Name="taxon" Type="String">Mus musculus; Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719399</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFLoxP mice 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719405</Item>
+			<Item Name="Title" Type="String">Human podocytes wild type 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719402</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFΔPOD mice 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719416</Item>
+			<Item Name="Title" Type="String">TFΔPOD mice kidney 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719413</Item>
+			<Item Name="Title" Type="String">TFLoxP mice kidney 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719417</Item>
+			<Item Name="Title" Type="String">TFΔPOD mice kidney 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719400</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFLoxP mice 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719414</Item>
+			<Item Name="Title" Type="String">TFLoxP mice kidney 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719408</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719411</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout and IFNAR1 Knockown 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719406</Item>
+			<Item Name="Title" Type="String">Human podocytes wild type 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719409</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719403</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFΔPOD mice 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719415</Item>
+			<Item Name="Title" Type="String">TFLoxP mice kidney 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719407</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719412</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout and IFNAR1 Knockown 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719404</Item>
+			<Item Name="Title" Type="String">Human podocytes wild type 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719410</Item>
+			<Item Name="Title" Type="String">Human podocytes TF knockout and IFNAR1 Knockown 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719401</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFΔPOD mice 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719398</Item>
+			<Item Name="Title" Type="String">mouse primary podocytes from TFLoxP mice 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7719418</Item>
+			<Item Name="Title" Type="String">TFΔPOD mice kidney 3</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">21</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE241nnn/GSE241209/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200234608</Id>
+	<Item Name="Accession" Type="String">GSE234608</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">An inflammatory state defines a high-risk T-lineage acute lymphoblastic leukemia subgroup [bulkRNA-Seq]</Item>
+	<Item Name="summary" Type="String">T-cell acute lymphoblastic leukemia (T-ALL), a malignant neoplasm of immature T cells, is a particularly aggressive leukemia with diverse subtypes and limited therapeutic options. Recent studies showed that the responsiveness of drugs in preclinical models of T-ALL is linked to the specific biological characteristics exhibited by the T-ALL subtype. In order to comprehensively explore the underlying heterogeneity of T-ALL, we performed an integrative analysis of bone marrow biopsies from newly diagnosed T-ALL patients. Leveraging a combination of cellular indexing of transcriptomes and epitopes by sequencing (CITE-seq) along with T-cell receptor sequencing (TCR-seq), we obtained a comprehensive molecular characterization of T-ALL. Our analysis uncovered a distinct subset of inflammatory T-ALLs (iT-ALLs) resembling early T-cell precursor (ETP) leukemias, characterized by enriched expression of hematopoietic stem and progenitor signatures, inflammatory gene programs, and poor survival outcomes. Furthermore, our investigation revealed a significant association between the transcription factor interferon regulatory factor 5 (IRF5) activity and the iT-ALL subgroup. Utilizing an IRF5 scoring system, we demonstrated its potential as a robust biomarker for classifying T-ALL patients and predicting disease prognosis. Our work provides a framework for identifying high-risk T-ALL patients based on the IRF5 activity and a rational for considering the inflammatory state in tailoring therapeutic interventions.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">234608</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471816</Item>
+			<Item Name="Title" Type="String">ETP-ALL7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471802</Item>
+			<Item Name="Title" Type="String">T-ALL10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471813</Item>
+			<Item Name="Title" Type="String">T-ALL11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471819</Item>
+			<Item Name="Title" Type="String">ETP-ALL8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471825</Item>
+			<Item Name="Title" Type="String">T-ALL14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471805</Item>
+			<Item Name="Title" Type="String">T-ALL7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471822</Item>
+			<Item Name="Title" Type="String">T-ALL18</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471828</Item>
+			<Item Name="Title" Type="String">T-ALL13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471811</Item>
+			<Item Name="Title" Type="String">T-ALL8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471808</Item>
+			<Item Name="Title" Type="String">T-ALL2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471820</Item>
+			<Item Name="Title" Type="String">T-ALL12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471806</Item>
+			<Item Name="Title" Type="String">T-ALL9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471817</Item>
+			<Item Name="Title" Type="String">MPAL4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471803</Item>
+			<Item Name="Title" Type="String">T-ALL4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471812</Item>
+			<Item Name="Title" Type="String">ETP-ALL2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471809</Item>
+			<Item Name="Title" Type="String">T-ALL1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471814</Item>
+			<Item Name="Title" Type="String">T-ALL16</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471815</Item>
+			<Item Name="Title" Type="String">T-ALL15</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471826</Item>
+			<Item Name="Title" Type="String">ETP-ALL3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471821</Item>
+			<Item Name="Title" Type="String">ETP-ALL6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471823</Item>
+			<Item Name="Title" Type="String">ETP-ALL5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471818</Item>
+			<Item Name="Title" Type="String">T-ALL17</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471829</Item>
+			<Item Name="Title" Type="String">T-ALL6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471810</Item>
+			<Item Name="Title" Type="String">ETP-ALL1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471807</Item>
+			<Item Name="Title" Type="String">MPAL1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471827</Item>
+			<Item Name="Title" Type="String">ETP-ALL4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471804</Item>
+			<Item Name="Title" Type="String">T-ALL5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7471824</Item>
+			<Item Name="Title" Type="String">MPAL2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">28</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39742502</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE234nnn/GSE234608/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200231614</Id>
+	<Item Name="Accession" Type="String">GSE231614</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Cellular hierarchies of ETMR are shaped by oncogenic miRNAs and receptor-ligand interactions</Item>
+	<Item Name="summary" Type="String">Embryonal tumor with multilayered rosettes (ETMR) is a malignant pediatric brain tumor with a dismal prognosis. The proposed oncogenic driver is amplification and fusion of the chromosome 19 miRNA cluster (C19MC). However, the ramifications of this distinct genetic event as well as the complex tumor architecture and the interactions between malignant cell types in ETMR remain vastly understudied. Here, we have analyzed a cohort of 11 ETMR patients using single-cell transcriptomic and multiplexed spatial protein profiling. We reveal a common, spatially distinct cellular hierarchy, closely resembling normal development presenting as a highly proliferative neural stem cell-like population that gives rise to neuron-like cells. C19MC, which is predominantly expressed in the malignant stem-like population, controls a transcriptional network governing stemness and lineage commitment, indicated by high-resolution miRNA:mRNA analyses. Further, we show that FGF- and NOTCH-signaling, important for cell-cell interactions in ETMR, can be successfully targeted in preclinical ETMR models and ETMR patients. Taken together, our study provides unprecedented new insights into fundamental ETMR biology and a powerful rationale for more effective targeted therapies.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">231614</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291656</Item>
+			<Item Name="Title" Type="String">BCH1548</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291665</Item>
+			<Item Name="Title" Type="String">BT183 PDX #1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291662</Item>
+			<Item Name="Title" Type="String">BCH1162</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291659</Item>
+			<Item Name="Title" Type="String">MUV45</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291654</Item>
+			<Item Name="Title" Type="String">BCH736</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291668</Item>
+			<Item Name="Title" Type="String">NCH3602 PDX #1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291660</Item>
+			<Item Name="Title" Type="String">MUV3N</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291657</Item>
+			<Item Name="Title" Type="String">BCH1640</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291663</Item>
+			<Item Name="Title" Type="String">BCH1446</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291666</Item>
+			<Item Name="Title" Type="String">BT183 PDX #2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291661</Item>
+			<Item Name="Title" Type="String">MUV9N</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291655</Item>
+			<Item Name="Title" Type="String">BCH1078</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291664</Item>
+			<Item Name="Title" Type="String">SK3CO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291669</Item>
+			<Item Name="Title" Type="String">NCH3602 PDX #2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291670</Item>
+			<Item Name="Title" Type="String">BT183 cells</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7291658</Item>
+			<Item Name="Title" Type="String">MUV30</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">16</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40419763</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE231nnn/GSE231614/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200227207</Id>
+	<Item Name="Accession" Type="String">GSE227207</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Piezoeletric Cold Atmospheric Plasma Induces Cancer Cell Death and Disrupts Cancer Cell Survival in Hepatocellular Carcinoma through Multi-pathway Regulation</Item>
+	<Item Name="summary" Type="String">To explore whether Piezo-CAP induced apoptosis and autophagy through inhibiting multiple cancer survival pathways together of human hepatocellular carcinoma cells in vitro and in vivo. RNA-sequence (RNA-seq), Western blot and quantitative real-time PCR (qRT-PCR) were utilized to investigate the mechanism of Piezo-CAP treatment HCC cells.</Item>
+	<Item Name="GPL" Type="String">21290</Item>
+	<Item Name="GSE" Type="String">227207</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093194</Item>
+			<Item Name="Title" Type="String">SMMC7721-Control3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093197</Item>
+			<Item Name="Title" Type="String">SMMC7721-CAP3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093200</Item>
+			<Item Name="Title" Type="String">HepG2-Control3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093203</Item>
+			<Item Name="Title" Type="String">HepG2-CAP3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093209</Item>
+			<Item Name="Title" Type="String">LM31-CAP3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093192</Item>
+			<Item Name="Title" Type="String">SMMC7721-Control1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093206</Item>
+			<Item Name="Title" Type="String">LM3-Control3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093195</Item>
+			<Item Name="Title" Type="String">SMMC7721-CAP1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093198</Item>
+			<Item Name="Title" Type="String">HepG2-Control1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093201</Item>
+			<Item Name="Title" Type="String">HepG2-CAP1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093204</Item>
+			<Item Name="Title" Type="String">LM3-Control1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093207</Item>
+			<Item Name="Title" Type="String">LM31-CAP1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093193</Item>
+			<Item Name="Title" Type="String">SMMC7721-Control2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093202</Item>
+			<Item Name="Title" Type="String">HepG2-CAP2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093196</Item>
+			<Item Name="Title" Type="String">SMMC7721-CAP2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093199</Item>
+			<Item Name="Title" Type="String">HepG2-Control2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093205</Item>
+			<Item Name="Title" Type="String">LM3-Control2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7093208</Item>
+			<Item Name="Title" Type="String">LM31-CAP2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE227nnn/GSE227207/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200224462</Id>
+	<Item Name="Accession" Type="String">GSE224462</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">CMPD1 is a microtubule inhibitor with tumor-specific cytotoxicity</Item>
+	<Item Name="summary" Type="String">Microtubule-targeting agents have been widely used for cancer treatment, yet their cancer specificity is a common challenge. In this study, we identified that CMPD1 as a promising cancer specific inhibitor. Both in vitro and in vivo experiments showed that CMPD1 efficiently inhibits tumor growth. Mechanistically, CMPD1 inhibits microtubule polymerization in mitosis. Collectively, CMPD1 has the high potential to serve as a cancer cell inhibitor.</Item>
+	<Item Name="GPL" Type="String">24676;18573</Item>
+	<Item Name="GSE" Type="String">224462</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">BW, CSV, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024547</Item>
+			<Item Name="Title" Type="String">RPE1_CMPD1_rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024544</Item>
+			<Item Name="Title" Type="String">RPE1_control_rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990585</Item>
+			<Item Name="Title" Type="String">CMPD1_MDAMB231_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024550</Item>
+			<Item Name="Title" Type="String">RPE1_Taxol_rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990577</Item>
+			<Item Name="Title" Type="String">Control_MDAMB231_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024549</Item>
+			<Item Name="Title" Type="String">RPE1_Taxol_rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990579</Item>
+			<Item Name="Title" Type="String">Control_MDAMB231_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990582</Item>
+			<Item Name="Title" Type="String">CMPD1_MDAMB231_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024546</Item>
+			<Item Name="Title" Type="String">RPE1_CMPD1_rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024543</Item>
+			<Item Name="Title" Type="String">RPE1_control_rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990580</Item>
+			<Item Name="Title" Type="String">Control_MDAMB231_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990583</Item>
+			<Item Name="Title" Type="String">CMPD1_MDAMB231_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990589</Item>
+			<Item Name="Title" Type="String">Paclitaxel_MDAMB231_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990587</Item>
+			<Item Name="Title" Type="String">Paclitaxel_MDAMB231_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8990586</Item>
+			<Item Name="Title" Type="String">Paclitaxel_MDAMB231_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024545</Item>
+			<Item Name="Title" Type="String">RPE1_control_rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024548</Item>
+			<Item Name="Title" Type="String">RPE1_CMPD1_rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7024551</Item>
+			<Item Name="Title" Type="String">RPE1_Taxol_rep3</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">18</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40439108</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE224nnn/GSE224462/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200200410</Id>
+	<Item Name="Accession" Type="String">GSE200410</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Effect of combined AURK and BCL2 inhibition on gene expression in double-hit lymphoma xenografted mice</Item>
+	<Item Name="summary" Type="String">To investigate the mechanism behind drug synergism between MLN8237 and venetoclax we injected DoHH2 human tumor cells into SCID mice SQ, treated animals for 3 days, and harvested tumors for RNAseq.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">200410</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/31</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032837</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 2)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032854</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 6)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032834</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 6)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032840</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 5)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032829</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 1)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032843</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 1)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032849</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 1)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032832</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 4)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032846</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 4)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032852</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 4)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032838</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 3)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032835</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 7)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032855</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 7)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032841</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 6)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032847</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 5)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032833</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 5)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032836</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 1)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032839</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 4)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032844</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 2)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032842</Item>
+			<Item Name="Title" Type="String">MLN8237 (40 mg/kg) Treated DoHH2 Tumor (biol rep 7)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032848</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 6)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032830</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 2)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032850</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 2)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032851</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 3)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032853</Item>
+			<Item Name="Title" Type="String">Combination Treated DoHH2 Tumor (biol rep 5)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032845</Item>
+			<Item Name="Title" Type="String">Venetoclax (50 mg/kg) Treated DoHH2 Tumor (biol rep 3)</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6032831</Item>
+			<Item Name="Title" Type="String">Vehicle Treated DoHH2 Tumor (biol rep 3)</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">27</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40491476</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE200nnn/GSE200410/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200285469</Id>
+	<Item Name="Accession" Type="String">GSE285469</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Genotype and expression analyses of FTO and ALKBH5 in renal cell carcinoma cohort from MENA region</Item>
+	<Item Name="summary" Type="String">RNA-modifying proteins significantly contribute to cancer progression. Fat mass and obesity-associated protein (FTO) and alkB homolog 5 RNA demethylase (ALKBH5) are RNA-demethylating proteins with opposing roles in renal cell carcinoma (RCC) across different populations. This study evaluates the genotype and expression of FTO and ALKBH5 in RCC patients from the Middle East and Northern Africa (MENA) region. Formalin-fixed paraffin-embedded samples from kidney biopsies of RCC patients and controls were analyzed through targeted DNA sequencing, whole transcriptome profiling, and immunohistochemistry. Our findings indicated that the rs11075995T variant in FTO is linked to an increased risk of ccRCC. ALKBH5 and FTO protein expression were significantly downregulated in clear cell RCC (ccRCC) and chromophobe RCC (chRCC) but not in papillary RCC (pRCC) patients. In ccRCC, transcriptomic data revealed significant downregulation of FTO (log2FC = -5.2, q &lt;0.001) and ALKBH5 (log2FC = -4.7, q &lt;0.001) compared to controls. A significant negative correlation was found in ccRCC between FTO expression and T allele frequency in rs11075995, suggesting an impact on FTO expression. To our knowledge, this is the first study to examine FTO and ALKBH5 mutations and expression in RCC patients from the MENA region.</Item>
+	<Item Name="GPL" Type="String">24014</Item>
+	<Item Name="GSE" Type="String">285469</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/29</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702928</Item>
+			<Item Name="Title" Type="String">control_replica9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702925</Item>
+			<Item Name="Title" Type="String">control_replica6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702931</Item>
+			<Item Name="Title" Type="String">ccRCC_replica2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702937</Item>
+			<Item Name="Title" Type="String">ccRCC_replica8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702934</Item>
+			<Item Name="Title" Type="String">ccRCC_replica5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702936</Item>
+			<Item Name="Title" Type="String">ccRCC_replica7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702933</Item>
+			<Item Name="Title" Type="String">ccRCC_replica4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702930</Item>
+			<Item Name="Title" Type="String">ccRCC_replica1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702939</Item>
+			<Item Name="Title" Type="String">ccRCC_replica10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702942</Item>
+			<Item Name="Title" Type="String">ccRCC_replica13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702922</Item>
+			<Item Name="Title" Type="String">control_replica3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702938</Item>
+			<Item Name="Title" Type="String">ccRCC_replica9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702935</Item>
+			<Item Name="Title" Type="String">ccRCC_replica6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702920</Item>
+			<Item Name="Title" Type="String">control_replica1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702921</Item>
+			<Item Name="Title" Type="String">control_replica2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702926</Item>
+			<Item Name="Title" Type="String">control_replica7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702941</Item>
+			<Item Name="Title" Type="String">ccRCC_replica12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702923</Item>
+			<Item Name="Title" Type="String">control_replica4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702929</Item>
+			<Item Name="Title" Type="String">control_replica10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702927</Item>
+			<Item Name="Title" Type="String">control_replica8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702924</Item>
+			<Item Name="Title" Type="String">control_replica5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702932</Item>
+			<Item Name="Title" Type="String">ccRCC_replica3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8702940</Item>
+			<Item Name="Title" Type="String">ccRCC_replica11</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">23</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40361322</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE285nnn/GSE285469/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200247129</Id>
+	<Item Name="Accession" Type="String">GSE247129</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">MYC ecDNA promotes intratumour heterogeneity and plasticity in PDAC</Item>
+	<Item Name="summary" Type="String">Intratumor heterogeneity and phenotypic plasticity drive tumour progression and therapy resistance. Oncogene dosage variation contributes to cell state transitions and phenotypic heterogeneity, thereby providing a substrate for somatic evolution. Nonetheless, the genetic mechanisms underlying phenotypic heterogeneity are still poorly understood. Here, we show that extrachromosomal DNA (ecDNA) is a major source of high-level focal amplification in key oncogenes and a major contributor of MYC heterogeneity in pancreatic ductal adenocarcinoma (PDAC). We demonstrate that ecDNAs drive varying levels of MYC dosage, depending on their regulatory landscape, enabling cancer cells to rapidly and reversibly adapt to microenvironmental changes. In absence of selective pressure, a high ecDNA copy number imposes a substantial fitness cost on PDAC cells. We also show that MYC dosage affects cell morphology and dependence of cancer cells on stromal niche factors. Our work provides the first detailed analysis of ecDNAs in PDAC and describes a new genetic mechanism driving MYC heterogeneity in PDAC.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">247129</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/29</Item>
+	<Item Name="suppFile" Type="String">TSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883957</Item>
+			<Item Name="Title" Type="String">VR23-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883960</Item>
+			<Item Name="Title" Type="String">VR32-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883954</Item>
+			<Item Name="Title" Type="String">VR19-LNO patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883974</Item>
+			<Item Name="Title" Type="String">VR23_WR24h_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7869178</Item>
+			<Item Name="Title" Type="String">VR02-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883968</Item>
+			<Item Name="Title" Type="String">VR06_WR_b</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883971</Item>
+			<Item Name="Title" Type="String">VR06_WR24h_b</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7869179</Item>
+			<Item Name="Title" Type="String">VR20-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883975</Item>
+			<Item Name="Title" Type="String">VR23_WR24h_b</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883952</Item>
+			<Item Name="Title" Type="String">VR11-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883972</Item>
+			<Item Name="Title" Type="String">VR23_WR_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883966</Item>
+			<Item Name="Title" Type="String">VR01_WR24h_b</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883969</Item>
+			<Item Name="Title" Type="String">VR06_WR_c</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883963</Item>
+			<Item Name="Title" Type="String">VR01_WR_b</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883950</Item>
+			<Item Name="Title" Type="String">VR06-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883965</Item>
+			<Item Name="Title" Type="String">VR01_WR24h_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883967</Item>
+			<Item Name="Title" Type="String">VR06_WR_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883970</Item>
+			<Item Name="Title" Type="String">VR06_WR24h_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883962</Item>
+			<Item Name="Title" Type="String">VR01_WR_a</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883958</Item>
+			<Item Name="Title" Type="String">VR23-LNO patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883956</Item>
+			<Item Name="Title" Type="String">VR21-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7869180</Item>
+			<Item Name="Title" Type="String">VR09-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883959</Item>
+			<Item Name="Title" Type="String">VR29-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883961</Item>
+			<Item Name="Title" Type="String">VR40-LNO patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883964</Item>
+			<Item Name="Title" Type="String">VR01_WR_c</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883953</Item>
+			<Item Name="Title" Type="String">VR11-LNO patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7869177</Item>
+			<Item Name="Title" Type="String">VR01-O patient-derived organoid</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7883973</Item>
+			<Item Name="Title" Type="String">VR23_WR_b</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">28</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40074906</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE247nnn/GSE247129/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200276695</Id>
+	<Item Name="Accession" Type="String">GSE276695</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Chemotherapeutic agents and leucine deprivation induce codon-biased aberrant protein production in cancer</Item>
+	<Item Name="summary" Type="String">Messenger RNA (mRNA) translation is a tightly controlled process frequently deregulated in cancer. Key to this deregulation are transfer RNAs (tRNAs), whose expression, processing, and post-transcriptional modifications are often altered in cancer to support cellular transformation. In conditions of limiting levels of amino acids, this deregulated control of protein synthesis leads to aberrant protein production in the form of ribosomal frameshifting or misincorporation of non-cognate amino acids. Here, we studied leucine, an essential amino acid coded for in mRNA by six different codons. Surprisingly, we found that leucine deprivation leads to ribosomal stalling and aberrant protein production in various cancer cell types, predominantly at one codon, UUA. Similar effects were observed after treatment with chemotherapeutic agents, implying a shared mechanism controlling the downstream effects on mRNA translation. In both conditions, a limitation in the availability of tRNALeu(UAA) for protein production was shown to be the cause for this dominant effect on UUA codons. The induced aberrant proteins can be processed and immune-presented as neoepitopes, and can direct T-cell killing. Altogether, we uncovered a novel mode of interplay between DNA damage, regulation of tRNA availability for mRNA translation, and aberrant protein production in cancer that could be exploited for anti-cancer therapy.</Item>
+	<Item Name="GPL" Type="String">24676;16791;21697</Item>
+	<Item Name="GSE" Type="String">276695</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/27</Item>
+	<Item Name="suppFile" Type="String">TSV, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504209</Item>
+			<Item Name="Title" Type="String">PC3_Leucine_depletion_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504206</Item>
+			<Item Name="Title" Type="String">MD55A3_Leucine_depletion_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504212</Item>
+			<Item Name="Title" Type="String">PC3_Etoposide_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8545405</Item>
+			<Item Name="Title" Type="String">MDA-MD-231_Leu2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504223</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_CAA_overexpression_Leu_depletion_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504220</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_TAA_overexpression_Leu_depletion_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504224</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_CAA_overexpression_Leu_depletion_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504221</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_CAA_overexpression_WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504207</Item>
+			<Item Name="Title" Type="String">PC3_WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504218</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_TAA_overexpression_WT_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504215</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_Leucine_depletion_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8545403</Item>
+			<Item Name="Title" Type="String">MDA-MD-231_Ctrl2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504222</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_CAA_overexpression_WT_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8545404</Item>
+			<Item Name="Title" Type="String">MDA-MD-231_Leu1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504219</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_TAA_overexpression_Leu_depletion_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504216</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_Leucine_depletion_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504211</Item>
+			<Item Name="Title" Type="String">PC3_Etoposide_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504208</Item>
+			<Item Name="Title" Type="String">PC3_WT_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504210</Item>
+			<Item Name="Title" Type="String">PC3_Leucine_depletion_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504213</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504205</Item>
+			<Item Name="Title" Type="String">MD55A3_WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504217</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_tRNA_TAA_overexpression_WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8504214</Item>
+			<Item Name="Title" Type="String">MDA-MB-231_WT_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8545402</Item>
+			<Item Name="Title" Type="String">MDA-MD-231_Ctrl1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">24</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39588782</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE276nnn/GSE276695/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200275539</Id>
+	<Item Name="Accession" Type="String">GSE275539</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Cancer therapy induced effects on lung organoids as suitable in vitro model</Item>
+	<Item Name="summary" Type="String">Generation of lung organoids as model for genotoxic stress</Item>
+	<Item Name="GPL" Type="String">21697;30173</Item>
+	<Item Name="GSE" Type="String">275539</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/27</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479140</Item>
+			<Item Name="Title" Type="String">d35 biological replicate 3 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479137</Item>
+			<Item Name="Title" Type="String">d28 biological replicate 4 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479134</Item>
+			<Item Name="Title" Type="String">d28 biological replicate 1 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479131</Item>
+			<Item Name="Title" Type="String">d24 biological replicate 2 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479128</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 7 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479135</Item>
+			<Item Name="Title" Type="String">d28 biological replicate 2 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479132</Item>
+			<Item Name="Title" Type="String">d24 biological replicate 3 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479143</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 3 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479146</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 3 irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479126</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 5 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479123</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 2 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479130</Item>
+			<Item Name="Title" Type="String">d24 biological replicate 1 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479127</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 6 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479129</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 8 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479124</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 3 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479144</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 1 irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479141</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 1 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479133</Item>
+			<Item Name="Title" Type="String">d24 biological replicate 4 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479138</Item>
+			<Item Name="Title" Type="String">d35 biological replicate 1 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479125</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 4 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479136</Item>
+			<Item Name="Title" Type="String">d28 biological replicate 3 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479145</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 2 irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479142</Item>
+			<Item Name="Title" Type="String">d52 biological replicate 2 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479122</Item>
+			<Item Name="Title" Type="String">iPSC biological replicate 1 non (control) irradiated</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8479139</Item>
+			<Item Name="Title" Type="String">d35 biological replicate 2 non (control) irradiated</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">25</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39696649</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE275nnn/GSE275539/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200273408</Id>
+	<Item Name="Accession" Type="String">GSE273408</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">CHRNA9 and MICU1 Govern the Potency of the Mitochondrial Permeability Transition Pore in Necroptotic Oral Cancer Progression</Item>
+	<Item Name="summary" Type="String">Our study included 30 tissue samples in total, which included 15 samples from OSCC patients, 10 from OSMF patients, and 5 normal control samples. To explore the involvement of genes associated with the changes observed in OSMF tissue biopsy samples, we performed RNA sequencing (RNA seq) analysis of moderately advanced (OSMF-III) and advanced (OSMF-IV) conditions. Additionally, we obtained tissue biopsies from patients diagnosed with OSCC occurring concomitantly with OSMF. For sequencing, QIAGEN Pure mRNA beads enriched the mRNA. The bound mRNA was isolated and enriched after bead binding. Subsequently, FastSelect reagent was added for enrichment before heat fragmentation. RNA processing used RNase H-Reverse Transcriptase with random primers for first-strand synthesis. Second-strand synthesis used 5′ phosphorylated primers for strand-specific ligation. Adapters were added to inserts in a strand-specific manner. Libraries were purified with QIAseq CleanStart PCR reagents to remove previous NGS libraries. Prepared libraries were compatible with Illumina NGS systems (NovaSeqTM 6000) with specified read lengths and index reads based on index types. For bulk transcriptome analysis, sequencing data were in FastQ format. Data pre-processing involved quality checks, adapter removal, trimming, and data filtering. QC-passed samples were processed and analysed using the nf-core pipeline to generate a gene expression matrix. Differential expression gene (DEG) analysis was carried out with the iGeak RNA-seq software to normalize the raw gene expression data and analyse expression variances between the groups.</Item>
+	<Item Name="GPL" Type="String">20301</Item>
+	<Item Name="GSE" Type="String">273408</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/27</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427766</Item>
+			<Item Name="Title" Type="String">T10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427763</Item>
+			<Item Name="Title" Type="String">S4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427760</Item>
+			<Item Name="Title" Type="String">S2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427777</Item>
+			<Item Name="Title" Type="String">T7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427757</Item>
+			<Item Name="Title" Type="String">S1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427754</Item>
+			<Item Name="Title" Type="String">N2N</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427761</Item>
+			<Item Name="Title" Type="String">T15</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427774</Item>
+			<Item Name="Title" Type="String">T4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427778</Item>
+			<Item Name="Title" Type="String">T8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427758</Item>
+			<Item Name="Title" Type="String">N1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427772</Item>
+			<Item Name="Title" Type="String">T2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427752</Item>
+			<Item Name="Title" Type="String">N22</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427769</Item>
+			<Item Name="Title" Type="String">T13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427776</Item>
+			<Item Name="Title" Type="String">T6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427755</Item>
+			<Item Name="Title" Type="String">N4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427773</Item>
+			<Item Name="Title" Type="String">T3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427775</Item>
+			<Item Name="Title" Type="String">T5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427770</Item>
+			<Item Name="Title" Type="String">T14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427750</Item>
+			<Item Name="Title" Type="String">N3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427767</Item>
+			<Item Name="Title" Type="String">T11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427753</Item>
+			<Item Name="Title" Type="String">N2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427764</Item>
+			<Item Name="Title" Type="String">T15_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427751</Item>
+			<Item Name="Title" Type="String">N22N</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427756</Item>
+			<Item Name="Title" Type="String">S3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427779</Item>
+			<Item Name="Title" Type="String">T9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427771</Item>
+			<Item Name="Title" Type="String">T15_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427768</Item>
+			<Item Name="Title" Type="String">T12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427762</Item>
+			<Item Name="Title" Type="String">T15N</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427765</Item>
+			<Item Name="Title" Type="String">T1_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8427759</Item>
+			<Item Name="Title" Type="String">T1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">30</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE273nnn/GSE273408/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200266935</Id>
+	<Item Name="Accession" Type="String">GSE266935</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Breast organoid suspension cultures maintain long-term estrogen receptor expression and responsiveness</Item>
+	<Item Name="summary" Type="String">Organoid cultures offer a powerful technology to investigate many different aspects of development, physiology, and pathology of diverse tissues. Unlike standard tissue culture of primary breast epithelial cells, breast organoids preserve the epithelial lineages and architecture of the normal tissue. However, existing organoid culture methods are tedious, difficult to scale, and do not robustly retain estrogen receptor (ER) expression and responsiveness in long-term culture. Here, we describe a modified culture method to generate and maintain organoids as suspension cultures. This method improves organoid growth and uniformity over the traditional Matrigel dome embedding method while still maintaining the fidelity of the three major epithelial lineages. Using this adopted method, we are able to isolate and culture hormone sensing (HS) cells alone that retain ER responsiveness upon estrogen stimulation in long-term culture. This culture system presents a valuable opportunity to study the events involved in initiation and evolution of ER-positive breast cancer.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">266935</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/27</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257028</Item>
+			<Item Name="Title" Type="String">ORG1HS-control-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257045</Item>
+			<Item Name="Title" Type="String">ORG6HS_domes-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257048</Item>
+			<Item Name="Title" Type="String">ORG6LASP_suspension-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257042</Item>
+			<Item Name="Title" Type="String">ORG6HS_7dculture-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257034</Item>
+			<Item Name="Title" Type="String">ORG5HS_E21nM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257054</Item>
+			<Item Name="Title" Type="String">ORG6BA_domes-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257051</Item>
+			<Item Name="Title" Type="String">ORG6BA_suspension-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257031</Item>
+			<Item Name="Title" Type="String">ORG1HS_E21nM-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257037</Item>
+			<Item Name="Title" Type="String">ORG11HS-control-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257043</Item>
+			<Item Name="Title" Type="String">ORG6HS_suspension-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257040</Item>
+			<Item Name="Title" Type="String">ORG6HS_7dculture-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257046</Item>
+			<Item Name="Title" Type="String">ORG6HS_domes-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257029</Item>
+			<Item Name="Title" Type="String">ORG1HS-control-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257038</Item>
+			<Item Name="Title" Type="String">ORG11HS_E21nM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257035</Item>
+			<Item Name="Title" Type="String">ORG5HS_E21nM-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257052</Item>
+			<Item Name="Title" Type="String">ORG6BA_suspension-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257047</Item>
+			<Item Name="Title" Type="String">ORG6LASP_suspension-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257044</Item>
+			<Item Name="Title" Type="String">ORG6HS_suspension-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257049</Item>
+			<Item Name="Title" Type="String">ORG6LASP_domes-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257041</Item>
+			<Item Name="Title" Type="String">ORG6HS_7dculture-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257032</Item>
+			<Item Name="Title" Type="String">ORG5HS-control-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257053</Item>
+			<Item Name="Title" Type="String">ORG6BA_domes-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257050</Item>
+			<Item Name="Title" Type="String">ORG6LASP_domes-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257033</Item>
+			<Item Name="Title" Type="String">ORG5HS-control-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257030</Item>
+			<Item Name="Title" Type="String">ORG1HS_E21nM-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257036</Item>
+			<Item Name="Title" Type="String">ORG11HS-control-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8257039</Item>
+			<Item Name="Title" Type="String">ORG11HS_E21nM-2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">27</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39702422</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE266nnn/GSE266935/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200261674</Id>
+	<Item Name="Accession" Type="String">GSE261674</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Mitochondrial DNA mutations are associated with response to anti-VEGF therapy in ovarian cancer PDX models</Item>
+	<Item Name="summary" Type="String">Mitochondrial DNA (mtDNA) mutations have been reported in several solid tumors including ovarian cancer (OC), the most lethal gynecologic malignancy, and raised interest as they potentially induce mitochondrial dysfunction and rewiring of cellular metabolism. In this study, we characterized mtDNA mutations in ovarian cancer patient derived xenografts (PDX) and investigated their impact on cancer cells at multiple levels. To correlate the presence of mtDNA mutations and metabolic pathways that were modulated at the transcriptional level, RNA-seq analysis was performed in ascites-derived cells from 19 OC PDX (here named PDOVCA). Results indicated that mtDNA mutated (&gt;50% VAF) PDX were endowed with upregulated glycolysis and other pathways connected with cancer metabolism. Functional analysis demonstrated that mtDNA mutations modulated mitochondria activity, assembly capacity and morphology of mitochondrial complexes in PDX cells. Moreover, PDX cells bearing homoplasmic mtDNA mutations behave as glucose addicted and could barely survive glucose starvation in vitro. These findings led us to investigate whether mtDNA mutations correlated with response to anti-VEGF therapy, which was shown to reduce glucose availability in tumors. Strikingly, PDX bearing homoplasmic pathogenic mtDNA mutations had improved survival upon anti-VEGF treatment in mouse models, compared with PDX lacking mtDNA mutations or bearing them at low frequency. These results hint at mtDNA mutations as new biomarkers of response to antiangiogenic drugs.</Item>
+	<Item Name="GPL" Type="String">20795</Item>
+	<Item Name="GSE" Type="String">261674</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/27</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148634</Item>
+			<Item Name="Title" Type="String">PDOVCA_9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148631</Item>
+			<Item Name="Title" Type="String">PDOVCA_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148643</Item>
+			<Item Name="Title" Type="String">PDOVCA_54</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148637</Item>
+			<Item Name="Title" Type="String">PDOVCA_17</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148640</Item>
+			<Item Name="Title" Type="String">PDOVCA_49</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148646</Item>
+			<Item Name="Title" Type="String">PDOVCA_126</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148649</Item>
+			<Item Name="Title" Type="String">PDOVCA_146</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148635</Item>
+			<Item Name="Title" Type="String">PDOVCA_14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148644</Item>
+			<Item Name="Title" Type="String">PDOVCA_62</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148632</Item>
+			<Item Name="Title" Type="String">PDOVCA_5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148633</Item>
+			<Item Name="Title" Type="String">PDOVCA_6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148638</Item>
+			<Item Name="Title" Type="String">PDOVCA_24</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148636</Item>
+			<Item Name="Title" Type="String">PDOVCA_15</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148641</Item>
+			<Item Name="Title" Type="String">PDOVCA_52</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148639</Item>
+			<Item Name="Title" Type="String">PDOVCA_41</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148642</Item>
+			<Item Name="Title" Type="String">PDOVCA_53</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148647</Item>
+			<Item Name="Title" Type="String">PDOVCA_128</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148645</Item>
+			<Item Name="Title" Type="String">PDOVCA_69</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8148648</Item>
+			<Item Name="Title" Type="String">PDOVCA_145</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">19</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39702370</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE261nnn/GSE261674/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+</eSummaryResult>

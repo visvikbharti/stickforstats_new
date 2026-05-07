@@ -1,0 +1,8 @@
+
+1. An inflammatory state defines a high-risk T-lineage acute lymphoblastic leukemia subgroup [bulkRNA-Seq]
+(Submitter supplied) T-cell acute lymphoblastic leukemia (T-ALL), a malignant neoplasm of immature T cells, is a particularly aggressive leukemia with diverse subtypes and limited therapeutic options. Recent studies showed that the responsiveness of drugs in preclinical models of T-ALL is linked to the specific biological characteristics exhibited by the T-ALL subtype. In order to comprehensively explore the underlying heterogeneity of T-ALL, we performed an integrative analysis of bone marrow biopsies from newly diagnosed T-ALL patients. more...
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL24676 28 Samples
+FTP download: GEO (CSV) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE234nnn/GSE234608/
+Series		Accession: GSE234608	ID: 200234608

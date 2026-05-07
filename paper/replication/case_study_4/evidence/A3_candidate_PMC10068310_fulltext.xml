@@ -1,0 +1,892 @@
+<?xml version="1.0"  ?><!DOCTYPE pmc-articleset PUBLIC "-//NLM//DTD ARTICLE SET 2.0//EN" "https://dtd.nlm.nih.gov/ncbi/pmc/articleset/nlm-articleset-2.0.dtd"><pmc-articleset><article id="ctm21232" xml:lang="en" article-type="research-article" dtd-version="1.4"><processing-meta base-tagset="archiving" mathml-version="3.0" table-model="xhtml" tagset-family="jats"><restricted-by>pmc</restricted-by></processing-meta><front><journal-meta><journal-id journal-id-type="nlm-ta">Clin Transl Med</journal-id><journal-id journal-id-type="iso-abbrev">Clin Transl Med</journal-id><journal-id journal-id-type="pmc-domain-id">1991</journal-id><journal-id journal-id-type="pmc-domain">clintransmed</journal-id><journal-id journal-id-type="publisher-id">CTM2</journal-id><journal-title-group><journal-title>Clinical and Translational Medicine</journal-title></journal-title-group><issn pub-type="epub">2001-1326</issn><publisher><publisher-name>Wiley</publisher-name></publisher></journal-meta><article-meta><article-id pub-id-type="pmcid">PMC10068310</article-id><article-id pub-id-type="pmcid-ver">PMC10068310.1</article-id><article-id pub-id-type="pmcaid">10068310</article-id><article-id pub-id-type="pmcaiid">10068310</article-id><article-id pub-id-type="pmid">37006170</article-id><article-id pub-id-type="doi">10.1002/ctm2.1232</article-id><article-id pub-id-type="publisher-id">CTM21232</article-id><article-version article-version-type="pmc-version">1</article-version><article-categories><subj-group subj-group-type="overline"><subject>Research Article</subject></subj-group><subj-group subj-group-type="heading"><subject>Research Articles</subject></subj-group></article-categories><title-group><article-title>Obesity defined molecular endotypes in the synovium of patients with osteoarthritis provides a rationale for therapeutic targeting of fibroblast subsets</article-title><alt-title alt-title-type="left-running-head">WIJESINGHE <sc>et al</sc>.</alt-title></title-group><contrib-group><contrib id="ctm21232-cr-0001" contrib-type="author"><name name-style="western"><surname>Wijesinghe</surname><given-names initials="SN">Susanne N.</given-names></name><contrib-id contrib-id-type="orcid" authenticated="false">https://orcid.org/0000-0001-7981-8216</contrib-id><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref><xref rid="ctm21232-note-0001" ref-type="author-notes">
+<sup>#</sup>
+</xref></contrib><contrib id="ctm21232-cr-0002" contrib-type="author"><name name-style="western"><surname>Badoume</surname><given-names initials="A">Amel</given-names></name><xref rid="ctm21232-aff-0002" ref-type="aff">
+<sup>2</sup>
+</xref><xref rid="ctm21232-note-0001" ref-type="author-notes">
+<sup>#</sup>
+</xref></contrib><contrib id="ctm21232-cr-0003" contrib-type="author"><name name-style="western"><surname>Nanus</surname><given-names initials="DE">Dominika E.</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref></contrib><contrib id="ctm21232-cr-0004" contrib-type="author"><name name-style="western"><surname>Sharma‐Oates</surname><given-names initials="A">Archana</given-names></name><xref rid="ctm21232-aff-0003" ref-type="aff">
+<sup>3</sup>
+</xref></contrib><contrib id="ctm21232-cr-0005" contrib-type="author"><name name-style="western"><surname>Farah</surname><given-names initials="H">Hussein</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref></contrib><contrib id="ctm21232-cr-0006" contrib-type="author"><name name-style="western"><surname>Certo</surname><given-names initials="M">Michelangelo</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref></contrib><contrib id="ctm21232-cr-0007" contrib-type="author"><name name-style="western"><surname>Alnajjar</surname><given-names initials="F">Fawzeyah</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref></contrib><contrib id="ctm21232-cr-0008" contrib-type="author"><name name-style="western"><surname>Davis</surname><given-names initials="ET">Edward T.</given-names></name><xref rid="ctm21232-aff-0004" ref-type="aff">
+<sup>4</sup>
+</xref></contrib><contrib id="ctm21232-cr-0009" contrib-type="author"><name name-style="western"><surname>Mauro</surname><given-names initials="C">Claudio</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref></contrib><contrib id="ctm21232-cr-0010" contrib-type="author"><name name-style="western"><surname>Lindsay</surname><given-names initials="MA">Mark A.</given-names></name><xref rid="ctm21232-aff-0002" ref-type="aff">
+<sup>2</sup>
+</xref><xref rid="ctm21232-note-0002" ref-type="author-notes">
+<sup>‡</sup>
+</xref></contrib><contrib id="ctm21232-cr-0011" contrib-type="author" corresp="yes"><name name-style="western"><surname>Jones</surname><given-names initials="SW">Simon W.</given-names></name><xref rid="ctm21232-aff-0001" ref-type="aff">
+<sup>1</sup>
+</xref><xref rid="ctm21232-note-0002" ref-type="author-notes">
+<sup>‡</sup>
+</xref><address><email>s.w.jones@bham.ac.uk</email></address></contrib></contrib-group><aff id="ctm21232-aff-0001">
+<label>
+<sup>1</sup>
+</label>
+<institution>Institute of Inflammation and Ageing</institution>
+<institution>MRC‐ARUK Centre for Musculoskeletal Ageing Research</institution>
+<institution>University of Birmingham</institution>
+<city>Birmingham</city>
+<country country="GB">UK</country>
+</aff><aff id="ctm21232-aff-0002">
+<label>
+<sup>2</sup>
+</label>
+<named-content content-type="organisation-division">Department of Pharmacy and Pharmacology</named-content>
+<institution>University of Bath, Claverton Down</institution>
+<city>Bath</city>
+<country country="GB">UK</country>
+</aff><aff id="ctm21232-aff-0003">
+<label>
+<sup>3</sup>
+</label>
+<named-content content-type="organisation-division">School of Biosciences</named-content>
+<institution>University of Birmingham</institution>
+<city>Birmingham</city>
+<country country="GB">UK</country>
+</aff><aff id="ctm21232-aff-0004">
+<label>
+<sup>4</sup>
+</label>
+<institution>The Royal Orthopaedic Hospital</institution>
+<city>Birmingham</city>
+<country country="GB">UK</country>
+</aff><author-notes><corresp id="correspondenceTo">
+<label>*</label>
+<bold>Correspondence</bold>
+<break/>Simon W. Jones, Institute of Inflammation and Ageing, MRC‐ARUK Centre for Musculoskeletal Ageing Research, University of Birmingham, Birmingham, B15 2TT, UK.<break/>Email: <email>s.w.jones@bham.ac.uk</email>
+<break/>
+</corresp><fn id="ctm21232-note-0001" fn-type="marginal-note"><label>#</label><p>These authors contributed equally to this work.</p></fn><fn id="ctm21232-note-0002" fn-type="marginal-note"><label>‡</label><p>These authors share joint senior authorship.</p></fn></author-notes><pub-date pub-type="epub"><day>03</day><month>4</month><year>2023</year></pub-date><pub-date pub-type="collection"><month>4</month><year>2023</year></pub-date><volume>13</volume><issue seq="10">4</issue><issue-id pub-id-type="pmc-issue-id">432567</issue-id><issue-id pub-id-type="doi">10.1002/ctm2.v13.4</issue-id><elocation-id>e1232</elocation-id><history><date date-type="rev-recd"><day>08</day><month>3</month><year>2023</year></date><date date-type="received"><day>24</day><month>8</month><year>2022</year></date><date date-type="accepted"><day>13</day><month>3</month><year>2023</year></date></history><pub-history><event event-type="pmc-release"><date><day>03</day><month>04</month><year>2023</year></date></event><event event-type="pmc-live"><date><day>04</day><month>04</month><year>2023</year></date></event><event event-type="pmc-last-change"><date iso-8601-date="2024-05-14 02:25:23.913"><day>14</day><month>05</month><year>2024</year></date></event></pub-history><permissions><copyright-statement content-type="article-copyright">© 2023 The Authors. <italic toggle="yes">Clinical and Translational Medicine</italic> published by John Wiley &amp; Sons Australia, Ltd on behalf of Shanghai Institute of Clinical Bioinformatics.</copyright-statement><license><ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/" specific-use="textmining" content-type="ccbylicense">https://creativecommons.org/licenses/by/4.0/</ali:license_ref><license-p>This is an open access article under the terms of the <ext-link xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="uri" xlink:href="https://creativecommons.org/licenses/by/4.0/">http://creativecommons.org/licenses/by/4.0/</ext-link> License, which permits use, distribution and reproduction in any medium, provided the original work is properly cited.</license-p></license></permissions><self-uri xmlns:xlink="http://www.w3.org/1999/xlink" content-type="pmc-pdf" xlink:href="CTM2-13-e1232.pdf"/><self-uri xmlns:xlink="http://www.w3.org/1999/xlink" content-type="pdf" xlink:href="file:CTM2-13-e1232.pdf"/><abstract><title>Abstract</title><sec id="ctm21232-sec-0010"><title>Background</title><p>Osteoarthritis (OA), a multifaceted condition, poses a significant challenge for the successful clinical development of therapeutics due to heterogeneity. However, classifying molecular endotypes of OA pathogenesis could provide invaluable phenotype‐directed routes for stratifying subgroups of patients for targeted therapeutics, leading to greater chances of success in trials. This study establishes endotypes in OA soft joint tissue driven by obesity in both load‐bearing and non‐load bearing joints.</p></sec><sec id="ctm21232-sec-0020"><title>Methods</title><p>Hand, hip, knee and foot joint synovial tissue was obtained from OA patients (<italic toggle="yes">n</italic> = 32) classified as obese (BMI &gt; 30) or normal weight (BMI 18.5–24.9). Isolated fibroblasts (OA SF) were assayed by Olink proteomic panel, seahorse metabolic flux assay, Illumina's NextSeq 500 bulk and Chromium 10X single cell RNA‐sequencing, validated by Luminex and immunofluorescence.</p></sec><sec id="ctm21232-sec-0030"><title>Results</title><p>Targeted proteomic, metabolic and transcriptomic analysis found the inflammatory landscape of OA SFs are independently impacted by obesity, joint loading and anatomical site with significant heterogeneity between obese and normal weight patients, confirmed by bulk RNAseq. Further investigation by single cell RNAseq identified four functional molecular endotypes including obesity specific subsets defined by an inflammatory endotype related to immune cell regulation, fibroblast activation and inflammatory signaling, with up‐regulated CXCL12, CFD and CHI3L1 expression. Luminex confirmed elevated chitase3‐like‐1(229.5 vs. 49.5 ng/ml, <italic toggle="yes">p</italic> &lt; .05) and inhibin (20.6 vs. 63.8 pg/ml, <italic toggle="yes">p</italic> &lt; .05) in obese and normal weight OA SFs, respectively. Lastly, we find SF subsets in obese patients spatially localise in sublining and lining layers of OA synovium and can be distinguished by differential expression of the transcriptional regulators MYC and FOS.</p></sec><sec id="ctm21232-sec-0040"><title>Conclusion</title><p>These findings demonstrate the significance of obesity in changing the inflammatory landscape of synovial fibroblasts in both load bearing and non‐load bearing joints. Describing multiple heterogeneous OA SF populations characterised by specific molecular endotypes, which drive heterogeneity in OA disease pathogenesis. These molecular endotypes may provide a route for the stratification of patients in clinical trials, providing a rational for the therapeutic targeting of specific SF subsets in specific patient populations with arthritic conditions.</p></sec></abstract><abstract id="ctm21232-abs-0001" abstract-type="graphical"><p>The inflammatory landscape of OA synovial fibroblasts (SFs), from hand, hip, knee and foot joint synovial tissue, are independently impacted by obesity, joint loading, and anatomical site. Resulting in significant heterogeneity between obese and normal weight patients, due to the presence and predominance of specific SF subsets, which can be defined by four functional molecular endotypes.
+<boxed-text position="anchor" content-type="graphic" orientation="portrait"><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-1" orientation="portrait" xlink:href="CTM2-13-e1232-g005.jpg"/></boxed-text>
+</p></abstract><kwd-group kwd-group-type="author-generated"><kwd id="ctm21232-kwd-0001">molecular endotypes</kwd><kwd id="ctm21232-kwd-0002">obesity</kwd><kwd id="ctm21232-kwd-0003">osteoarthritis</kwd><kwd id="ctm21232-kwd-0004">synovial fibroblasts</kwd></kwd-group><funding-group><award-group id="funding-0001"><funding-source><institution-wrap><institution>Versus Arthritis
+</institution><institution-id institution-id-type="doi">10.13039/501100012041</institution-id></institution-wrap></funding-source><award-id>21530</award-id><award-id>21812</award-id></award-group></funding-group><counts><fig-count count="6"/><table-count count="1"/><page-count count="18"/><word-count count="9986"/></counts><custom-meta-group><custom-meta><meta-name>pmc-status-qastatus</meta-name><meta-value>0</meta-value></custom-meta><custom-meta><meta-name>pmc-status-live</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-status-embargo</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-status-released</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-open-access</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-olf</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-manuscript</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-legally-suppressed</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-has-pdf</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-has-supplement</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-pdf-only</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-suppress-copyright</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-is-real-version</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-is-scanned-article</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-preprint</meta-name><meta-value>no</meta-value></custom-meta><custom-meta><meta-name>pmc-prop-in-epmc</meta-name><meta-value>yes</meta-value></custom-meta><custom-meta><meta-name>pmc-license-ref</meta-name><meta-value>CC BY</meta-value></custom-meta><custom-meta><meta-name>source-schema-version-number</meta-name><meta-value>2.0</meta-value></custom-meta><custom-meta><meta-name>cover-date</meta-name><meta-value>April 2023</meta-value></custom-meta><custom-meta><meta-name>details-of-publishers-convertor</meta-name><meta-value>Converter:WILEY_ML3GV2_TO_JATSPMC version:6.2.7 mode:remove_FC converted:03.04.2023</meta-value></custom-meta></custom-meta-group></article-meta><notes><p content-type="self-citation">
+<mixed-citation publication-type="journal" id="ctm21232-cit-0054">
+<string-name name-style="western">
+<surname>Wijesinghe</surname>
+<given-names>SN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Badoume</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Nanus</surname>
+<given-names>DE</given-names>
+</string-name>, et al. <article-title>Obesity defined molecular endotypes in the synovium of patients with osteoarthritis provides a rationale for therapeutic targeting of fibroblast subsets</article-title>. <source>Clin Transl Med</source>. <year>2023</year>;<volume>13</volume>:<elocation-id>e1232</elocation-id>. <pub-id pub-id-type="doi">10.1002/ctm2.1232</pub-id>
+<pub-id pub-id-type="pmcid">PMC10068310</pub-id><pub-id pub-id-type="pmid">37006170</pub-id></mixed-citation>
+</p></notes></front><body><sec id="ctm21232-sec-0050"><label>1</label><title>INTRODUCTION</title><p>Osteoarthritis (OA) is a major cause of disability and globally the most common musculoskeletal health issue with &gt;30% of those over 45 years of age having sought treatment.<xref rid="ctm21232-bib-0001" ref-type="bibr">
+<sup>1</sup>
+</xref>, <xref rid="ctm21232-bib-0002" ref-type="bibr">
+<sup>2</sup>
+</xref>, <xref rid="ctm21232-bib-0003" ref-type="bibr">
+<sup>3</sup>
+</xref> Despite this, there are currently no approved disease‐modifying drugs and only generic analgesic treatments, which are of limited efficacy and associated with toxicity over long term use. Consequently, the disease in many patients will progress, both in terms of structural damage and pain, before patients require joint replacement surgery, a procedure with a high percentage of poor post‐operative outcome.<xref rid="ctm21232-bib-0004" ref-type="bibr">
+<sup>4</sup>
+</xref> In recent attempts to develop new treatments for patients it is now emerging that the multifaceted clinical pathology of OA is underpinned by particular molecular endotypes defined by distinct molecular mechanisms and signaling pathways, which may overlap. In OA these include ‘low repair’, ‘bone cartilage’, ‘metabolic’ and ‘inflammatory’ endotypes.<xref rid="ctm21232-bib-0005" ref-type="bibr">
+<sup>5</sup>
+</xref> Importantly, the inflammatory endotype, as reported by Angelini 2022, contains the highest proportion of pain‐related progressors, correlating with patients who progress both in pain and in structural joint damage.<xref rid="ctm21232-bib-0006" ref-type="bibr">
+<sup>6</sup>
+</xref> Therefore, better understanding of this inflammatory endotype represents an opportunity for developing targeted therapeutics that reduce both disease progression and joint pain.</p><p>In attempting to understand the drivers of these endotypes, it is notable that obesity is a major risk factor for the development of OA. A systematic review and meta‐analysis of risk factors for knee OA found obesity to be one of the main risk factors, alongside previous knee trauma,<xref rid="ctm21232-bib-0007" ref-type="bibr">
+<sup>7</sup>
+</xref> whilst two meta‐analyses by Jiang et al., 2011 and 2012 found a 5‐unit increase in BMI was associated with a 35% increased risk of knee OA and an 11% increased risk of developing hip OA.<xref rid="ctm21232-bib-0008" ref-type="bibr">
+<sup>8</sup>
+</xref>, <xref rid="ctm21232-bib-0009" ref-type="bibr">
+<sup>9</sup>
+</xref> Importantly, obesity is also associated with greater functional impairment in patients with knee OA,<xref rid="ctm21232-bib-0010" ref-type="bibr">
+<sup>10</sup>
+</xref> increased musculoskeletal pain<xref rid="ctm21232-bib-0011" ref-type="bibr">
+<sup>11</sup>
+</xref> and reduced responsiveness to therapeutic agents in patients with rheumatoid arthritis.<xref rid="ctm21232-bib-0012" ref-type="bibr">
+<sup>12</sup>
+</xref> Excessive mechanical loading of the joint is often cited as the cause of the association between obesity and OA. However, studies also find that obesity increases the risk of developing OA in the hands,<xref rid="ctm21232-bib-0013" ref-type="bibr">
+<sup>13</sup>
+</xref> a non‐load bearing joint, illustrating that the association is not solely due to pathological loading on the articular cartilage but may also be due to the chronic inflammatory metabolic effects of obesity. Indeed, we have reported that in patients with hip OA, obesity exacerbates one of the key hallmarks of OA, namely synovial inflammation (synovitis). Synovitis, characterized by hyperplasia of the resident synovial fibroblasts (SFs) and the infiltration of innate immune cells, increases the secretion of pro‐inflammatory cytokines into the synovial fluid driving matrix metalloprotease (MMP) and aggrecanase‐induced cartilage damage and promoting joint pain by sensitizing peripheral nociceptors.<xref rid="ctm21232-bib-0001" ref-type="bibr">
+<sup>1</sup>
+</xref>, <xref rid="ctm21232-bib-0002" ref-type="bibr">
+<sup>2</sup>
+</xref>, <xref rid="ctm21232-bib-0014" ref-type="bibr">
+<sup>14</sup>
+</xref>, <xref rid="ctm21232-bib-0015" ref-type="bibr">
+<sup>15</sup>
+</xref>, <xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref>, <xref rid="ctm21232-bib-0017" ref-type="bibr">
+<sup>17</sup>
+</xref> In our previous studies, we found that the synovial joint fluid in obese OA patients contains significantly greater levels of pro‐inflammatory cytokines, including IL6, CXCL8 and TNFα, compared to patients of normal weight.<xref rid="ctm21232-bib-0018" ref-type="bibr">
+<sup>18</sup>
+</xref> Furthermore, we found that obesity imparts an inflammatory SF phenotype, with SFs from obese patients being more proliferative and exhibiting an inflammatory transcriptome, compared to fibroblasts from normal‐weight patients,<xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref> including the expression of several long non‐coding RNAs that are found to be associated with obesity‐related inflammatory musculoskeletal disorders.<xref rid="ctm21232-bib-0019" ref-type="bibr">
+<sup>19</sup>
+</xref> This is important as recent studies suggest the inflammatory status of the synovial joint lining tissue is reflected in the imprinted phenotype of the SF, which maintains a stable phenotype and epigenetic modifications such as DNA methylation in culture.<xref rid="ctm21232-bib-0020" ref-type="bibr">
+<sup>20</sup>
+</xref>, <xref rid="ctm21232-bib-0021" ref-type="bibr">
+<sup>21</sup>
+</xref> The heterogeneity of inflammatory synovial tissue being reflected in SFs as a stable trait has led to much focus on the role of SFs in mediating joint inflammation. Recent findings suggest there are functionally distinct populations of SFs,<xref rid="ctm21232-bib-0022" ref-type="bibr">
+<sup>22</sup>
+</xref> which differentially contribute to the severity of arthritis,<xref rid="ctm21232-bib-0023" ref-type="bibr">
+<sup>23</sup>
+</xref> and to the severity of joint pain.<xref rid="ctm21232-bib-0002" ref-type="bibr">
+<sup>2</sup>
+</xref>, <xref rid="ctm21232-bib-0018" ref-type="bibr">
+<sup>18</sup>
+</xref>, <xref rid="ctm21232-bib-0024" ref-type="bibr">
+<sup>24</sup>
+</xref> Although whether such populations are impacted by obesity is yet to be determined.</p><p>Understanding the nature of inflammatory SF phenotype in the context of obesity and joint loading may therefore help to better understand the metabolic and inflammatory endotypes in OA, which ultimately will facilitate stratification of patients for clinical trials and help to identify targets for the development of new therapeutics. As such, the aim of this study was to determine the confounding impact of obesity and loading on OA pathogenesis, comparing load‐bearing and non‐load bearing joints, to identify differences in SF secretomes, transcriptomes and cellular subsets that exhibit pathologically inflammatory functions driven by obesity.</p></sec><sec id="ctm21232-sec-0060"><label>2</label><title>PATIENTS AND METHODS</title><sec id="ctm21232-sec-0070"><label>2.1</label><title>Study recruitment</title><p>Ethical approval was granted by the UK National Research Ethics Committee (NRES 16/SS/0172) to collect OA joint tissue from consenting patients following elective total joint replacement. Patients were recruited to the study at the Royal Orthopaedic Hospital, Birmingham (United Kingdom) and Russell's Hall Hospital, Dudley (United Kingdom).</p></sec><sec id="ctm21232-sec-0080"><label>2.2</label><title>Primary SF isolation and characterization</title><p>Synovial joint tissue (<italic toggle="yes">n</italic> = 32) was collected peri‐operatively and used to isolate and characterise primary SF as previously described.<xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref>, <xref rid="ctm21232-bib-0024" ref-type="bibr">
+<sup>24</sup>
+</xref>, <xref rid="ctm21232-bib-0025" ref-type="bibr">
+<sup>25</sup>
+</xref> Each joint sample collected was from an independent patient undergoing arthroscopy at a single anatomical joint, see Supplementary Materials (SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">1</xref>) for the summary of patient characteristics. Fibroblasts were conditioned in low serum (1% fetal bovine serum) media (<italic toggle="yes">n</italic> = 24), which was collected after 24 h for the Olink Target 96 Inflammation panel consisting of 92 immune‐related proteins. Seahorse Xfe96 Analyzer (Agilent) was used to assay metabolic flux of joint SFs (<italic toggle="yes">n</italic> = 24) seeded at 30 000 cells per well with and without 24 h TNFα stimulation at 10 ng/ml as previously described.<xref rid="ctm21232-bib-0025" ref-type="bibr">
+<sup>25</sup>
+</xref> Cell doubling events were calculated using trypan blue staining and Countess Automated Cell Counter (Invitrogen).</p></sec><sec id="ctm21232-sec-0090"><label>2.3</label><title>RNA sequencing analysis</title><p>Total RNA was extracted from isolated hand, hip, knee and foot OA SF (<italic toggle="yes">n</italic> = 24), from independent patients undergoing arthroscopy at a single anatomical joint, using RNeasy Mini Kit (Qiagen) and DNase treated (Qiagen DNase kit). Library preparation and RNA‐sequencing was performed by Genomics Facility at University of Birmingham using QuantSeq 3′ kit (Lexogen) and sequenced on Illumina's NextSeq 500. The sequence reads quality checks were carried out using fastQC, following which the bbduk from BBMap (version 38.87) software was used to trim Illumina adapters and polyA tails. Reads were mapped to hg38 reference human genome using Star Aligner. The R package DESeq2 was used to normalize raw read counts and perform statistical comparisons using VST transformations. Sequence data are available through the GEO database under accession number <ext-link xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="pmc:entrez-geo" xlink:href="GSE219027">GSE219027</ext-link>.</p></sec><sec id="ctm21232-sec-0100"><label>2.4</label><title>3′‐end single‐cell RNA sequencing and raw data processing</title><p>Chromium 10X, scRNAseq analysis (Genomics Facility, University of Birmingham) was performed on a total of ∼2485 SF pooled from <italic toggle="yes">n</italic> = 4 obese and <italic toggle="yes">n</italic> = 4 normal‐weight OA patients, representing ∼310 cells/patient. Single cell 3′ cDNA libraries were constructed and sequenced using the Nextseq 500 (Illumina) platform. Libraries were pooled together and sequenced across four lanes, at an average read depth of ∼60 000 reads/cell. CellRanger version 3.0.1 was used to demultiplex the raw data and map to the hg38 reference genome (GRCh38.93). Sequence data are available through the GEO database (accession: <ext-link xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="pmc:entrez-geo" xlink:href="GSE152815">GSE152815</ext-link>). 10x Genomic data sequencing metrics are detailed in Supplement Materials (SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">4</xref>).</p></sec><sec id="ctm21232-sec-0110"><label>2.5</label><title>Data processing and analysis</title><p>Sequencing data were quality controlled and analysed using Seurat version 2.3.4 software (<ext-link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://satijalab.org/seurat/" ext-link-type="uri">https://satijalab.org/seurat/</ext-link>). Datasets were merged, and low quality cells or doublets were filtered by excluding cells that expressed &gt;6100 genes/cell and &gt;20% mitochondrial gene expression. Technical noise was accounted for by scaling data based on nUMI and percentage of mitochondrial genes. Two thousand four hundred forty‐three cells remained post QC filtration. Lineage marker analysis as detailed by Mizoguchi et al., 2018 was used to confirm cells were strictly a homogenous fibroblast population.<xref rid="ctm21232-bib-0022" ref-type="bibr">
+<sup>22</sup>
+</xref> Data were subjected to global‐scale normalization and log‐transformed. Principal component analysis performed based on the 625 highly variable genes identified in the dataset and the most significant principal components (top 15 PCs) used for downstream t‐Distributed Stochastic Neighbour Embedding (t‐SNE) analysis to cluster the cells, with a resolution of .6.</p></sec><sec id="ctm21232-sec-0120"><label>2.6</label><title>Pseudotime analysis</title><p>Monocle version 2.9.0 was used to analyse pseudotime trajectories as detailed on monocle's tutorial page (<ext-link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://monocle-bio.sourceforge.net/" ext-link-type="uri">http://monocle‐bio.sourceforge.net/</ext-link>). Following data normalization and variance estimation, genes used for pseudotime ordering were selected based on differentially expressed genes using ‘differentialGeneTest’ and filtering for genes expressed by at least 10 cells and with a q‐value of &lt;.01. Using the DDRTree method, the dimensionality of the data was reduced, and cells were ordered in pseudo‐time. Full analysis script is detailed in Supplementary Materials (SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">6</xref>).</p></sec><sec id="ctm21232-sec-0130"><label>2.7</label><title>Bioinformatic pathway analysis</title><p>DEG from each SF cluster (±1.5‐fold change, <italic toggle="yes">p</italic> &lt; .05) was analysed using Ingenuity Pathway Analysis (IPA) (www.ingenuity.com) software. Core functional analysis was performed to identify canonical pathways and predicted upstream regulators significantly associated with DEG in each cluster subset. Fisher's exact test was used to calculate a <italic toggle="yes">p</italic>‐value of the association between DEGs, canonical pathways and upstream regulators (USRs).</p></sec><sec id="ctm21232-sec-0140"><label>2.8</label><title>Quantification of CHI3L1 and inhba by multiplex bead assay</title><p>Concentrations of CHI3L1 and Total Inhibin in cell supernatants (<italic toggle="yes">n</italic> = 8) were determined using multiplex technology (Luminex Screening Assay, R&amp;D Systems). Multi‐plex analysis was performed according to the manufacturer's instructions and concentrations analysed using a Luminex 200 instrument (Luminex Corporation, Austin, Texas, USA).</p></sec><sec id="ctm21232-sec-0150"><label>2.9</label><title>Immunofluorescence and confocal microscopy</title><p>Tissues were embedded in Tissue‐Tek OCT medium and snap frozen in liquid nitrogen. For immunofluorescence, 10‐μm cryosections were rehydrated to water, postfixed with 4% PFA/PBS (Sigma‐Aldrich), blocked and permeabilized for 30 min in .25% Triton X‐100/5% normal donkey serum (NDS)/PBS (Vector Laboratories). Antibodies were diluted in 5% NDS/.1% Tween‐20/PBS. The following primary antibodies were incubated at 4°C overnight: anti‐FAPα (AF3715, R&amp;D Systems), anti‐CXCL12 (MA5‐23759, Thermo Fisher Scientific), anti‐THBD (hpa002982, Atlas Antibodies), anti‐NPM1 (FC61991, Thermo Fisher Scientific), anti‐FBLN1(hpa001612, Atlas Antibodies), anti‐CD90 (AF2067, R&amp;D Systems), anti‐c‐Myc (MAB36961, R&amp;D Systems) and anti‐c‐Fos (PC05L, Merck). Staining was visualized with secondary antibodies (IgG‐NL493 (NL006) and IgG‐NL557 (NL010), 1:200, R&amp;D Systems). Nuclei were visualized using ProLong Gold Antifade Mountant (<ext-link xmlns:xlink="http://www.w3.org/1999/xlink" ext-link-type="pmc:entrez-protein" xlink:href="P36931">P36931</ext-link>, Thermo Fisher Scientific). Stains were evaluated with a Leica DM6000 fluorescence microscope and using LAS AF Lite software.</p></sec><sec id="ctm21232-sec-0160"><label>2.10</label><title>Statistical analysis</title><p>Statistical analysis detailed in results and figure legends was performed using GraphPad Prism version 9 and SPSS version 27.</p></sec></sec><sec id="ctm21232-sec-0170"><label>3</label><title>RESULTS</title><sec id="ctm21232-sec-0180"><label>3.1</label><title>Load‐bearing and obesity differentially affect the secretory pro‐inflammatory phenotype of SFs</title><p>Given our previous finding that the inflammatory phenotype of hip OA SFs was increased in patients who were obese,<xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref> we were keen to expand these findings to other anatomical sites and to determine whether the effect of obesity was solely due to increased load‐bearing. To this end, the secretory profiles of SFs from both non‐load‐bearing (NLB, hand) and load‐bearing (LB, hip, knee, and foot) joints of both obese (OB, BMI &gt; 30) and normal‐weight (NW, BMI 18.5–24.9) patients were assayed using Olink's Target 96‐marker inflammation panel (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1A,B</xref>). In total, we identified 27 markers that were in range of the assay and further analysis revealed significant markers fell into three definitive categories, with differentially abundant markers being specific to load‐bearing joints, whilst others were regulated by obesity or specific to anatomical sites (Table <xref rid="ctm21232-tbl-0001" ref-type="table">1</xref>).</p><fig position="float" fig-type="FIGURE" id="ctm21232-fig-0001" orientation="portrait"><label>FIGURE 1</label><caption><p>
+<bold>Synovial fibroblast phenotyping by BMI and joint loading. (A and B)</bold> Profiling of synovial fibroblast secretome using Olink Target 96 biomarker assay for inflammation. (<bold>A)</bold> Olink normalized protein expression (NPX) plotted for proteins of interest in load‐bearing (LB, <italic toggle="yes">n</italic> = 6), non‐load bearing (NLB, <italic toggle="yes">n</italic> = 18), hand (<italic toggle="yes">n</italic> = 6), hip (<italic toggle="yes">n</italic> = 6), knee (<italic toggle="yes">n</italic> = 6) and foot (<italic toggle="yes">n</italic> = 6) joints. (<bold>B)</bold> Olink NPX plotted for proteins of interest in normal ‐weight (NW, <italic toggle="yes">n</italic> = 12) and obese (OB, <italic toggle="yes">n</italic> = 12) joints, and BMI and joint (<italic toggle="yes">n</italic> = 3/group). (<bold>C</bold> and <bold>D)</bold> Cell doubling time plotted by BMI (<italic toggle="yes">n</italic> = 12/group), by BMI and joint (<italic toggle="yes">n</italic> = 3/group), by load‐bearing (LB, <italic toggle="yes">n</italic> = 6), non‐load bearing (NLB, <italic toggle="yes">n</italic> = 18), and by joint (<italic toggle="yes">n</italic> = 6/group) . (<bold>E–H)</bold> Seahorse analysis was used to measure oxygen consumption rate (OCR) and extracellular acidification rate (ECAR) of joint SF to determine mitochondrial respiration and glycolysis, respectively. (<bold>E)</bold> OCR of unstimulated control and TNFα treated (10 ng/ml for 24 hrs) SFs from load‐bearing (<italic toggle="yes">n</italic> = 16) and non‐load bearing (<italic toggle="yes">n</italic> = 4) joints from independent patients. (<bold>F)</bold> ECAR of unstimulated control and TNFα treated SFs from load‐bearing and non‐load bearing joints from independent patients. (<bold>G)</bold> OCR of unstimulated control and TNFα treated hand (<italic toggle="yes">n</italic> = 4), hip (<italic toggle="yes">n</italic> = 11) and knee (<italic toggle="yes">n</italic> = 5) SF, alongside graphical summary of glycolysis of SF from independent patients. (<bold>H)</bold> ECAR of unstimulated control and TNFα treated hand, hip and knee fibroblasts, alongside graphical summary of mitochondrial respiration. Two‐way ANOVA with Tukey HSD post‐hoc test used for seahorse assay analysis. Plotted are mean values ± SD. If not otherwise stated, Student's <italic toggle="yes">t</italic>‐test comparisons and ANOVA were performed between different joints, BMI, and loading from independent patients for Olink and proliferation data, plotted with mean values ± SEM. ***<italic toggle="yes">p</italic> &lt; .001; **<italic toggle="yes">p</italic> &lt; .01 and *<italic toggle="yes">p</italic> &lt; .05.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-3" orientation="portrait" xlink:href="CTM2-13-e1232-g001.jpg"/></fig><table-wrap position="float" id="ctm21232-tbl-0001" content-type="TABLE" orientation="portrait"><label>TABLE 1</label><caption><p>Summary of Olink Inflammation panel markers from heatmap. Average NPX data presented with standard deviation. Data analysed using unpaired students t‐test and one‐way ANOVA and Tukey posthoc test where *<italic toggle="yes">p</italic> &lt; .05 and **<italic toggle="yes">p</italic> &lt; .01.</p></caption><table frame="hsides" rules="groups"><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><col align="left" span="1"/><thead><tr style="border-bottom:solid 1px #000000"><th align="left" rowspan="1" colspan="1"/><th align="left" rowspan="1" colspan="1">
+<p>Non‐load bearing</p>
+<p>(<italic toggle="yes">N</italic> = 6)</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Load bearing</p>
+<p>(<italic toggle="yes">N</italic> = 18)</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>NLB versus LB</p>
+<p>p‐value</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Normal weight</p>
+<p>(<italic toggle="yes">N</italic> = 12)</p>
+</th><th align="left" rowspan="1" colspan="1">Obese (<italic toggle="yes">N</italic> = 12)</th><th align="left" rowspan="1" colspan="1">
+<p>NW versus OB</p>
+<p>p‐value</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Hand</p>
+<p>(<italic toggle="yes">N</italic> = 6)</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Hip</p>
+<p>(<italic toggle="yes">N</italic> = 6)</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Knee</p>
+<p>(<italic toggle="yes">N</italic> = 6)</p>
+</th><th align="left" rowspan="1" colspan="1">
+<p>Foot</p>
+<p>(<italic toggle="yes">N</italic> = 6)</p>
+</th><th align="left" rowspan="1" colspan="1"/></tr></thead><tbody><tr><td align="left" rowspan="1" colspan="1">CCL3</td><td align="left" rowspan="1" colspan="1">1.801 ± .3321</td><td align="left" rowspan="1" colspan="1">5.180 ± .7019</td><td align="left" rowspan="1" colspan="1">.0112 *</td><td align="left" rowspan="1" colspan="1">3.491 ± .8561</td><td align="left" rowspan="1" colspan="1">5.038 ± .8422</td><td align="left" rowspan="1" colspan="1">.2123</td><td align="left" rowspan="1" colspan="1">1.801 ± .3321</td><td align="left" rowspan="1" colspan="1">5.586 ± 1.525</td><td align="left" rowspan="1" colspan="1">4.657 ± .6301</td><td align="left" rowspan="1" colspan="1">5.365 ± 1.559</td><td align="left" rowspan="1" colspan="1">.0898</td></tr><tr><td align="left" rowspan="1" colspan="1">TSLP</td><td align="left" rowspan="1" colspan="1">2.347 ± .2244</td><td align="left" rowspan="1" colspan="1">3.044 ± .1714</td><td align="left" rowspan="1" colspan="1">.0437 *</td><td align="left" rowspan="1" colspan="1">2.879 ± .1928</td><td align="left" rowspan="1" colspan="1">2.861 ± .2427</td><td align="left" rowspan="1" colspan="1">.9553</td><td align="left" rowspan="1" colspan="1">2.347 ± .2244</td><td align="left" rowspan="1" colspan="1">3.069 ± .3338</td><td align="left" rowspan="1" colspan="1">2.763 ± .3065</td><td align="left" rowspan="1" colspan="1">3.300 ± .2554</td><td align="left" rowspan="1" colspan="1">.1303</td></tr><tr><td align="left" rowspan="1" colspan="1">LIF</td><td align="left" rowspan="1" colspan="1">5.548 ± .4038</td><td align="left" rowspan="1" colspan="1">5.131 ± .2307</td><td align="left" rowspan="1" colspan="1">.3520</td><td align="left" rowspan="1" colspan="1">5.080 ± .1991</td><td align="left" rowspan="1" colspan="1">5.762 ± .2291</td><td align="left" rowspan="1" colspan="1">.0351*</td><td align="left" rowspan="1" colspan="1">5.548 ± .4038</td><td align="left" rowspan="1" colspan="1">5.529 ± .2223</td><td align="left" rowspan="1" colspan="1">5.333 ± .4728</td><td align="left" rowspan="1" colspan="1">5.274 ± .2255</td><td align="left" rowspan="1" colspan="1">.9241</td></tr><tr><td align="left" rowspan="1" colspan="1">MCP1</td><td align="left" rowspan="1" colspan="1">14.22 ± .3835</td><td align="left" rowspan="1" colspan="1">14.38 ± .1563</td><td align="left" rowspan="1" colspan="1">.6408</td><td align="left" rowspan="1" colspan="1">14.05 ± .2203</td><td align="left" rowspan="1" colspan="1">14.63 ± .1656</td><td align="left" rowspan="1" colspan="1">.0486 *</td><td align="left" rowspan="1" colspan="1">14.22 ± .3835</td><td align="left" rowspan="1" colspan="1">14.60 ± .1879</td><td align="left" rowspan="1" colspan="1">14.26 ± .2959</td><td align="left" rowspan="1" colspan="1">14.28 ± .3342</td><td align="left" rowspan="1" colspan="1">.8060</td></tr><tr><td align="left" rowspan="1" colspan="1">MCP2</td><td align="left" rowspan="1" colspan="1">5.956 ± .3965</td><td align="left" rowspan="1" colspan="1">5.995 ± .3464</td><td align="left" rowspan="1" colspan="1">.9515</td><td align="left" rowspan="1" colspan="1">5.462 ± .3940</td><td align="left" rowspan="1" colspan="1">6.509 ± .3299</td><td align="left" rowspan="1" colspan="1">.0537</td><td align="left" rowspan="1" colspan="1">5.956 ± .3965</td><td align="left" rowspan="1" colspan="1">6.051 ± .7050</td><td align="left" rowspan="1" colspan="1">5.549 ± .3969</td><td align="left" rowspan="1" colspan="1">6.386 ± .7060</td><td align="left" rowspan="1" colspan="1">.7807</td></tr><tr><td align="left" rowspan="1" colspan="1">MCP3</td><td align="left" rowspan="1" colspan="1">5.767 ± .4506</td><td align="left" rowspan="1" colspan="1">5.766 ± .2821</td><td align="left" rowspan="1" colspan="1">.9990</td><td align="left" rowspan="1" colspan="1">5.322 ± .2994</td><td align="left" rowspan="1" colspan="1">6.211 ± .3242</td><td align="left" rowspan="1" colspan="1">.0563</td><td align="left" rowspan="1" colspan="1">5.767 ± .4506</td><td align="left" rowspan="1" colspan="1">5.381 ± .5346</td><td align="left" rowspan="1" colspan="1">5.433 ± .4655</td><td align="left" rowspan="1" colspan="1">6.484 ± .3931</td><td align="left" rowspan="1" colspan="1">.3347</td></tr><tr><td align="left" rowspan="1" colspan="1">CXCL5</td><td align="left" rowspan="1" colspan="1">6.503 ± .5987</td><td align="left" rowspan="1" colspan="1">7.616 ± .5775</td><td align="left" rowspan="1" colspan="1">.3084</td><td align="left" rowspan="1" colspan="1">6.552 ± .6697</td><td align="left" rowspan="1" colspan="1">8.124 ± .5797</td><td align="left" rowspan="1" colspan="1">.0899</td><td align="left" rowspan="1" colspan="1">6.503 ± .5987</td><td align="left" rowspan="1" colspan="1">8.718 ± .9305</td><td align="left" rowspan="1" colspan="1">7.836 ± .9893</td><td align="left" rowspan="1" colspan="1">6.295 ± .9776</td><td align="left" rowspan="1" colspan="1">.2071</td></tr><tr><td align="left" rowspan="1" colspan="1">IL6</td><td align="left" rowspan="1" colspan="1">10.70 ± .7286</td><td align="left" rowspan="1" colspan="1">10.78 ± .3944</td><td align="left" rowspan="1" colspan="1">.9237</td><td align="left" rowspan="1" colspan="1">10.59 ± .5190</td><td align="left" rowspan="1" colspan="1">10.92 ± .4552</td><td align="left" rowspan="1" colspan="1">.6380</td><td align="left" rowspan="1" colspan="1">10.70 ± .7286</td><td align="left" rowspan="1" colspan="1">11.43 ± .3354</td><td align="left" rowspan="1" colspan="1">9.557 ± .8497</td><td align="left" rowspan="1" colspan="1">11.34 ± .5531</td><td align="left" rowspan="1" colspan="1">.1826</td></tr><tr><td align="left" rowspan="1" colspan="1">CXCL1</td><td align="left" rowspan="1" colspan="1">11.34 ± .8805</td><td align="left" rowspan="1" colspan="1">11.85 ± .4130</td><td align="left" rowspan="1" colspan="1">.5656</td><td align="left" rowspan="1" colspan="1">11.67 ± .5554</td><td align="left" rowspan="1" colspan="1">12.02 ± .6392</td><td align="left" rowspan="1" colspan="1">.6832</td><td align="left" rowspan="1" colspan="1">11.34 ± .8805</td><td align="left" rowspan="1" colspan="1">13.04 ± .4983</td><td align="left" rowspan="1" colspan="1">12.25 ± .5914</td><td align="left" rowspan="1" colspan="1">10.26 ± .5679</td><td align="left" rowspan="1" colspan="1">
+<p>.0388</p>
+<p>hip versus foot*</p>
+</td></tr><tr><td align="left" rowspan="1" colspan="1">CXCL6</td><td align="left" rowspan="1" colspan="1">9.843 ± 1.029</td><td align="left" rowspan="1" colspan="1">10.16 ± .4933</td><td align="left" rowspan="1" colspan="1">.7637</td><td align="left" rowspan="1" colspan="1">9.856 ± .5838</td><td align="left" rowspan="1" colspan="1">10.69 ± .5029</td><td align="left" rowspan="1" colspan="1">.2881</td><td align="left" rowspan="1" colspan="1">9.843 ± 1.029</td><td align="left" rowspan="1" colspan="1">11.60 ± .6238</td><td align="left" rowspan="1" colspan="1">10.28 ± .7468</td><td align="left" rowspan="1" colspan="1">9.385 ± .4486</td><td align="left" rowspan="1" colspan="1">.2102</td></tr><tr><td align="left" rowspan="1" colspan="1">IL8</td><td align="left" rowspan="1" colspan="1">10.75 ± .8738</td><td align="left" rowspan="1" colspan="1">11.46 ± .3752</td><td align="left" rowspan="1" colspan="1">.7063</td><td align="left" rowspan="1" colspan="1">10.94 ± .5800</td><td align="left" rowspan="1" colspan="1">11.71 ± .5662</td><td align="left" rowspan="1" colspan="1">.2013</td><td align="left" rowspan="1" colspan="1">10.75 ± .8738</td><td align="left" rowspan="1" colspan="1">12.49 ± .4275</td><td align="left" rowspan="1" colspan="1">11.55 ± .5515</td><td align="left" rowspan="1" colspan="1">10.33 ± .6942</td><td align="left" rowspan="1" colspan="1">.1346</td></tr><tr><td align="left" rowspan="1" colspan="1">SCF</td><td align="left" rowspan="1" colspan="1">2.910 ± .1469</td><td align="left" rowspan="1" colspan="1">2.850 ± .1153</td><td align="left" rowspan="1" colspan="1">.7848</td><td align="left" rowspan="1" colspan="1">2.827 ± .1157</td><td align="left" rowspan="1" colspan="1">2.903 ± .1491</td><td align="left" rowspan="1" colspan="1">.6926</td><td align="left" rowspan="1" colspan="1">2.910 ± .1469</td><td align="left" rowspan="1" colspan="1">2.671 ± .1357</td><td align="left" rowspan="1" colspan="1">2.740 ± .2901</td><td align="left" rowspan="1" colspan="1">3.139 ± .0873</td><td align="left" rowspan="1" colspan="1">.2958</td></tr><tr><td align="left" rowspan="1" colspan="1">uPA</td><td align="left" rowspan="1" colspan="1">9.184 ± .5934</td><td align="left" rowspan="1" colspan="1">8.799 ± .3927</td><td align="left" rowspan="1" colspan="1">.6190</td><td align="left" rowspan="1" colspan="1">8.563 ± .5159</td><td align="left" rowspan="1" colspan="1">9.035 ± .6126</td><td align="left" rowspan="1" colspan="1">.5643</td><td align="left" rowspan="1" colspan="1">9.184 ± .5934</td><td align="left" rowspan="1" colspan="1">9.500 ± .8672</td><td align="left" rowspan="1" colspan="1">9.311 ± .5466</td><td align="left" rowspan="1" colspan="1">7.587 ± .2783</td><td align="left" rowspan="1" colspan="1">.1319</td></tr><tr><td align="left" rowspan="1" colspan="1">OPG</td><td align="left" rowspan="1" colspan="1">11.70 ± .4450</td><td align="left" rowspan="1" colspan="1">12.11 ± .2642</td><td align="left" rowspan="1" colspan="1">.4343</td><td align="left" rowspan="1" colspan="1">11.93 ± .3356</td><td align="left" rowspan="1" colspan="1">12.09 ± .3145</td><td align="left" rowspan="1" colspan="1">.7249</td><td align="left" rowspan="1" colspan="1">11.70 ± .4450</td><td align="left" rowspan="1" colspan="1">12.98 ± .2423</td><td align="left" rowspan="1" colspan="1">11.03 ± .3944</td><td align="left" rowspan="1" colspan="1">12.33 ± .3243</td><td align="left" rowspan="1" colspan="1">
+<p>.0069</p>
+<p>hip versus knee **</p>
+</td></tr><tr><td align="left" rowspan="1" colspan="1">MMP10</td><td align="left" rowspan="1" colspan="1">5.832 ± .3391</td><td align="left" rowspan="1" colspan="1">4.927 ± .4200</td><td align="left" rowspan="1" colspan="1">.2476</td><td align="left" rowspan="1" colspan="1">4.871 ± .4395</td><td align="left" rowspan="1" colspan="1">5.436 ± .5052</td><td align="left" rowspan="1" colspan="1">.4076</td><td align="left" rowspan="1" colspan="1">5.832 ± .3391</td><td align="left" rowspan="1" colspan="1">5.848 ± .9261</td><td align="left" rowspan="1" colspan="1">4.605 ± .7175</td><td align="left" rowspan="1" colspan="1">4.329 ± .4055</td><td align="left" rowspan="1" colspan="1">.2319</td></tr><tr><td align="left" rowspan="1" colspan="1">FGF21</td><td align="left" rowspan="1" colspan="1">2.872 ± .0737</td><td align="left" rowspan="1" colspan="1">2.840 ± .0613</td><td align="left" rowspan="1" colspan="1">.7794</td><td align="left" rowspan="1" colspan="1">2.778 ± .0785</td><td align="left" rowspan="1" colspan="1">2.917 ± .0543</td><td align="left" rowspan="1" colspan="1">.1598</td><td align="left" rowspan="1" colspan="1">2.872 ± .0737</td><td align="left" rowspan="1" colspan="1">2.993 ± .0732</td><td align="left" rowspan="1" colspan="1">2.669 ± .1143</td><td align="left" rowspan="1" colspan="1">2.857 ± .0965</td><td align="left" rowspan="1" colspan="1">.1243</td></tr><tr><td align="left" rowspan="1" colspan="1">MMP1</td><td align="left" rowspan="1" colspan="1">13.6  ± .4176</td><td align="left" rowspan="1" colspan="1">13.2  ± .4460</td><td align="left" rowspan="1" colspan="1">.6325</td><td align="left" rowspan="1" colspan="1">12.8  ± .5096</td><td align="left" rowspan="1" colspan="1">13.8  ± .4560</td><td align="left" rowspan="1" colspan="1">.1927</td><td align="left" rowspan="1" colspan="1">13.6  ± .4176</td><td align="left" rowspan="1" colspan="1">14.1  ± 1.027</td><td align="left" rowspan="1" colspan="1">13.2  ± .3609</td><td align="left" rowspan="1" colspan="1">12.3  ± .7281</td><td align="left" rowspan="1" colspan="1">.3400</td></tr><tr><td align="left" rowspan="1" colspan="1">CSF1</td><td align="left" rowspan="1" colspan="1">8.0 3 ± .3853</td><td align="left" rowspan="1" colspan="1">8.5 7 ± .2268</td><td align="left" rowspan="1" colspan="1">.2169</td><td align="left" rowspan="1" colspan="1">8.4 0 ± .2796</td><td align="left" rowspan="1" colspan="1">8.4 7 ± .2933</td><td align="left" rowspan="1" colspan="1">.9864</td><td align="left" rowspan="1" colspan="1">8.0 3 ± .3853</td><td align="left" rowspan="1" colspan="1">9.0 7 ± .4376</td><td align="left" rowspan="1" colspan="1">8.5 1 ± .4758</td><td align="left" rowspan="1" colspan="1">8.1 3 ± .1764</td><td align="left" rowspan="1" colspan="1">.2730</td></tr><tr><td align="left" rowspan="1" colspan="1">CCL20</td><td align="left" rowspan="1" colspan="1">5.3 4 ± .4904</td><td align="left" rowspan="1" colspan="1">4.9 1 ± .4107</td><td align="left" rowspan="1" colspan="1">.7803</td><td align="left" rowspan="1" colspan="1">4.6 9 ± .4105</td><td align="left" rowspan="1" colspan="1">5.4 4 ± .5086</td><td align="left" rowspan="1" colspan="1">.2548</td><td align="left" rowspan="1" colspan="1">5.3 4 ± .4904</td><td align="left" rowspan="1" colspan="1">5.8 1 ± .8207</td><td align="left" rowspan="1" colspan="1">4.5 7 ± .7649</td><td align="left" rowspan="1" colspan="1">4.2 4 ± .4205</td><td align="left" rowspan="1" colspan="1">.3101</td></tr><tr><td align="left" rowspan="1" colspan="1">IL18R1</td><td align="left" rowspan="1" colspan="1">2.8 1 ± .1421</td><td align="left" rowspan="1" colspan="1">2.9 8 ± .1900</td><td align="left" rowspan="1" colspan="1">.9148</td><td align="left" rowspan="1" colspan="1">2.8 1 ± .2102</td><td align="left" rowspan="1" colspan="1">2.9 7 ± .2095</td><td align="left" rowspan="1" colspan="1">.8008</td><td align="left" rowspan="1" colspan="1">2.8 1 ± .1421</td><td align="left" rowspan="1" colspan="1">3.2 2 ± .4369</td><td align="left" rowspan="1" colspan="1">2.8 6 ± .3285</td><td align="left" rowspan="1" colspan="1">2.6 6 ± .1601</td><td align="left" rowspan="1" colspan="1">.4833</td></tr><tr><td align="left" rowspan="1" colspan="1">ADA</td><td align="left" rowspan="1" colspan="1">3.0 6 ± .2380</td><td align="left" rowspan="1" colspan="1">2.7 8 ± .1675</td><td align="left" rowspan="1" colspan="1">.3497</td><td align="left" rowspan="1" colspan="1">2.8 6 ± .1741</td><td align="left" rowspan="1" colspan="1">2.7 5 ± .2251</td><td align="left" rowspan="1" colspan="1">.8329</td><td align="left" rowspan="1" colspan="1">3.0 6 ± .2380</td><td align="left" rowspan="1" colspan="1">2.7 2 ± .2741</td><td align="left" rowspan="1" colspan="1">2.6 1 ± .3277</td><td align="left" rowspan="1" colspan="1">2.7 2 ± .3209</td><td align="left" rowspan="1" colspan="1">.8315</td></tr><tr><td align="left" rowspan="1" colspan="1">TWEAK</td><td align="left" rowspan="1" colspan="1">3.3 2 ± .2771</td><td align="left" rowspan="1" colspan="1">3.2 1 ± .1748</td><td align="left" rowspan="1" colspan="1">.6898</td><td align="left" rowspan="1" colspan="1">3.2 3 ± .1678</td><td align="left" rowspan="1" colspan="1">3.2 4 ± .2466</td><td align="left" rowspan="1" colspan="1">.8713</td><td align="left" rowspan="1" colspan="1">3.3 2 ± .2771</td><td align="left" rowspan="1" colspan="1">3.3 5 ± .3350</td><td align="left" rowspan="1" colspan="1">3.4 4 ± .3762</td><td align="left" rowspan="1" colspan="1">2.8 3 ± .1435</td><td align="left" rowspan="1" colspan="1">.5224</td></tr><tr><td align="left" rowspan="1" colspan="1">IL7</td><td align="left" rowspan="1" colspan="1">2.1 3 ± .1803</td><td align="left" rowspan="1" colspan="1">2.2 2 ± .1376</td><td align="left" rowspan="1" colspan="1">.6288</td><td align="left" rowspan="1" colspan="1">2.1 6 ± .1344</td><td align="left" rowspan="1" colspan="1">2.2 3 ± .1812</td><td align="left" rowspan="1" colspan="1">.5214</td><td align="left" rowspan="1" colspan="1">2.1 3 ± .1803</td><td align="left" rowspan="1" colspan="1">2.4 7 ± .2998</td><td align="left" rowspan="1" colspan="1">2.2 9 ± .2613</td><td align="left" rowspan="1" colspan="1">1.9 9 ± .0867</td><td align="left" rowspan="1" colspan="1">.4094</td></tr><tr><td align="left" rowspan="1" colspan="1">Flt3L</td><td align="left" rowspan="1" colspan="1">3.9 7 ± .3398</td><td align="left" rowspan="1" colspan="1">4.1 1 ± .2343</td><td align="left" rowspan="1" colspan="1">.5191</td><td align="left" rowspan="1" colspan="1">4.0 9 ± .2353</td><td align="left" rowspan="1" colspan="1">3.9 8 ± .2569</td><td align="left" rowspan="1" colspan="1">.7537</td><td align="left" rowspan="1" colspan="1">3.9 7 ± .3398</td><td align="left" rowspan="1" colspan="1">4.3 3 ± .4266</td><td align="left" rowspan="1" colspan="1">4.1 8 ± .4159</td><td align="left" rowspan="1" colspan="1">3.7 6 ± .1682</td><td align="left" rowspan="1" colspan="1">.6834</td></tr><tr><td align="left" rowspan="1" colspan="1">TGFB‐1</td><td align="left" rowspan="1" colspan="1">3.2 2 ± .3213</td><td align="left" rowspan="1" colspan="1">3.6 7 ± .2310</td><td align="left" rowspan="1" colspan="1">.3370</td><td align="left" rowspan="1" colspan="1">3.5 1 ± .2130</td><td align="left" rowspan="1" colspan="1">3.6 5 ± .3286</td><td align="left" rowspan="1" colspan="1">.8525</td><td align="left" rowspan="1" colspan="1">3.2 2 ± .3213</td><td align="left" rowspan="1" colspan="1">4.0 1 ± .4139</td><td align="left" rowspan="1" colspan="1">3.5 0 ± .5722</td><td align="left" rowspan="1" colspan="1">3.5 0 ± .1326</td><td align="left" rowspan="1" colspan="1">.6204</td></tr><tr><td align="left" rowspan="1" colspan="1">HGF</td><td align="left" rowspan="1" colspan="1">3.9 0 ± .6175</td><td align="left" rowspan="1" colspan="1">3.5 6 ± .3100</td><td align="left" rowspan="1" colspan="1">.5253</td><td align="left" rowspan="1" colspan="1">3.8 6 ± .4186</td><td align="left" rowspan="1" colspan="1">3.4 3 ± .3656</td><td align="left" rowspan="1" colspan="1">.5098</td><td align="left" rowspan="1" colspan="1">3.9 0 ± .6175</td><td align="left" rowspan="1" colspan="1">3.4 7 ± .2806</td><td align="left" rowspan="1" colspan="1">3.7 1 ± .7047</td><td align="left" rowspan="1" colspan="1">3.4 9 ± .6258</td><td align="left" rowspan="1" colspan="1">.9005</td></tr><tr><td align="left" rowspan="1" colspan="1">DNER</td><td align="left" rowspan="1" colspan="1">1.0 2 ± .1463</td><td align="left" rowspan="1" colspan="1">.9 2 ± .0614</td><td align="left" rowspan="1" colspan="1">.5568</td><td align="left" rowspan="1" colspan="1">1.0 6 ± .0751</td><td align="left" rowspan="1" colspan="1">1.0 7 ± .0904</td><td align="left" rowspan="1" colspan="1">.9314</td><td align="left" rowspan="1" colspan="1">1.0 2 ± .1463</td><td align="left" rowspan="1" colspan="1">1.0 4 ± .1303</td><td align="left" rowspan="1" colspan="1">.9 3 ± .1230</td><td align="left" rowspan="1" colspan="1">.9 8 ± .0712</td><td align="left" rowspan="1" colspan="1">.8604</td></tr></tbody></table><permissions><copyright-holder>John Wiley &amp; Sons, Ltd.</copyright-holder></permissions></table-wrap><p>Cytokines influenced by loading included CCL3 (.01 <italic toggle="yes">p</italic>‐value) and TSLP (.04 <italic toggle="yes">p</italic>‐value), which overall were elevated in load‐bearing joints compared to the non‐loading‐bearing hand joint (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1A</xref>). Cytokines influenced by obesity included LIF (.04 <italic toggle="yes">p</italic>‐value) and MCP1 (.04 <italic toggle="yes">p</italic>‐value), which were elevated in the secretome of obese SFs compared to normal weight SFs (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1B</xref>). Additionally, a similar trend was observed in the secretory concentration of MCP2 (.054 <italic toggle="yes">p</italic>‐value) and MCP3 (.056 <italic toggle="yes">p</italic>‐value) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1B</xref>). Lastly, significant differences in the secretory concentrations of specific cytokines were identified upon comparing SFs from different anatomical joint sites, irrespective of obesity or load‐bearing, with SFs from the hip joint exhibiting the most inflammatory secretome. For example, CXCL1 (<italic toggle="yes">p</italic> &lt; .04) was highest in the secretome from hip SFs, being significantly greater than in foot SF secretome and similar trends were observed with IL‐8 and CXCL6 (Table <xref rid="ctm21232-tbl-0001" ref-type="table">1</xref>). Similarly, hip SFs also contained the greatest amount of OPG, being significantly greater than in the secretome of knee (<italic toggle="yes">p</italic> &lt; .007) and to a lesser extent, that of hand SFs (Table <xref rid="ctm21232-tbl-0001" ref-type="table">1</xref>). Together these data show SFs from various anatomical sites were differentially impacted by obesity and loading resulting in elevated secretion of specific pro‐inflammatory cytokine profiles compared to normal‐weight and non‐loading joints, respectively.</p></sec><sec id="ctm21232-sec-0190"><label>3.2</label><title>The proliferative activity of SFs is increased in obese patients but is dependent on anatomical site</title><p>In arthritic conditions, SFs adopt a hyperplastic phenotype contributing to inflammation and joint destruction.<xref rid="ctm21232-bib-0026" ref-type="bibr">
+<sup>26</sup>
+</xref> As such, we investigated whether anatomical location, obesity and load‐bearing played an integral role in influencing this proliferative phenotype. Comparing SFs isolated from obese and normal‐weight patients irrespective of anatomical location, obese SFs proliferated at a significantly greater rate than normal‐weight SFs (7.3 × 10<sup>−2</sup> ± .008 vs. 4.7 × 10<sup>−2</sup> ± .005, <italic toggle="yes">p</italic> &lt; .01). The effect of obesity on proliferative rate was in general more pronounced in load‐bearing joints, with the greatest effect of obesity observed in foot (OB: 1.74 ± .066 vs. NW: 1.00 ± .13 vs., .008 <italic toggle="yes">p</italic>‐value) and hip joints (OB: 1.90 ± .08 vs. NW: 1.00 ± .18 vs., .003 <italic toggle="yes">p</italic>‐value) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1C</xref>). However, comparing SFs isolated from non‐loading joints (i.e., hands) and load‐bearing joints (i.e., hips, knees, or foot) irrespective of patient's BMI, we observed no overall effect of load‐bearing on SF proliferative activity (NLB joints: 5.2 × 10<sup>−2</sup> ±.006 vs. LB joints: 6.3 × 10<sup>−2</sup> ± .007, .4 <italic toggle="yes">p</italic>‐value) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1D</xref>). Lastly, we observed differences in the proliferative activity of SFs from different anatomical joints, with fibroblasts from hand (5.2 × 10<sup>−2</sup> ± .02), hip (5.0 × 10<sup>−2</sup> ± .02) and knee (5.0 × 10<sup>−2</sup> ± .02) proliferating at a similar rate, but those from the foot (9.8 × 10<sup>−2</sup> ± .03, .0007 <italic toggle="yes">p</italic>‐value) proliferating at a significantly greater rate (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1D</xref>) suggesting loading may be a contributor. Overall, we find the hyperplastic phenotype of SFs is severely impacted by obesity resulting in increased proliferation especially in the hip and foot joint.</p></sec><sec id="ctm21232-sec-0200"><label>3.3</label><title>SF metabolic phenotype differs between anatomical sites and load‐bearing joints</title><p>Obesity results in significant metabolic complications that contribute to chronic inflammation and our most recent findings show the metabolic phenotype of hip OA SFs is significantly influenced by obesity.<xref rid="ctm21232-bib-0025" ref-type="bibr">
+<sup>25</sup>
+</xref> Here, we expanded this observation to different anatomical sites and investigated the effects of obesity and joint loading on the metabolic prolife of SFs from different joints and how they respond to inflammatory TNFα stimuli. We used seahorse analysis to measure oxygen consumption rate and extracellular acidification rate of joint SF to determine mitochondrial respiration and glycolysis, respectively. Interestingly, the most significant observations were driven by joint loading and anatomical location. Mitochondrial basal respiration and Adenosine 5'‐triphosphate (ATP) production was significantly altered in load‐bearing joints compared to non‐load bearing joints upon stimulation with TNFα, whilst no changes were observed in glycolysis (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1E,F</xref>). Further observation of differences in SF metabolic phenotype between different joints found that basal respiration was elevated in hip SFs (12.2 ± 2.0), compared to either hand (5.9 ± 3.6) or knee SFs (4.9 ± 3.1), which indicates that SFs from specific joints have differing energy requirements (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1G</xref>). TNFα stimulation elevated basal respiration levels in hip joint (17.9 ± 5.9) suggesting hip SFs are more responsive to inflammatory stimuli compared to hand (4.9 ± 2.5) and knee (6.1 ± 2.9) joint SF (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1G</xref>). Similarly, ATP production was particularly elevated in hip SFs (9.9 ± 2.3) and further exasperated by TNFα stimulation (15.4 ± 4.6) suggesting higher energy demands in hip joint SFs compared to fibroblasts from other joint types (4.7 ± 2.5 knee, 6.0 ± 2.3 hand) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1G</xref>). No significant differences were noticed in basal levels of glycolysis between joints (4.9 ± 2.4 knee, 7.5 ± 1.9 hand, 5.5 ± 2.1 hip) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1G,H</xref>). However, upon inflammatory challenge with TNFa, hip SFs exhibited significantly greater induction in glycolysis from basal (8.0 ± 3.9, .03 <italic toggle="yes">p</italic>‐value) and greater glycolytic capacity suggesting hip SFs are metabolically more receptive to pro‐inflammatory stimulus than SFs from other joints (7.2 ± 2.3 hand, 4.8 ± 2.1 knee) (Figure <xref rid="ctm21232-fig-0001" ref-type="fig">1H</xref>). No significant observations of note were identified with respect to the overall effect of obesity across all joints (Figure <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S1</xref>). These findings show SFs from loading joints are sensitive to pro‐inflammatory stimuli resulting in elevated mitochondrial respiration, largely driven by hip SFs, which also have increased glycolysis and ATP production, suggesting hip OA SFs have higher energy demands.</p></sec><sec id="ctm21232-sec-0210"><label>3.4</label><title>Obesity differentially affects the transcriptomic phenotype of SFs from both load‐bearing and non‐load‐bearing joints</title><p>Having identified differences in the inflammatory, proliferative and metabolic functional phenotype of fibroblasts associated with either load‐bearing, obesity or anatomical site, we next determined the key transcriptomic differences underpinning these findings. RNA‐sequencing analysis found distinct expression signatures exclusively regulated by either obesity or loading, with DEGs confirmed by RT‐qPCR analysis (see Supplementary Materials—SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">3</xref>). Comparing SFs from obese patients with those from normal‐weight patients irrespective of joint site, a total of 416 DEGs (defined as ±1.5‐fold change, <italic toggle="yes">p</italic> &lt; .05) were identified (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2A</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S1</xref>) which IPA functional annotations revealed to be involved in several metabolic pathways including ‘NADH repair’, ‘ceramide biosynthesis’, ‘protein ubiquitination’ and ‘pyrimidine salvage’ pathways (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2B</xref>). Using IPA Upstream Regulator Analysis, KRAS, PTPRR and NUPR1 were identified as USRs of the observed obese SF DEG dataset (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2C</xref>).</p><fig position="float" fig-type="FIGURE" id="ctm21232-fig-0002" orientation="portrait"><label>FIGURE 2</label><caption><p>
+<bold>Effects of obesity on synovial fibroblasts from different anatomical locations. (A and D)</bold> Heatmap of DEGs in normal weight (NW, <italic toggle="yes">n</italic> = 12) versus obese (OB, <italic toggle="yes">n</italic> = 12), and load‐bearing (LB, <italic toggle="yes">n</italic> = 18) versus non‐load bearing (NLB, <italic toggle="yes">n</italic> = 6). (<bold>B, E, H–K)</bold> Most significantly enriched canonical pathways associated with DEGs in OB versus NW, in LB versus NLB and in OB versus NW hand, hip, knee and foot joints, respectively. Orange dash line denotes IPA z‐score and blue dash line denotes <italic toggle="yes">p</italic>‐value significance threshold of .05. (<bold>C, F, H–K)</bold> Top enriched upstream regulators associated with DEGs in OB versus NW, in LB versus NLB and in OB versus NW hand, hip, knee and foot joints, respectively. Orange dash line denotes IPA predicted activation score and blue dash line denotes <italic toggle="yes">p</italic>‐value significance threshold of .05. (<bold>G)</bold> Graphical venn diagram illustrates the number of significant DEGs identified in obese and load‐bearing joints and the number of DEGs, which are shared between these two analyses. (<bold>L)</bold> Graphical venn diagram illustrates the number of significant DEGs identified in obese joints at different anatomical locations and the number of DEGs which are shared between these joints. (<bold>M)</bold> Heatmap comparing top canonical pathways enriched in obese patients for each joint depicted by p‐value of enrichment. DEGs identified ±1.5‐fold change, <italic toggle="yes">p</italic> &lt; .05.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-5" orientation="portrait" xlink:href="CTM2-13-e1232-g004.jpg"/></fig><p>Conversely, upon comparing SFs from the non‐load bearing hand joints with SFs from all load‐bearing joints (i.e., knee, hip, foot) irrespective of patient BMI, a total of 606 DEGs were identified (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2D</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S2</xref>), with IPA functional annotations of these DEGs revealing several key inflammatory pathways including ‘RANK’, ‘IL‐1’ and ‘IL‐6’, together with the USRs TNF, CEBPB, IL1B and IFNG (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2E,F</xref>). Notably, we found only 14 DEGs were common to both obesity and joint‐loading, of which only 4 genes had similar patterns of expression in both conditions (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2G</xref>).</p><p>Further to these findings, analysis of the effects of obesity on individual joints established the profound effect of obesity on the SF transcriptome phenotype, even in non‐load bearing hand joints, with joint specific DEGs validated by RT‐qPCR (see Supplementary Materials—SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">3</xref>). Specifically, 513 obesity DEGs were identified in hand OA SFs (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2H</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S3</xref>), 616 DEGs in the hip (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2I</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S4</xref>), 692 DEGs in the knee (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2J</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S5</xref>) and 672 DEGs in the foot (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2K</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S6</xref>) when comparing cells from obese and normal‐weight patients (Supplementary Tables <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S3</xref>‐<xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S6</xref>). However, there was little overlap between the identified obesity‐associated DEGs in different joints even between the different load‐bearing joints, indicating that the effect of obesity on the SF transcriptome is joint type specific irrespective of loading (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2L,M</xref>).</p><p>Conducting IPA on the obesity‐associated DEGs identified in each individual joint revealed the most significant canonical pathways and USRs involved in mediating the obese SF phenotype within each joint type. In hand joints, the top canonicals pathways included ‘phosphoinositide biosynthesis and degradation’ as well as ‘Th1’, ‘IL‐8’ and ‘STAT3’ signalling, which surprisingly had negative z‐scores, indicating pathway inhibition in the obese cells (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2H</xref>). This was further supported by predicted inhibition of USRs involved in inflammation, immune activation and fibrosis (including CEBPB, CSF2, IFNG, AREG), and the significant downregulation in the expression of MMP9, S100A8, TYROBP and ARG2 in obese hand joint SFs compared to NW hand SFs (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2H</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S3</xref>). In the hip joint, IPA analysis of the obesity‐associated DEGs revealed significant canonical pathways involved in immune signalling pathways ‘CD27 and CD40 signaling’ as well as ‘osteoarthritis’ and ‘senescence’ pathways (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2I</xref>). These pathways were in line with the up‐regulated expression of IKBKE, PALB2, UQCC3, COL4A4 and PTGS1 in the obese cells, which further correlated with activated USRs (FOXM1, SP1, TLR9, AREG and CKAP2L) involved in senescence and pro‐inflammatory OA signaling pathways (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2I</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S4</xref>). In the knee joint, the identified obese DEGs were significantly aligned to several inflammatory signaling pathways including ‘IL‐8 signaling’ and ‘interferon signaling’ (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2J</xref>) which were concomitant with up‐regulated CXCL9, UBE2C and ADAM17 expression and the predicted activation of the USRs CGAS and IFNL1 (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2J</xref>, Table <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S5</xref>). Finally, in the foot joint the identified obesity‐associated DEGs were significantly aligned to the canonical pathways ‘CD40 signaling’, ‘senescence’ and several ‘apoptosis’ signaling pathways (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2K</xref>) with predicted activated USRs of senescence, cell cycle/ growth arrest (E2F4) and inhibited USRs of apoptosis (TGM2, TNF and IFNG). (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2K</xref>). Comparing and contrasting the functional effects of obesity on SFs from different anatomical joints suggested the regulatory effects of obesity differed between joints. Dysregulation of inflammatory signaling pathways was a feature of both obese knee and hand SFs (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2H,J,M</xref>), with dysregulation of both ‘IL‐8’ and ‘IL‐17A’ canonical signaling pathways and in both cases the identification of pro‐inflammatory USRs, albeit these USRs were predicted to be activated in the knee and inhibited in the hand resulting in in these pathways being positively enriched in the hand and negatively enriched in the knee (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2H,J,M</xref>). Hip, knee and foot joints shared USRs or pathways of senescence, including canonical signaling pathways ‘CD40 signaling’ and ‘senescence pathway’ (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2M</xref>), whilst hip and knee joints largely differed in other canonical pathways and USR (Figure <xref rid="ctm21232-fig-0002" ref-type="fig">2I,J,M</xref>). Together these data indicate that obesity and loading drive very specific transcriptomic phenotypes in SFs with little commonality and finds that the inflammatory effect of obesity on the SF transcriptome is specific to each joint irrespective of loading.</p></sec><sec id="ctm21232-sec-0220"><label>3.5</label><title>Obesity is associated with distinct SF subsets in hip OA</title><p>Collectively, our observations found the most profound effects of obesity on the SF phenotype were in the hip joint, with effects on the inflammatory, proliferative and metabolic phenotype. As such we next investigated whether these obesity‐associated effects could be attributed to heterogeneity in particular SF subsets using scRNAseq. This analysis revealed eight fibroblast subsets defined by specific transcriptomic profiles (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3A,B</xref>), with clusters 0, 4, 5, 6 and 7 present in obese hip OA patients, and clusters 1, 2 and 3 found in normal‐weight OA patients. The fibroblast compositions of these clusters included 510 cells in cluster 0 (98.6% OB; 1.4% NW), 369 cells in cluster 1 (O% OB; 100% NW), 357 cells in cluster 2 (3.9% OB; 96.1% NW), 307 cells in cluster 3 (.7% OB; 99.3% NW), 306 cells in cluster 4 (95.4% OB; 4.6% NW), 211 cells in cluster 5 (99.1% OB; .9% NW), 195 cells in cluster 6 (99.5% OB; .5% NW) and 188 cells in cluster 7 (87.2% OB; 12.8% NW), see Supplementary Materials—SM. <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">5</xref>. The cells in each cluster were defined by distinct gene expression patterns which define each population, as seen in the expression heatmap of the top 10 genes in each cluster (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3C</xref>) and detailed in Tables <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S7</xref> and <xref rid="ctm21232-supitem-0002" ref-type="supplementary-material">S8</xref>.</p><fig position="float" fig-type="FIGURE" id="ctm21232-fig-0003" orientation="portrait"><label>FIGURE 3</label><caption><p>
+<bold>Single cell RNA‐sequencing identifies distinct synovial fibroblasts subsets in obese and normal‐weight OA patients. (A)</bold> t‐SNE analysis of SF scRNAseq data showing eight fibroblast subsets. In total, scRNAseq was performed on 2485 SF from <italic toggle="yes">n</italic> = 4 normal‐weight OA patients and <italic toggle="yes">n</italic> = 4 obese OA patients. (<bold>B)</bold> t‐SNE plot showing the separation between fibroblasts from normal‐weight OA patients and fibroblasts from obese OA patients. (<bold>C)</bold> Heatmap showing the z‐score average gene signature expression of the top 10 most differentially expressed genes within each of the 8 SF clusters. (<bold>D)</bold> Significant biological processes for each cluster. Differentially expressed genes were analysed using IPA software. The significance of the association of a given disease function with the genes within a given subset was measured in two ways. Firstly, by the ratio of the number of differentially expressed genes in the dataset that mapped to the diseases/function divided by the total number of genes associated with that function. Secondly, Fisher's exact test was used to calculate a <italic toggle="yes">p</italic>‐value of the association between the genes and the disease function. (<bold>E)</bold> Clusters were assigned functional endotypes based on the canonical pathways identified in the IPA analysis. (<bold>F)</bold> FeaturePlots displaying expression of cluster specific markers on the t‐SNE map along with violin plots showing the expression levels (y‐axis) of these markers for each cluster (x‐axis). Additional enriched genes are detailed in Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S2</xref>–<xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S9</xref>.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-7" orientation="portrait" xlink:href="CTM2-13-e1232-g003.jpg"/></fig><p>We next examined the identified DEGs (±1.5 fold change, <italic toggle="yes">p</italic> &lt; .05) within each cluster using IPA software. Core functional analyses identified canonical pathways associated with the DEGs that functionally defined the unique transcriptomic profile of each cluster (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3D</xref>, summarized in Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S2</xref>–<xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S9</xref> highlighting the top 10 DEGs). Thus, the clusters were functionally assigned into four endotypes, namely ‘activated fibroblasts’, ‘stressed/arresting fibroblasts’, ‘proliferating fibroblasts’ and ‘immune cell recruiters’ based on the canonical pathways identified (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3E</xref>). Notably, ‘activated fibroblasts’ (clusters 4 and 6) and ‘immune cell recruiters’ (clusters 5 and 7) endotypes described transcriptome profiles that were predominant in obese OA clusters. In contrast, the ‘stressed/arresting’ fibroblast endotypes (cluster 1 and 3) almost entirely represented normal‐weight fibroblasts. The ‘proliferating fibroblast’ endotype was present in fibroblasts from both obese and normal‐weight OA patients, although these were defined by distinctive DEG profiles (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3D,E</xref>). t‐SNE and violin plots featuring gene expression (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3F</xref>) showed that ‘activated fibroblasts’ had gene expression signatures associated with the production, maintenance and rearrangement of the extracellular matrix including collagens (COL1A1, COL1A2), the collagen‐binding matrix protein osteonectin (secreted protein acidic and rich in cysteine [SPARC]), tumor necrosis factor‐inducible gene 6 protein (TNFAIP6) and osteonectin‐related protein (SMOC2) (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3F</xref>, Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S2</xref> and <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S3</xref>). The ‘immune cell recruiters’ subset consisted of genes associated with the activation and recruitment of leukocytes, neutrophils and monocytes, with high expression of genes that mediate inflammation and innate immune responses including Chemerin (RARRES2), Chitinase3‐like 1 (CHI3L1), SFRP1, Thy1 (CD90), SFRP4 and Galectin‐1 (LGALS1) (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3F</xref>, Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S4</xref> and <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S5</xref>). Normal‐weight fibroblasts were largely represented by gene signatures involved in apoptosis and cellular stress response, with high expression of SERPINF1, CLU, DNAJB1 and HSPA1A/HSPA1B (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3F</xref>, Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S6</xref> and <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S7</xref>). Fibroblasts that were functionally defined as ‘proliferating’ were represented by both the gene signature of LUM, INHBA and ELN in the normal weight cluster 2 cells, and by the expression of BGN, CTGF and CXCL12 in obese cluster 0 cells (Figure <xref rid="ctm21232-fig-0003" ref-type="fig">3F</xref>, Figures <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S8</xref> and <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S9</xref>). Differences in cluster distribution between obese and normal weight patients were validated in synovium tissue using immunofluorescence. Normal weight cluster 3 markers Fibulin 1 and Thrombomodulin, encoded by FBLN1 and THBD, were co‐localised with SFs enriched in normal weight synovium tissue (Figure <xref rid="ctm21232-fig-0004" ref-type="fig">4A,B</xref>). Whilst obese cluster 0 markers Nucleophosmin and Stromal cell‐derived factor 1, encoded by NPM1 and CXCL12, were colocalized with fibroblasts enriched in synovium tissue from obese patients (Figure <xref rid="ctm21232-fig-0004" ref-type="fig">4C,D</xref>). Overall, distinct SF subpopulations were identified by scRNAseq which can be grouped into four endotypes, with obese SFs predominantly defined by pro‐inflammatory SFs with ‘activated’ and ‘immune recruiter’ endotypes.</p><fig position="float" fig-type="FIGURE" id="ctm21232-fig-0004" orientation="portrait"><label>FIGURE 4</label><caption><p>
+<bold>Distinct synovial fibroblast clusters are differentially distributed in synovium tissue of obese and normal weight patients</bold>. Differences in single cell RNA‐sequencing cluster distribution between obese and normal weight patients were validated in OA hip synovium tissue. (<bold>A–D)</bold> Panels consist of FeaturePlots displaying cluster specific markers on the t‐SNE map along with violin plots showing the expression levels (y‐axis) of these markers for each cluster (x‐axis), bar graph representing quantification of colocalized genes of interest (GOI) with FAP labelled fibroblasts and representative immunofluorescence images in OA hip synovial tissue from normal weight (NW) and obese (OB) patients. Cluster markers of interest (GOIs) were visualized with (<bold>A)</bold> FBLN1, (<bold>B)</bold> THDB, (<bold>C)</bold> NPM1 and (<bold>D)</bold> CXCL12 (green), synovial fibroblasts were visualized with FAP (pink), and nuclei were stained with DAPI (blue), colocalization has been pseudo‐coloured (white). IF colocalization analysis. <italic toggle="yes">N</italic> = 8 plotted with mean ± SEM and analysed by student's <italic toggle="yes">t</italic>‐test.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-9" orientation="portrait" xlink:href="CTM2-13-e1232-g002.jpg"/></fig></sec><sec id="ctm21232-sec-0230"><label>3.6</label><title>Inflammatory SF subsets in obese patients spatially localize in sublining and lining layers of OA synovium and can be distinguished by differential expression of transcriptional regulators MYC and FOS</title><p>Next, we performed pseudo temporal ordering on normal‐weight and obese fibroblasts to investigate the dynamics in changing expression patterns of DEGs identified in each cluster. Amongst these genes, we observed a striking transition in the expression of the transcriptional regulators MYC and FOS (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5A</xref>). FOS was predominately expressed in obese clusters whilst MYC was predominantly expressed in normal‐weight clusters (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5B</xref>). Similarly, pseudo temporal expression dynamics also identified transitional expression changes in INHBA in normal‐weight clusters, and CHI3L1 present in the obese clusters (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5A,B</xref>). Since the gene products of INHBA (Inhibin) and CHI3L1 (Chitase3‐like 1) are secreted proteins, we examined whether this was reflected in SF conditioned media. In line with mRNA expression, SFs from obese patients secreted significantly greater amounts of Chitinase3‐Like‐1 (229.5 ng/ml, 95% CI = 123.7–335.3 vs. 49.5 ng/ml, 95% CI = −15.4–114.3, <italic toggle="yes">p</italic> &lt; .05) and significantly lower amounts of Inhibin (20.61 pg/ml, 95% CI = 20.16–21.22 vs. 63.79 pg/ml, 95% CI = 18.82–108.7, <italic toggle="yes">p</italic> &lt; .05), compared to SFs from normal‐weight patients (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5C,D</xref>). Additionally, immunofluorescence labelling of c‐Myc and c‐Fos protein in synovial tissue from hip OA patients confirmed both the observed differences in fibroblast transcriptomic profiles in‐situ at the protein level as well as their spatial cellular localization (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5E</xref>). c‐Myc staining appears more intense in normal‐weight OA synovial tissue than obese synovium, where there was minimal expression observed in the synovial sublining tissue, as supported by quantitative colocalization analysis, which showed a trend for increased Myc staining in normal‐weight OA, although not significant (<italic toggle="yes">p</italic> = .0924) (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5F</xref>). Conversely, c‐Fos staining was significantly greater in obese OA synovial tissue (<italic toggle="yes">p</italic> = .0099), with expression in both the synovial sublining and in the synovial lining layer where it was co‐localized three times more with fibroblast activation protein (FAP)‐positive SFs in obese tissue (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5G</xref>). By comparison c‐Fos expression in normal‐weight synovium was largely confined to the lining layer only (Figure <xref rid="ctm21232-fig-0005" ref-type="fig">5E</xref>). Taken together, these data suggest that pro‐inflammatory SFs in obese patients localize in the sublining and lining layers of OA synovium tissue which can be distinguished by c‐Fos whilst ‘stressed/ arresting’ SFs in normal weight patients are only present in the lining layer and distinguished by c‐Myc.</p><fig position="float" fig-type="FIGURE" id="ctm21232-fig-0005" orientation="portrait"><label>FIGURE 5</label><caption><p>
+<bold>Expression dynamics of markers which distinguish normal weight and obese patient synovial fibroblasts. (A)</bold> Expression of transcriptional regulators MYC and FOS, and secretory factors INHBA and CHI3L1 along the pseudotime axis, overlaid with representation of clusters (left) and sample distribution (right) using Monocle pseudotime trajectory. Cells are ordered in pseudotime based on differentially expressed genes (<italic toggle="yes">q</italic>‐value &lt; .01). (<bold>B)</bold> FeaturePlots displaying cluster specific expression of MYC, FOS, INHBA and CHI3L1 on the t‐SNE map along with violin plots showing the expression levels (y‐axis) of these markers for each cluster (x‐axis). (<bold>C and D)</bold> Median concentrations of INHBA (inhibin) and CHI3L1 in 24‐h conditioned media from normal‐weight and obese OA SF by Luminex. Bars represent median concentration in pg/ml from n = 4 patients per cohort. <bold>(E)</bold> Representative immunofluorescence imaging for c‐Fos or c‐Myc (GOI, green) in OA hip synovial tissue from normal weight (NW) and obese (OB) patients. SF were visualized with FAP (pink), and nuclei were stained with DAPI (blue), colocalization of FAP and GOI has been pseudo‐coloured (white). See Figure <xref rid="ctm21232-supitem-0001" ref-type="supplementary-material">S10</xref> for additional panels. (F and G) Quantification of colocalized c‐Myc or c‐Fos with FAP labelled SF. <italic toggle="yes">N</italic> = 8. Means plotted ± SD and analysed by student's <italic toggle="yes">t</italic>‐test **<italic toggle="yes">p</italic> &lt; .01.</p></caption><graphic xmlns:xlink="http://www.w3.org/1999/xlink" position="anchor" id="jats-graphic-11" orientation="portrait" xlink:href="CTM2-13-e1232-g006.jpg"/></fig></sec></sec><sec id="ctm21232-sec-0240"><label>4</label><title>DISCUSSION</title><p>OA is a multifaceted condition, which poses a significant challenge for the successful clinical development of therapeutics due to its heterogeneity. However, understanding and classifying the molecular phenotypes, also known as endotypes, of OA pathogenesis could provide invaluable phenotype‐directed routes for stratifying subgroups of patients for targeted therapeutics, leading to greater chances of success in trials. Our previous work identified obesity as a critical factor in the heterogeneity of synovial joint inflammation in hip OA patients.<xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref> As such, this study aimed to expand these findings to both load‐bearing and non‐load bearing joints to further investigate the intersectional effects of obesity and loading on OA synovial pathogenesis and to identify key molecular endotypes that could stratify patients for targeted therapeutics. Our findings demonstrate that the dynamic inflammatory landscape of OA SFs is significantly impacted by joint loading and obesity, as well as being influenced by anatomical site. Additionally, we address the heterogeneity in obese and normal‐weight OA patients by identifying distinct differences in SF subsets, which can be characterised into four functional molecular endotypes. We find that the presence and predominance of these endotypes is distinctly different in obese hip OA patients compared to normal‐weight patients. As such, this study highlights the disease heterogeneity across OA joints and provides a compelling rationale for the necessity of determining robust molecular endotypes to effectively stratify patients for the best therapeutic outcomes.</p><p>Obesity is a known risk factor for the development of OA in both load bearing and non‐load bearing joints,<xref rid="ctm21232-bib-0027" ref-type="bibr">
+<sup>27</sup>
+</xref>, <xref rid="ctm21232-bib-0028" ref-type="bibr">
+<sup>28</sup>
+</xref> suggesting the resulting inflammatory phenotypes are not solely due to increased load as we report here. Here, we confirm that obesity affects the inflammatory phenotype of SFs even in non‐load bearing hand joints, with elevated secretion of MCP1, MCP2, MCP3 and LIF, and has a profound but anatomical‐site specific differential effect on their transcriptomic landscape. Elevated MCP‐1 in synovial fluid correlates with increased macrophage activation in joint tissue,<xref rid="ctm21232-bib-0029" ref-type="bibr">
+<sup>29</sup>
+</xref> whilst LIF facilitates sustained inflammatory fibroblast activation<xref rid="ctm21232-bib-0030" ref-type="bibr">
+<sup>30</sup>
+</xref> suggesting these markers are fundamental in sustaining an enhanced pro‐inflammatory phenotype in obese patients. This enhanced pro‐inflammatory phenotype is also evident in the hyperplastic nature of obese SFs, which we find have increased proliferation rates. Synovial hyperplasia further contributes to inflammation and joint destruction in arthritis and our findings here suggest obesity exacerbates these pathological effects regardless of the joint location. Recent studies have provided evidence that increases in RA fibroblast proliferative inflammatory activity are underpinned by alterations in the activity of key metabolic pathways.<xref rid="ctm21232-bib-0031" ref-type="bibr">
+<sup>31</sup>
+</xref>, <xref rid="ctm21232-bib-0032" ref-type="bibr">
+<sup>32</sup>
+</xref> However, despite previously finding that SFs from obese hip OA patients exhibit a different inflammatory metabotype,<xref rid="ctm21232-bib-0025" ref-type="bibr">
+<sup>25</sup>
+</xref> in this study there was no overall effect of obesity on the functional metabolic SF phenotype when examining across all joint types.</p><p>We also identified CCL3 and TSLP as cytokines that were more highly secreted from fibroblasts isolated from load‐bearing joints (knees, hips, foot) compared to the non‐load‐bearing hand joint but were not differentially secreted by obesity, which might be indicative of their induction in response to load‐induced cartilage damage. CCL3 is elevated in severe knee OA pathogenesis and cited as a biomarker for severity of joint destruction with respect to the degree of cartilage damage.<xref rid="ctm21232-bib-0033" ref-type="bibr">
+<sup>33</sup>
+</xref> Cartilage‐damage induces the release of DAMPs and activation of toll‐like receptors (TLR) known to induce TSLP, which is elevated in RA patients and believed to drive inflammatory arthritis.<xref rid="ctm21232-bib-0034" ref-type="bibr">
+<sup>34</sup>
+</xref>, <xref rid="ctm21232-bib-0035" ref-type="bibr">
+<sup>35</sup>
+</xref>, <xref rid="ctm21232-bib-0036" ref-type="bibr">
+<sup>36</sup>
+</xref>, <xref rid="ctm21232-bib-0037" ref-type="bibr">
+<sup>37</sup>
+</xref> Many of the pathways identified in our transcriptomic analysis also allude to the effects of pathological loading directly impacting joint inflammation and cartilage degradation further supporting these observations. Interestingly, loading only appears to affect the proliferative rate of fibroblasts in the most load‐bearing joint, that is, the foot joint, suggesting the effects of loading differs between anatomical locations. In addition to this, we also note several markers that distinguish specific anatomical sites, confirming a significant level of heterogeneity in the SF phenotype between joints. This is further supported by transcriptomic analysis where the effect of obesity on the OA fibroblast transcriptome is markedly different between SFs isolated from different anatomical sites.</p><p>We find the effect of obesity extends further to fibroblast subsets within the synovium, with distinct subset endotypes responsible for specific inflammatory phenotypes. These clusters draw similarity to fibroblast subsets reported in RA, suggesting OA pathogenesis in obese patients may be akin to the more inflammatory RA joint. Obese OA specific clusters are involved in the activation and recruitment of immune cells, which are reminiscent of ‘immune‐effector fibroblasts’ reported in RA known to regulate and recruit immune cells.<xref rid="ctm21232-bib-0023" ref-type="bibr">
+<sup>23</sup>
+</xref> Here, this subset expresses CHI3L1 a known autoantigen in RA,<xref rid="ctm21232-bib-0038" ref-type="bibr">
+<sup>38</sup>
+</xref> which is associated with several inflammation‐related disorders.<xref rid="ctm21232-bib-0039" ref-type="bibr">
+<sup>39</sup>
+</xref>, <xref rid="ctm21232-bib-0040" ref-type="bibr">
+<sup>40</sup>
+</xref>, <xref rid="ctm21232-bib-0041" ref-type="bibr">
+<sup>41</sup>
+</xref>, <xref rid="ctm21232-bib-0042" ref-type="bibr">
+<sup>42</sup>
+</xref> CHI3L1 mediates inflammation,<xref rid="ctm21232-bib-0039" ref-type="bibr">
+<sup>39</sup>
+</xref> cartilage degradation and remodeling<xref rid="ctm21232-bib-0040" ref-type="bibr">
+<sup>40</sup>
+</xref>, <xref rid="ctm21232-bib-0043" ref-type="bibr">
+<sup>43</sup>
+</xref> and regulates macrophage and T‐cell recruitment,<xref rid="ctm21232-bib-0039" ref-type="bibr">
+<sup>39</sup>
+</xref>, <xref rid="ctm21232-bib-0043" ref-type="bibr">
+<sup>43</sup>
+</xref> supporting the immune regulatory phenotype of this cluster. In contrast, normal‐weight SF populations are characterised as mediating apoptosis and necrosis, in keeping with a lower proliferative capacity.<xref rid="ctm21232-bib-0016" ref-type="bibr">
+<sup>16</sup>
+</xref> Necrotic cells trigger rapid inflammatory responses,<xref rid="ctm21232-bib-0044" ref-type="bibr">
+<sup>44</sup>
+</xref>, <xref rid="ctm21232-bib-0045" ref-type="bibr">
+<sup>45</sup>
+</xref> which activate SFs through TLRs and downstream pro‐inflammatory signaling pathways.<xref rid="ctm21232-bib-0046" ref-type="bibr">
+<sup>46</sup>
+</xref>, <xref rid="ctm21232-bib-0047" ref-type="bibr">
+<sup>47</sup>
+</xref> These normal‐weight OA fibroblast clusters also express INHBA, a component of activin known to rapidly transition apoptotic cells to secondary necrosis in the lungs.<xref rid="ctm21232-bib-0048" ref-type="bibr">
+<sup>48</sup>
+</xref> Lastly, our results suggest an obesity‐related regulatory switch involving two transcription factors, MYC and FOS, which may drive the distinctive endotypes we observe. Interestingly, these two transcriptional regulators can be used to distinguish spatial localization of SFs described by endotypes. The immune regulatory inflammatory SFs from obese patients appear to localize in the both sublining and lining layers of synovium tissue based on c‐Fos staining, reminiscent of inflammatory RA SFs described by Croft et al. 2019, whilst subsets identified in normal weight SFs, positive for c‐Myc, are mostly confined to the lining layer similar to previously reported OA fibroblasts, suggesting obese OA synovium is more akin to inflammatory RA synovium.<xref rid="ctm21232-bib-0023" ref-type="bibr">
+<sup>23</sup>
+</xref> MYC regulates SF proliferation, invasiveness,<xref rid="ctm21232-bib-0049" ref-type="bibr">
+<sup>49</sup>
+</xref> and apoptosis,<xref rid="ctm21232-bib-0050" ref-type="bibr">
+<sup>50</sup>
+</xref> in keeping with the apoptosis pathways established in normal‐weight SF clusters. Whilst many joint destructive cytokines and MMPs are transcriptionally regulated by FOS/Activator Protein‐1 (FOS/AP‐1)<xref rid="ctm21232-bib-0051" ref-type="bibr">
+<sup>51</sup>
+</xref> supporting the ‘activated’ and ‘immune‐cell recruiter’ fibroblast subsets identified in obese SF populations. Furthermore, a diet‐induced weight‐loss study also demonstrated a similarly interesting regulatory switch from NFKB1, an upstream regulator of FOS, to MYC/MAX following weight loss.<xref rid="ctm21232-bib-0052" ref-type="bibr">
+<sup>52</sup>
+</xref> These results further suggest that SFs from normal‐weight and obese OA patients utilize alternative pathways to mediate inflammation in the joint. Targeting these specific pathways within patient subgroups, defined by molecular and clinical endotypes, could pave the way for overall better disease management. Importantly, CHI3L1 and INBHA are secreted from obese and normal weight OASF, respectively. As such these could serve as patient stratification aids to identify those patients with distinctive molecular endotypes for more targeted therapeutics.</p><p>Collectively, these data emphasize the breadth, magnitude and differential effect of obesity and load‐bearing on the SF phenotype, resulting in heterogeneous inflammatory fibroblast endotypes, and therefore the potential of these factors to influence the inflammatory pathology of OA. This begs the question of what impact do these fundamental differences have on the likely efficacy of current anti‐inflammatory treatments and what are the implications for the development of new drugs, since targets identified within a particular subgroup may not be relevant across other joint types and patient groups. This also raises the question as to what extent do researchers need to interrogate SFs and other joint cell types from specific sites, particularly in early drug discovery studies, in order to identify appropriate and effective targets for the development of therapeutics. An interesting observation made in this study is the responsiveness of hip OA SFs, which compared to SFs from other joints, have higher energy demands and are more metabolically responsive to inflammatory stimuli. Such differences are also likely to impact the responsiveness of these joint cells to therapeutics. This is further complicated by the identification of multiple fibroblast clusters which differentiate normal‐weight and obese OA patient synovitis supporting a rationale to therapeutically target specific fibroblast subsets that are driving inflammatory versus proliferative phenotypes. Whilst this may border on personalized drug development, understanding the molecular endotypes that govern OA pathogenesis across subgroups will undoubtedly aid in the development of targeted therapies particularly when coupled with clinical endotypes. Such targeted developments have already been evidenced in asthma research with significant benefit.<xref rid="ctm21232-bib-0005" ref-type="bibr">
+<sup>5</sup>
+</xref>
+</p><p>Lastly, it is important to consider the observations reported here in view of limitations associated with a relatively small sampling size. As such, the patients used here are only representative of a small fraction of the greater population of OA patients. Expanding such analysis to encompass a larger cohort of patients will not only power these observations but also refine the endotypes identified here. Also, for single cell analysis the SFs used were exclusively performed on the hip joint. Moreover, whilst the number of cells used for 10X is within the recommended range (100–8000 cells), this is on the lower end of the scale. As such, authors used SCOPIT statistical tool to ensure confidence in the data presented. Retrospective statistical modelling determine only 201 cells are required to detect subpopulations with a .95 probability, suggesting over 10 times the necessary number of cells were sequenced in this study which is greater than similar publications characterising SFs in RA.<xref rid="ctm21232-bib-0022" ref-type="bibr">
+<sup>22</sup>
+</xref>, <xref rid="ctm21232-bib-0023" ref-type="bibr">
+<sup>23</sup>
+</xref>, <xref rid="ctm21232-bib-0053" ref-type="bibr">
+<sup>53</sup>
+</xref>
+</p><p>In conclusion, the findings of this study highlight the significance of obesity in both load‐bearing and non‐load bearing joints in changing the inflammatory molecular endotype OA SFs. Refining these SF endotypes in relation to clinical phenotypes may identify different patient subgroups with personalized targets for therapeutic intervention, thus providing a critical line of sight between drug targets and patient selection, facilitating optimal clinical trial design.</p></sec><sec sec-type="COI-statement" id="ctm21232-sec-0260"><title>CONFLICT OF INTEREST STATEMENT</title><p>The authors declare that they have no competing interests.</p></sec><sec id="ctm21232-sec-0270"><title>CONSENT TO PARTICIPATE</title><p>Informed consent was obtained from all individual participants included in the study.</p></sec><sec sec-type="supplementary-material"><title>Supporting information</title><supplementary-material id="ctm21232-supitem-0001" position="float" content-type="local-data" orientation="portrait"><caption><p>SM.1 ‐ Patient Characteristics Summary</p><p>SM.2 – Unsupervised hierarchical clustering and PCA analysis of joint RNAseq data</p><p>SM.3 – RT‐qPCR validations of bulk RNA sequencing data</p><p>SM.4 ‐ 10X Genomics data Metrics</p><p>SM.5 ‐ 10X Genomics data Sample Distribution</p><p>SM.6 ‐ Analysis pipeline and script for 10X Genomics data</p><p>SM.6 Summary of analysis strategy for single cell RNA sequencing of OA hip‐isolated fibroblast samples.</p><p>FIGURE S1 Graphical summary of mitochondrial respiration and glycolysis of obese and normal weight OA joint synovial fibroblasts.</p><p>FIGURE S2 Summary of DEGs in Cluster 4.</p><p>FIGURE S3 Summary of DEGs in Cluster 6.</p><p>FIGURE S4 Summary of DEGs in Cluster 5.</p><p>FIGURE S5 Summary of DEGs in Cluster 7.</p><p>FIGURE S6 Summary of DEGs in Cluster 1.</p><p>FIGURE S7 Summary of DEGs in Cluster 3.</p><p>FIGURE S8 Summary of DEGs in Cluster 0.</p><p>FIGURE S9 Summary of DEGs in Cluster 2.</p><p>FIGURE S10 Pseudo‐coloured accessible IF panel.</p></caption><media xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="CTM2-13-e1232-s001.docx" position="float" orientation="portrait"><caption><p>Click here for additional data file.</p></caption></media></supplementary-material><supplementary-material id="ctm21232-supitem-0002" position="float" content-type="local-data" orientation="portrait"><caption><p>Supporting Information</p></caption><media xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="CTM2-13-e1232-s002.xlsx" position="float" orientation="portrait"><caption><p>Click here for additional data file.</p></caption></media></supplementary-material></sec></body><back><ack id="ctm21232-sec-0250"><title>ACKNOWLEDGEMENTS</title><p>The authors acknowledge all study participants, research staff at the Royal Orthopaedic Hospital NHS Foundation Trust and Russell's Hall Hospital, Dudley for obtaining consents and screening, and the orthopedic surgeons David Dunlop and Matthew Revell. This research made use of the Balena High Performance Computing (HPC) Service at the University of Bath and the sequencing services provided by Genomics Birmingham at University of Birmingham. This work was supported by Versus Arthritis (grant numbers 21530 and 21812).</p></ack><ref-list id="ctm21232-bibl-0001"><title>REFERENCES</title><ref id="ctm21232-bib-0001"><label>1</label><mixed-citation publication-type="journal" id="ctm21232-cit-0001">
+<string-name name-style="western">
+<surname>Tonge</surname>
+<given-names>DP</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Pearson</surname>
+<given-names>MJ</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jones</surname>
+<given-names>SW</given-names>
+</string-name>. <article-title>The hallmarks of osteoarthritis and the potential to develop personalised disease‐modifying pharmacological therapeutics</article-title>. <source>Osteoarthritis Cartilage</source>. <year>2014</year>;<volume>22</volume>(<issue>5</issue>):<fpage>609</fpage>‐<lpage>621</lpage>.<pub-id pub-id-type="pmid">24632293</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.joca.2014.03.004</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0002"><label>2</label><mixed-citation publication-type="journal" id="ctm21232-cit-0002">
+<string-name name-style="western">
+<surname>Philp</surname>
+<given-names>AM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Davis</surname>
+<given-names>ET</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jones</surname>
+<given-names>SW</given-names>
+</string-name>. <article-title>Developing anti‐inflammatory therapeutics for patients with osteoarthritis</article-title>. <source>Rheumatology (Oxford)</source>. <year>2017</year>;<volume>56</volume>(<issue>6</issue>):<fpage>869</fpage>‐<lpage>881</lpage>.<pub-id pub-id-type="pmid">27498352</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1093/rheumatology/kew278</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0003"><label>3</label><mixed-citation publication-type="journal" id="ctm21232-cit-0003">
+<string-name name-style="western">
+<surname>Lewis</surname>
+<given-names>R</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gomez Alvarez</surname>
+<given-names>CB</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Rayman</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Lanham‐New</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Woolf</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Mobasheri</surname>
+<given-names>A</given-names>
+</string-name>. <article-title>Strategies for optimising musculoskeletal health in the 21(st) century</article-title>. <source>BMC Musculoskelet Disord</source>. <year>2019</year>;<volume>20</volume>(<issue>1</issue>):<fpage>164</fpage>.<pub-id pub-id-type="pmid">30971232</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1186/s12891-019-2510-7</pub-id><pub-id pub-id-type="pmcid">PMC6458786</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0004"><label>4</label><mixed-citation publication-type="journal" id="ctm21232-cit-0004">
+<string-name name-style="western">
+<surname>Bourne</surname>
+<given-names>RB</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Chesworth</surname>
+<given-names>BM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Davis</surname>
+<given-names>AM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Mahomed</surname>
+<given-names>NN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Charron</surname>
+<given-names>KD</given-names>
+</string-name>. <article-title>Patient satisfaction after total knee arthroplasty: who is satisfied and who is not?</article-title>
+<source>Clin Orthop Relat Res</source>. <year>2010</year>;<volume>468</volume>(<issue>1</issue>):<fpage>57</fpage>‐<lpage>63</lpage>.<pub-id pub-id-type="pmid">19844772</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1007/s11999-009-1119-9</pub-id><pub-id pub-id-type="pmcid">PMC2795819</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0005"><label>5</label><mixed-citation publication-type="journal" id="ctm21232-cit-0005">
+<string-name name-style="western">
+<surname>Mobasheri</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Saarakkala</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Finnila</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Karsdal</surname>
+<given-names>MA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Bay‐Jensen</surname>
+<given-names>AC</given-names>
+</string-name>, <string-name name-style="western">
+<surname>van Spil</surname>
+<given-names>WE</given-names>
+</string-name>. <article-title>Recent advances in understanding the phenotypes of osteoarthritis</article-title>. <source>F1000Res</source>. <year>2019</year>;<volume>8</volume>:<fpage>2091</fpage>.<pub-id pub-id-type="doi" assigning-authority="pmc">10.12688/f1000research.20575.1</pub-id><pub-id pub-id-type="pmcid">PMC6913225</pub-id><pub-id pub-id-type="pmid">31885861</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0006"><label>6</label><mixed-citation publication-type="journal" id="ctm21232-cit-0006">
+<string-name name-style="western">
+<surname>Angelini</surname>
+<given-names>F</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Widera</surname>
+<given-names>P</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Mobasheri</surname>
+<given-names>A</given-names>
+</string-name>, et al. <article-title>Osteoarthritis endotype discovery via clustering of biochemical marker data</article-title>. <source>Ann Rheum Dis</source>. <year>2022</year>;<volume>81</volume>(<issue>5</issue>):<fpage>666</fpage>‐<lpage>675</lpage>.<pub-id pub-id-type="pmid">35246457</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1136/annrheumdis-2021-221763</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0007"><label>7</label><mixed-citation publication-type="journal" id="ctm21232-cit-0007">
+<string-name name-style="western">
+<surname>Blagojevic</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jinks</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jeffery</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jordan</surname>
+<given-names>KP</given-names>
+</string-name>. <article-title>Risk factors for onset of osteoarthritis of the knee in older adults: a systematic review and meta‐analysis</article-title>. <source>Osteoarthritis Cartilage</source>. <year>2010</year>;<volume>18</volume>(<issue>1</issue>):<fpage>24</fpage>‐<lpage>33</lpage>.<pub-id pub-id-type="pmid">19751691</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.joca.2009.08.010</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0008"><label>8</label><mixed-citation publication-type="journal" id="ctm21232-cit-0008">
+<string-name name-style="western">
+<surname>Jiang</surname>
+<given-names>L</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Rong</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wang</surname>
+<given-names>Y</given-names>
+</string-name>, et al. <article-title>The relationship between body mass index and hip osteoarthritis: a systematic review and meta‐analysis</article-title>. <source>Joint Bone Spine</source>. <year>2011</year>;<volume>78</volume>(<issue>2</issue>):<fpage>150</fpage>‐<lpage>155</lpage>.<pub-id pub-id-type="pmid">20580591</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.jbspin.2010.04.011</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0009"><label>9</label><mixed-citation publication-type="journal" id="ctm21232-cit-0009">
+<string-name name-style="western">
+<surname>Jiang</surname>
+<given-names>L</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tian</surname>
+<given-names>W</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wang</surname>
+<given-names>Y</given-names>
+</string-name>, et al. <article-title>Body mass index and susceptibility to knee osteoarthritis: a systematic review and meta‐analysis</article-title>. <source>Joint Bone Spine</source>. <year>2012</year>;<volume>79</volume>(<issue>3</issue>):<fpage>291</fpage>‐<lpage>297</lpage>.<pub-id pub-id-type="pmid">21803633</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.jbspin.2011.05.015</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0010"><label>10</label><mixed-citation publication-type="journal" id="ctm21232-cit-0010">
+<string-name name-style="western">
+<surname>Raud</surname>
+<given-names>B</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gay</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Guiguet‐Auclair</surname>
+<given-names>C</given-names>
+</string-name>, et al. <article-title>Level of obesity is directly associated with the clinical and functional consequences of knee osteoarthritis</article-title>. <source>Sci Rep</source>. <year>2020</year>;<volume>10</volume>(<issue>1</issue>):<fpage>3601</fpage>.<pub-id pub-id-type="pmid">32107449</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1038/s41598-020-60587-1</pub-id><pub-id pub-id-type="pmcid">PMC7046749</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0011"><label>11</label><mixed-citation publication-type="journal" id="ctm21232-cit-0011">
+<string-name name-style="western">
+<surname>Walsh</surname>
+<given-names>TP</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Arnold</surname>
+<given-names>JB</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Evans</surname>
+<given-names>AM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Yaxley</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Damarell</surname>
+<given-names>RA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Shanahan</surname>
+<given-names>EM</given-names>
+</string-name>. <article-title>The association between body fat and musculoskeletal pain: a systematic review and meta‐analysis</article-title>. <source>BMC Musculoskelet Disord</source>. <year>2018</year>;<volume>19</volume>(<issue>1</issue>):<fpage>233</fpage>.<pub-id pub-id-type="pmid">30021590</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1186/s12891-018-2137-0</pub-id><pub-id pub-id-type="pmcid">PMC6052598</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0012"><label>12</label><mixed-citation publication-type="journal" id="ctm21232-cit-0012">
+<string-name name-style="western">
+<surname>Moroni</surname>
+<given-names>L</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Farina</surname>
+<given-names>N</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Dagna</surname>
+<given-names>L</given-names>
+</string-name>. <article-title>Obesity and its role in the management of rheumatoid and psoriatic arthritis</article-title>. <source>Clin Rheumatol</source>. <year>2020</year>;<volume>39</volume>(<issue>4</issue>):<fpage>1039</fpage>‐<lpage>1047</lpage>.<pub-id pub-id-type="pmid">32016655</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1007/s10067-020-04963-2</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0013"><label>13</label><mixed-citation publication-type="journal" id="ctm21232-cit-0013">
+<string-name name-style="western">
+<surname>Reyes</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Leyland</surname>
+<given-names>KM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Peat</surname>
+<given-names>G</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Cooper</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Arden</surname>
+<given-names>NK</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Prieto‐Alhambra</surname>
+<given-names>D</given-names>
+</string-name>. <article-title>Association between overweight and obesity and risk of clinically diagnosed knee, hip, and hand osteoarthritis: a population‐based cohort study</article-title>. <source>Arthritis Rheumatol</source>. <year>2016</year>;<volume>68</volume>(<issue>8</issue>):<fpage>1869</fpage>‐<lpage>1875</lpage>.<pub-id pub-id-type="pmid">27059260</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1002/art.39707</pub-id><pub-id pub-id-type="pmcid">PMC4966641</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0014"><label>14</label><mixed-citation publication-type="journal" id="ctm21232-cit-0014">
+<string-name name-style="western">
+<surname>Ganesan</surname>
+<given-names>R</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Rasool</surname>
+<given-names>M</given-names>
+</string-name>. <article-title>Fibroblast‐like synoviocytes‐dependent effector molecules as a critical mediator for rheumatoid arthritis: current status and future directions</article-title>. <source>Int Rev Immunol</source>. <year>2017</year>;<volume>36</volume>(<issue>1</issue>):<fpage>20</fpage>‐<lpage>30</lpage>.<pub-id pub-id-type="pmid">28102734</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1080/08830185.2016.1269175</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0015"><label>15</label><mixed-citation publication-type="journal" id="ctm21232-cit-0015">
+<string-name name-style="western">
+<surname>Baker</surname>
+<given-names>K</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Grainger</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Niu</surname>
+<given-names>J</given-names>
+</string-name>, et al. <article-title>Relation of synovitis to knee pain using contrast‐enhanced MRIs</article-title>. <source>Ann Rheum Dis</source>. <year>2010</year>;<volume>69</volume>(<issue>10</issue>):<fpage>1779</fpage>‐<lpage>1783</lpage>.<pub-id pub-id-type="pmid">20472593</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1136/ard.2009.121426</pub-id><pub-id pub-id-type="pmcid">PMC3885343</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0016"><label>16</label><mixed-citation publication-type="journal" id="ctm21232-cit-0016">
+<string-name name-style="western">
+<surname>Nanus</surname>
+<given-names>DE</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wijesinghe</surname>
+<given-names>SN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Pearson</surname>
+<given-names>MJ</given-names>
+</string-name>, et al. <article-title>Regulation of the inflammatory synovial fibroblast phenotype by metastasis‐associated lung adenocarcinoma transcript 1 long noncoding RNA in obese patients with osteoarthritis</article-title>. <source>Arthritis Rheumatol</source>. <year>2020</year>;<volume>72</volume>(<issue>4</issue>):<fpage>609</fpage>‐<lpage>619</lpage>.<pub-id pub-id-type="pmid">31682073</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1002/art.41158</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0017"><label>17</label><mixed-citation publication-type="journal" id="ctm21232-cit-0017">
+<string-name name-style="western">
+<surname>Wang</surname>
+<given-names>T</given-names>
+</string-name>, <string-name name-style="western">
+<surname>He</surname>
+<given-names>C</given-names>
+</string-name>. <article-title>Pro‐inflammatory cytokines: the link between obesity and osteoarthritis</article-title>. <source>Cytokine Growth Factor Rev</source>. <year>2018</year>;<volume>44</volume>:<fpage>38</fpage>‐<lpage>50</lpage>.<pub-id pub-id-type="pmid">30340925</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.cytogfr.2018.10.002</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0018"><label>18</label><mixed-citation publication-type="journal" id="ctm21232-cit-0018">
+<string-name name-style="western">
+<surname>Pearson</surname>
+<given-names>MJ</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Herndler‐Brandstetter</surname>
+<given-names>D</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tariq</surname>
+<given-names>MA</given-names>
+</string-name>, et al. <article-title>IL‐6 secretion in osteoarthritis patients is mediated by chondrocyte‐synovial fibroblast cross‐talk and is enhanced by obesity</article-title>. <source>Sci Rep</source>. <year>2017</year>;<volume>7</volume>(<issue>1</issue>):<fpage>3451</fpage>.<pub-id pub-id-type="pmid">28615667</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1038/s41598-017-03759-w</pub-id><pub-id pub-id-type="pmcid">PMC5471184</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0019"><label>19</label><mixed-citation publication-type="journal" id="ctm21232-cit-0019">
+<string-name name-style="western">
+<surname>Wijesinghe</surname>
+<given-names>SN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Nicholson</surname>
+<given-names>T</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tsintzas</surname>
+<given-names>K</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jones</surname>
+<given-names>SW</given-names>
+</string-name>. <article-title>Involvements of long noncoding RNAs in obesity‐associated inflammatory diseases</article-title>. <source>Obes Rev</source>. <year>2021</year>;<volume>22</volume>(<issue>4</issue>):<elocation-id>e13156</elocation-id>.<pub-id pub-id-type="pmid">33078547</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1111/obr.13156</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0020"><label>20</label><mixed-citation publication-type="journal" id="ctm21232-cit-0020">
+<string-name name-style="western">
+<surname>Kasperkovitz</surname>
+<given-names>PV</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Timmer</surname>
+<given-names>TC</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Smeets</surname>
+<given-names>TJ</given-names>
+</string-name>, et al. <article-title>Fibroblast‐like synoviocytes derived from patients with rheumatoid arthritis show the imprint of synovial tissue heterogeneity: evidence of a link between an increased myofibroblast‐like phenotype and high‐inflammation synovitis</article-title>. <source>Arthritis Rheum</source>. <year>2005</year>;<volume>52</volume>(<issue>2</issue>):<fpage>430</fpage>‐<lpage>441</lpage>.<pub-id pub-id-type="pmid">15692990</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1002/art.20811</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0021"><label>21</label><mixed-citation publication-type="journal" id="ctm21232-cit-0021">
+<string-name name-style="western">
+<surname>Karouzakis</surname>
+<given-names>E</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Raza</surname>
+<given-names>K</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Kolling</surname>
+<given-names>C</given-names>
+</string-name>, et al. <article-title>Analysis of early changes in DNA methylation in synovial fibroblasts of RA patients before diagnosis</article-title>. <source>Sci Rep</source>. <year>2018</year>;<volume>8</volume>(<issue>1</issue>):<fpage>7370</fpage>.<pub-id pub-id-type="pmid">29743579</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1038/s41598-018-24240-2</pub-id><pub-id pub-id-type="pmcid">PMC5943364</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0022"><label>22</label><mixed-citation publication-type="journal" id="ctm21232-cit-0022">
+<string-name name-style="western">
+<surname>Mizoguchi</surname>
+<given-names>F</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Slowikowski</surname>
+<given-names>K</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wei</surname>
+<given-names>K</given-names>
+</string-name>, et al. <article-title>Functionally distinct disease‐associated fibroblast subsets in rheumatoid arthritis</article-title>. <source>Nat Commun</source>. <year>2018</year>;<volume>9</volume>(<issue>1</issue>):<fpage>789</fpage>.<pub-id pub-id-type="pmid">29476097</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1038/s41467-018-02892-y</pub-id><pub-id pub-id-type="pmcid">PMC5824882</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0023"><label>23</label><mixed-citation publication-type="journal" id="ctm21232-cit-0023">
+<string-name name-style="western">
+<surname>Croft</surname>
+<given-names>AP</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Campos</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Jansen</surname>
+<given-names>K</given-names>
+</string-name>, et al. <article-title>Distinct fibroblast subsets drive inflammation and damage in arthritis</article-title>. <source>Nature</source>. <year>2019</year>;<volume>570</volume>(<issue>7760</issue>):<fpage>246</fpage>‐<lpage>251</lpage>.<pub-id pub-id-type="pmid">31142839</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1038/s41586-019-1263-7</pub-id><pub-id pub-id-type="pmcid">PMC6690841</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0024"><label>24</label><mixed-citation publication-type="journal" id="ctm21232-cit-0024">
+<string-name name-style="western">
+<surname>Nanus</surname>
+<given-names>DE</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Badoume</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wijesinghe</surname>
+<given-names>SN</given-names>
+</string-name>, et al. <article-title>Synovial tissue from sites of joint pain in knee osteoarthritis patients exhibits a differential phenotype with distinct fibroblast subsets</article-title>. <source>EBioMedicine</source>. <year>2021</year>;<volume>72</volume>:<elocation-id>103618</elocation-id>.<pub-id pub-id-type="pmid">34628351</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.ebiom.2021.103618</pub-id><pub-id pub-id-type="pmcid">PMC8511845</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0025"><label>25</label><mixed-citation publication-type="journal" id="ctm21232-cit-0025">
+<string-name name-style="western">
+<surname>Farah</surname>
+<given-names>H</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Wijesinghe</surname>
+<given-names>SN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Nicholson</surname>
+<given-names>T</given-names>
+</string-name>, et al. <article-title>Differential metabotypes in synovial fibroblasts and synovial fluid in hip osteoarthritis patients support inflammatory responses</article-title>. <source>International journal of molecular sciences</source>. <year>2022</year>;<volume>23</volume>(<issue>6</issue>):<fpage>3266</fpage>.<pub-id pub-id-type="pmid">35328687</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.3390/ijms23063266</pub-id><pub-id pub-id-type="pmcid">PMC8950319</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0026"><label>26</label><mixed-citation publication-type="journal" id="ctm21232-cit-0026">
+<string-name name-style="western">
+<surname>Pratt</surname>
+<given-names>AG</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Siebert</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Cole</surname>
+<given-names>M</given-names>
+</string-name>, et al. <article-title>Targeting synovial fibroblast proliferation in rheumatoid arthritis (TRAFIC): an open‐label, dose‐finding, phase 1b trial</article-title>. <source>Lancet Rheumatol</source>. <year>2021</year>;<volume>3</volume>(<issue>5</issue>):<elocation-id>e337</elocation-id>.<pub-id pub-id-type="pmid">33928262</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/S2665-9913(21)00061-8</pub-id><pub-id pub-id-type="pmcid">PMC8062952</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0027"><label>27</label><mixed-citation publication-type="journal" id="ctm21232-cit-0027">
+<string-name name-style="western">
+<surname>Holliday</surname>
+<given-names>KL</given-names>
+</string-name>, <string-name name-style="western">
+<surname>McWilliams</surname>
+<given-names>DF</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Maciewicz</surname>
+<given-names>RA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Muir</surname>
+<given-names>KR</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Zhang</surname>
+<given-names>W</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Doherty</surname>
+<given-names>M</given-names>
+</string-name>. <article-title>Lifetime body mass index, other anthropometric measures of obesity and risk of knee or hip osteoarthritis in the GOAL case‐control study</article-title>. <source>Osteoarthritis Cartilage</source>. <year>2011</year>;<volume>19</volume>(<issue>1</issue>):<fpage>37</fpage>‐<lpage>43</lpage>.<pub-id pub-id-type="pmid">21044695</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.joca.2010.10.014</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0028"><label>28</label><mixed-citation publication-type="journal" id="ctm21232-cit-0028">
+<string-name name-style="western">
+<surname>Cicuttini</surname>
+<given-names>FM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Baker</surname>
+<given-names>JR</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Spector</surname>
+<given-names>TD</given-names>
+</string-name>. <article-title>The association of obesity with osteoarthritis of the hand and knee in women: a twin study</article-title>. <source>J Rheumatol</source>. <year>1996</year>;<volume>23</volume>(<issue>7</issue>):<fpage>1221</fpage>‐<lpage>1226</lpage>.<pub-id pub-id-type="pmid">8823696</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0029"><label>29</label><mixed-citation publication-type="journal" id="ctm21232-cit-0029">
+<string-name name-style="western">
+<surname>Menarim</surname>
+<given-names>BC</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gillis</surname>
+<given-names>KH</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Oliver</surname>
+<given-names>A</given-names>
+</string-name>, et al. <article-title>Macrophage activation in the synovium of healthy and osteoarthritic equine joints</article-title>. <source>Front Vet Sci</source>. <year>2020</year>;<volume>7</volume>:<elocation-id>568756</elocation-id>.<pub-id pub-id-type="pmid">33324696</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.3389/fvets.2020.568756</pub-id><pub-id pub-id-type="pmcid">PMC7726135</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0030"><label>30</label><mixed-citation publication-type="journal" id="ctm21232-cit-0030">
+<string-name name-style="western">
+<surname>Nguyen</surname>
+<given-names>HN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Noss</surname>
+<given-names>EH</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Mizoguchi</surname>
+<given-names>F</given-names>
+</string-name>, et al. <article-title>Autocrine loop involving IL‐6 family member LIF, LIF receptor, and STAT4 drives sustained fibroblast production of inflammatory mediators</article-title>. <source>Immunity</source>. <year>2017</year>;<volume>46</volume>(<issue>2</issue>):<fpage>220</fpage>‐<lpage>232</lpage>.<pub-id pub-id-type="pmid">28228280</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.immuni.2017.01.004</pub-id><pub-id pub-id-type="pmcid">PMC5567864</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0031"><label>31</label><mixed-citation publication-type="journal" id="ctm21232-cit-0031">
+<string-name name-style="western">
+<surname>Ahn</surname>
+<given-names>JK</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Kim</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Hwang</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Kim</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Kim</surname>
+<given-names>KH</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Cha</surname>
+<given-names>HS</given-names>
+</string-name>. <article-title>GC/TOF‐MS‐based metabolomic profiling in cultured fibroblast‐like synoviocytes from rheumatoid arthritis</article-title>. <source>Joint Bone Spine</source>. <year>2016</year>;<volume>83</volume>(<issue>6</issue>):<fpage>707</fpage>‐<lpage>713</lpage>.<pub-id pub-id-type="pmid">27133762</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.jbspin.2015.11.009</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0032"><label>32</label><mixed-citation publication-type="journal" id="ctm21232-cit-0032">
+<string-name name-style="western">
+<surname>Takahashi</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Saegusa</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Sendo</surname>
+<given-names>S</given-names>
+</string-name>, et al. <article-title>Glutaminase 1 plays a key role in the cell growth of fibroblast‐like synoviocytes in rheumatoid arthritis</article-title>. <source>Arthritis Res Ther</source>. <year>2017</year>;<volume>19</volume>(<issue>1</issue>):<fpage>76</fpage>.<pub-id pub-id-type="pmid">28399896</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1186/s13075-017-1283-3</pub-id><pub-id pub-id-type="pmcid">PMC5387190</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0033"><label>33</label><mixed-citation publication-type="journal" id="ctm21232-cit-0033">
+<string-name name-style="western">
+<surname>Zhao</surname>
+<given-names>XY</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Yang</surname>
+<given-names>ZB</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Zhang</surname>
+<given-names>ZJ</given-names>
+</string-name>, et al. <article-title>CCL3 serves as a potential plasma biomarker in knee degeneration (osteoarthritis)</article-title>. <source>Osteoarthritis Cartilage</source>. <year>2015</year>;<volume>23</volume>(<issue>8</issue>):<fpage>1405</fpage>‐<lpage>1411</lpage>.<pub-id pub-id-type="pmid">25887364</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.joca.2015.04.002</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0034"><label>34</label><mixed-citation publication-type="journal" id="ctm21232-cit-0034">
+<string-name name-style="western">
+<surname>Lambert</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Zappia</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Sanchez</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Florin</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Dubuc</surname>
+<given-names>JE</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Henrotin</surname>
+<given-names>Y</given-names>
+</string-name>. <article-title>The damage‐associated molecular patterns (DAMPs) as potential targets to treat osteoarthritis: perspectives from a review of the literature</article-title>. <source>Front Med (Lausanne)</source>. <year>2020</year>;<volume>7</volume>:<elocation-id>607186</elocation-id>.<pub-id pub-id-type="pmid">33537330</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.3389/fmed.2020.607186</pub-id><pub-id pub-id-type="pmcid">PMC7847938</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0035"><label>35</label><mixed-citation publication-type="journal" id="ctm21232-cit-0035">
+<string-name name-style="western">
+<surname>Moret</surname>
+<given-names>FM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Hack</surname>
+<given-names>CE</given-names>
+</string-name>, <string-name name-style="western">
+<surname>van der Wurff‐Jacobs</surname>
+<given-names>KM</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Radstake</surname>
+<given-names>TR</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Lafeber</surname>
+<given-names>FP</given-names>
+</string-name>, <string-name name-style="western">
+<surname>van Roon</surname>
+<given-names>JA</given-names>
+</string-name>. <article-title>Thymic stromal lymphopoietin, a novel proinflammatory mediator in rheumatoid arthritis that potently activates CD1c+ myeloid dendritic cells to attract and stimulate T cells</article-title>. <source>Arthritis Rheumatol</source>. <year>2014</year>;<volume>66</volume>(<issue>5</issue>):<fpage>1176</fpage>‐<lpage>1184</lpage>.<pub-id pub-id-type="pmid">24782181</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1002/art.38338</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0036"><label>36</label><mixed-citation publication-type="journal" id="ctm21232-cit-0036">
+<string-name name-style="western">
+<surname>Koyama</surname>
+<given-names>K</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Ozawa</surname>
+<given-names>T</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Hatsushika</surname>
+<given-names>K</given-names>
+</string-name>, et al. <article-title>A possible role for TSLP in inflammatory arthritis</article-title>. <source>Biochemical and biophysical research communications</source>. <year>2007</year>;<volume>357</volume>(<issue>1</issue>):<fpage>99</fpage>‐<lpage>104</lpage>.<pub-id pub-id-type="pmid">17416344</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.bbrc.2007.03.081</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0037"><label>37</label><mixed-citation publication-type="journal" id="ctm21232-cit-0037">
+<string-name name-style="western">
+<surname>Takai</surname>
+<given-names>T</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Chen</surname>
+<given-names>X</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Xie</surname>
+<given-names>Y</given-names>
+</string-name>, et al. <article-title>TSLP expression induced via Toll‐like receptor pathways in human keratinocytes</article-title>. <source>Methods Enzymol</source>. <year>2014</year>;<volume>535</volume>:<fpage>371</fpage>‐<lpage>387</lpage>.<pub-id pub-id-type="pmid">24377934</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/B978-0-12-397925-4.00021-3</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0038"><label>38</label><mixed-citation publication-type="journal" id="ctm21232-cit-0038">
+<string-name name-style="western">
+<surname>Coffman</surname>
+<given-names>FD</given-names>
+</string-name>. <article-title>Chitinase 3‐Like‐1 (CHI3L1): a putative disease marker at the interface of proteomics and glycomics</article-title>. <source>Crit Rev Clin Lab Sci</source>. <year>2008</year>;<volume>45</volume>(<issue>6</issue>):<fpage>531</fpage>‐<lpage>562</lpage>.<pub-id pub-id-type="pmid">19003601</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1080/10408360802334743</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0039"><label>39</label><mixed-citation publication-type="journal" id="ctm21232-cit-0039">
+<string-name name-style="western">
+<surname>Huang</surname>
+<given-names>CJ</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Beasley</surname>
+<given-names>KN</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Acevedo</surname>
+<given-names>EO</given-names>
+</string-name>, et al. <article-title>Chitin enhances obese inflammation ex vivo</article-title>. <source>Hum Immunol</source>. <year>2014</year>;<volume>75</volume>(<issue>1</issue>):<fpage>41</fpage>‐<lpage>46</lpage>.<pub-id pub-id-type="pmid">24055693</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.humimm.2013.09.005</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0040"><label>40</label><mixed-citation publication-type="journal" id="ctm21232-cit-0040">
+<string-name name-style="western">
+<surname>Szychlinska</surname>
+<given-names>MA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Leonardi</surname>
+<given-names>R</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Al‐Qahtani</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Mobasheri</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Musumeci</surname>
+<given-names>G</given-names>
+</string-name>. <article-title>Altered joint tribology in osteoarthritis: reduced lubricin synthesis due to the inflammatory process. New horizons for therapeutic approaches</article-title>. <source>Ann Phys Rehabil Med</source>. <year>2016</year>;<volume>59</volume>(<issue>3</issue>):<fpage>149</fpage>‐<lpage>156</lpage>.<pub-id pub-id-type="pmid">27118399</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.rehab.2016.03.005</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0041"><label>41</label><mixed-citation publication-type="journal" id="ctm21232-cit-0041">
+<string-name name-style="western">
+<surname>Salomon</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Matusiak</surname>
+<given-names>L</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Nowicka‐Suszko</surname>
+<given-names>D</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Szepietowski</surname>
+<given-names>JC</given-names>
+</string-name>. <article-title>Chitinase‐3‐like protein 1 (YKL‐40) is a biomarker of severity of joint involvement in psoriatic arthritis</article-title>. <source>Postepy Dermatol Alergol</source>. <year>2018</year>;<volume>35</volume>(<issue>5</issue>):<fpage>485</fpage>‐<lpage>489</lpage>.<pub-id pub-id-type="pmid">30429706</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.5114/ada.2018.77239</pub-id><pub-id pub-id-type="pmcid">PMC6232549</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0042"><label>42</label><mixed-citation publication-type="journal" id="ctm21232-cit-0042">
+<string-name name-style="western">
+<surname>Vind</surname>
+<given-names>I</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Johansen</surname>
+<given-names>JS</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Price</surname>
+<given-names>PA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Munkholm</surname>
+<given-names>P</given-names>
+</string-name>. <article-title>Serum YKL‐40, a potential new marker of disease activity in patients with inflammatory bowel disease</article-title>. <source>Scand J Gastroenterol</source>. <year>2003</year>;<volume>38</volume>(<issue>6</issue>):<fpage>599</fpage>‐<lpage>605</lpage>.<pub-id pub-id-type="pmid">12825867</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1080/00365520310000537</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0043"><label>43</label><mixed-citation publication-type="journal" id="ctm21232-cit-0043">
+<string-name name-style="western">
+<surname>Di Rosa</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Szychlinska</surname>
+<given-names>MA</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tibullo</surname>
+<given-names>D</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Malaguarnera</surname>
+<given-names>L</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Musumeci</surname>
+<given-names>G</given-names>
+</string-name>. <article-title>Expression of CHI3L1 and CHIT1 in osteoarthritic rat cartilage model. A morphological study</article-title>. <source>Eur J Histochem</source>. <year>2014</year>;<volume>58</volume>(<issue>3</issue>):<fpage>2423</fpage>.<pub-id pub-id-type="pmid">25308850</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.4081/ejh.2014.2423</pub-id><pub-id pub-id-type="pmcid">PMC4194398</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0044"><label>44</label><mixed-citation publication-type="journal" id="ctm21232-cit-0044">
+<string-name name-style="western">
+<surname>Rock</surname>
+<given-names>KL</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Kono</surname>
+<given-names>H</given-names>
+</string-name>. <article-title>The inflammatory response to cell death</article-title>. <source>Annu Rev Pathol</source>. <year>2008</year>;<volume>3</volume>:<fpage>99</fpage>‐<lpage>126</lpage>.<pub-id pub-id-type="pmid">18039143</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1146/annurev.pathmechdis.3.121806.151456</pub-id><pub-id pub-id-type="pmcid">PMC3094097</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0045"><label>45</label><mixed-citation publication-type="journal" id="ctm21232-cit-0045">
+<string-name name-style="western">
+<surname>Haanen</surname>
+<given-names>C</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Vermes</surname>
+<given-names>I</given-names>
+</string-name>. <article-title>Apoptosis and inflammation</article-title>. <source>Mediators Inflamm</source>. <year>1995</year>;<volume>4</volume>(<issue>1</issue>):<fpage>5</fpage>‐<lpage>15</lpage>.<pub-id pub-id-type="pmid">18475609</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1155/S0962935195000020</pub-id><pub-id pub-id-type="pmcid">PMC2365613</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0046"><label>46</label><mixed-citation publication-type="journal" id="ctm21232-cit-0046">
+<string-name name-style="western">
+<surname>Huber</surname>
+<given-names>LC</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Distler</surname>
+<given-names>O</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tarner</surname>
+<given-names>I</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gay</surname>
+<given-names>RE</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gay</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Pap</surname>
+<given-names>T</given-names>
+</string-name>. <article-title>Synovial fibroblasts: key players in rheumatoid arthritis</article-title>. <source>Rheumatology (Oxford)</source>. <year>2006</year>;<volume>45</volume>(<issue>6</issue>):<fpage>669</fpage>‐<lpage>675</lpage>.<pub-id pub-id-type="pmid">16567358</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1093/rheumatology/kel065</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0047"><label>47</label><mixed-citation publication-type="journal" id="ctm21232-cit-0047">
+<string-name name-style="western">
+<surname>Pierer</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Rethage</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Seibl</surname>
+<given-names>R</given-names>
+</string-name>, et al. <article-title>Chemokine secretion of rheumatoid arthritis synovial fibroblasts stimulated by Toll‐like receptor 2 ligands</article-title>. <source>J Immunol</source>. <year>2004</year>;<volume>172</volume>(<issue>2</issue>):<fpage>1256</fpage>‐<lpage>1265</lpage>.<pub-id pub-id-type="pmid">14707104</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.4049/jimmunol.172.2.1256</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0048"><label>48</label><mixed-citation publication-type="journal" id="ctm21232-cit-0048">
+<string-name name-style="western">
+<surname>Sideras</surname>
+<given-names>P</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Apostolou</surname>
+<given-names>E</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Stavropoulos</surname>
+<given-names>A</given-names>
+</string-name>, et al. <article-title>Activin, neutrophils, and inflammation: just coincidence?</article-title>
+<source>Semin Immunopathol</source>. <year>2013</year>;<volume>35</volume>(<issue>4</issue>):<fpage>481</fpage>‐<lpage>499</lpage>.<pub-id pub-id-type="pmid">23385857</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1007/s00281-013-0365-9</pub-id><pub-id pub-id-type="pmcid">PMC7101603</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0049"><label>49</label><mixed-citation publication-type="journal" id="ctm21232-cit-0049">
+<string-name name-style="western">
+<surname>Pap</surname>
+<given-names>T</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Nawrath</surname>
+<given-names>M</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Heinrich</surname>
+<given-names>J</given-names>
+</string-name>, et al. <article-title>Cooperation of Ras‐ and c‐Myc‐dependent pathways in regulating the growth and invasiveness of synovial fibroblasts in rheumatoid arthritis</article-title>. <source>Arthritis Rheum</source>. <year>2004</year>;<volume>50</volume>(<issue>9</issue>):<fpage>2794</fpage>‐<lpage>2802</lpage>.<pub-id pub-id-type="pmid">15457447</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1002/art.20461</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0050"><label>50</label><mixed-citation publication-type="journal" id="ctm21232-cit-0050">
+<string-name name-style="western">
+<surname>McMahon</surname>
+<given-names>SB</given-names>
+</string-name>. <article-title>MYC and the control of apoptosis</article-title>. <source>Cold Spring Harbor perspectives in medicine</source>. <year>2014</year>;<volume>4</volume>(<issue>7</issue>):<elocation-id>a014407</elocation-id>.<pub-id pub-id-type="pmid">24985130</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1101/cshperspect.a014407</pub-id><pub-id pub-id-type="pmcid">PMC4066641</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0051"><label>51</label><mixed-citation publication-type="journal" id="ctm21232-cit-0051">
+<string-name name-style="western">
+<surname>Shiozawa</surname>
+<given-names>S</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Tsumiyama</surname>
+<given-names>K</given-names>
+</string-name>. <article-title>Pathogenesis of rheumatoid arthritis and c‐Fos/AP‐1</article-title>. <source>Cell Cycle</source>. <year>2009</year>;<volume>8</volume>(<issue>10</issue>):<fpage>1539</fpage>‐<lpage>1543</lpage>.<pub-id pub-id-type="pmid">19395871</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.4161/cc.8.10.8411</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0052"><label>52</label><mixed-citation publication-type="journal" id="ctm21232-cit-0052">
+<string-name name-style="western">
+<surname>Vargas</surname>
+<given-names>AJ</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Quackenbush</surname>
+<given-names>J</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Glass</surname>
+<given-names>K</given-names>
+</string-name>. <article-title>Diet‐induced weight loss leads to a switch in gene regulatory network control in the rectal mucosa</article-title>. <source>Genomics</source>. <year>2016</year>;<volume>108</volume>(<issue>3‐4</issue>):<fpage>126</fpage>‐<lpage>133</lpage>.<pub-id pub-id-type="pmid">27524493</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1016/j.ygeno.2016.08.001</pub-id><pub-id pub-id-type="pmcid">PMC5121035</pub-id></mixed-citation></ref><ref id="ctm21232-bib-0053"><label>53</label><mixed-citation publication-type="journal" id="ctm21232-cit-0053">
+<string-name name-style="western">
+<surname>Davis</surname>
+<given-names>A</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Gao</surname>
+<given-names>R</given-names>
+</string-name>, <string-name name-style="western">
+<surname>Navin</surname>
+<given-names>NE</given-names>
+</string-name>. <article-title>SCOPIT: sample size calculations for single‐cell sequencing experiments</article-title>. <source>BMC Bioinformatics</source>. <year>2019</year>;<volume>20</volume>(<issue>1</issue>):<fpage>566</fpage>.<pub-id pub-id-type="pmid">31718533</pub-id><pub-id pub-id-type="doi" assigning-authority="pmc">10.1186/s12859-019-3167-9</pub-id><pub-id pub-id-type="pmcid">PMC6852764</pub-id></mixed-citation></ref></ref-list></back></article></pmc-articleset>

@@ -1,0 +1,8 @@
+
+1. RNA-Sequencing of Acute interstitial pneumonia compared with Control Lung
+(Submitter supplied) Acute Interstitial Pneumonia (AIP) represents a severe form of diffuse lung injury within the idiopathic interstitial pneumonia spectrum. Given the limited understanding of its molecular basis, this study aims to elucidate AIP's transcriptomic profiles to uncover its pathophysiological underpinnings and identify potential therapeutic targets.
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL24676 20 Samples
+FTP download: GEO (TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE283nnn/GSE283072/
+Series		Accession: GSE283072	ID: 200283072

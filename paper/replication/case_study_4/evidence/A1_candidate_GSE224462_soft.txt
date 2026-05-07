@@ -1,0 +1,8 @@
+
+1. CMPD1 is a microtubule inhibitor with tumor-specific cytotoxicity
+(Submitter supplied) Microtubule-targeting agents have been widely used for cancer treatment, yet their cancer specificity is a common challenge. In this study, we identified that CMPD1 as a promising cancer specific inhibitor. Both in vitro and in vivo experiments showed that CMPD1 efficiently inhibits tumor growth. Mechanistically, CMPD1 inhibits microtubule polymerization in mitosis. Collectively, CMPD1 has the high potential to serve as a cancer cell inhibitor.
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platforms: GPL24676 GPL18573 18 Samples
+FTP download: GEO (BW, CSV, TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE224nnn/GSE224462/
+Series		Accession: GSE224462	ID: 200224462

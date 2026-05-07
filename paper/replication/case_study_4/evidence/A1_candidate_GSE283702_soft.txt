@@ -1,0 +1,8 @@
+
+1. A high-fidelity CRISPR-Cas13 system improves abnormalities associated with C9ORF72-linked ALS/FTD
+(Submitter supplied) An abnormal expansion of a GGGGCC hexanucleotide repeat in the C9ORF72 gene is the most common genetic cause of amyotrophic lateral sclerosis (ALS) and frontotemporal dementia (FTD), two debilitating neurodegenerative disorders driven in part by gain-of-function mechanisms involving transcribed forms of the repeat expansion. By utilizing a Cas13 variant with reduced collateral effects, we developed a high-fidelity RNA-targeting CRISPR-based system for C9ORF72-linked ALS/FTD. more...
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL24676 29 Samples
+FTP download: GEO (TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE283nnn/GSE283702/
+Series		Accession: GSE283702	ID: 200283702

@@ -1,0 +1,8 @@
+
+1. Cellular hierarchies of ETMR are shaped by oncogenic miRNAs and receptor-ligand interactions
+(Submitter supplied) Embryonal tumor with multilayered rosettes (ETMR) is a malignant pediatric brain tumor with a dismal prognosis. The proposed oncogenic driver is amplification and fusion of the chromosome 19 miRNA cluster (C19MC). However, the ramifications of this distinct genetic event as well as the complex tumor architecture and the interactions between malignant cell types in ETMR remain vastly understudied. Here, we have analyzed a cohort of 11 ETMR patients using single-cell transcriptomic and multiplexed spatial protein profiling. more...
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL18573 16 Samples
+FTP download: GEO (TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE231nnn/GSE231614/
+Series		Accession: GSE231614	ID: 200231614

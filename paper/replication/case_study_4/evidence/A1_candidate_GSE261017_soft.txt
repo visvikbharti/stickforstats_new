@@ -1,0 +1,8 @@
+
+1. PRMT5 promotes chemoresistance of breast cancer stem cells by regulating DNA repair gene splicing facilitating an enhanced DNA damage response
+(Submitter supplied) Breast cancer stem cells (BCSCs) are a rare cell population that are responsible for tumour initiation, metastasis, chemoresistance and tumour relapse. Despite this, the mechanism by which BCSCs withstand genotoxic stress is largely unknown. Here, we uncover a pivotal role for the arginine methyltransferase PRMT5 in mediating BCSC chemoresistance by modulation of DNA repair efficiency. Notably, PRMT5 inhibitors synergise with cisplatin and radiotherapy, inducing defective DNA repair thereby potentiating BCSC apoptosis. more...
+Organism:	Homo sapiens
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL18573 16 Samples
+FTP download: GEO (CSV, XLSX) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE261nnn/GSE261017/
+Series		Accession: GSE261017	ID: 200261017

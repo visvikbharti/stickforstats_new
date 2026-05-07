@@ -1,0 +1,8 @@
+
+1. GATA6 is a Novel Regulator of Gene Expression and 3D Genome in Colorectal Cancer (RNA-Seq)
+(Submitter supplied) Colorectal cancer (CRC) is one of the most lethal and prevalent malignancies with elusive molecular causes. While the abnormal activity of transcription factors has been reported as a vital component of cancer progression, the mechanism through which they function remains unclear. Here, through the analysis of primary human CRC tissue data, we identified GATA6 as a CRC specific regulator, whose expression upregulation is potentially associated with promoter hypomethylation. more...
+Organism:	Homo sapiens; Mus musculus
+Type:		Expression profiling by high throughput sequencing
+Platforms: GPL24676 GPL24247 28 Samples
+FTP download: GEO (TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE266nnn/GSE266748/
+Series		Accession: GSE266748	ID: 200266748
