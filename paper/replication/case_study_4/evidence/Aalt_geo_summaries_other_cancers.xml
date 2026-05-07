@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN" "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
+<eSummaryResult>
+<DocSum>
+	<Id>200242505</Id>
+	<Item Name="Accession" Type="String">GSE242505</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Epigenetic modifiers MMSET and EZH2 physically interact and cooperate to support Multiple Myeloma pathophysiology</Item>
+	<Item Name="summary" Type="String">This SuperSeries is composed of the SubSeries listed below.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">242505</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing; Genome binding/occupancy profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/08/09</Item>
+	<Item Name="suppFile" Type="String">BW, NARROWPEAK</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764657</Item>
+			<Item Name="Title" Type="String">CRISPR2_Input_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764654</Item>
+			<Item Name="Title" Type="String">XG7_R2_Input_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763678</Item>
+			<Item Name="Title" Type="String">CRISPR-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764651</Item>
+			<Item Name="Title" Type="String">XG7_R1_Input_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764645</Item>
+			<Item Name="Title" Type="String">CRISPR1_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764649</Item>
+			<Item Name="Title" Type="String">CRISPR1_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764648</Item>
+			<Item Name="Title" Type="String">XG7_R2_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763676</Item>
+			<Item Name="Title" Type="String">XG7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764652</Item>
+			<Item Name="Title" Type="String">XG7_R2_Input_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764643</Item>
+			<Item Name="Title" Type="String">XG7_R1_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764646</Item>
+			<Item Name="Title" Type="String">CRISPR2_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764644</Item>
+			<Item Name="Title" Type="String">XG7_R2_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764647</Item>
+			<Item Name="Title" Type="String">XG7_R1_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764658</Item>
+			<Item Name="Title" Type="String">CRISPR2_Input_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764650</Item>
+			<Item Name="Title" Type="String">CRISPR2_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764655</Item>
+			<Item Name="Title" Type="String">CRISPR1_Input_H3K27me3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764653</Item>
+			<Item Name="Title" Type="String">XG7_R1_Input_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7764656</Item>
+			<Item Name="Title" Type="String">CRISPR1_Input_EZH2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763677</Item>
+			<Item Name="Title" Type="String">CRISPR-1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">19</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE242nnn/GSE242505/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200242451</Id>
+	<Item Name="Accession" Type="String">GSE242451</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Epigenetic modifiers MMSET and EZH2 physically interact and cooperate to support Multiple Myeloma pathophysiology [RNA-seq]</Item>
+	<Item Name="summary" Type="String">Multiple myeloma (MM) is a malignant B cell dyscrasia characterized by the accumulation of clonal plasma cells (PC) within the bone marrow. Epigenetic factors are involved in MM initiation, progression, and occurrence of chemoresistance. Among them EZH2, the Polycomb Repressive Complex 2 (PRC2) catalytic subunit and NSD2 (MMSET), the target oncogene of t(4;14) primary translocation, are both associated with poor prognosis values and contribute to MM disease. In this study, we identified a physical interaction between EZH2 and MMSET in MM. We used MMSET-depleted MM cells and MAK-683, an allosteric inhibitor of EZH2, to disrupt this interaction and understand its implication in MM biology and resistance to anti-MM drugs. Through its interaction with EZH2, MMSET regulates PRC2 nuclear localization in MM cells, promotes a particularly poor prognosis in MM patients, and modulates the expression of tumor-suppressor genes involved in p53 pathway. We also demonstrated that MAK-683 can interfere with this interaction and synergizes with conventional drugs used in MM treatment: Melphalan, an alkylating agent triggering DNA Damage Response (DDR); and Panobinostat, a Histone De-Acetylase (HDAC) inhibitor directedly regulating p53 acetylation and stability.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">242451</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/08/09</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763676</Item>
+			<Item Name="Title" Type="String">XG7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763677</Item>
+			<Item Name="Title" Type="String">CRISPR-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM7763678</Item>
+			<Item Name="Title" Type="String">CRISPR-2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">3</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE242nnn/GSE242451/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200144983</Id>
+	<Item Name="Accession" Type="String">GSE144983</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Male-specific lymphomagenesis by serial inverse dysregulation of the RNA helicases DDX3X and DDX3Y [Cell Line Clones]</Item>
+	<Item Name="summary" Type="String">DDX3X is a ubiquitously expressed RNA helicase involved in multiple stages of RNA biogenesis. DDX3X is frequently mutated in Burkitt lymphoma but the functional basis for this is unknown. Here, we show that loss-of-function DDX3X mutations are also commonly found in MYC-translocated diffuse large B cell lymphoma and reveal functional co-operation between mutant DDX3X and MYC. We show that DDX3X promotes translation of mRNAs encoding components of the core translational machinery, thereby driving global protein synthesis. Loss-of-function DDX3X mutations moderate MYC-driven global protein synthesis, thereby buffering MYC-induced proteotoxic stress during early lymphomagenesis. Established lymphoma cells subsequently restore full protein synthetic capacity by ectopic expression of DDX3Y, a Y-chromosome homologue that is normally expressed exclusively in testis. These findings highlight the vulnerability of MYC-driven lymphoma to proteotoxic stress and identify an unexpected male-specific mechanism of carcinogenesis, namely the commandeering of a testis-specific Y-chromosome gene to drive full malignant transformation.</Item>
+	<Item Name="GPL" Type="String">20301</Item>
+	<Item Name="GSE" Type="String">144983</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2021/09/01</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303431</Item>
+			<Item Name="Title" Type="String">RNA_U2392_R475C_rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303428</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303425</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303432</Item>
+			<Item Name="Title" Type="String">RNA_U2392_R475C_rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303429</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303426</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303430</Item>
+			<Item Name="Title" Type="String">RNA_U2392_R475C_rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303433</Item>
+			<Item Name="Title" Type="String">RNA_U2392_R475C_rep4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303427</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4303424</Item>
+			<Item Name="Title" Type="String">RNA_U2392_wt_rep1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP247770</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP247/SRP247770/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">10</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">34437837</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE144nnn/GSE144983/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200121103</Id>
+	<Item Name="Accession" Type="String">GSE121103</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Epigenomic and transcriptomic analyses of epithelial ovarian cancer</Item>
+	<Item Name="summary" Type="String">Profiling of active chromatin and gene expression in primary ovarian cancer specimens</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">121103</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing; Genome binding/occupancy profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2020/03/10</Item>
+	<Item Name="suppFile" Type="String">NARROWPEAK, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426205</Item>
+			<Item Name="Title" Type="String">MOC-3_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426168</Item>
+			<Item Name="Title" Type="String">MOC-5_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426162</Item>
+			<Item Name="Title" Type="String">HGSOC-4_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426188</Item>
+			<Item Name="Title" Type="String">MOC-5_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426185</Item>
+			<Item Name="Title" Type="String">MOC-2_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426151</Item>
+			<Item Name="Title" Type="String">CCOC-3_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426165</Item>
+			<Item Name="Title" Type="String">MOC-2_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426171</Item>
+			<Item Name="Title" Type="String">CCOC-3_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426197</Item>
+			<Item Name="Title" Type="String">EnOC-5_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426174</Item>
+			<Item Name="Title" Type="String">EnOC-1_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426154</Item>
+			<Item Name="Title" Type="String">EnOC-1_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426191</Item>
+			<Item Name="Title" Type="String">CCOC-3_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426194</Item>
+			<Item Name="Title" Type="String">EnOC-1_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426190</Item>
+			<Item Name="Title" Type="String">CCOC-2_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426170</Item>
+			<Item Name="Title" Type="String">CCOC-2_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426173</Item>
+			<Item Name="Title" Type="String">CCOC-5_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426150</Item>
+			<Item Name="Title" Type="String">CCOC-2_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426167</Item>
+			<Item Name="Title" Type="String">MOC-4_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426193</Item>
+			<Item Name="Title" Type="String">CCOC-5_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426153</Item>
+			<Item Name="Title" Type="String">CCOC-5_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426196</Item>
+			<Item Name="Title" Type="String">EnOC-4_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426199</Item>
+			<Item Name="Title" Type="String">HGSOC-2_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426176</Item>
+			<Item Name="Title" Type="String">EnOC-3_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426202</Item>
+			<Item Name="Title" Type="String">HGSOC-5_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426158</Item>
+			<Item Name="Title" Type="String">EnOC-5_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426179</Item>
+			<Item Name="Title" Type="String">HGSOC-1_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426159</Item>
+			<Item Name="Title" Type="String">HGSOC-1_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426155</Item>
+			<Item Name="Title" Type="String">EnOC-2_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426182</Item>
+			<Item Name="Title" Type="String">HGSOC-4_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426156</Item>
+			<Item Name="Title" Type="String">EnOC-3_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426187</Item>
+			<Item Name="Title" Type="String">MOC-4_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426195</Item>
+			<Item Name="Title" Type="String">EnOC-2_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426161</Item>
+			<Item Name="Title" Type="String">HGSOC-3_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426164</Item>
+			<Item Name="Title" Type="String">MOC-1_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426178</Item>
+			<Item Name="Title" Type="String">EnOC-5_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426198</Item>
+			<Item Name="Title" Type="String">HGSOC-1_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426172</Item>
+			<Item Name="Title" Type="String">CCOC-4_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426160</Item>
+			<Item Name="Title" Type="String">HGSOC-2_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426152</Item>
+			<Item Name="Title" Type="String">CCOC-4_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426177</Item>
+			<Item Name="Title" Type="String">EnOC-4_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426180</Item>
+			<Item Name="Title" Type="String">HGSOC-2_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426183</Item>
+			<Item Name="Title" Type="String">HGSOC-5_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426157</Item>
+			<Item Name="Title" Type="String">EnOC-4_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426200</Item>
+			<Item Name="Title" Type="String">HGSOC-3_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426175</Item>
+			<Item Name="Title" Type="String">EnOC-2_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426203</Item>
+			<Item Name="Title" Type="String">MOC-1_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426186</Item>
+			<Item Name="Title" Type="String">MOC-3_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426206</Item>
+			<Item Name="Title" Type="String">MOC-4_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426181</Item>
+			<Item Name="Title" Type="String">HGSOC-3_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426201</Item>
+			<Item Name="Title" Type="String">HGSOC-4_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426207</Item>
+			<Item Name="Title" Type="String">MOC-5_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426189</Item>
+			<Item Name="Title" Type="String">CCOC-1_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426192</Item>
+			<Item Name="Title" Type="String">CCOC-4_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426204</Item>
+			<Item Name="Title" Type="String">MOC-2_RNA-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426184</Item>
+			<Item Name="Title" Type="String">MOC-1_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426163</Item>
+			<Item Name="Title" Type="String">HGSOC-5_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426169</Item>
+			<Item Name="Title" Type="String">CCOC-1_Input_DNA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426149</Item>
+			<Item Name="Title" Type="String">CCOC-1_H3K27ac_ChIP-seq</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3426166</Item>
+			<Item Name="Title" Type="String">MOC-3_H3K27ac_ChIP-seq</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP165197</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP165/SRP165197/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">59</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">31307004</Item>
+		<Item Name="int" Type="Integer">32332753</Item>
+		<Item Name="int" Type="Integer">34965383</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE121nnn/GSE121103/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+</eSummaryResult>

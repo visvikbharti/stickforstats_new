@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN" "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
+<eSearchResult><Count>23</Count><RetMax>23</RetMax><RetStart>0</RetStart><IdList>
+<Id>200259306</Id>
+<Id>200235863</Id>
+<Id>200186732</Id>
+<Id>200180480</Id>
+<Id>200233517</Id>
+<Id>200214789</Id>
+<Id>200221532</Id>
+<Id>200135631</Id>
+<Id>200212854</Id>
+<Id>200173661</Id>
+<Id>200139688</Id>
+<Id>200184869</Id>
+<Id>200165814</Id>
+<Id>200144975</Id>
+<Id>200144972</Id>
+<Id>200138734</Id>
+<Id>200168888</Id>
+<Id>200164598</Id>
+<Id>200124715</Id>
+<Id>200153509</Id>
+<Id>200135164</Id>
+<Id>200121842</Id>
+<Id>200140228</Id>
+</IdList><TranslationSet/><TranslationStack>   <TermSet>    <Term>"expression profiling by high throughput sequencing"[GTYP]</Term>    <Field>GTYP</Field>    <Count>135923</Count>    <Explode>N</Explode>   </TermSet>   <TermSet>    <Term>"Homo sapiens"[ORGN]</Term>    <Field>ORGN</Field>    <Count>4581743</Count>    <Explode>Y</Explode>   </TermSet>   <OP>AND</OP>   <TermSet>    <Term>"2019/01/01"[PDAT]</Term>    <Field>PDAT</Field>    <Count>0</Count>    <Explode>N</Explode>   </TermSet>   <TermSet>    <Term>"2024/12/31"[PDAT]</Term>    <Field>PDAT</Field>    <Count>0</Count>    <Explode>N</Explode>   </TermSet>   <OP>RANGE</OP>   <OP>GROUP</OP>   <OP>AND</OP>   <TermSet>    <Term>"gse"[ETYP]</Term>    <Field>ETYP</Field>    <Count>283471</Count>    <Explode>N</Explode>   </TermSet>   <OP>AND</OP>   <TermSet>    <Term>"breast cancer"[All Fields]</Term>    <Field>All Fields</Field>    <Count>147857</Count>    <Explode>N</Explode>   </TermSet>   <TermSet>    <Term>"lung cancer"[All Fields]</Term>    <Field>All Fields</Field>    <Count>47601</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <TermSet>    <Term>"colorectal"[All Fields]</Term>    <Field>All Fields</Field>    <Count>80389</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <TermSet>    <Term>"hepatocellular"[All Fields]</Term>    <Field>All Fields</Field>    <Count>40548</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <TermSet>    <Term>"gastric cancer"[All Fields]</Term>    <Field>All Fields</Field>    <Count>15965</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <OP>GROUP</OP>   <OP>AND</OP>   <TermSet>    <Term>"paired"[All Fields]</Term>    <Field>All Fields</Field>    <Count>55920</Count>    <Explode>N</Explode>   </TermSet>   <TermSet>    <Term>"tumor adjacent"[All Fields]</Term>    <Field>All Fields</Field>    <Count>2832</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <TermSet>    <Term>"matched"[All Fields]</Term>    <Field>All Fields</Field>    <Count>74853</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <OP>GROUP</OP>   <OP>AND</OP>   <TermSet>    <Term>counts[All Fields]</Term>    <Field>All Fields</Field>    <Count>316696</Count>    <Explode>N</Explode>   </TermSet>   <TermSet>    <Term>DESeq[All Fields]</Term>    <Field>All Fields</Field>    <Count>6158</Count>    <Explode>N</Explode>   </TermSet>   <OP>OR</OP>   <OP>GROUP</OP>   <OP>AND</OP>  </TranslationStack><QueryTranslation>"expression profiling by high throughput sequencing"[GTYP] AND "Homo sapiens"[ORGN] AND ("2019/01/01"[PDAT] : "2024/12/31"[PDAT]) AND "gse"[ETYP] AND ("breast cancer"[All Fields] OR "lung cancer"[All Fields] OR "colorectal"[All Fields] OR "hepatocellular"[All Fields] OR "gastric cancer"[All Fields]) AND ("paired"[All Fields] OR "tumor adjacent"[All Fields] OR "matched"[All Fields]) AND (counts[All Fields] OR DESeq[All Fields])</QueryTranslation></eSearchResult>

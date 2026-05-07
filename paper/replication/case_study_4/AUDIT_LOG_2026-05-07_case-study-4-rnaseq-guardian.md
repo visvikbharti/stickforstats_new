@@ -278,3 +278,112 @@ before the regex fix that the agent had not edited consistently. No
 fabrication; only a half-completed retraction. The cleanup brings
 all Phase-A documents into agreement with the verified count of 24
 samples (12 OB + 12 NW).
+
+---
+
+### 2026-05-07T13:55  —  Phase A-bis (alternative scout), Summary
+
+**Claim:** A second dataset-scouting subagent (Phase A-bis) was spawned
+to find an alternative GEO dataset with stricter selection criteria
+(n≥20 per group, total ≤100, cancer-vs-normal or central comp-bio,
+2019+) so the PI can compare and pick. The chosen alternative is
+GSE271517 (synovial sarcoma, n=46 SSX1 + n=44 SSX2 fusion variants =
+90 samples, DESeq2 used in original Adv Sci 2024 paper).
+
+**Verification method:**
+
+1. Live esearch queries against `db=gds` with cancer/tumor filters,
+   2019-2024, sort=relevance, retmax up to 300. Saved at
+   `evidence/Aalt_geo_search_*.xml` (5 fresh queries):
+   - `Aalt_geo_search_cancer_relevance.xml` — broad cancer/tumor 2019-2026
+   - `Aalt_geo_search_cancer_2019_2024.xml` — same but 2019-2024
+   - `Aalt_geo_search_tumor_normal.xml` — tumor-vs-normal phrase filter
+   - `Aalt_geo_search_rawcounts.xml` — "raw counts" phrase filter
+   - `Aalt_geo_search_deseq2.xml` — DESeq2/edgeR/limma-voom filter
+   - `Aalt_geo_search_counts_supp.xml` — counts/raw_counts/count_matrix
+   - `Aalt_geo_search_specific_cancers.xml` — breast/lung/CRC/HCC/gastric paired
+   - `Aalt_geo_search_paired_cancer.xml` — paired/matched normal phrase
+   - `Aalt_geo_search_other_cancers.xml` — AML/leukemia/lymphoma/glioma/prostate/ovarian
+   - `Aalt_geo_search_neurodeg2.xml` — Alzheimer/Parkinson/ALS
+   - `Aalt_geo_search_breast.xml` — breast cancer specific
+   - `Aalt_geo_search_normaltest.xml` — t-test/ANOVA/Pearson (bonus criterion)
+   - `Aalt_geo_search_autoimm.xml` — autoimmune diseases
+
+2. Live esummary on candidate IDs returned by each search, parsed via
+   custom Python script (`/tmp/parse_aalt_summaries_v2.py`) to filter
+   candidates with n_samples ∈ [40, 100] AND PMID present AND
+   gdsType containing "expression profiling by high throughput
+   sequencing". Saved esummary outputs as `Aalt_geo_summaries_*.xml`.
+
+3. For top-15+ shortlisted candidates, fetched the GEO Series brief
+   record via `acc.cgi?acc=GSE...&form=text&view=brief` and the full
+   sample metadata via `acc.cgi?acc=GSE...&targ=gsm&form=text&view=brief`.
+   Saved as `evidence/Aalt_candidate_GSE..._{brief,samples}.txt`.
+
+4. For 4 top candidates (GSE271517, GSE268175, GSE266132, GSE233262),
+   fetched the linked PubMed record via efetch, then PMC full-text
+   via efetch (saved as `evidence/Aalt_candidate_*_{pubmed.xml,fulltext.xml}`).
+   Read Methods section for each, identified the differential
+   expression test, and computed group sizes from sample blocks.
+
+5. Picked GSE271517 — meets all 8 selection criteria. Note: the SSX1
+   vs SSX2 comparison is NOT the original paper's primary analysis
+   (paper does 3-subtype NMF clustering), but the same paper used
+   DESeq2 on the same raw counts, so the pipeline is replicable.
+
+**Evidence:**
+- `evidence/Aalt_verdict_A1.md` — GEO record verification (91 samples,
+  46 SSX1 + 44 SSX2 + 1 SSX4)
+- `evidence/Aalt_verdict_A2.md` — PubMed record verification (PMID
+  39257029, Adv Sci 2024 11(41):e2404510, DOI 10.1002/advs.202404510)
+- `evidence/Aalt_verdict_A3.md` — PMC11892499 open-access, 267 KB
+  full text accessible via eutils efetch
+- `evidence/Aalt_verdict_A4.md` — Methods quote: DESeq2 on raw counts
+  (nf-core RNAseq pipeline v1.0 → STAR → featureCounts → DESeq2);
+  bonus criterion (paper's downstream gene-level comparisons use
+  t-test/Mann-Whitney without per-variable normality testing in §Statistics)
+
+**Verdict:** PASS for Phase A-bis. PI compares with Phase A (GSE219027)
+and decides which to take to Phase B.
+
+**Comparison statement (Phase A vs Phase A-bis):**
+
+| Criterion | GSE219027 (Phase A) | GSE271517 (Phase A-bis) |
+|---|---|---|
+| Topic | Osteoarthritis fibroblasts (obese vs normal-weight) | Synovial sarcoma (SSX1 vs SSX2 fusion) |
+| Comp-bio centrality | Inflammation/immunology — peripheral | Cancer (sarcoma) — more central for PLOS Comp Bio |
+| Sample size | n=24 (12+12) | n=90 (46+44, excluding 1 SSX4) |
+| n per group | 12 | 46 / 44 |
+| Statistical power | Borderline | Strong |
+| Original paper | Wijesinghe 2023, Clin Transl Med (PMC10068310) | Chen 2024, Adv Sci (PMC11892499) |
+| Paper's DEG method | DESeq2 with VST | DESeq2 with raw counts (same engine) |
+| Paper's published headline DEGs | 416 DEGs, named genes (MMP9, S100A8, TYROBP, ARG2, IKBKE, PALB2, UQCC3, COL4*) | NMF subtype-vs-subtype DEGs (not SSX1 vs SSX2 specifically) |
+| Phase C (reproducibility) ease | High (8+ named genes to validate against) | Medium (must reproduce a different comparison than Guardian's headline) |
+| Bonus criterion (normality-assuming test) | No (paper uses DESeq2 only) | Partial (paper's downstream gene-level comparisons use unpaired Student's t-test in §Statistics, defaulting to t-test for "normally distributed" without per-variable testing) |
+| Discrepancy risk | None | Moderate (must explain SSX1-vs-SSX2 is not paper's primary comparison) |
+
+**Verdict:** GSE271517 is BETTER than GSE219027 for the n-per-group and
+comp-bio-centrality criteria, but is WORSE for direct C1 reproducibility
+because the SSX1 vs SSX2 comparison is not the paper's headline
+analysis. The bonus criterion is partially met: §Statistics defaults to
+t-test for two-group continuous comparisons.
+
+**Recommendation to PI:**
+- If Phase C reproducibility (top-hit cross-check) is the priority
+  → keep GSE219027 (Phase A choice)
+- If statistical power for Guardian's per-gene Shapiro-Wilk is the
+  priority → switch to GSE271517 (Phase A-bis choice)
+- If the bonus criterion is paramount and you want a paper that
+  defaults to t-test for downstream comparisons → GSE271517
+
+**Time spent (Phase A-bis):** ~3 hours (within plan budget).
+**API calls made (Phase A-bis):** ~50 (13 esearch, 14 esummary
+batches, ~30 acc.cgi fetches, 4 efetch on PubMed, 4 efetch on PMC).
+**Candidates evaluated (Phase A-bis):** 30+ datasets across 13 distinct
+GEO search strategies.
+**Candidates passing all criteria (Phase A-bis):** 1 (GSE271517);
+several near-passes (GSE268175 had paper-vs-GEO discrepancy on n,
+GSE140343 had only FPKM not raw counts, GSE254331 had only .bw not
+counts, GSE266132 had timepoint/donor confound).
+
+---

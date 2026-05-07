@@ -1,0 +1,2858 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN" "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
+<eSummaryResult>
+<DocSum>
+	<Id>200284426</Id>
+	<Item Name="Accession" Type="String">GSE284426</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Chemokine positioning determines specialized roles during transdendothelial trafficking of human Th cells with pathogenic features</Item>
+	<Item Name="summary" Type="String">Human Th17/type 17 cells uniformly express the chemokine receptor CCR6. However, the heterogeneity of this cell population and the precise functional role of CCR6 and other chemokine receptors in human Th17 cell extravasation have not been fully delineated. Here we show that CD4+CCR6+ cells co-expressing CCR2 have a pathogenic Th17 signature in the blood, can produce inflammatory cytokines without TCR activation, and show enhanced expression of pathogenicity- and activation-associated genes in the cerebrospinal fluid of patients with multiple sclerosis as compared to control subjects. In flow chambers with activated endothelial cell (EC) monolayers, CD4+CCR6+CCR2+ cells were highly efficient at transendothelial migration (TEM). Ligands for CCR5, CCR6 and CXCR3 localized to EC surfaces and mediated only arrest, whereas CCR2 ligands, although secreted by ECs, failed to bind to ECs and mediated only TEM. Conversely, expressing a chimeric CCR2 ligand engineered to bind glycosaminoglycans on ECs resulted in CCR2-mediated arrest but blocked TEM. Our data suggest T cell arrest requires chemokine bound to EC surfaces, whereas TEM requires a transendothelial chemokine gradient. We show that for human pathogenic-like type 17 T cells, these requirements are met in this system by using separate chemokine/chemokine receptor groups subspecialized to mediate arrest versus TEM.</Item>
+	<Item Name="GPL" Type="String">18573;30173</Item>
+	<Item Name="GSE" Type="String">284426</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/12/17</Item>
+	<Item Name="suppFile" Type="String">H5, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706090</Item>
+			<Item Name="Title" Type="String">Memory D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706093</Item>
+			<Item Name="Title" Type="String">CCR6highCCR2pos CD4 T cells D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683995</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6low, NS, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683992</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6highCCR2Positive, ST, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683989</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6 negative, ST, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8684001</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6high, ST, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683998</Item>
+			<Item Name="Title" Type="String">CD4 T cells Naïve, ST, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683997</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6highCCR2Positive, NS, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683994</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6 negative, NS, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8684000</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6low, ST, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706095</Item>
+			<Item Name="Title" Type="String">CCR6highCCR2pos CD4 T cells D3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683985</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6low, NS, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683986</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6high, NS, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683983</Item>
+			<Item Name="Title" Type="String">CD4 T cells Naïve, NS, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683988</Item>
+			<Item Name="Title" Type="String">CD4 T cells Naïve, ST, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706092</Item>
+			<Item Name="Title" Type="String">Memory D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683991</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6high, ST, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8684002</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6highCCR2Positive, ST, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683987</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6highCCR2Positive, NS, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706091</Item>
+			<Item Name="Title" Type="String">CCR6highCCR2pos CD4 T cells D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683984</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6 negative, NS, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683999</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6 negative, ST, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8706094</Item>
+			<Item Name="Title" Type="String">Memory D3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683990</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6low, ST, D1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683996</Item>
+			<Item Name="Title" Type="String">CD4 T cells CCR6high, NS, D2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8683993</Item>
+			<Item Name="Title" Type="String">CD4 T cells Naïve, NS, D2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">26</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">40000641</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE284nnn/GSE284426/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200266132</Id>
+	<Item Name="Accession" Type="String">GSE266132</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Impact of the Multiple Sclerosis associated genetic variant CD226 Gly307Ser on human CD8 T cell functions</Item>
+	<Item Name="summary" Type="String">Background and Objectives: The rs763361 non-synonymous (Gly307Ser) variant in the CD226 gene has been identified as a risk factor for several immune-mediated diseases, including multiple sclerosis (MS). Compelling evidence suggests that this allele may be one of the genetic driving forces contributing to suceptibility to MS by decreasing the immune-regulatory capacity of Treg cells and increasing the pro-inflammatory potential of CD4 T cells. However, the impact of this CD gene variant on CD8 T cell functions, a population that also plays a key role in MS, remain T to be determined. Methods: In order to study whether the CD226 risk variant affects human CD8 T cells functions, we used CD8 T cells isolated from PBMC of 16-age matched healthy donors homozygous for either the protective or risk allele of CD226. We characterized these CD8 T cells upon TCR stimulation using high-parametric flow cytometry, bulk RNAseq, and through characterization of canonical signaling pathways and cytokine production. Results: Upon TCR engagment, the phenotype of ex vivo CD8 T cells bearing the protective (CD226-307Gly) or the risk (CD226-307Ser) allele of CD226 was largely overlapping. However, transcriptomic signature of CD8 T cells from the donor carrying the risk allele presented an enrichment in TCR, JAK/STAT and INFg signaling.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">266132</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/09/13</Item>
+	<Item Name="suppFile" Type="String">RDS, TSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241258</Item>
+			<Item Name="Title" Type="String">360.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241278</Item>
+			<Item Name="Title" Type="String">360.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241241</Item>
+			<Item Name="Title" Type="String">161.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241261</Item>
+			<Item Name="Title" Type="String">161.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241215</Item>
+			<Item Name="Title" Type="String">332.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241235</Item>
+			<Item Name="Title" Type="String">332.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241255</Item>
+			<Item Name="Title" Type="String">332.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241275</Item>
+			<Item Name="Title" Type="String">332.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241218</Item>
+			<Item Name="Title" Type="String">360.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241238</Item>
+			<Item Name="Title" Type="String">360.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241204</Item>
+			<Item Name="Title" Type="String">230.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241221</Item>
+			<Item Name="Title" Type="String">161.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241224</Item>
+			<Item Name="Title" Type="String">230.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241267</Item>
+			<Item Name="Title" Type="String">320.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241207</Item>
+			<Item Name="Title" Type="String">320.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241227</Item>
+			<Item Name="Title" Type="String">320.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241201</Item>
+			<Item Name="Title" Type="String">161.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241244</Item>
+			<Item Name="Title" Type="String">230.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241230</Item>
+			<Item Name="Title" Type="String">110.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241213</Item>
+			<Item Name="Title" Type="String">295.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241264</Item>
+			<Item Name="Title" Type="String">230.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241247</Item>
+			<Item Name="Title" Type="String">320.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241233</Item>
+			<Item Name="Title" Type="String">295.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241276</Item>
+			<Item Name="Title" Type="String">350.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241250</Item>
+			<Item Name="Title" Type="String">110.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241210</Item>
+			<Item Name="Title" Type="String">110.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241256</Item>
+			<Item Name="Title" Type="String">350.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241239</Item>
+			<Item Name="Title" Type="String">91.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241270</Item>
+			<Item Name="Title" Type="String">110.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241253</Item>
+			<Item Name="Title" Type="String">295.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241259</Item>
+			<Item Name="Title" Type="String">91.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241242</Item>
+			<Item Name="Title" Type="String">167.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241273</Item>
+			<Item Name="Title" Type="String">295.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241216</Item>
+			<Item Name="Title" Type="String">350.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241262</Item>
+			<Item Name="Title" Type="String">167.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241236</Item>
+			<Item Name="Title" Type="String">350.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241202</Item>
+			<Item Name="Title" Type="String">167.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241222</Item>
+			<Item Name="Title" Type="String">167.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241268</Item>
+			<Item Name="Title" Type="String">322.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241271</Item>
+			<Item Name="Title" Type="String">181.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241245</Item>
+			<Item Name="Title" Type="String">232.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241265</Item>
+			<Item Name="Title" Type="String">232.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241219</Item>
+			<Item Name="Title" Type="String">91.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241211</Item>
+			<Item Name="Title" Type="String">181.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241199</Item>
+			<Item Name="Title" Type="String">91.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241248</Item>
+			<Item Name="Title" Type="String">322.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241214</Item>
+			<Item Name="Title" Type="String">315.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241251</Item>
+			<Item Name="Title" Type="String">181.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241217</Item>
+			<Item Name="Title" Type="String">359.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241274</Item>
+			<Item Name="Title" Type="String">315.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241225</Item>
+			<Item Name="Title" Type="String">232.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241205</Item>
+			<Item Name="Title" Type="String">232.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241240</Item>
+			<Item Name="Title" Type="String">144,WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241223</Item>
+			<Item Name="Title" Type="String">223.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241208</Item>
+			<Item Name="Title" Type="String">322.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241243</Item>
+			<Item Name="Title" Type="String">223.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241228</Item>
+			<Item Name="Title" Type="String">322.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241277</Item>
+			<Item Name="Title" Type="String">359.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241200</Item>
+			<Item Name="Title" Type="String">144,WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241246</Item>
+			<Item Name="Title" Type="String">316.WT.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241220</Item>
+			<Item Name="Title" Type="String">144,WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241231</Item>
+			<Item Name="Title" Type="String">181.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241249</Item>
+			<Item Name="Title" Type="String">101.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241269</Item>
+			<Item Name="Title" Type="String">101.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241234</Item>
+			<Item Name="Title" Type="String">315.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241254</Item>
+			<Item Name="Title" Type="String">315.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241252</Item>
+			<Item Name="Title" Type="String">246.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241226</Item>
+			<Item Name="Title" Type="String">316.WT.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241272</Item>
+			<Item Name="Title" Type="String">246.SNP.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241237</Item>
+			<Item Name="Title" Type="String">359.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241257</Item>
+			<Item Name="Title" Type="String">359.SNP.12h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241229</Item>
+			<Item Name="Title" Type="String">101.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241203</Item>
+			<Item Name="Title" Type="String">223.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241260</Item>
+			<Item Name="Title" Type="String">144,WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241263</Item>
+			<Item Name="Title" Type="String">223.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241212</Item>
+			<Item Name="Title" Type="String">246.SNP.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241232</Item>
+			<Item Name="Title" Type="String">246.SNP.4h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241266</Item>
+			<Item Name="Title" Type="String">316.WT.24h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241206</Item>
+			<Item Name="Title" Type="String">316.WT.0h</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8241209</Item>
+			<Item Name="Title" Type="String">101.SNP.0h</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">80</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">39231385</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE266nnn/GSE266132/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200256003</Id>
+	<Item Name="Accession" Type="String">GSE256003</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">An endogenous retrovirus regulates tumor-specific expression of the immune transcriptional regulator SP140 [RNA-seq]</Item>
+	<Item Name="summary" Type="String">Speckled Protein 140 (SP140) is a chromatin reader with critical roles regulating immune cell transcriptional programs, and SP140 splice variants are associated with immune diseases including Crohn’s disease, multiple sclerosis, and chronic lymphocytic leukemia. SP140 expression is currently thought to be restricted to immune cells. However, by analyzing human transcriptomic datasets from a wide range of normal and cancer cell types, we found recurrent cancer-specific expression of SP140, driven by an alternative intronic promoter derived from an intronic endogenous retrovirus (ERV). The ERV belongs to the primate-specific LTR8B family. The ERV drives expression of multiple cancer-specific isoforms, including a nearly full-length isoform that retains all the functional domains of the full-length canonical isoform and is also localized within the nucleus, consistent with a role in chromatin regulation. In a fibrosarcoma cell line, silencing the cancer-specific ERV promoter of SP140 resulted in increased sensitivity to interferon-mediated cytotoxicity and dysregulation of multiple genes. Our findings implicate aberrant ERV-mediated SP140 expression as a novel mechanism contributing to immune gene dysregulation in a wide range of cancer cells.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">256003</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2024/02/20</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084056</Item>
+			<Item Name="Title" Type="String">Untreated rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084059</Item>
+			<Item Name="Title" Type="String">SP140 KD untreated rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084062</Item>
+			<Item Name="Title" Type="String">SP140 KD untreated rep4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084065</Item>
+			<Item Name="Title" Type="String">SP140 KD IFNB rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084064</Item>
+			<Item Name="Title" Type="String">SP140 KD IFNB rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084061</Item>
+			<Item Name="Title" Type="String">SP140 KD untreated rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084055</Item>
+			<Item Name="Title" Type="String">Untreated rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084058</Item>
+			<Item Name="Title" Type="String">IFNB rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084066</Item>
+			<Item Name="Title" Type="String">SP140 KD IFNB rep4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084057</Item>
+			<Item Name="Title" Type="String">IFNB rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084063</Item>
+			<Item Name="Title" Type="String">SP140 KD IFNB rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM8084060</Item>
+			<Item Name="Title" Type="String">SP140 KD untreated rep2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">12</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">38751339</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE256nnn/GSE256003/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200222117</Id>
+	<Item Name="Accession" Type="String">GSE222117</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Emerging Aeromonas enteric infections: their association with inflammatory bowel disease and novel pathogenic mechanisms</Item>
+	<Item Name="summary" Type="String">The intestinal epithelial gene responses to Aeromonas veronii infection and the pathogenic mechanisms were investigated by comparative differential expression analysis</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">222117</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2023/07/28</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915102</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for A. veronii treated cells rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915099</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with A. veronii rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915105</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with E. coli rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915108</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for E. coli treated cells rep2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915104</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with E. coli rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915107</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for E. coli treated cells rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915109</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for E. coli treated cells rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915106</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with E. coli rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915103</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for A. veronii treated cells rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915101</Item>
+			<Item Name="Title" Type="String">HT-29 cells without treatment, control for A. veronii treated cells rep1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915100</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with A. veronii rep3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM6915098</Item>
+			<Item Name="Title" Type="String">HT-29 cells treated with A. veronii rep1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">12</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">37732778</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE222nnn/GSE222117/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200188827</Id>
+	<Item Name="Accession" Type="String">GSE188827</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Spatial Environment Affects HNF4A Mutation-Specific Proteome Signatures and Cellular Morphology in hiPSC-Derived β-Like Cells</Item>
+	<Item Name="summary" Type="String">Studies of monogenic diabetes are particularly useful as we can gain insight into the molecular events of pancreatic β-cell failure. Maturity-onset diabetes of the young 1 (MODY1) is a monogenic diabetes form, caused by a mutation in the HNF4A gene. Human induced pluripotent stem cells (hiPSC) provide an excellent tool for disease modelling by subsequent directed differentiation toward desired pancreatic islet cells, but cellular phenotypes in terminally differentiated cells are notoriously difficult to detect. Re-creating a spatial (3D) environment may facilitate phenotype detection. In this study, we studied MODY1 using hiPSC-derived pancreatic β-like patient and isogenic control cell lines in two different 3D contexts. Using size-adjusted cell aggregates and alginate capsules we showed that the 3D context was critical to facilitate the detection of mutation-specific phenotypes. In 3D cell aggregates we identified irregular cell clusters and lower levels of structural proteins by proteome analysis, whereas in 3D alginate capsules we identified altered levels of glycolytic proteins in the glucose sensing apparatus by proteome analysis. Our study provides novel knowledge on normal and abnormal function of HNF4A paving the way for translational studies of new drug targets that can be used in precision diabetes medicine of MODY.</Item>
+	<Item Name="GPL" Type="String">18573</Item>
+	<Item Name="GSE" Type="String">188827</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2022/04/04</Item>
+	<Item Name="suppFile" Type="String">CSV</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690768</Item>
+			<Item Name="Title" Type="String">6F_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690751</Item>
+			<Item Name="Title" Type="String">6D_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690771</Item>
+			<Item Name="Title" Type="String">D13_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690760</Item>
+			<Item Name="Title" Type="String">D13_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690777</Item>
+			<Item Name="Title" Type="String">E87_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690754</Item>
+			<Item Name="Title" Type="String">D94_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690757</Item>
+			<Item Name="Title" Type="String">6A_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690750</Item>
+			<Item Name="Title" Type="String">6A_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690774</Item>
+			<Item Name="Title" Type="String">D94_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690753</Item>
+			<Item Name="Title" Type="String">D13_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690773</Item>
+			<Item Name="Title" Type="String">D94_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690756</Item>
+			<Item Name="Title" Type="String">E87_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690776</Item>
+			<Item Name="Title" Type="String">E75_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690759</Item>
+			<Item Name="Title" Type="String">6F_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690762</Item>
+			<Item Name="Title" Type="String">E75_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690765</Item>
+			<Item Name="Title" Type="String">6A_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690761</Item>
+			<Item Name="Title" Type="String">D94_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690758</Item>
+			<Item Name="Title" Type="String">6D_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690763</Item>
+			<Item Name="Title" Type="String">E87_Aggrewell</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690766</Item>
+			<Item Name="Title" Type="String">6D_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690770</Item>
+			<Item Name="Title" Type="String">6F_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690769</Item>
+			<Item Name="Title" Type="String">E87_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690772</Item>
+			<Item Name="Title" Type="String">D13_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690764</Item>
+			<Item Name="Title" Type="String">6A_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690775</Item>
+			<Item Name="Title" Type="String">E75_Alg</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690767</Item>
+			<Item Name="Title" Type="String">6D_AlgGroup_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690752</Item>
+			<Item Name="Title" Type="String">6F_2D</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5690755</Item>
+			<Item Name="Title" Type="String">E75_2D</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP346134</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP346/SRP346134/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">28</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">35043148</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE188nnn/GSE188827/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200166785</Id>
+	<Item Name="Accession" Type="String">GSE166785</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Unravelling the Biological Functions of Type 1 Diabetes Associated Noncoding Single-Nucleotide Polymorphism in Human Pancreatic β Cells</Item>
+	<Item Name="summary" Type="String">Over 90% of disease associated single nucleotide polymorphisms (SNPs) identified by genome wide association studies (GWAS) are noncoding variants. Platform to efficiently validate the biological function of variants thus discovered remain distinctly lacking. Here, we used β-like cells derived from isogenic human pluripotent stem cells (hPSCs), carrying the type 1 diabetes (T1D)-associated noncoding SNP rs2542151T&gt;G or the knockout of the SNP-associated gene PTPN2−/−, to systematically examine the role of the T1D associated noncoding variant in β cell function and survival. PTPN2−/− and rs2542151T&gt;G both decrease insulin production and elevate cell apoptosis in vitro as well as in vivo. A high content chemical screen identified sodium butyrate, a short-chain fatty acid, to rescue the defects of PTPN2−/−and rs2542151G/G β-like cells in vitro and a humanized mouse model. The combined phosphoproteomics, proteomics and RNA-seq analyses discovered a LAMIN A/HDAC/ERK/complex 1 axis as the downstream pathway of PTPN2 to control β cell survival. Together, this study proved the principle to apply hPSC-derived β cells to study diabetes associated noncoding SNP, and identified a drug candidate for the precision therapy of T1D.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">166785</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2021/03/22</Item>
+	<Item Name="suppFile" Type="String">TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082474</Item>
+			<Item Name="Title" Type="String">WT_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082477</Item>
+			<Item Name="Title" Type="String">KO_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082475</Item>
+			<Item Name="Title" Type="String">WT_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082478</Item>
+			<Item Name="Title" Type="String">KO_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082473</Item>
+			<Item Name="Title" Type="String">WT_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5082476</Item>
+			<Item Name="Title" Type="String">KO_1</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP306471</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP306/SRP306471/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">6</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List"></Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE166nnn/GSE166785/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200162689</Id>
+	<Item Name="Accession" Type="String">GSE162689</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">A histological and transcriptional characterization of the pancreatic acinar tissue in type 1 diabetes</Item>
+	<Item Name="summary" Type="String">Despite reduced function and volume of the exocrine pancreas in type 1 diabetes, literature describing the histology and the molecular biological profile in this area is limited. Here, the density of acinar cells was examined adjacent to and at varying distances from islets and the transcriptome was analyzed on laser capture microdissected (LCM) tissue from organ donors with and without type 1 diabetes. We demonstrate preserved acinar nuclei density in type 1 diabetes and find no support of acinar atrophy in pancreata devoid of insulin. The density of acinar nuclei was unaltered in type 1 diabetes. Principal component analysis of the transcriptomes of acinar tissue extracted from various areas of the pancreas showed no apparent clustering based on disease status, and few differentially expressed genes were discovered. However, when performing GSEA, transcriptional alterations were present in the acinar tissue independently of the distance from islets. Two gene sets were enriched in all exocrine regions; Myc Targets V2 and Estrogen Response Early. The alteration of these is a possible link to the increased incidence of pancreatic cancer in type 1 diabetes. Taken together, these new data shed light on the pathogenesis of type 1 diabetes and its involvement of the entire pancreas.</Item>
+	<Item Name="GPL" Type="String">24014</Item>
+	<Item Name="GSE" Type="String">162689</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2021/02/19</Item>
+	<Item Name="suppFile" Type="String">CSV, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957199</Item>
+			<Item Name="Title" Type="String">is_133_018</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957219</Item>
+			<Item Name="Title" Type="String">is_133_038</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957222</Item>
+			<Item Name="Title" Type="String">is_133_041</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957182</Item>
+			<Item Name="Title" Type="String">is_133_001</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957239</Item>
+			<Item Name="Title" Type="String">is_133_058</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957202</Item>
+			<Item Name="Title" Type="String">is_133_021</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957196</Item>
+			<Item Name="Title" Type="String">is_133_015</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957225</Item>
+			<Item Name="Title" Type="String">is_133_044</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957188</Item>
+			<Item Name="Title" Type="String">is_133_007</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957208</Item>
+			<Item Name="Title" Type="String">is_133_027</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957228</Item>
+			<Item Name="Title" Type="String">is_133_047</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957185</Item>
+			<Item Name="Title" Type="String">is_133_004</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957231</Item>
+			<Item Name="Title" Type="String">is_133_050</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957211</Item>
+			<Item Name="Title" Type="String">is_133_030</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957191</Item>
+			<Item Name="Title" Type="String">is_133_010</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957205</Item>
+			<Item Name="Title" Type="String">is_133_024</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957194</Item>
+			<Item Name="Title" Type="String">is_133_013</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957217</Item>
+			<Item Name="Title" Type="String">is_133_036</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957234</Item>
+			<Item Name="Title" Type="String">is_133_053</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957197</Item>
+			<Item Name="Title" Type="String">is_133_016</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957226</Item>
+			<Item Name="Title" Type="String">is_133_045</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957237</Item>
+			<Item Name="Title" Type="String">is_133_056</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957220</Item>
+			<Item Name="Title" Type="String">is_133_039</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957200</Item>
+			<Item Name="Title" Type="String">is_133_019</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957203</Item>
+			<Item Name="Title" Type="String">is_133_022</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957214</Item>
+			<Item Name="Title" Type="String">is_133_033</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957223</Item>
+			<Item Name="Title" Type="String">is_133_042</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957183</Item>
+			<Item Name="Title" Type="String">is_133_002</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957209</Item>
+			<Item Name="Title" Type="String">is_133_028</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957229</Item>
+			<Item Name="Title" Type="String">is_133_048</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957206</Item>
+			<Item Name="Title" Type="String">is_133_025</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957240</Item>
+			<Item Name="Title" Type="String">is_133_060</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957232</Item>
+			<Item Name="Title" Type="String">is_133_051</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957235</Item>
+			<Item Name="Title" Type="String">is_133_054</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957189</Item>
+			<Item Name="Title" Type="String">is_133_008</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957238</Item>
+			<Item Name="Title" Type="String">is_133_057</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957192</Item>
+			<Item Name="Title" Type="String">is_133_011</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957212</Item>
+			<Item Name="Title" Type="String">is_133_031</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957207</Item>
+			<Item Name="Title" Type="String">is_133_026</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957186</Item>
+			<Item Name="Title" Type="String">is_133_005</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957184</Item>
+			<Item Name="Title" Type="String">is_133_003</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957187</Item>
+			<Item Name="Title" Type="String">is_133_006</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957204</Item>
+			<Item Name="Title" Type="String">is_133_023</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957198</Item>
+			<Item Name="Title" Type="String">is_133_017</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957190</Item>
+			<Item Name="Title" Type="String">is_133_009</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957236</Item>
+			<Item Name="Title" Type="String">is_133_055</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957216</Item>
+			<Item Name="Title" Type="String">is_133_035</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957218</Item>
+			<Item Name="Title" Type="String">is_133_037</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957210</Item>
+			<Item Name="Title" Type="String">is_133_029</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957221</Item>
+			<Item Name="Title" Type="String">is_133_040</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957213</Item>
+			<Item Name="Title" Type="String">is_133_032</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957215</Item>
+			<Item Name="Title" Type="String">is_133_034</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957193</Item>
+			<Item Name="Title" Type="String">is_133_012</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957195</Item>
+			<Item Name="Title" Type="String">is_133_014</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957233</Item>
+			<Item Name="Title" Type="String">is_133_052</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957227</Item>
+			<Item Name="Title" Type="String">is_133_046</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957201</Item>
+			<Item Name="Title" Type="String">is_133_020</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957224</Item>
+			<Item Name="Title" Type="String">is_133_043</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4957230</Item>
+			<Item Name="Title" Type="String">is_133_049</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP295934</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP295/SRP295934/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">59</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">33711030</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE162nnn/GSE162689/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200165121</Id>
+	<Item Name="Accession" Type="String">GSE165121</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Transcriptional analysis of islets of Langerhans from organ donors of different ages</Item>
+	<Item Name="summary" Type="String">Islet function diminishes with age and as such the incidence of type 2 diabetes increases. The cause of this is unknown. In this study whole islets were extracted with laser capture microdissection from organ donors 1-81 years of age. Increasing age was associated with a downregulation of pathways associated with the cell cycle and increase in markers of senescence e.g. CDKN2A. Among novel genes increasing with age was SPP1.</Item>
+	<Item Name="GPL" Type="String">24014</Item>
+	<Item Name="GSE" Type="String">165121</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2021/02/18</Item>
+	<Item Name="suppFile" Type="String">XLSX</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026519</Item>
+			<Item Name="Title" Type="String">is_133_005</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026499</Item>
+			<Item Name="Title" Type="String">ip_293_11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026516</Item>
+			<Item Name="Title" Type="String">ip_293_28</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026496</Item>
+			<Item Name="Title" Type="String">ip_293_8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026522</Item>
+			<Item Name="Title" Type="String">is_133_026</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026508</Item>
+			<Item Name="Title" Type="String">ip_293_20</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026505</Item>
+			<Item Name="Title" Type="String">ip_293_17</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026502</Item>
+			<Item Name="Title" Type="String">ip_293_14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026514</Item>
+			<Item Name="Title" Type="String">ip_293_26</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026491</Item>
+			<Item Name="Title" Type="String">ip_293_3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026511</Item>
+			<Item Name="Title" Type="String">ip_293_23</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026517</Item>
+			<Item Name="Title" Type="String">ip_293_29</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026494</Item>
+			<Item Name="Title" Type="String">ip_293_6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026520</Item>
+			<Item Name="Title" Type="String">is_133_009</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026500</Item>
+			<Item Name="Title" Type="String">ip_293_12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026509</Item>
+			<Item Name="Title" Type="String">ip_293_21</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026489</Item>
+			<Item Name="Title" Type="String">ip_293_1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026497</Item>
+			<Item Name="Title" Type="String">ip_293_9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026523</Item>
+			<Item Name="Title" Type="String">is_133_029</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026492</Item>
+			<Item Name="Title" Type="String">ip_293_4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026518</Item>
+			<Item Name="Title" Type="String">ip_293_30</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026503</Item>
+			<Item Name="Title" Type="String">ip_293_15</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026498</Item>
+			<Item Name="Title" Type="String">ip_293_10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026515</Item>
+			<Item Name="Title" Type="String">ip_293_27</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026495</Item>
+			<Item Name="Title" Type="String">ip_293_7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026512</Item>
+			<Item Name="Title" Type="String">ip_293_24</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026506</Item>
+			<Item Name="Title" Type="String">ip_293_18</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026521</Item>
+			<Item Name="Title" Type="String">is_133_013</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026501</Item>
+			<Item Name="Title" Type="String">ip_293_13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026504</Item>
+			<Item Name="Title" Type="String">ip_293_16</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026510</Item>
+			<Item Name="Title" Type="String">ip_293_22</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026507</Item>
+			<Item Name="Title" Type="String">ip_293_19</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026490</Item>
+			<Item Name="Title" Type="String">ip_293_2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026513</Item>
+			<Item Name="Title" Type="String">ip_293_25</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM5026493</Item>
+			<Item Name="Title" Type="String">ip_293_5</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">35</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">33711030</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE165nnn/GSE165121/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200158055</Id>
+	<Item Name="Accession" Type="String">GSE158055</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Large-scale single-cell analysis reveals critical immune characteristics of COVID-19 patients</Item>
+	<Item Name="summary" Type="String">We profiled scRNA-seq of 284 samples collected from 196 individuals, including 22 patients with mild/moderate symptoms, 54 hospitalized patients with severe symptoms, and 95 recovered convalescent persons, as well as 25 healthy controls. The samples were obtained from various tissue types, including human peripheral blood mononuclear cells (249), bronchoalveolar lavage fluid (12) and pleural pleural effusion (1)/sputum (22).</Item>
+	<Item Name="GPL" Type="String">28038;24676</Item>
+	<Item Name="GSE" Type="String">158055</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2021/02/04</Item>
+	<Item Name="suppFile" Type="String">CSV, MTX, TSV, XLSX</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787563</Item>
+			<Item Name="Title" Type="String">S-HC016</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787497</Item>
+			<Item Name="Title" Type="String">S-S059</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787414</Item>
+			<Item Name="Title" Type="String">S-S001-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787331</Item>
+			<Item Name="Title" Type="String">S-M016</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787371</Item>
+			<Item Name="Title" Type="String">S-M044-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787500</Item>
+			<Item Name="Title" Type="String">S-S062</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787417</Item>
+			<Item Name="Title" Type="String">S-S012-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787334</Item>
+			<Item Name="Title" Type="String">S-M019</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787537</Item>
+			<Item Name="Title" Type="String">S-S085-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787517</Item>
+			<Item Name="Title" Type="String">S-S072-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787454</Item>
+			<Item Name="Title" Type="String">S-S023</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787434</Item>
+			<Item Name="Title" Type="String">S-S011-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787351</Item>
+			<Item Name="Title" Type="String">S-M032</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787520</Item>
+			<Item Name="Title" Type="String">S-S073-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787391</Item>
+			<Item Name="Title" Type="String">S-M064</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787474</Item>
+			<Item Name="Title" Type="String">S-S036-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787308</Item>
+			<Item Name="Title" Type="String">S-M007-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787540</Item>
+			<Item Name="Title" Type="String">S-S087-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787557</Item>
+			<Item Name="Title" Type="String">S-HC010</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787311</Item>
+			<Item Name="Title" Type="String">S-M007-6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787394</Item>
+			<Item Name="Title" Type="String">S-M067</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787477</Item>
+			<Item Name="Title" Type="String">S-S039</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787354</Item>
+			<Item Name="Title" Type="String">S-M035-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787437</Item>
+			<Item Name="Title" Type="String">S-S014</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787411</Item>
+			<Item Name="Title" Type="String">S-M062-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787494</Item>
+			<Item Name="Title" Type="String">S-S056</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787348</Item>
+			<Item Name="Title" Type="String">S-M031-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787443</Item>
+			<Item Name="Title" Type="String">S-S020</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787526</Item>
+			<Item Name="Title" Type="String">S-S076-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787560</Item>
+			<Item Name="Title" Type="String">S-HC013</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787294</Item>
+			<Item Name="Title" Type="String">S-M003-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787340</Item>
+			<Item Name="Title" Type="String">S-M025</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787506</Item>
+			<Item Name="Title" Type="String">S-S068</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787423</Item>
+			<Item Name="Title" Type="String">S-S004-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787514</Item>
+			<Item Name="Title" Type="String">S-S070-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787431</Item>
+			<Item Name="Title" Type="String">S-S008</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787457</Item>
+			<Item Name="Title" Type="String">S-S026</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787374</Item>
+			<Item Name="Title" Type="String">S-M047</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787328</Item>
+			<Item Name="Title" Type="String">S-M013</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787480</Item>
+			<Item Name="Title" Type="String">S-S042</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787546</Item>
+			<Item Name="Title" Type="String">S-S090-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787360</Item>
+			<Item Name="Title" Type="String">S-M039-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787377</Item>
+			<Item Name="Title" Type="String">S-M050</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787314</Item>
+			<Item Name="Title" Type="String">S-M009-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787397</Item>
+			<Item Name="Title" Type="String">S-M070</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787543</Item>
+			<Item Name="Title" Type="String">S-S088-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787420</Item>
+			<Item Name="Title" Type="String">S-S012-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787460</Item>
+			<Item Name="Title" Type="String">S-S029</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787337</Item>
+			<Item Name="Title" Type="String">S-M022</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787549</Item>
+			<Item Name="Title" Type="String">S-HC002</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787503</Item>
+			<Item Name="Title" Type="String">S-S065</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787317</Item>
+			<Item Name="Title" Type="String">S-M009-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787400</Item>
+			<Item Name="Title" Type="String">S-M073</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787297</Item>
+			<Item Name="Title" Type="String">S-M003-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787380</Item>
+			<Item Name="Title" Type="String">S-M053</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787446</Item>
+			<Item Name="Title" Type="String">S-S021-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787529</Item>
+			<Item Name="Title" Type="String">S-S078</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787463</Item>
+			<Item Name="Title" Type="String">S-S032-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787523</Item>
+			<Item Name="Title" Type="String">S-S074-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787300</Item>
+			<Item Name="Title" Type="String">S-M004-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787383</Item>
+			<Item Name="Title" Type="String">S-M056</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787320</Item>
+			<Item Name="Title" Type="String">S-M010-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787483</Item>
+			<Item Name="Title" Type="String">S-S045</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787466</Item>
+			<Item Name="Title" Type="String">S-S033</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787359</Item>
+			<Item Name="Title" Type="String">S-M038</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787562</Item>
+			<Item Name="Title" Type="String">S-HC015</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787566</Item>
+			<Item Name="Title" Type="String">S-HC018-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787442</Item>
+			<Item Name="Title" Type="String">S-S019</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787565</Item>
+			<Item Name="Title" Type="String">S-HC018-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787436</Item>
+			<Item Name="Title" Type="String">S-S013</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787353</Item>
+			<Item Name="Title" Type="String">S-M034</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787569</Item>
+			<Item Name="Title" Type="String">S-HC020-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787519</Item>
+			<Item Name="Title" Type="String">S-S072-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787403</Item>
+			<Item Name="Title" Type="String">S-M075</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787486</Item>
+			<Item Name="Title" Type="String">S-S048</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787440</Item>
+			<Item Name="Title" Type="String">S-S017</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787357</Item>
+			<Item Name="Title" Type="String">S-M036-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787333</Item>
+			<Item Name="Title" Type="String">S-M018</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787462</Item>
+			<Item Name="Title" Type="String">S-S031</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787416</Item>
+			<Item Name="Title" Type="String">S-S010-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787545</Item>
+			<Item Name="Title" Type="String">S-S089-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787336</Item>
+			<Item Name="Title" Type="String">S-M021</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787313</Item>
+			<Item Name="Title" Type="String">S-M008-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787396</Item>
+			<Item Name="Title" Type="String">S-M069</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787479</Item>
+			<Item Name="Title" Type="String">S-S041</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787525</Item>
+			<Item Name="Title" Type="String">S-S075-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787542</Item>
+			<Item Name="Title" Type="String">S-S088-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787459</Item>
+			<Item Name="Title" Type="String">S-S028</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787339</Item>
+			<Item Name="Title" Type="String">S-M024</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787482</Item>
+			<Item Name="Title" Type="String">S-S044</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787399</Item>
+			<Item Name="Title" Type="String">S-M072</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787316</Item>
+			<Item Name="Title" Type="String">S-M009-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787356</Item>
+			<Item Name="Title" Type="String">S-M036-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787568</Item>
+			<Item Name="Title" Type="String">S-HC019-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787439</Item>
+			<Item Name="Title" Type="String">S-S016</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787522</Item>
+			<Item Name="Title" Type="String">S-S074-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787499</Item>
+			<Item Name="Title" Type="String">S-S061</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787488</Item>
+			<Item Name="Title" Type="String">S-S050</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787379</Item>
+			<Item Name="Title" Type="String">S-M052</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787571</Item>
+			<Item Name="Title" Type="String">S-HC021</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787296</Item>
+			<Item Name="Title" Type="String">S-M002-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787368</Item>
+			<Item Name="Title" Type="String">S-M043-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787419</Item>
+			<Item Name="Title" Type="String">S-S003</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787502</Item>
+			<Item Name="Title" Type="String">S-S064</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787362</Item>
+			<Item Name="Title" Type="String">S-M040-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787445</Item>
+			<Item Name="Title" Type="String">S-S021-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787491</Item>
+			<Item Name="Title" Type="String">S-S053</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787574</Item>
+			<Item Name="Title" Type="String">S-HC024</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787305</Item>
+			<Item Name="Title" Type="String">S-M006</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787388</Item>
+			<Item Name="Title" Type="String">S-M059-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787422</Item>
+			<Item Name="Title" Type="String">S-S004-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787471</Item>
+			<Item Name="Title" Type="String">S-S035-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787293</Item>
+			<Item Name="Title" Type="String">S-M003-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787505</Item>
+			<Item Name="Title" Type="String">S-S067</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787342</Item>
+			<Item Name="Title" Type="String">S-M026-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787382</Item>
+			<Item Name="Title" Type="String">S-M055</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787376</Item>
+			<Item Name="Title" Type="String">S-M049</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787465</Item>
+			<Item Name="Title" Type="String">S-S032-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787548</Item>
+			<Item Name="Title" Type="String">S-HC001</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787385</Item>
+			<Item Name="Title" Type="String">S-M058-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787551</Item>
+			<Item Name="Title" Type="String">S-HC004</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787468</Item>
+			<Item Name="Title" Type="String">S-S035-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787485</Item>
+			<Item Name="Title" Type="String">S-S047</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787405</Item>
+			<Item Name="Title" Type="String">S-M076-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787365</Item>
+			<Item Name="Title" Type="String">S-M041-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787507</Item>
+			<Item Name="Title" Type="String">S-S069-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787404</Item>
+			<Item Name="Title" Type="String">S-M076-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787321</Item>
+			<Item Name="Title" Type="String">S-M010-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787408</Item>
+			<Item Name="Title" Type="String">S-M061-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787325</Item>
+			<Item Name="Title" Type="String">S-M010-6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787510</Item>
+			<Item Name="Title" Type="String">S-S091</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787487</Item>
+			<Item Name="Title" Type="String">S-S049</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787508</Item>
+			<Item Name="Title" Type="String">S-S069-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787322</Item>
+			<Item Name="Title" Type="String">S-M010-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787451</Item>
+			<Item Name="Title" Type="String">S-S022-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787490</Item>
+			<Item Name="Title" Type="String">S-S052</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787407</Item>
+			<Item Name="Title" Type="String">S-M078</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787534</Item>
+			<Item Name="Title" Type="String">S-S083</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787528</Item>
+			<Item Name="Title" Type="String">S-S077</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787401</Item>
+			<Item Name="Title" Type="String">S-M074-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787299</Item>
+			<Item Name="Title" Type="String">S-M004-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787298</Item>
+			<Item Name="Title" Type="String">S-M004-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787567</Item>
+			<Item Name="Title" Type="String">S-HC019-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787484</Item>
+			<Item Name="Title" Type="String">S-S046</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787427</Item>
+			<Item Name="Title" Type="String">S-S007-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787511</Item>
+			<Item Name="Title" Type="String">S-S092</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787381</Item>
+			<Item Name="Title" Type="String">S-M054</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787554</Item>
+			<Item Name="Title" Type="String">S-HC007</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787425</Item>
+			<Item Name="Title" Type="String">S-S001-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787302</Item>
+			<Item Name="Title" Type="String">S-M004-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787504</Item>
+			<Item Name="Title" Type="String">S-S066</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787384</Item>
+			<Item Name="Title" Type="String">S-M057</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787301</Item>
+			<Item Name="Title" Type="String">S-M004-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787345</Item>
+			<Item Name="Title" Type="String">S-M028</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787428</Item>
+			<Item Name="Title" Type="String">S-S007-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787433</Item>
+			<Item Name="Title" Type="String">S-S010-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787350</Item>
+			<Item Name="Title" Type="String">S-M079</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787402</Item>
+			<Item Name="Title" Type="String">S-M074-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787516</Item>
+			<Item Name="Title" Type="String">S-S071-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787304</Item>
+			<Item Name="Title" Type="String">S-M005</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787387</Item>
+			<Item Name="Title" Type="String">S-M059-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787424</Item>
+			<Item Name="Title" Type="String">S-S005-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787341</Item>
+			<Item Name="Title" Type="String">S-M026-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787324</Item>
+			<Item Name="Title" Type="String">S-M010-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787307</Item>
+			<Item Name="Title" Type="String">S-M007-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787536</Item>
+			<Item Name="Title" Type="String">S-S085-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787448</Item>
+			<Item Name="Title" Type="String">S-S021-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787531</Item>
+			<Item Name="Title" Type="String">S-S080</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787319</Item>
+			<Item Name="Title" Type="String">S-M009-6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787456</Item>
+			<Item Name="Title" Type="String">S-S025</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787539</Item>
+			<Item Name="Title" Type="String">S-S086-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787327</Item>
+			<Item Name="Title" Type="String">S-M012</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787410</Item>
+			<Item Name="Title" Type="String">S-M062-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787527</Item>
+			<Item Name="Title" Type="String">S-S076-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787330</Item>
+			<Item Name="Title" Type="String">S-M015</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787533</Item>
+			<Item Name="Title" Type="String">S-S082</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787444</Item>
+			<Item Name="Title" Type="String">S-S021-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787441</Item>
+			<Item Name="Title" Type="String">S-S018</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787358</Item>
+			<Item Name="Title" Type="String">S-M037</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787413</Item>
+			<Item Name="Title" Type="String">S-M063-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787430</Item>
+			<Item Name="Title" Type="String">S-S011-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787318</Item>
+			<Item Name="Title" Type="String">S-M009-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787513</Item>
+			<Item Name="Title" Type="String">S-S070-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787310</Item>
+			<Item Name="Title" Type="String">S-M007-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787369</Item>
+			<Item Name="Title" Type="String">S-M043-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787447</Item>
+			<Item Name="Title" Type="String">S-S021-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787530</Item>
+			<Item Name="Title" Type="String">S-S079</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787452</Item>
+			<Item Name="Title" Type="String">S-S022-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787573</Item>
+			<Item Name="Title" Type="String">S-HC023</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787535</Item>
+			<Item Name="Title" Type="String">S-S084</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787361</Item>
+			<Item Name="Title" Type="String">S-M039-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787323</Item>
+			<Item Name="Title" Type="String">S-M010-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787344</Item>
+			<Item Name="Title" Type="String">S-M027</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787552</Item>
+			<Item Name="Title" Type="String">S-HC005</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787349</Item>
+			<Item Name="Title" Type="String">S-M031-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787343</Item>
+			<Item Name="Title" Type="String">S-M026-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787432</Item>
+			<Item Name="Title" Type="String">S-S009</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787472</Item>
+			<Item Name="Title" Type="String">S-S036-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787364</Item>
+			<Item Name="Title" Type="String">S-M041-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787550</Item>
+			<Item Name="Title" Type="String">S-HC003</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787555</Item>
+			<Item Name="Title" Type="String">S-HC008</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787426</Item>
+			<Item Name="Title" Type="String">S-S006</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787464</Item>
+			<Item Name="Title" Type="String">S-S032-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787547</Item>
+			<Item Name="Title" Type="String">S-S090-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787421</Item>
+			<Item Name="Title" Type="String">S-S004-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787570</Item>
+			<Item Name="Title" Type="String">S-HC020-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787429</Item>
+			<Item Name="Title" Type="String">S-S005-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787346</Item>
+			<Item Name="Title" Type="String">S-M029</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787467</Item>
+			<Item Name="Title" Type="String">S-S034</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787553</Item>
+			<Item Name="Title" Type="String">S-HC006</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787338</Item>
+			<Item Name="Title" Type="String">S-M023</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787366</Item>
+			<Item Name="Title" Type="String">S-M042-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787449</Item>
+			<Item Name="Title" Type="String">S-S022-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787326</Item>
+			<Item Name="Title" Type="String">S-M011</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787532</Item>
+			<Item Name="Title" Type="String">S-S081</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787470</Item>
+			<Item Name="Title" Type="String">S-S035-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787556</Item>
+			<Item Name="Title" Type="String">S-HC009</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787295</Item>
+			<Item Name="Title" Type="String">S-M002-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787378</Item>
+			<Item Name="Title" Type="String">S-M051</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787390</Item>
+			<Item Name="Title" Type="String">S-M060-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787370</Item>
+			<Item Name="Title" Type="String">S-M044-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787473</Item>
+			<Item Name="Title" Type="String">S-S036-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787453</Item>
+			<Item Name="Title" Type="String">S-S022-5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787461</Item>
+			<Item Name="Title" Type="String">S-S030</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787478</Item>
+			<Item Name="Title" Type="String">S-S040</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787395</Item>
+			<Item Name="Title" Type="String">S-M068</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787561</Item>
+			<Item Name="Title" Type="String">S-HC014</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787373</Item>
+			<Item Name="Title" Type="String">S-M046</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787481</Item>
+			<Item Name="Title" Type="String">S-S043</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787398</Item>
+			<Item Name="Title" Type="String">S-M071</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787493</Item>
+			<Item Name="Title" Type="String">S-S055</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787352</Item>
+			<Item Name="Title" Type="String">S-M033</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787475</Item>
+			<Item Name="Title" Type="String">S-S037</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787564</Item>
+			<Item Name="Title" Type="String">S-HC017</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787558</Item>
+			<Item Name="Title" Type="String">S-HC011</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787450</Item>
+			<Item Name="Title" Type="String">S-S022-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787355</Item>
+			<Item Name="Title" Type="String">S-M035-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787501</Item>
+			<Item Name="Title" Type="String">S-S063</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787367</Item>
+			<Item Name="Title" Type="String">S-M042-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787496</Item>
+			<Item Name="Title" Type="String">S-S058</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787347</Item>
+			<Item Name="Title" Type="String">S-M030</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787372</Item>
+			<Item Name="Title" Type="String">S-M045</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787538</Item>
+			<Item Name="Title" Type="String">S-S086-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787393</Item>
+			<Item Name="Title" Type="String">S-M066</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787455</Item>
+			<Item Name="Title" Type="String">S-S024</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787559</Item>
+			<Item Name="Title" Type="String">S-HC012</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787476</Item>
+			<Item Name="Title" Type="String">S-S038</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787572</Item>
+			<Item Name="Title" Type="String">S-HC022</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787375</Item>
+			<Item Name="Title" Type="String">S-M048</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787292</Item>
+			<Item Name="Title" Type="String">S-M001</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787458</Item>
+			<Item Name="Title" Type="String">S-S027</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787489</Item>
+			<Item Name="Title" Type="String">S-S051</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787406</Item>
+			<Item Name="Title" Type="String">S-M077</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787303</Item>
+			<Item Name="Title" Type="String">S-M004-6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787386</Item>
+			<Item Name="Title" Type="String">S-M058-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787469</Item>
+			<Item Name="Title" Type="String">S-S035-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787515</Item>
+			<Item Name="Title" Type="String">S-S071-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787509</Item>
+			<Item Name="Title" Type="String">S-S069-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787389</Item>
+			<Item Name="Title" Type="String">S-M060-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787306</Item>
+			<Item Name="Title" Type="String">S-M007-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787512</Item>
+			<Item Name="Title" Type="String">S-S070-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787363</Item>
+			<Item Name="Title" Type="String">S-M040-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787409</Item>
+			<Item Name="Title" Type="String">S-M061-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787575</Item>
+			<Item Name="Title" Type="String">S-HC025</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787492</Item>
+			<Item Name="Title" Type="String">S-S054</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787329</Item>
+			<Item Name="Title" Type="String">S-M014</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787412</Item>
+			<Item Name="Title" Type="String">S-M063-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787495</Item>
+			<Item Name="Title" Type="String">S-S057</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787498</Item>
+			<Item Name="Title" Type="String">S-S060</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787415</Item>
+			<Item Name="Title" Type="String">S-S001-3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787524</Item>
+			<Item Name="Title" Type="String">S-S075-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787312</Item>
+			<Item Name="Title" Type="String">S-M008-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787332</Item>
+			<Item Name="Title" Type="String">S-M017</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787315</Item>
+			<Item Name="Title" Type="String">S-M009-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787544</Item>
+			<Item Name="Title" Type="String">S-S089-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787392</Item>
+			<Item Name="Title" Type="String">S-M065</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787309</Item>
+			<Item Name="Title" Type="String">S-M007-4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787521</Item>
+			<Item Name="Title" Type="String">S-S073-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787418</Item>
+			<Item Name="Title" Type="String">S-S002</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787435</Item>
+			<Item Name="Title" Type="String">S-S012-1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787518</Item>
+			<Item Name="Title" Type="String">S-S072-2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787438</Item>
+			<Item Name="Title" Type="String">S-S015</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787335</Item>
+			<Item Name="Title" Type="String">S-M020</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4787541</Item>
+			<Item Name="Title" Type="String">S-S087-2</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">284</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">33657410</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE158nnn/GSE158055/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200152615</Id>
+	<Item Name="Accession" Type="String">GSE152615</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">RNAseq from human islets treated with brefeldin A as a model of Golgi stress</Item>
+	<Item Name="summary" Type="String">Type 1 diabetes (T1D) is characterized by immune mediated destruction of insulin producing β cells. Biomarkers capable of identifying T1D risk and dissecting disease-related heterogeneity represent an unmet clinical need. Aims: Towards the goal of informing T1D biomarker strategies, we profiled different classes of RNAs in human islet-derived exosomes and identified RNAs that were differentially expressed under cytokine stress conditions. Human pancreatic islets were obtained from cadaveric donors and treated with/without IL-1β and IFN-γ to mimic the pro-inflammatory T1D milieu. Total RNA and small RNA sequencing were performed to identify long (mRNA and long non-coding RNAs) and different classes of small non-coding RNAs. RNAs with fold change ≥ 1.3 and p-value &lt; 0.05 were considered as differentially expressed. mRNAs and miRNAs species represented the most abundant long and small RNA species, respectively. Expression patterns of each class of RNA were changed with cytokine treatment. Differentially expressed long RNAs and targets of small non-coding RNAs were predicted to be involved in insulin secretion, calcium signaling, necrosis and apoptosis. Our data provides the first comprehensive catalog of protein coding and non-coding RNAs in human islet-derived exosomes and identifies RNAs that are dysregulated under cytokine stress.</Item>
+	<Item Name="GPL" Type="String">24676</Item>
+	<Item Name="GSE" Type="String">152615</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2020/09/17</Item>
+	<Item Name="suppFile" Type="String">TXT, XLSX</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618786</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-061119-BFA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618783</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-043019-DMSO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618782</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-042519-BFA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618788</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-070719-BFA</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618785</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-061119-DMSO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618781</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-042519-DMSO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618787</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-070719-DMSO</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4618784</Item>
+			<Item Name="Title" Type="String">Pancreatic islet, HI-043019-BFA</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP267552</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP267/SRP267552/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">8</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">32820009</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE152nnn/GSE152615/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200128682</Id>
+	<Item Name="Accession" Type="String">GSE128682</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Transcriptional signatures that define Ulcerative Colitis in remission</Item>
+	<Item Name="summary" Type="String">Background: This study addresses whether existing specific transcriptional profiles can improve and support the current status of the definition of ulcerative colitis (UC) remission apart from the existing endoscopic, histologic, and laboratory scoring systems. For that purpose, a well-stratified UC patient population in remission was compared to active UC and control patients and was investigated by applying the next-generation technology RNA-Seq. Methods: Mucosal biopsies from patients in remission (n = 14), patients with active UC (n = 14), and healthy control patients (n = 16) underwent whole-transcriptome RNA-Seq. Principal component analysis, cell deconvolution methods, gene profile enrichment, and pathway enrichment methods were applied to define a specific transcriptional signature of UC in remission. Results: Analyses revealed specific transcriptional signatures for UC in remission with increased expression of genes involved in O-glycosylation (MUC17, MUC3A, MUC5AC, MUC12, SPON1, B3GNT3), ephrin-mediated repulsion of cells (EFNB2E, EFNA3, EPHA10, EPHA1), GAP junction trafficking (TUBA1C, TUBA4A, TUBB4B, GJB3, CLTB), and decreased expression of several toll-like receptors (TLR1, TLR3, TLR5, TLR6). Conclusions: This study reveals specific transcriptional signatures for remission. Partial restoration and improvement of homeostasis in the epithelial mucus layer and revival of immunological functions were observed. A clear role for bacterial gut flora composition can be implied. The results can be useful for the development of treatment strategies for UC in remission and may be useful targets for further investigations aiming to predict the outcome of UC in the future.</Item>
+	<Item Name="GPL" Type="String">21697</Item>
+	<Item Name="GSE" Type="String">128682</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2020/01/18</Item>
+	<Item Name="suppFile" Type="String">TAB, TXT</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682461</Item>
+			<Item Name="Title" Type="String">Normal sample 7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682498</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682458</Item>
+			<Item Name="Title" Type="String">Normal sample 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682478</Item>
+			<Item Name="Title" Type="String">Remission sample 8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682484</Item>
+			<Item Name="Title" Type="String">Remission sample 14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682481</Item>
+			<Item Name="Title" Type="String">Remission sample 11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682470</Item>
+			<Item Name="Title" Type="String">Normal sample 16</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682490</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682467</Item>
+			<Item Name="Title" Type="String">Normal sample 13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682487</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682464</Item>
+			<Item Name="Title" Type="String">Normal sample 10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682489</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682486</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682463</Item>
+			<Item Name="Title" Type="String">Normal sample 9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682483</Item>
+			<Item Name="Title" Type="String">Remission sample 13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682495</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682466</Item>
+			<Item Name="Title" Type="String">Normal sample 12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682492</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682469</Item>
+			<Item Name="Title" Type="String">Normal sample 15</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682474</Item>
+			<Item Name="Title" Type="String">Remission sample 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682475</Item>
+			<Item Name="Title" Type="String">Remission sample 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682480</Item>
+			<Item Name="Title" Type="String">Remission sample 10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682455</Item>
+			<Item Name="Title" Type="String">Normal sample 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682472</Item>
+			<Item Name="Title" Type="String">Remission sample 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682477</Item>
+			<Item Name="Title" Type="String">Remission sample 7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682471</Item>
+			<Item Name="Title" Type="String">Remission sample 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682460</Item>
+			<Item Name="Title" Type="String">Normal sample 6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682488</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 4</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682468</Item>
+			<Item Name="Title" Type="String">Normal sample 14</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682457</Item>
+			<Item Name="Title" Type="String">Normal sample 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682494</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 10</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682479</Item>
+			<Item Name="Title" Type="String">Remission sample 9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682496</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 12</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682493</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 9</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682491</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 7</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682476</Item>
+			<Item Name="Title" Type="String">Remission sample 6</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682473</Item>
+			<Item Name="Title" Type="String">Remission sample 3</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682497</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 13</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682456</Item>
+			<Item Name="Title" Type="String">Normal sample 2</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682462</Item>
+			<Item Name="Title" Type="String">Normal sample 8</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682465</Item>
+			<Item Name="Title" Type="String">Normal sample 11</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682459</Item>
+			<Item Name="Title" Type="String">Normal sample 5</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682485</Item>
+			<Item Name="Title" Type="String">Ulcerative Colitis sample 1</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM3682482</Item>
+			<Item Name="Title" Type="String">Remission sample 12</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List"></Item>
+	<Item Name="n_samples" Type="Integer">44</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">32322884</Item>
+		<Item Name="int" Type="Integer">37199828</Item>
+		<Item Name="int" Type="Integer">38514698</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE128nnn/GSE128682/</Item>
+	<Item Name="GEO2R" Type="String">no</Item>
+</DocSum>
+
+<DocSum>
+	<Id>200139932</Id>
+	<Item Name="Accession" Type="String">GSE139932</Item>
+	<Item Name="GDS" Type="String"></Item>
+	<Item Name="title" Type="String">Profiling of RNAs from human islet-derived exosomes in a model of type 1 diabetes</Item>
+	<Item Name="summary" Type="String">Type 1 diabetes (T1D) is characterized by immune mediated destruction of insulin producing β cells. Biomarkers capable of identifying T1D risk and dissecting disease-related heterogeneity represent an unmet clinical need. Aims: Towards the goal of informing T1D biomarker strategies, we profiled different classes of RNAs in human islet-derived exosomes and identified RNAs that were differentially expressed under cytokine stress conditions. Human pancreatic islets were obtained from cadaveric donors and treated with/without IL-1β and IFN-γ to mimic the pro-inflammatory T1D milieu. Total RNA and small RNA sequencing were performed to identify long (mRNA and long non-coding RNAs) and different classes of small non-coding RNAs. RNAs with fold change ≥ 1.3 and p-value &lt; 0.05 were considered as differentially expressed. mRNAs and miRNAs species represented the most abundant long and small RNA species, respectively. Expression patterns of each class of RNA were changed with cytokine treatment. Differentially expressed long RNAs and targets of small non-coding RNAs were predicted to be involved in insulin secretion, calcium signaling, necrosis and apoptosis. Our data provides the first comprehensive catalog of protein coding and non-coding RNAs in human islet-derived exosomes and identifies RNAs that are dysregulated under cytokine stress.</Item>
+	<Item Name="GPL" Type="String">20301</Item>
+	<Item Name="GSE" Type="String">139932</Item>
+	<Item Name="taxon" Type="String">Homo sapiens</Item>
+	<Item Name="entryType" Type="String">GSE</Item>
+	<Item Name="gdsType" Type="String">Expression profiling by high throughput sequencing; Non-coding RNA profiling by high throughput sequencing</Item>
+	<Item Name="ptechType" Type="String"></Item>
+	<Item Name="valType" Type="String"></Item>
+	<Item Name="SSInfo" Type="String"></Item>
+	<Item Name="subsetInfo" Type="String"></Item>
+	<Item Name="PDAT" Type="String">2019/12/31</Item>
+	<Item Name="suppFile" Type="String">XLSX</Item>
+	<Item Name="Samples" Type="List">
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149724</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Cyto-SAMN08769129</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149727</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Ctrl-SAMN08768738</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149730</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Cyto-SAMN08769397</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149725</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Ctrl-SAMN08769390</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149722</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Cyto-SAMN08773446</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149728</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Cyto-SAMN08768738</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149723</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Ctrl-SAMN08769129</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149726</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Cyto-SAMN08769390</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149721</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Ctrl-SAMN08773446</Item>
+		</Item>
+		<Item Name="Sample" Type="Structure">
+			<Item Name="Accession" Type="String">GSM4149729</Item>
+			<Item Name="Title" Type="String">Pancreatic islet-derived exosome, HI-Ctrl-SAMN08769397</Item>
+		</Item>
+	</Item>
+	<Item Name="Relations" Type="List"></Item>
+	<Item Name="ExtRelations" Type="List">
+		<Item Name="ExtRelation" Type="Structure">
+			<Item Name="RelationType" Type="String">SRA</Item>
+			<Item Name="TargetObject" Type="String">SRP228580</Item>
+			<Item Name="TargetFTPLink" Type="String">ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByStudy/sra/SRP/SRP228/SRP228580/</Item>
+		</Item>
+	</Item>
+	<Item Name="n_samples" Type="Integer">10</Item>
+	<Item Name="SeriesTitle" Type="String"></Item>
+	<Item Name="PlatformTitle" Type="String"></Item>
+	<Item Name="PlatformTaxa" Type="String"></Item>
+	<Item Name="SamplesTaxa" Type="String"></Item>
+	<Item Name="PubMedIds" Type="List">
+		<Item Name="int" Type="Integer">31775218</Item>
+	</Item>
+	<Item Name="Projects" Type="List"></Item>
+	<Item Name="FTPLink" Type="String">ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE139nnn/GSE139932/</Item>
+	<Item Name="GEO2R" Type="String">yes</Item>
+</DocSum>
+
+</eSummaryResult>

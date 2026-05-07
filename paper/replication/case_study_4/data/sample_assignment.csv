@@ -1,0 +1,25 @@
+gsm,lab_id,bmi,joint,loading
+GSM6765101,MFX282,normal weight,synovium,load bearing
+GSM6765102,MFX218,normal weight,synovium,load bearing
+GSM6765103,MFX292,normal weight,synovium,load bearing
+GSM6765104,MFX223,obese,synovium,load bearing
+GSM6765105,MFX368,obese,synovium,load bearing
+GSM6765106,MFX337,obese,synovium,load bearing
+GSM6765107,RHH002,normal weight,synovium,non-load bearing
+GSM6765108,MFX260,normal weight,synovium,non-load bearing
+GSM6765109,MFX291,normal weight,synovium,non-load bearing
+GSM6765110,MFX230,obese,synovium,non-load bearing
+GSM6765111,MFX340,obese,synovium,non-load bearing
+GSM6765112,MFX224,obese,synovium,non-load bearing
+GSM6765113,MFX328,normal weight,synovium,load bearing
+GSM6765114,MFX349,normal weight,synovium,load bearing
+GSM6765115,MFX037,normal weight,synovium,load bearing
+GSM6765116,MFX243,obese,synovium,load bearing
+GSM6765117,MFX044,obese,synovium,load bearing
+GSM6765118,MFX231,obese,synovium,load bearing
+GSM6765119,RHH011,normal weight,synovium,load bearing
+GSM6765120,MFX314,normal weight,synovium,load bearing
+GSM6765121,RHH022,normal weight,synovium,load bearing
+GSM6765122,MFX285,obese,synovium,load bearing
+GSM6765123,MFX242,obese,synovium,load bearing
+GSM6765124,RHH012,obese,synovium,load bearing
