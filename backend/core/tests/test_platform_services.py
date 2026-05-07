@@ -876,8 +876,24 @@ class TestSiteLicenseService(TestCase):
         self.assertLess(end_date, datetime.utcnow())
 
     def test_license_usage_tracking(self):
-        """get_license_usage returns usage structure."""
-        usage = SiteLicenseService.get_license_usage("SFS-INST-TEST1234")
+        """get_license_usage returns the usage structure for a real license.
+
+        The pre-2026-05-06 service stubbed `get_license_usage` to always
+        return a populated dict regardless of the key, which let phantom
+        keys like "SFS-INST-TEST1234" pass. The DB-backed rewrite (Phase
+        3) returns ``{"error": "License not found"}`` for unknown keys
+        --- correct behavior, but it broke this test which never created
+        the license in the first place. Comprehensive coverage of the
+        new contract lives in ``test_site_license_service.py``; here we
+        just round-trip create -> usage to keep the smoke test honest.
+        """
+        created = SiteLicenseService.create_license(
+            institution_name="Smoke U",
+            tier_id="department",
+            admin_email="admin@smoke.edu",
+            domain="smoke.edu",
+        )
+        usage = SiteLicenseService.get_license_usage(created["license_key"])
         self.assertIn("license_key", usage)
         self.assertIn("active_users", usage)
         self.assertIn("total_analyses_this_month", usage)
@@ -939,11 +955,26 @@ class TestSiteLicenseService(TestCase):
         self.assertTrue(result["eligible"])
 
     def test_generate_usage_report(self):
-        """Usage report has expected structure."""
-        report = SiteLicenseService.generate_usage_report("SFS-INST-ABC", period="monthly")
-        self.assertEqual(report["period"], "monthly")
+        """Usage report has expected structure for a real license.
+
+        Same story as ``test_license_usage_tracking``: the previous
+        version of this test passed a phantom key ("SFS-INST-ABC") that
+        the legacy stub accepted; the DB-backed contract returns an
+        error dict for unknown keys. Round-trip create -> generate to
+        keep the smoke check meaningful. Full coverage of report shape
+        and aggregation lives in ``test_site_license_service.py``.
+        """
+        created = SiteLicenseService.create_license(
+            institution_name="Report U",
+            tier_id="school",
+            admin_email="admin@report.edu",
+            domain="report.edu",
+        )
+        report = SiteLicenseService.generate_usage_report(
+            created["license_key"], period="monthly"
+        )
+        self.assertNotIn("error", report)
         self.assertIn("report", report)
-        self.assertIn("total_users", report["report"])
         self.assertIn("generated_at", report)
 
 
