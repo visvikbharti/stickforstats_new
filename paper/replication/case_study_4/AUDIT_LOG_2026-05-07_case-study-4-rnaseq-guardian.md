@@ -387,3 +387,73 @@ GSE140343 had only FPKM not raw counts, GSE254331 had only .bw not
 counts, GSE266132 had timepoint/donor confound).
 
 ---
+
+---
+
+### 2026-05-07T13:30  —  Phase A → A-bis decision
+
+**Claim:** Case Study 4 will use **GSE271517** (synovial sarcoma, Chen Y
+et al. 2024, Adv Sci, n=46 SSX1 vs n=44 SSX2) as the primary dataset.
+GSE219027 (osteoarthritis fibroblasts, Wijesinghe et al. 2023, n=12 vs
+12) is retained as a documented fallback but not used in the manuscript.
+
+**Verification method:** PI evaluated the side-by-side comparison of
+both datasets (Phase A pick GSE219027 + Phase A-bis pick GSE271517).
+Both datasets had been independently verified by the orchestrator
+against live NCBI eutils calls (PubMed + GEO + PMC fetches matching
+agent-claimed metadata field-for-field).
+
+**Evidence:**
+- `evidence/A1_verdict.md` … `evidence/A4_verdict.md` (Phase A,
+  GSE219027 — retained as fallback)
+- `evidence/Aalt_verdict_A1.md` … `evidence/Aalt_verdict_A4.md`
+  (Phase A-bis, GSE271517 — now the active set)
+- All raw search/summary/fetch XMLs in `evidence/A0_*`, `Aalt_*`
+- Phase B partial finding for GSE219027 documented in
+  `data/file_format_check.md` (the deposited file is DESeq2
+  size-factor-normalized counts, not raw counts; pyDESeq2
+  reproduction would not have been possible — separate issue from
+  the switch decision but consistent with it).
+
+**Verdict:** PASS
+
+**Reasoning behind the switch (PI decision):**
+
+1. **Topic centrality.** Synovial sarcoma is squarely computational
+   biology (cancer molecular subtyping); osteoarthritis fibroblasts
+   is clinical/translational. PLOS Comp Bio reviewers are more
+   likely to find the cancer dataset central.
+2. **Statistical power.** n=44+ per group gives Guardian's per-gene
+   Shapiro-Wilk real power; n=12 per group makes those decisions
+   noisy. The upgraded n≥20-per-group selection criterion was the
+   driver of the rescout.
+3. **Bonus criterion partially hit.** The synovial sarcoma paper
+   uses DESeq2 for the DEG list but defaults to t-test for non-DEG
+   continuous comparisons WITHOUT describing per-variable normality
+   testing — exactly the gap Guardian addresses. Case Study 4 will
+   therefore showcase Guardian *catching real-bug-class behavior in
+   a published paper*, not just illustrating capability on a
+   hypothetical pipeline.
+4. **Phase C reproducibility.** GSE219027 has a stronger named-genes
+   list (8 genes), which would have made Phase C easier — but at the
+   cost of weaker Phase D (n=12 power). PI judged the Phase D
+   strength more important than Phase C convenience.
+
+**Operational consequences:**
+
+- All Phase A evidence is preserved. No files deleted. Phase A's
+  verdict files remain valid for what they verified (GSE219027
+  *was* a valid candidate that passed all 8 selection criteria of
+  the original Phase A scout); they are simply no longer the active
+  set.
+- Phase A-bis verdict files (`Aalt_verdict_A1.md` through
+  `Aalt_verdict_A4.md`) are now the active Phase A artefacts for
+  the case study. The TODO has been updated to point at them.
+- Phase B will be repeated for GSE271517 starting immediately
+  after this entry.
+
+**Notes:** No Charter violation. The Charter's "discrepancy honesty"
+rule (#5) applied here: the file-format finding for GSE219027
+(DESeq2-normalized rather than raw counts) was reported transparently
+rather than papered over, and the resulting Phase C complication
+contributed to the PI's decision to switch.

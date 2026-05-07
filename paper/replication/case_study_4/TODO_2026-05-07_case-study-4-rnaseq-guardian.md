@@ -15,8 +15,9 @@
 
 | Phase | Status | Started | Completed | Notes |
 |---|---|---|---|---|
-| A — Dataset selection | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:30 | GSE219027 chosen; awaiting PI sign-off |
-| B — Data download & sanity | ⬜ pending | — | — | Blocked on PI sign-off of A |
+| A — Dataset selection (initial) | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:30 | GSE219027 picked; PI flagged borderline n + topic centrality |
+| A-bis — Alternative scout | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:00 | GSE271517 picked (synovial sarcoma, n=46 vs 44); PI approved switch |
+| B — Data download & sanity | ✅ done | 2026-05-07T13:30 | 2026-05-07T14:10 | All 3 checkpoints PASS for GSE271517; raw integer counts confirmed; 91 samples (46 SSX1 + 44 SSX2 + 1 SSX4 excluded); 100% Ensembl IDs; Patient_Counts.csv also available for pseudoreplication-clean variant |
 | C — Reproduce original analysis | ⬜ pending | — | — | Blocked on B |
 | D — Guardian-augmented analysis | ⬜ pending | — | — | Blocked on C |
 | E — Write manuscript section | ⬜ pending | — | — | Blocked on D |
@@ -49,32 +50,39 @@
 
 **Phase A complete when:** all four checkpoints PASS and PI has signed off on the chosen dataset.
 
-**Chosen dataset:**
-- GSE219027 — bulk RNA-seq, n = 24 (12 obese + 12 normal-weight osteoarthritis patients)
+**Active dataset (post Phase A-bis switch):**
+- **GSE271517** — bulk RNA-seq, n = 90 (46 SSX1 + 44 SSX2; +1 SSX4 excluded)
+- Paper: Chen Y et al. 2024, *Adv Sci (Weinh)* 11(41):e2404510 (PMID 39257029, PMC11892499, DOI 10.1002/advs.202404510)
+- Test to reproduce: DESeq2 on raw counts (Methods quoted in `evidence/Aalt_verdict_A4.md`)
+- Active Phase A artefacts: `evidence/Aalt_verdict_A1.md`–`Aalt_verdict_A4.md`
+
+**Fallback dataset (Phase A initial pick, retained but not used in manuscript):**
+- GSE219027 — bulk RNA-seq, n = 24 (12 obese + 12 normal-weight osteoarthritis)
 - Paper: Wijesinghe et al. 2023, *Clin Transl Med* 13(4):e1232 (PMID 37006170, PMC10068310, DOI 10.1002/ctm2.1232)
-- Test to reproduce: DESeq2 with VST transformation (per-paper Methods §2.3)
-- Headline result to match: 416 DEGs at FC ±1.5, p<0.05; named genes MMP9, S100A8, TYROBP, ARG2, IKBKE, PALB2, UQCC3, COL4*
+- Phase A verdict files (`evidence/A1_verdict.md`–`A4_verdict.md`) and the data file `data/GSE219027_DESeq_Counts.txt.gz` remain in the repo as documented fallback. Excel-corruption side finding (`data/file_format_check.md`) may be cited as a one-sentence Discussion anecdote regardless of which dataset Case Study 4 uses.
 
 ---
 
 ## Phase B — Data download & sanity checks
 
+**Target dataset: GSE271517** (synovial sarcoma, SSX1 vs SSX2)
+
 ### Tasks
 
-- [ ] **B.1** Download supplementary files from chosen GSE record
-- [ ] **B.2** Identify the count matrix file (often `*_counts.txt.gz` or `*_raw_counts.csv.gz`)
-- [ ] **B.3** Identify the sample sheet (GEO `series_matrix.txt.gz` or supplementary metadata)
-- [ ] **B.4** Parse count matrix into pandas DataFrame; record dimensions
-- [ ] **B.5** Parse sample sheet; record sample → group assignments
-- [ ] **B.6** Compute QC: total reads per sample, gene-count distribution, missing-value rate
+- [x] **B.1** Download supplementary files: `GSE271517_Sample_Counts.csv.gz` (3.3 MB) + `GSE271517_Patient_Counts.csv.gz` (2.1 MB) — both present at NCBI FTP, MD5 sums recorded
+- [x] **B.2** Verified count files are raw integer counts (zero floats in 99 sampled rows × 91 columns) — pyDESeq2 reproduction is therefore possible
+- [x] **B.3** Parsed sample sheet → `data/GSE271517_sample_assignment.csv`; 91/91 column-header → GSM 1:1 alignment
+- [x] **B.4** Dimensions: 63,677 genes × 91 samples (Sample_Counts) and × 55 patients (Patient_Counts)
+- [x] **B.5** Group split: 46 SSX1 + 44 SSX2 + 1 SSX4 at sample-level; 28 SSX1 + 26 SSX2 + 1 SSX4 at patient-level (each fusion-gene assignment traces to `characteristics_ch1` of the GSM record)
+- [x] **B.6** QC sanity (reads/sample distribution, missing rate) deferred to Phase C — will be embedded in the replication script alongside DESeq2 reproduction
 
 ### Checkpoints
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **B1** | Dimensions match GEO metadata | ⬜ | `data/dimensions_check.md` | — |
-| **B2** | Sample-group assignments match `characteristics_ch1` | ⬜ | `data/sample_assignment.csv` | — |
-| **B3** | Gene IDs in standard format | ⬜ | `data/gene_id_check.md` | — |
+| **B1** | Dimensions match GEO metadata | ✅ | `data/GSE271517_dimensions_check.md` | PASS |
+| **B2** | Sample-group assignments match `characteristics_ch1` | ✅ | `data/GSE271517_sample_assignment.csv` | PASS |
+| **B3** | Gene IDs in standard format | ✅ | `data/GSE271517_dimensions_check.md` (B3 section) — 100% Ensembl, no Excel corruption | PASS |
 
 ---
 
