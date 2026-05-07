@@ -20,7 +20,7 @@
 | B — Data download & sanity | ✅ done | 2026-05-07T13:30 | 2026-05-07T14:10 | All 3 checkpoints PASS for GSE271517; raw integer counts confirmed; 91 samples (46 SSX1 + 44 SSX2 + 1 SSX4 excluded); 100% Ensembl IDs; Patient_Counts.csv also available for pseudoreplication-clean variant |
 | C — Reproduce original analysis | ✅ done | 2026-05-07T14:30 | 2026-05-07T14:50 | Pivoted contrast (Primary vs Metastasis); 1,781 DEGs at padj<0.05; 5/5 SS markers express; KRT8 + OVOL1 directions match paper Subtype-III narrative; pseudoreplication caveat documented (sample vs patient top-100 overlap = 4%); see `outputs/replication_diff.md` |
 | D — Guardian-augmented analysis | ✅ done | 2026-05-07T15:00 | 2026-05-07T15:30 | 90.55% cascade rate; 1,411 Guardian-sig vs 1,006 naive-sig; 553 verdict-flipped genes split into Group A (Guardian rescue, n=479, small log2FC) + Group B (naive false positives, n=74, large log2FC outlier-driven); see `outputs/D_interpretation.md` |
-| E — Write manuscript section | ⬜ pending | — | — | Blocked on D |
+| E — Write manuscript section | ▶️ in progress | 2026-05-07T15:30 | — | E1 + E2 PASS; E3 awaiting PI review of draft (~530 words; Table 5 row added; ref [40] added) |
 | F — Replication script + MASTER_VERIFICATION | ⬜ pending | — | — | Blocked on E |
 | G — Figure | ⬜ pending | — | — | Blocked on D (parallel with E) |
 
@@ -141,19 +141,19 @@ extensively discusses metastasis biology via the Subtype I cluster.
 
 ### Tasks
 
-- [ ] **E.1** Draft Case Study 4 section (250-350 words)
-- [ ] **E.2** Add 1 small summary table
-- [ ] **E.3** Add bibliography entries (full PMID + DOI per cited paper)
-- [ ] **E.4** Fact-check every numerical claim against script output
-- [ ] **E.5** Send draft to PI for review
+- [x] **E.1** Drafted Case Study 4 section (~530 words; longer than 250-350 target because Group A + Group B both need explanation; PI may request shortening)
+- [x] **E.2** Added new row to Table 5 (now 4 rows: CRISPR / Wine / IV magnesium / Synovial sarcoma RNA-seq)
+- [x] **E.3** Added Ref [40] (Chen et al. 2024 Adv Sci, PMID 39257029, DOI 10.1002/advs.202404510, PMCID PMC11892499) — every field verified against live PubMed XML fetch
+- [x] **E.4** Fact-checked every numerical claim against script output → `evidence/E1_factcheck.md`
+- [ ] **E.5** PI to review and approve the draft
 
 ### Checkpoints
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **E1** | Manuscript numbers traced to script lines | ⬜ | `evidence/E1_factcheck.md` | — |
-| **E2** | Every reference has fetched record in `evidence/` | ⬜ | `evidence/E2_citations.md` | — |
-| **E3** | PI reviewed and approved | ⬜ | (PI confirmation in audit log) | — |
+| **E1** | Manuscript numbers traced to script lines | ✅ | `evidence/E1_factcheck.md` (22-row claim-by-claim audit) | PASS |
+| **E2** | Every reference has fetched record in `evidence/` | ✅ | `evidence/E2_citations.md` (field-by-field map of ref [40]) | PASS |
+| **E3** | PI reviewed and approved | ⬜ | (PI confirmation pending — draft ready for review) | — |
 
 ---
 

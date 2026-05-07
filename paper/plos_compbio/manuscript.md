@@ -208,6 +208,25 @@ We re-analyzed the 16 randomized trials of intravenous magnesium for prevention 
 
 **Guardian findings:** Confidence Score = 0.42 (BLOCKED). Guardian detected a CRITICAL publication-bias signal via Egger's regression test (intercept = -1.60, t = -5.78, df = 14, p < 0.001) --- the funnel plot is severely asymmetric, with smaller studies systematically reporting larger benefits. Guardian recommended sensitivity analysis: re-pooling without the smallest 25% of studies attenuates the effect substantially, and the largest single trial (ISIS-4) shows essentially no effect (log OR = 0.06). This case study illustrates Guardian's role in surfacing limit-bias issues *before* a researcher publishes a pooled estimate that subsequent large trials may overturn.
 
+### Case Study 4: Synovial sarcoma RNA-seq --- per-gene assumption checking at scale
+
+To exercise Guardian on a real high-throughput biology workflow we re-analysed GSE271517 [40], 91 bulk RNA-seq tumours from 55 synovial-sarcoma patients (Chen et al., *Adv Sci* 2024). The original authors deposited raw integer counts and described their downstream test selection in their Methods Section §4 verbatim:
+
+> "The unpaired Student's t-test was used to analyze the comparison between two continuous variables and a normally distributed variable. Non-normally distributed variables were analyzed with the Mann-Whitney U test."
+
+The paper does not specify how normality was tested per variable --- a sound principle applied informally. Case Study 4 evaluates what Guardian's per-gene normality cascade produces on the same data.
+
+We compared primary tumours (n = 55) versus metastases (n = 36) using the platform's genomics differential-expression module. After filtering to 27,221 genes (>=10 reads in >=3 samples) and log2(CPM+1) transformation, two pipelines were run on the identical matrix: a naive parametric default (per-gene Welch t-test) and the Guardian-augmented pipeline (per-gene Shapiro-Wilk + Levene, automatic cascade to Mann-Whitney U on violation, Benjamini-Hochberg FDR).
+
+**Traditional approach (naive t-test):** 1,006 genes significant at q < 0.05.
+
+**Guardian findings:** 24,391 normality violations and 2,394 variance heterogeneity violations triggered cascade to Mann-Whitney U for **24,648 of 27,221 genes (90.55%)**. 1,411 genes were significant at q < 0.05; 553 genes flipped verdict between the two pipelines. The flipped set splits into two qualitatively different groups:
+
+* **Group A (Guardian rescued, n = 479):** small effects (median |log2FC| = 0.20) where naive t-test was just under-powered (median naive q = 0.07) but rank-based Mann-Whitney detected the consistent shift (median Guardian q = 0.04).
+* **Group B (Guardian rejected, n = 74):** outlier-dominated genes with much larger apparent effects (median |log2FC| = 0.46; 31% with |log2FC| >= 1) where naive t-test was misled by a few extreme samples and Mann-Whitney correctly recognised that most observations in both groups overlapped.
+
+Both proliferation markers MKI67 (log2FC = +0.23, q = 0.019) and TOP2A (+0.24, q = 0.040) were significant in both pipelines and up-regulated in metastasis, consistent with the original paper's "Subtype I = hyperproliferative + metastatic" finding. The 90.55% cascade rate is itself the headline: per-gene RNA-seq distributions on the log-CPM scale are intrinsically non-normal --- which is why the field has converged on count-based GLMs (DESeq2, edgeR) and why the original paper's principle ("t-test for normal variables; Mann-Whitney otherwise") is the right one. Guardian operationalises that principle automatically, at scale, without requiring the analyst to remember to run normality checks per variable.
+
 ### Case study summary
 
 **Table 5. Summary of case study findings.**
@@ -217,8 +236,9 @@ We re-analyzed the 16 randomized trials of intravenous magnesium for prevention 
 | CRISPR strategies | Non-normality + small n | Unreliable ANOVA | Kruskal-Wallis |
 | Wine | Non-normality (ordinal) | Inappropriate r | Spearman's rho |
 | IV magnesium meta-analysis [25,38] | Publication bias (Egger p < 0.001) | Inflated pooled effect | Sensitivity analysis |
+| Synovial sarcoma RNA-seq [40] | Non-normality per gene (90.55% of 27,221 genes) | 553 genes verdict-flipped (479 Guardian rescues, 74 t-test false positives rejected) | Per-gene Mann-Whitney cascade |
 
-In all three cases, the primary statistical conclusion remained unchanged after addressing violations. However, the *appropriate method* differed from the naive approach. Guardian ensures researchers are informed of these issues automatically.
+In all four cases, Guardian flagged a methodological issue and recommended an appropriate alternative. The first three cases preserved the primary conclusion under the corrected method; the fourth case quantifies how much the *gene list* changes when assumptions are checked at scale. Guardian ensures researchers are informed of these issues automatically.
 
 ![**Fig 3. Case study results.** (A) CRISPR editing strategy comparison: TOPSIS scores across four modalities for 10 variants. Guardian detected normality WARNING, cascaded to Kruskal-Wallis (p < 0.001). (B) Meta-analysis forest plot of 16 RCTs of intravenous magnesium for acute myocardial infarction (Egger 1997 [25]; Sterne & Egger 2001 [38]; data: `metafor::dat.egger2001` [39]). Marker size indicates random-effects weight; the diamond shows the pooled estimate. Guardian detected severe funnel asymmetry (Egger's t = -5.78, p < 0.001) --- the small early trials systematically over-estimated benefit relative to LIMIT-2 and ISIS-4.](figures/fig3_case_studies.png){ width=95% }
 
@@ -319,6 +339,7 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 37. Bharti V, Chakraborty D. CRISPRArchitect v3: Multi-nuclease, consequence-guided decision support for genome editing strategy design. GitHub. 2026. https://github.com/visvikbharti/CRISPRArchitect
 38. Sterne JAC, Egger M. Funnel Plots for Detecting Bias in Meta-Analysis: Guidelines on Choice of Axis. J Clin Epidemiol. 2001;54(10):1046-1055.
 39. Viechtbauer W. Conducting Meta-Analyses in R with the metafor Package. J Stat Softw. 2010;36(3):1-48.
+40. Chen Y, Su Y, Cao X, Siavelis I, Leo IR, Zeng J, Tsagkozis P, Hesla AC, Papakonstantinou A, Liu X, Huang W-K, Zhao B, Haglund C, Ehnman M, Johansson H, Lin Y, Lehtiö J, Zhang Y, Larsson O, Li X, de Flon FH. Molecular Profiling Defines Three Subtypes of Synovial Sarcoma. Adv Sci (Weinh). 2024;11(41):e2404510. doi:10.1002/advs.202404510. PMID: 39257029. PMCID: PMC11892499.
 
 ---
 

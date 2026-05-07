@@ -795,3 +795,71 @@ output files in `outputs/D_*.csv` and `outputs/D_*.md`):**
 **Next checkpoint:** Phase E (E1, E2, E3) — write the Case Study 4
 manuscript section, fact-check every numerical claim against
 `outputs/D_*` and `outputs/C_*`, send to PI for review.
+
+---
+
+### 2026-05-07T15:50  —  Phase E, Checkpoint E1 (manuscript fact-check)
+
+**Claim:** Every numerical claim in the new Case Study 4 manuscript
+section traces to a script output file in `outputs/` or to a live API
+fetch in `evidence/`.
+
+**Verification method:** wrote `evidence/E1_factcheck.md` with a 22-row
+claim-by-claim source map. Each manuscript number is mapped to the
+specific output file + line/section that produced it.
+
+**Evidence:** `evidence/E1_factcheck.md`
+
+**Verdict:** PASS
+
+**Notes:** rows 14, 15, 16, 18, 19 of the audit are computed-in-session
+values from `outputs/D_guardian_vs_naive.csv` (Group A / Group B median
+log2FC and median q values). The computation is deterministic and
+reproducible from the CSV. No values were imported from training memory.
+
+---
+
+### 2026-05-07T15:50  —  Phase E, Checkpoint E2 (citation completeness)
+
+**Claim:** The single new reference (Chen et al. 2024, ref [40]) has
+every bibliographic field traceable to a live-fetched NCBI eutils
+PubMed record. No other references were added or modified.
+
+**Verification method:** field-by-field map of every component of the
+[40] entry to its source line in `evidence/Aalt_candidate_GSE271517_pubmed.xml`,
+plus cross-validation against the orchestrator's independent re-fetch
+performed during Phase A independent verification (audit-log entry
+2026-05-07T13:00).
+
+**Evidence:** `evidence/E2_citations.md`
+
+**Verdict:** PASS
+
+---
+
+### 2026-05-07T15:50  —  Phase E (draft ready for PI review)
+
+**Claim:** The new Case Study 4 manuscript section is drafted (~530 words,
+slightly above the 250-350 PLAN target), reference [40] is added to the
+bibliography, Table 5 has a new row, and all numerical claims are
+fact-checked.
+
+**Verification method:** read the manuscript diff vs commit 3c0f8a0;
+ran the E1 + E2 fact-check audits; confirmed pyDESeq2 + cascade output
+files all referenced.
+
+**Evidence:**
+- `paper/plos_compbio/manuscript.md` (modified — Case Study 4 section + Table 5 row + Ref [40])
+- `evidence/E1_factcheck.md`
+- `evidence/E2_citations.md`
+
+**Verdict:** Draft ready. **E3 (PI review) is the only remaining Phase E
+checkpoint.**
+
+**Notes on length:** the draft came in at ~530 words rather than the
+250-350-word target because the case study has two qualitatively
+different findings (Group A rescue + Group B rejection) that each
+need explanation. PI may request shortening; if so, the Group B
+explanation could be compressed to one sentence with the detail
+relegated to S1 Text. The current verbosity prioritises clarity over
+brevity.
