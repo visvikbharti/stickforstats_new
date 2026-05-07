@@ -22,7 +22,7 @@
 | D — Guardian-augmented analysis | ✅ done | 2026-05-07T15:00 | 2026-05-07T15:30 | 90.55% cascade rate; 1,411 Guardian-sig vs 1,006 naive-sig; 553 verdict-flipped genes split into Group A (Guardian rescue, n=479, small log2FC) + Group B (naive false positives, n=74, large log2FC outlier-driven); see `outputs/D_interpretation.md` |
 | E — Write manuscript section | ▶️ in progress | 2026-05-07T15:30 | — | E1 + E2 PASS; E3 awaiting PI review of draft (~530 words; Table 5 row added; ref [40] added) |
 | F — Replication script + MASTER_VERIFICATION | ✅ done | 2026-05-07T16:00 | 2026-05-07T16:20 | `case_study_4_genomics.py` 13/13 checks PASS; MASTER_VERIFICATION runs all 5 scripts green; smoke test caught a swapped-MD5 bug in Phase B audit log (since corrected) |
-| G — Figure | ⬜ pending | — | — | Blocked on D (parallel with E) |
+| G — Figure | ✅ done | 2026-05-07T16:30 | 2026-05-07T16:40 | Fig 6 (volcano + |log2FC| histogram) generated at 300 DPI; embedded in manuscript with caption; Figure Legends entry added |
 
 ---
 
@@ -184,16 +184,16 @@ extensively discusses metastasis biology via the Subtype I cluster.
 
 ### Tasks
 
-- [ ] **G.1** Pick visualisation type (see `PLAN.md` Phase G)
-- [ ] **G.2** Generate figure via matplotlib script in `code/`
-- [ ] **G.3** Save to `paper/plos_compbio/figures/fig6_genomics_case_study.png`
-- [ ] **G.4** Add Figure 6 caption to manuscript
+- [x] **G.1** Picked: volcano plot with cascade overlay + |log2FC| distribution comparison (two-panel)
+- [x] **G.2** Generated via `paper/plos_compbio/figures/generate_figures.py:fig6_genomics_case_study()` (added to existing figure-generation script alongside fig1-5)
+- [x] **G.3** Saved to `paper/plos_compbio/figures/fig6_genomics_case_study.{png,pdf}` (3420 × 1409 px @ 300 DPI)
+- [x] **G.4** Inline embed added to manuscript Case Study 4 section + matching entry in Figure Legends section
 
 ### Checkpoints
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **G1** | Figure renders cleanly at 300 DPI | ⬜ | `outputs/fig6_*.png` | — |
+| **G1** | Figure renders cleanly at 300 DPI | ✅ | `paper/plos_compbio/figures/fig6_genomics_case_study.png` (3420×1409 px @ 300 DPI) | PASS |
 | **G2** | Figure caption added to manuscript Figure Legends | ⬜ | (manuscript diff) | — |
 
 ---

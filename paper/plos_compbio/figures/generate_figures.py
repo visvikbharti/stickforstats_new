@@ -418,6 +418,109 @@ def fig4_manuscript_review():
     plt.close()
 
 
+# ═══════════════════════════════════════════════════════════════════
+# Figure 6: Case Study 4 — Guardian vs naive on synovial-sarcoma RNA-seq
+# ═══════════════════════════════════════════════════════════════════
+
+def fig6_genomics_case_study():
+    """Volcano plot + |log2FC| distribution showing Guardian's two
+    protective behaviors on real RNA-seq data (GSE271517).
+
+    Panel A: Volcano plot, all 27,221 genes colored by hit-list category.
+    Panel B: |log2FC| histograms for Group A (Guardian rescued) and
+             Group B (Guardian rejected) showing the two-pattern result.
+    """
+    import pandas as pd  # noqa: PLC0415
+
+    csv_path = os.path.join(
+        BASE, '..', '..', 'replication', 'case_study_4',
+        'outputs', 'D_guardian_vs_naive.csv',
+    )
+    df = pd.read_csv(csv_path, index_col=0)
+
+    # -log10 padj for the volcano y-axis. Cap at 1e-50 to keep axis scale
+    # sane (some hits go to padj=0; the cap is a presentation choice).
+    g_padj = df['adjusted_p_value'].clip(lower=1e-50)
+    df = df.assign(neg_log10_padj=-np.log10(g_padj.values))
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.8))
+
+    # ---------------- Panel A: Volcano plot ----------------
+    ax = axes[0]
+
+    cat_color = {
+        'neither':       ('#cccccc', 0.30, 4),   # gray, faint
+        'hit_by_both':   ('#555555', 0.70, 8),   # dark gray
+        'guardian_only': ('#1565c0', 0.85, 14),  # blue (project palette)
+        'naive_only':    ('#e74c3c', 0.85, 14),  # red, stands out
+    }
+    # Plot in size order so important categories sit on top
+    order = ['neither', 'hit_by_both', 'guardian_only', 'naive_only']
+    for cat in order:
+        sub = df[df['category'] == cat]
+        color, alpha, size = cat_color[cat]
+        ax.scatter(
+            sub['log2_fold_change'], sub['neg_log10_padj'],
+            c=color, alpha=alpha, s=size, edgecolors='none',
+            label=f"{cat.replace('_', ' ')}: {len(sub):,}",
+        )
+
+    # Threshold lines
+    ax.axhline(-np.log10(0.05), color='#777', linestyle='--', linewidth=0.6, alpha=0.5)
+    ax.axvline(0, color='#777', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    ax.set_xlabel('log2 fold change (Metastasis vs Primary)', fontsize=10)
+    ax.set_ylabel('-log10 (Guardian adjusted p)', fontsize=10)
+    ax.set_xlim(-7, 7)
+
+    leg = ax.legend(loc='upper right', fontsize=8, framealpha=0.95,
+                    title='Hit-list category', title_fontsize=8.5)
+    leg.get_frame().set_edgecolor('#ddd')
+
+    ax.set_title('A  Volcano plot with Guardian-vs-naive categories',
+                 loc='left', fontsize=11, fontweight='bold', pad=6)
+    ax.grid(True, alpha=0.2, linewidth=0.4)
+
+    # ---------------- Panel B: |log2FC| distribution ----------------
+    ax = axes[1]
+
+    g_only = df[df['category'] == 'guardian_only']['log2_fold_change'].abs()
+    n_only = df[df['category'] == 'naive_only']['log2_fold_change'].abs()
+
+    bins = np.linspace(0, 4, 25)
+    ax.hist(
+        g_only, bins=bins, color='#1565c0', alpha=0.65,
+        edgecolor='#0d47a1', linewidth=0.5,
+        label=f'Group A: Guardian rescued (n = {len(g_only)})\nmedian |log2FC| = {g_only.median():.2f}',
+        density=True,
+    )
+    ax.hist(
+        n_only, bins=bins, color='#e74c3c', alpha=0.65,
+        edgecolor='#b71c1c', linewidth=0.5,
+        label=f'Group B: Guardian rejected (n = {len(n_only)})\nmedian |log2FC| = {n_only.median():.2f}',
+        density=True,
+    )
+
+    ax.axvline(1.0, color='#444', linestyle=':', linewidth=0.7, alpha=0.7)
+    ax.text(1.05, ax.get_ylim()[1] * 0.92,
+            f'|log2FC| ≥ 1\nGroup A: {(g_only >= 1).sum()} ({100*(g_only >= 1).mean():.0f}%)\nGroup B: {(n_only >= 1).sum()} ({100*(n_only >= 1).mean():.0f}%)',
+            fontsize=7.5, va='top', color='#333')
+
+    ax.set_xlabel('|log2 fold change|', fontsize=10)
+    ax.set_ylabel('Density', fontsize=10)
+    ax.set_xlim(0, 4)
+    ax.legend(loc='upper right', fontsize=8, framealpha=0.95)
+    ax.set_title('B  Effect-size distribution of verdict-flipped genes',
+                 loc='left', fontsize=11, fontweight='bold', pad=6)
+    ax.grid(True, alpha=0.2, linewidth=0.4)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(BASE, 'fig6_genomics_case_study.png'))
+    plt.savefig(os.path.join(BASE, 'fig6_genomics_case_study.pdf'))
+    print("Saved fig6_genomics_case_study.png/pdf")
+    plt.close()
+
+
 if __name__ == '__main__':
     print("Generating PLOS Comp Bio figures...\n")
     fig1_architecture()
@@ -425,4 +528,5 @@ if __name__ == '__main__':
     fig3_case_studies()
     fig4_manuscript_review()
     fig5_validation()
+    fig6_genomics_case_study()
     print("\nAll figures generated successfully!")
