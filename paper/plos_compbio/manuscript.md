@@ -17,7 +17,7 @@ We present StickForStats, an open-source web platform that reframes assumption v
 
 We demonstrate Guardian on three real datasets. In a CRISPR editing-strategy comparison using TOPSIS scores from CRISPRArchitect v3 across four modalities (base editing, prime editing, and two HDR variants), Guardian detected non-normality and cascaded ANOVA (F = 1122, p < 10^-35^) to Kruskal-Wallis (H = 36.6, p < 10^-7^), identifying base editing as the safest modality for iPSC applications. In a UCI Wine Quality correlation analysis, Guardian flagged ordinal data and switched Pearson (r = 0.476) to Spearman (ρ = 0.479). In a twelve-trial meta-analysis, Guardian detected publication bias (Egger's p = 0.024) that a conventional pipeline would have missed.
 
-A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against seven specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath and cross-checked against G\*Power. The platform is MIT-licensed with 1,088 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
+A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against seven specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath and cross-checked against G\*Power. The platform is MIT-licensed with more than 1,500 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
 
 **Keywords:** statistical assumption validation, reproducibility, computational biology, CRISPR analysis, manuscript review, meta-analysis, open-source software
 
@@ -130,7 +130,7 @@ Forty-five rules across six categories (test selection, assumption reporting, ef
 
 ### Platform comparison
 
-Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. At submission the platform exposes 198 REST endpoints across 15 modules, ships eight Guardian validators (covered by 38 integration and middleware tests, plus 46 dedicated validator tests) and 45 Statistical Quality Score rules across six categories, localizes its interface into 16 languages (10 with full UI translation, 6 with navigation-only translation), and ships with Python and R SDKs, a PWA-capable web interface, a Manifest V3 browser extension, and companion React Native (mobile) and Tauri (desktop) clients. The test suite comprises 1,088 automated tests (515 backend, 573 frontend) executed in CI; at time of writing all required CI checks are green on the main branch.
+Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. At submission the platform exposes 198 REST endpoints across 15 modules, ships eight Guardian validators (covered by 38 integration and middleware tests, plus 46 dedicated validator tests) and 45 Statistical Quality Score rules across six categories, localizes its interface into 16 languages (10 with full UI translation, 6 with navigation-only translation), and ships with Python and R SDKs, a PWA-capable web interface, a Manifest V3 browser extension, and companion React Native (mobile) and Tauri (desktop) clients. The test suite comprises more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed in CI; at time of writing all required CI checks are green on the main branch.
 
 **Table 3. Feature comparison: StickForStats vs. existing statistical platforms.**
 
@@ -224,7 +224,7 @@ In all three cases, the primary statistical conclusion remained unchanged after 
 
 ### Software testing and continuous integration
 
-StickForStats maintains 1,088 automated tests (515 backend, 573 frontend) executed via GitHub Actions on every commit. The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
+StickForStats maintains more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed via GitHub Actions on every commit. The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
 
 ## Discussion
 
@@ -272,7 +272,7 @@ Each Guardian validator was validated against known datasets with confirmed prop
 
 ## AI Disclosure
 
-Development of StickForStats was assisted by Claude (Anthropic). All AI-generated code was reviewed, tested against reference implementations, and validated through the project's continuous integration pipeline (515 backend tests, 573 frontend tests, all passing). Statistical correctness was verified independently against SciPy, R, and G\*Power.
+Development of StickForStats was assisted by Claude (Anthropic). All AI-generated code was reviewed, tested against reference implementations, and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). Statistical correctness was verified independently against SciPy, R, and G\*Power.
 
 ## Acknowledgements
 
