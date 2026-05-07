@@ -131,7 +131,12 @@ class TestRunStatisticalAnalysis(TestCase):
     @patch("core.services.smart_profiler.SmartProfiler")
     def test_run_statistical_analysis_basic(self, mock_profiler_cls, mock_engine_cls):
         """Happy path: task executes cascade engine and returns result."""
-        mock_engine_cls.execute_with_cascade.return_value = {
+        # `execute_with_cascade` is an instance method, so the production
+        # task must call `Engine().execute_with_cascade(...)`. Asserting
+        # against `mock_engine_cls.return_value.execute_with_cascade`
+        # ensures we catch any regression that drops the instantiation.
+        instance = mock_engine_cls.return_value
+        instance.execute_with_cascade.return_value = {
             "test_type": "ttest",
             "p_value": 0.03,
             "cascade_path": ["ttest"],
@@ -139,7 +144,8 @@ class TestRunStatisticalAnalysis(TestCase):
 
         result = run_statistical_analysis(self.analysis_config)
 
-        mock_engine_cls.execute_with_cascade.assert_called_once_with(
+        mock_engine_cls.assert_called_once_with()  # instantiated
+        instance.execute_with_cascade.assert_called_once_with(
             data=self.analysis_config["data"],
             intended_test="ttest",
             alpha=0.05,
@@ -151,7 +157,8 @@ class TestRunStatisticalAnalysis(TestCase):
     @patch("core.services.smart_profiler.SmartProfiler")
     def test_run_statistical_analysis_error(self, mock_profiler_cls, mock_engine_cls):
         """On error the task should raise (triggering retry in non-eager mode)."""
-        mock_engine_cls.execute_with_cascade.side_effect = ValueError("Bad data")
+        instance = mock_engine_cls.return_value
+        instance.execute_with_cascade.side_effect = ValueError("Bad data")
 
         with self.assertRaises(Exception):
             run_statistical_analysis(self.analysis_config)
@@ -166,7 +173,8 @@ class TestRunStatisticalAnalysis(TestCase):
             "cascade_path": ["anova"],
             "f_statistic": 12.5,
         }
-        mock_engine_cls.execute_with_cascade.return_value = expected
+        instance = mock_engine_cls.return_value
+        instance.execute_with_cascade.return_value = expected
 
         config = {**self.analysis_config, "test_type": "anova"}
         result = run_statistical_analysis(config)
@@ -178,7 +186,8 @@ class TestRunStatisticalAnalysis(TestCase):
     @patch("core.services.smart_profiler.SmartProfiler")
     def test_run_statistical_analysis_default_alpha(self, mock_profiler_cls, mock_engine_cls):
         """When alpha is not specified, should default to 0.05."""
-        mock_engine_cls.execute_with_cascade.return_value = {"test_type": "ttest"}
+        instance = mock_engine_cls.return_value
+        instance.execute_with_cascade.return_value = {"test_type": "ttest"}
 
         config = {
             "test_type": "ttest",
@@ -187,7 +196,7 @@ class TestRunStatisticalAnalysis(TestCase):
         }
         run_statistical_analysis(config)
 
-        _, kwargs = mock_engine_cls.execute_with_cascade.call_args
+        _, kwargs = instance.execute_with_cascade.call_args
         self.assertEqual(kwargs["alpha"], 0.05)
 
 

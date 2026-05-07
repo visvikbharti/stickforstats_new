@@ -12,7 +12,8 @@ import os
 import django
 
 # Add both backend and project root to path
-backend_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.dirname(script_dir)  # script lives in backend/dev_scripts/
 project_root = os.path.dirname(backend_dir)
 sys.path.insert(0, backend_dir)
 sys.path.insert(0, project_root)

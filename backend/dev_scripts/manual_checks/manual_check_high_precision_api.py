@@ -4,7 +4,13 @@ Test script for high-precision API implementation
 """
 
 import os
+import sys
 import django
+
+# Add backend dir to path so `core.*` imports resolve when run from anywhere
+script_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.dirname(os.path.dirname(script_dir))  # backend/dev_scripts/manual_checks/
+sys.path.insert(0, backend_dir)
 
 # Setup Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "stickforstats.settings")

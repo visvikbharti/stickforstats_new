@@ -38,8 +38,13 @@ def run_statistical_analysis(self, analysis_config):
         # Import here to avoid circular imports
         from core.services.cascade_engine import AutonomousCascadeEngine
 
-        # Run Guardian cascade
-        result = AutonomousCascadeEngine.execute_with_cascade(
+        # Run Guardian cascade. execute_with_cascade is an instance method
+        # (it relies on self.guardian set in __init__), so we must instantiate
+        # before calling --- previously this was `AutonomousCascadeEngine.execute_with_cascade(...)`
+        # which silently passed unit tests because the test mocked the class
+        # (mock-of-class hides missing-self bugs); see test_celery_tasks.py.
+        engine = AutonomousCascadeEngine()
+        result = engine.execute_with_cascade(
             data=data,
             intended_test=test_type,
             alpha=parameters.get("alpha", 0.05),

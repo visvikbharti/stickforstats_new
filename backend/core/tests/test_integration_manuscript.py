@@ -47,14 +47,7 @@ from core.manuscript.manuscript_guardian import (
 )
 
 try:
-    pass
-
-    VALIDATORS_AVAILABLE = True
-except ImportError:
-    VALIDATORS_AVAILABLE = False
-
-try:
-    pass
+    from core.sqs_scoring import SQSScorer  # noqa: F401  (gated by @skipUnless below)
 
     SQS_AVAILABLE = True
 except ImportError:
