@@ -1,0 +1,15 @@
+symbol,ensembl_id,chromosome,biotype,role,description
+TLE1,ENSG00000196781,9,protein_coding,SS_marker,TLE1 corepressor; canonical SS IHC marker
+SS18,ENSG00000141380,18,protein_coding,SS_marker,SS18 (formerly SYT); the 'SS18' half of SS18::SSX fusion
+SSX1,ENSG00000126752,X,protein_coding,SS_marker,SSX family member 1; SSX1 fusion partner
+SSX2,ENSG00000241476,X,protein_coding,SS_marker,SSX family member 2; SSX2 fusion partner
+BCL2,ENSG00000171791,18,protein_coding,SS_marker,B-cell lymphoma 2; commonly overexpressed in SS
+MKI67,ENSG00000148773,10,protein_coding,metastasis_prolif,Ki-67; canonical proliferation marker
+TOP2A,ENSG00000131747,17,protein_coding,metastasis_prolif,Topoisomerase II alpha; proliferation marker
+VIM,ENSG00000026025,10,protein_coding,metastasis_EMT,Vimentin; mesenchymal marker
+SNAI1,ENSG00000124216,20,protein_coding,metastasis_EMT,Snail family transcriptional repressor 1
+ZEB1,ENSG00000148516,10,protein_coding,metastasis_EMT,Zinc finger E-box binding homeobox 1
+CDH1,ENSG00000039068,16,protein_coding,metastasis_epithelial,E-cadherin; epithelial junction
+KRT8,ENSG00000170421,12,protein_coding,metastasis_epithelial,Keratin 8; mentioned in paper for biphasic SS
+KRT18,ENSG00000111057,12,protein_coding,metastasis_epithelial,Keratin 18; epithelial intermediate filament
+OVOL1,ENSG00000172818,11,protein_coding,paper_named,OVOL1; paper §2.10 'OVOL1 and KRT8 may Determine Epithelial Transition of SS Cells'

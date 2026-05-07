@@ -342,4 +342,58 @@ To prevent scope creep:
 When the plan is amended, append entries below (date-stamped, brief
 rationale). The original plan above remains unchanged.
 
-*(no amendments yet)*
+### Amendment 1 — 2026-05-07T13:30 — Dataset switch (Phase A → A-bis)
+
+After PI compared the Phase A pick (GSE219027) and Phase A-bis pick
+(GSE271517) side-by-side, the active dataset for the case study was
+switched from GSE219027 (osteoarthritis fibroblasts, n=12 vs 12,
+clinical/translational) to **GSE271517** (synovial sarcoma, n=46 vs
+44 fusion partners, central comp-bio). Phase A artefacts for
+GSE219027 are retained as documented fallback. See
+`AUDIT_LOG_2026-05-07_…` entry "Phase A → A-bis decision" for full
+rationale and consequences.
+
+### Amendment 2 — 2026-05-07T14:30 — Phase C contrast change (Primary vs Metastasis)
+
+After reading the GSE271517 paper's PMC fulltext, two facts emerged
+that the planning phase did not have:
+
+1. The paper explicitly states **no biological difference between
+   SSX1 and SSX2 fusions** (§2.7, log-rank P = 0.637/0.494 for
+   OS/MFS). No SSX1-vs-SSX2 DEG list is reported. Running that
+   contrast would yield ~null results.
+2. The paper's **Statistics section** describes informal/ad-hoc test
+   selection ("t-test for normally distributed variables, Mann-
+   Whitney for non-normally distributed") **without describing how
+   normality was tested per variable** — exactly the gap Guardian
+   addresses. This is the "real-bug-class behavior" angle.
+
+**Phase C contrast changed:** SSX1-vs-SSX2 → **Primary tumor (n=55)
+vs Metastasis (n=36)**, sample-level, with patient-level sensitivity
+analysis as a robustness check.
+
+**C1 checkpoint redefined:**
+- Old: "≥80% of paper's top hits in our top-100"
+- New: "≥5 canonical SS marker genes (TLE1, SS18, SSX1, SSX2,
+  BCL2) express at biologically-plausible levels in our matrix,
+  AND ≥4 of 8 metastasis-associated genes (MKI67, TOP2A, VIM,
+  SNAI1, ZEB1, CDH1, KRT8, KRT18) show canonically-expected
+  direction (proliferation/EMT up in metastasis; epithelial loss)."
+
+**Phase D narrative sharpened:** Guardian formalizes what the paper
+did informally — automatic per-gene Shapiro-Wilk + Levene's, with
+cascade to Mann-Whitney for genes that fail normality. Comparison
+of hit lists with vs without Guardian quantifies how many genes the
+paper's informal procedure could have miscategorised.
+
+**Phase E framing template added** (to be expanded in Phase E):
+> "The original authors followed a sound statistical principle:
+> choose t-test or Mann-Whitney based on whether the variable is
+> normally distributed. But the procedure was informal — they did
+> not describe a per-variable normality testing protocol. We
+> applied Guardian's per-gene Shapiro-Wilk + Levene's pipeline to
+> the same data, found N% of genes flagged for non-normality, and
+> the resulting hit list differed from naive t-test by X genes."
+
+See `AUDIT_LOG_2026-05-07_…` entry "Phase C plan revision" for
+the verbatim paper quotes that drove this change.

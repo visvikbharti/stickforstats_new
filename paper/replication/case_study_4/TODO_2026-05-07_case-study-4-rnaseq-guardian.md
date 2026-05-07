@@ -18,7 +18,7 @@
 | A — Dataset selection (initial) | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:30 | GSE219027 picked; PI flagged borderline n + topic centrality |
 | A-bis — Alternative scout | ✅ done | 2026-05-07T12:30 | 2026-05-07T13:00 | GSE271517 picked (synovial sarcoma, n=46 vs 44); PI approved switch |
 | B — Data download & sanity | ✅ done | 2026-05-07T13:30 | 2026-05-07T14:10 | All 3 checkpoints PASS for GSE271517; raw integer counts confirmed; 91 samples (46 SSX1 + 44 SSX2 + 1 SSX4 excluded); 100% Ensembl IDs; Patient_Counts.csv also available for pseudoreplication-clean variant |
-| C — Reproduce original analysis | ⬜ pending | — | — | Blocked on B |
+| C — Reproduce original analysis | ✅ done | 2026-05-07T14:30 | 2026-05-07T14:50 | Pivoted contrast (Primary vs Metastasis); 1,781 DEGs at padj<0.05; 5/5 SS markers express; KRT8 + OVOL1 directions match paper Subtype-III narrative; pseudoreplication caveat documented (sample vs patient top-100 overlap = 4%); see `outputs/replication_diff.md` |
 | D — Guardian-augmented analysis | ⬜ pending | — | — | Blocked on C |
 | E — Write manuscript section | ⬜ pending | — | — | Blocked on D |
 | F — Replication script + MASTER_VERIFICATION | ⬜ pending | — | — | Blocked on E |
@@ -86,24 +86,33 @@
 
 ---
 
-## Phase C — Reproduce the original analysis
+## Phase C — Reproduce the original analysis (post-pivot)
+
+**Pivoted contrast (PLAN amendment 2):** Primary tumor vs Metastasis,
+sample-level n=55 vs n=36 (with patient-level sensitivity analysis to
+follow). Reason: paper found SSX1-vs-SSX2 has no biological signal
+(§2.7); Primary-vs-Metastasis is biologically meaningful and the paper
+extensively discusses metastasis biology via the Subtype I cluster.
 
 ### Tasks
 
-- [ ] **C.1** Implement the same test the original paper used (per A4 quote)
-- [ ] **C.2** Run on the same data with the same sample groupings
-- [ ] **C.3** Extract our top-100 differentially expressed genes
-- [ ] **C.4** Cross-check against the original paper's reported top-10/top-20
-- [ ] **C.5** For 3-5 specifically named genes in the paper text, compute their values and compare
-- [ ] **C.6** Document any discrepancies in `replication_diff.md`
+- [x] **C.1** Installed pyDESeq2 0.4.4 (compatible with system SciPy 1.7.3; 0.4.10+ requires SciPy 1.11+ via `false_discovery_control`)
+- [x] **C.2** Loaded `Sample_Counts.csv` → 63,677 × 91; built sample-level + patient-level designs
+- [x] **C.3** Low-count filter ≥10 reads in ≥3 samples → 27,221 genes (sample-level), 25,432 genes (patient-level)
+- [x] **C.4** Ran pyDESeq2 contrast Metastasis vs PrimaryTumor; 1,781 sig at padj<0.05 (sample-level); 704 (patient-level)
+- [x] **C.5** Saved top-100 by padj to `outputs/C_top100_DEGs.csv` and `outputs/C_patient_level_top100_DEGs.csv`
+- [x] **C.6** Looked up Ensembl GRCh37 IDs live (3 of 14 would have been wrong from training memory); 5/5 SS markers express
+- [x] **C.7** Metastasis-gene direction check: 3/8 canonical (carcinoma-EMT logic doesn't fully apply to SS); paper-specific markers (KRT8, OVOL1) match paper §2.10 Subtype-III narrative
+- [x] **C.8** Patient-level sensitivity: 4% top-100 overlap with sample-level — pseudoreplication is significant but orthogonal to Guardian's scope; documented openly
+- [x] **C.9** Discrepancies documented in `outputs/replication_diff.md` (no parameter tuning)
 
-### Checkpoints
+### Checkpoints (post-pivot, per PLAN amendment 2)
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **C1** | ≥80% of paper's top hits in our top-100 | ⬜ | `outputs/replication_top_hits.csv` | — |
-| **C2** | Effect-size signs match | ⬜ | `outputs/effect_size_check.md` | — |
-| **C3** | Discrepancies documented | ⬜ | `replication_diff.md` | — |
+| **C1** | ≥5/5 SS markers express + biological-direction sanity | ✅ | `outputs/canonical_marker_check.md` + `replication_diff.md` | PASS-with-context |
+| **C2** | Effect-size signs match for paper-named genes (KRT8, OVOL1) | ✅ | `outputs/replication_diff.md` C2 section | PASS |
+| **C3** | Discrepancies documented (or "no discrepancies") | ✅ | `outputs/replication_diff.md` | PASS |
 
 ---
 

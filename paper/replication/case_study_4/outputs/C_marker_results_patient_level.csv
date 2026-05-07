@@ -1,0 +1,15 @@
+symbol,role,log2FC,padj
+TLE1,SS_marker,-0.579,0.243
+SS18,SS_marker,-0.036,0.963
+SSX1,SS_marker,0.75,0.86
+SSX2,SS_marker,-1.347,0.715
+BCL2,SS_marker,0.401,0.657
+MKI67,metastasis_prolif,0.428,0.754
+TOP2A,metastasis_prolif,0.219,0.9
+VIM,metastasis_EMT,-0.51,0.57
+SNAI1,metastasis_EMT,0.21,0.936
+ZEB1,metastasis_EMT,-0.22,0.83
+CDH1,metastasis_epithelial,-0.65,0.814
+KRT8,metastasis_epithelial,0.089,0.982
+KRT18,metastasis_epithelial,1.156,0.632
+OVOL1,paper_named,-0.569,0.876
