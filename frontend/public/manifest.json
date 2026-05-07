@@ -52,20 +52,5 @@
       "description": "40+ statistical tests"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Home page"
-    },
-    {
-      "src": "/screenshots/mobile-analysis.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Analysis on mobile"
-    }
-  ]
+  "screenshots": []
 }

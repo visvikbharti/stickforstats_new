@@ -338,9 +338,7 @@ const CertificationPage = () => {
           sx={{
             p: 2,
             mb: 3,
-            background: darkMode
-              ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-              : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+            backgroundColor: darkMode ? '#1a1a2e' : '#f5f7fa',
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -542,13 +540,9 @@ const CertificationPage = () => {
               p: 3,
               mb: 3,
               textAlign: 'center',
-              background: results.passed
-                ? darkMode
-                  ? 'linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%)'
-                  : 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)'
-                : darkMode
-                  ? 'linear-gradient(135deg, #3c1518 0%, #69140e 100%)'
-                  : 'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)',
+              backgroundColor: results.passed
+                ? darkMode ? '#1b4332' : '#d4edda'
+                : darkMode ? '#3c1518' : '#f8d7da',
               borderRadius: 3,
             }}
           >

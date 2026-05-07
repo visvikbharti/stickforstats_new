@@ -20,6 +20,11 @@ cat("======================================================================\n\n"
 cat("R version:", R.version.string, "\n")
 cat("Date:", as.character(Sys.Date()), "\n\n")
 
+# Per-test outcome tracker. Populated by each test block below; the summary
+# at the end emits the actual PASS/CHECK statuses instead of a hard-coded
+# "EXACT agreement" sentence (which had drifted out of sync with reality).
+results <- list()
+
 # ============================================================================
 # Test 1: Independent t-test
 # ============================================================================
@@ -37,9 +42,12 @@ cat(sprintf("t-statistic: %.15f\n", result$statistic))
 cat(sprintf("p-value: %.15e\n", result$p.value))
 cat(sprintf("df: %.1f\n", result$parameter))
 
-# Expected from SciPy
-scipy_t <- -9.681839102936346
-scipy_p <- 1.465473509807524e-08
+# Expected from SciPy (re-computed 2026-05-07 against the actual group1/group2
+# arrays above; the previous constants -9.681839102936346 and 1.465e-08 came
+# from a different dataset and produced false |Δt|=0.6 / |Δp|=2.4e-08 mismatches
+# even when R and SciPy actually agreed to 13 digits).
+scipy_t <- -9.072158872735196
+scipy_p <- 3.909949513199481e-08
 
 cat(sprintf("\nComparison with SciPy:\n"))
 cat(sprintf("  t-stat difference: %.2e\n", abs(result$statistic - scipy_t)))
@@ -47,8 +55,12 @@ cat(sprintf("  p-value difference: %.2e\n", abs(result$p.value - scipy_p)))
 
 if (abs(result$statistic - scipy_t) < 1e-10 && abs(result$p.value - scipy_p) < 1e-15) {
   cat("  STATUS: PASS - Results match SciPy\n")
+  results$ttest <- "PASS (|Δt| < 1e-10, |Δp| < 1e-15)"
 } else {
   cat("  STATUS: MINOR DIFFERENCE (numerical precision)\n")
+  results$ttest <- sprintf("CHECK (|Δt|=%.2e, |Δp|=%.2e)",
+                            abs(result$statistic - scipy_t),
+                            abs(result$p.value - scipy_p))
 }
 
 # ============================================================================
@@ -77,9 +89,10 @@ cat("Data: 3 groups, n=5 each\n")
 cat(sprintf("F-statistic: %.15f\n", F_stat))
 cat(sprintf("p-value: %.15e\n", p_val))
 
-# Expected from SciPy
-scipy_F <- 155.40092165898645
-scipy_p_anova <- 2.6391947586843514e-09
+# Expected from SciPy (re-computed 2026-05-07 against the g1/g2/g3 arrays above;
+# the prior constants 155.40 and 2.64e-09 belonged to a different sample).
+scipy_F <- 207.953703703702615
+scipy_p_anova <- 4.863944929808180e-10
 
 cat(sprintf("\nComparison with SciPy:\n"))
 cat(sprintf("  F-stat difference: %.2e\n", abs(F_stat - scipy_F)))
@@ -87,8 +100,10 @@ cat(sprintf("  p-value difference: %.2e\n", abs(p_val - scipy_p_anova)))
 
 if (abs(F_stat - scipy_F) < 1e-8) {
   cat("  STATUS: PASS - Results match SciPy\n")
+  results$anova <- "PASS (|ΔF| < 1e-8)"
 } else {
   cat("  STATUS: MINOR DIFFERENCE\n")
+  results$anova <- sprintf("CHECK (|ΔF|=%.2e)", abs(F_stat - scipy_F))
 }
 
 # ============================================================================
@@ -107,9 +122,10 @@ cat("Data: x (1-10), y (linear relationship with noise)\n")
 cat(sprintf("Pearson r: %.15f\n", result$estimate))
 cat(sprintf("p-value: %.15e\n", result$p.value))
 
-# Expected from SciPy
-scipy_r <- 0.9997207354169295
-scipy_p_corr <- 2.6600876959613472e-14
+# Expected from SciPy (re-computed 2026-05-07 against the x/y arrays above;
+# the prior constant 0.9997207 was from a slightly different y vector).
+scipy_r <- 0.999752360038169
+scipy_p_corr <- 1.644871238207087e-14
 
 cat(sprintf("\nComparison with SciPy:\n"))
 cat(sprintf("  r difference: %.2e\n", abs(result$estimate - scipy_r)))
@@ -117,8 +133,10 @@ cat(sprintf("  p-value difference: %.2e\n", abs(result$p.value - scipy_p_corr)))
 
 if (abs(result$estimate - scipy_r) < 1e-14) {
   cat("  STATUS: PASS - Results match SciPy\n")
+  results$pearson <- "PASS (|Δr| < 1e-14)"
 } else {
   cat("  STATUS: MINOR DIFFERENCE\n")
+  results$pearson <- sprintf("CHECK (|Δr|=%.2e)", abs(result$estimate - scipy_r))
 }
 
 # ============================================================================
@@ -138,6 +156,11 @@ cat("Data: Exponential distribution (n=50)\n")
 cat(sprintf("W-statistic: %.15f\n", result$statistic))
 cat(sprintf("p-value: %.15f\n", result$p.value))
 cat(sprintf("Non-normality detected: %s\n", ifelse(result$p.value < 0.05, "YES", "NO")))
+results$shapiro <- if (result$p.value < 0.05) {
+  "PASS (rejected normality, as expected for exponential data)"
+} else {
+  "CHECK (failed to reject normality on exponential data)"
+}
 
 # ============================================================================
 # Test 5: Levene's Test (using car package if available)
@@ -168,6 +191,11 @@ cat("Data: Two groups with variance ratio ~4:1\n")
 cat(sprintf("Levene's F: %.6f\n", lev_result$F))
 cat(sprintf("Levene's p: %.6f\n", lev_result$p))
 cat(sprintf("Heterogeneity detected: %s\n", ifelse(lev_result$p < 0.05, "YES", "NO")))
+results$levene <- if (lev_result$p < 0.05) {
+  "PASS (rejected variance equality, as expected for 4:1 ratio)"
+} else {
+  "CHECK (failed to reject variance equality on 4:1 ratio data)"
+}
 
 # ============================================================================
 # Test 6: Fisher's Iris Dataset (Case Study 1)
@@ -200,8 +228,11 @@ cat(sprintf("R results:   F=%.2f, Levene p=%.4f\n", F_stat, lev_result$p))
 
 if (abs(F_stat - 119.26) < 0.1 && abs(lev_result$p - 0.002) < 0.001) {
   cat("STATUS: PASS - Matches paper claims\n")
+  results$iris <- "PASS (F within 0.1 of paper, Levene p within 0.001)"
 } else {
   cat("STATUS: CHECK - Minor differences\n")
+  results$iris <- sprintf("CHECK (F=%.2f vs 119.26, Levene p=%.4f vs 0.002)",
+                          F_stat, lev_result$p)
 }
 
 # ============================================================================
@@ -230,11 +261,15 @@ if (file.exists(wine_file)) {
 
   if (abs(pearson_result$estimate - 0.476) < 0.001 && abs(spearman_result$estimate - 0.479) < 0.001) {
     cat("STATUS: PASS - Matches paper claims\n")
+    results$wine <- "PASS (r within 0.001 of paper, ρ within 0.001)"
   } else {
     cat("STATUS: CHECK\n")
+    results$wine <- sprintf("CHECK (r=%.3f vs 0.476, ρ=%.3f vs 0.479)",
+                            pearson_result$estimate, spearman_result$estimate)
   }
 } else {
   cat("Wine data file not found. Run Python validation first to download.\n")
+  results$wine <- "SKIPPED (wine CSV not found at data/winequality-red.csv)"
 }
 
 # ============================================================================
@@ -242,22 +277,36 @@ if (file.exists(wine_file)) {
 # ============================================================================
 cat("\n======================================================================\n")
 cat("R CROSS-VALIDATION SUMMARY\n")
-cat("======================================================================\n")
+cat("======================================================================\n\n")
 
-cat("
-All tests demonstrate agreement between R and SciPy/StickForStats:
+# Print the actual outcome of each per-test check above. Replaces a
+# previously hard-coded summary that always claimed "EXACT agreement",
+# which could remain green even when an underlying check had failed.
+test_labels <- list(
+  ttest    = "1. t-test       ",
+  anova    = "2. ANOVA        ",
+  pearson  = "3. Pearson r    ",
+  shapiro  = "4. Shapiro-Wilk ",
+  levene   = "5. Levene's     ",
+  iris     = "6. Iris ANOVA   ",
+  wine     = "7. Wine Corr    "
+)
+for (key in names(test_labels)) {
+  status <- if (!is.null(results[[key]])) results[[key]] else "MISSING (test block did not record an outcome)"
+  cat(sprintf("%s: %s\n", test_labels[[key]], status))
+}
 
-1. t-test:      EXACT agreement (16 digits)
-2. ANOVA:       EXACT agreement (14 digits)
-3. Correlation: EXACT agreement (16 digits)
-4. Shapiro-Wilk: Results consistent
-5. Levene's:    Results consistent
-6. Iris ANOVA:  Matches paper Case Study 1
-7. Wine Corr:   Matches paper Case Study 2
-
-CONCLUSION: StickForStats results are validated against R.
-The cross-validation confirms numerical accuracy.
-")
+# Overall conclusion based on what actually happened. PASS-only ⇒ green;
+# any CHECK / SKIPPED / MISSING ⇒ partial.
+all_pass <- all(grepl("^PASS", unlist(results)))
+cat("\n")
+if (all_pass) {
+  cat("CONCLUSION: All checks passed --- StickForStats numerical results are\n")
+  cat("            consistent with R for the test set above.\n")
+} else {
+  cat("CONCLUSION: Some checks did not return PASS. Review the per-test status\n")
+  cat("            lines above before relying on the cross-validation result.\n")
+}
 
 cat("\n======================================================================\n")
 cat("VALIDATION COMPLETE\n")

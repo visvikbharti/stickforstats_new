@@ -6,49 +6,59 @@ Based on the CRISPRArchitect v3 scoring framework (Bharti & Chakraborty, 2026), 
 
 ## Description
 
-Multi-criteria TOPSIS scores for 30 pathogenic variants across three genome editing modalities:
+Multi-criteria TOPSIS scores for **10 disease-associated variants** evaluated across **four genome editing modalities**:
 
-- **Base Editing (BE)**: DSB-free, highest safety, limited to transition mutations
-- **Prime Editing (PE)**: Versatile, moderate complexity (pegRNA + nick guide)
-- **Homology-Directed Repair (HDR)**: Requires DSBs + donor template, lowest safety in iPSCs
+- **Adenine Base Editing (ABE)**: DSB-free, highest safety; limited to A→G (and complement T→C) transitions in the editing window.
+- **Prime Editing (PE3)**: Versatile (all 12 base substitutions, small indels), single nick (no DSB), moderate complexity (pegRNA + nicking guide).
+- **HDR via single-stranded ODN (HDR_SSODN)**: Requires a Cas9 DSB plus an ssODN donor; lower safety in iPSCs (p53 activation).
+- **HDR via cssDNA donor (HDR_CSSDNA)**: Requires a Cas9 DSB plus a chemically-modified single-stranded DNA donor; tolerates larger insertions but the highest off-target/large-deletion risk in this set.
 
 ## Files
 
 | File | Rows | Description |
 |------|------|-------------|
-| `topsis_scores.csv` | 90 | 30 variants x 3 modalities, 6 scoring dimensions + TOPSIS composite |
-| `monte_carlo_ranks.csv` | 30,000 | 30 variants x 1,000 Dirichlet weight permutations |
-| `rank_stability.csv` | 30 | Per-variant rank stability (fraction of permutations with same top rank) |
+| `real_scored_strategies.csv` | 40 | 10 variants × 4 modalities, with TOPSIS composite + 6 component scores + per-strategy rank |
+| `real_scored_strategies.json` | -- | Same content in JSON form for programmatic loading |
+| `generate_dataset.py` | -- | Script that produced the CSV/JSON from the CRISPRArchitect v3 scorer |
 
-## Scoring Dimensions (0-1 scale)
+## Variants
 
-| Dimension | Weight | Type | Meaning |
-|-----------|--------|------|---------|
-| Safety | 0.30 | Benefit | DSB-free editing preferred (iPSC p53 selection concern) |
-| Feasibility | 0.25 | Benefit | PAM availability, editing window, guide quality |
-| Complexity | 0.15 | Cost | Number of components, delivery burden |
-| Risk | 0.15 | Cost | Off-target potential, large deletion risk |
-| Confidence | 0.10 | Benefit | Evidence tier (measured > derived > assumed) |
-| Consequence | 0.05 | Benefit | Functional impact of intended edit |
+The 10 variants span common monogenic diseases of varying mutation classes:
+
+| Gene | Disease | Mutation class |
+|---|---|---|
+| HBB | Sickle cell disease | Point mutation (β-globin Glu6Val) |
+| CFTR | Cystic fibrosis | F508del (3-bp deletion) |
+| DMD | Duchenne muscular dystrophy | Exon-skipping target |
+| TP53 | Li-Fraumeni / cancer predisposition | Missense |
+| LMNA | Hutchinson-Gilford progeria | Point activator of cryptic splice |
+| COL7A1 | Recessive dystrophic epidermolysis bullosa | Multi-mutation locus |
+| NF1 | Neurofibromatosis type 1 | Truncating |
+| PCSK9 | Familial hypercholesterolemia | Loss-of-function therapeutic target |
+| PAH | Phenylketonuria | Missense |
+| SCN1A | Dravet syndrome | Loss-of-function |
+
+## Scoring Dimensions (0--1 scale)
+
+Each row carries the TOPSIS composite plus six dimension scores. See `generate_dataset.py` for the exact scorer used (taken from CRISPRArchitect v3).
+
+| Dimension | Type | Meaning |
+|---|---|---|
+| `safety_score` | Benefit | DSB-free or single-nick editing preferred (iPSC p53 activation concern) |
+| `feasibility_score` | Benefit | PAM availability, editing window position, guide quality |
+| `complexity_score` | Cost | Number of components, delivery burden |
+| `risk_score` | Cost | Off-target potential, large deletion risk |
+| `confidence_score` | Benefit | Evidence tier (measured > derived > assumed) |
+| `topsis_score` | Composite | Weighted distance from anti-ideal vs. ideal solution |
 
 ## Suggested Analyses with StickForStats
 
-1. **One-way ANOVA / Kruskal-Wallis**: Compare TOPSIS composite scores across BE vs PE vs HDR
-   - Guardian will check normality and variance homogeneity
-   - Expected: HDR scores are non-normal → Guardian cascades to Kruskal-Wallis
-2. **Post-hoc tests**: Dunn's test with BH correction for pairwise modality comparisons
-3. **Effect sizes**: Eta-squared for ANOVA, Hedges' g for pairwise comparisons
-4. **Normality testing**: Shapiro-Wilk on each modality's score distribution
-5. **Monte Carlo analysis**: Test whether rank stability distributions differ across variant categories
+1. **One-way ANOVA / Kruskal-Wallis** on `topsis_score` grouped by `modality`. Guardian will check normality and variance homogeneity. Empirically the HDR groups are non-normal, so Guardian cascades ANOVA → Kruskal-Wallis.
+2. **Post-hoc**: Dunn's test with Benjamini-Hochberg correction for pairwise modality comparisons.
+3. **Effect size**: Eta-squared H for the Kruskal-Wallis (the sample is small, so use the unbiased form).
+4. **Per-modality normality** (Shapiro-Wilk on each modality's `topsis_score`) -- useful for understanding which modality drives the violation.
 
-## Variant Categories
-
-| Category | N | Description |
-|----------|---|-------------|
-| clean_base_editable | 5 | Transition mutations in optimal BE window |
-| pe_preferred | 5 | Complex edits best suited for prime editing |
-| hdr_required | 5 | Large insertions/deletions requiring HDR |
-| mixed_feasibility | 15 | Multiple modalities potentially viable |
+These four analyses reproduce Case Study 1 in the StickForStats PLOS Comp Bio manuscript (`paper/plos_compbio/manuscript.md`).
 
 ## Citation
 

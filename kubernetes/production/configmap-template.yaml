@@ -1,0 +1,30 @@
+# =============================================================================
+# TEMPLATE — Replace all CHANGE_ME values before applying.
+# =============================================================================
+#
+# This ConfigMap holds non-secret runtime configuration that the
+# stickforstats-api deployment reads at pod start (see deployment.yaml).
+#
+# Apply with:
+#   kubectl apply -f configmap-template.yaml
+#
+# Or override per-cluster via kustomize / helm without committing values.
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stickforstats-config
+  namespace: production
+  labels:
+    app: stickforstats
+    environment: production
+data:
+  # Comma-separated list of host headers Django will accept.
+  # NEVER set to "*" in production --- Django uses the Host header for cache
+  # keys, redirects, and link generation, so a wildcard enables cache-poisoning
+  # and open-redirect attacks.
+  allowed.hosts: "stickforstats.example.com,api.stickforstats.example.com"
+
+  # Comma-separated CORS-Allowed-Origins. Restrict to the trusted frontends
+  # that may call the API directly from a browser.
+  cors.origins: "https://stickforstats.example.com"

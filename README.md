@@ -84,7 +84,7 @@ StickForStats scales from a single researcher to an entire institution.
 
 ### Multi-Tenant Architecture
 
-- **Organization workspaces** with role-based access control (RBAC): Owner, Admin, Analyst, Viewer
+- **Organization workspaces** with role-based access control (RBAC): Owner, Admin, Member, Viewer
 - **Project-level isolation** -- each project has its own datasets, analyses, and reports
 - **Usage dashboards** with per-organization analytics
 - **Billing integration** via Stripe with tiered plans (Free, Professional, Institutional)
@@ -486,10 +486,9 @@ StickForStats calculations are validated against reference implementations:
 ## Documentation
 
 - [API Documentation](docs/API_DOCUMENTATION.md) -- endpoint reference and usage examples
-- [Guardian System Guide](docs/GUARDIAN_GUIDE.md) -- assumption validation details
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) -- production deployment instructions
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) -- production deployment instructions
+- [Features Documentation](docs/FEATURES_DOCUMENTATION.md) -- comprehensive feature reference
 - [Contributing Guidelines](CONTRIBUTING.md) -- how to contribute
-- [Features Documentation](FEATURES_DOCUMENTATION.md) -- comprehensive feature reference
 - Interactive API docs at `/api/v1/schema/swagger/` (Swagger UI)
 - Interactive API docs at `/api/v1/schema/redoc/` (ReDoc)
 
@@ -500,12 +499,12 @@ StickForStats calculations are validated against reference implementations:
 If you use StickForStats in your research, please cite:
 
 ```bibtex
-@article{stickforstats2025,
-  title = {{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation},
+@misc{stickforstats2026,
+  title  = {{StickForStats}: A Statistical Analysis Platform with Automatic Assumption Validation},
   author = {Bharti, Vishal and Chakraborty, Debojyoti},
-  journal = {Journal of Statistical Software},
-  year = {2025},
-  note = {Submitted}
+  year   = {2026},
+  url    = {https://github.com/visvikbharti/stickforstats_new},
+  note   = {Software, version 1.0.0; manuscripts under preparation for JOSS and PLOS Computational Biology}
 }
 ```
 

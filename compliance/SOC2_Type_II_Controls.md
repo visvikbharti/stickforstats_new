@@ -53,7 +53,7 @@ compliance requirements.
 | System Component | Description | Location |
 |---|---|---|
 | Frontend Application | React SPA with MUI, Recharts, jStat | `frontend/` |
-| Backend API | Django REST Framework, 267 API endpoints | `backend/` |
+| Backend API | Django REST Framework, 198 API endpoints | `backend/` |
 | Guardian System | 8 statistical validators, 38 tests | `backend/core/guardian/` |
 | SQS Engine | 45 rules across 6 categories for manuscript review | `backend/core/sqs_rules.py` |
 | PostgreSQL Database | Primary data store for all models | Docker: `postgres:15-alpine` |

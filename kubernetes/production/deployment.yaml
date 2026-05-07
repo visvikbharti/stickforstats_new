@@ -207,7 +207,15 @@ spec:
               name: stickforstats-secrets
               key: jwt.secret
         - name: ALLOWED_HOSTS
-          value: "*"
+          # `*` allows any Host header --- forbidden in production because
+          # Django uses the Host header for cache keys, redirects, and
+          # link generation (cache-poisoning / open-redirect risk).
+          # Override per-cluster via the stickforstats-config ConfigMap
+          # (e.g. "stickforstats.example.com,api.stickforstats.example.com").
+          valueFrom:
+            configMapKeyRef:
+              name: stickforstats-config
+              key: allowed.hosts
         - name: CORS_ORIGINS
           valueFrom:
             configMapKeyRef:
