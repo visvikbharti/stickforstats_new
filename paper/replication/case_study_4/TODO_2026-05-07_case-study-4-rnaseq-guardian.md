@@ -21,7 +21,7 @@
 | C — Reproduce original analysis | ✅ done | 2026-05-07T14:30 | 2026-05-07T14:50 | Pivoted contrast (Primary vs Metastasis); 1,781 DEGs at padj<0.05; 5/5 SS markers express; KRT8 + OVOL1 directions match paper Subtype-III narrative; pseudoreplication caveat documented (sample vs patient top-100 overlap = 4%); see `outputs/replication_diff.md` |
 | D — Guardian-augmented analysis | ✅ done | 2026-05-07T15:00 | 2026-05-07T15:30 | 90.55% cascade rate; 1,411 Guardian-sig vs 1,006 naive-sig; 553 verdict-flipped genes split into Group A (Guardian rescue, n=479, small log2FC) + Group B (naive false positives, n=74, large log2FC outlier-driven); see `outputs/D_interpretation.md` |
 | E — Write manuscript section | ▶️ in progress | 2026-05-07T15:30 | — | E1 + E2 PASS; E3 awaiting PI review of draft (~530 words; Table 5 row added; ref [40] added) |
-| F — Replication script + MASTER_VERIFICATION | ⬜ pending | — | — | Blocked on E |
+| F — Replication script + MASTER_VERIFICATION | ✅ done | 2026-05-07T16:00 | 2026-05-07T16:20 | `case_study_4_genomics.py` 13/13 checks PASS; MASTER_VERIFICATION runs all 5 scripts green; smoke test caught a swapped-MD5 bug in Phase B audit log (since corrected) |
 | G — Figure | ⬜ pending | — | — | Blocked on D (parallel with E) |
 
 ---
@@ -161,18 +161,22 @@ extensively discusses metastasis biology via the Subtype I cluster.
 
 ### Tasks
 
-- [ ] **F.1** Build `paper/replication/case_study_4_genomics.py`
-- [ ] **F.2** Wire data files / download into the script
-- [ ] **F.3** Add to `paper/replication/MASTER_VERIFICATION.py`
-- [ ] **F.4** Update `paper/replication/README.md`
-- [ ] **F.5** Smoke-test from a clean checkout
+- [x] **F.1** Built `paper/replication/case_study_4_genomics.py` (~330 lines, self-contained, importlib loads the production genomics module without Django)
+- [x] **F.2** GEO download + MD5 self-check wired in; falls through to cached file when present
+- [x] **F.3** Added to `paper/replication/MASTER_VERIFICATION.py` scripts list; subprocess timeout bumped 120 → 300 s; final banner + DATA SOURCES updated
+- [x] **F.4** Updated `paper/replication/README.md` (new Case Study 4 section; Data Sources list reflects all 3 case-study data origins)
+- [x] **F.5** Smoke-tested 13/13 checks PASS; MASTER_VERIFICATION 5/5 scripts PASS
+
+### Bonus
+
+- [x] **F.6** Replication script's MD5-check caught a swapped-MD5 bug in the Phase B audit log (Sample/Patient MD5s were transposed) — corrected in `data/GSE271517_dimensions_check.md` and audit log; the data files and analyses themselves were always correct, only the documentation hash labels were wrong
 
 ### Checkpoints
 
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
-| **F1** | Script runs from clean checkout | ⬜ | (terminal capture) | — |
-| **F2** | MASTER_VERIFICATION returns 0 with case_study_4 included | ⬜ | (terminal capture) | — |
+| **F1** | Script runs from clean checkout | ✅ | terminal output: 13/13 checks PASS in ~17-30s; AUDIT_LOG 2026-05-07T16:20 entry | PASS |
+| **F2** | MASTER_VERIFICATION returns 0 with case_study_4 included | ✅ | terminal output: 5/5 scripts PASS, "✓ ALL VERIFICATIONS PASSED" banner, exit 0 | PASS |
 
 ---
 

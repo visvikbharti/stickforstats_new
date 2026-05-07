@@ -98,11 +98,51 @@ See `validate_linearity.py` for the polynomial vs. linear R² comparison.
 
 ### Case Study 3 (Meta-Analysis)
 
-See `validate_meta_analysis.py` for DerSimonian-Laird calculations.
+See `verify_meta_analysis_real.py` for the real Egger 1997 IV-magnesium
+data (k = 16 trials, `metafor::dat.egger2001`) and the DerSimonian-Laird
+calculation cross-validated against R metafor 4.8.0 to 4+ decimal
+places.
+
+### Case Study 4 (Real RNA-seq with Guardian)
+
+See `case_study_4_genomics.py` for the GSE271517 (Chen Y et al. 2024,
+*Adv Sci* 11(41):e2404510, PMID 39257029) synovial-sarcoma dataset.
+The script:
+
+1. Downloads the raw count matrix (~3 MB) from NCBI GEO if not cached.
+2. MD5-checks the download.
+3. Runs the production genomics differential-expression module
+   (`backend/core/services/genomics/differential_expression.py`) with
+   Guardian's per-gene Shapiro-Wilk + Levene's cascade.
+4. Runs a naive parametric baseline (per-gene Welch t-test) on the same
+   data.
+5. Verifies 13 specific manuscript claims (sample counts, gene counts,
+   cascade rate ~ 90.55 %, hit-list counts, MKI67 + TOP2A behaviour).
+6. Exits 0 on PASS, non-zero on FAIL.
+
+The full Phase A→G working directory (plan, tracker, audit log,
+evidence, intermediate scripts, outputs) is at
+`paper/replication/case_study_4/`. Read its `PLAN_*.md` and `AUDIT_LOG_*.md`
+for the complete provenance.
+
+```bash
+python case_study_4_genomics.py
+# Expected: "CASE STUDY 4 REPLICATION: PASS (13/13 checks)"
+# Runtime ~ 20 s (after first run; first run downloads ~3 MB from GEO)
+```
 
 ## Data Sources
 
-All test data in this replication package was generated specifically for validation purposes. No real participant data is included.
+All test data in this replication package is real, public, and
+peer-reviewed:
+
+1. Standard reference datasets (Iris, Wine, mtcars, ToothGrowth,
+   PlantGrowth) from sklearn / R.
+2. IV Magnesium meta-analysis (Egger 1997 BMJ; Sterne 2001 J Clin Epi) —
+   classic published example for funnel-plot asymmetry.
+3. Synovial sarcoma RNA-seq (Chen Y et al. 2024 Adv Sci, PMID 39257029,
+   GEO GSE271517) — 91 tumours from 55 patients; downloaded by the
+   `case_study_4_genomics.py` script.
 
 ## Contact
 

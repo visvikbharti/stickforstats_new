@@ -863,3 +863,151 @@ need explanation. PI may request shortening; if so, the Group B
 explanation could be compressed to one sentence with the detail
 relegated to S1 Text. The current verbosity prioritises clarity over
 brevity.
+
+---
+
+### 2026-05-07T16:00  —  Phase E, Checkpoint E3 (PI review)
+
+**Claim:** PI reviewed the Case Study 4 draft (commit 7ea4074) and
+approved it as written. Word count to remain ~530 words for now;
+paraphrasing/compression deferred to a future revision pass if
+required.
+
+**Verification method:** PI reply: *"its fine. lts keep the words
+pcunts as ot is. we can paraphrase themlater if necessary. for now
+it sounds fine to me. lets proceed"*.
+
+**Verdict:** PASS
+
+**Notes:** Phase E is complete. All three Phase E checkpoints (E1,
+E2, E3) PASS.
+
+---
+
+### 2026-05-07T16:10  —  Phase B MD5 correction (caught by Phase F replication-script smoke test)
+
+**Claim being retracted:** the Phase B audit-log entry dated
+2026-05-07T14:10 (Checkpoint B1) recorded the file MD5s with
+Sample/Patient swapped:
+
+  WRONG (in earlier entry):
+    Sample_Counts.csv.gz : 3ecb1487424447c44da963901ec2dbe0
+    Patient_Counts.csv.gz: 305be1592dd5f00670aab55c6c0375c9
+
+  CORRECT (verified live just now via `md5 <file>`):
+    Sample_Counts.csv.gz : 305be1592dd5f00670aab55c6c0375c9
+    Patient_Counts.csv.gz: 3ecb1487424447c44da963901ec2dbe0
+
+**How the swap was caught:** the Phase F replication script
+`paper/replication/case_study_4_genomics.py` MD5-checks the cached
+count file before running. On its first run it warned that the cached
+file's MD5 did not match the recorded value, then re-downloaded the
+same file from GEO and got the same "wrong" MD5 — proving the recorded
+expected value was the one in error, not the data.
+
+The original Phase B `md5 -q` command output was unlabeled; I assigned
+the values to the wrong files in the verdict file and audit log. File
+sizes were always correct (Patient 2.1 MB, Sample 3.3 MB), and the
+analysis itself was always run on the correct file because the code
+opens by filename, not by MD5.
+
+**Files corrected:**
+- `paper/replication/case_study_4/data/GSE271517_dimensions_check.md`
+  (B1 verdict file: swapped MD5s in the file-by-file table)
+- `paper/replication/case_study_4_genomics.py`
+  (replication script: COUNTS_MD5 constant set to the correct value)
+
+**Verification method:** ran `md5` on each cached file and compared
+against the file size; the larger file (Sample, 3.3 MB) corresponds to
+MD5 `305be1592...`, the smaller file (Patient, 2.1 MB) corresponds to
+MD5 `3ecb1487...`. Re-ran the replication script after the fix; MD5
+check now passes.
+
+**Verdict:** The Phase B claims about file dimensions, sample groupings,
+and gene-ID format are all unaffected. Only the MD5 hash labels were
+swapped in the documentation; the data files and the analysis based on
+them have been correct throughout. The Anti-Fabrication Charter rule 6
+("audit log") and rule 5 ("discrepancy honesty") are satisfied by this
+explicit retraction.
+
+**Notes:** This is a small win for the smoke-test design. The MD5
+self-check in the replication script existed precisely to catch
+discrepancies like this, and it did. If the script had not MD5-verified
+the download, the swap might have lived in the audit log indefinitely.
+
+---
+
+### 2026-05-07T16:20  —  Phase F, Checkpoint F1 (replication script runs from clean state)
+
+**Claim:** `paper/replication/case_study_4_genomics.py` reproduces the
+13 verified case-study claims from a clean checkout (i.e. with the
+data file deleted), automatically downloading the count file from GEO
+and verifying its MD5 before running the analysis.
+
+**Verification method:**
+1. Wrote `paper/replication/case_study_4_genomics.py` (~330 lines).
+   Self-contained: imports the production genomics module via importlib,
+   downloads from NCBI GEO if not cached, MD5-checks, runs Guardian +
+   naive baselines, verifies 13 specific claims, exits 0/1.
+2. First smoke test caught a swapped-MD5 bug in the Phase B audit log
+   (Sample/Patient MD5s were transposed). Logged as the Phase B MD5
+   correction entry above. Fixed both the recorded value and the
+   replication script.
+3. Re-ran with corrected MD5: PASS 13/13 checks (n_samples=91,
+   n_primary=55, n_metastasis=36, n_genes_after_filter=27221,
+   cascade_rate=90.55%, n_guardian_significant=1411,
+   n_naive_significant=1006, MKI67 present + UP + significant,
+   TOP2A present + UP + significant).
+
+**Evidence:**
+- `paper/replication/case_study_4_genomics.py` (the new script)
+- terminal output captured during the re-run
+
+**Verdict:** PASS
+
+**Notes:** Total runtime ~17 s on cached data; ~30 s if downloading
+GEO file from scratch. Within the 300 s timeout the master verifier
+allows.
+
+---
+
+### 2026-05-07T16:20  —  Phase F, Checkpoint F2 (MASTER_VERIFICATION green)
+
+**Claim:** `paper/replication/MASTER_VERIFICATION.py` runs all 5
+replication scripts (4 pre-existing + the new `case_study_4_genomics.py`)
+and exits 0.
+
+**Verification method:** ran `python3 paper/replication/MASTER_VERIFICATION.py`.
+All 5 scripts STATUS: PASSED, final banner "✓ ALL VERIFICATIONS PASSED",
+script exited 0.
+
+**Evidence:**
+- `paper/replication/MASTER_VERIFICATION.py` (modified — added
+  case_study_4_genomics.py to the scripts list; bumped subprocess
+  timeout from 120 s → 300 s to accommodate GEO download time;
+  updated final banner and DATA SOURCES section to include Case
+  Study 4)
+- `paper/replication/README.md` (modified — added Case Study 4
+  section + updated Data Sources list)
+- terminal output: 5/5 scripts PASS, total wall time ~ 64 s
+
+**Verdict:** PASS
+
+---
+
+### 2026-05-07T16:20  —  Phase F, Summary
+
+**Status:** Both Phase F checkpoints (F1, F2) PASS. Phase F is
+complete.
+
+**Files touched:**
+- New: `paper/replication/case_study_4_genomics.py`
+- Modified: `paper/replication/MASTER_VERIFICATION.py`
+  (scripts list, timeout, banner)
+- Modified: `paper/replication/README.md` (new Case Study 4 section
+  + updated Data Sources)
+- Modified: `paper/replication/case_study_4/data/GSE271517_dimensions_check.md`
+  (MD5 swap correction)
+
+**Next checkpoint:** Phase G (G1, G2) — figure generation. Volcano plot
+with cascade overlay is the front-runner candidate per the PLAN.

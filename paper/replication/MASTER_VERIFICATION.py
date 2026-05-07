@@ -28,6 +28,7 @@ scripts = [
     ("verify_case_studies_FINAL.py", "Case Studies Verification"),
     ("verify_meta_analysis_real.py", "Real Meta-Analysis (IV Magnesium / Egger 1997)"),
     ("additional_real_data_analysis.py", "Additional Datasets Validation"),
+    ("case_study_4_genomics.py", "Case Study 4 — Real RNA-seq with Guardian (GSE271517 / Chen 2024)"),
 ]
 
 all_passed = True
@@ -43,7 +44,7 @@ for script, description in scripts:
             [sys.executable, script],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=300  # case_study_4 needs ~20s + GEO download time
         )
 
         # Authoritative pass/fail signal is the subprocess exit code.
@@ -92,6 +93,8 @@ if all_passed:
     ║   • Case Study 3 (IV Magnesium): Real Egger 1997 data,          ║
     ║     cross-validated against R metafor 4.8.0                     ║
     ║   • Additional datasets: Real R data, verified results          ║
+    ║   • Case Study 4 (Synovial sarcoma RNA-seq): GSE271517 /        ║
+    ║     Chen 2024, Guardian-augmented vs naive t-test pipeline      ║
     ║                                                                  ║
     ║   CERTIFICATION: Paper is ready for submission                  ║
     ║                                                                  ║
@@ -120,6 +123,9 @@ All datasets are real, public, peer-reviewed:
 2. IV Magnesium meta-analysis (Egger 1997 BMJ; Sterne 2001 J Clin Epi) —
    classic published example for funnel-plot asymmetry, cross-validated
    against R metafor 4.8.0 to 4+ decimal places.
+3. Synovial sarcoma RNA-seq (Chen Y et al. 2024 Adv Sci, PMID 39257029,
+   GSE271517) — 91 tumors from 55 patients; Guardian's per-gene
+   normality cascade demonstrated on 27,221 genes.
 
 No fabrication. No simulated data. No false claims. Scientific integrity maintained.
 """)
