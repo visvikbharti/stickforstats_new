@@ -131,6 +131,8 @@ class ManuscriptAnalyzeView(APIView):
                         },
                         processing_time_ms=report.processing_time_ms,
                     )
+                    report_token = submission.set_report_token()
+                    submission.save(update_fields=["report_token_hash"])
                     submission_id = str(submission.id)
                 except Exception as exc:
                     logger.warning("Failed to store submission: %s", exc)
@@ -138,6 +140,9 @@ class ManuscriptAnalyzeView(APIView):
             result = report.to_dict()
             if submission_id:
                 result["submission_id"] = submission_id
+                # Raw share token is returned exactly once; required to fetch the report.
+                result["report_token"] = report_token
+                result["report_url"] = f"/api/v1/manuscript/report/{submission_id}/?token={report_token}"
 
             return Response(result, status=status.HTTP_200_OK)
 
@@ -509,6 +514,7 @@ class JournalSubmitView(APIView):
             submission.gross_errors = report.gross_errors
             submission.processing_time_ms = report.processing_time_ms
             submission.completed_at = timezone.now()
+            report_token = submission.set_report_token()
             submission.save()
 
             # Trigger webhook delivery if journal has a webhook URL configured
