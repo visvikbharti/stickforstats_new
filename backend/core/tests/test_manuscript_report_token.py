@@ -90,7 +90,7 @@ class TestBatchStatusEndpointToken(TestCase):
                 report_token_hash=token_hash,
                 parse_result={"batch_id": self.batch_id, "batch_index": i, "batch_total": 2},
             )
-        self.url = f"/api/v1/manuscript/batch/{self.batch_id}/status/"
+        self.url = f"/api/v1/manuscript/batch-status/{self.batch_id}/"
 
     def test_correct_batch_token_returns_200(self):
         resp = self.client.get(self.url, {"token": self.token_raw})

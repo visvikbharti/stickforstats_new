@@ -405,6 +405,19 @@ class SubmissionReportView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Report-token check (IDOR protection). If the submission has a token
+        # hash, the caller must present the matching raw token via ?token= or the
+        # X-Report-Token header; otherwise (legacy rows) access is allowed. A
+        # mismatch returns 404, not 403, so the endpoint does not confirm the id
+        # exists. (audit 2026-05-31, SEC-3)
+        if submission.report_token_hash:
+            supplied = request.query_params.get("token") or request.META.get("HTTP_X_REPORT_TOKEN", "")
+            if not submission.verify_report_token(supplied):
+                return Response(
+                    {"error": "Submission not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
         return Response(
             {
                 "submission_id": str(submission.id),
