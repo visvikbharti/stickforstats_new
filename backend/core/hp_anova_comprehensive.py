@@ -5,14 +5,18 @@ Created: 2025-09-15
 Author: StickForStats Development Team
 Version: 1.0.0
 
-This module implements ALL ANOVA variants with high precision:
-- One-way ANOVA
+High-precision ANOVA.
+
+IMPLEMENTED:
+- One-way ANOVA (with post-hoc tests and effect sizes)
+
+NOT YET IMPLEMENTED (the methods exist but raise NotImplementedError; see audit
+2026-05-31, ST-1 — they previously fell through and returned None):
 - Two-way ANOVA (with/without interaction)
-- Three-way ANOVA
 - Repeated Measures ANOVA
-- Mixed ANOVA
 - MANOVA (Multivariate ANOVA)
-- ANCOVA (Analysis of Covariance)
+(Three-way / Mixed ANOVA / ANCOVA are not present as methods here; ANCOVA lives
+in core.services.anova.advanced_anova_service.)
 
 Post-hoc tests included:
 - Tukey HSD
@@ -325,12 +329,16 @@ class HighPrecisionANOVA:
         Returns:
             AnovaResult with two-way ANOVA results
         """
-        # Implementation for two-way ANOVA
-        # This is complex and would include:
-        # - Main effects for both factors
-        # - Interaction effect if requested
-        # - Partial eta squared for each effect
-        # - Post-hoc tests for significant effects
+        # NOT IMPLEMENTED. Previously this method had a docstring-only body and
+        # fell through to ``return None`` despite its ``-> AnovaResult`` annotation,
+        # so callers received None instead of a result (audit 2026-05-31, ST-1).
+        # Fail loudly instead of returning a silent None. A real implementation
+        # would compute main effects, the interaction term, partial eta-squared,
+        # and post-hoc tests.
+        raise NotImplementedError(
+            "Two-way ANOVA is not implemented in HighPrecisionANOVA. "
+            "Use one_way_anova, or core.services.anova for factorial designs."
+        )
 
     def repeated_measures_anova(self, data: np.ndarray, subject_factor: Optional[np.ndarray] = None) -> AnovaResult:
         """
@@ -343,10 +351,12 @@ class HighPrecisionANOVA:
         Returns:
             AnovaResult with sphericity corrections
         """
-        # Implementation would include:
-        # - Mauchly's test for sphericity
-        # - Greenhouse-Geisser correction
-        # - Huynh-Feldt correction
+        # NOT IMPLEMENTED — previously returned None silently (audit 2026-05-31,
+        # ST-1). A real implementation would include Mauchly's test for
+        # sphericity and the Greenhouse-Geisser / Huynh-Feldt corrections.
+        raise NotImplementedError(
+            "Repeated-measures ANOVA is not implemented in HighPrecisionANOVA."
+        )
 
     def manova(self, data: pd.DataFrame, factors: List[str], dependents: List[str]) -> ManovaResult:
         """
@@ -360,11 +370,13 @@ class HighPrecisionANOVA:
         Returns:
             ManovaResult with multiple test statistics
         """
-        # Implementation would include:
-        # - Wilks' Lambda
-        # - Pillai's trace
-        # - Hotelling-Lawley trace
-        # - Roy's largest root
+        # NOT IMPLEMENTED — previously returned None silently (audit 2026-05-31,
+        # ST-1). A real implementation would compute Wilks' Lambda, Pillai's
+        # trace, the Hotelling-Lawley trace, and Roy's largest root.
+        raise NotImplementedError(
+            "MANOVA is not implemented in HighPrecisionANOVA. "
+            "Use core.services.multivariate for multivariate analysis."
+        )
 
     _POST_HOC_ALIASES = {
         "tukey": PostHocTest.TUKEY_HSD,
