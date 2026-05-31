@@ -5,10 +5,26 @@ Created: 2025-09-15
 Author: StickForStats Development Team
 Version: 1.0.0
 
-This module implements a comprehensive validation framework that compares
-StickForStats calculations against R, Python (scipy/statsmodels), and SAS.
+This module cross-checks StickForStats statistical results against external
+reference implementations.
 
-Scientific Accuracy Target: 15 decimal places
+IMPORTANT — what this actually validates (honest scope; see audit 2026-05-31, SI-5):
+- For t-tests and one-way ANOVA, StickForStats *delegates to scipy* for the
+  computation. The "scipy" row in each suite therefore compares scipy against
+  itself: it is a self-consistency / regression check, NOT an independent
+  validation, and will trivially match. It is retained as a guard against an
+  accidental change to the delegation path, and is labelled accordingly below.
+- The genuinely INDEPENDENT references are statsmodels (always available) and R
+  (only when R is installed on the host). These are the rows that provide real
+  cross-implementation evidence.
+- SAS validation is NOT implemented (`_check_sas_availability` returns False),
+  and `_validate_anova_with_r` is a stub returning None. Do not represent SAS or
+  ANOVA-against-R as exercised validations.
+- All computation here is float64. There is no 50-digit/Decimal validation in
+  this module; the project's high-precision arithmetic lives in
+  core.high_precision_calculator and is exercised by the replication harness
+  under paper/replication/, not here.
+
 Performance Target: <100ms per test
 """
 
@@ -23,10 +39,10 @@ import os
 from scipy import stats
 from statsmodels.stats import weightstats
 import time
-from decimal import getcontext
-
-# Set high precision for validation
-getcontext().prec = 50
+# NOTE: this module computes in float64 only. A previous version set
+# decimal.getcontext().prec = 50 here, which implied 50-digit validation that
+# never actually happened (Decimal was never used). Removed to avoid the
+# misleading impression of high-precision cross-validation (audit 2026-05-31).
 
 logger = logging.getLogger(__name__)
 
@@ -89,15 +105,21 @@ class ValidationSuite:
 
 class StatisticalValidator:
     """
-    Validates statistical calculations against multiple reference implementations
+    Cross-checks statistical results against reference implementations.
+
+    Independent references: statsmodels (always) and R (if installed).
+    The "scipy" comparison is a self-consistency check, because StickForStats'
+    t-test and ANOVA paths delegate to scipy (see module docstring, SI-5).
+    SAS is not implemented. All comparisons are float64.
     """
 
-    def __init__(self, tolerance: float = 1e-15):
+    def __init__(self, tolerance: float = 1e-12):
         """
         Initialize validator
 
         Args:
-            tolerance: Maximum acceptable difference (default 1e-15 for 15 decimal places)
+            tolerance: Maximum acceptable absolute difference between our result
+                and a reference result for a comparison to PASS (float64).
         """
         self.tolerance = tolerance
         self.r_available = self._check_r_availability()
@@ -136,12 +158,14 @@ class StatisticalValidator:
         results = []
         start_time = time.time()
 
-        # Our calculation via scipy (the reference implementation used by StickForStats)
+        # Our calculation. NOTE: StickForStats delegates t-tests to scipy, so the
+        # "scipy" comparison below is a self-consistency check, not independent
+        # validation (see module docstring, SI-5).
         our_result = self._calculate_t_test(data1, data2, test_type, **kwargs)
 
-        # Python scipy validation
+        # scipy self-consistency check (we delegate to scipy, so this trivially matches)
         scipy_result = self._validate_with_scipy_t_test(data1, data2, test_type, **kwargs)
-        results.append(self._compare_results("scipy", our_result, scipy_result))
+        results.append(self._compare_results("scipy (self-consistency)", our_result, scipy_result))
 
         # R validation (if available)
         if self.r_available:
@@ -366,14 +390,16 @@ class StatisticalValidator:
         results = []
         start_time = time.time()
 
-        # Our calculation
+        # Our calculation. NOTE: StickForStats delegates one-way ANOVA to scipy,
+        # so the "scipy" comparison below is a self-consistency check, not
+        # independent validation (see module docstring, SI-5).
         our_result = self._calculate_anova(*groups, **kwargs)
 
-        # Scipy validation
+        # scipy self-consistency check (we delegate to scipy, so this trivially matches)
         scipy_result = stats.f_oneway(*groups)
         results.append(
             self._compare_anova_results(
-                "scipy", our_result, {"f_statistic": scipy_result[0], "p_value": scipy_result[1]}
+                "scipy (self-consistency)", our_result, {"f_statistic": scipy_result[0], "p_value": scipy_result[1]}
             )
         )
 
