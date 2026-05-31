@@ -25,7 +25,8 @@ print("Running all verification scripts...\n")
 
 scripts = [
     ("run_all_validations.py", "SciPy Statistical Validation"),
-    ("verify_case_studies_FINAL.py", "Case Studies Verification"),
+    ("case_study_1_crispr.py", "Case Study 1 — CRISPR TOPSIS (ANOVA -> Guardian -> Kruskal-Wallis)"),
+    ("verify_case_studies_FINAL.py", "Case Studies Verification (Iris, Wine)"),
     ("verify_meta_analysis_real.py", "Real Meta-Analysis (IV Magnesium / Egger 1997)"),
     ("additional_real_data_analysis.py", "Additional Datasets Validation"),
     ("case_study_4_genomics.py", "Case Study 4 — Real RNA-seq with Guardian (GSE271517 / Chen 2024)"),
@@ -88,8 +89,9 @@ if all_passed:
     ║   The JSS paper claims are SCIENTIFICALLY SOUND:                ║
     ║                                                                  ║
     ║   • SciPy validation: All statistical tests match               ║
-    ║   • Case Study 1 (Iris): Real data, verified results            ║
-    ║   • Case Study 2 (Wine): Real UCI data, verified results        ║
+    ║   • Case Study 1 (CRISPR TOPSIS): Real CRISPRArchitect v3       ║
+    ║     scores, ANOVA + Kruskal-Wallis reproduced & asserted        ║
+    ║   • Case Study 2 (Iris/Wine): Real data, verified results       ║
     ║   • Case Study 3 (IV Magnesium): Real Egger 1997 data,          ║
     ║     cross-validated against R metafor 4.8.0                     ║
     ║   • Additional datasets: Real R data, verified results          ║
