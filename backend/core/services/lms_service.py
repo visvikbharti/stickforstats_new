@@ -5,14 +5,68 @@ LTI 1.3 integration for Canvas, Blackboard, and Moodle.
 Handles launch requests, grade passback, and deep linking.
 """
 
+import ipaddress
 import logging
+import socket
 import time
 from datetime import datetime
 from typing import Any, Dict
+from urllib.parse import urlparse
 
 import requests  # module-level so unittest.mock.patch can locate it
 
 logger = logging.getLogger(__name__)
+
+
+class LMSSecurityError(Exception):
+    """Raised when an LMS endpoint URL fails SSRF validation."""
+
+
+def assert_safe_outbound_url(url: str, field: str = "url") -> None:
+    """Validate a caller-supplied LMS endpoint URL before the server fetches it.
+
+    Grade-passback accepts ``token_url`` / ``lineitem_url`` from the request body
+    (the AGS endpoints from a verified LTI launch), and the server then POSTs a
+    tool-signed assertion to them. Without validation that is a server-side
+    request forgery (SSRF) vector — an authenticated caller could point the
+    server at internal services or the cloud metadata endpoint
+    (audit 2026-05-31, SEC-1 / lms grade SSRF).
+
+    Policy:
+      - scheme MUST be https;
+      - the host must not resolve to a private, loopback, link-local, reserved,
+        or multicast address (blocks 127.0.0.0/8, 10/8, 192.168/16, 172.16/12,
+        169.254.0.0/16 incl. 169.254.169.254 cloud metadata, etc.);
+      - a host that does not resolve is allowed through (it is not a reachable
+        SSRF target, and DNS-less unit tests using reserved domains like
+        ``*.example`` must still exercise the mocked transport).
+
+    Raises ``LMSSecurityError`` on a disallowed URL.
+    """
+    parsed = urlparse(url or "")
+    if parsed.scheme != "https":
+        raise LMSSecurityError(f"{field} must use https (got {parsed.scheme or 'no scheme'})")
+    host = parsed.hostname
+    if not host:
+        raise LMSSecurityError(f"{field} has no host")
+
+    try:
+        addrinfos = socket.getaddrinfo(host, parsed.port or 443, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        # Host does not resolve -> not a reachable internal target. Allow.
+        return
+
+    for info in addrinfos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            raise LMSSecurityError(f"{field} resolves to a non-public address ({ip})")
 
 
 class LTIConfiguration:
@@ -417,6 +471,12 @@ class LTIService:
         on success, or ``{"ok": False, "error": "..."}`` on failure.
         """
         try:
+            assert_safe_outbound_url(token_url, field="token_url")
+        except LMSSecurityError as exc:
+            logger.warning("Blocked unsafe token_url: %s", exc)
+            return {"ok": False, "error": f"unsafe_token_url: {exc}"}
+
+        try:
             assertion = cls._client_credentials_jwt(token_url, client_id)
         except Exception as exc:
             logger.exception("Failed to build client-credentials JWT")
@@ -477,6 +537,15 @@ class LTIService:
         received scores). See docs/CRITICAL_REVIEW_2026-05-06.md
         §P1-12 (LMS grade passback).
         """
+        # SSRF guard: both the token endpoint and the lineitem endpoint are
+        # caller-supplied and are fetched server-side (audit 2026-05-31).
+        try:
+            assert_safe_outbound_url(token_url, field="token_url")
+            assert_safe_outbound_url(lineitem_url, field="lineitem_url")
+        except LMSSecurityError as exc:
+            logger.warning("Blocked unsafe AGS URL: %s", exc)
+            return {"posted": False, "error": f"unsafe_url: {exc}"}
+
         token_resp = cls.fetch_platform_access_token(token_url, client_id)
         if not token_resp.get("ok"):
             return {"posted": False, **token_resp}

@@ -285,3 +285,70 @@ class TestLTIGradePassbackView(TestCase):
             "/api/v1/lti/grade/", {"assignment_type": "run_analysis"}, format="json"
         )
         self.assertEqual(resp.status_code, 400)
+
+
+# ---------------------------------------------------------------------------
+# SSRF guard on caller-supplied AGS endpoint URLs (audit 2026-05-31, SEC-1)
+# ---------------------------------------------------------------------------
+
+
+class TestAGSEndpointSSRFGuard(TestCase):
+    """The grade-passback view accepts token_url/lineitem_url from the request
+    body and the server POSTs to them. These must be validated so an
+    authenticated caller cannot make the server reach internal hosts or the
+    cloud metadata endpoint."""
+
+    @patch("core.services.lms_service.requests.post")
+    def test_token_url_to_metadata_endpoint_blocked(self, mock_post):
+        result = LTIService.fetch_platform_access_token(
+            token_url="https://169.254.169.254/latest/meta-data/", client_id="c1"
+        )
+        self.assertFalse(result["ok"])
+        self.assertIn("unsafe_token_url", result["error"])
+        mock_post.assert_not_called()  # never reached the network
+
+    @patch("core.services.lms_service.requests.post")
+    def test_loopback_token_url_blocked(self, mock_post):
+        result = LTIService.fetch_platform_access_token(
+            token_url="https://127.0.0.1/token", client_id="c1"
+        )
+        self.assertFalse(result["ok"])
+        self.assertIn("unsafe_token_url", result["error"])
+        mock_post.assert_not_called()
+
+    @patch("core.services.lms_service.requests.post")
+    def test_http_scheme_blocked(self, mock_post):
+        result = LTIService.fetch_platform_access_token(
+            token_url="http://lms.example/token", client_id="c1"
+        )
+        self.assertFalse(result["ok"])
+        self.assertIn("unsafe_token_url", result["error"])
+        mock_post.assert_not_called()
+
+    @patch("core.services.lms_service.requests.post")
+    def test_lineitem_private_ip_blocked_before_token_fetch(self, mock_post):
+        result = LTIService.post_score_to_lms(
+            lineitem_url="https://10.0.0.5/lineitem/1",
+            token_url="https://lms.example/token",
+            client_id="c1",
+            score_payload={"userId": "u1", "scoreGiven": 80, "scoreMaximum": 100},
+        )
+        self.assertFalse(result["posted"])
+        self.assertIn("unsafe_url", result["error"])
+        mock_post.assert_not_called()
+
+    @patch("core.services.lms_service.requests.post")
+    def test_legitimate_public_url_allowed(self, mock_post):
+        # lms.example does not resolve -> allowed through to the (mocked) transport
+        mock_post.side_effect = [
+            MagicMock(status_code=200, json=lambda: {"access_token": "tok"}),
+            MagicMock(status_code=204, text=""),
+        ]
+        result = LTIService.post_score_to_lms(
+            lineitem_url="https://lms.example/lineitem/9",
+            token_url="https://lms.example/token",
+            client_id="c1",
+            score_payload={"userId": "u1", "scoreGiven": 80, "scoreMaximum": 100},
+        )
+        self.assertTrue(result["posted"])
+        self.assertEqual(mock_post.call_count, 2)
