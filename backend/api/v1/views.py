@@ -375,31 +375,62 @@ class DataImportView(APIView):
 
 class ValidationDashboardView(APIView):
     """
-    Provide real-time validation metrics for all calculations
+    Describe how StickForStats' statistical methods are validated.
+
+    NOTE: This endpoint returns a static, honest description of the project's
+    reproducible validation approach. It does NOT report live/real-time test
+    metrics. Earlier versions returned hardcoded literals (overall_accuracy
+    "99.999%", tests_validated 127, a frozen last_validation timestamp, and
+    canned vs_R/vs_scipy/vs_statsmodels accuracies) presented as live
+    measurements -- those fabricated values were removed (audit 2026-05-31,
+    SI-3). For actual, runnable validation, use the reproducibility harness
+    referenced in the response.
     """
 
-    permission_classes = [AllowAny]  # Allow public access for statistical calculations
+    permission_classes = [AllowAny]  # Public, read-only description
 
     @method_decorator(cache_page(60))  # Cache for 1 minute
     def get(self, request):
-        """
-        Get current validation metrics
-        """
-        # This would connect to your validation framework
-        metrics = {
-            "overall_accuracy": "99.999%",
-            "decimal_precision": 50,
-            "tests_validated": 127,
-            "tests_passed": 125,
-            "last_validation": "2025-09-15T10:30:00Z",
-            "comparison": {
-                "vs_r": {"accuracy": "99.99%", "tests": 50},
-                "vs_scipy": {"accuracy": "100%", "tests": 50},
-                "vs_statsmodels": {"accuracy": "99.98%", "tests": 27},
+        """Return a description of the reproducible validation approach (not live metrics)."""
+        info = {
+            "disclaimer": (
+                "This endpoint describes how StickForStats is validated; it does not "
+                "report live test results. Run the reproducibility harness to verify."
+            ),
+            "high_precision": {
+                "enabled": True,
+                "engine": (
+                    "core.high_precision_calculator (Python decimal, prec=50; "
+                    "mpmath for special functions)"
+                ),
+                "note": (
+                    "Point estimates (coefficients, moments, sums of squares) are computed "
+                    "at 50-digit precision; p-values are computed via SciPy in float64."
+                ),
+            },
+            "reproducibility": {
+                "how_to_run": "python paper/replication/MASTER_VERIFICATION.py",
+                "case_studies": [
+                    "Case Study 1 -- CRISPR TOPSIS (paper/replication/case_study_1_crispr.py)",
+                    "Case Study 2 -- Iris / Wine (paper/replication/verify_case_studies_FINAL.py)",
+                    "Case Study 3 -- IV-magnesium meta-analysis vs R metafor "
+                    "(paper/replication/verify_meta_analysis_real.py)",
+                    "Case Study 4 -- GSE271517 RNA-seq with Guardian "
+                    "(paper/replication/case_study_4_genomics.py)",
+                ],
+                "cross_checks": (
+                    "Selected results cross-validated against SciPy, statsmodels, and R (metafor)."
+                ),
+            },
+            "test_suite": {
+                "note": (
+                    "Automated test counts are not reported here to avoid drift; "
+                    "see the CI pipeline for current, executed results."
+                ),
             },
         }
 
-        return Response(metrics, status=status.HTTP_200_OK)
+        return Response(info, status=status.HTTP_200_OK)
 
 
 class HighPrecisionANOVAView(APIView):
