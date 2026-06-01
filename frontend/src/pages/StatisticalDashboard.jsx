@@ -24,12 +24,9 @@ import {
   Speed as SpeedIcon,
   CheckCircle as CheckCircleIcon,
   Lock as LockIcon,
-  Star as StarIcon,
   EmojiEvents as TrophyIcon,
-  MenuBook as MenuBookIcon,
   PlayCircleFilled as PlayIcon,
   ArrowForward as ArrowForwardIcon,
-  Whatshot as HotIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
@@ -278,14 +275,6 @@ const learningPaths = [
     modules: ['t-test', 'anova', 'survival', 'meta-analysis'],
     progress: 0
   }
-];
-
-// Achievements
-const achievements = [
-  { id: 1, title: 'First Analysis', icon: <StarIcon />, unlocked: true, description: 'Complete your first statistical analysis' },
-  { id: 2, title: 'Theory Master', icon: <MenuBookIcon />, unlocked: true, description: 'Read all theoretical foundations' },
-  { id: 3, title: 'Simulation Expert', icon: <TimelineIcon />, unlocked: false, description: 'Run 100 simulations' },
-  { id: 4, title: 'Data Wizard', icon: <TrophyIcon />, unlocked: false, description: 'Analyze 50 datasets' },
 ];
 
 const StatisticalDashboard = () => {
@@ -581,12 +570,13 @@ const StatisticalDashboard = () => {
               Master statistics through comprehensive modules, interactive simulations, and real-world applications
             </Typography>
 
-            {/* Quick Stats */}
+            {/* Quick stats — real capability facts only. The "Level"/"Day Streak"
+                gamification chips were hardcoded and identical for every user, so
+                they were removed (docs/STRATEGY_AND_POSITIONING_2026-06-01.md). */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 3 }}>
               <Chip icon={<ScienceIcon />} label="50-Decimal Precision" color="primary" />
-              <Chip icon={<SchoolIcon />} label="13 Modules Available" color="secondary" />
-              <Chip icon={<TrophyIcon />} label="Level 3" color="success" />
-              <Chip icon={<HotIcon />} label="7 Day Streak" color="error" />
+              <Chip icon={<SchoolIcon />} label={`${userProgress.totalModules} Modules Available`} color="secondary" />
+              <Chip icon={<TrophyIcon />} label="8 Guardian Validators" color="success" />
             </Box>
           </Box>
 
@@ -605,7 +595,6 @@ const StatisticalDashboard = () => {
             >
               <Tab label="All Modules" icon={<DashboardIcon />} iconPosition="start" />
               <Tab label="Learning Paths" icon={<SchoolIcon />} iconPosition="start" />
-              <Tab label="Achievements" icon={<TrophyIcon />} iconPosition="start" />
             </Tabs>
           </Paper>
 
@@ -649,44 +638,6 @@ const StatisticalDashboard = () => {
           )}
 
           {selectedTab === 1 && renderLearningPaths()}
-
-          {selectedTab === 2 && (
-            <Grid container spacing={3}>
-              {achievements.map((achievement) => (
-                <Grid item xs={12} sm={6} md={3} key={achievement.id}>
-                  <Card sx={{ opacity: achievement.unlocked ? 1 : 0.5 }}>
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Avatar
-                        sx={{
-                          width: 64,
-                          height: 64,
-                          margin: '0 auto',
-                          mb: 2,
-                          bgcolor: achievement.unlocked ? gradients.gold : 'grey'
-                        }}
-                      >
-                        {achievement.icon}
-                      </Avatar>
-                      <Typography variant="h6" gutterBottom>
-                        {achievement.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {achievement.description}
-                      </Typography>
-                      {achievement.unlocked && (
-                        <Chip
-                          label="Unlocked"
-                          color="success"
-                          size="small"
-                          sx={{ mt: 2 }}
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
         </Container>
 
         {/* Floating Action Button */}
