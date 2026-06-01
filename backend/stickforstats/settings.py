@@ -359,6 +359,23 @@ RATE_LIMIT_DEFAULT_AUTHENTICATED = 60   # requests per minute (IP-based, logged-
 RATE_LIMIT_DEFAULT_ANONYMOUS = 20       # requests per minute (IP-based, anonymous users)
 
 # =============================================================================
+# UPLOAD / REQUEST SIZE LIMITS  (DoS protection on public endpoints — beta §3)
+# =============================================================================
+# Global framework-level ceilings (defense in depth behind per-endpoint checks).
+# MAX_FILE_UPLOAD_BYTES is the shared cap that the public file-upload endpoints
+# (manuscript analyze/parse/claims/consistency + batch, SQS) enforce explicitly
+# with a friendly error; tune via MAX_FILE_UPLOAD_MB.
+MAX_FILE_UPLOAD_MB = int(os.environ.get("MAX_FILE_UPLOAD_MB", "25"))
+MAX_FILE_UPLOAD_BYTES = MAX_FILE_UPLOAD_MB * 1024 * 1024
+
+# Django: reject oversized multipart/form bodies before they are fully buffered.
+# DATA_UPLOAD_MAX_MEMORY_SIZE bounds non-file form data; file uploads stream to
+# temp files, so the per-endpoint .size checks are the real cap for files.
+DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_FILE_UPLOAD_BYTES        # bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024            # 10 MB then spill to a temp file
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
+
+# =============================================================================
 # SECURITY HARDENING
 # =============================================================================
 # Always-on security headers (safe for both development and production)

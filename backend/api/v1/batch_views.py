@@ -19,6 +19,7 @@ import secrets
 import time
 import uuid
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -127,6 +128,8 @@ class BatchSubmitView(APIView):
         submissions = []
         errors = []
 
+        max_bytes = getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
+
         for idx, uploaded in enumerate(files):
             file_type = _detect_file_type(uploaded.name)
             if file_type is None:
@@ -135,6 +138,20 @@ class BatchSubmitView(APIView):
                         "file_index": idx,
                         "file_name": uploaded.name,
                         "error": (f"Unsupported file type: {uploaded.name}. " "Accepted: .pdf, .tex, .docx, .txt"),
+                    }
+                )
+                continue
+
+            # Enforce the per-file upload size cap (DoS protection — beta §3).
+            if (getattr(uploaded, "size", 0) or 0) > max_bytes:
+                errors.append(
+                    {
+                        "file_index": idx,
+                        "file_name": uploaded.name,
+                        "error": (
+                            f"File too large ({uploaded.size / (1024 * 1024):.1f} MB). "
+                            f"Maximum allowed is {max_bytes / (1024 * 1024):.0f} MB."
+                        ),
                     }
                 )
                 continue

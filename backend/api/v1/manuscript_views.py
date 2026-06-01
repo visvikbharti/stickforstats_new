@@ -19,6 +19,7 @@ Created: February 2026
 import hashlib
 import logging
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -40,12 +41,34 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _max_upload_bytes():
+    """Shared upload ceiling (bytes). Configurable via MAX_FILE_UPLOAD_MB."""
+    return getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
+
+
+def _file_too_large_error(uploaded):
+    """Return a friendly error string if the upload exceeds the cap, else None."""
+    cap = _max_upload_bytes()
+    size = getattr(uploaded, "size", 0) or 0
+    if size > cap:
+        return (
+            f"File too large ({size / (1024 * 1024):.1f} MB). "
+            f"Maximum allowed is {cap / (1024 * 1024):.0f} MB."
+        )
+    return None
+
+
 def _get_file_and_type(request):
-    """Extract uploaded file and determine type from request."""
+    """Extract uploaded file, enforce the size cap, and determine its type."""
     if "file" not in request.FILES:
         return None, None, "No file uploaded. Send a PDF, LaTeX, or DOCX file."
 
     uploaded = request.FILES["file"]
+
+    size_error = _file_too_large_error(uploaded)
+    if size_error:
+        return None, None, size_error
+
     name = uploaded.name.lower()
 
     if name.endswith(".pdf"):

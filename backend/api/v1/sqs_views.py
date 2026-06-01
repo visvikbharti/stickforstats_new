@@ -15,6 +15,7 @@ Endpoints:
 import re
 import logging
 
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
@@ -116,6 +117,19 @@ class SQSAnalyzeView(APIView):
             if not pdf_file.name.lower().endswith(".pdf"):
                 return Response(
                     {"error": "Invalid file type. Please upload a PDF file."}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Enforce the upload size cap (DoS protection — beta §3).
+            max_bytes = getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
+            if (getattr(pdf_file, "size", 0) or 0) > max_bytes:
+                return Response(
+                    {
+                        "error": (
+                            f"File too large ({pdf_file.size / (1024 * 1024):.1f} MB). "
+                            f"Maximum allowed is {max_bytes / (1024 * 1024):.0f} MB."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Get field parameter
