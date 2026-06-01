@@ -118,12 +118,22 @@ Don't assume the compose stack works — prove it on a real (staging) box.
 
 ---
 
-## 6. Merge & release hygiene  ⚠ BLOCKER
+## 6. Merge & release hygiene  ◐ branch pushed; merge/tag remain (operator)
 
-- ☐ Review the `fix/audit-p0-scientific-integrity` branch (15 commits) and merge to `main`.
-- ☐ CI green on `main` after merge (`.github/workflows/ci.yml`, `security.yml`).
-- ☐ Tag a beta release (e.g. `v1.0.0-beta.1`) so testers report against a known build.
-- ☐ Update README/docs metrics to reality if they still drift (endpoint count, languages, etc.).
+- ☑ **Branch pushed to GitHub** (2026-06-01): `fix/audit-p0-scientific-integrity` (30 commits) is on
+  `origin`, in sync (remote HEAD a5337fa), upstream tracking set. Pre-push secret scan clean.
+  `main` deliberately left untouched on the remote to preserve the PR/review flow.
+- ☑ Merge-prep done: local gates green — backend 831/831, frontend 654/654, flake8 0, ESLint 0.
+  PR description ready at `docs/PR_audit_p0_remediation.md`.
+- ★ Open the PR and review:
+  https://github.com/visvikbharti/stickforstats_new/pull/new/fix/audit-p0-scientific-integrity
+- ★ CI green on the PR / `main` after merge (`.github/workflows/ci.yml`, `security.yml`).
+- ★ Merge to `main`, then tag a beta release (e.g. `v1.0.0-beta.1`) so testers report against a
+  known build.
+- ○ Update README/docs metrics if any still drift (endpoint count, languages, etc.).
+
+Note: local `main` is 2 pre-existing commits ahead of `origin/main` (governance/PDF-renderer, from
+before this work) — unpushed and harmless; they'll sync on the next `main` push/merge.
 
 ---
 
@@ -138,7 +148,9 @@ Don't assume the compose stack works — prove it on a real (staging) box.
 
 ## Go / No-Go
 
-**GO for closed beta when:** §1 ☑ (done), and §2, §3, §4, §5, §6 all ☑.
-Today's remaining blockers are config hardening (§2), input-size caps (§3), the test-isolation 429
-fix (§4), a real deploy smoke-test (§5), and merge+CI (§6) — estimated ~2–3 focused sessions.
+**GO for closed beta when:** §1 ☑, §2 ☑, §3 ☑, §4 ☑ all done (code-side); §5 smoke-test tool ☑
+and §6 branch-pushed ☑. The ONLY remaining items are operator/deploy actions:
+  - §6: open the PR, get CI green, merge to `main`, tag `v1.0.0-beta.1`.
+  - §5: deploy the docker stack (real `.env` + TLS certs + `migrate`) and run
+    `scripts/smoke_test.sh` against the live URL.
 Open public beta (open registration, abuse protection at scale, compliance) is a later milestone.
