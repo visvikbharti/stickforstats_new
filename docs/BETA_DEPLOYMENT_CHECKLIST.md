@@ -64,19 +64,22 @@ Code-side hardening landed; the remaining items are deploy-time operator actions
 
 ---
 
-## 3. Abuse / DoS protection on public endpoints  ⚠ BLOCKER (partial today)
+## 3. Abuse / DoS protection on public endpoints  ☑ DONE (commit be8819e) — one deploy-time + one optional item remain
 
-The statistical/manuscript/import endpoints are public calculators (`AllowAny`). With a global
-audience they need guardrails:
+The statistical/manuscript/import endpoints are public calculators (`AllowAny`).
 
-- ◐ **Rate limiting exists** (`RateLimitMiddleware`, `settings.py:68`; `RATE_LIMIT_ENABLED = not DEBUG`,
-  `:324`) — auto-on in prod (20/min anon, 60/min auth). Confirm it is actually enforced on the beta
-  host (DEBUG=False) and tune the limits for expected beta load.
-- ☐ **Input-size caps** on the public compute/upload endpoints (array length, matrix size, file size)
-  — the audit (02/F8, 12/F2) found none on most numeric endpoints; the SQS/import PDF upload is the
-  biggest surface. Add explicit caps before profiling/parsing.
-- ☐ **LMS grade-passback SSRF** already guarded (`ddc52b6`) — verify it's in the deployed build.
-- ☐ Decide whether to require auth (not just rate-limit) on the heavier endpoints for the beta.
+- ☑ **Input-size caps** (commit be8819e): shared `MAX_FILE_UPLOAD_BYTES` (default 25 MB,
+  env-tunable via `MAX_FILE_UPLOAD_MB`) enforced on manuscript analyze/parse/claims/consistency,
+  batch, and SQS PDF upload; Django `DATA_UPLOAD_MAX_MEMORY_SIZE`/`FILE_UPLOAD_MAX_MEMORY_SIZE`/
+  `DATA_UPLOAD_MAX_NUMBER_FIELDS` set as framework-level defense in depth. Numeric endpoints
+  already cap arrays at 1M points (`DataArrayValidator`); data-import already caps at 100 MB.
+- ☑ **LMS grade-passback SSRF** guarded (`ddc52b6`).
+- ☑ **Rate limiting** enforced in prod (auto-on when DEBUG=False; off under tests via TESTING).
+- ★ **Operator:** confirm rate limiting is active on the beta host (DEBUG=False) and tune
+  `RATE_LIMIT_DEFAULT_*` / `MAX_FILE_UPLOAD_MB` for expected beta load.
+- ○ **Optional (post-beta decision):** require auth (not just rate-limit) on the heavier compute
+  endpoints. Deferred — the public-calculator posture is acceptable for a closed beta with rate
+  limiting + size caps.
 
 **Verify:** with DEBUG=False, hammer an endpoint > limit → expect HTTP 429.
 
