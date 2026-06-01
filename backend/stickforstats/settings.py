@@ -4,6 +4,7 @@ Django settings for the StickForStats v1.0 Production project.
 
 import os
 import secrets
+import sys
 from datetime import timedelta
 from pathlib import Path
 from .env_settings import get_database_config, get_platform_config, get_s3_config
@@ -16,6 +17,12 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(50))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+
+# Are we running the test suite? True for `manage.py test` and pytest. Used to
+# disable request rate limiting during tests so the throttle does not 429 the
+# rapid-fire test client (which otherwise produces ~78 spurious API-suite
+# failures — these are NOT real endpoint bugs).
+TESTING = ("test" in sys.argv) or ("pytest" in sys.modules) or bool(os.environ.get("PYTEST_CURRENT_TEST"))
 
 # Allowed hosts — set DJANGO_ALLOWED_HOSTS in production (e.g., "yourdomain.com")
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(
@@ -321,7 +328,12 @@ GUARDIAN_MIDDLEWARE = {
 # RATE LIMITING
 # =============================================================================
 # Disabled in DEBUG mode by default. Override with ENABLE_RATE_LIMITING=true env var.
-RATE_LIMIT_ENABLED = not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
+# Always disabled under the test runner (TESTING) so the throttle does not 429
+# the test client; tests that specifically exercise rate limiting should opt in
+# with @override_settings(RATE_LIMIT_ENABLED=True).
+RATE_LIMIT_ENABLED = (not TESTING) and (
+    not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
+)
 RATE_LIMIT_DEFAULT_AUTHENTICATED = 60   # requests per minute (IP-based, logged-in users)
 RATE_LIMIT_DEFAULT_ANONYMOUS = 20       # requests per minute (IP-based, anonymous users)
 
