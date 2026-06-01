@@ -1,71 +1,42 @@
 # Prompt for Next Claude Code Session
 
-Copy and paste the text below (between the START/END markers) as your first message in the next session:
+Copy the text between the START/END markers as your first message next session.
 
 ---
 
 ## START PROMPT ##
 
-Please read the session handoff document first:
+Good morning. We're resuming StickForStats. Before anything else, read:
+- `docs/SESSION_HANDOFF_2026-06-01.md` (what we did + current state + prioritized next steps)
+- `docs/DEPLOYMENT_RUNBOOK.md` (the deploy procedure)
+- and your memory file `strategy-positioning-2026-06-01.md`.
 
-```
-/Users/vishalbharti/StickForStats_v1.0_Production/docs/SESSION_HANDOFF_JAN27_2026_SCIENTIFIC_INTEGRITY.md
-```
+**Current state (verify against git/origin before trusting):** `main` = `caafbd6` (local == origin);
+released `v1.0.0-beta.1`; `sfs` CLI live on PyPI 0.2.1 (Python ≥3.10); GHCR backend+frontend images
+published. The audit-remediation work is merged; tests green (831 backend / 654 frontend). Do NOT
+redo completed work — confirm with `git log origin/main` / `gh release list` / `pip index` first.
 
-**Context:** We are working on StickForStats, a statistical analysis platform. The JSS (Journal of Statistical Software) paper submission has a CRITICAL SCIENTIFIC INTEGRITY ISSUE that must be resolved.
+**The one gate left to invite beta testers is the host deploy.** Today I want to:
 
-**Problem discovered on 2026-01-27:**
-The paper (`paper/JSS_SUBMISSION/source/stickforstats_expanded.tex`) claims validation against:
-1. R 4.3.1 - NO EVIDENCE EXISTS (no R scripts)
-2. G*Power 3.1 - NO EVIDENCE EXISTS (no comparison scripts)
-3. Wolfram Mathematica - UNVERIFIED (no notebooks/scripts)
+<pick ONE and delete the rest>
+- (A) **Deploy for beta.** Walk me through executing `docs/DEPLOYMENT_RUNBOOK.md` step by step. I have:
+  a host = ____, a domain/DNS = ____, TLS via Let's Encrypt = yes/no. Go one step at a time and wait
+  for my confirmation after each.
+- (B) **Beta-shape the app** (`BETA_DEPLOYMENT_CHECKLIST.md` §0): add invite-only gating, a persistent
+  beta banner, a feedback channel, and a data/privacy notice — before we expose it.
+- (C) **Quality pass before beta:** add `sdk/python/tests/`, add `paths-ignore` to ci.yml, retire the
+  stale `docs/DEPLOYMENT_GUIDE.md`, investigate the Playwright E2E flake.
+- (D) **Start the moat:** design the "reproducibility receipt" provenance feature (see
+  `docs/STRATEGY_AND_POSITIONING_2026-06-01.md`).
 
-**What IS verified and real:**
-- SciPy validation: `paper/replication/run_all_validations.py` - PASSES
-- Case Studies: `paper/replication/verify_real_data_analysis.py` - ALL 3 VERIFIED
-- 93 automated tests (38 backend + 55 frontend) - ALL PASS
-
-**Task for this session:**
-I want to [CHOOSE ONE]:
-
-**Option A - Remove unverified claims (recommended for honest submission):**
-- Remove R, G*Power, and Mathematica validation claims from the paper
-- Keep only SciPy validation (which is real and verified)
-- Keep the 93 automated tests claim (verified)
-- Recompile the PDF
-
-**Option B - Create the missing validations (if you have time):**
-- Create `paper/replication/validate_against_R.R` with real R comparisons
-- Create power analysis validation against G*Power reference values
-- Update paper only after validations pass
-
-**Option C - Tell me what you recommend**
-
-Please start by reading the handoff document and confirming you understand the issue. This is about scientific integrity - the paper cannot contain fabricated claims.
+Work in the same disciplined way as before: ground-truth over docs, one edit→verify→commit at a time,
+honest about what's done vs not, admin-push docs to `main` is fine, no Co-Authored-By trailer, never
+write the word that rhymes with "turn-it-in" (use "statistical-verification tool"). When you finish,
+update the handoff doc + memory.
 
 ## END PROMPT ##
 
 ---
 
-## Alternative Short Prompt
-
-If you prefer a shorter prompt:
-
----
-
-Read `/Users/vishalbharti/StickForStats_v1.0_Production/docs/SESSION_HANDOFF_JAN27_2026_SCIENTIFIC_INTEGRITY.md` first.
-
-The JSS paper has unverified validation claims (R, G*Power, Mathematica) that need to be either removed or backed with real evidence. Only SciPy validation is real. Please fix the paper to maintain scientific integrity.
-
----
-
-## Notes for Next Session
-
-1. The paper backup is at: `paper/JSS_SUBMISSION/source/stickforstats_expanded_BACKUP_JAN26_2026.tex`
-2. To compile the paper: Use Docker with `texlive/texlive:latest`
-3. The frontend had import errors (Guardian case sensitivity) - these are now fixed
-4. 93 automated tests exist and pass (38 backend + 55 frontend)
-
----
-
-*Created: 2026-01-27 11:35 IST*
+*This file is regenerated each session to hold the latest resume prompt. Previous dated prompts (e.g.
+`NEXT_SESSION_PROMPT_2026-02-20.md`) are kept for history.*
