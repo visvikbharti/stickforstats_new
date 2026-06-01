@@ -16,13 +16,31 @@ checks, high-precision point estimates, manuscript verification).
 
 ## 1. Install
 
-The CLI ships inside the Python SDK, behind the `cli` extra (it pulls in `click` + `rich`):
+> **Requires Python ≥ 3.10.** On older interpreters `pip` will refuse with
+> `Ignored the following versions that require a different python version: … Requires-Python >=3.10`.
+> That's expected — make a 3.10+ environment first. Many scientists' conda **base** env is still 3.9,
+> so this catches a lot of people (it's not a bug).
+
+The CLI is published on PyPI inside the Python SDK, behind the `cli` extra (it pulls in `click` + `rich`):
 
 ```bash
-pip install "stickforstats[cli]"      # once published to PyPI
+pip install "stickforstats[cli]"
 ```
 
-Until the PyPI release lands, install from source (**Python ≥ 3.10** required):
+If your default Python is < 3.10 (e.g. conda `base` on 3.9), create a quick 3.10+ environment first:
+
+```bash
+# conda
+conda create -y -n sfs python=3.11
+conda activate sfs
+pip install "stickforstats[cli]"
+
+# …or a plain venv with any python3.10+ binary
+python3.11 -m venv ~/.venvs/sfs && source ~/.venvs/sfs/bin/activate
+pip install "stickforstats[cli]"
+```
+
+From source instead (e.g. to track `main`):
 
 ```bash
 git clone https://github.com/visvikbharti/stickforstats_new.git
@@ -32,7 +50,7 @@ pip install -e "stickforstats_new/sdk/python[cli]"
 Verify:
 
 ```bash
-sfs --version
+sfs --version      # → sfs, version 0.2.1
 sfs --help
 ```
 
@@ -138,6 +156,7 @@ Shows tier, total/today request counts, and remaining quota.
 
 - The CLI is **lint-clean** but **not yet unit-tested** (no `tests/` in `sdk/python` as of this
   writing) — treat it as beta.
-- **Not on PyPI yet** — source install only until the publish pipeline
-  (`.github/workflows/publish-sdk.yml`) is run against a configured PyPI project. See that workflow's
-  header for the one-time PyPI setup.
+- **Published on PyPI:** https://pypi.org/project/stickforstats/ (current: 0.2.1, requires Python ≥3.10).
+  Releases are cut via `.github/workflows/publish-sdk.yml` (push an `sdk-v<version>` tag).
+- **It's a client, not local compute** — every command calls a running StickForStats API, so it's only
+  useful once an instance is deployed (see `docs/DEPLOYMENT_RUNBOOK.md`).
