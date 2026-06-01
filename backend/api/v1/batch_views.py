@@ -117,6 +117,13 @@ class BatchSubmitView(APIView):
         alpha = float(request.data.get("alpha", 0.05))
         batch_id = str(uuid.uuid4())
 
+        # One share token guards the whole batch: its hash is stored on every
+        # submission in the batch, so the same raw token retrieves the batch
+        # status and each individual report (audit 2026-05-31, SEC-3 / IDOR).
+        # The raw token is returned once in the response below.
+        batch_token = secrets.token_urlsafe(32)
+        batch_token_hash = ManuscriptSubmission.hash_report_token(batch_token)
+
         submissions = []
         errors = []
 
@@ -228,6 +235,8 @@ class BatchSubmitView(APIView):
         return Response(
             {
                 "batch_id": batch_id,
+                "batch_token": batch_token,
+                "status_url": f"/api/v1/manuscript/batch-status/{batch_id}/?token={batch_token}",
                 "total_submitted": len(files),
                 "completed": len(submissions),
                 "failed": len(errors),
