@@ -473,9 +473,14 @@ class AutonomousCascadeEngine:
         )
 
     def _exec_chi_square(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
-        # Expects a contingency table or two categorical arrays
+        # Expects a contingency table or two categorical arrays.
+        # Build the table from the raw category labels. Previously these were
+        # coerced with .astype(int), which fails on string categories (e.g.
+        # "male"/"female") and forces integer-coded labels to be treated as
+        # ordinal magnitudes. pd.crosstab handles string/object labels natively
+        # (audit 2026-05-31, ST-5).
         if len(arrays) == 2:
-            contingency = pd.crosstab(pd.Series(arrays[0].astype(int)), pd.Series(arrays[1].astype(int)))
+            contingency = pd.crosstab(pd.Series(arrays[0]), pd.Series(arrays[1]))
             chi2, p, dof, expected = stats.chi2_contingency(contingency.values)
         else:
             chi2, p, dof, expected = stats.chi2_contingency(
@@ -495,25 +500,39 @@ class AutonomousCascadeEngine:
         )
 
     def _exec_fisher_exact(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
+        # Build the contingency table from raw category labels (no .astype(int);
+        # see _exec_chi_square — same string-category bug, audit 2026-05-31 ST-5).
         if len(arrays) == 2:
-            contingency = pd.crosstab(pd.Series(arrays[0].astype(int)), pd.Series(arrays[1].astype(int)))
+            contingency = pd.crosstab(pd.Series(arrays[0]), pd.Series(arrays[1]))
             table = contingency.values
         else:
             table = arrays[0]
 
         if table.shape == (2, 2):
             odds_ratio, p = stats.fisher_exact(table)
-        else:
-            # Fisher exact only works for 2x2; fall back to chi-square for larger
-            chi2, p, dof, expected = stats.chi2_contingency(table)
-            odds_ratio = chi2  # Not a true OR, but best we can do
+            return TestResult(
+                test_name="Fisher's Exact Test",
+                statistic=float(odds_ratio),
+                p_value=float(p),
+                effect_size=float(odds_ratio),
+                effect_size_name="Odds Ratio",
+            )
 
+        # Fisher's exact is only defined for 2x2 tables here; fall back to
+        # chi-square for larger r x c tables and report it HONESTLY. Previously
+        # the chi-square statistic was returned as the "Odds Ratio", which is a
+        # mislabeled, meaningless value (audit 2026-05-31, F5).
+        chi2, p, dof, expected = stats.chi2_contingency(table)
+        n = float(np.sum(table))
+        min_dim = min(table.shape) - 1
+        cramers_v = float(np.sqrt(chi2 / (n * min_dim))) if n > 0 and min_dim > 0 else 0.0
         return TestResult(
-            test_name="Fisher's Exact Test",
-            statistic=float(odds_ratio),
+            test_name="Chi-Square Test of Independence (Fisher's exact requires a 2x2 table)",
+            statistic=float(chi2),
             p_value=float(p),
-            effect_size=float(odds_ratio),
-            effect_size_name="Odds Ratio",
+            effect_size=cramers_v,
+            effect_size_name="Cramer's V",
+            degrees_of_freedom=float(dof),
         )
 
     def _exec_linear_regression(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
