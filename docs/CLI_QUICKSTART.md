@@ -22,7 +22,7 @@ The CLI ships inside the Python SDK, behind the `cli` extra (it pulls in `click`
 pip install "stickforstats[cli]"      # once published to PyPI
 ```
 
-Until the PyPI release lands, install from source (Python ≥ 3.8):
+Until the PyPI release lands, install from source (**Python ≥ 3.10** required):
 
 ```bash
 git clone https://github.com/visvikbharti/stickforstats_new.git
