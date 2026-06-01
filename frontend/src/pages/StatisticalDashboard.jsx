@@ -293,15 +293,13 @@ const StatisticalDashboard = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState(0);
+  // Real, computed catalog counts only — no fabricated gamification
+  // (streak/level/XP were hardcoded and identical for every user; removed).
   const [userProgress, setUserProgress] = useState({
     totalModules: 0,
     completedModules: 0,
     inProgressModules: 0,
     totalTime: 0,
-    streak: 7,
-    level: 3,
-    experience: 750,
-    nextLevelXP: 1000
   });
 
   // Calculate user progress
@@ -469,63 +467,43 @@ const StatisticalDashboard = () => {
     </Grow>
   );
 
-  // Render user stats card
+  // Render an honest platform-capability summary.
+  // NOTE: this card previously showed fabricated personal-progress gamification
+  // (hardcoded Level 3 / 750 XP / 7-day streak) shown identically to every user.
+  // That is misleading for a scientific tool and was removed
+  // (audit 2026-05-31; docs/STRATEGY_AND_POSITIONING_2026-06-01.md). It now
+  // summarizes the real module catalog computed from moduleCategories.
   const renderUserStats = () => (
     <Card sx={{ backgroundColor: 'secondary.main', color: 'secondary.contrastText' }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          Your Progress
+          Statistical Toolkit
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+          Every analysis is checked by the Guardian assumption-validation system
+          before results are reported.
         </Typography>
 
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} md={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.completedModules}</Typography>
-              <Typography variant="caption">Completed</Typography>
+              <Typography variant="h3">{userProgress.totalModules}</Typography>
+              <Typography variant="caption">Analysis modules</Typography>
             </Box>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.inProgressModules}</Typography>
-              <Typography variant="caption">In Progress</Typography>
+              <Typography variant="h3">8</Typography>
+              <Typography variant="caption">Guardian validators</Typography>
             </Box>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.streak}</Typography>
-              <Typography variant="caption">Day Streak 🔥</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">Lv.{userProgress.level}</Typography>
-              <Typography variant="caption">Current Level</Typography>
+              <Typography variant="h3">50</Typography>
+              <Typography variant="caption">Decimal precision</Typography>
             </Box>
           </Grid>
         </Grid>
-
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">
-              Level {userProgress.level} Progress
-            </Typography>
-            <Typography variant="body2">
-              {userProgress.experience}/{userProgress.nextLevelXP} XP
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={(userProgress.experience / userProgress.nextLevelXP) * 100}
-            sx={{
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              '& .MuiLinearProgress-bar': {
-                backgroundColor: '#ffffff',
-              }
-            }}
-          />
-        </Box>
       </CardContent>
     </Card>
   );

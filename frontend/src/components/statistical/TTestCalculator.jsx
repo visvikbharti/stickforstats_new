@@ -990,9 +990,9 @@ const TTestCalculator = () => {
 
                 <Grid item xs={12}>
                   <Alert severity="info">
-                    <AlertTitle>50 Decimal Precision</AlertTitle>
-                    All calculations are performed with 50 decimal place precision, providing unmatched accuracy
-                    for scientific research and publication-quality results.
+                    <AlertTitle>High-precision computation</AlertTitle>
+                    Point estimates (the test statistic, means, and sums of squares) are computed at
+                    50-decimal precision; p-values are evaluated with standard double precision.
                   </Alert>
                 </Grid>
               </Grid>
