@@ -3,7 +3,7 @@ import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   CardActions, Button, Chip, LinearProgress,
   Avatar, Tooltip, Fab,
-  Tab, Tabs, alpha, useTheme, Grow, CardActionArea
+  Tab, Tabs, Grow, CardActionArea
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -22,8 +22,6 @@ import {
   BubbleChart as BubbleChartIcon,
   DonutLarge as DonutIcon,
   Speed as SpeedIcon,
-  CheckCircle as CheckCircleIcon,
-  Lock as LockIcon,
   EmojiEvents as TrophyIcon,
   PlayCircleFilled as PlayIcon,
   ArrowForward as ArrowForwardIcon,
@@ -280,45 +278,23 @@ const learningPaths = [
 const StatisticalDashboard = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState(0);
-  // Real, computed catalog counts only — no fabricated gamification
-  // (streak/level/XP were hardcoded and identical for every user; removed).
-  const [userProgress, setUserProgress] = useState({
-    totalModules: 0,
-    completedModules: 0,
-    inProgressModules: 0,
-    totalTime: 0,
-  });
+  // Real, computed catalog count only — no fabricated per-user progress
+  // (streak/level/XP and per-module completed/in-progress status were hardcoded
+  // and identical for every user; removed).
+  const [userProgress, setUserProgress] = useState({ totalModules: 0 });
 
-  // Calculate user progress
+  // Count the modules actually available in the catalog.
   useEffect(() => {
     let total = 0;
-    let completed = 0;
-    let inProgress = 0;
-
     Object.values(moduleCategories).forEach(category => {
-      category.modules.forEach(module => {
-        total++;
-        if (module.status === 'completed') completed++;
-        if (module.status === 'in-progress') inProgress++;
-      });
+      total += category.modules.length;
     });
-
-    setUserProgress(prev => ({
-      ...prev,
-      totalModules: total,
-      completedModules: completed,
-      inProgressModules: inProgress
-    }));
+    setUserProgress(prev => ({ ...prev, totalModules: total }));
   }, []);
 
   // Navigate to module
   const handleModuleClick = (module) => {
-    if (module.status === 'locked') {
-      enqueueSnackbar('This module is locked. Complete prerequisites first!', { variant: 'warning' });
-      return;
-    }
     navigate(module.path);
     enqueueSnackbar(`Opening ${module.title}...`, { variant: 'info' });
   };
@@ -332,40 +308,16 @@ const StatisticalDashboard = () => {
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          cursor: module.status !== 'locked' ? 'pointer' : 'not-allowed',
-          opacity: module.status === 'locked' ? 0.6 : 1,
+          cursor: 'pointer',
         }}
         onClick={() => handleModuleClick(module)}
       >
-        {/* Status Badge */}
-        {module.status === 'completed' && (
-          <Chip
-            label="Completed"
-            icon={<CheckCircleIcon />}
-            color="success"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
-        {module.status === 'locked' && (
-          <Chip
-            label="Locked"
-            icon={<LockIcon />}
-            color="default"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
-        {module.status === 'in-progress' && (
-          <Chip
-            label="In Progress"
-            color="primary"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
+        {/* No per-user status badge: this dashboard has no real per-user progress
+            state, so the previous "Completed / In Progress / Locked" badges and
+            progress bars were hardcoded and identical for everyone (fabricated).
+            Removed (docs/STRATEGY_AND_POSITIONING_2026-06-01.md). */}
 
-        <CardActionArea sx={{ flexGrow: 1 }} disabled={module.status === 'locked'}>
+        <CardActionArea sx={{ flexGrow: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Avatar
@@ -413,24 +365,6 @@ const StatisticalDashboard = () => {
               )}
             </Box>
 
-            {/* Progress Bar */}
-            {module.status !== 'locked' && (
-              <Box sx={{ mt: 'auto' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption">Progress</Typography>
-                  <Typography variant="caption">{module.progress}%</Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={module.progress}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }}
-                />
-              </Box>
-            )}
           </CardContent>
         </CardActionArea>
 
@@ -438,18 +372,13 @@ const StatisticalDashboard = () => {
           <Button
             fullWidth
             variant="contained"
-            disabled={module.status === 'locked'}
-            endIcon={module.status === 'locked' ? <LockIcon /> : <ArrowForwardIcon />}
+            endIcon={<ArrowForwardIcon />}
             sx={{
-              background: module.status === 'locked' ? 'grey' : categoryColor,
-              '&:hover': {
-                background: module.status === 'locked' ? 'grey' : categoryColor
-              }
+              background: categoryColor,
+              '&:hover': { background: categoryColor }
             }}
           >
-            {module.status === 'locked' ? 'Locked' :
-             module.status === 'completed' ? 'Review' :
-             module.status === 'in-progress' ? 'Continue' : 'Start'}
+            Open module
           </Button>
         </CardActions>
       </Card>
