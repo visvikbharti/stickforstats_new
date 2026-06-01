@@ -1,0 +1,121 @@
+# Publish the Python SDK (and the `sfs` CLI) to PyPI / TestPyPI.
+#
+# ── ONE-TIME SETUP (required before this can publish) ────────────────────────
+# This workflow uses PyPI "Trusted Publishing" (OIDC) — NO API token is stored in
+# the repo. You must register this workflow as a trusted publisher first:
+#
+#   1. Claim the project name on PyPI (and TestPyPI). The distribution name is
+#      `stickforstats` (see sdk/python/pyproject.toml). Confirm it is available /
+#      that you own it: https://pypi.org/project/stickforstats/
+#   2. PyPI → your project → Settings → Publishing → "Add a trusted publisher":
+#        Owner:        visvikbharti
+#        Repository:   stickforstats_new
+#        Workflow:     publish-sdk.yml
+#        Environment:  pypi          (must match the job `environment:` below)
+#      Repeat on https://test.pypi.org with Environment: testpypi
+#   3. (Optional) Create GitHub Environments named `pypi` and `testpypi`
+#      (Settings → Environments) and add required reviewers for an approval gate.
+#
+# ── HOW TO PUBLISH ───────────────────────────────────────────────────────────
+#   • Dry run:  Actions → "Publish Python SDK" → Run workflow → target = testpypi
+#   • Release:  Actions → Run workflow → target = pypi
+#               OR push a tag:  git tag sdk-v0.2.0 && git push origin sdk-v0.2.0
+#               (the tag's version MUST equal sdk/python/pyproject.toml `version`)
+#
+# NOTE: this never runs on a normal push or on platform releases (e.g.
+# v1.0.0-beta.1). The SDK is versioned independently via `sdk-v*` tags.
+
+name: Publish Python SDK
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Publish target"
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+  push:
+    tags:
+      - "sdk-v*" # e.g. sdk-v0.2.0 → publish to PyPI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-sdk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # tomllib for the version check below
+
+      - name: Verify tag matches package version (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/sdk-v')
+        run: |
+          tag="${GITHUB_REF_NAME#sdk-v}"
+          pkg="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+          echo "tag version = $tag ; pyproject version = $pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Tag sdk-v$tag does not match pyproject version $pkg. Bump pyproject.toml or fix the tag."
+            exit 1
+          fi
+
+      - name: Build + validate distributions
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          python -m twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdk-dist
+          path: sdk/python/dist/
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi'
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write # OIDC for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdk-dist
+          path: dist
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    if: >-
+      startsWith(github.ref, 'refs/tags/sdk-v') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # OIDC for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdk-dist
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

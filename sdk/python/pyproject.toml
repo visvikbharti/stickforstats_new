@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "stickforstats"
 version = "0.2.0"
-description = "Python SDK for StickForStats — the world's statistical analysis platform"
+description = "Python SDK and CLI (sfs) for StickForStats — statistical analysis with automatic assumption validation (Guardian) and manuscript statistical verification"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
@@ -47,10 +47,10 @@ dev = [
 sfs = "stickforstats.cli:main"
 
 [project.urls]
-Homepage = "https://stickforstats.com"
-Documentation = "https://docs.stickforstats.com"
-Repository = "https://github.com/stickforstats/stickforstats-python"
-Issues = "https://github.com/stickforstats/stickforstats-python/issues"
+Homepage = "https://github.com/visvikbharti/stickforstats_new"
+Documentation = "https://github.com/visvikbharti/stickforstats_new/blob/main/docs/CLI_QUICKSTART.md"
+Repository = "https://github.com/visvikbharti/stickforstats_new"
+Issues = "https://github.com/visvikbharti/stickforstats_new/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stickforstats"]
