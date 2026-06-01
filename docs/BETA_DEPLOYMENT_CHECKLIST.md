@@ -85,55 +85,61 @@ The statistical/manuscript/import endpoints are public calculators (`AllowAny`).
 
 ---
 
-## 4. Test suite must be green & actually gate  ⚠ BLOCKER
+## 4. Test suite must be green & actually gate  ☑ DONE (2026-06-01)
 
-- ☐ **Fix the test-isolation 429 problem.** `core.tests.test_v2_api_endpoints` has **76 failures + 3
-  errors on clean HEAD**, all `429 != 200` — `RateLimitMiddleware` throttles the test client because
-  the suite fires many requests fast. Fix by disabling/raising the limit under test (e.g. gate
-  `RATE_LIMIT_ENABLED` off when a `TESTING` setting is on, or `@override_settings`). Until fixed, this
-  suite cannot gate CI and masks real regressions. **(Pre-existing, not caused by the audit branch.)**
-- ☐ Full backend suite green: `cd backend && python manage.py test` (after the 429 fix).
-- ☐ Frontend gate green: `cd frontend && CI=true npx react-scripts test --watchAll=false`.
-- ☐ Re-confirm the audit-branch suites: report-token, lti/jwt, hp-anova, cascade, hp-edge,
-  stats-regression-route, platform-services.
+- ☑ **Test-isolation 429 problem fixed** (`f8cee5c`): `RATE_LIMIT_ENABLED` now gates off under the
+  `TESTING` flag, so the test client is no longer throttled — the 76-failure "429" storm in
+  `core.tests.test_v2_api_endpoints` is gone (and it had masked a real batch-submit regression).
+- ☑ **Per-test unique LTI nonce** (`e8c88d0`) — fixed a pre-existing full-suite isolation failure
+  exposed once the suite could run end to end.
+- ☑ Full backend suite green: **831/831** (verified locally pre-merge AND on CI `Backend Test`).
+- ☑ Frontend gate green: **654/654** (verified locally pre-merge AND on CI `Frontend Test`).
+- ☑ Audit-branch suites confirmed: report-token, lti/jwt, hp-anova, cascade, hp-edge,
+  stats-regression-route, platform-services — all in the green run.
 
 ---
 
-## 5. Deploy-and-smoke-test the REAL stack  ⚠ BLOCKER (smoke-test TOOL ready; deploy is an operator action)
+## 5. Deploy-and-smoke-test the REAL stack  ◐ smoke PASSED live; image-build verified on CI; host deploy remains operator
 
-Don't assume the compose stack works — prove it on a real (staging) box.
-
-- ☑ **Smoke-test script ready & validated:** `scripts/smoke_test.sh` (commit 5947125) — exercises
-  health, t-test, ANOVA, high-precision regression, and the manuscript share-token IDOR flow
-  against a running instance, asserting on real response fields. Validated locally (4/4 + graceful
-  skip). Run after deploy: `BASE_URL=https://beta.example.com ./scripts/smoke_test.sh`.
-- ★ `docker compose build` succeeds (backend gunicorn + frontend nginx images).
-- ★ `docker compose up` brings up postgres + redis + backend + frontend + celery + nginx healthy
-  (requires the `.env` from §2; compose now refuses to start without the secrets).
+- ☑ **Smoke-test script ready & validated:** `scripts/smoke_test.sh` (commit 5947125).
+- ☑ **Smoke run against a live, migrated server — 7/7 PASS (2026-06-01).** Ran the real backend on a
+  fresh-migrated throwaway SQLite DB (DEBUG=True functional smoke; prod-posture — SSL redirect,
+  rate-limit, fail-closed secret — is unit-tested in `test_settings_hardening.py`). Migrations apply
+  cleanly from scratch incl. `0012_manuscriptsubmission_report_token_hash`. Results: health, t-test,
+  ANOVA, high-precision regression all 200; **manuscript share-token IDOR flow PASSED end-to-end**
+  (with-token → 200, without-token → 404) — the part that SKIPs without a migrated DB.
+- ◐ **Docker images build:** verified on CI (`Docker Build` + `Push to GHCR` jobs on `main`), since
+  the local box had only ~9 GB free (a multi-GB compose build risked the disk-full state hit earlier).
+  Images publish to `ghcr.io/visvikbharti/stickforstats_new/{backend,frontend}` — pull these on the
+  deploy host instead of building there.
+- ★ `docker compose up` on the **deploy host** with the §2 `.env` (compose refuses to start without
+  the secrets) → postgres + redis + backend + frontend + celery healthy.
 - ★ HTTPS serves with a real cert (nginx TLS config exists; `nginx/ssl/` is empty — provide certs).
-- ★ `python manage.py migrate` applies cleanly on the fresh DB (incl.
-  `0012_manuscriptsubmission_report_token_hash`).
-- ★ Run `scripts/smoke_test.sh` against the deployed URL → expect all checks green (the manuscript
-  token flow, SKIPped locally, must PASS here since the DB is migrated).
+- ★ Run `scripts/smoke_test.sh` against the deployed HTTPS URL → expect all 7 green (same as the local
+  run, now over TLS on the real host).
 
 ---
 
-## 6. Merge & release hygiene  ◐ branch pushed; merge/tag remain (operator)
+## 6. Merge & release hygiene  ☑ DONE (2026-06-01)
 
-- ☑ **Branch pushed to GitHub** (2026-06-01): `fix/audit-p0-scientific-integrity` (30 commits) is on
-  `origin`, in sync (remote HEAD a5337fa), upstream tracking set. Pre-push secret scan clean.
-  `main` deliberately left untouched on the remote to preserve the PR/review flow.
-- ☑ Merge-prep done: local gates green — backend 831/831, frontend 654/654, flake8 0, ESLint 0.
-  PR description ready at `docs/PR_audit_p0_remediation.md`.
-- ★ Open the PR and review:
-  https://github.com/visvikbharti/stickforstats_new/pull/new/fix/audit-p0-scientific-integrity
-- ★ CI green on the PR / `main` after merge (`.github/workflows/ci.yml`, `security.yml`).
-- ★ Merge to `main`, then tag a beta release (e.g. `v1.0.0-beta.1`) so testers report against a
-  known build.
+- ☑ **PR opened, CI green, merged.** PR #1 (https://github.com/visvikbharti/stickforstats_new/pull/1)
+  — all 5 required checks green (Backend/Frontend/SDK Lint + Backend/Frontend Test). Squash-merged to
+  `main` as commit `ba0e119` via admin override (branch protection required 1 review; author can't
+  self-approve a solo repo, `enforce_admins=false` permitted the override — done with explicit
+  maintainer authorization). Playwright E2E is non-gating (`continue-on-error`).
+- ☑ **Tagged + released:** annotated tag `v1.0.0-beta.1` on `ba0e119`, pushed; GitHub **prerelease**
+  published: https://github.com/visvikbharti/stickforstats_new/releases/tag/v1.0.0-beta.1
+- ☑ Merge-prep gates (pre-merge): backend 831/831, frontend 654/654, flake8 0, ESLint 0.
+  PR description: `docs/PR_audit_p0_remediation.md`.
+- ◐ **On-merge `main` pipeline:** `Docker Build` + `Push to GHCR` run on `main` (publishing
+  `ghcr.io/visvikbharti/stickforstats_new/{backend,frontend}:latest`+`:<sha>`; no secrets baked).
+  `Deploy to Staging` is a placeholder echo — **no real deploy happens from CI.**
 - ○ Update README/docs metrics if any still drift (endpoint count, languages, etc.).
 
-Note: local `main` is 2 pre-existing commits ahead of `origin/main` (governance/PDF-renderer, from
-before this work) — unpushed and harmless; they'll sync on the next `main` push/merge.
+Note: local `main` still carries 2 pre-existing unpushed commits (governance/PDF-renderer) on top of
+the old `c93706c`; `origin/main` now diverges (it has the squash commit `ba0e119`). Reconcile locally
+with `git fetch && git reset --hard origin/main` (discards the 2 local doc commits) or cherry-pick
+them onto `origin/main` if you still want them. Harmless to the release.
 
 ---
 
@@ -148,9 +154,11 @@ before this work) — unpushed and harmless; they'll sync on the next `main` pus
 
 ## Go / No-Go
 
-**GO for closed beta when:** §1 ☑, §2 ☑, §3 ☑, §4 ☑ all done (code-side); §5 smoke-test tool ☑
-and §6 branch-pushed ☑. The ONLY remaining items are operator/deploy actions:
-  - §6: open the PR, get CI green, merge to `main`, tag `v1.0.0-beta.1`.
-  - §5: deploy the docker stack (real `.env` + TLS certs + `migrate`) and run
-    `scripts/smoke_test.sh` against the live URL.
+**Status (2026-06-01):** §1 ☑, §2 ☑, §3 ☑, §4 ☑ (code-side), §5 ◐ (live smoke 7/7 + CI image build),
+§6 ☑ (merged + tagged `v1.0.0-beta.1` + prerelease). Everything I can do without your infrastructure
+is **done**. The single remaining gate to actually invite testers is the **host deploy**:
+  1. Provision a host; create the §2 `.env` with strong secrets; provide TLS certs in `nginx/ssl/`.
+  2. `docker pull` the GHCR images (or `docker compose build`), `docker compose up`, `migrate`.
+  3. Run `scripts/smoke_test.sh` against the live HTTPS URL → expect 7/7.
+  4. Apply the §0 beta-shape decisions (invite gating, beta banner, feedback channel, privacy notice).
 Open public beta (open registration, abuse protection at scale, compliance) is a later milestone.
