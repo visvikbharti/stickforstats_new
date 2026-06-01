@@ -99,20 +99,22 @@ The statistical/manuscript/import endpoints are public calculators (`AllowAny`).
 
 ---
 
-## 5. Deploy-and-smoke-test the REAL stack  ⚠ BLOCKER
+## 5. Deploy-and-smoke-test the REAL stack  ⚠ BLOCKER (smoke-test TOOL ready; deploy is an operator action)
 
 Don't assume the compose stack works — prove it on a real (staging) box.
 
-- ☐ `docker compose build` succeeds (backend gunicorn + frontend nginx images).
-- ☐ `docker compose up` brings up postgres + redis + backend + frontend + celery + nginx healthy.
-- ☐ HTTPS serves with a real cert (nginx TLS config exists; `nginx/ssl/` is empty — provide certs).
-- ☐ End-to-end smoke on the deployed box (not just local):
-  - upload a dataset → autonomous profile/query returns a result;
-  - run a Guardian-checked test (t-test/ANOVA) via `stats/ttest/`, `stats/anova/`;
-  - `stats/regression/` returns high-precision output (now the real engine);
-  - submit a manuscript → get a report URL with a share token → fetch it with the token (200) and
-    without (404).
-- ☐ Confirm migrations apply cleanly on a fresh DB (incl. `0012_manuscriptsubmission_report_token_hash`).
+- ☑ **Smoke-test script ready & validated:** `scripts/smoke_test.sh` (commit 5947125) — exercises
+  health, t-test, ANOVA, high-precision regression, and the manuscript share-token IDOR flow
+  against a running instance, asserting on real response fields. Validated locally (4/4 + graceful
+  skip). Run after deploy: `BASE_URL=https://beta.example.com ./scripts/smoke_test.sh`.
+- ★ `docker compose build` succeeds (backend gunicorn + frontend nginx images).
+- ★ `docker compose up` brings up postgres + redis + backend + frontend + celery + nginx healthy
+  (requires the `.env` from §2; compose now refuses to start without the secrets).
+- ★ HTTPS serves with a real cert (nginx TLS config exists; `nginx/ssl/` is empty — provide certs).
+- ★ `python manage.py migrate` applies cleanly on the fresh DB (incl.
+  `0012_manuscriptsubmission_report_token_hash`).
+- ★ Run `scripts/smoke_test.sh` against the deployed URL → expect all checks green (the manuscript
+  token flow, SKIPped locally, must PASS here since the DB is migrated).
 
 ---
 
