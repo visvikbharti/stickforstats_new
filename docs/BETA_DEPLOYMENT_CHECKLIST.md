@@ -40,23 +40,24 @@ These were the P0 stats-integrity items; all fixed + tested on `fix/audit-p0-sci
 
 ---
 
-## 2. Secrets & configuration hardening  ⚠ BLOCKER
+## 2. Secrets & configuration hardening  ☑ DONE (commit 831197f) — operator action still required at deploy
 
-Grounded in `backend/stickforstats/settings.py` and `docker-compose.yml`:
+Code-side hardening landed; the remaining items are deploy-time operator actions (★).
 
-- ☐ **SECRET_KEY must fail closed in prod.** `settings.py:15` falls back to a random per-process
-  key if `DJANGO_SECRET_KEY` is unset → sessions/tokens break across restarts/workers silently.
-  Add: `if not DEBUG and not os.environ.get("DJANGO_SECRET_KEY"): raise ImproperlyConfigured(...)`.
-- ☐ **docker-compose weak defaults.** `docker-compose.yml:53` `SECRET_KEY:-change_this_in_production`,
-  `:61` `JWT_SECRET:-change_this_jwt_secret`, `:52/119/135` `REDIS_PASSWORD:-redis_secure_password`.
-  Change to fail-closed form `${SECRET_KEY:?set in .env}` (DB already does this at `:51`).
-- ☐ **ALLOWED_HOSTS:** `settings.py:21` default includes `testserver`; set a real
-  `DJANGO_ALLOWED_HOSTS` for the beta host and drop `testserver` from the prod default.
-- ☐ **DEBUG=False on the beta box** (`settings.py:18` defaults False — confirm the deploy env
-  does not set `DJANGO_DEBUG=True`). With DEBUG=False, prod security (HSTS, secure cookies,
-  SSL redirect at `:337`) and rate-limiting (`:324`) switch on automatically.
-- ☐ **Pin python-jose** (`backend/requirements.txt:8` `>=3.3.0` permits CVE-2024-33663/33664).
-  Pin to a patched release; re-run `core.tests.test_jwt_signature_verification` after.
+- ☑ **SECRET_KEY fails closed when serving in prod.** `settings.py` now raises
+  ImproperlyConfigured if `DJANGO_SECRET_KEY` is unset while serving (runserver/gunicorn/
+  uvicorn/daphne, DEBUG=False, not testing). Build/admin commands + tests still get an
+  ephemeral key, so CI/Docker build are unaffected.
+- ☑ **docker-compose weak defaults removed.** SECRET_KEY/JWT_SECRET/REDIS_PASSWORD are now
+  fail-closed `${VAR:?must be set in .env}`; no more change_this_* / redis_secure_password.
+- ☑ **ALLOWED_HOSTS** no longer ships `testserver` in prod (only under DEBUG/TESTING).
+- ☑ **python-jose pinned** `>=3.4.0,<4.0.0` (excludes CVE-2024-33663/33664). jwt tests green.
+- ★ **DEBUG=False on the beta box** — operator: ensure the deploy env does NOT set
+  `DJANGO_DEBUG=True`. With DEBUG=False, prod security (HSTS, secure cookies, SSL redirect)
+  and rate-limiting switch on automatically.
+- ★ **Generate a real `.env`** from `.env.example` with strong unique secrets (DJANGO_SECRET_KEY,
+  JWT_SECRET, REDIS_PASSWORD, DB_PASSWORD, GRAFANA_PASSWORD, KEYCLOAK_ADMIN_PASSWORD) and a real
+  `DJANGO_ALLOWED_HOSTS`; confirm `.env` is gitignored. (Compose now refuses to start without them.)
 - ☐ Generate a real `.env` from `.env.example` with strong secrets; confirm it is gitignored.
 
 **Verify:** `grep -n "change_this\|redis_secure_password\|testserver" docker-compose.yml backend/stickforstats/settings.py` → only intentional/fail-closed forms remain.
