@@ -20,9 +20,10 @@
 | B — Data download & sanity | ✅ done | 2026-05-07T13:30 | 2026-05-07T14:10 | All 3 checkpoints PASS for GSE271517; raw integer counts confirmed; 91 samples (46 SSX1 + 44 SSX2 + 1 SSX4 excluded); 100% Ensembl IDs; Patient_Counts.csv also available for pseudoreplication-clean variant |
 | C — Reproduce original analysis | ✅ done | 2026-05-07T14:30 | 2026-05-07T14:50 | Pivoted contrast (Primary vs Metastasis); 1,781 DEGs at padj<0.05; 5/5 SS markers express; KRT8 + OVOL1 directions match paper Subtype-III narrative; pseudoreplication caveat documented (sample vs patient top-100 overlap = 4%); see `outputs/replication_diff.md` |
 | D — Guardian-augmented analysis | ✅ done | 2026-05-07T15:00 | 2026-05-07T15:30 | 90.55% cascade rate; 1,411 Guardian-sig vs 1,006 naive-sig; 553 verdict-flipped genes split into Group A (Guardian rescue, n=479, small log2FC) + Group B (naive false positives, n=74, large log2FC outlier-driven); see `outputs/D_interpretation.md` |
-| E — Write manuscript section | ▶️ in progress | 2026-05-07T15:30 | — | E1 + E2 PASS; E3 awaiting PI review of draft (~530 words; Table 5 row added; ref [40] added) |
+| E — Write manuscript section | ✅ done (E3 awaits PI) | 2026-05-07T15:30 | 2026-05-07T16:00 | E1 + E2 + G2 PASS; E3 awaiting PI review of draft (~530 words; Table 5 row added; ref [40] added) |
 | F — Replication script + MASTER_VERIFICATION | ✅ done | 2026-05-07T16:00 | 2026-05-07T16:20 | `case_study_4_genomics.py` 13/13 checks PASS; MASTER_VERIFICATION runs all 5 scripts green; smoke test caught a swapped-MD5 bug in Phase B audit log (since corrected) |
 | G — Figure | ✅ done | 2026-05-07T16:30 | 2026-05-07T16:40 | Fig 6 (volcano + |log2FC| histogram) generated at 300 DPI; embedded in manuscript with caption; Figure Legends entry added |
+| H — PDF render + handoff to PI | ✅ done | 2026-05-07T17:30 | 2026-05-07T17:50 | `paper/render_pdfs.sh` (Markdown → HTML via pandoc → PDF via Chrome --headless); PLOS manuscript renders cleanly at 18 pp / 1.88 MB with all 6 figures embedded; JOSS paper at 3 pp / 103 KB; outputs `*_rendered.pdf` (gitignored); commit `d54d5b7` |
 
 ---
 
@@ -194,7 +195,30 @@ extensively discusses metastasis biology via the Subtype I cluster.
 | ID | Description | Status | Evidence | Verdict |
 |---|---|---|---|---|
 | **G1** | Figure renders cleanly at 300 DPI | ✅ | `paper/plos_compbio/figures/fig6_genomics_case_study.png` (3420×1409 px @ 300 DPI) | PASS |
-| **G2** | Figure caption added to manuscript Figure Legends | ⬜ | (manuscript diff) | — |
+| **G2** | Figure caption added to manuscript Figure Legends | ✅ | `paper/plos_compbio/manuscript.md` Figure Legends section (entry for Fig 6); commit `c93706c` | PASS |
+
+---
+
+## Phase H — PDF render + handoff to PI
+
+Added 2026-05-07 evening. Closes the loop: PI/co-authors can read the manuscript without re-running inara or installing TeX.
+
+### Tasks
+
+- [x] **H.1** Write `paper/render_pdfs.sh` — Markdown → HTML (pandoc) → PDF (Chrome `--headless --print-to-pdf`)
+- [x] **H.2** Embed academic CSS (Charter/Georgia serif, 10.5pt, justified, hairline borders)
+- [x] **H.3** Enable MathJax for the Guardian confidence-score formula in the JOSS paper
+- [x] **H.4** Resolve relative figure paths by writing the HTML temp file inside the resource directory (so file:// resolves `figures/figX_*.png`)
+- [x] **H.5** Gitignore `*_rendered.pdf` (build artifact; the official `paper.pdf` and `manuscript.pdf` stay tracked)
+- [x] **H.6** Commit `d54d5b7` — `tools(paper): Local PDF renderer for both manuscripts`
+
+### Checkpoints
+
+| ID | Description | Status | Evidence | Verdict |
+|---|---|---|---|---|
+| **H1** | PLOS manuscript renders with all 6 figures embedded | ✅ | `paper/plos_compbio/manuscript_rendered.pdf` (18 pp, 1.88 MB; size jump from 360 KB before fig-path fix confirms embedding) | PASS |
+| **H2** | JOSS paper renders with Guardian formula typeset (no raw `\Bigl`/`\Bigr`) | ✅ | `paper/paper_rendered.pdf` (3 pp, 103 KB; pandoc warning about `\Bigl` resolved by switching to `\left`/`\right`) | PASS |
+| **H3** | Renderer is idempotent and re-runnable | ✅ | `bash paper/render_pdfs.sh` runs in ~5s; outputs match | PASS |
 
 ---
 

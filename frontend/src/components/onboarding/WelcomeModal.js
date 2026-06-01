@@ -7,8 +7,6 @@ import {
   Button,
   Typography,
   Box,
-  Checkbox,
-  FormControlLabel,
   Stepper,
   Step,
   StepLabel,
@@ -24,7 +22,6 @@ import { useTour } from './TourProvider';
 
 const WelcomeModal = () => {
   const [open, setOpen] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const { startTour } = useTour();
 
@@ -35,10 +32,13 @@ const WelcomeModal = () => {
     }
   }, []);
 
+  // Dismissing the welcome modal (Skip, X, backdrop, or starting the tour) always
+  // persists it so it does not re-appear on every page/visit. The "Don't show
+  // again" checkbox is retained for explicit intent but is no longer the only
+  // thing that records dismissal — re-nagging a user who already closed it was a
+  // UX liability (see docs/STRATEGY_AND_POSITIONING_2026-06-01.md).
   const handleClose = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('hasSeenWelcome', 'true');
-    }
+    localStorage.setItem('hasSeenWelcome', 'true');
     setOpen(false);
   };
 
@@ -90,7 +90,7 @@ const WelcomeModal = () => {
           Welcome to StickForStats! 🎯
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          The world's most comprehensive statistical analysis platform
+          Statistical analysis with automatic assumption validation
         </Typography>
       </DialogTitle>
       
@@ -135,17 +135,6 @@ const WelcomeModal = () => {
           ))}
         </Stepper>
 
-        <Box sx={{ mt: 3 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={dontShowAgain}
-                onChange={(e) => setDontShowAgain(e.target.checked)}
-              />
-            }
-            label="Don't show this again"
-          />
-        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>

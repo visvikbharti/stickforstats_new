@@ -28,7 +28,6 @@ from .power_views import (
     power_analysis_info,
 )
 from .regression_views import HighPrecisionRegressionView
-from .simple_regression_view import SimpleRegressionView
 from .categorical_views import (
     chi_square_independence_test,
     chi_square_goodness_of_fit,
@@ -216,8 +215,13 @@ urlpatterns = [
     path("stats/ancova/", HighPrecisionANCOVAView.as_view(), name="hp-ancova"),
     path("stats/correlation/", HighPrecisionCorrelationView.as_view(), name="hp-correlation"),
     path(
-        "stats/regression/", SimpleRegressionView.as_view(), name="hp-regression-stats"
-    ),  # Using simple version temporarily
+        # Route the headline stats/regression/ endpoint to the real high-precision
+        # engine. It previously used SimpleRegressionView, a scipy float64 stub
+        # that labeled its results "50 decimals" — fake precision (audit
+        # 2026-05-31, ST-3). HighPrecisionRegressionView accepts the same X/y
+        # payload (via parameter_adapter) and computes at genuine 50-digit precision.
+        "stats/regression/", HighPrecisionRegressionView.as_view(), name="hp-regression-stats"
+    ),
     path("stats/descriptive/", DescriptiveStatisticsView.as_view(), name="hp-descriptive"),
     path("stats/comparison/", ComparisonView.as_view(), name="comparison"),
     # Automatic test selection

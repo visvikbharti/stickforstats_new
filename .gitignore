@@ -20,6 +20,12 @@ frontend/dist/
 backend/dist/
 *.egg-info/
 
+# Locally rendered PDFs (build artifacts of paper/render_pdfs.sh)
+# The official manuscript PDFs (paper/paper.pdf, paper/plos_compbio/manuscript.pdf)
+# are still tracked; these *_rendered.pdf are throwaway re-renders.
+paper/*_rendered.pdf
+paper/**/*_rendered.pdf
+
 # Environment variables
 .env
 .env.local

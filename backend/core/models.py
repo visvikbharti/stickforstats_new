@@ -477,6 +477,19 @@ class ManuscriptSubmission(models.Model):
     error_message = models.TextField(blank=True)
     warnings = JSONField(default=list, blank=True)
 
+    # Report access control: an unguessable per-submission share token.
+    # We store only the SHA-256 hash; the raw token is returned once at
+    # submission time and is required to retrieve the report afterwards.
+    # This closes the IDOR where any caller who knew/guessed a submission
+    # UUID could read the full review (audit 2026-05-31, SEC-3 / IDOR).
+    report_token_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="SHA-256 of the report share token (raw token never stored)",
+    )
+
     # Timestamps
     submitted_at = models.DateTimeField(default=timezone.now, db_index=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -494,6 +507,29 @@ class ManuscriptSubmission(models.Model):
     def __str__(self):
         title = self.title[:50] if self.title else self.file_name
         return f"{title} ({self.status})"
+
+    @staticmethod
+    def hash_report_token(raw_token: str) -> str:
+        """SHA-256 of a raw report token (same scheme as JournalAPIKey)."""
+        return hashlib.sha256((raw_token or "").encode()).hexdigest()
+
+    def set_report_token(self) -> str:
+        """Generate a fresh report share token, store its hash, return the RAW token.
+
+        The raw token is returned to the submitter once and never persisted.
+        """
+        import secrets
+
+        raw_token = secrets.token_urlsafe(32)
+        self.report_token_hash = self.hash_report_token(raw_token)
+        return raw_token
+
+    def verify_report_token(self, raw_token: str) -> bool:
+        """Timing-safe check of a supplied raw report token against the stored hash."""
+        if not self.report_token_hash:
+            return False
+        computed = self.hash_report_token(raw_token or "")
+        return hmac.compare_digest(computed, self.report_token_hash)
 
 
 class ReviewReport(models.Model):

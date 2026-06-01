@@ -1,9 +1,25 @@
+> ## ⚠️ SUPERSEDED — DO NOT RELY ON THIS DOCUMENT AS A CURRENT SIGN-OFF
+>
+> This 2026-01-27 "COMPLETE / Paper Ready for Submission" certificate is **stale and
+> was incomplete**. It predates — and did **not** catch — a cherry-picked
+> meta-analysis later found and remediated on 2026-05-06, among other issues.
+>
+> - The original JSS submission was **desk-rejected** (2026-05-15).
+> - Authoritative, current integrity status lives in:
+>   - `docs/CRITICAL_REVIEW_2026-05-06.md` + `docs/WORK_PLAN_2026-05-06.md` (the review that found the cherry-pick), and
+>   - `docs/AUDIT_2026-05-31/00_MASTER_REPORT.md` (the latest 23-subsystem ground-truth audit).
+>
+> Treat everything below as a historical record of the 2026-01-27 review only.
+> Do not cite it as evidence that the papers are integrity-cleared. (audit 2026-05-31, SI-6)
+
+---
+
 # StickForStats JSS Paper - Scientific Integrity Audit
 ## Complete Documentation
 
 **Document Created:** 2026-01-27 13:30 IST
 **Last Updated:** 2026-01-27 13:30 IST
-**Status:** ✅ COMPLETE - Paper Ready for Submission
+**Status:** ⚠️ SUPERSEDED (see banner above) — was: "✅ COMPLETE - Paper Ready for Submission"
 **Git Commit:** b54a953
 
 ---

@@ -1,0 +1,12 @@
+FE_DECLS=653 FILES=30
+BE_FUNCS=883 FILES=45
+URLS_PATH=198
+JSS_LS=['stickforstats_expanded.pdf']
+JATS_LS=['paper.jats']
+SIZE paper/jss/stickforstats_expanded.pdf = 614394
+SIZE paper/jats/paper.jats = 38299
+JATS_TEXTLEN=13851
+JATS_HAS_GUARDIAN=True
+JATS_HAS_860=True
+JATS_NUM_REF=30
+JATS_HEAD=Journal of Open Source Software JOSS 2475-9066 Open Journals 0 N/A StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation https://orcid.org/0009-0003-1431-4457 Bharti Vishal * https://orcid.org/0000-0003-1460-7594 Chakraborty Debojyoti * CSIR-Institute of Genomics and In

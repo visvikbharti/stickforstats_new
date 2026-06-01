@@ -19,6 +19,7 @@ Created: February 2026
 import hashlib
 import logging
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -40,12 +41,34 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _max_upload_bytes():
+    """Shared upload ceiling (bytes). Configurable via MAX_FILE_UPLOAD_MB."""
+    return getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
+
+
+def _file_too_large_error(uploaded):
+    """Return a friendly error string if the upload exceeds the cap, else None."""
+    cap = _max_upload_bytes()
+    size = getattr(uploaded, "size", 0) or 0
+    if size > cap:
+        return (
+            f"File too large ({size / (1024 * 1024):.1f} MB). "
+            f"Maximum allowed is {cap / (1024 * 1024):.0f} MB."
+        )
+    return None
+
+
 def _get_file_and_type(request):
-    """Extract uploaded file and determine type from request."""
+    """Extract uploaded file, enforce the size cap, and determine its type."""
     if "file" not in request.FILES:
         return None, None, "No file uploaded. Send a PDF, LaTeX, or DOCX file."
 
     uploaded = request.FILES["file"]
+
+    size_error = _file_too_large_error(uploaded)
+    if size_error:
+        return None, None, size_error
+
     name = uploaded.name.lower()
 
     if name.endswith(".pdf"):
@@ -131,6 +154,8 @@ class ManuscriptAnalyzeView(APIView):
                         },
                         processing_time_ms=report.processing_time_ms,
                     )
+                    report_token = submission.set_report_token()
+                    submission.save(update_fields=["report_token_hash"])
                     submission_id = str(submission.id)
                 except Exception as exc:
                     logger.warning("Failed to store submission: %s", exc)
@@ -138,6 +163,9 @@ class ManuscriptAnalyzeView(APIView):
             result = report.to_dict()
             if submission_id:
                 result["submission_id"] = submission_id
+                # Raw share token is returned exactly once; required to fetch the report.
+                result["report_token"] = report_token
+                result["report_url"] = f"/api/v1/manuscript/report/{submission_id}/?token={report_token}"
 
             return Response(result, status=status.HTTP_200_OK)
 
@@ -400,6 +428,19 @@ class SubmissionReportView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Report-token check (IDOR protection). If the submission has a token
+        # hash, the caller must present the matching raw token via ?token= or the
+        # X-Report-Token header; otherwise (legacy rows) access is allowed. A
+        # mismatch returns 404, not 403, so the endpoint does not confirm the id
+        # exists. (audit 2026-05-31, SEC-3)
+        if submission.report_token_hash:
+            supplied = request.query_params.get("token") or request.META.get("HTTP_X_REPORT_TOKEN", "")
+            if not submission.verify_report_token(supplied):
+                return Response(
+                    {"error": "Submission not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
         return Response(
             {
                 "submission_id": str(submission.id),
@@ -509,6 +550,7 @@ class JournalSubmitView(APIView):
             submission.gross_errors = report.gross_errors
             submission.processing_time_ms = report.processing_time_ms
             submission.completed_at = timezone.now()
+            report_token = submission.set_report_token()
             submission.save()
 
             # Trigger webhook delivery if journal has a webhook URL configured

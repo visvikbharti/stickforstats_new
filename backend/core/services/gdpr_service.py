@@ -17,11 +17,16 @@ User = get_user_model()
 class GDPRService:
     """GDPR compliance operations for user data."""
 
-    # Data categories we collect
+    # Data categories we collect.
+    # NOTE: "datasets" was previously advertised here, but there is no Dataset
+    # model in this release (core/models.py marks it "planned"; dataset_service
+    # aliases Dataset to typing.Any), so no uploaded datasets are persisted. The
+    # category was removed so erase/export do not over-claim what they handle
+    # (audit 2026-05-31, SEC-4). Re-add it together with real deletion when the
+    # Dataset model ships.
     DATA_CATEGORIES = {
         "account": "Account information (username, email)",
-        "analyses": "Statistical analyses and results",
-        "datasets": "Uploaded datasets",
+        "analyses": "Statistical analysis sessions and results",
         "usage": "Platform usage records",
         "consent": "Consent records",
         "audit": "Audit trail entries",
@@ -176,9 +181,23 @@ class GDPRService:
                 "data_to_delete": list(GDPRService.DATA_CATEGORIES.keys()),
             }
 
-        from core.models import ConsentRecord, StatisticalAudit, OrganizationMembership, UsageRecord
+        from core.models import (
+            AnalysisSession,
+            ConsentRecord,
+            OrganizationMembership,
+            StatisticalAudit,
+            UsageRecord,
+        )
 
         deleted = {}
+
+        # Delete the user's analysis sessions and their results.
+        # AnalysisResult has on_delete=CASCADE from AnalysisSession, so deleting
+        # the sessions removes the associated results too. This is the user's own
+        # analysis data, which DATA_CATEGORIES advertises under "analyses"
+        # (previously not actually erased — audit 2026-05-31, SEC-4).
+        session_count, _ = AnalysisSession.objects.filter(user=user).delete()
+        deleted["analysis_sessions"] = session_count
 
         # Delete consent records
         count, _ = ConsentRecord.objects.filter(user=user).delete()

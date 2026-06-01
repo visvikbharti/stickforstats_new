@@ -28,6 +28,7 @@ See docs/CRITICAL_REVIEW_2026-05-06.md §P0-2.
 from __future__ import annotations
 
 import time
+import uuid
 from unittest.mock import patch
 
 from cryptography.hazmat.primitives import serialization
@@ -213,7 +214,12 @@ class TestLTILaunchValidation(TestCase):
             "sub": "lti-user-1",
             "iat": self.now,
             "exp": self.now + 600,
-            "nonce": "nonce-abc-123",
+            # Unique per test: the LTI replay-protection table (LTINonceUsed) is
+            # keyed on (issuer, nonce). A fixed nonce shared across the tests in
+            # this class collided once the full suite ran them in one process
+            # (a nonce "used" by an earlier test made later valid-launch tests
+            # fail as replays). A per-test nonce keeps each test isolated.
+            "nonce": f"nonce-{uuid.uuid4().hex}",
             "https://purl.imsglobal.org/spec/lti/claim/message_type": (
                 "LtiResourceLinkRequest"
             ),

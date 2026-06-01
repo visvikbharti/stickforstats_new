@@ -49,16 +49,16 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-stickforstats}:${DB_PASSWORD:?DB_PASSWORD must be set in .env (no insecure default)}@postgres:5432/${DB_NAME:-stickforstats}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/0
-      - DJANGO_SECRET_KEY=${SECRET_KEY:-change_this_in_production}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/0
+      - DJANGO_SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env (no insecure default)}
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DJANGO_DEBUG=${DEBUG:-False}
       - DJANGO_ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost}
       - CORS_ALLOWED_ORIGINS=${CORS_ORIGINS:-http://localhost}
-      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/2
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/2
       - CELERY_TASK_ALWAYS_EAGER=False
-      - JWT_SECRET=${JWT_SECRET:-change_this_jwt_secret}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set in .env (no insecure default)}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-3600}
       - MAX_UPLOAD_SIZE=${MAX_UPLOAD_SIZE:-10485760}
       - WORKER_CONCURRENCY=${WORKER_CONCURRENCY:-4}
@@ -116,7 +116,7 @@ services:
     restart: unless-stopped
     command: >
       redis-server
-      --requirepass ${REDIS_PASSWORD:-redis_secure_password}
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}
       --maxmemory ${REDIS_MAX_MEMORY:-256mb}
       --maxmemory-policy allkeys-lru
       --appendonly yes
@@ -132,7 +132,7 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secure_password}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -149,11 +149,11 @@ services:
     command: celery -A stickforstats worker -l ${LOG_LEVEL:-INFO} --concurrency=${WORKER_CONCURRENCY:-4}
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-stickforstats}:${DB_PASSWORD:?DB_PASSWORD must be set in .env (no insecure default)}@postgres:5432/${DB_NAME:-stickforstats}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/0
-      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/2
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/2
       - CELERY_TASK_ALWAYS_EAGER=False
-      - DJANGO_SECRET_KEY=${SECRET_KEY:-change_this_in_production}
+      - DJANGO_SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env (no insecure default)}
       - DJANGO_SETTINGS_MODULE=stickforstats.settings
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     depends_on:
@@ -175,9 +175,9 @@ services:
     command: celery -A stickforstats beat -l ${LOG_LEVEL:-INFO} --scheduler django_celery_beat.schedulers:DatabaseScheduler
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-stickforstats}:${DB_PASSWORD:?DB_PASSWORD must be set in .env (no insecure default)}@postgres:5432/${DB_NAME:-stickforstats}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/0
-      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-redis_secure_password}@redis:6379/1
-      - DJANGO_SECRET_KEY=${SECRET_KEY:-change_this_in_production}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env (no insecure default)}@redis:6379/1
+      - DJANGO_SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env (no insecure default)}
       - DJANGO_SETTINGS_MODULE=stickforstats.settings
     depends_on:
       - postgres

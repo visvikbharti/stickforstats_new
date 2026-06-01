@@ -254,27 +254,31 @@ class HighPrecisionCalculator:
                 p_value = Decimal("1.0")
                 interpretation = "No detectable difference at 50 decimal precision"
             else:
-                # Mean diff exists but SE is zero - extreme evidence of difference
-                # Use capped values that are JSON-safe
-                if mean_diff > 0:
-                    t_stat = Decimal("999.999")  # Capped positive value
-                else:
-                    t_stat = Decimal("-999.999")  # Capped negative value
-                # P-value approaches 0 (but not exactly 0 for numerical stability)
-                p_value = Decimal("1e-50")
-                interpretation = "Extreme precision difference detected (beyond practical significance)"
+                # The mean difference is real but the within-group variance (and
+                # thus the standard error) is effectively zero, so the
+                # t-statistic is a division by ~zero: it diverges and is
+                # mathematically undefined in finite terms. Report it honestly as
+                # undefined rather than fabricating a finite value. Previously
+                # this returned a made-up t = +/-999.999 and p = 1e-50
+                # (audit 2026-05-31, ST-2).
+                t_stat = None
+                p_value = None
+                interpretation = (
+                    "t-statistic undefined: zero within-group variance with a "
+                    "non-zero mean difference (standard error is ~0)."
+                )
         else:
             # Normal calculation
             t_stat = mean_diff / se
 
-            # Cap extreme t-statistics for JSON safety
+            # A very large |t| here is a GENUINE computed value (small but
+            # non-zero SE), not an error -- report it as-is rather than capping
+            # it to a fabricated round number (audit 2026-05-31, ST-2). Flag it
+            # as extreme so the downstream float64 comparison is skipped, since
+            # such magnitudes are not faithfully representable in float64.
             if abs(t_stat) > Decimal("1e10"):
-                if t_stat > 0:
-                    t_stat = Decimal("999999.999")
-                else:
-                    t_stat = Decimal("-999999.999")
                 extreme_precision_flag = True
-                interpretation = "Statistical difference at extreme precision"
+                interpretation = "Extreme but genuine t-statistic (magnitude beyond float64 range)."
 
             # Calculate p-value using mpmath
             try:
@@ -285,9 +289,11 @@ class HighPrecisionCalculator:
                 x_beta = df_float / (df_float + t_float**2)
                 p_value = Decimal(str(float(mpmath.betainc(df_float / 2, 0.5, 0, x_beta, regularized=True))))
             except (OverflowError, ValueError):
-                # Handle numerical overflow in p-value calculation
-                p_value = Decimal("1e-50")
-                interpretation = "P-value below computational limits"
+                # The p-value is below what float64 / the beta routine can
+                # represent; for such an extreme t the true two-tailed p-value is
+                # effectively zero. Report 0, not a fabricated 1e-50.
+                p_value = Decimal("0")
+                interpretation = "P-value is effectively zero (below computational limits)."
 
         result = {
             "t_statistic": t_stat,

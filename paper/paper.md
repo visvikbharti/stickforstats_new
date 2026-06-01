@@ -105,7 +105,7 @@ Each validator returns a severity level (critical, warning, or minor) and a
 weight ($w = 3.0, 2.0, 1.0$ respectively). The Guardian computes a composite
 confidence score:
 
-$$C = \max\!\Bigl(0,\; 1 - \frac{\sum w_i}{W_{\max} \times 1.2}\Bigr)$$
+$$C = \max\left(0,\; 1 - \frac{\sum w_i}{W_{\max} \times 1.2}\right)$$
 
 where $W_{\max}$ is the maximum possible penalty for the test type. A score
 above 0.8 indicates the analysis can proceed with confidence; between 0.6 and

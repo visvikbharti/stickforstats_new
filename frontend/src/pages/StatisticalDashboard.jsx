@@ -3,7 +3,7 @@ import {
   Container, Typography, Box, Paper, Grid, Card, CardContent,
   CardActions, Button, Chip, LinearProgress,
   Avatar, Tooltip, Fab,
-  Tab, Tabs, alpha, useTheme, Grow, CardActionArea
+  Tab, Tabs, Grow, CardActionArea
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -22,14 +22,9 @@ import {
   BubbleChart as BubbleChartIcon,
   DonutLarge as DonutIcon,
   Speed as SpeedIcon,
-  CheckCircle as CheckCircleIcon,
-  Lock as LockIcon,
-  Star as StarIcon,
   EmojiEvents as TrophyIcon,
-  MenuBook as MenuBookIcon,
   PlayCircleFilled as PlayIcon,
   ArrowForward as ArrowForwardIcon,
-  Whatshot as HotIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
@@ -280,58 +275,26 @@ const learningPaths = [
   }
 ];
 
-// Achievements
-const achievements = [
-  { id: 1, title: 'First Analysis', icon: <StarIcon />, unlocked: true, description: 'Complete your first statistical analysis' },
-  { id: 2, title: 'Theory Master', icon: <MenuBookIcon />, unlocked: true, description: 'Read all theoretical foundations' },
-  { id: 3, title: 'Simulation Expert', icon: <TimelineIcon />, unlocked: false, description: 'Run 100 simulations' },
-  { id: 4, title: 'Data Wizard', icon: <TrophyIcon />, unlocked: false, description: 'Analyze 50 datasets' },
-];
-
 const StatisticalDashboard = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState(0);
-  const [userProgress, setUserProgress] = useState({
-    totalModules: 0,
-    completedModules: 0,
-    inProgressModules: 0,
-    totalTime: 0,
-    streak: 7,
-    level: 3,
-    experience: 750,
-    nextLevelXP: 1000
-  });
+  // Real, computed catalog count only — no fabricated per-user progress
+  // (streak/level/XP and per-module completed/in-progress status were hardcoded
+  // and identical for every user; removed).
+  const [userProgress, setUserProgress] = useState({ totalModules: 0 });
 
-  // Calculate user progress
+  // Count the modules actually available in the catalog.
   useEffect(() => {
     let total = 0;
-    let completed = 0;
-    let inProgress = 0;
-
     Object.values(moduleCategories).forEach(category => {
-      category.modules.forEach(module => {
-        total++;
-        if (module.status === 'completed') completed++;
-        if (module.status === 'in-progress') inProgress++;
-      });
+      total += category.modules.length;
     });
-
-    setUserProgress(prev => ({
-      ...prev,
-      totalModules: total,
-      completedModules: completed,
-      inProgressModules: inProgress
-    }));
+    setUserProgress(prev => ({ ...prev, totalModules: total }));
   }, []);
 
   // Navigate to module
   const handleModuleClick = (module) => {
-    if (module.status === 'locked') {
-      enqueueSnackbar('This module is locked. Complete prerequisites first!', { variant: 'warning' });
-      return;
-    }
     navigate(module.path);
     enqueueSnackbar(`Opening ${module.title}...`, { variant: 'info' });
   };
@@ -345,40 +308,16 @@ const StatisticalDashboard = () => {
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          cursor: module.status !== 'locked' ? 'pointer' : 'not-allowed',
-          opacity: module.status === 'locked' ? 0.6 : 1,
+          cursor: 'pointer',
         }}
         onClick={() => handleModuleClick(module)}
       >
-        {/* Status Badge */}
-        {module.status === 'completed' && (
-          <Chip
-            label="Completed"
-            icon={<CheckCircleIcon />}
-            color="success"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
-        {module.status === 'locked' && (
-          <Chip
-            label="Locked"
-            icon={<LockIcon />}
-            color="default"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
-        {module.status === 'in-progress' && (
-          <Chip
-            label="In Progress"
-            color="primary"
-            size="small"
-            sx={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
-          />
-        )}
+        {/* No per-user status badge: this dashboard has no real per-user progress
+            state, so the previous "Completed / In Progress / Locked" badges and
+            progress bars were hardcoded and identical for everyone (fabricated).
+            Removed (docs/STRATEGY_AND_POSITIONING_2026-06-01.md). */}
 
-        <CardActionArea sx={{ flexGrow: 1 }} disabled={module.status === 'locked'}>
+        <CardActionArea sx={{ flexGrow: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Avatar
@@ -426,24 +365,6 @@ const StatisticalDashboard = () => {
               )}
             </Box>
 
-            {/* Progress Bar */}
-            {module.status !== 'locked' && (
-              <Box sx={{ mt: 'auto' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption">Progress</Typography>
-                  <Typography variant="caption">{module.progress}%</Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={module.progress}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }}
-                />
-              </Box>
-            )}
           </CardContent>
         </CardActionArea>
 
@@ -451,81 +372,56 @@ const StatisticalDashboard = () => {
           <Button
             fullWidth
             variant="contained"
-            disabled={module.status === 'locked'}
-            endIcon={module.status === 'locked' ? <LockIcon /> : <ArrowForwardIcon />}
+            endIcon={<ArrowForwardIcon />}
             sx={{
-              background: module.status === 'locked' ? 'grey' : categoryColor,
-              '&:hover': {
-                background: module.status === 'locked' ? 'grey' : categoryColor
-              }
+              background: categoryColor,
+              '&:hover': { background: categoryColor }
             }}
           >
-            {module.status === 'locked' ? 'Locked' :
-             module.status === 'completed' ? 'Review' :
-             module.status === 'in-progress' ? 'Continue' : 'Start'}
+            Open module
           </Button>
         </CardActions>
       </Card>
     </Grow>
   );
 
-  // Render user stats card
+  // Render an honest platform-capability summary.
+  // NOTE: this card previously showed fabricated personal-progress gamification
+  // (hardcoded Level 3 / 750 XP / 7-day streak) shown identically to every user.
+  // That is misleading for a scientific tool and was removed
+  // (audit 2026-05-31; docs/STRATEGY_AND_POSITIONING_2026-06-01.md). It now
+  // summarizes the real module catalog computed from moduleCategories.
   const renderUserStats = () => (
     <Card sx={{ backgroundColor: 'secondary.main', color: 'secondary.contrastText' }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          Your Progress
+          Statistical Toolkit
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
+          Every analysis is checked by the Guardian assumption-validation system
+          before results are reported.
         </Typography>
 
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} md={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.completedModules}</Typography>
-              <Typography variant="caption">Completed</Typography>
+              <Typography variant="h3">{userProgress.totalModules}</Typography>
+              <Typography variant="caption">Analysis modules</Typography>
             </Box>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.inProgressModules}</Typography>
-              <Typography variant="caption">In Progress</Typography>
+              <Typography variant="h3">8</Typography>
+              <Typography variant="caption">Guardian validators</Typography>
             </Box>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={4}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">{userProgress.streak}</Typography>
-              <Typography variant="caption">Day Streak 🔥</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h3">Lv.{userProgress.level}</Typography>
-              <Typography variant="caption">Current Level</Typography>
+              <Typography variant="h3">50</Typography>
+              <Typography variant="caption">Decimal precision</Typography>
             </Box>
           </Grid>
         </Grid>
-
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2">
-              Level {userProgress.level} Progress
-            </Typography>
-            <Typography variant="body2">
-              {userProgress.experience}/{userProgress.nextLevelXP} XP
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={(userProgress.experience / userProgress.nextLevelXP) * 100}
-            sx={{
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              '& .MuiLinearProgress-bar': {
-                backgroundColor: '#ffffff',
-              }
-            }}
-          />
-        </Box>
       </CardContent>
     </Card>
   );
@@ -603,12 +499,13 @@ const StatisticalDashboard = () => {
               Master statistics through comprehensive modules, interactive simulations, and real-world applications
             </Typography>
 
-            {/* Quick Stats */}
+            {/* Quick stats — real capability facts only. The "Level"/"Day Streak"
+                gamification chips were hardcoded and identical for every user, so
+                they were removed (docs/STRATEGY_AND_POSITIONING_2026-06-01.md). */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 3 }}>
               <Chip icon={<ScienceIcon />} label="50-Decimal Precision" color="primary" />
-              <Chip icon={<SchoolIcon />} label="13 Modules Available" color="secondary" />
-              <Chip icon={<TrophyIcon />} label="Level 3" color="success" />
-              <Chip icon={<HotIcon />} label="7 Day Streak" color="error" />
+              <Chip icon={<SchoolIcon />} label={`${userProgress.totalModules} Modules Available`} color="secondary" />
+              <Chip icon={<TrophyIcon />} label="8 Guardian Validators" color="success" />
             </Box>
           </Box>
 
@@ -627,7 +524,6 @@ const StatisticalDashboard = () => {
             >
               <Tab label="All Modules" icon={<DashboardIcon />} iconPosition="start" />
               <Tab label="Learning Paths" icon={<SchoolIcon />} iconPosition="start" />
-              <Tab label="Achievements" icon={<TrophyIcon />} iconPosition="start" />
             </Tabs>
           </Paper>
 
@@ -671,44 +567,6 @@ const StatisticalDashboard = () => {
           )}
 
           {selectedTab === 1 && renderLearningPaths()}
-
-          {selectedTab === 2 && (
-            <Grid container spacing={3}>
-              {achievements.map((achievement) => (
-                <Grid item xs={12} sm={6} md={3} key={achievement.id}>
-                  <Card sx={{ opacity: achievement.unlocked ? 1 : 0.5 }}>
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Avatar
-                        sx={{
-                          width: 64,
-                          height: 64,
-                          margin: '0 auto',
-                          mb: 2,
-                          bgcolor: achievement.unlocked ? gradients.gold : 'grey'
-                        }}
-                      >
-                        {achievement.icon}
-                      </Avatar>
-                      <Typography variant="h6" gutterBottom>
-                        {achievement.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {achievement.description}
-                      </Typography>
-                      {achievement.unlocked && (
-                        <Chip
-                          label="Unlocked"
-                          color="success"
-                          size="small"
-                          sx={{ mt: 2 }}
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
         </Container>
 
         {/* Floating Action Button */}

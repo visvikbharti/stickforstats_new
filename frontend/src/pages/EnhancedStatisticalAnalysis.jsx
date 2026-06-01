@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import { jStat } from 'jstat';
 import { getApiUrl } from '../config/apiConfig';
 import {
   LineChart, Line,
@@ -148,26 +149,42 @@ const EnhancedStatisticalAnalysis = () => {
     }
   };
 
+  // Known population mean for each generator in generateRandomData():
+  //   normal -> standard normal (mu = 0)
+  //   uniform -> U(0,1) (mu = 0.5)
+  //   exponential -> Exp(rate=1) (mu = 1)
+  const trueMeanFor = (dist) => (dist === 'uniform' ? 0.5 : dist === 'exponential' ? 1 : 0);
+
   // Run simulation
   const runSimulation = () => {
     setIsSimulating(true);
 
-    // Simulate confidence interval coverage
+    // Confidence-interval coverage simulation: for each replicate, build a CI
+    // from the sample and check whether it actually contains the KNOWN true
+    // population mean. Empirical coverage should fluctuate around the nominal
+    // level -- it is not forced to it. (Previously this set containsTrue to a
+    // coin flip rigged to the nominal rate, which misrepresented CI behavior.)
+    const trueMean = trueMeanFor(distribution);
     const simResults = [];
     for (let i = 0; i < numSimulations; i++) {
       // Generate random data based on distribution
       const data = generateRandomData(sampleSize, distribution);
       const mean = data.reduce((a, b) => a + b, 0) / data.length;
       const std = Math.sqrt(data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (data.length - 1));
-      const marginOfError = (1.96 * std) / Math.sqrt(data.length); // 95% CI
+      // Critical value from the requested confidence level (normal approximation;
+      // jStat.normal.inv is the inverse standard-normal CDF / probit)
+      const z = jStat.normal.inv(1 - (1 - confidenceLevel / 100) / 2, 0, 1);
+      const marginOfError = (z * std) / Math.sqrt(data.length);
+      const lower = mean - marginOfError;
+      const upper = mean + marginOfError;
 
       simResults.push({
         iteration: i + 1,
         mean: mean,
-        lower: mean - marginOfError,
-        upper: mean + marginOfError,
+        lower: lower,
+        upper: upper,
         width: 2 * marginOfError,
-        containsTrue: Math.random() < (confidenceLevel / 100) // Simplified
+        containsTrue: lower <= trueMean && trueMean <= upper
       });
     }
 

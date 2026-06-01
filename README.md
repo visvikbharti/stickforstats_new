@@ -23,7 +23,7 @@ Most statistical tools force researchers to choose between power and usability. 
 | Pillar | Problem it Solves | Key Capability |
 |--------|-------------------|----------------|
 | **Autonomous Intelligence** | "I have data but don't know which test to run" | Upload data + ask a question in plain English -- get validated results and a report |
-| **Journal Integration** | "I need to verify the statistics in this manuscript" | Parse manuscripts, extract claims, validate consistency -- Turnitin for statistics |
+| **Journal Integration** | "I need to verify the statistics in this manuscript" | Parse manuscripts, extract claims, validate consistency -- a statistical-verification layer for research papers |
 | **Universal Platform** | "My whole lab / department / journal needs this" | Multi-tenant RBAC, Python and R SDKs, LMS integration, GDPR compliance, SSO |
 
 ---
@@ -46,7 +46,7 @@ StickForStats makes statistical analysis accessible to researchers at every skil
 
 ---
 
-## Journal Integration -- Turnitin for Statistics
+## Journal Integration -- Statistical Verification for Research Papers
 
 StickForStats provides end-to-end manuscript statistical review, from parsing to journal submission.
 

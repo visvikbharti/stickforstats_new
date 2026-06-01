@@ -4,6 +4,7 @@ Django settings for the StickForStats v1.0 Production project.
 
 import os
 import secrets
+import sys
 from datetime import timedelta
 from pathlib import Path
 from .env_settings import get_database_config, get_platform_config, get_s3_config
@@ -11,16 +12,43 @@ from .env_settings import get_database_config, get_platform_config, get_s3_confi
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(50))
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
-# Allowed hosts — set DJANGO_ALLOWED_HOSTS in production (e.g., "yourdomain.com")
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(
-    ","
-)
+# Are we running the test suite? True for `manage.py test` and pytest. Used to
+# disable request rate limiting during tests so the throttle does not 429 the
+# rapid-fire test client (which otherwise produces ~78 spurious API-suite
+# failures — these are NOT real endpoint bugs), and to relax the production
+# config guards below.
+TESTING = ("test" in sys.argv) or ("pytest" in sys.modules) or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# In production a real DJANGO_SECRET_KEY MUST be set: a random per-process
+# fallback would silently invalidate sessions, password-reset tokens, and signed
+# cookies on every restart / across workers (audit 2026-05-31, beta checklist §2).
+# We fail closed only when actually SERVING requests (runserver / gunicorn /
+# uvicorn via wsgi/asgi), so that build/admin commands (migrate, collectstatic,
+# check, makemigrations) and tests still run with an ephemeral key when no key is
+# configured.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    _serving = ("runserver" in sys.argv) or any(
+        m in sys.modules for m in ("gunicorn", "uvicorn", "daphne")
+    )
+    if _serving and not DEBUG and not TESTING:
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be set when serving in production (DEBUG=False). "
+            "Generate one and set it in the environment / .env."
+        )
+    SECRET_KEY = secrets.token_urlsafe(50)  # ephemeral key for dev / test / build-time commands
+
+# Allowed hosts — set DJANGO_ALLOWED_HOSTS in production (e.g., "yourdomain.com").
+# 'testserver' (the Django test client host) is included only in DEBUG/TESTING so
+# it never ships as a production default.
+_default_hosts = "localhost,127.0.0.1,testserver" if (DEBUG or TESTING) else "localhost,127.0.0.1"
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", _default_hosts).split(",") if h.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -321,9 +349,31 @@ GUARDIAN_MIDDLEWARE = {
 # RATE LIMITING
 # =============================================================================
 # Disabled in DEBUG mode by default. Override with ENABLE_RATE_LIMITING=true env var.
-RATE_LIMIT_ENABLED = not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
+# Always disabled under the test runner (TESTING) so the throttle does not 429
+# the test client; tests that specifically exercise rate limiting should opt in
+# with @override_settings(RATE_LIMIT_ENABLED=True).
+RATE_LIMIT_ENABLED = (not TESTING) and (
+    not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
+)
 RATE_LIMIT_DEFAULT_AUTHENTICATED = 60   # requests per minute (IP-based, logged-in users)
 RATE_LIMIT_DEFAULT_ANONYMOUS = 20       # requests per minute (IP-based, anonymous users)
+
+# =============================================================================
+# UPLOAD / REQUEST SIZE LIMITS  (DoS protection on public endpoints — beta §3)
+# =============================================================================
+# Global framework-level ceilings (defense in depth behind per-endpoint checks).
+# MAX_FILE_UPLOAD_BYTES is the shared cap that the public file-upload endpoints
+# (manuscript analyze/parse/claims/consistency + batch, SQS) enforce explicitly
+# with a friendly error; tune via MAX_FILE_UPLOAD_MB.
+MAX_FILE_UPLOAD_MB = int(os.environ.get("MAX_FILE_UPLOAD_MB", "25"))
+MAX_FILE_UPLOAD_BYTES = MAX_FILE_UPLOAD_MB * 1024 * 1024
+
+# Django: reject oversized multipart/form bodies before they are fully buffered.
+# DATA_UPLOAD_MAX_MEMORY_SIZE bounds non-file form data; file uploads stream to
+# temp files, so the per-endpoint .size checks are the real cap for files.
+DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_FILE_UPLOAD_BYTES        # bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024            # 10 MB then spill to a temp file
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
 # =============================================================================
 # SECURITY HARDENING

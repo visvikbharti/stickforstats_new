@@ -15,9 +15,11 @@ Created: February 2026
 
 import hashlib
 import logging
+import secrets
 import time
 import uuid
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -116,8 +118,17 @@ class BatchSubmitView(APIView):
         alpha = float(request.data.get("alpha", 0.05))
         batch_id = str(uuid.uuid4())
 
+        # One share token guards the whole batch: its hash is stored on every
+        # submission in the batch, so the same raw token retrieves the batch
+        # status and each individual report (audit 2026-05-31, SEC-3 / IDOR).
+        # The raw token is returned once in the response below.
+        batch_token = secrets.token_urlsafe(32)
+        batch_token_hash = ManuscriptSubmission.hash_report_token(batch_token)
+
         submissions = []
         errors = []
+
+        max_bytes = getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
 
         for idx, uploaded in enumerate(files):
             file_type = _detect_file_type(uploaded.name)
@@ -127,6 +138,20 @@ class BatchSubmitView(APIView):
                         "file_index": idx,
                         "file_name": uploaded.name,
                         "error": (f"Unsupported file type: {uploaded.name}. " "Accepted: .pdf, .tex, .docx, .txt"),
+                    }
+                )
+                continue
+
+            # Enforce the per-file upload size cap (DoS protection — beta §3).
+            if (getattr(uploaded, "size", 0) or 0) > max_bytes:
+                errors.append(
+                    {
+                        "file_index": idx,
+                        "file_name": uploaded.name,
+                        "error": (
+                            f"File too large ({uploaded.size / (1024 * 1024):.1f} MB). "
+                            f"Maximum allowed is {max_bytes / (1024 * 1024):.0f} MB."
+                        ),
                     }
                 )
                 continue
@@ -145,6 +170,7 @@ class BatchSubmitView(APIView):
                     file_size_bytes=uploaded.size,
                     file_hash=file_hash,
                     status="analyzing",
+                    report_token_hash=batch_token_hash,
                     parse_result={
                         "batch_id": batch_id,
                         "batch_index": idx,
@@ -198,7 +224,7 @@ class BatchSubmitView(APIView):
                         "claims_found": report.claims_found,
                         "consistency_rate": report.consistency_rate,
                         "processing_time_ms": elapsed_ms,
-                        "report_url": f"/api/v1/manuscript/report/{submission.id}/",
+                        "report_url": f"/api/v1/manuscript/report/{submission.id}/?token={batch_token}",
                     }
                 )
 
@@ -226,6 +252,8 @@ class BatchSubmitView(APIView):
         return Response(
             {
                 "batch_id": batch_id,
+                "batch_token": batch_token,
+                "status_url": f"/api/v1/manuscript/batch-status/{batch_id}/?token={batch_token}",
                 "total_submitted": len(files),
                 "completed": len(submissions),
                 "failed": len(errors),
@@ -303,6 +331,21 @@ class BatchStatusView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Batch share-token check (IDOR protection): every submission in a batch
+        # shares one token hash. If the batch is tokened, the caller must present
+        # the matching raw token (?token= or X-Report-Token); a mismatch is 404
+        # so the endpoint does not confirm the batch exists. Legacy batches with
+        # no token hash remain readable for backward compatibility.
+        first = all_submissions.first()
+        supplied = request.query_params.get("token") or request.META.get("HTTP_X_REPORT_TOKEN", "")
+        if first.report_token_hash:
+            if not first.verify_report_token(supplied):
+                return Response(
+                    {"error": f"No submissions found for batch {batch_id}"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        token_qs = f"?token={supplied}" if supplied else ""
+
         submissions_data = []
         status_counts = {
             "pending": 0,
@@ -330,7 +373,7 @@ class BatchStatusView(APIView):
                     "error_message": sub.error_message or None,
                     "submitted_at": sub.submitted_at.isoformat(),
                     "completed_at": (sub.completed_at.isoformat() if sub.completed_at else None),
-                    "report_url": (f"/api/v1/manuscript/report/{sub.id}/" if sub.status == "completed" else None),
+                    "report_url": (f"/api/v1/manuscript/report/{sub.id}/{token_qs}" if sub.status == "completed" else None),
                 }
             )
 
