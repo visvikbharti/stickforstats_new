@@ -8,6 +8,7 @@ import { WelcomeModal, HelpButton } from './components/onboarding';
 import Providers from './Providers';
 import { AppRoutes, ProfessionalLandingPage, AIAdvisorHub, PrefetchDebug, CommandPalette, GlobalSearch } from './routes';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import BetaBanner from './components/BetaBanner';
 
 // Import i18n configuration (must be imported before any components that use translations)
 import './i18n';
@@ -56,6 +57,7 @@ function App() {
   return (
     <Providers onError={handleGlobalError}>
       <div className="App">
+        <BetaBanner />
         <SkipNavigation />
         <SimpleNavigation />
         <Suspense fallback={null}>
