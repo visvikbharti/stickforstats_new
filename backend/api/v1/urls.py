@@ -155,6 +155,12 @@ from .batch_views import (
     BatchSubmitView,
     BatchStatusView,
 )
+from .receipt_views import (
+    ReceiptIssueView,
+    ReceiptVerifyView,
+    ReceiptDownloadView,
+    ReceiptJWKSView,
+)
 from .data_import_views import (
     UniversalDataImportView,
     SupportedFormatsView,
@@ -376,6 +382,11 @@ urlpatterns = [
     path("manuscript/consistency/", ConsistencyCheckView.as_view(), name="manuscript-consistency"),
     path("manuscript/report/<uuid:submission_id>/", SubmissionReportView.as_view(), name="manuscript-report"),
     path("manuscript/journal/submit/", JournalSubmitView.as_view(), name="journal-submit"),
+    # Signed reproducibility receipts (independently verifiable provenance)
+    path("receipt/issue/", ReceiptIssueView.as_view(), name="receipt-issue"),
+    path("receipt/jwks/", ReceiptJWKSView.as_view(), name="receipt-jwks"),
+    path("receipt/verify/<uuid:receipt_id>/", ReceiptVerifyView.as_view(), name="receipt-verify"),
+    path("receipt/<uuid:receipt_id>/download/", ReceiptDownloadView.as_view(), name="receipt-download"),
     path("manuscript/batch-submit/", BatchSubmitView.as_view(), name="manuscript-batch-submit"),
     path("manuscript/batch-status/<str:batch_id>/", BatchStatusView.as_view(), name="manuscript-batch-status"),
     # Journal Analytics

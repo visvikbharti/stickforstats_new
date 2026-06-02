@@ -532,6 +532,117 @@ class ManuscriptSubmission(models.Model):
         return hmac.compare_digest(computed, self.report_token_hash)
 
 
+class ReproducibilityReceipt(models.Model):
+    """A signed, independently-verifiable provenance receipt.
+
+    v1 attests a MANUSCRIPT verification result: it binds the uploaded
+    paper's SHA-256 (``subject_hash``, copied from the submission's
+    ``file_hash``) to the verdict StickForStats produced (SQS, claims,
+    consistency), stamps it with a server-issued UTC timestamp + the code
+    versions that produced it, and RS256-signs a canonical hash of the
+    whole body. Anyone can re-verify the signature offline against the
+    public key at the receipt JWKS endpoint — no trust in StickForStats
+    required (see core/crypto/receipt_signing.py).
+
+    The machinery is deliberately type-agnostic (``receipt_type``) so an
+    ANALYSIS-run receipt (data fingerprint + Guardian assumptions tested)
+    can be issued through the same model + endpoints as a fast follow.
+
+    ``receipt_json`` stores the exact body that was signed; verification
+    recomputes its canonical hash and checks the detached ``signature``.
+    """
+
+    SCHEMA_VERSION = "sfs-receipt/1.0"
+
+    RECEIPT_TYPES = [
+        ("manuscript", "Manuscript verification"),
+        ("analysis", "Analysis run"),
+    ]
+
+    receipt_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    schema_version = models.CharField(max_length=32, default=SCHEMA_VERSION)
+    receipt_type = models.CharField(
+        max_length=20, choices=RECEIPT_TYPES, default="manuscript", db_index=True
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reproducibility_receipts",
+    )
+    submission = models.ForeignKey(
+        "ManuscriptSubmission",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="receipts",
+    )
+    title = models.CharField(max_length=500, blank=True)
+
+    subject_hash = models.CharField(
+        max_length=128,
+        db_index=True,
+        help_text="SHA-256 of the artifact attested (paper file_hash / dataset fingerprint)",
+    )
+    canonical_payload_hash = models.CharField(
+        max_length=128, help_text="SHA-256 of the canonical JSON body that was signed"
+    )
+    sig_alg = models.CharField(max_length=16, default="RS256")
+    key_id = models.CharField(max_length=128, blank=True)
+    signature = models.TextField(help_text="base64 detached RS256 signature over the canonical body bytes")
+
+    receipt_json = JSONField(default=dict, help_text="The exact canonical receipt body that was signed")
+
+    issued_at = models.DateTimeField(default=timezone.now, db_index=True)
+    is_revoked = models.BooleanField(default=False)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    revoked_reason = models.CharField(max_length=255, blank=True)
+
+    # Download/share token: store only the SHA-256 hash; the raw token is
+    # returned once at issue time and is required to download the signed
+    # artifact. (Public verification needs no token.)
+    report_token_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="SHA-256 of the receipt download token (raw token never stored)",
+    )
+
+    class Meta:
+        ordering = ["-issued_at"]
+        indexes = [
+            models.Index(fields=["-issued_at", "receipt_type"]),
+            models.Index(fields=["subject_hash"]),
+        ]
+        verbose_name = "Reproducibility Receipt"
+        verbose_name_plural = "Reproducibility Receipts"
+
+    def __str__(self):
+        return f"Receipt {self.receipt_id} ({self.receipt_type}, {self.issued_at:%Y-%m-%d})"
+
+    @staticmethod
+    def hash_token(raw_token: str) -> str:
+        """SHA-256 of a raw download token (same scheme as ManuscriptSubmission)."""
+        return hashlib.sha256((raw_token or "").encode()).hexdigest()
+
+    def set_token(self) -> str:
+        """Generate a fresh download token, store its hash, return the RAW token."""
+        import secrets
+
+        raw_token = secrets.token_urlsafe(32)
+        self.report_token_hash = self.hash_token(raw_token)
+        return raw_token
+
+    def verify_token(self, raw_token: str) -> bool:
+        """Timing-safe check of a supplied raw download token against the stored hash."""
+        if not self.report_token_hash:
+            return False
+        return hmac.compare_digest(self.hash_token(raw_token or ""), self.report_token_hash)
+
+
 class ReviewReport(models.Model):
     """
     Generated review report for a manuscript submission.
