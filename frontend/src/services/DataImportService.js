@@ -101,7 +101,7 @@ export const universalImport = async (file, options = {}) => {
     `${DATA_BASE}/universal-import/`,
     formData,
     {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {  },
       timeout: 120000, // 2 minutes for large files
       signal: options.signal || undefined,
       onUploadProgress: (progressEvent) => {

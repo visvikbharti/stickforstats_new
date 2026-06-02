@@ -30,7 +30,7 @@ export const profileData = async (dataSource, userHint = null) => {
     if (userHint) formData.append('user_hint', userHint);
 
     const response = await apiClient.post(`${AUTONOMOUS_BASE}/profile/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {  },
       timeout: 60000, // 60s for large files
     });
     return response.data;
@@ -60,7 +60,7 @@ export const queryAnalysis = async (query, dataSource, mode = 'plain_english', a
     formData.append('alpha', String(alpha));
 
     const response = await apiClient.post(`${AUTONOMOUS_BASE}/query/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {  },
       timeout: 120000, // 2 min for full pipeline
     });
     return response.data;

@@ -145,7 +145,7 @@ export const useSQCAnalysisAPI = () => {
       // Send request
       const response = await api.post('/core/datasets/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          
         },
       });
       
