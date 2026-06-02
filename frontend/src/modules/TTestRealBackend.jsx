@@ -17,7 +17,7 @@ import {
   TrendingUp as TrendingUpIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
+import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
 import ProfessionalContainer from '../components/common/ProfessionalContainer';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 
