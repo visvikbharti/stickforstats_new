@@ -54,7 +54,24 @@ def _int_to_b64url(value: int) -> str:
 def _load_from_env() -> Optional[Tuple[RSAPrivateKey, RSAPublicKey, str]]:
     pem = os.environ.get("RECEIPT_RSA_PRIVATE_KEY", "").strip()
     if not pem:
+        # A base64-encoded PEM is the friendliest single-line form for a
+        # docker-compose .env file (no multiline / no escaping needed).
+        b64 = os.environ.get("RECEIPT_RSA_PRIVATE_KEY_B64", "").strip()
+        if b64:
+            try:
+                pem = base64.b64decode(b64).decode("utf-8").strip()
+            except Exception as exc:  # noqa: BLE001 - re-raised with context
+                raise RuntimeError(
+                    f"RECEIPT_RSA_PRIVATE_KEY_B64 is set but is not valid base64: {exc}"
+                ) from exc
+    if not pem:
         return None
+    # A single-line env value (common in .env files) may carry escaped
+    # newlines; restore real newlines so the PEM parses. Only do this when
+    # the value clearly has no real newlines, so a genuine multiline PEM
+    # is left untouched.
+    if "\\n" in pem and "\n" not in pem:
+        pem = pem.replace("\\n", "\n")
     try:
         private_key = serialization.load_pem_private_key(pem.encode("utf-8"), password=None)
     except Exception as exc:  # noqa: BLE001 - re-raised with actionable context
