@@ -1,0 +1,3 @@
+-- StickForStats DB init (intentionally empty; schema is managed by Django migrations).
+-- This file exists only so docker-compose's `./backend/sql/init.sql` bind mount resolves to a
+-- real file instead of auto-creating an empty directory. Do not add schema here.

@@ -204,6 +204,15 @@ CORS_ALLOWED_ORIGINS = (
     else ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted origins — Django 4+ requires these for cross-origin POST over HTTPS behind a
+# TLS-terminating proxy. Defaults to the configured https CORS origins; override via env.
+_csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = (
+    [o.strip() for o in _csrf_env.split(",") if o.strip()]
+    if _csrf_env
+    else [o for o in CORS_ALLOWED_ORIGINS if o.startswith("https://")]
+)
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -385,6 +394,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Production-only security settings (gated by DEBUG=False)
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    # Trust the TLS-terminating reverse proxy's forwarded scheme; without this Django treats
+    # proxied (http) requests as insecure and 301-redirects them forever behind nginx/HTTPS.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
