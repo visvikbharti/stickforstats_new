@@ -5,6 +5,7 @@ import LoadingFallback from '../components/common/LoadingFallback';
 import NotFoundPage from '../pages/NotFoundPage';
 import AccessDeniedPage from '../pages/AccessDeniedPage';
 import TermsOfServicePage from '../pages/TermsOfServicePage';
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
 import ROUTE_CONFIG from './routeConfig';
 
 const SuspenseRoute = ({ component: Component, loadingMessage, skeleton, protected: isProtected, requiredRole, props }) => {
@@ -28,6 +29,7 @@ const AppRoutes = () => (
     ))}
     <Route path="/unauthorized" element={<AccessDeniedPage />} />
     <Route path="/terms" element={<TermsOfServicePage />} />
+    <Route path="/privacy" element={<PrivacyPolicyPage />} />
     <Route path="*" element={<NotFoundPage />} />
   </Routes>
 );
