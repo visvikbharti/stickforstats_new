@@ -690,7 +690,7 @@ class StatisticalTestService {
     try {
       const response = await this.apiClient.post('/v1/data/import/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          
         }
       });
 

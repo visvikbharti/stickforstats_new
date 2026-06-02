@@ -31,7 +31,8 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
+    // No hardcoded Content-Type: let axios set application/json for object bodies
+    // and multipart/form-data (with boundary) for FormData uploads automatically.
     'Accept': 'application/json',
   },
 });
@@ -169,7 +170,7 @@ function uploadFile(url, file, onProgress) {
 
   return apiClient.post(url, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      
     },
     onUploadProgress: (progressEvent) => {
       if (onProgress) {
@@ -600,7 +601,7 @@ const ApiService = {
       const formData = new FormData();
       formData.append('bundle_file', bundleFile);
       return apiClient.post('/reproducibility/validate-bundle/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {  }
       });
     },
 

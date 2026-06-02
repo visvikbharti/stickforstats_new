@@ -170,7 +170,7 @@ export const uploadPcaData = async (formData) => {
   try {
     const response = await axios.post(`${API_URL}/projects/upload_data/`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
+        
       }
     });
     return response.data;

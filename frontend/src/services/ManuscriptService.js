@@ -33,7 +33,7 @@ export const analyzeManuscript = async (file, options = {}) => {
   formData.append('alpha', String(options.alpha ?? 0.05));
 
   const response = await apiClient.post(`${MANUSCRIPT_BASE}/analyze/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {  },
     timeout: 120000, // 2 min for large manuscripts
   });
   return response.data;
@@ -49,7 +49,7 @@ export const parseManuscript = async (file) => {
   formData.append('file', file);
 
   const response = await apiClient.post(`${MANUSCRIPT_BASE}/parse/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {  },
     timeout: 60000, // 60s
   });
   return response.data;
@@ -65,7 +65,7 @@ export const extractClaims = async (file) => {
   formData.append('file', file);
 
   const response = await apiClient.post(`${MANUSCRIPT_BASE}/claims/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {  },
     timeout: 90000, // 90s
   });
   return response.data;
@@ -84,7 +84,7 @@ export const checkConsistency = async (file, options = {}) => {
   formData.append('alpha', String(options.alpha ?? 0.05));
 
   const response = await apiClient.post(`${MANUSCRIPT_BASE}/consistency/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {  },
     timeout: 90000, // 90s
   });
   return response.data;
@@ -121,7 +121,7 @@ export const journalSubmit = async (file, apiKey, options = {}) => {
 
   const response = await apiClient.post(`${MANUSCRIPT_BASE}/journal/submit/`, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      
       'X-API-Key': apiKey,
     },
     timeout: 120000, // 2 min

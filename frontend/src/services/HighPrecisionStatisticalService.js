@@ -165,7 +165,7 @@ class HighPrecisionStatisticalService {
 
     const response = await this.client.post('/v1/data/import/', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        
       },
       onUploadProgress: progressEvent => {
         if (onProgress) {
