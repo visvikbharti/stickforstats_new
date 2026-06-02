@@ -48,7 +48,7 @@ import {
 } from '@mui/icons-material';
 
 // API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1';
 
 /**
  * Grade color mapping

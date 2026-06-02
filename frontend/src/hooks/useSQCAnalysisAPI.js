@@ -6,7 +6,7 @@ const isDemoMode = process.env.REACT_APP_DEMO_MODE === 'true' || process.env.REA
 
 // Create an Axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1',
   headers: {
     'Content-Type': 'application/json',
   },

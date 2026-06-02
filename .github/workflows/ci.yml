@@ -319,6 +319,10 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/frontend:latest
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+          build-args: |
+            REACT_APP_API_URL=/api
+            REACT_APP_ENVIRONMENT=production
+            REACT_APP_VERSION=1.0.0
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
