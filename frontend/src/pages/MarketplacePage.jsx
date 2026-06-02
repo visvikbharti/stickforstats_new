@@ -63,7 +63,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useDarkMode } from '../context/DarkModeContext';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1';
 
 /** Map plugin type to icon */
 const TYPE_ICONS = {
