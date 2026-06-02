@@ -17,6 +17,7 @@
 import apiClient from './api';
 
 const MANUSCRIPT_BASE = '/v1/manuscript';
+const RECEIPT_BASE = '/v1/receipt';
 
 /**
  * Analyze a manuscript — returns full statistical review report.
@@ -129,6 +130,39 @@ export const journalSubmit = async (file, apiKey, options = {}) => {
   return response.data;
 };
 
+/**
+ * Issue a signed reproducibility receipt for a completed analysis.
+ * @param {string} submissionId - submission_id from analyzeManuscript()
+ * @param {string} token - report_token from analyzeManuscript() (proves ownership)
+ * @param {Object} [options={}] - { minimal: bool }
+ * @returns {Promise<Object>} { receipt_id, download_token, verify_url, download_url, ... }
+ */
+export const issueReceipt = async (submissionId, token, options = {}) => {
+  const body = { submission_id: submissionId, token };
+  if (options.minimal) body.minimal = true;
+  const response = await apiClient.post(`${RECEIPT_BASE}/issue/`, body, { timeout: 30000 });
+  return response.data;
+};
+
+/**
+ * Verify a reproducibility receipt (public — no auth, no trust required).
+ * @param {string} receiptId - the receipt UUID
+ * @param {string} [token] - optional download token to also check
+ * @returns {Promise<Object>} structured verdict { valid, signature_ok, ... }
+ */
+export const verifyReceipt = async (receiptId, token) => {
+  const params = token ? { token } : {};
+  const response = await apiClient.get(`${RECEIPT_BASE}/verify/${receiptId}/`, { params, timeout: 15000 });
+  return response.data;
+};
+
+/**
+ * Direct (browser-navigable) URL to download the self-contained signed
+ * receipt artifact. Requires the one-time download token.
+ */
+export const receiptDownloadUrl = (receiptId, token) =>
+  `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}`;
+
 const ManuscriptService = {
   analyzeManuscript,
   parseManuscript,
@@ -136,6 +170,9 @@ const ManuscriptService = {
   checkConsistency,
   getReport,
   journalSubmit,
+  issueReceipt,
+  verifyReceipt,
+  receiptDownloadUrl,
 };
 
 export default ManuscriptService;

@@ -30,6 +30,7 @@ import {
   AccordionDetails,
   IconButton,
   Snackbar,
+  CircularProgress,
   useTheme,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -48,8 +49,11 @@ import {
   CompareArrows,
   Summarize,
   Search as SearchIcon,
+  VerifiedUser,
+  Fingerprint,
+  Download,
 } from '@mui/icons-material';
-import { analyzeManuscript } from '../../services/ManuscriptService';
+import { analyzeManuscript, issueReceipt, receiptDownloadUrl } from '../../services/ManuscriptService';
 import { DisciplineCompliancePanel } from './ReviewerReport';
 
 // ---------------------------------------------------------------------------
@@ -704,6 +708,11 @@ const ManuscriptAnalyzer = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  // -- Reproducibility receipt state ----------------------------------------
+  const [receipt, setReceipt] = useState(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [receiptError, setReceiptError] = useState(null);
+
   // -- Derived data ---------------------------------------------------------
   const findings = report?.findings || [];
   const positiveFindings = report?.positive_findings || [];
@@ -742,6 +751,8 @@ const ManuscriptAnalyzer = () => {
     setLoading(true);
     setError(null);
     setReport(null);
+    setReceipt(null);
+    setReceiptError(null);
     setAnalysisStep(0);
     setActiveTab(0);
 
@@ -874,6 +885,39 @@ const ManuscriptAnalyzer = () => {
   const handleFieldChange = useCallback((e) => {
     setField(e.target.value);
   }, []);
+
+  // -- Reproducibility receipt handlers -------------------------------------
+
+  const handleGenerateReceipt = useCallback(async () => {
+    if (!report?.submission_id || !report?.report_token) return;
+    setReceiptLoading(true);
+    setReceiptError(null);
+    try {
+      const data = await issueReceipt(report.submission_id, report.report_token);
+      setReceipt(data);
+    } catch (err) {
+      setReceiptError(
+        err?.response?.data?.error || err?.message || 'Failed to generate the receipt.'
+      );
+    } finally {
+      setReceiptLoading(false);
+    }
+  }, [report]);
+
+  const handleCopyVerifyLink = useCallback(() => {
+    if (!receipt?.receipt_id) return;
+    const link = `${window.location.origin}/verify?id=${receipt.receipt_id}`;
+    navigator.clipboard.writeText(link).then(
+      () => {
+        setSnackbarMessage('Verification link copied — share it with an editor or reviewer.');
+        setSnackbarOpen(true);
+      },
+      () => {
+        setSnackbarMessage('Failed to copy link.');
+        setSnackbarOpen(true);
+      }
+    );
+  }, [receipt]);
 
   // -- Render ---------------------------------------------------------------
 
@@ -1148,6 +1192,81 @@ const ManuscriptAnalyzer = () => {
                 </Box>
               </AccordionDetails>
             </Accordion>
+          )}
+
+          {/* 3d. Reproducibility Receipt — signed, independently-verifiable proof */}
+          {report.submission_id && (
+            <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <VerifiedUser fontSize="small" color="primary" />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Reproducibility Receipt
+                </Typography>
+              </Box>
+
+              {!receipt ? (
+                <>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Generate a signed, tamper-evident receipt that binds this manuscript&apos;s
+                    fingerprint to the verdict above. Anyone — an editor or reviewer — can verify
+                    it later with no account and without needing to trust us.
+                  </Typography>
+                  {receiptError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setReceiptError(null)}>
+                      {receiptError}
+                    </Alert>
+                  )}
+                  <Button
+                    variant="contained"
+                    startIcon={
+                      receiptLoading ? <CircularProgress size={16} color="inherit" /> : <VerifiedUser />
+                    }
+                    onClick={handleGenerateReceipt}
+                    disabled={receiptLoading}
+                  >
+                    {receiptLoading ? 'Generating…' : 'Generate reproducibility receipt'}
+                  </Button>
+                </>
+              ) : (
+                <Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Chip icon={<VerifiedUser />} color="success" label={`Signed · ${receipt.sig_alg}`} />
+                    <Chip
+                      icon={<Fingerprint />}
+                      variant="outlined"
+                      label={`SHA-256 ${String(receipt.subject_hash || '').slice(0, 12)}…`}
+                    />
+                  </Box>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    Receipt ID:{' '}
+                    <Box component="span" sx={{ fontFamily: 'monospace' }}>
+                      {receipt.receipt_id}
+                    </Box>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    Issued {receipt.issued_at}
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Download />}
+                      component="a"
+                      href={receiptDownloadUrl(receipt.receipt_id, receipt.download_token)}
+                    >
+                      Download signed receipt (.json)
+                    </Button>
+                    <Button variant="outlined" startIcon={<ContentCopy />} onClick={handleCopyVerifyLink}>
+                      Copy verification link
+                    </Button>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                    The verification link is public — anyone can confirm this receipt at{' '}
+                    <Box component="span" sx={{ fontFamily: 'monospace' }}>/verify</Box> without
+                    logging in. Keep the downloaded .json as your portable, offline-verifiable proof.
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
           )}
         </Box>
       )}
