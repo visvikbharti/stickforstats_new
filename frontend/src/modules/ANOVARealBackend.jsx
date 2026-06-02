@@ -16,7 +16,7 @@ import {
   Calculate, Clear, Add, Remove,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import HighPrecisionStatisticalService from '../services/HighPrecisionStatisticalService';
+import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
 import ProfessionalContainer from '../components/common/ProfessionalContainer';
 
 // Guardian Design Contract compliance
