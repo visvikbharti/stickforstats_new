@@ -163,7 +163,7 @@ export const verifyReceipt = async (receiptId, token) => {
  *   + an offline verify_receipt.py script)
  */
 export const receiptDownloadUrl = (receiptId, token, format = 'json') =>
-  `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}&format=${format}`;
+  `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}&fmt=${format}`;
 
 const ManuscriptService = {
   analyzeManuscript,

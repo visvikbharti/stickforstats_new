@@ -145,10 +145,12 @@ class ReceiptDownloadView(APIView):
         if not RECEIPT_AVAILABLE:
             return _unavailable()
 
-        fmt = (request.query_params.get("format") or "json").lower()
+        # NB: use 'fmt', NOT 'format' — 'format' is a reserved DRF content-
+        # negotiation query param and ?format=zip would 404 before this view runs.
+        fmt = (request.query_params.get("fmt") or "json").lower()
         if fmt not in ("json", "zip"):
             return Response(
-                {"error": "Supported formats: json, zip"},
+                {"error": "Supported formats: json, zip (use ?fmt=zip)"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
