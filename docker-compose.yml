@@ -67,6 +67,12 @@ services:
       - ENABLE_PROFILING=${ENABLE_PROFILING:-false}
       - AUDIT_LOG_RETENTION_DAYS=${AUDIT_LOG_RETENTION_DAYS:-2555}
       - FDA_COMPLIANCE_MODE=${FDA_COMPLIANCE_MODE:-true}
+      # Reproducibility-receipt RS256 signing key. Set a STABLE key in .env
+      # (RECEIPT_RSA_PRIVATE_KEY_B64=base64 PEM) for production so all workers
+      # share it and receipts keep verifying across restarts; otherwise an
+      # ephemeral key is generated per process. See generate_receipt_keypair.
+      - RECEIPT_RSA_PRIVATE_KEY_B64=${RECEIPT_RSA_PRIVATE_KEY_B64:-}
+      - RECEIPT_RSA_KEY_ID=${RECEIPT_RSA_KEY_ID:-stickforstats-receipt-prod-1}
     depends_on:
       - postgres
       - redis

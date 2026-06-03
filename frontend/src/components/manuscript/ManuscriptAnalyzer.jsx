@@ -1251,9 +1251,17 @@ const ManuscriptAnalyzer = () => {
                       variant="outlined"
                       startIcon={<Download />}
                       component="a"
-                      href={receiptDownloadUrl(receipt.receipt_id, receipt.download_token)}
+                      href={receiptDownloadUrl(receipt.receipt_id, receipt.download_token, 'zip')}
                     >
-                      Download signed receipt (.json)
+                      Download bundle (.zip)
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Download />}
+                      component="a"
+                      href={receiptDownloadUrl(receipt.receipt_id, receipt.download_token, 'json')}
+                    >
+                      Signed receipt (.json)
                     </Button>
                     <Button variant="outlined" startIcon={<ContentCopy />} onClick={handleCopyVerifyLink}>
                       Copy verification link

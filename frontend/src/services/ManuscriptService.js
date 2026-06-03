@@ -159,9 +159,11 @@ export const verifyReceipt = async (receiptId, token) => {
 /**
  * Direct (browser-navigable) URL to download the self-contained signed
  * receipt artifact. Requires the one-time download token.
+ * @param {string} [format='json'] - 'json' or 'zip' (bundle with public key
+ *   + an offline verify_receipt.py script)
  */
-export const receiptDownloadUrl = (receiptId, token) =>
-  `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}`;
+export const receiptDownloadUrl = (receiptId, token, format = 'json') =>
+  `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}&format=${format}`;
 
 const ManuscriptService = {
   analyzeManuscript,
