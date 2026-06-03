@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 try:
     from core.crypto import receipt_signing
     from core.models import ManuscriptSubmission, ReproducibilityReceipt
-    from core.services import receipt_service
+    from core.services import receipt_service, receipt_bundle
 
     RECEIPT_AVAILABLE = True
 except Exception as exc:  # noqa: BLE001 - degrade gracefully if models/crypto missing
@@ -145,9 +146,9 @@ class ReceiptDownloadView(APIView):
             return _unavailable()
 
         fmt = (request.query_params.get("format") or "json").lower()
-        if fmt != "json":
+        if fmt not in ("json", "zip"):
             return Response(
-                {"error": "Only format=json is supported in v1 (pdf/zip coming)"},
+                {"error": "Supported formats: json, zip"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -160,27 +161,16 @@ class ReceiptDownloadView(APIView):
             return Response({"error": "Receipt not found"}, status=status.HTTP_404_NOT_FOUND)
 
         rid = str(receipt.receipt_id)
-        artifact = {
-            "stickforstats_reproducibility_receipt": receipt.schema_version,
-            "receipt": receipt.receipt_json,
-            "canonical_payload_hash": receipt.canonical_payload_hash,
-            "signature": {
-                "alg": receipt.sig_alg,
-                "key_id": receipt.key_id,
-                "value": receipt.signature,
-            },
-            "public_key_pem": receipt_signing.public_pem(),
-            "jwks_url": "/api/v1/receipt/jwks/",
-            "verify_url": f"/api/v1/receipt/verify/{rid}/",
-            "verify_instructions": (
-                "Offline: (1) re-serialize the 'receipt' object as canonical JSON "
-                "(sort_keys=True, separators=(',',':'), ensure_ascii=True, no NaN); "
-                "(2) SHA-256 it and confirm it equals 'canonical_payload_hash'; "
-                "(3) RS256-verify base64-decoded signature.value over those canonical "
-                "bytes using 'public_key_pem' (RSA PKCS#1 v1.5, SHA-256). "
-                "Online: GET the verify_url."
-            ),
-        }
+
+        if fmt == "zip":
+            # A self-contained, offline-verifiable bundle (signed receipt +
+            # public key + a stdlib verify_receipt.py + README).
+            data = receipt_bundle.build_zip(receipt)
+            response = HttpResponse(data, content_type="application/zip")
+            response["Content-Disposition"] = f'attachment; filename="receipt-{rid}.zip"'
+            return response
+
+        artifact = receipt_bundle.build_artifact(receipt)
         response = Response(artifact, status=status.HTTP_200_OK)
         response["Content-Disposition"] = f'attachment; filename="receipt-{rid}.json"'
         return response
