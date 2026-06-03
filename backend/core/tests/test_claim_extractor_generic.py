@@ -57,3 +57,11 @@ class GenericStatExtractionTests(TestCase):
         claims = self.ex.extract("The result was significant (p = 0.04). See Figure 2.", "results")
         stat_claims = [c for c in claims if c.statistic_value is not None]
         self.assertEqual(stat_claims, [])
+
+    def test_trailing_period_not_captured_in_p_value(self):
+        # "p = .05." at a sentence boundary must yield p = 0.05, not 5.0
+        # (the capture must not swallow the sentence-ending period).
+        claims = self.ex.extract("A t-test, t(30) = 2.042, p = .05. Another sentence.", "results")
+        tclaims = [c for c in claims if c.claim_type == "t_statistic"]
+        self.assertEqual(len(tclaims), 1)
+        self.assertEqual(tclaims[0].p_value, 0.05)
