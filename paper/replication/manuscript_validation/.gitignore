@@ -1,0 +1,4 @@
+# Raw fetched paper texts are re-derivable via fetch_corpus.py (and carry
+# their own licences); keep them out of the repo. The script + manifest +
+# results below make the study reproducible.
+corpus/

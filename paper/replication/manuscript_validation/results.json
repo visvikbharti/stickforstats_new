@@ -1,0 +1,421 @@
+{
+  "alpha": 0.05,
+  "aggregate": {
+    "files": 20,
+    "claims": 980,
+    "with_stat": 468,
+    "recomputed": 295,
+    "consistent": 275,
+    "discrepancy": 14,
+    "gross": 6
+  },
+  "papers": [
+    {
+      "file": "PMC12704721.txt",
+      "n_claims": 27,
+      "by_type": {
+        "(bare-p)": 12,
+        "f_statistic": 15
+      },
+      "n_with_statistic": 15,
+      "n_recomputed": 0,
+      "consistent": 0,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC12704728.txt",
+      "n_claims": 9,
+      "by_type": {
+        "f_statistic": 3,
+        "t_statistic": 1,
+        "(bare-p)": 5
+      },
+      "n_with_statistic": 4,
+      "n_recomputed": 1,
+      "consistent": 1,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13223243.txt",
+      "n_claims": 130,
+      "by_type": {
+        "(bare-p)": 85,
+        "f_statistic": 45
+      },
+      "n_with_statistic": 45,
+      "n_recomputed": 45,
+      "consistent": 44,
+      "discrepancy": 0,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (f_statistic)",
+          "evidence": "F(1.86, 28.30) = 6.535",
+          "detail": "Reported p > 0.05 but recomputed p = 0.005441: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223308.txt",
+      "n_claims": 65,
+      "by_type": {
+        "(bare-p)": 54,
+        "f_statistic": 11
+      },
+      "n_with_statistic": 11,
+      "n_recomputed": 9,
+      "consistent": 8,
+      "discrepancy": 0,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (f_statistic)",
+          "evidence": "F(2,6) = 3",
+          "detail": "Reported p = 1.93e-11 but recomputed p = 0.125: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223338.txt",
+      "n_claims": 39,
+      "by_type": {
+        "(bare-p)": 20,
+        "f_statistic": 17,
+        "t_statistic": 2
+      },
+      "n_with_statistic": 19,
+      "n_recomputed": 17,
+      "consistent": 15,
+      "discrepancy": 2,
+      "gross_error": 0,
+      "inconsistencies": [
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1, 75) = 1.60, p=.69",
+          "detail": "Reported p = 0.69 but recomputed p = 0.2098 (discrepancy = 0.4802), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (t_statistic)",
+          "evidence": "t (96) = -0.197, p = 0.86",
+          "detail": "Reported p = 0.86 but recomputed p = 0.8442 (discrepancy = 0.01576), beyond what rounding explains, though the significance decision is unchanged."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223457.txt",
+      "n_claims": 14,
+      "by_type": {
+        "(bare-p)": 5,
+        "f_statistic": 9
+      },
+      "n_with_statistic": 9,
+      "n_recomputed": 9,
+      "consistent": 3,
+      "discrepancy": 5,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (f_statistic)",
+          "evidence": "F (2, 58) = 3.728, p = 0.061",
+          "detail": "Reported p = 0.061 but recomputed p = 0.02998: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (2, 58) = 2.885, p = 0.098",
+          "detail": "Reported p = 0.098 but recomputed p = 0.06391 (discrepancy = 0.03409), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (2, 58) = 3.015, p = 0.091",
+          "detail": "Reported p = 0.091 but recomputed p = 0.05679 (discrepancy = 0.03421), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (2, 58) = 2.475, p = 0.123",
+          "detail": "Reported p = 0.123 but recomputed p = 0.09301 (discrepancy = 0.02999), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (2, 58) = 0.491, p = 0.500",
+          "detail": "Reported p = 0.5 but recomputed p = 0.6145 (discrepancy = 0.1145), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (2, 58) = 0.9078, p = 0.353",
+          "detail": "Reported p = 0.353 but recomputed p = 0.4091 (discrepancy = 0.05607), beyond what rounding explains, though the significance decision is unchanged."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223527.txt",
+      "n_claims": 120,
+      "by_type": {
+        "(bare-p)": 30,
+        "f_statistic": 86,
+        "t_statistic": 2,
+        "r_value": 1,
+        "mann_whitney": 1
+      },
+      "n_with_statistic": 90,
+      "n_recomputed": 88,
+      "consistent": 86,
+      "discrepancy": 2,
+      "gross_error": 0,
+      "inconsistencies": [
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1,22) = 0.560, p = 0.692",
+          "detail": "Reported p = 0.692 but recomputed p = 0.4622 (discrepancy = 0.2298), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F(3.437,21) = 0.973",
+          "detail": "Reported p = 0.425 but recomputed p = 0.4333 (discrepancy = 0.008323), beyond what rounding explains, though the significance decision is unchanged."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223738.txt",
+      "n_claims": 31,
+      "by_type": {
+        "(bare-p)": 9,
+        "f_statistic": 21,
+        "t_statistic": 1
+      },
+      "n_with_statistic": 22,
+      "n_recomputed": 1,
+      "consistent": 1,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13223791.txt",
+      "n_claims": 19,
+      "by_type": {
+        "(bare-p)": 12,
+        "f_statistic": 7
+      },
+      "n_with_statistic": 7,
+      "n_recomputed": 4,
+      "consistent": 3,
+      "discrepancy": 1,
+      "gross_error": 0,
+      "inconsistencies": [
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F(6,128) = 6.8, p = 0.03",
+          "detail": "Reported p = 0.03 but recomputed p = 2.815e-06 (discrepancy = 0.03), beyond what rounding explains, though the significance decision is unchanged."
+        }
+      ]
+    },
+    {
+      "file": "PMC13223804.txt",
+      "n_claims": 155,
+      "by_type": {
+        "(bare-p)": 71,
+        "t_statistic": 52,
+        "r_value": 4,
+        "f_statistic": 28
+      },
+      "n_with_statistic": 84,
+      "n_recomputed": 28,
+      "consistent": 23,
+      "discrepancy": 4,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (f_statistic)",
+          "evidence": "F (1,16) = 8.66, p = 0.20",
+          "detail": "Reported p = 0.2 but recomputed p = 0.009553: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1,16) = 0.03, p > 0.99",
+          "detail": "Reported p > 0.99 but recomputed p = 0.8647 (discrepancy = 0.1253), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1,8) = 0.40, p = 0.97",
+          "detail": "Reported p = 0.97 but recomputed p = 0.5447 (discrepancy = 0.4253), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1,8) =0.36, p = 0.97",
+          "detail": "Reported p = 0.97 but recomputed p = 0.5651 (discrepancy = 0.4049), beyond what rounding explains, though the significance decision is unchanged."
+        },
+        {
+          "title": "P-value discrepancy (f_statistic)",
+          "evidence": "F (1,8) = 0.45, p = 0.96",
+          "detail": "Reported p = 0.96 but recomputed p = 0.5212 (discrepancy = 0.4388), beyond what rounding explains, though the significance decision is unchanged."
+        }
+      ]
+    },
+    {
+      "file": "PMC13224422.txt",
+      "n_claims": 25,
+      "by_type": {
+        "(bare-p)": 13,
+        "t_statistic": 9,
+        "z_statistic": 1,
+        "odds_ratio": 2
+      },
+      "n_with_statistic": 12,
+      "n_recomputed": 10,
+      "consistent": 9,
+      "discrepancy": 0,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (t_statistic)",
+          "evidence": "t (91) = 2.28, p = 0.050",
+          "detail": "Reported p = 0.05 but recomputed p = 0.02494: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        }
+      ]
+    },
+    {
+      "file": "PMC13224435.txt",
+      "n_claims": 14,
+      "by_type": {
+        "(bare-p)": 7,
+        "f_statistic": 7
+      },
+      "n_with_statistic": 7,
+      "n_recomputed": 7,
+      "consistent": 7,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13224458.txt",
+      "n_claims": 27,
+      "by_type": {
+        "(bare-p)": 10,
+        "beta": 6,
+        "z_statistic": 1,
+        "f_statistic": 10
+      },
+      "n_with_statistic": 17,
+      "n_recomputed": 9,
+      "consistent": 8,
+      "discrepancy": 0,
+      "gross_error": 1,
+      "inconsistencies": [
+        {
+          "title": "Gross p-value inconsistency (z_statistic)",
+          "evidence": "Z = 1.96",
+          "detail": "Reported p = 0.5 but recomputed p = 0.05: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
+        }
+      ]
+    },
+    {
+      "file": "PMC13224698.txt",
+      "n_claims": 84,
+      "by_type": {
+        "(bare-p)": 62,
+        "f_statistic": 18,
+        "r_value": 4
+      },
+      "n_with_statistic": 22,
+      "n_recomputed": 18,
+      "consistent": 18,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13225232.txt",
+      "n_claims": 38,
+      "by_type": {
+        "(bare-p)": 20,
+        "t_statistic": 6,
+        "f_statistic": 12
+      },
+      "n_with_statistic": 18,
+      "n_recomputed": 6,
+      "consistent": 6,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13225248.txt",
+      "n_claims": 51,
+      "by_type": {
+        "(bare-p)": 14,
+        "f_statistic": 34,
+        "mann_whitney": 3
+      },
+      "n_with_statistic": 37,
+      "n_recomputed": 0,
+      "consistent": 0,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13225301.txt",
+      "n_claims": 37,
+      "by_type": {
+        "f_statistic": 17,
+        "(bare-p)": 5,
+        "t_statistic": 13,
+        "r_value": 2
+      },
+      "n_with_statistic": 32,
+      "n_recomputed": 29,
+      "consistent": 29,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13225338.txt",
+      "n_claims": 21,
+      "by_type": {
+        "(bare-p)": 15,
+        "f_statistic": 4,
+        "r_value": 2
+      },
+      "n_with_statistic": 6,
+      "n_recomputed": 4,
+      "consistent": 4,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC13225384.txt",
+      "n_claims": 26,
+      "by_type": {
+        "(bare-p)": 23,
+        "chi_square": 3
+      },
+      "n_with_statistic": 3,
+      "n_recomputed": 3,
+      "consistent": 3,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    },
+    {
+      "file": "PMC7619117.txt",
+      "n_claims": 48,
+      "by_type": {
+        "(bare-p)": 40,
+        "f_statistic": 8
+      },
+      "n_with_statistic": 8,
+      "n_recomputed": 7,
+      "consistent": 7,
+      "discrepancy": 0,
+      "gross_error": 0,
+      "inconsistencies": []
+    }
+  ]
+}
