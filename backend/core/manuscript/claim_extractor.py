@@ -155,6 +155,17 @@ STANDALONE_P_PATTERN = re.compile(
 # Non-significant marker
 NS_PATTERN = re.compile(r"(?<![A-Za-z])(?:ns|n\.s\.|non[- ]?significant)", re.IGNORECASE)
 
+# Generic "named statistic = value" with an OPTIONAL (df), used to capture test
+# statistics the strict df-requiring patterns miss (e.g. "F = 1122.10" without
+# df) and tests that have no dedicated pattern (Kruskal-Wallis H, Mann-Whitney
+# U, Shapiro-Wilk W). A nearby p-value is then merged on by _merge_claims.
+# Matches are deduplicated against the strict-pattern claims by position.
+GENERIC_STAT_PATTERN = re.compile(
+    r"(?<![A-Za-z])(?P<name>chi-?square|χ²|χ2|t|F|H|U|W|Z)\s*"
+    r"(?:\(\s*(?P<df>[^)]*?)\s*\))?\s*=\s*(?P<stat>-?\d+\.?\d*)",
+    re.IGNORECASE,
+)
+
 # =============================================================================
 # CLAIM TYPE CONSTANTS
 # =============================================================================
@@ -167,6 +178,9 @@ CLAIM_TYPE_R = "r_value"
 CLAIM_TYPE_BETA = "beta"
 CLAIM_TYPE_OR = "odds_ratio"
 CLAIM_TYPE_HR = "hazard_ratio"
+CLAIM_TYPE_KW = "kruskal_wallis"   # H
+CLAIM_TYPE_MW = "mann_whitney"     # U
+CLAIM_TYPE_SW = "shapiro_wilk"     # W
 
 VALID_CLAIM_TYPES = {
     CLAIM_TYPE_T,
@@ -177,11 +191,28 @@ VALID_CLAIM_TYPES = {
     CLAIM_TYPE_BETA,
     CLAIM_TYPE_OR,
     CLAIM_TYPE_HR,
+    CLAIM_TYPE_KW,
+    CLAIM_TYPE_MW,
+    CLAIM_TYPE_SW,
 }
 
 P_COMPARISON_EQUALS = "equals"
 P_COMPARISON_LESS = "less_than"
 P_COMPARISON_GREATER = "greater_than"
+
+# Maps a GENERIC_STAT_PATTERN name (lowercased) to (claim_type, test_name).
+_GENERIC_STAT_MAP = {
+    "t": (CLAIM_TYPE_T, "t-test"),
+    "f": (CLAIM_TYPE_F, "F-test / ANOVA"),
+    "z": (CLAIM_TYPE_Z, "z-test"),
+    "h": (CLAIM_TYPE_KW, "Kruskal-Wallis H"),
+    "u": (CLAIM_TYPE_MW, "Mann-Whitney U"),
+    "w": (CLAIM_TYPE_SW, "Shapiro-Wilk W"),
+    "chi-square": (CLAIM_TYPE_CHI2, "chi-square"),
+    "chisquare": (CLAIM_TYPE_CHI2, "chi-square"),
+    "χ²": (CLAIM_TYPE_CHI2, "chi-square"),
+    "χ2": (CLAIM_TYPE_CHI2, "chi-square"),
+}
 
 
 # =============================================================================
@@ -337,6 +368,13 @@ class StatisticalClaimExtractor:
         claims.extend(self._extract_z_tests(text, section))
         claims.extend(self._extract_regression(text, section))
         claims.extend(self._extract_odds_ratios(text, section))
+
+        # Generic statistics the strict (df-requiring) patterns miss — e.g.
+        # "F = 1122.10" without df, or Kruskal-Wallis H / Mann-Whitney U /
+        # Shapiro-Wilk W which have no dedicated pattern. Deduplicated against
+        # the strict-pattern claims above so fully-specified results are not
+        # double-counted; a nearby p-value is merged on below.
+        claims.extend(self._extract_generic_stats(text, section, claims))
 
         # Standalone fragments — p-values, CIs, effect sizes, sample sizes
         standalone_p = self._extract_p_values(text, section)
@@ -798,6 +836,68 @@ class StatisticalClaimExtractor:
                 claim.ci_level = 0.95
             claims.append(claim)
 
+        return claims
+
+    def _extract_generic_stats(
+        self,
+        text: str,
+        section: str,
+        existing: List["StatisticalClaim"],
+    ) -> List["StatisticalClaim"]:
+        """Extract named statistics the strict patterns miss (no df required).
+
+        Captures ``F = 1122.10``, ``H = 36.59``, ``W = 0.793``, ``U = 41``,
+        ``t = 2.1``, ``Z = 1.96``, ``chi-square = 8.4``, etc. as primary
+        claims (``statistic_value`` set, ``p_value`` left for the merge step).
+        Skips any match whose position is already covered by a strict-pattern
+        claim, so fully-specified results (``F(2,45)=3.67, p=.03``) are not
+        double-counted and keep their df.
+        """
+        covered = set()
+        for c in existing:
+            for pos in range(c.position, c.position + len(c.raw_text)):
+                covered.add(pos)
+
+        claims: List[StatisticalClaim] = []
+        for m in GENERIC_STAT_PATTERN.finditer(text):
+            if m.start() in covered:
+                continue
+            name = m.group("name").lower().replace(" ", "")
+            mapped = _GENERIC_STAT_MAP.get(name)
+            if mapped is None:
+                continue
+            claim_type, test_name = mapped
+            try:
+                stat_val = float(m.group("stat"))
+            except (TypeError, ValueError):
+                continue
+
+            # Parse an optional df group: "2, 45" -> (2, 45); "58" -> (58,).
+            df = None
+            df_raw = m.group("df")
+            if df_raw:
+                nums = re.findall(r"-?\d+\.?\d*", df_raw)
+                if nums:
+                    parsed = [int(float(n)) if float(n) == int(float(n)) else float(n) for n in nums]
+                    df = tuple(parsed)
+
+            claims.append(
+                StatisticalClaim(
+                    claim_type=claim_type,
+                    test_name=test_name,
+                    statistic_value=stat_val,
+                    p_value=None,
+                    df=df,
+                    raw_text=m.group(0),
+                    location=section,
+                    position=m.start(),
+                    confidence=self._score_confidence(
+                        has_statistic=True,
+                        has_df=(df is not None),
+                        has_p=False,
+                    ),
+                )
+            )
         return claims
 
     # ------------------------------------------------------------------
