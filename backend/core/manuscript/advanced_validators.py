@@ -204,6 +204,8 @@ class StatisticalConsistencyValidator:
         raw_text = getattr(claim, "raw_text", "")
         location = getattr(claim, "location", "unknown")
         sample_size = getattr(claim, "sample_size", None)
+        statistic_raw = getattr(claim, "statistic_raw", None)
+        p_value_raw = getattr(claim, "p_value_raw", None)
 
         if stat_value is None or p_value is None:
             return None
@@ -212,32 +214,84 @@ class StatisticalConsistencyValidator:
         if computed_p is None:
             return None
 
-        discrepancy = abs(computed_p - p_value)
+        evidence = raw_text[:200] if raw_text else ""
 
-        # Determine decision consistency
+        # The reported statistic is rounded to a finite precision, so the TRUE
+        # statistic lies within +/-0.5 of its last reported digit. Recompute
+        # the p-value at both ends to obtain the interval of p-values that are
+        # consistent with the rounded statistic (this is statcheck's method).
+        # Fall back to a point estimate when the reported precision is unknown.
+        stat_dec = _decimals_from_token(statistic_raw, is_p=False)
+        if stat_dec is None:
+            stat_dec = _decimals_from_token(repr(stat_value), is_p=False)
+        p_lo = p_hi = computed_p
+        if stat_dec is not None:
+            half = 0.5 * (10.0 ** (-stat_dec))
+            cands = [
+                computed_p,
+                self._recompute_p(claim_type, stat_value - half, df, sample_size),
+                self._recompute_p(claim_type, stat_value + half, df, sample_size),
+            ]
+            cands = [c for c in cands if c is not None]
+            if cands:
+                p_lo, p_hi = min(cands), max(cands)
+
+        discrepancy = abs(computed_p - p_value)
         reported_sig = self._is_significant(p_value, p_comp)
         computed_sig = computed_p < self.alpha
 
-        evidence = raw_text[:200] if raw_text else ""
-
-        if discrepancy <= self.tolerance:
-            # Consistent -- emit a positive finding
-            return ValidatorFinding(
-                validator=self.VALIDATOR_NAME,
-                severity="positive",
-                confidence=0.95,
-                title=f"Consistent {claim_type} result",
-                description=(
-                    f"Reported p = {p_value}, recomputed p = {computed_p:.4f}. "
-                    f"Values agree within tolerance ({self.tolerance})."
-                ),
-                evidence=evidence,
-                recommendation="No action required.",
-                section=location,
+        # --- Inequality-reported p-values ("p < X" / "p > X") ---
+        # An inequality is consistent whenever the recomputed p actually
+        # SATISFIES it (e.g. "p < .05" with recomputed .016 is correct, not a
+        # discrepancy). Only flag when the recomputed p contradicts the stated
+        # inequality. (The previous logic treated the bound as an exact value
+        # and produced false discrepancies on the most common reporting form.)
+        if p_comp in ("less_than", "greater_than"):
+            if p_comp == "less_than":
+                satisfied = p_lo <= p_value + self.tolerance
+            else:
+                satisfied = p_hi >= p_value - self.tolerance
+            if satisfied:
+                return self._consistent_finding(claim_type, p_comp, p_value, computed_p, evidence, location)
+            return self._inconsistent_finding(
+                claim_type, p_comp, p_value, computed_p, discrepancy, evidence, location,
+                gross=(reported_sig != computed_sig),
             )
 
-        if reported_sig != computed_sig and discrepancy > 0.05:
-            # Gross error: decision changes
+        # --- Exact p-values: rounding-aware interval overlap ---
+        # The reported p is itself rounded; its true value lies within +/-0.5
+        # of its last digit. Consistent iff that interval overlaps the
+        # recomputed-p interval implied by the rounded statistic.
+        p_dec = _decimals_from_token(p_value_raw, is_p=True)
+        p_half = 0.5 * (10.0 ** (-p_dec)) if p_dec is not None else self.tolerance
+        rep_lo, rep_hi = p_value - p_half, p_value + p_half
+        overlap = (p_hi >= rep_lo - self.tolerance) and (p_lo <= rep_hi + self.tolerance)
+        if overlap:
+            return self._consistent_finding(claim_type, p_comp, p_value, computed_p, evidence, location)
+        return self._inconsistent_finding(
+            claim_type, p_comp, p_value, computed_p, discrepancy, evidence, location,
+            gross=(reported_sig != computed_sig and discrepancy > 0.05),
+        )
+
+    def _consistent_finding(self, claim_type, p_comp, p_value, computed_p, evidence, location):
+        return ValidatorFinding(
+            validator=self.VALIDATOR_NAME,
+            severity="positive",
+            confidence=0.95,
+            title=f"Consistent {claim_type} result",
+            description=(
+                f"Reported p {_fmt_comp(p_comp)} {p_value}; recomputed "
+                f"p = {computed_p:.4g}. Consistent once the reported rounding is accounted for."
+            ),
+            evidence=evidence,
+            recommendation="No action required.",
+            section=location,
+        )
+
+    def _inconsistent_finding(
+        self, claim_type, p_comp, p_value, computed_p, discrepancy, evidence, location, gross
+    ):
+        if gross:
             return ValidatorFinding(
                 validator=self.VALIDATOR_NAME,
                 severity="blocking",
@@ -245,22 +299,16 @@ class StatisticalConsistencyValidator:
                 title=f"Gross p-value inconsistency ({claim_type})",
                 description=(
                     f"Reported p {_fmt_comp(p_comp)} {p_value} but recomputed "
-                    f"p = {computed_p:.4f} (discrepancy = {discrepancy:.4f}). "
-                    f'The reported value is {"" if reported_sig else "non-"}'
-                    f"significant at alpha = {self.alpha}, but the recomputed "
-                    f'value is {"" if computed_sig else "non-"}significant. '
-                    f"This constitutes a decision error."
+                    f"p = {computed_p:.4g}: the reported and recomputed values fall "
+                    f"on opposite sides of alpha = {self.alpha} -- a decision error."
                 ),
                 evidence=evidence,
                 recommendation=(
-                    "Verify the test statistic, degrees of freedom, and "
-                    "p-value. Correct the reported p-value or the test "
-                    "statistic if in error."
+                    "Verify the test statistic, degrees of freedom, and p-value; "
+                    "correct whichever is in error."
                 ),
                 section=location,
             )
-
-        # Major discrepancy (exceeds tolerance but no decision change)
         return ValidatorFinding(
             validator=self.VALIDATOR_NAME,
             severity="major",
@@ -268,13 +316,13 @@ class StatisticalConsistencyValidator:
             title=f"P-value discrepancy ({claim_type})",
             description=(
                 f"Reported p {_fmt_comp(p_comp)} {p_value} but recomputed "
-                f"p = {computed_p:.4f} (discrepancy = {discrepancy:.4f}). "
-                f"The difference exceeds rounding tolerance ({self.tolerance}) "
-                f"but does not change the significance decision."
+                f"p = {computed_p:.4g} (discrepancy = {discrepancy:.4g}), beyond what "
+                f"rounding explains, though the significance decision is unchanged."
             ),
             evidence=evidence,
             recommendation=(
-                "Double-check the reported p-value and test statistic for " "possible rounding or transcription errors."
+                "Double-check the reported p-value and test statistic for "
+                "rounding or transcription errors."
             ),
             section=location,
         )
@@ -1652,6 +1700,30 @@ def _fmt_comp(p_comp: str) -> str:
     if p_comp == "greater_than":
         return ">"
     return "="
+
+
+def _decimals_from_token(token, is_p: bool):
+    """Number of decimal places a reported numeric token implies.
+
+    Used to size the rounding interval for consistency checking. For a
+    p-value (``is_p=True``) the extractor may have stripped a leading ".",
+    so a token with no "." is treated as a pure fraction (".049" captured
+    as "049" -> 3 decimals). For a general statistic a token with no "." is
+    an integer (0 decimals). Scientific notation returns ``None`` (treated
+    as effectively exact, i.e. no widening of the interval).
+
+    Returns ``None`` when precision cannot be determined.
+    """
+    if token is None:
+        return None
+    s = str(token).strip().replace("−", "-").lstrip("<>=").strip()
+    if not s:
+        return None
+    if "e" in s or "E" in s:
+        return None
+    if "." in s:
+        return len(s.split(".", 1)[1])
+    return len(s) if is_p else 0
 
 
 def _extract_context(text: str, position: int, radius: int = 100) -> str:

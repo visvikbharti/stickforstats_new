@@ -232,7 +232,9 @@ class StatisticalClaim:
     claim_type: str = ""
     test_name: str = ""
     statistic_value: Optional[float] = None
+    statistic_raw: Optional[str] = None  # exact reported string, e.g. "0.38" (for rounding precision)
     p_value: Optional[float] = None
+    p_value_raw: Optional[str] = None  # exact reported string, e.g. ".049" or "0.71"
     p_comparison: str = P_COMPARISON_EQUALS
     df: Optional[tuple] = None
     confidence_interval: Optional[tuple] = None
@@ -534,7 +536,9 @@ class StatisticalClaimExtractor:
                     claim_type=CLAIM_TYPE_T,
                     test_name=test_name,
                     statistic_value=stat_val,
+                    statistic_raw=m.group(2),
                     p_value=p_val,
+                    p_value_raw=m.group(4),
                     p_comparison=p_comp,
                     df=(int(df_val) if df_val == int(df_val) else df_val,),
                     raw_text=m.group(0),
@@ -568,7 +572,9 @@ class StatisticalClaimExtractor:
                     claim_type=CLAIM_TYPE_F,
                     test_name=test_name,
                     statistic_value=stat_val,
+                    statistic_raw=m.group(3),
                     p_value=p_val,
+                    p_value_raw=m.group(5),
                     p_comparison=p_comp,
                     df=(df1, df2),
                     raw_text=m.group(0),
@@ -601,7 +607,9 @@ class StatisticalClaimExtractor:
                 claim_type=CLAIM_TYPE_CHI2,
                 test_name="chi-square test",
                 statistic_value=stat_val,
+                statistic_raw=m.group(3),
                 p_value=p_val,
+                p_value_raw=m.group(5),
                 p_comparison=p_comp,
                 df=(df_val,),
                 raw_text=m.group(0),
@@ -639,7 +647,9 @@ class StatisticalClaimExtractor:
                     claim_type=CLAIM_TYPE_R,
                     test_name="Pearson correlation",
                     statistic_value=r_val,
+                    statistic_raw=m.group(2),
                     p_value=p_val,
+                    p_value_raw=m.group(4),
                     p_comparison=p_comp,
                     df=(df_val,) if has_df else None,
                     effect_size_type="r",
@@ -668,7 +678,9 @@ class StatisticalClaimExtractor:
                     claim_type=CLAIM_TYPE_R,
                     test_name="Spearman correlation",
                     statistic_value=rho_val,
+                    statistic_raw=m.group(2),
                     p_value=p_val,
+                    p_value_raw=m.group(4),
                     p_comparison=p_comp,
                     df=(df_val,) if has_df else None,
                     effect_size_type="rho",
@@ -702,7 +714,9 @@ class StatisticalClaimExtractor:
                     claim_type=CLAIM_TYPE_Z,
                     test_name="z-test",
                     statistic_value=stat_val,
+                    statistic_raw=m.group(1),
                     p_value=p_val,
+                    p_value_raw=m.group(3),
                     p_comparison=p_comp,
                     raw_text=m.group(0),
                     location=section,
@@ -886,6 +900,7 @@ class StatisticalClaimExtractor:
                     claim_type=claim_type,
                     test_name=test_name,
                     statistic_value=stat_val,
+                    statistic_raw=m.group("stat"),
                     p_value=None,
                     df=df,
                     raw_text=m.group(0),
@@ -927,6 +942,7 @@ class StatisticalClaimExtractor:
                     claim_type="",
                     test_name="",
                     p_value=p_val,
+                    p_value_raw=m.group(2),
                     p_comparison=p_comp,
                     raw_text=m.group(0),
                     location=section,
@@ -1160,6 +1176,7 @@ class StatisticalClaimExtractor:
             target = _nearest_primary(frag.position, primary)
             if target is not None and target.p_value is None:
                 target.p_value = frag.p_value
+                target.p_value_raw = frag.p_value_raw
                 target.p_comparison = frag.p_comparison
                 # Recalculate confidence now that we have p
                 target.confidence = self._score_confidence(
