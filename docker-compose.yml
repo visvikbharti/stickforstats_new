@@ -169,6 +169,13 @@ services:
       - stickforstats-network
     volumes:
       - celery-logs:/app/logs
+    healthcheck:
+      # Worker runs no web server; override the image's curl-based check with a Celery ping
+      test: ["CMD-SHELL", "celery -A stickforstats inspect ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
 
   # Celery Beat for Scheduled Tasks
   celery-beat:
@@ -193,6 +200,9 @@ services:
       - stickforstats-network
     volumes:
       - celerybeat-schedule:/app/celerybeat-schedule
+    healthcheck:
+      # Beat is a scheduler with no web server or inspect interface; rely on restart-on-exit
+      disable: true
 
   # Prometheus for Metrics
   prometheus:

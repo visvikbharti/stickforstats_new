@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "channels",
+    "django_celery_beat",  # DB-backed periodic task scheduler (celery-beat DatabaseScheduler)
     # StickForStats apps - Core
     "core.apps.CoreConfig",
     "authentication",
