@@ -1459,6 +1459,18 @@ class ReportingCompletenessValidator:
         re.IGNORECASE,
     )
 
+    # A test statistic written in nearby text (t, F, chi-square, H, U, W, Z,
+    # r, d, beta, eta-squared = value). Used so a statistic that sits next to
+    # a bare p-value (e.g. "F = 1122.10, p = 1.34e-35", which the strict
+    # df-requiring extractor patterns don't capture onto the p-value claim) is
+    # NOT falsely reported as "test statistic missing" -- symmetric with the
+    # existing nearby-text checks for sample size and confidence intervals.
+    STAT_NEARBY_PATTERN = re.compile(
+        r"(?<![A-Za-z])(?:t|F|H|U|W|Z|r|d|chi2|chi-square|χ²|χ2|"
+        r"β|η²|η2)\s*(?:\([^)]*\))?\s*=\s*-?\d",
+        re.IGNORECASE,
+    )
+
     SEARCH_RADIUS = 500
 
     def validate(
@@ -1510,8 +1522,16 @@ class ReportingCompletenessValidator:
             issues: List[str] = []
             max_severity = "positive"
 
-            # --- Check: test statistic reported ---
-            if stat_value is None:
+            # --- Check: test statistic reported (look nearby too, so a
+            #     statistic written next to a bare p-value is not falsely
+            #     reported missing) ---
+            has_stat = stat_value is not None
+            if not has_stat:
+                start = max(0, pos - self.SEARCH_RADIUS)
+                end = min(len(manuscript_text), pos + self.SEARCH_RADIUS)
+                if self.STAT_NEARBY_PATTERN.search(manuscript_text[start:end]):
+                    has_stat = True
+            if not has_stat:
                 issues.append("test statistic missing")
                 max_severity = _escalate(max_severity, "major")
 
