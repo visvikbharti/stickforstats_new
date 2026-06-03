@@ -65,3 +65,20 @@ class GenericStatExtractionTests(TestCase):
         tclaims = [c for c in claims if c.claim_type == "t_statistic"]
         self.assertEqual(len(tclaims), 1)
         self.assertEqual(tclaims[0].p_value, 0.05)
+
+    def test_thousands_separator_in_statistic(self):
+        # "F(2,6) = 3,950.2" must parse the statistic as 3950.2, not stop at the comma.
+        claims = self.ex.extract("A one-way ANOVA, F(2, 6) = 3,950.2, p = 1.93e-11.", "results")
+        fclaims = [c for c in claims if c.claim_type == "f_statistic"]
+        self.assertEqual(len(fclaims), 1)
+        self.assertEqual(fclaims[0].statistic_value, 3950.2)
+        self.assertEqual(fclaims[0].df, (2, 6))
+
+    def test_df_three_digit_denominator_not_corrupted(self):
+        # F(2,128): the comma is the df separator, NOT a thousands separator;
+        # df must stay (2, 128), guarding the thousands-separator fix.
+        claims = self.ex.extract("ANOVA F(2, 128) = 3.15, p = 0.047.", "results")
+        fclaims = [c for c in claims if c.claim_type == "f_statistic"]
+        self.assertEqual(len(fclaims), 1)
+        self.assertEqual(fclaims[0].df, (2, 128))
+        self.assertEqual(fclaims[0].statistic_value, 3.15)
