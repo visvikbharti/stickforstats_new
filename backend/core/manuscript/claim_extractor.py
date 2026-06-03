@@ -166,6 +166,41 @@ GENERIC_STAT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Superscript digits/signs -> ASCII, for "x 10^n" scientific notation.
+_SUPERSCRIPT_MAP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+")
+
+# "1.96 x 10^-11" / "1.96 x 10-11" / "1.96 × 10⁻¹¹" / "1.96 · 10^11"
+_SCI_NOTATION_RE = re.compile(
+    r"(\d+(?:\.\d+)?)\s*[×x✕⋅·]\s*10\s*"
+    r"(?:\^\s*([+\-−]?\d+)"            # 10^-11 / 10^11
+    r"|([⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)"          # 10⁻¹¹  (unicode superscript)
+    r"|\s*([+\-−]\s*\d+))"             # 10−11 / 10 - 11  (explicit sign)
+)
+
+
+def normalize_scientific_notation(text: str) -> str:
+    """Convert 'mantissa x 10^exp' forms to canonical 'mantissa e exp'.
+
+    Papers write very small/large numbers many ways -- ``1.96 x 10^-11``,
+    ``1.96 x 10-11``, ``1.96 × 10⁻¹¹`` (unicode superscript), ``1.96 · 10^11``.
+    The extractor's numeric patterns only understand e-notation, so without
+    this a value like ``p = 1.96 x 10^-11`` is read as ``p = 1.96`` (an
+    impossible p-value). Idempotent: canonical e-notation is left unchanged.
+    """
+    if not text:
+        return text
+
+    def _repl(m):
+        mantissa = m.group(1)
+        exp = m.group(2) or m.group(3) or m.group(4) or ""
+        exp = exp.translate(_SUPERSCRIPT_MAP).replace("−", "-").replace(" ", "")
+        if exp.startswith("+"):
+            exp = exp[1:]
+        return f"{mantissa}e{exp}"
+
+    return _SCI_NOTATION_RE.sub(_repl, text)
+
+
 # =============================================================================
 # CLAIM TYPE CONSTANTS
 # =============================================================================
@@ -353,6 +388,11 @@ class StatisticalClaimExtractor:
         if not text or not text.strip():
             logger.debug("Empty text passed to extract(); returning [].")
             return []
+
+        # Canonicalize "1.96 x 10^-11" scientific notation to "1.96e-11" so the
+        # numeric patterns capture the real value (otherwise a tiny p-value is
+        # read as an impossible >1 value). Idempotent + applied to all sections.
+        text = normalize_scientific_notation(text)
 
         logger.info(
             "Extracting statistical claims from section '%s' (%d chars)",

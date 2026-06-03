@@ -35,10 +35,11 @@ References: APA 7th Ed., JARS-Quant, Wicherts et al. (2016),
 from __future__ import annotations
 
 import logging
-import math
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+
+from . import consistency_core
 
 try:
     from scipy import stats as scipy_stats
@@ -196,81 +197,36 @@ class StatisticalConsistencyValidator:
         claim,
         sections: Optional[Dict[str, str]],
     ) -> Optional[ValidatorFinding]:
-        stat_value = getattr(claim, "statistic_value", None)
-        p_value = getattr(claim, "p_value", None)
-        p_comp = getattr(claim, "p_comparison", "equals")
-        df = getattr(claim, "df", None)
+        # Delegate the recompute + rounding/inequality classification to the
+        # shared consistency core (the single source of truth, also used by the
+        # Consistency-tab summary) so the two surfaces can never disagree.
+        verdict = consistency_core.classify(
+            getattr(claim, "claim_type", ""),
+            getattr(claim, "statistic_value", None),
+            getattr(claim, "statistic_raw", None),
+            getattr(claim, "p_value", None),
+            getattr(claim, "p_value_raw", None),
+            getattr(claim, "p_comparison", "equals"),
+            getattr(claim, "df", None),
+            getattr(claim, "sample_size", None),
+            alpha=self.alpha,
+            tolerance=self.tolerance,
+        )
+        if not verdict.checkable:
+            return None
+
         claim_type = getattr(claim, "claim_type", "")
+        p_comp = getattr(claim, "p_comparison", "equals")
+        p_value = getattr(claim, "p_value", None)
         raw_text = getattr(claim, "raw_text", "")
         location = getattr(claim, "location", "unknown")
-        sample_size = getattr(claim, "sample_size", None)
-        statistic_raw = getattr(claim, "statistic_raw", None)
-        p_value_raw = getattr(claim, "p_value_raw", None)
-
-        if stat_value is None or p_value is None:
-            return None
-
-        computed_p = self._recompute_p(claim_type, stat_value, df, sample_size)
-        if computed_p is None:
-            return None
-
         evidence = raw_text[:200] if raw_text else ""
 
-        # The reported statistic is rounded to a finite precision, so the TRUE
-        # statistic lies within +/-0.5 of its last reported digit. Recompute
-        # the p-value at both ends to obtain the interval of p-values that are
-        # consistent with the rounded statistic (this is statcheck's method).
-        # Fall back to a point estimate when the reported precision is unknown.
-        stat_dec = _decimals_from_token(statistic_raw, is_p=False)
-        if stat_dec is None:
-            stat_dec = _decimals_from_token(repr(stat_value), is_p=False)
-        p_lo = p_hi = computed_p
-        if stat_dec is not None:
-            half = 0.5 * (10.0 ** (-stat_dec))
-            cands = [
-                computed_p,
-                self._recompute_p(claim_type, stat_value - half, df, sample_size),
-                self._recompute_p(claim_type, stat_value + half, df, sample_size),
-            ]
-            cands = [c for c in cands if c is not None]
-            if cands:
-                p_lo, p_hi = min(cands), max(cands)
-
-        discrepancy = abs(computed_p - p_value)
-        reported_sig = self._is_significant(p_value, p_comp)
-        computed_sig = computed_p < self.alpha
-
-        # --- Inequality-reported p-values ("p < X" / "p > X") ---
-        # An inequality is consistent whenever the recomputed p actually
-        # SATISFIES it (e.g. "p < .05" with recomputed .016 is correct, not a
-        # discrepancy). Only flag when the recomputed p contradicts the stated
-        # inequality. (The previous logic treated the bound as an exact value
-        # and produced false discrepancies on the most common reporting form.)
-        if p_comp in ("less_than", "greater_than"):
-            if p_comp == "less_than":
-                satisfied = p_lo <= p_value + self.tolerance
-            else:
-                satisfied = p_hi >= p_value - self.tolerance
-            if satisfied:
-                return self._consistent_finding(claim_type, p_comp, p_value, computed_p, evidence, location)
-            return self._inconsistent_finding(
-                claim_type, p_comp, p_value, computed_p, discrepancy, evidence, location,
-                gross=(reported_sig != computed_sig),
-            )
-
-        # --- Exact p-values: rounding-aware interval overlap ---
-        # The reported p is itself rounded; its true value lies within +/-0.5
-        # of its last digit. Consistent iff that interval overlaps the
-        # recomputed-p interval implied by the rounded statistic.
-        p_dec = _decimals_from_token(p_value_raw, is_p=True)
-        p_half = 0.5 * (10.0 ** (-p_dec)) if p_dec is not None else self.tolerance
-        rep_lo, rep_hi = p_value - p_half, p_value + p_half
-        overlap = (p_hi >= rep_lo - self.tolerance) and (p_lo <= rep_hi + self.tolerance)
-        if overlap:
-            return self._consistent_finding(claim_type, p_comp, p_value, computed_p, evidence, location)
+        if verdict.is_consistent:
+            return self._consistent_finding(claim_type, p_comp, p_value, verdict.computed_p, evidence, location)
         return self._inconsistent_finding(
-            claim_type, p_comp, p_value, computed_p, discrepancy, evidence, location,
-            gross=(reported_sig != computed_sig and discrepancy > 0.05),
+            claim_type, p_comp, p_value, verdict.computed_p, verdict.discrepancy, evidence, location,
+            gross=(verdict.severity == "gross_error"),
         )
 
     def _consistent_finding(self, claim_type, p_comp, p_value, computed_p, evidence, location):
@@ -327,63 +283,8 @@ class StatisticalConsistencyValidator:
             section=location,
         )
 
-    def _recompute_p(
-        self,
-        claim_type: str,
-        stat_value: float,
-        df,
-        sample_size: Optional[int],
-    ) -> Optional[float]:
-        """Recompute a two-tailed p-value from the test statistic and df."""
-        try:
-            if claim_type == "t_statistic":
-                if df is None:
-                    return None
-                df_val = df[0] if isinstance(df, (tuple, list)) else df
-                return float(scipy_stats.t.sf(abs(stat_value), df_val) * 2)
-
-            if claim_type == "f_statistic":
-                if df is None or not isinstance(df, (tuple, list)) or len(df) < 2:
-                    return None
-                return float(scipy_stats.f.sf(stat_value, df[0], df[1]))
-
-            if claim_type == "chi_square":
-                if df is None:
-                    return None
-                df_val = df[0] if isinstance(df, (tuple, list)) else df
-                return float(scipy_stats.chi2.sf(stat_value, df_val))
-
-            if claim_type == "z_statistic":
-                return float(scipy_stats.norm.sf(abs(stat_value)) * 2)
-
-            if claim_type == "r_value":
-                # Convert r to t with df = n - 2
-                n = sample_size
-                if n is None:
-                    if df is not None:
-                        df_val = df[0] if isinstance(df, (tuple, list)) else df
-                        n = df_val + 2
-                    else:
-                        return None
-                if n <= 2:
-                    return None
-                r = stat_value
-                if abs(r) >= 1.0:
-                    return 0.0 if abs(r) > 1.0 else None
-                t_val = r * math.sqrt((n - 2) / (1 - r * r))
-                return float(scipy_stats.t.sf(abs(t_val), n - 2) * 2)
-
-        except (ValueError, ZeroDivisionError, TypeError) as exc:
-            logger.debug("Recomputation failed for %s: %s", claim_type, exc)
-            return None
-
-        return None
-
-    def _is_significant(self, p_value: float, p_comp: str) -> bool:
-        """Determine whether the reported result is significant at alpha."""
-        if p_comp == "less_than":
-            return p_value <= self.alpha
-        return p_value < self.alpha
+    # NOTE: p-value recomputation + rounding/inequality classification now live
+    # in consistency_core (shared with the Consistency-tab summary validator).
 
 
 # ============================================================================
@@ -1700,30 +1601,6 @@ def _fmt_comp(p_comp: str) -> str:
     if p_comp == "greater_than":
         return ">"
     return "="
-
-
-def _decimals_from_token(token, is_p: bool):
-    """Number of decimal places a reported numeric token implies.
-
-    Used to size the rounding interval for consistency checking. For a
-    p-value (``is_p=True``) the extractor may have stripped a leading ".",
-    so a token with no "." is treated as a pure fraction (".049" captured
-    as "049" -> 3 decimals). For a general statistic a token with no "." is
-    an integer (0 decimals). Scientific notation returns ``None`` (treated
-    as effectively exact, i.e. no widening of the interval).
-
-    Returns ``None`` when precision cannot be determined.
-    """
-    if token is None:
-        return None
-    s = str(token).strip().replace("−", "-").lstrip("<>=").strip()
-    if not s:
-        return None
-    if "e" in s or "E" in s:
-        return None
-    if "." in s:
-        return len(s.split(".", 1)[1])
-    return len(s) if is_p else 0
 
 
 def _extract_context(text: str, position: int, radius: int = 100) -> str:

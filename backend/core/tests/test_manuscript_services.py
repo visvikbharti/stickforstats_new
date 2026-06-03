@@ -591,10 +591,12 @@ class TestConsistencyValidator(unittest.TestCase):
         )
         result = self.validator.validate_claim(claim)
         self.assertIsNone(result.computed_p)
-        self.assertIn("Unsupported", result.note)
+        self.assertIn("not recomputable", result.note)
 
     def test_p_value_out_of_range(self):
-        """p-value > 1 is flagged as gross_error."""
+        """A p-value > 1 is an extraction artifact (e.g. a dropped 'x 10^-n'),
+        not the author's error, so it is treated as not-checkable rather than
+        flagged as a gross error against the author."""
         claim = _MockClaim(
             claim_type="t",
             statistic=2.0,
@@ -602,8 +604,9 @@ class TestConsistencyValidator(unittest.TestCase):
             df=(30,),
         )
         result = self.validator.validate_claim(claim)
-        self.assertFalse(result.is_consistent)
-        self.assertEqual(result.severity, "gross_error")
+        self.assertIsNone(result.computed_p)
+        self.assertNotEqual(result.severity, "gross_error")
+        self.assertIn("outside", result.note)
 
     def test_less_than_comparison(self):
         """p < .001 with a very significant t-value is consistent."""

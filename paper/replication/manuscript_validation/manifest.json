@@ -1,0 +1,149 @@
+{
+  "query": "open access[filter] AND (\"repeated-measures ANOVA\" OR \"repeated measures ANOVA\" OR \"paired t-test\" OR \"one-way ANOVA\" OR \"two-way ANOVA\" OR \"factorial ANOVA\" OR \"mixed ANOVA\" OR \"ANCOVA\" OR \"independent samples t-test\" OR \"independent-samples t-test\" OR \"post hoc comparisons\")",
+  "retmax": 300,
+  "min_stats": 3,
+  "candidates": 300,
+  "kept": 20,
+  "papers": [
+    {
+      "pmcid": "PMC13225384",
+      "t_df": 0,
+      "f_df": 0,
+      "chi_df": 3,
+      "chars": 33293
+    },
+    {
+      "pmcid": "PMC13223791",
+      "t_df": 0,
+      "f_df": 4,
+      "chi_df": 0,
+      "chars": 37825
+    },
+    {
+      "pmcid": "PMC13224435",
+      "t_df": 0,
+      "f_df": 7,
+      "chi_df": 0,
+      "chars": 31671
+    },
+    {
+      "pmcid": "PMC13224698",
+      "t_df": 0,
+      "f_df": 18,
+      "chi_df": 0,
+      "chars": 41278
+    },
+    {
+      "pmcid": "PMC13225301",
+      "t_df": 15,
+      "f_df": 16,
+      "chi_df": 0,
+      "chars": 43850
+    },
+    {
+      "pmcid": "PMC13224458",
+      "t_df": 0,
+      "f_df": 8,
+      "chi_df": 0,
+      "chars": 37272
+    },
+    {
+      "pmcid": "PMC13224422",
+      "t_df": 9,
+      "f_df": 0,
+      "chi_df": 0,
+      "chars": 33926
+    },
+    {
+      "pmcid": "PMC13225232",
+      "t_df": 6,
+      "f_df": 0,
+      "chi_df": 0,
+      "chars": 37768
+    },
+    {
+      "pmcid": "PMC13223243",
+      "t_df": 0,
+      "f_df": 39,
+      "chi_df": 0,
+      "chars": 80839
+    },
+    {
+      "pmcid": "PMC13223308",
+      "t_df": 0,
+      "f_df": 11,
+      "chi_df": 0,
+      "chars": 66751
+    },
+    {
+      "pmcid": "PMC13225248",
+      "t_df": 1,
+      "f_df": 32,
+      "chi_df": 0,
+      "chars": 62516
+    },
+    {
+      "pmcid": "PMC12704721",
+      "t_df": 0,
+      "f_df": 14,
+      "chi_df": 0,
+      "chars": 50795
+    },
+    {
+      "pmcid": "PMC12704728",
+      "t_df": 2,
+      "f_df": 3,
+      "chi_df": 0,
+      "chars": 67493
+    },
+    {
+      "pmcid": "PMC13223457",
+      "t_df": 0,
+      "f_df": 9,
+      "chi_df": 0,
+      "chars": 19987
+    },
+    {
+      "pmcid": "PMC13223804",
+      "t_df": 0,
+      "f_df": 28,
+      "chi_df": 0,
+      "chars": 60062
+    },
+    {
+      "pmcid": "PMC13223738",
+      "t_df": 2,
+      "f_df": 21,
+      "chi_df": 0,
+      "chars": 51202
+    },
+    {
+      "pmcid": "PMC13223527",
+      "t_df": 2,
+      "f_df": 79,
+      "chi_df": 0,
+      "chars": 72579
+    },
+    {
+      "pmcid": "PMC13225338",
+      "t_df": 0,
+      "f_df": 4,
+      "chi_df": 0,
+      "chars": 68471
+    },
+    {
+      "pmcid": "PMC7619117",
+      "t_df": 0,
+      "f_df": 8,
+      "chi_df": 0,
+      "chars": 47425
+    },
+    {
+      "pmcid": "PMC13223338",
+      "t_df": 2,
+      "f_df": 21,
+      "chi_df": 0,
+      "chars": 58478
+    }
+  ]
+}
