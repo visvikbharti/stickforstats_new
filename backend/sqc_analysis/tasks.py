@@ -7,8 +7,7 @@ This module provides asynchronous task processing for the SQC Analysis module.
 import logging
 import traceback
 import pandas as pd
-import numpy as np
-from typing import Dict, Optional, Union, Any
+from typing import Dict, Any
 from celery import shared_task
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -19,11 +18,7 @@ from django.db import transaction
 # from core.models import AnalysisSession, AnalysisResult, User  # Models don't exist yet
 from typing import Any as AnalysisSession  # Type alias (models not used in this module)
 from typing import Any as AnalysisResult  # Type alias (models not used in this module)
-from typing import Any as User  # Type alias (models not used in this module)
-from sqc_analysis.models import (
-    ControlChartAnalysis, ProcessCapabilityAnalysis, 
-    AcceptanceSamplingPlan, MeasurementSystemAnalysis
-)
+from sqc_analysis.models import ControlChartAnalysis
 from sqc_analysis.services.control_charts import ControlChartService
 
 User = get_user_model()
@@ -33,8 +28,8 @@ channel_layer = get_channel_layer()
 
 @shared_task(bind=True, max_retries=3)
 def process_control_chart_analysis(
-    self, 
-    session_id: str, 
+    self,
+    session_id: str,
     chart_type: str,
     parameter_column: str,
     user_id: str,
@@ -67,8 +62,7 @@ def process_control_chart_analysis(
         try:
             # Load dataset into pandas DataFrame
             if dataset.file_type == 'csv':
-                df = pd.read_csv(file_path, header=0 if dataset.has_header else None,
-                                delimiter=dataset.delimiter)
+                df = pd.read_csv(file_path, header=0 if dataset.has_header else None, delimiter=dataset.delimiter)
             elif dataset.file_type == 'excel':
                 df = pd.read_excel(file_path, header=0 if dataset.has_header else None)
             else:
@@ -321,8 +315,8 @@ def send_analysis_complete(user_id, session_id, result_id):
 
 
 @shared_task
-def create_notification(user_id, title, message, notification_type="info", 
-                       related_object_type=None, related_object_id=None):
+def create_notification(user_id, title, message, notification_type="info",
+                        related_object_type=None, related_object_id=None):
     """Create a notification for a user."""
     try:
         # from core.models import Notification  # Models don't exist yet

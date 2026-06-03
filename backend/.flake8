@@ -40,7 +40,6 @@ per-file-ignores =
     # syntax errors in broken/stub files
     api/v1/audit_views_broken.py:E999
     sqc_analysis/consumers.py:E999
-    sqc_analysis/tasks.py:E999
     # undefined names — missing imports in service stubs
     api/v1/regression_views.py:F821
     confidence_intervals/services/bootstrap_service.py:F821
