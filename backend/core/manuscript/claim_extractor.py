@@ -53,7 +53,7 @@ T_TEST_PATTERN = re.compile(
 # F-test patterns
 # Matches: F(2, 45) = 3.67, p = .034
 F_TEST_PATTERN = re.compile(
-    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Chi-square patterns
@@ -61,7 +61,7 @@ F_TEST_PATTERN = re.compile(
 # Handles both Unicode superscript (squared) and ASCII "2"
 CHI_SQUARE_PATTERN = re.compile(
     r"(?:\u03c7[\u00b2\u00322]|chi[- ]?square[d]?)\s*"
-    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Correlation patterns
@@ -162,7 +162,7 @@ NS_PATTERN = re.compile(r"(?<![A-Za-z])(?:ns|n\.s\.|non[- ]?significant)", re.IG
 # Matches are deduplicated against the strict-pattern claims by position.
 GENERIC_STAT_PATTERN = re.compile(
     r"(?<![A-Za-z])(?P<name>chi-?square|χ²|χ2|t|F|H|U|W|Z)\s*"
-    r"(?:\(\s*(?P<df>[^)]*?)\s*\))?\s*=\s*(?P<stat>-?\d+\.?\d*)",
+    r"(?:\(\s*(?P<df>[^)]*?)\s*\))?\s*=\s*(?P<stat>-?(?:\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?))",
     re.IGNORECASE,
 )
 
@@ -333,6 +333,11 @@ def _parse_p_value(raw: str) -> float:
         return float(raw)
     # Raw digits only — treat as a decimal fraction (e.g. "03" -> 0.03)
     return float(f"0.{raw}")
+
+
+def _to_num(raw: str) -> float:
+    """Parse a numeric statistic, tolerating thousands separators (e.g. '3,950.2')."""
+    return float(raw.replace(",", "").replace("−", "-"))
 
 
 def _safe_float(value: Optional[str]) -> Optional[float]:
@@ -600,7 +605,7 @@ class StatisticalClaimExtractor:
             df1 = int(m.group(1))
             df2_raw = float(m.group(2))
             df2 = int(df2_raw) if df2_raw == int(df2_raw) else df2_raw
-            stat_val = float(m.group(3))
+            stat_val = _to_num(m.group(3))
             p_comp = _parse_p_comparison(m.group(4))
             p_val = _parse_p_value(m.group(5))
 
@@ -639,7 +644,7 @@ class StatisticalClaimExtractor:
         for m in CHI_SQUARE_PATTERN.finditer(text):
             df_val = int(m.group(1))
             n_val = int(m.group(2)) if m.group(2) else None
-            stat_val = float(m.group(3))
+            stat_val = _to_num(m.group(3))
             p_comp = _parse_p_comparison(m.group(4))
             p_val = _parse_p_value(m.group(5))
 
@@ -922,7 +927,7 @@ class StatisticalClaimExtractor:
                 continue
             claim_type, test_name = mapped
             try:
-                stat_val = float(m.group("stat"))
+                stat_val = _to_num(m.group("stat"))
             except (TypeError, ValueError):
                 continue
 

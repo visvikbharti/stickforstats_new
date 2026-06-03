@@ -5,9 +5,9 @@
     "claims": 980,
     "with_stat": 468,
     "recomputed": 295,
-    "consistent": 275,
+    "consistent": 276,
     "discrepancy": 14,
-    "gross": 6
+    "gross": 5
   },
   "papers": [
     {
@@ -68,16 +68,10 @@
       },
       "n_with_statistic": 11,
       "n_recomputed": 9,
-      "consistent": 8,
+      "consistent": 9,
       "discrepancy": 0,
-      "gross_error": 1,
-      "inconsistencies": [
-        {
-          "title": "Gross p-value inconsistency (f_statistic)",
-          "evidence": "F(2,6) = 3",
-          "detail": "Reported p = 1.93e-11 but recomputed p = 0.125: the reported and recomputed values fall on opposite sides of alpha = 0.05 -- a decision error."
-        }
-      ]
+      "gross_error": 0,
+      "inconsistencies": []
     },
     {
       "file": "PMC13223338.txt",
