@@ -92,6 +92,20 @@ class ReceiptAPITests(APITestCase):
         d = self.client.get(reverse("api-v1:receipt-download", kwargs={"receipt_id": rid}) + "?token=nope")
         self.assertEqual(d.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_download_zip_bundle(self):
+        r = self._issue()
+        rid = r.data["receipt_id"]
+        tok = r.data["download_token"]
+        url = reverse("api-v1:receipt-download", kwargs={"receipt_id": rid})
+        # Must use ?fmt=zip (NOT ?format=zip — 'format' is reserved by DRF and
+        # would 404 during content negotiation before the view runs).
+        d = self.client.get(url + f"?token={tok}&fmt=zip")
+        self.assertEqual(d.status_code, status.HTTP_200_OK)
+        self.assertEqual(d["Content-Type"], "application/zip")
+        self.assertIn("attachment", d["Content-Disposition"])
+        self.assertTrue(d.content.startswith(b"PK"))  # zip magic
+        self.assertGreater(len(d.content), 200)
+
     def test_tamper_caught_through_verify_endpoint(self):
         rid = self._issue().data["receipt_id"]
         receipt = ReproducibilityReceipt.objects.get(receipt_id=rid)
