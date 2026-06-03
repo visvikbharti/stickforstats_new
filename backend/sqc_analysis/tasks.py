@@ -325,8 +325,8 @@ def create_notification(user_id, title, message, notification_type="info",
                        related_object_type=None, related_object_id=None):
     """Create a notification for a user."""
     try:
-# from core.models import Notification  # Models don't exist yet
-from typing import Any as Notification  # Type alias (models not used in this module)
+        # from core.models import Notification  # Models don't exist yet
+        from typing import Any as Notification  # Type alias (models not used in this module)
         
         # Create notification
         user = User.objects.get(id=user_id)
