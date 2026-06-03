@@ -42,6 +42,7 @@ import {
   Category,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
+import { alpha as muiAlpha } from '@mui/material/styles';
 
 // Step titles for the lesson
 const steps = [
@@ -117,7 +118,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests whether a sample mean differs from a hypothesized value μ₀.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d · √n
                 </Typography>
@@ -153,7 +154,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Compares means of two independent groups.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d · √(n/2) (equal n)
                 </Typography>
@@ -189,7 +190,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Compares means within subjects (repeated measures).
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
                   λ = d<sub>z</sub> · √n
                 </Typography>
@@ -226,7 +227,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Independent Groups
               </Typography>
@@ -237,7 +238,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Paired Design
               </Typography>
@@ -309,7 +310,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 One-Way ANOVA
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center', mb: 1 }}>
                   λ = n · k · f²
                 </Typography>
@@ -349,7 +350,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 For 2×2 design with factors A and B:
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                   Main effect A: λ<sub>A</sub> = n·b·Σα²/σ²<br/>
                   Main effect B: λ<sub>B</sub> = n·a·Σβ²/σ²<br/>
@@ -378,7 +379,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           individual differences. The key parameter is the correlation between repeated measures.
         </Typography>
 
-        <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
+        <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2), mb: 2 }}>
           <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center' }}>
             Effective n = n / (1 - ρ)
           </Typography>
@@ -431,7 +432,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Sphericity in Repeated Measures
                 </Typography>
@@ -442,7 +443,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2) }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                   Post-Hoc Comparisons
                 </Typography>
@@ -484,7 +485,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests whether observed proportions differ from expected.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.error.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   λ = N · w²
                 </Typography>
@@ -521,7 +522,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Tests association between two categorical variables.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.15), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.error.light, 0.15), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   λ = N · w²
                 </Typography>
@@ -550,7 +551,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Cohen's h Effect Size
               </Typography>
@@ -571,7 +572,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 Sample Size per Group
               </Typography>
@@ -670,7 +671,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Pearson Correlation
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.info.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.info.light, 0.2), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   z<sub>r</sub> = 0.5 · ln((1+r)/(1-r))
                 </Typography>
@@ -710,7 +711,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Multiple Regression
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.15), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.15), mb: 2 }}>
                 <Typography sx={{ fontFamily: 'serif', fontSize: '1rem', textAlign: 'center', mb: 1 }}>
                   f² = R² / (1 - R²)
                 </Typography>
@@ -752,7 +753,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Tabachnick & Fidell
               </Typography>
@@ -763,7 +764,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Green's Rule
               </Typography>
@@ -775,7 +776,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
                 Power-Based
               </Typography>
@@ -804,7 +805,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
         </Typography>
       </Alert>
 
-      <Paper sx={{ p: 3, mb: 3, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
         <Typography variant="h6" gutterBottom>
           Asymptotic Relative Efficiency (ARE)
         </Typography>
@@ -841,7 +842,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to independent samples t-test.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs t-test (normal data):
                 </Typography>
@@ -874,7 +875,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to paired t-test.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.secondary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs paired t-test (normal data):
                 </Typography>
@@ -907,7 +908,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to one-way ANOVA (k {'>'} 2 groups).
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.15), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.15), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs one-way ANOVA:
                 </Typography>
@@ -935,7 +936,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
                 Non-parametric alternative to repeated measures ANOVA.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                   ARE vs RM-ANOVA:
                 </Typography>
@@ -960,7 +961,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.success.main }}>
                 Use Non-Parametric When:
               </Typography>
@@ -985,7 +986,7 @@ const Lesson07_DifferentDesigns = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2) }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2) }}>
               <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: theme.palette.info.main }}>
                 Use Parametric When:
               </Typography>

@@ -49,6 +49,7 @@ import {
   TrendingUp,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
+import { alpha as muiAlpha } from '@mui/material/styles';
 import jStat from 'jstat';
 
 // Step titles for the lesson
@@ -367,7 +368,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 <Typography variant="h6">The Definition</Typography>
               </Box>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   <strong>Power = P(Reject H₀ | H₁ is true)</strong>
                 </Typography>
@@ -382,7 +383,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 Equivalently, since β is the probability of a Type II error:
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', fontSize: '1.1rem', textAlign: 'center' }}>
                   <strong>Power = 1 - β</strong>
                 </Typography>
@@ -459,7 +460,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), textAlign: 'center' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), textAlign: 'center' }}>
               <Typography variant="h2">🪙</Typography>
               <Typography variant="body2" color="text.secondary">
                 Is this coin biased?<br/>
@@ -671,7 +672,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 work on statistical power (1960s-1980s). But why 80%?
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body1" sx={{ textAlign: 'center' }}>
                   <strong>The 4:1 Ratio Logic</strong>
                 </Typography>
@@ -681,7 +682,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 With α = 0.05 (5% Type I error) and Power = 0.80 (β = 20% Type II error):
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2) }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2) }}>
                 <Typography variant="body1" sx={{ fontFamily: 'serif', textAlign: 'center' }}>
                   β / α = 0.20 / 0.05 = <strong>4:1</strong>
                 </Typography>
@@ -754,7 +755,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.error.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.error.main, fontWeight: 600 }}>
                 Cost of Type I Error (α)
               </Typography>
@@ -775,7 +776,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.warning.main, fontWeight: 600 }}>
                 Cost of Type II Error (β)
               </Typography>
@@ -796,7 +797,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ color: theme.palette.success.main, fontWeight: 600 }}>
                 The Balance (80% Power)
               </Typography>
@@ -855,7 +856,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 Larger samples give more precise estimates and make it easier to detect effects.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.success.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Rule of thumb:</strong> To double power from 50% to ~84%, you need
                   roughly 4× the sample size.
@@ -882,7 +883,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 trying to find in the "noise."
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Cohen's benchmarks:</strong><br/>
                   Small: d = 0.2 | Medium: d = 0.5 | Large: d = 0.8
@@ -909,7 +910,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 of more false positives.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.error.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.error.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Trade-off:</strong> Using α = 0.10 instead of 0.05 increases power
                   but doubles your false positive rate.
@@ -936,7 +937,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                 why controlled experiments have more power.
               </Typography>
 
-              <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.secondary.light, 0.2), mb: 2 }}>
                 <Typography variant="body2">
                   <strong>Ways to reduce variability:</strong><br/>
                   • Better measurement instruments<br/>
@@ -1052,7 +1053,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                         High risk of false negatives; results should be interpreted cautiously
                       </TableCell>
                     </TableRow>
-                    <TableRow sx={{ bgcolor: alpha(theme.palette.success.light, 0.2) }}>
+                    <TableRow sx={{ bgcolor: muiAlpha(theme.palette.success.light, 0.2) }}>
                       <TableCell>
                         <Chip label="80%" color="success" size="small" />
                       </TableCell>
@@ -1109,7 +1110,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.warning.light, 0.2), height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.warning.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 <Warning sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }} />
                 Favor Higher Power (90%+) When:
@@ -1134,7 +1135,7 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.light, 0.2), height: '100%' }}>
+            <Paper sx={{ p: 2, bgcolor: muiAlpha(theme.palette.primary.light, 0.2), height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                 <Info sx={{ fontSize: 18, mr: 1, verticalAlign: 'middle' }} />
                 80% May Be Sufficient When:
@@ -1185,21 +1186,21 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
               <TableRow>
                 <TableCell>Small (d = 0.2)</TableCell>
                 <TableCell align="center">310</TableCell>
-                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>394</TableCell>
+                <TableCell align="center" sx={{ bgcolor: muiAlpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>394</TableCell>
                 <TableCell align="center">527</TableCell>
                 <TableCell align="center">651</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Medium (d = 0.5)</TableCell>
                 <TableCell align="center">51</TableCell>
-                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>64</TableCell>
+                <TableCell align="center" sx={{ bgcolor: muiAlpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>64</TableCell>
                 <TableCell align="center">86</TableCell>
                 <TableCell align="center">105</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Large (d = 0.8)</TableCell>
                 <TableCell align="center">21</TableCell>
-                <TableCell align="center" sx={{ bgcolor: alpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>26</TableCell>
+                <TableCell align="center" sx={{ bgcolor: muiAlpha(theme.palette.success.light, 0.2), fontWeight: 600 }}>26</TableCell>
                 <TableCell align="center">34</TableCell>
                 <TableCell align="center">42</TableCell>
               </TableRow>

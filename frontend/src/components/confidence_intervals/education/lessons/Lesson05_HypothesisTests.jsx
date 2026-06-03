@@ -19,6 +19,7 @@ import {
   AccordionDetails,
   Slider
 } from '@mui/material';
+import { alpha as muiAlpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
@@ -91,7 +92,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 They provide equivalent information, just presented differently.
               </Typography>
 
-              <Paper sx={{ p: 3, bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
+              <Paper sx={{ p: 3, bgcolor: (theme) => muiAlpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   The Duality Theorem
                 </Typography>
@@ -115,7 +116,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+                  <Card sx={{ bgcolor: (theme) => muiAlpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Confidence Interval View
@@ -131,7 +132,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+                  <Card sx={{ bgcolor: (theme) => muiAlpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Hypothesis Test View
@@ -195,7 +196,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 />
               </Paper>
 
-              <Paper sx={{ p: 2, bgcolor: (theme) => alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
+              <Paper sx={{ p: 2, bgcolor: (theme) => muiAlpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), mb: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   95% Confidence Interval
                 </Typography>
@@ -216,8 +217,8 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                       <Card
                         sx={{
                           bgcolor: (theme) => test.inCI
-                            ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
-                            : alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
+                            ? muiAlpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08)
+                            : muiAlpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.12 : 0.08),
                           border: (theme) => test.inCI ? `2px solid ${theme.palette.success.main}` : `1px solid ${theme.palette.divider}`
                         }}
                       >
@@ -374,7 +375,7 @@ const Lesson05_HypothesisTests = ({ onComplete }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <Card sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
+                  <Card sx={{ bgcolor: (theme) => muiAlpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.08) }}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom color="primary">
                         The Duality Formula
