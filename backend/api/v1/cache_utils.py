@@ -58,29 +58,43 @@ def cache_statistical_result(timeout=3600, cache_name="default"):
             cache_key = generate_cache_key(func.__name__, dict(request.data))
 
             if cache_key:
+                from rest_framework.response import Response
+
                 # Try to get cached result
                 cached_result = cache.get(cache_key)
                 if cached_result is not None:
                     logger.info(f"Cache hit for {func.__name__}: {cache_key}")
-                    # Return Response object with cache metadata
-                    from rest_framework.response import Response
-
-                    if isinstance(cached_result, dict):
-                        cached_result["_cache_hit"] = True
-                    return Response(cached_result)
+                    # New cache entries store {"payload", "status_code"} so the
+                    # original HTTP status is preserved on a hit. Legacy entries
+                    # (a raw data dict) are treated as a 200 result.
+                    if isinstance(cached_result, dict) and "payload" in cached_result and "status_code" in cached_result:
+                        data = cached_result["payload"]
+                        status_code = cached_result["status_code"]
+                    else:
+                        data, status_code = cached_result, 200
+                    if isinstance(data, dict):
+                        data = {**data, "_cache_hit": True}
+                    return Response(data, status=status_code)
 
                 # Calculate result
                 result = func(*args, **kwargs)
 
-                # Extract data from Response object if needed
-                if hasattr(result, "data"):
-                    data_to_cache = dict(result.data)
-                    # Cache the data
+                # Only cache SUCCESSFUL (2xx) responses. Caching error responses
+                # (and, previously, re-serving them as a misleading HTTP 200) would
+                # mask honest 4xx/5xx statuses such as the 501 for unimplemented
+                # ANOVA types. (audit 2026-06-04, F-04 follow-up.)
+                status_code = getattr(result, "status_code", None)
+                if hasattr(result, "data") and status_code is not None and 200 <= status_code < 300:
                     try:
-                        cache.set(cache_key, data_to_cache, timeout)
+                        cache.set(
+                            cache_key,
+                            {"payload": dict(result.data), "status_code": status_code},
+                            timeout,
+                        )
                         logger.info(f"Cached result for {func.__name__}: {cache_key}")
                         # Add cache metadata to response
-                        result.data["_cache_hit"] = False
+                        if isinstance(result.data, dict):
+                            result.data["_cache_hit"] = False
                     except Exception as e:
                         logger.warning(f"Failed to cache result: {e}")
 

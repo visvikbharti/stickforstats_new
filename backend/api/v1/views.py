@@ -549,6 +549,28 @@ class HighPrecisionANOVAView(APIView):
             # Step 2: Perform high-precision ANOVA
             logger.info(f"Performing high-precision {anova_type} ANOVA")
 
+            # two-way / repeated-measures / MANOVA are accepted by the serializer
+            # and routed, but the high-precision engine does not implement them
+            # yet (the calculator methods raise NotImplementedError, and the view
+            # would in some cases mis-call them with *groups and raise TypeError
+            # first). Return an honest 501 up front rather than an opaque 500
+            # 'Internal server error'. (audit 2026-06-04, F-04.)
+            UNIMPLEMENTED_ANOVA_TYPES = {"two_way", "repeated_measures", "manova"}
+            if anova_type in UNIMPLEMENTED_ANOVA_TYPES:
+                logger.warning(f"Unimplemented ANOVA type requested: {anova_type}")
+                return Response(
+                    {
+                        "error": "Not implemented",
+                        "message": (
+                            f"{anova_type.replace('_', ' ').title()} ANOVA is not yet "
+                            "supported by the high-precision engine. Currently only "
+                            "one-way ANOVA is available."
+                        ),
+                        "anova_type": anova_type,
+                    },
+                    status=status.HTTP_501_NOT_IMPLEMENTED,
+                )
+
             if anova_type == "one_way":
                 result = anova_calculator.one_way_anova(*groups)
             elif anova_type == "two_way":
@@ -680,6 +702,20 @@ class HighPrecisionANOVAView(APIView):
             logger.error(f"Calculation error: {str(e)}")
             return Response(
                 {"error": "Calculation error", "message": str(e)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+        except NotImplementedError as e:
+            # two-way / repeated-measures / MANOVA are accepted by the serializer
+            # and routed, but their high-precision implementations are not yet
+            # available. Return an honest 501 (Not Implemented) instead of an
+            # opaque 500 'Internal server error', so the client can tell the
+            # feature is unimplemented rather than broken. (audit 2026-06-04, F-04.)
+            logger.warning(f"Unimplemented ANOVA type requested: {str(e)}")
+            return Response(
+                {
+                    "error": "Not implemented",
+                    "message": str(e) or "This ANOVA type is not yet supported.",
+                },
+                status=status.HTTP_501_NOT_IMPLEMENTED,
             )
         except Exception as e:
             logger.error(f"Internal error: {str(e)}")
