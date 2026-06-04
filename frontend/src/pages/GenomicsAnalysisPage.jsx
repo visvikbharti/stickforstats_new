@@ -25,7 +25,6 @@ import {
   LinearProgress,
   Card,
   CardContent,
-  Divider,
 } from '@mui/material';
 import {
   Upload as UploadIcon,
@@ -46,6 +45,7 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
+import { formatPValue, compareWithMissingLast } from '../utils/formatStats';
 
 const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1';
 
@@ -129,11 +129,11 @@ const GenomicsAnalysisPage = () => {
 
   // Sort gene results
   const sortedGenes = result?.gene_results
-    ? [...result.gene_results].sort((a, b) => {
-        const aVal = a[sortField];
-        const bVal = b[sortField];
-        return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
-      })
+    ? [...result.gene_results].sort((a, b) =>
+        // Null-safe: a failed-test gene (e.g. adjusted_p_value === null) must not
+        // sort as if it were the most significant -- push missing values last.
+        compareWithMissingLast(a[sortField], b[sortField], sortDir)
+      )
     : [];
 
   const handleSort = (field) => {
@@ -472,9 +472,10 @@ const GenomicsAnalysisPage = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {gene.adjusted_p_value < 0.001
-                            ? gene.adjusted_p_value.toExponential(2)
-                            : gene.adjusted_p_value.toFixed(4)}
+                          {/* Null-safe: adjusted_p_value is null for genes whose
+                              test failed (zero-variance genes, common in RNA-seq);
+                              formatPValue renders an em dash instead of crashing. */}
+                          {formatPValue(gene.adjusted_p_value)}
                         </Typography>
                       </TableCell>
                       <TableCell>
