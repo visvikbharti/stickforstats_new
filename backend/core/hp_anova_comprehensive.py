@@ -526,25 +526,78 @@ class HighPrecisionANOVA:
             "recommended_p_basis": "uncorrected" if sphericity_met else "greenhouse_geisser",
         })
 
-    def manova(self, data: pd.DataFrame, factors: List[str], dependents: List[str]) -> ManovaResult:
+    def manova(self, groups: List[np.ndarray], dependent_variables: List[np.ndarray]) -> Dict[str, Any]:
         """
-        Perform MANOVA (Multivariate ANOVA)
+        One-way MANOVA via statsmodels: tests whether a categorical factor
+        (defined by ``groups``) affects the joint distribution of several
+        dependent variables. Returns the four standard multivariate test
+        statistics -- Wilks' lambda, Pillai's trace, Hotelling-Lawley trace, and
+        Roy's greatest root -- each with its F-approximation, df and p-value.
 
         Args:
-            data: DataFrame with data
-            factors: List of factor column names
-            dependents: List of dependent variable column names
+            groups: one array per factor level; the lengths/order define the
+                grouping factor (the values are NOT the DVs).
+            dependent_variables: list of m >= 2 DV columns, each of length
+                N = total observations (sum of group sizes), ordered by group
+                concatenation.
 
         Returns:
-            ManovaResult with multiple test statistics
+            A multi-statistic result dict (not the single-effect AnovaResult).
         """
-        # NOT IMPLEMENTED — previously returned None silently (audit 2026-05-31,
-        # ST-1). A real implementation would compute Wilks' Lambda, Pillai's
-        # trace, the Hotelling-Lawley trace, and Roy's largest root.
-        raise NotImplementedError(
-            "MANOVA is not implemented in HighPrecisionANOVA. "
-            "Use core.services.multivariate for multivariate analysis."
-        )
+        from statsmodels.multivariate.manova import MANOVA
+
+        k = len(groups)
+        if k < 2:
+            raise ValueError("MANOVA needs at least 2 groups")
+        sizes = [int(len(np.asarray(g))) for g in groups]
+        n_total = sum(sizes)
+        m = len(dependent_variables)
+        if m < 2:
+            raise ValueError("MANOVA needs at least 2 dependent variables")
+        dv = [np.asarray(d, dtype=float) for d in dependent_variables]
+        if any(len(d) != n_total for d in dv):
+            raise ValueError(f"Each dependent variable must have length {n_total} (total observations)")
+
+        factor = []
+        for i, s in enumerate(sizes):
+            factor += [f"G{i}"] * s
+        dv_names = [f"dv{j}" for j in range(m)]
+        data = {"factor": factor}
+        for j, name in enumerate(dv_names):
+            data[name] = dv[j]
+        df = pd.DataFrame(data)
+
+        formula = " + ".join(dv_names) + " ~ C(factor)"
+        table = MANOVA.from_formula(formula, data=df).mv_test().results["C(factor)"]["stat"]
+
+        label_to_key = {
+            "Wilks' lambda": "wilks_lambda",
+            "Pillai's trace": "pillai_trace",
+            "Hotelling-Lawley trace": "hotelling_lawley_trace",
+            "Roy's greatest root": "roy_greatest_root",
+        }
+        stats_out = {}
+        for label, key in label_to_key.items():
+            if label in table.index:
+                r = table.loc[label]
+                stats_out[key] = {
+                    "value": float(r["Value"]),
+                    "f_statistic": float(r["F Value"]),
+                    "num_df": float(r["Num DF"]),
+                    "den_df": float(r["Den DF"]),
+                    "p_value": float(r["Pr > F"]),
+                }
+
+        return _json_safe({
+            "anova_type": "manova",
+            "n_groups": k,
+            "n_dependent_variables": m,
+            "n_total": n_total,
+            "group_sizes": sizes,
+            "test_statistics": stats_out,
+            # Wilks' lambda is the conventional headline statistic.
+            "primary": stats_out.get("wilks_lambda"),
+        })
 
     _POST_HOC_ALIASES = {
         "tukey": PostHocTest.TUKEY_HSD,

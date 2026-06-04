@@ -92,3 +92,51 @@ class TestRepeatedMeasuresAnova(SimpleTestCase):
         bad = [self.conds[0], self.conds[1][:-1]]
         with self.assertRaises(ValueError):
             self.calc.repeated_measures_anova(bad)
+
+
+class TestManova(SimpleTestCase):
+    def setUp(self):
+        self.calc = HighPrecisionANOVA(precision=50)
+        rng = np.random.RandomState(11)
+        self.k, self.n = 3, 20
+        self.dv0, self.dv1, self.labels = [], [], []
+        for g in range(self.k):
+            self.dv0 += list(rng.normal(10 + 1.5 * g, 2.0, self.n))
+            self.dv1 += list(rng.normal(5 + 0.8 * g, 1.5, self.n))
+            self.labels += [g] * self.n
+        self.groups = [np.zeros(self.n) for _ in range(self.k)]  # lengths define the factor
+        self.dvs = [np.array(self.dv0), np.array(self.dv1)]
+
+    def test_wilks_lambda_matches_manual_sscp(self):
+        # Independent check: Wilks' lambda = det(E) / det(E + H), where H is the
+        # between-group and E the within-group sum-of-squares-and-cross-products.
+        out = self.calc.manova(self.groups, self.dvs)
+        X = np.column_stack([self.dv0, self.dv1])
+        labels = np.array(self.labels)
+        grand = X.mean(axis=0)
+        H = np.zeros((2, 2))
+        E = np.zeros((2, 2))
+        for g in range(self.k):
+            Xg = X[labels == g]
+            mg = Xg.mean(axis=0)
+            d = (mg - grand).reshape(-1, 1)
+            H += len(Xg) * (d @ d.T)
+            for row in Xg:
+                e = (row - mg).reshape(-1, 1)
+                E += e @ e.T
+        wilks_manual = np.linalg.det(E) / np.linalg.det(E + H)
+        self.assertAlmostEqual(out["test_statistics"]["wilks_lambda"]["value"], wilks_manual, places=8)
+
+    def test_all_four_statistics_present_and_valid(self):
+        out = self.calc.manova(self.groups, self.dvs)
+        for key in ("wilks_lambda", "pillai_trace", "hotelling_lawley_trace", "roy_greatest_root"):
+            self.assertIn(key, out["test_statistics"])
+            st = out["test_statistics"][key]
+            self.assertGreaterEqual(st["p_value"], 0.0)
+            self.assertLessEqual(st["p_value"], 1.0)
+        # A real group effect was injected -> Wilks should be significant.
+        self.assertLess(out["test_statistics"]["wilks_lambda"]["p_value"], 0.05)
+
+    def test_requires_at_least_two_dependent_variables(self):
+        with self.assertRaises(ValueError):
+            self.calc.manova(self.groups, [self.dvs[0]])
