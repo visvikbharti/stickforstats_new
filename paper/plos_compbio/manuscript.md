@@ -49,7 +49,7 @@ StickForStats takes a fundamentally different approach: rather than providing as
 
 StickForStats follows a three-tier architecture (Fig 1): a user interface layer (React 18 with Material-UI), an application layer (Django REST Framework with Guardian integration), and a data layer (PostgreSQL with Redis caching).
 
-![**Fig 1. StickForStats system architecture.** Three-tier design: user interface (React 18), application layer (Django REST with Guardian and statistical engine), and data layer (PostgreSQL, Redis, Celery, file storage).](figures/fig1_architecture.png){ width=90% } The platform serves 198 API endpoints across 41 web pages supporting 16 languages. Long-running analyses are offloaded to Celery workers backed by Redis. Python and R SDKs provide programmatic access.
+![**Fig 1. StickForStats system architecture.** Three-tier design: user interface (React 18), application layer (Django REST with Guardian and statistical engine), and data layer (PostgreSQL, Redis, Celery, file storage).](figures/fig1_architecture.png){ width=90% } Long-running analyses are offloaded to Celery workers backed by Redis. Python and R SDKs provide programmatic access.
 
 ### The Guardian system
 
@@ -130,7 +130,7 @@ Forty-five rules across six categories (test selection, assumption reporting, ef
 
 ### Platform comparison
 
-Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. At submission the platform exposes 198 REST endpoints across 15 modules, ships eight Guardian validators (covered by 38 integration and middleware tests, plus 46 dedicated validator tests) and 45 Statistical Quality Score rules across six categories, localizes its interface into 16 languages (10 with full UI translation, 6 with navigation-only translation), and ships with Python and R SDKs, a PWA-capable web interface, a Manifest V3 browser extension, and companion React Native (mobile) and Tauri (desktop) clients. The test suite comprises more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed in CI; at time of writing all required CI checks are green on the main branch.
+Table 3 compares StickForStats with existing statistical platforms on features relevant to assumption validation and biomedical research. The platform ships eight Guardian validators (covered by 38 integration and middleware tests, plus 46 dedicated validator tests), seven manuscript validators, and 45 Statistical Quality Score rules across six categories, with an optional 50-decimal-digit precision mode. It is accessible through a web interface, Python and R SDKs, and a Manifest V3 browser extension. The test suite comprises more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed in CI; at time of writing all required CI checks are green on the main branch.
 
 **Table 3. Feature comparison: StickForStats vs. existing statistical platforms.**
 
@@ -144,13 +144,10 @@ Table 3 compares StickForStats with existing statistical platforms on features r
 | Manuscript review | X | -- | -- | -- | -- |
 | Statistical Quality Score | X | -- | -- | -- | -- |
 | Web-based interface | X | -- | Shiny | -- | -- |
-| Mobile / desktop client | X | -- | -- | -- | -- |
 | Python & R SDKs | X | Partial | Native | -- | -- |
 | Open source | X | -- | X | X | X |
 | High-precision option | X | -- | Partial | -- | -- |
 | Code export (R/Python) | X | -- | Native | -- | -- |
-| Multi-tenant RBAC | X | -- | -- | -- | -- |
-| Documented compliance design (SOC 2, 21 CFR Part 11) | X | Partial | -- | -- | -- |
 
 ## Results
 
