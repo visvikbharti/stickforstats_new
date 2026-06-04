@@ -33,6 +33,13 @@ GROUPS_4 = [
     [3.0, 4.0, 5.0, 6.0],
     [4.0, 5.0, 6.0, 7.0],
 ]
+# Repeated-measures: 3 conditions x 6 subjects, NON-parallel (real within-subject
+# variation) so the error variance is non-zero (parallel data -> F=inf).
+GROUPS_RM = [
+    [12.0, 9.0, 14.0, 11.0, 13.0, 10.0],
+    [14.0, 10.0, 13.0, 12.0, 16.0, 11.0],
+    [18.0, 13.0, 17.0, 15.0, 20.0, 14.0],
+]
 
 # Fully-specified, serializer-valid payloads for each accepted type.
 PAYLOADS = {
@@ -43,7 +50,7 @@ PAYLOADS = {
         "factor1_levels": ["a", "b"],
         "factor2_levels": ["x", "y"],
     },
-    "repeated_measures": {"anova_type": "repeated_measures", "groups": GROUPS_3},
+    "repeated_measures": {"anova_type": "repeated_measures", "groups": GROUPS_RM},
     "manova": {
         "anova_type": "manova",
         "groups": GROUPS_3,
@@ -51,7 +58,8 @@ PAYLOADS = {
         "dependent_variables": [[float(i) for i in range(18)]],
     },
 }
-UNIMPLEMENTED_TYPES = ["two_way", "repeated_measures", "manova"]
+UNIMPLEMENTED_TYPES = ["manova"]
+IMPLEMENTED_TYPES = ["one_way", "two_way", "repeated_measures"]
 
 
 @override_settings(
@@ -70,6 +78,16 @@ class TestAnovaTypeContract(APITestCase):
     def test_one_way_returns_200(self):
         resp = self._post("one_way")
         self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
+
+    def test_implemented_types_return_200(self):
+        # one-way, two-way, and repeated-measures are now implemented.
+        for t in IMPLEMENTED_TYPES:
+            resp = self._post(t)
+            self.assertEqual(
+                resp.status_code, 200,
+                msg=f"{t}: expected 200, got {resp.status_code}: {resp.content[:200]}",
+            )
+            self.assertIn("high_precision_result", resp.data)
 
     def test_unimplemented_types_return_501(self):
         for t in UNIMPLEMENTED_TYPES:
@@ -91,8 +109,9 @@ class TestAnovaTypeContract(APITestCase):
     def test_error_responses_are_not_cached_as_200(self):
         # A 501 must stay 501 on a repeat request (errors are never cached and
         # re-served as a misleading 200), while a successful 200 may be cached.
-        first = self._post("two_way")
-        second = self._post("two_way")
+        # MANOVA is the remaining unimplemented type.
+        first = self._post("manova")
+        second = self._post("manova")
         self.assertEqual(first.status_code, 501)
         self.assertEqual(second.status_code, 501)
 

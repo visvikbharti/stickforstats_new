@@ -549,39 +549,43 @@ class HighPrecisionANOVAView(APIView):
             # Step 2: Perform high-precision ANOVA
             logger.info(f"Performing high-precision {anova_type} ANOVA")
 
-            # two-way / repeated-measures / MANOVA are accepted by the serializer
-            # and routed, but the high-precision engine does not implement them
-            # yet (the calculator methods raise NotImplementedError, and the view
-            # would in some cases mis-call them with *groups and raise TypeError
-            # first). Return an honest 501 up front rather than an opaque 500
-            # 'Internal server error'. (audit 2026-06-04, F-04.)
-            UNIMPLEMENTED_ANOVA_TYPES = {"two_way", "repeated_measures", "manova"}
+            # one-way, two-way, and repeated-measures ANOVA are implemented; MANOVA
+            # is not yet. Return an honest 501 for the unimplemented type rather than
+            # an opaque 500. (audit 2026-06-04 F-04; two-way + RM implemented 2026-06-05,
+            # cross-validated against pingouin / statsmodels AnovaRM.)
+            UNIMPLEMENTED_ANOVA_TYPES = {"manova"}
             if anova_type in UNIMPLEMENTED_ANOVA_TYPES:
                 logger.warning(f"Unimplemented ANOVA type requested: {anova_type}")
                 return Response(
                     {
                         "error": "Not implemented",
                         "message": (
-                            f"{anova_type.replace('_', ' ').title()} ANOVA is not yet "
-                            "supported by the high-precision engine. Currently only "
-                            "one-way ANOVA is available."
+                            "MANOVA is not yet supported by the high-precision engine. "
+                            "One-way, two-way, and repeated-measures ANOVA are available."
                         ),
                         "anova_type": anova_type,
                     },
                     status=status.HTTP_501_NOT_IMPLEMENTED,
                 )
 
-            if anova_type == "one_way":
-                result = anova_calculator.one_way_anova(*groups)
-            elif anova_type == "two_way":
+            # Two-way and repeated-measures ANOVA yield MULTIPLE effects, so they
+            # return a structured dict (not the single-effect AnovaResult); serialize
+            # it directly and return early.
+            if anova_type == "two_way":
                 factor1_levels = validated_data.get("factor1_levels", [])
                 factor2_levels = validated_data.get("factor2_levels", [])
-                result = anova_calculator.two_way_anova(*groups, factor1_levels, factor2_levels)
+                response_data["high_precision_result"] = anova_calculator.two_way_anova(
+                    list(groups), factor1_levels, factor2_levels
+                )
+                logger.info("Successfully calculated two-way ANOVA")
+                return Response(response_data, status=status.HTTP_200_OK)
             elif anova_type == "repeated_measures":
-                result = anova_calculator.repeated_measures_anova(*groups)
-            elif anova_type == "manova":
-                dependent_vars = validated_data.get("dependent_variables", [])
-                result = anova_calculator.manova(*groups, dependent_vars)
+                response_data["high_precision_result"] = anova_calculator.repeated_measures_anova(list(groups))
+                logger.info("Successfully calculated repeated-measures ANOVA")
+                return Response(response_data, status=status.HTTP_200_OK)
+
+            if anova_type == "one_way":
+                result = anova_calculator.one_way_anova(*groups)
             else:
                 return Response({"error": f"Unknown ANOVA type: {anova_type}"}, status=status.HTTP_400_BAD_REQUEST)
 
