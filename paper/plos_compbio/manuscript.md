@@ -292,9 +292,9 @@ Compared to R and SciPy, StickForStats trades programming flexibility for the sa
 
 We acknowledge several limitations. *Threshold dependence:* Guardian's severity classifications depend on fixed thresholds (e.g., p < 0.05 for warnings); Guardian mitigates this by reporting actual test statistics, not just classifications. *Power of assumption tests:* Small samples may miss real violations while large samples may flag trivial ones; Guardian considers sample size in severity classification. *Incomplete coverage:* Guardian's eight validators do not cover all possible assumptions---measurement reliability and selection bias may go undetected, though Guardian explicitly states which assumptions are checked. *Expert Mode override:* Experienced statisticians can proceed despite critical violations, though warnings remain visible. *Retrospective verification scope:* the consistency checker recomputes p-values from the reported statistic and degrees of freedom, so---like statcheck---it cannot recover a legitimately reported sphericity-corrected (Greenhouse-Geisser/Huynh-Feldt) p-value, cannot reproduce a multiplicity-adjusted (e.g. Tukey/Dunnett) p when only the raw statistic is shown, and can mistake a critical value used in a sample-size formula for a test result. In our 20-article evaluation these explainable cases accounted for 15 of the 19 flags (Table 7); flagged items are therefore recompute-versus-reported discrepancies for human review, not confirmed errors, and only four were genuine candidate reporting inconsistencies.
 
-### Availability and future directions
+### Future directions
 
-StickForStats is freely available under the MIT license at https://github.com/visvikbharti/stickforstats_new. The platform includes five curated biological example datasets (CRISPR editing strategies, clinical trial survival, gene expression, epidemiological case-control, and dose-response) with documented analysis vignettes. Future work will expand the Bayesian analysis suite, add dose-response modeling for pharmacological studies, CONSORT flow diagram generation, and integrate with biological data repositories (GEO, ClinicalTrials.gov).
+The platform includes five curated biological example datasets (CRISPR editing strategies, clinical trial survival, gene expression, epidemiological case-control, and dose-response) with documented analysis vignettes (availability details are given below). Future work will expand the Bayesian analysis suite, add dose-response modeling for pharmacological studies, CONSORT flow diagram generation, and integrate with biological data repositories (GEO, ClinicalTrials.gov).
 
 ## Methods
 
@@ -313,6 +313,52 @@ Reference calculations were performed independently in R 4.3.2 and Python (SciPy
 ### Guardian evaluation
 
 Each Guardian validator was validated against known datasets with confirmed properties: exponential distributions for normality (Shapiro-Wilk W = 0.886, p < 0.001, exact SciPy agreement), unequal-variance groups for homogeneity (Levene F = 8.92, p = 0.004, exact agreement), quadratic relationships for linearity (R-squared improvement = 45%, exact agreement with manual calculation). Edge case testing verified correct handling of empty arrays, single observations, identical values (zero variance), very large datasets (n = 10^6, completed within 5 seconds), and extreme values (10^308, no overflow errors).
+
+## Availability of source code and requirements
+
+- **Project name:** StickForStats
+- **Project home page:** https://github.com/visvikbharti/stickforstats_new
+- **Version used in this article:** v1.0.0 (release tag `v1.0.0`)
+- **Operating system(s):** Platform independent (Docker / Docker Compose); the web application runs in any modern browser.
+- **Programming languages:** Python 3.11 (backend), JavaScript / React 18 (frontend), R (cross-validation and the R SDK).
+- **Other requirements:** Python >= 3.10, Django 4.2, PostgreSQL 15, Redis 7; SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3. A `Dockerfile` and `docker-compose.yml` provision the full stack.
+- **License:** MIT.
+- **RRID:** [AUTHORS: register at scicrunch.org and insert the RRID, or remove this line.]
+- **biotoolsID:** [AUTHORS: register at bio.tools and insert the ID, or remove this line.]
+
+## Availability of supporting data and materials
+
+All datasets analysed in this article are public and previously published, and all analysis code is openly available under the MIT license at the project home page.
+
+- **Replication package:** `paper/replication/` in the repository contains the verification scripts, the master runner (`MASTER_VERIFICATION.py`), the statcheck head-to-head (`statcheck_baseline.R`), and a README with run instructions.
+- **Datasets:** Fisher's Iris (via scikit-learn); UCI Wine Quality (https://archive.ics.uci.edu/dataset/186/wine+quality); the IV-magnesium meta-analysis (Egger 1997 [25]; `metafor::dat.egger2001` [39]); synovial-sarcoma RNA-seq (NCBI GEO accession GSE271517; Chen et al. 2024 [40]); and the 20-article retrospective-verification corpus (PubMed Central open-access subset, rebuilt by `fetch_corpus.py` from the recorded E-utilities query and manifest).
+- [AUTHORS: per GigaScience policy, a snapshot of the source code and the curated datasets can additionally be deposited in GigaDB to obtain a citable DOI; insert the accession here once assigned.]
+
+## Declarations
+
+### Ethics approval and consent to participate
+
+Not applicable. This work is a secondary analysis of publicly available, previously published, de-identified datasets and published summary statistics; no new human or animal data were collected.
+
+### Consent for publication
+
+Not applicable.
+
+### Competing interests
+
+[AUTHORS: confirm. Suggested default if true: "The authors declare that they have no competing interests."]
+
+### Funding
+
+[AUTHORS: state funding sources and grant numbers, or "No specific funding was received for this work."]
+
+### Authors' contributions
+
+[AUTHORS: complete per the CRediT taxonomy (e.g. conceptualization, software, validation, writing — original draft, writing — review & editing).]
+
+### Abbreviations
+
+ANOVA: analysis of variance; RM-ANOVA: repeated-measures ANOVA; FDR: false discovery rate; CI: confidence interval; SQS: Statistical Quality Score; RRID: Research Resource Identifier.
 
 ## AI Disclosure
 
