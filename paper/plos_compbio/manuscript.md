@@ -256,6 +256,16 @@ Manual review of the 19 flagged claims, each read back against its source articl
 | Genuine recompute-vs-reported discrepancy | 4 | Internally inconsistent reports surfaced for human review, not confirmed errors |
 | Sample-size / power critical value (e.g. Z = 1.96) | 1 | A critical value in a sample-size formula, not a test result |
 
+To benchmark the engine against the field standard rather than report self-consistency alone, we ran statcheck 1.5.0 [14] on the same 20 articles (`paper/replication/statcheck_baseline.R`). statcheck extracted 266 inline statistics and flagged 47 (17.7%) as inconsistent and 2 as decision errors; our engine extracted 295 recomputable claims and flagged 19 (6.4%) with 5 decision errors (Table 8). Per-article extraction counts agree closely (for example 45 vs 45, 9 vs 9, 88 vs 86), and both tools share the same fundamental limitation---neither recovers a sphericity-corrected or multiplicity-adjusted p-value---so both flag the sphericity-heavy article (statcheck 9, our engine 6). The largest divergence is a single article in which the authors systematically wrote "p > 0.001" (34 occurrences) where "p < 0.001" was clearly intended: statcheck flags 16 of these literally, whereas our engine's inequality-aware comparison treats them as consistent because the significance decision is unchanged. Conversely, our engine surfaces more decision-level errors (5 vs 2)---the class that actually alters a conclusion. statcheck thus favours literal recall while our engine favours precision on decision-changing discrepancies; the two agree on the substantive cases.
+
+**Table 8. Head-to-head on the same 20-article corpus (statcheck 1.5.0 vs the StickForStats engine).**
+
+| Metric | statcheck 1.5.0 | StickForStats engine |
+|---|---|---|
+| Inline statistics extracted / recomputable | 266 | 295 |
+| Flagged inconsistent | 47 (17.7%) | 19 (6.4%) |
+| Decision errors (opposite sides of alpha) | 2 | 5 |
+
 ### Software testing and continuous integration
 
 StickForStats maintains more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed via GitHub Actions on every commit. The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
