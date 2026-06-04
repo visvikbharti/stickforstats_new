@@ -7,7 +7,8 @@ This script verifies ALL case studies in the JSS paper with REAL and consistent 
 SCIENTIFIC INTEGRITY CERTIFICATION:
 - Case Study 1 (Iris): Uses REAL Fisher's Iris dataset from sklearn
 - Case Study 2 (Wine): Uses REAL UCI Wine Quality dataset (downloaded)
-- Case Study 3 (Meta): Uses SIMULATED data (honestly labeled in paper)
+(The IV-magnesium meta-analysis is verified against REAL data by
+ verify_meta_analysis_real.py; an earlier simulated version was removed.)
 
 All numbers in this script match the paper EXACTLY.
 
@@ -147,55 +148,14 @@ Quality values: {sorted(set(quality.astype(int)))} (ordinal, not continuous)
 """)
 
 # ==========================================================================
-# CASE STUDY 3: Simulated Meta-Analysis (SIMULATION - honestly labeled)
+# The IV-magnesium meta-analysis is verified against REAL data
+# (metafor::dat.egger2001), cross-validated to 4+ decimals against R metafor,
+# by verify_meta_analysis_real.py. An earlier SIMULATED meta-analysis with
+# placeholder effect sizes was REMOVED from this script: it predated the
+# real-data analysis and contradicted the manuscript's reported values
+# (pooled OR = 0.483, I^2 = 68.1%, Egger p < 0.001). See
+# verify_meta_analysis_real.py for the authoritative meta-analysis check.
 # ==========================================================================
-
-print("\n" + "=" * 70)
-print("CASE STUDY 3: Simulated Meta-Analysis")
-print("Data Source: SIMULATION (honestly labeled in paper)")
-print("=" * 70)
-
-# EXACT data from updated paper
-effect_sizes = np.array([0.23, 0.15, 0.25, 0.35, 0.28, 0.28,
-                         0.32, 0.42, 0.33, 0.28, 0.37, 0.31])
-standard_errors = np.array([0.08, 0.04, 0.07, 0.06, 0.07, 0.08,
-                            0.13, 0.14, 0.12, 0.13, 0.12, 0.14])
-
-# Fixed-effect
-weights = 1 / standard_errors**2
-pooled_fe = np.sum(weights * effect_sizes) / np.sum(weights)
-
-# Random-effects
-Q = np.sum(weights * (effect_sizes - pooled_fe)**2)
-df = len(effect_sizes) - 1
-C = np.sum(weights) - np.sum(weights**2) / np.sum(weights)
-tau2 = max(0, (Q - df) / C)
-
-weights_re = 1 / (standard_errors**2 + tau2)
-pooled_re = np.sum(weights_re * effect_sizes) / np.sum(weights_re)
-pooled_se_re = np.sqrt(1 / np.sum(weights_re))
-
-I2 = max(0, (Q - df) / Q * 100) if Q > 0 else 0
-
-# Egger's test
-precision = 1 / standard_errors
-standardized_effect = effect_sizes / standard_errors
-slope, intercept, r_value, p_egger, std_err = stats.linregress(precision, standardized_effect)
-
-print(f"""
-VERIFIED RESULTS (Case Study 3 - Meta-Analysis):
-------------------------------------------------
-Number of studies: {len(effect_sizes)}
-
-Pooled effect (RE): {pooled_re:.3f} (Paper says 0.263) {'✓' if abs(pooled_re - 0.263) < 0.001 else '≈'}
-95% CI: [{pooled_re - 1.96*pooled_se_re:.3f}, {pooled_re + 1.96*pooled_se_re:.3f}]
-
-Heterogeneity I²: {I2:.1f}% (Paper says 14.4%) {'✓' if abs(I2 - 14.4) < 0.5 else '≈'}
-Q statistic: {Q:.2f} (Paper says 12.85) {'✓' if abs(Q - 12.85) < 0.1 else '≈'}
-
-Egger's intercept: {intercept:.2f} (Paper says 1.84) {'✓' if abs(intercept - 1.84) < 0.1 else '≈'}
-Egger's p-value: {p_egger:.3f} (Paper says 0.010) {'✓' if abs(p_egger - 0.010) < 0.002 else '≈'}
-""")
 
 # ==========================================================================
 # FINAL SUMMARY
@@ -213,13 +173,9 @@ CASE STUDY 2 (Wine - Correlation):
   Data: REAL (UCI Wine Quality - downloaded)
   Status: ✓ VERIFIED - All numbers reproducible
 
-CASE STUDY 3 (Meta-analysis - Publication Bias):
-  Data: SIMULATED (honestly labeled in paper)
-  Status: ✓ VERIFIED - Data and results consistent
+The IV-magnesium meta-analysis is verified separately, against REAL data
+(metafor::dat.egger2001), by verify_meta_analysis_real.py.
 
-CERTIFICATION: All case studies in the JSS paper are scientifically
-sound. Real data is used where claimed, and simulations are clearly
-labeled. All numerical results are reproducible from the stated data.
-
-Verified: 2026-01-27
+CERTIFICATION: The Iris and Wine case studies use real data and reproduce
+the manuscript's reported values.
 """)

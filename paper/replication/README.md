@@ -1,23 +1,24 @@
 # StickForStats Replication Package
 
-This package contains all materials needed to reproduce the results presented in the JSS paper "StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation."
+This package contains the materials needed to reproduce the results presented in the StickForStats manuscript (assumption-aware statistical analysis with automatic validation).
 
 ## Contents
 
 ```
 replication/
-├── README.md                    # This file
-├── run_all_validations.py       # Master script to run all validations
-├── validate_ttest.py            # T-test validation
-├── validate_anova.py            # ANOVA validation
-├── validate_correlation.py      # Correlation validation
-├── validate_meta_analysis.py    # Meta-analysis validation
-├── validate_power.py            # Power analysis validation
-├── validate_guardian.py         # Guardian assumption detection validation
-├── data/
-│   └── test_datasets.json       # All test data used in paper
-└── expected_output/
-    └── expected_results.json    # Expected results for comparison
+├── README.md                      # This file
+├── MASTER_VERIFICATION.py         # Runs every verification below; exits non-zero if any fail
+├── run_all_validations.py         # SciPy reference checks (t-test, ANOVA, correlation, normality, variance)
+├── case_study_1_crispr.py         # Case Study 1 — CRISPR TOPSIS (ANOVA → Guardian → Kruskal-Wallis)
+├── verify_case_studies_FINAL.py   # Iris (ANOVA) + Wine (correlation), real data
+├── validate_wine_quality_REAL.py  # UCI Wine Quality (red + white), Pearson/Spearman
+├── verify_meta_analysis_real.py   # IV-magnesium meta-analysis (Egger 1997), cross-validated vs R metafor
+├── case_study_4_genomics.py       # Case Study 4 — real RNA-seq (GSE271517) with Guardian
+├── additional_real_data_analysis.py
+├── validate_against_R.R           # R cross-validation
+├── data/                          # Cached datasets (e.g. winequality-red.csv)
+├── expected_output/
+└── manuscript_validation/         # Retrospective-verification corpus study (the validate_corpus run)
 ```
 
 ## Requirements
@@ -37,17 +38,16 @@ pip install scipy numpy
 
 ### Run All Validations
 ```bash
-python run_all_validations.py
+python MASTER_VERIFICATION.py    # runs every script below; exits non-zero if any fail
 ```
 
-### Run Individual Validations
+### Run Individual Verifications
 ```bash
-python validate_ttest.py
-python validate_anova.py
-python validate_correlation.py
-python validate_meta_analysis.py
-python validate_power.py
-python validate_guardian.py
+python run_all_validations.py        # SciPy reference checks (t-test, ANOVA, correlation, normality, variance)
+python case_study_1_crispr.py        # Case Study 1 (CRISPR TOPSIS)
+python verify_case_studies_FINAL.py  # Iris + Wine (real data)
+python verify_meta_analysis_real.py  # IV-magnesium meta-analysis (vs R metafor)
+python case_study_4_genomics.py      # Case Study 4 (RNA-seq GSE271517)
 ```
 
 ## Expected Output
@@ -78,23 +78,22 @@ Status: PASS (exact match to 15 decimal places)
 
 ## Reproducing Specific Results
 
-### Table 4 (Validation Summary)
+### SciPy reference validation
 
-Run `run_all_validations.py` to reproduce all values in Table 4.
+Run `run_all_validations.py` to reproduce the SciPy reference checks (t-test,
+ANOVA, correlation, normality, and variance-homogeneity).
 
-### Case Study 1 (Non-Normal Data)
+### Case Study 1 (CRISPR editing-strategy comparison)
 
-```python
-from scipy.stats import shapiro
-data = [1.2, 1.5, 1.8, 2.0, 2.1, 2.3, 2.5, 15.0, 18.0, 25.0]
-w, p = shapiro(data)
-print(f"Shapiro-Wilk W = {w:.3f}, p = {p:.5f}")
-# Expected: W = 0.699, p = 0.00086
-```
+See `case_study_1_crispr.py` for the CRISPRArchitect v3 TOPSIS-score comparison
+(Guardian detected non-normality and cascaded ANOVA F = 1122.10 to
+Kruskal-Wallis H = 36.59).
 
-### Case Study 2 (Linearity)
+### Case Study 2 (Wine Quality correlation)
 
-See `validate_linearity.py` for the polynomial vs. linear R² comparison.
+See `validate_wine_quality_REAL.py` (and the Wine block of
+`verify_case_studies_FINAL.py`) for the UCI Wine Quality ordinal-correlation
+analysis (Pearson r = 0.476, Spearman ρ = 0.479).
 
 ### Case Study 3 (Meta-Analysis)
 
