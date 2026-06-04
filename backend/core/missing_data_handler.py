@@ -548,33 +548,121 @@ class MissingDataHandler:
         }
         return MissingPattern[code], confidence_by_code[code]
 
+    @staticmethod
+    def _em_mvn(data: np.ndarray, max_iter: int = 1000, tol: float = 1e-7):
+        """ML estimate of the multivariate-normal mean and covariance from data
+        with missing values (NaN), via the EM algorithm. Returns (mu, Sigma) with
+        Sigma the ML (1/n) covariance -- the estimate Little's MCAR test uses."""
+        n, p = data.shape
+        observed = ~np.isnan(data)
+        mu = np.nanmean(data, axis=0)
+        mu = np.where(np.isnan(mu), 0.0, mu)
+        col_var = np.nanvar(data, axis=0)
+        col_var = np.where(~np.isfinite(col_var) | (col_var <= 0), 1.0, col_var)
+        Sigma = np.diag(col_var)
+
+        for _ in range(max_iter):
+            T1 = np.zeros(p)
+            T2 = np.zeros((p, p))
+            for i in range(n):
+                obs = observed[i]
+                mis = ~obs
+                xi = data[i].copy()
+                corr = np.zeros((p, p))
+                if mis.any() and obs.any():
+                    o_idx = np.where(obs)[0]
+                    m_idx = np.where(mis)[0]
+                    Soo = Sigma[np.ix_(o_idx, o_idx)]
+                    Som = Sigma[np.ix_(o_idx, m_idx)]
+                    Smm = Sigma[np.ix_(m_idx, m_idx)]
+                    Soo_inv = np.linalg.pinv(Soo)
+                    resid = data[i, o_idx] - mu[o_idx]
+                    xi[m_idx] = mu[m_idx] + Som.T @ Soo_inv @ resid
+                    cond_cov = Smm - Som.T @ Soo_inv @ Som
+                    corr[np.ix_(m_idx, m_idx)] = cond_cov
+                elif mis.all():
+                    xi = mu.copy()
+                    corr = Sigma.copy()
+                T1 += xi
+                T2 += np.outer(xi, xi) + corr
+            new_mu = T1 / n
+            new_Sigma = T2 / n - np.outer(new_mu, new_mu)
+            new_Sigma = (new_Sigma + new_Sigma.T) / 2.0
+            if np.max(np.abs(new_mu - mu)) < tol and np.max(np.abs(new_Sigma - Sigma)) < tol:
+                mu, Sigma = new_mu, new_Sigma
+                break
+            mu, Sigma = new_mu, new_Sigma
+        return mu, Sigma
+
     def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
-        Little's MCAR test.
+        Little's (1988) test of whether data are Missing Completely At Random.
 
-        NOT YET IMPLEMENTED. The correct test requires EM estimation of the joint
-        mean vector and covariance matrix under the MCAR null, then a
-        pattern-weighted sum of Mahalanobis distances between pattern-specific
-        means and the EM grand mean, with
-        df = (sum of observed variables across patterns) - n_vars.
+        Under MCAR + multivariate normality, the ML mean (mu) and covariance
+        (Sigma) are estimated by EM over the incomplete data; the test statistic
 
-        The previous code returned ``n * log(n_patterns)`` as the chi-square
-        statistic, which is a function of the sample size and the number of
-        missingness patterns -- NOT of the data values -- so its p-value and
-        ``is_mcar`` verdict were meaningless. Rather than ship a fabricated
-        statistic, we return an explicit "unavailable" result so that no
-        unverified MCAR verdict is ever presented to a user. A validated
-        EM-based implementation is tracked as a follow-up.
+            d^2 = sum_j n_j (xbar_j - mu_j)^T Sigma_j^{-1} (xbar_j - mu_j)
+
+        sums, over the J distinct missingness patterns, the pattern sample size
+        n_j times the Mahalanobis distance between the pattern's observed-variable
+        mean (xbar_j) and the corresponding sub-vector of the EM mean, using the
+        observed-variable sub-covariance Sigma_j. Under MCAR, d^2 ~ chi-square with
+        df = (sum over patterns of #observed variables) - p. A small p-value is
+        evidence AGAINST MCAR. Cross-validated against R's naniar::mcar_test.
         """
+        data = df.select_dtypes(include=[np.number]).to_numpy(dtype=float)
+        if data.ndim != 2 or data.shape[1] < 1 or data.shape[0] < 2:
+            return {"available": False, "test": "Little's MCAR test",
+                    "reason": "Need at least 2 rows and 1 numeric column."}
+        n, p = data.shape
+        observed = ~np.isnan(data)
+        if observed.all():
+            return {"available": True, "test": "Little's MCAR test", "chi2_statistic": 0.0,
+                    "degrees_of_freedom": 0, "p_value": 1.0, "is_mcar": True, "n_missing_patterns": 1,
+                    "method": "EM (multivariate normal)",
+                    "note": "No missing values; MCAR holds trivially."}
+
+        mu, Sigma = self._em_mvn(data)
+
+        patterns: Dict[tuple, list] = {}
+        for i in range(n):
+            patterns.setdefault(tuple(observed[i].tolist()), []).append(i)
+
+        d2 = 0.0
+        df_sum = 0
+        for key, idx in patterns.items():
+            obs = np.array(key, dtype=bool)
+            k_j = int(obs.sum())
+            if k_j == 0:
+                continue  # fully-missing rows contribute neither distance nor df
+            o_idx = np.where(obs)[0]
+            sub = data[np.ix_(idx, o_idx)]
+            xbar_j = sub.mean(axis=0)
+            diff = xbar_j - mu[o_idx]
+            Sigma_j = Sigma[np.ix_(o_idx, o_idx)]
+            try:
+                Sigma_j_inv = np.linalg.inv(Sigma_j)
+            except np.linalg.LinAlgError:
+                Sigma_j_inv = np.linalg.pinv(Sigma_j)
+            d2 += len(idx) * float(diff @ Sigma_j_inv @ diff)
+            df_sum += k_j
+
+        df_test = df_sum - p
+        if df_test <= 0:
+            return {"available": False, "test": "Little's MCAR test",
+                    "reason": f"Non-positive degrees of freedom (df={df_test}); too few "
+                              "missingness patterns or variables to compute the test."}
+
+        p_value = float(stats.chi2.sf(d2, df_test))
         return {
-            "available": False,
+            "available": True,
             "test": "Little's MCAR test",
-            "reason": (
-                "Little's MCAR test is not yet implemented. A correct implementation "
-                "requires EM estimation of the joint distribution under the MCAR null; "
-                "no chi-square statistic, p-value, or MCAR verdict is reported here to "
-                "avoid presenting an unverified result."
-            ),
+            "chi2_statistic": float(d2),
+            "degrees_of_freedom": int(df_test),
+            "p_value": p_value,
+            "is_mcar": bool(p_value > 0.05),
+            "n_missing_patterns": len(patterns),
+            "method": "EM (multivariate normal)",
         }
 
     def _calculate_missing_correlations(self, df: pd.DataFrame) -> pd.DataFrame:
