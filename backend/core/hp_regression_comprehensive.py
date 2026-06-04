@@ -26,7 +26,6 @@ from scipy import stats
 from sklearn.preprocessing import PolynomialFeatures
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
-import warnings
 from enum import Enum
 
 # Set precision for high-precision calculations
