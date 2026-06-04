@@ -605,6 +605,12 @@ class HighPrecisionANOVAView(APIView):
                 "partial_eta_squared": str(result.partial_eta_squared),
                 "omega_squared": str(result.omega_squared),
                 "cohen_f": str(result.cohen_f),
+                "observed_power": (str(result.observed_power) if result.observed_power is not None else None),
+                "observed_power_note": (
+                    "Observed (post-hoc) power via the non-central F distribution; it is a "
+                    "monotone transform of the p-value and is not a substitute for an a-priori "
+                    "power analysis."
+                ),
             }
 
             # Step 3: Effect sizes are already in the result

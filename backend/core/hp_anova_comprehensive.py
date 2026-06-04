@@ -906,18 +906,35 @@ class HighPrecisionANOVA:
         return Decimal(str(f_crit))
 
     def _calculate_power(self, f_stat: Decimal, df1: int, df2: int, alpha: Decimal = Decimal("0.05")) -> Optional[Decimal]:
-        """Observed (post-hoc) power for ANOVA.
+        """Observed (post-hoc) power for a one-way ANOVA via the non-central F
+        distribution.
 
-        NOT IMPLEMENTED. A correct observed power requires the non-central
-        F-distribution (non-centrality lambda = f_stat * df1). The previous body
-        returned a fabricated monotone heuristic (0.8 + 0.1*effect when
-        significant, else a flat 0.5) capped at 0.99 -- not a statistically
-        meaningful power. Return None ("not computed") so no fabricated power is
-        ever presented; generate_anova_report already omits the line when None.
-        A real non-central-F implementation is tracked as a follow-up.
-        (audit 2026-06-04, F-12.)
+        Computed honestly (replaces the fabricated 0.8 + 0.1*effect heuristic
+        removed in audit F-12):
+            Cohen's f^2 = df1 * F / df2          (= eta^2 / (1 - eta^2))
+            noncentrality lambda = f^2 * N,  N = df1 + df2 + 1
+            power = P(F_{df1, df2, lambda} > F_crit),  F_crit = F^{-1}_{df1,df2}(1 - alpha)
+        This matches G*Power / statsmodels FTestAnovaPower.
+
+        CAVEAT: observed (post-hoc) power is a deterministic monotone transform of
+        the p-value and is NOT a substitute for an a-priori power analysis; it is
+        reported for completeness only. Returns None when undefined (non-positive
+        df or F).
         """
-        return None
+        from scipy.stats import f as f_dist, ncf
+
+        f_obs = float(f_stat)
+        a = float(alpha)
+        if df1 <= 0 or df2 <= 0 or f_obs <= 0 or not (0 < a < 1):
+            return None
+        n_total = df1 + df2 + 1
+        cohen_f2 = (df1 * f_obs) / df2
+        noncentrality = cohen_f2 * n_total
+        f_crit = float(f_dist.ppf(1 - a, df1, df2))
+        power = float(ncf.sf(f_crit, df1, df2, noncentrality))
+        if not (0.0 <= power <= 1.0):
+            return None
+        return Decimal(str(power))
 
 
 def generate_anova_report(result: AnovaResult) -> str:
