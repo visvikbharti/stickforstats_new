@@ -26,7 +26,6 @@ from scipy import stats
 from sklearn.preprocessing import PolynomialFeatures
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
-import warnings
 from enum import Enum
 
 # Set precision for high-precision calculations
@@ -174,14 +173,18 @@ class HighPrecisionRegression:
         # Check for multicollinearity
         self._calculate_condition_number(XtX)
 
+        model_warnings: List[str] = []
         try:
             # Solve for coefficients
             XtX_inv = self._matrix_inverse(XtX)
             coefficients = self._matrix_multiply(XtX_inv, Xty).flatten()
-        except:
-            # Use ridge regression if singular
+        except Exception:
+            # Use ridge regression if singular. Record the fallback as a
+            # user-visible warning -- NOT `warnings.append`, which would call
+            # .append on the imported stdlib `warnings` module and raise
+            # AttributeError, turning a recoverable case into a hard 500.
             coefficients = self._ridge_solve(X_with_intercept, y_hp, alpha=Decimal("0.01"))
-            warnings.append("Matrix near singular, used ridge regularization")
+            model_warnings.append("Matrix near singular, used ridge regularization")
 
         # Extract intercept and coefficients
         intercept = coefficients[0]
@@ -270,7 +273,10 @@ class HighPrecisionRegression:
             cross_validation_scores=cv_scores,
             interpretation=interpretation,
             assumptions_met=assumptions,
-            warnings=diagnostics.warnings if hasattr(diagnostics, "warnings") else [],
+            warnings=(
+                (list(diagnostics.warnings) if hasattr(diagnostics, "warnings") else [])
+                + model_warnings
+            ),
         )
 
     def logistic_regression(

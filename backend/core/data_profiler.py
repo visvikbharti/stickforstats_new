@@ -22,6 +22,8 @@ from enum import Enum
 import logging
 from datetime import datetime
 
+from core.missing_data_handler import classify_missing_mechanism
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -531,13 +533,14 @@ class DataProfiler:
         if not correlations:
             return "MCAR"  # Missing Completely At Random (assumed)
 
+        # Delegate the threshold -> mechanism mapping to the single shared
+        # classifier so this no longer contradicts MissingDataHandler. The prior
+        # logic inverted MAR/MNAR (it labelled the WEAKER 0.1-0.3 association
+        # MNAR and the STRONGER >0.3 association MAR). 'MNAR' here means
+        # "suspected / cannot be ruled out" -- it is not identifiable from
+        # observed data alone. (audit 2026-06-04, F-08.)
         max_corr = max(correlations)
-        if max_corr > 0.3:
-            return "MAR"  # Missing At Random
-        elif max_corr > 0.1:
-            return "MNAR"  # Missing Not At Random (potential)
-        else:
-            return "MCAR"  # Missing Completely At Random
+        return classify_missing_mechanism(max_corr)
 
     def _find_high_correlations(
         self, corr_matrix: pd.DataFrame, threshold: float = 0.8

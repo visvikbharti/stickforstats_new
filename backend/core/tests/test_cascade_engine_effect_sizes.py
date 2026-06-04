@@ -29,9 +29,15 @@ from core.services.cascade_engine import AutonomousCascadeEngine
 
 
 def _wilcoxon_r_reference(arr1: np.ndarray, arr2: np.ndarray) -> float:
-    """|Z| / sqrt(N) reference for Wilcoxon signed-rank r."""
+    """|Z| / sqrt(n_eff) reference for Wilcoxon signed-rank r.
+
+    n_eff is the count of NON-ZERO differences, matching scipy's default
+    zero_method='wilcox' (which drops zero-difference pairs). For inputs with
+    no zero differences this equals len(arr1).
+    """
     res = stats.wilcoxon(arr1, arr2)
-    n = len(arr1)
+    diffs = np.asarray(arr1, dtype=float) - np.asarray(arr2, dtype=float)
+    n = int(np.count_nonzero(diffs))
     mu_w = n * (n + 1) / 4.0
     sigma_w = np.sqrt(n * (n + 1) * (2 * n + 1) / 24.0)
     z = (float(res.statistic) - mu_w) / sigma_w if sigma_w > 0 else 0.0
@@ -93,6 +99,35 @@ class TestWilcoxonEffectSize(TestCase):
         self.assertIn("z_approx", result.additional)
         self.assertIn("n_pairs", result.additional)
         self.assertEqual(result.additional["n_pairs"], 20)
+        # No zero-difference pairs here, so n_pairs == total and none dropped.
+        self.assertEqual(result.additional["n_zero_diffs"], 0)
+
+    def test_zero_difference_pairs_use_n_eff_not_total(self):
+        """F-03: scipy drops zero-difference pairs, so the moments, recovered Z,
+        and r denominator must use the non-zero count -- not the total pairs."""
+        # 12 pairs, the first 4 unchanged (zero difference) -> n_eff = 8.
+        a = np.array([10, 12, 14, 9, 11, 13, 15, 8, 20, 21, 22, 23], dtype=float)
+        b = np.array([10, 12, 14, 9, 8, 10, 11, 5, 16, 18, 19, 20], dtype=float)
+        result = self.engine._exec_wilcoxon([a, b], alpha=0.05)
+
+        # n_pairs reports the EFFECTIVE (non-zero) count, plus how many were dropped.
+        self.assertEqual(result.additional["n_pairs"], 8)
+        self.assertEqual(result.additional["n_zero_diffs"], 4)
+
+        # r and z must match the n_eff-based reference, NOT the total-n formula.
+        self.assertAlmostEqual(result.effect_size, _wilcoxon_r_reference(a, b), places=10)
+
+        # The buggy total-n formula would have given a different (larger-magnitude
+        # moment, hence different) z; confirm we are not on the n=12 scale.
+        n_total = len(a)
+        mu_total = n_total * (n_total + 1) / 4.0
+        sigma_total = np.sqrt(n_total * (n_total + 1) * (2 * n_total + 1) / 24.0)
+        z_total_formula = (float(stats.wilcoxon(a, b).statistic) - mu_total) / sigma_total
+        self.assertGreater(abs(result.additional["z_approx"] - z_total_formula), 1e-6)
+
+        # Effect size stays on the [0, 1] correlation scale.
+        self.assertGreaterEqual(result.effect_size, 0.0)
+        self.assertLessEqual(result.effect_size, 1.0)
 
     def test_regression_not_w_over_max_w(self):
         """Old buggy formula returned stat / (n*(n+1)/2). Verify we no

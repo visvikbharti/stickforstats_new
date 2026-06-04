@@ -170,8 +170,11 @@ class SQSScorer:
             weighted_score = raw_score * self.weights.get(cat, 1.0)
             weighted_max = max_score * self.weights.get(cat, 1.0)
 
-            # Cap at max
-            final_score = min(weighted_score, weighted_max)
+            # Cap at max, and floor at 0: a penalty rule (negative points) can
+            # cancel a category's awarded points but must never produce a
+            # negative, nonsensical quality score (the 0-100 grade scale and the
+            # frontend progress bars assume a non-negative percentage).
+            final_score = max(0.0, min(weighted_score, weighted_max))
 
             percentage = (final_score / weighted_max * 100) if weighted_max > 0 else 0
 

@@ -543,7 +543,7 @@ class GuardianCore:
         # Get alternative tests if needed
         alternatives = self._get_alternatives(test_type, violations)
 
-        # Calculate confidence score (using golden ratio weighting)
+        # Calculate confidence score (severity-weighted; see _calculate_confidence)
         confidence = self._calculate_confidence(violations)
 
         # Generate publication-ready visualizations
@@ -642,8 +642,17 @@ class GuardianCore:
         - Warning violations: penalty = 2.0 (moderate impact)
         - Minor violations: penalty = 1.0 (minimal impact)
 
-        This weighting scheme reflects the relative impact of each violation
-        type on the validity of statistical analysis results.
+        confidence = max(0, 1 - total_penalty / (max_possible_penalty * 1.2))
+
+        Because both total_penalty and max_possible_penalty scale with the
+        violation count, this measures the AVERAGE severity, not the total
+        number of violations (one critical and five criticals both give 0.167).
+        Actual values for uniform-severity violation sets:
+        - all critical -> 0.167
+        - all warning  -> 0.444
+        - all minor    -> 0.722
+        (no violations -> 1.0). This is an internal heuristic, not a named
+        statistic; calibrate any thresholds against these real values.
 
         Returns:
             float: Confidence score between 0 and 1
@@ -657,8 +666,9 @@ class GuardianCore:
         # Maximum possible penalty if all were critical
         max_possible_penalty = len(violations) * SEVERITY_WEIGHTS["critical"]
 
-        # Confidence decreases proportionally to penalty accumulation
-        # Scale so that all-critical gives ~50%, mixed gives 60-80%, all-minor gives ~85%
+        # Confidence decreases with the AVERAGE violation severity (the count
+        # cancels between numerator and denominator). Anchors: all-critical ->
+        # 0.167, all-warning -> 0.444, all-minor -> 0.722.
         confidence = max(0, 1 - (total_penalty / (max_possible_penalty * 1.2)))
 
         return round(confidence, 3)

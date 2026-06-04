@@ -27,7 +27,10 @@ const DataPipeline = () => {
   const [loading, setLoading] = useState(false);
   const [pipelineLog, setPipelineLog] = useState([]);
 
-  const service = new HighPrecisionStatisticalService();
+  // The default export is the singleton instance (the class is the *named*
+  // export), so use it directly. `new` on the instance throws
+  // "is not a constructor"; matches the TTestCalculator/ANOVACalculator usage.
+  const service = HighPrecisionStatisticalService;
 
   const steps = [
     'Data Input',

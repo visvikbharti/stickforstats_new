@@ -356,23 +356,32 @@ class AutonomousCascadeEngine:
 
     def _exec_wilcoxon(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
         stat, p = stats.wilcoxon(arrays[0], arrays[1])
-        n = len(arrays[0])
-        # Effect size r = |Z| / sqrt(N) (Rosenthal 1991; Fritz, Morris &
-        # Richler 2012 J Exp Psychol). Z is recovered from the
-        # Wilcoxon test statistic W via the normal approximation:
-        #   mu_W    = n(n+1) / 4
-        #   sigma_W = sqrt(n(n+1)(2n+1) / 24)
+        # scipy.stats.wilcoxon uses zero_method='wilcox' by default, which DROPS
+        # pairs with a zero difference before computing W and its p-value. The
+        # normal-approximation moments and the effect-size denominator must
+        # therefore use the number of NON-ZERO differences (n_eff), not the
+        # total pair count. Using the total count over-states mu_W/sigma_W, so
+        # the recovered Z (and the reported n_pairs) disagree with the W that
+        # scipy actually returned whenever any pair is unchanged. With no
+        # zero-difference pairs n_eff == total and the result is unchanged.
+        # (audit 2026-06-04, F-03.)
+        diffs = np.asarray(arrays[0], dtype=float) - np.asarray(arrays[1], dtype=float)
+        n_eff = int(np.count_nonzero(diffs))
+        n_zero = int(diffs.size - n_eff)
+        # Effect size r = |Z| / sqrt(n_eff) (Rosenthal 1991; Fritz, Morris &
+        # Richler 2012 J Exp Psychol). Z is recovered from the Wilcoxon test
+        # statistic W via the normal approximation over the n_eff non-zero pairs:
+        #   mu_W    = n_eff(n_eff+1) / 4
+        #   sigma_W = sqrt(n_eff(n_eff+1)(2*n_eff+1) / 24)
         #   Z       = (W - mu_W) / sigma_W
-        # Bug history: prior code computed W / max(W) = W / (n(n+1)/2)
-        # and labelled it "r (effect size)". That formula is not on the
-        # Cohen r scale and was misleading when displayed alongside
-        # Pearson r elsewhere in the pipeline. See
-        # docs/CRITICAL_REVIEW_2026-05-06.md §P1-8.
-        if n > 0:
-            mu_w = n * (n + 1) / 4.0
-            sigma_w = float(np.sqrt(n * (n + 1) * (2 * n + 1) / 24.0))
+        # Bug history: earlier code computed W / max(W) = W / (n(n+1)/2) and
+        # labelled it "r (effect size)" -- not on the Cohen r scale. See
+        # docs/CRITICAL_REVIEW_2026-05-06.md §P1-8 and ROBUSTNESS_AUDIT_2026-06-04.md F-03.
+        if n_eff > 0:
+            mu_w = n_eff * (n_eff + 1) / 4.0
+            sigma_w = float(np.sqrt(n_eff * (n_eff + 1) * (2 * n_eff + 1) / 24.0))
             z = (float(stat) - mu_w) / sigma_w if sigma_w > 0 else 0.0
-            r = abs(z) / float(np.sqrt(n)) if n > 0 else 0.0
+            r = abs(z) / float(np.sqrt(n_eff))
         else:
             z = 0.0
             r = 0.0
@@ -382,7 +391,7 @@ class AutonomousCascadeEngine:
             p_value=float(p),
             effect_size=float(r),
             effect_size_name="r (|Z|/sqrt(N), Rosenthal 1991)",
-            additional={"z_approx": float(z), "n_pairs": int(n)},
+            additional={"z_approx": float(z), "n_pairs": n_eff, "n_zero_diffs": n_zero},
         )
 
     def _exec_anova(self, arrays: List[np.ndarray], alpha: float) -> TestResult:

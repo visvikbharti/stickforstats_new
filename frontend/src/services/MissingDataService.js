@@ -527,6 +527,16 @@ class MissingDataService {
     const results = data.results || data;
     const processed = { ...results };
 
+    // The backend may report the test as unavailable (e.g. Little's MCAR test
+    // is not yet implemented with a validated algorithm). In that case never
+    // synthesize an MCAR verdict — surface the honest "not available" reason.
+    if (results && results.available === false) {
+      processed.is_mcar = null;
+      processed.interpretation = results.reason
+        || "Little's MCAR test is not available; no MCAR verdict can be reported.";
+      return processed;
+    }
+
     // High-precision fields
     const precisionFields = ['chi2_statistic', 'p_value', 'critical_value'];
 

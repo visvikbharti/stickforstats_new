@@ -38,6 +38,35 @@ class MissingPattern(Enum):
     NO_MISSING = "No Missing Data"
 
 
+def classify_missing_mechanism(corr: float) -> str:
+    """Heuristic missing-data mechanism label from the strength of association
+    between missingness and the observed variables.
+
+    SINGLE SOURCE OF TRUTH for the threshold -> mechanism mapping, shared by
+    MissingDataHandler and DataProfiler so they cannot disagree. (DataProfiler
+    previously inverted this -- it labelled weaker association MNAR and stronger
+    association MAR; see robustness audit 2026-06-04, F-08.)
+
+    This is a HEURISTIC SCREEN, not a formal test:
+    - MCAR can be assessed by a dedicated test (e.g. Little's MCAR test).
+    - MAR vs MNAR is fundamentally NOT identifiable from observed data alone
+      (MNAR depends on the unobserved values). A strong observed association can
+      only mean "MNAR cannot be ruled out", never confirm MNAR.
+
+    Thresholds on |corr| between missingness and observed variables:
+        < 0.10  -> 'MCAR'  (no detectable association)
+        < 0.30  -> 'MAR'   (missingness associated with observed variables)
+        >= 0.30 -> 'MNAR'  (strong association; MNAR suspected / cannot be ruled out)
+
+    Returns one of the canonical short codes: 'MCAR' | 'MAR' | 'MNAR'.
+    """
+    if corr < 0.1:
+        return "MCAR"
+    if corr < 0.3:
+        return "MAR"
+    return "MNAR"
+
+
 class ImputationMethod(Enum):
     """Available imputation methods."""
 
@@ -508,43 +537,44 @@ class MissingDataHandler:
             return MissingPattern.MCAR, Decimal("0.5")
 
         # Calculate average correlation
-        avg_corr = np.mean(correlations)
+        avg_corr = float(np.mean(correlations))
 
-        # Determine pattern based on correlations
-        if avg_corr < 0.1:
-            return MissingPattern.MCAR, Decimal(str(1 - avg_corr))
-        elif avg_corr < 0.3:
-            return MissingPattern.MAR, Decimal(str(0.7 - avg_corr))
-        else:
-            return MissingPattern.MNAR, Decimal(str(min(0.9, avg_corr)))
+        # Determine pattern via the shared classifier (single source of truth).
+        code = classify_missing_mechanism(avg_corr)
+        confidence_by_code = {
+            "MCAR": Decimal(str(1 - avg_corr)),
+            "MAR": Decimal(str(0.7 - avg_corr)),
+            "MNAR": Decimal(str(min(0.9, avg_corr))),
+        }
+        return MissingPattern[code], confidence_by_code[code]
 
-    def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Decimal]:
+    def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
-        Perform Little's MCAR test.
-        Simplified implementation - full version would require EM algorithm.
+        Little's MCAR test.
+
+        NOT YET IMPLEMENTED. The correct test requires EM estimation of the joint
+        mean vector and covariance matrix under the MCAR null, then a
+        pattern-weighted sum of Mahalanobis distances between pattern-specific
+        means and the EM grand mean, with
+        df = (sum of observed variables across patterns) - n_vars.
+
+        The previous code returned ``n * log(n_patterns)`` as the chi-square
+        statistic, which is a function of the sample size and the number of
+        missingness patterns -- NOT of the data values -- so its p-value and
+        ``is_mcar`` verdict were meaningless. Rather than ship a fabricated
+        statistic, we return an explicit "unavailable" result so that no
+        unverified MCAR verdict is ever presented to a user. A validated
+        EM-based implementation is tracked as a follow-up.
         """
-        # This is a simplified version
-        # Full implementation would use EM algorithm for parameter estimation
-
-        n = len(df)
-        df.shape[1]
-        n_patterns = df.isnull().value_counts().shape[0]
-
-        # Calculate test statistic (simplified)
-        # In practice, this would involve EM algorithm
-        chi2_stat = n * np.log(n_patterns)  # Simplified
-
-        # Degrees of freedom
-        df_val = n_patterns - 1
-
-        # P-value
-        p_value = 1 - stats.chi2.cdf(chi2_stat, df_val)
-
         return {
-            "chi2_statistic": Decimal(str(chi2_stat)),
-            "degrees_of_freedom": Decimal(str(df_val)),
-            "p_value": Decimal(str(p_value)),
-            "is_mcar": Decimal(str(p_value)) > Decimal("0.05"),
+            "available": False,
+            "test": "Little's MCAR test",
+            "reason": (
+                "Little's MCAR test is not yet implemented. A correct implementation "
+                "requires EM estimation of the joint distribution under the MCAR null; "
+                "no chi-square statistic, p-value, or MCAR verdict is reported here to "
+                "avoid presenting an unverified result."
+            ),
         }
 
     def _calculate_missing_correlations(self, df: pd.DataFrame) -> pd.DataFrame:

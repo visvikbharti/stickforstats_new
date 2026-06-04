@@ -92,8 +92,11 @@ const AuditDashboard = () => {
   // Real data loading from backend
   const fetchAuditData = async (field, range) => {
     try {
-      // Try to fetch real data from backend
-      const service = new StatisticalTestService();
+      // Try to fetch real data from backend.
+      // The default export IS the singleton instance (no named class export),
+      // so use it directly -- constructing it would throw "is not a
+      // constructor", and that throw was being swallowed, leaving /audit empty.
+      const service = StatisticalTestService;
       const response = await service.apiClient.get('/api/audit/summary/', {
         params: {
           field: field === 'all' ? null : field,
