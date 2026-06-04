@@ -213,9 +213,18 @@ def classify(
     else:
         # --- Exact: overlap of reported-p rounding interval with recomputed interval ---
         p_dec = decimals_from_token(p_value_raw, is_p=True)
+        # Half-width of the reported p's rounding interval at its stated precision
+        # (e.g. p=.002 -> +/-.0005). If precision is unknown, fall back to a small
+        # symmetric window.
         p_half = 0.5 * (10.0 ** (-p_dec)) if p_dec is not None else tolerance
         rep_lo, rep_hi = p_value - p_half, p_value + p_half
-        consistent = (p_hi >= rep_lo - tolerance) and (p_lo <= rep_hi + tolerance)
+        # Two intervals are consistent iff they overlap, using ONLY the rounding
+        # intervals. The previous flat additive +/-tolerance (0.005) swamped tiny
+        # p-intervals -- for small reported p (<= ~0.01) it made almost any
+        # recomputed value "consistent", hiding genuine small-p reporting errors
+        # (false negatives). The rounding intervals already absorb legitimate
+        # rounding, so no extra additive slack is warranted. (audit 2026-06-04, F-06.)
+        consistent = (p_hi >= rep_lo) and (p_lo <= rep_hi)
 
     if consistent:
         return ConsistencyVerdict(
