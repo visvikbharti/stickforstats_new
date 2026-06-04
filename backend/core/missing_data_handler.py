@@ -38,6 +38,35 @@ class MissingPattern(Enum):
     NO_MISSING = "No Missing Data"
 
 
+def classify_missing_mechanism(corr: float) -> str:
+    """Heuristic missing-data mechanism label from the strength of association
+    between missingness and the observed variables.
+
+    SINGLE SOURCE OF TRUTH for the threshold -> mechanism mapping, shared by
+    MissingDataHandler and DataProfiler so they cannot disagree. (DataProfiler
+    previously inverted this -- it labelled weaker association MNAR and stronger
+    association MAR; see robustness audit 2026-06-04, F-08.)
+
+    This is a HEURISTIC SCREEN, not a formal test:
+    - MCAR can be assessed by a dedicated test (e.g. Little's MCAR test).
+    - MAR vs MNAR is fundamentally NOT identifiable from observed data alone
+      (MNAR depends on the unobserved values). A strong observed association can
+      only mean "MNAR cannot be ruled out", never confirm MNAR.
+
+    Thresholds on |corr| between missingness and observed variables:
+        < 0.10  -> 'MCAR'  (no detectable association)
+        < 0.30  -> 'MAR'   (missingness associated with observed variables)
+        >= 0.30 -> 'MNAR'  (strong association; MNAR suspected / cannot be ruled out)
+
+    Returns one of the canonical short codes: 'MCAR' | 'MAR' | 'MNAR'.
+    """
+    if corr < 0.1:
+        return "MCAR"
+    if corr < 0.3:
+        return "MAR"
+    return "MNAR"
+
+
 class ImputationMethod(Enum):
     """Available imputation methods."""
 
@@ -508,15 +537,16 @@ class MissingDataHandler:
             return MissingPattern.MCAR, Decimal("0.5")
 
         # Calculate average correlation
-        avg_corr = np.mean(correlations)
+        avg_corr = float(np.mean(correlations))
 
-        # Determine pattern based on correlations
-        if avg_corr < 0.1:
-            return MissingPattern.MCAR, Decimal(str(1 - avg_corr))
-        elif avg_corr < 0.3:
-            return MissingPattern.MAR, Decimal(str(0.7 - avg_corr))
-        else:
-            return MissingPattern.MNAR, Decimal(str(min(0.9, avg_corr)))
+        # Determine pattern via the shared classifier (single source of truth).
+        code = classify_missing_mechanism(avg_corr)
+        confidence_by_code = {
+            "MCAR": Decimal(str(1 - avg_corr)),
+            "MAR": Decimal(str(0.7 - avg_corr)),
+            "MNAR": Decimal(str(min(0.9, avg_corr))),
+        }
+        return MissingPattern[code], confidence_by_code[code]
 
     def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
