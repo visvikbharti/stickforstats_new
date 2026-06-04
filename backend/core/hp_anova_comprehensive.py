@@ -54,6 +54,22 @@ mpmath.mp.dps = 50
 logger = logging.getLogger(__name__)
 
 
+def _json_safe(obj):
+    """Recursively replace non-finite floats (inf/nan) with None so the result is
+    JSON-serializable -- DRF's renderer rejects inf/nan. Degenerate inputs (e.g.
+    zero error variance, which yields F = inf) therefore return null rather than
+    crashing response serialization with a 500."""
+    import math
+
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
 class AnovaType(Enum):
     """Types of ANOVA analyses"""
 
@@ -314,69 +330,284 @@ class HighPrecisionANOVA:
         return result
 
     def two_way_anova(
-        self, data: pd.DataFrame, factor1: str, factor2: str, dependent: str, interaction: bool = True
-    ) -> AnovaResult:
+        self,
+        groups: List[np.ndarray],
+        factor1_levels: List,
+        factor2_levels: List,
+        interaction: bool = True,
+        sum_of_squares_type: int = 2,
+    ) -> Dict[str, Any]:
         """
-        Perform two-way ANOVA with optional interaction
+        Two-way factorial ANOVA with optional interaction.
+
+        Computed via statsmodels' OLS + ``anova_lm`` so the sum-of-squares
+        decomposition (Type I/II/III) is correct for UNBALANCED designs --
+        unlike a hand-rolled main-effect SS, which is only valid when balanced.
+        Type II is the default (recommended for main effects without a forced
+        interaction); pass ``sum_of_squares_type=3`` for Type III.
 
         Args:
-            data: DataFrame with data
-            factor1: Name of first factor column
-            factor2: Name of second factor column
-            dependent: Name of dependent variable column
-            interaction: Whether to include interaction term
+            groups: cell samples in row-major order; ``groups[i*n2 + j]`` is the
+                cell for (factor1_levels[i], factor2_levels[j]).
+            factor1_levels / factor2_levels: the level labels of each factor.
+            interaction: include the factor1 x factor2 interaction term.
+            sum_of_squares_type: 1, 2, or 3.
 
         Returns:
-            AnovaResult with two-way ANOVA results
+            A multi-effect result dict (one entry per main effect + interaction)
+            with F, p, df, SS, MS and partial eta-squared, plus the residual and
+            model R-squared. (Two-way ANOVA yields several effects, so it does
+            not use the single-effect AnovaResult dataclass.)
         """
-        # NOT IMPLEMENTED. Previously this method had a docstring-only body and
-        # fell through to ``return None`` despite its ``-> AnovaResult`` annotation,
-        # so callers received None instead of a result (audit 2026-05-31, ST-1).
-        # Fail loudly instead of returning a silent None. A real implementation
-        # would compute main effects, the interaction term, partial eta-squared,
-        # and post-hoc tests.
-        raise NotImplementedError(
-            "Two-way ANOVA is not implemented in HighPrecisionANOVA. "
-            "Use one_way_anova, or core.services.anova for factorial designs."
-        )
+        import statsmodels.formula.api as smf
+        from statsmodels.stats.anova import anova_lm
 
-    def repeated_measures_anova(self, data: np.ndarray, subject_factor: Optional[np.ndarray] = None) -> AnovaResult:
+        n1, n2 = len(factor1_levels), len(factor2_levels)
+        if n1 < 2 or n2 < 2:
+            raise ValueError("Each factor must have at least 2 levels")
+        if len(groups) != n1 * n2:
+            raise ValueError(
+                f"Expected {n1 * n2} cells (factor1_levels x factor2_levels), got {len(groups)}"
+            )
+        if sum_of_squares_type not in (1, 2, 3):
+            raise ValueError("sum_of_squares_type must be 1, 2, or 3")
+
+        # Reconstruct long-format data from the cell samples.
+        rows = []
+        for i, l1 in enumerate(factor1_levels):
+            for j, l2 in enumerate(factor2_levels):
+                cell = np.asarray(groups[i * n2 + j], dtype=float)
+                cell = cell[~np.isnan(cell)]
+                for v in cell:
+                    rows.append({"y": float(v), "f1": f"L{i}", "f2": f"L{j}"})
+        df = pd.DataFrame(rows)
+        if len(df) <= (n1 * n2):
+            raise ValueError("Insufficient data: need more observations than cells for two-way ANOVA")
+
+        formula = "y ~ C(f1) + C(f2)" + (" + C(f1):C(f2)" if interaction else "")
+        model = smf.ols(formula, data=df).fit()
+        table = anova_lm(model, typ=sum_of_squares_type)
+
+        # statsmodels labels rows C(f1), C(f2), C(f1):C(f2), Residual.
+        label_map = {"C(f1)": "factor1", "C(f2)": "factor2", "C(f1):C(f2)": "interaction"}
+        ss_resid = float(table.loc["Residual", "sum_sq"])
+        df_resid = float(table.loc["Residual", "df"])
+        ms_resid = ss_resid / df_resid if df_resid > 0 else float("nan")
+
+        effects = []
+        for row_label, name in label_map.items():
+            if row_label not in table.index:
+                continue
+            ss = float(table.loc[row_label, "sum_sq"])
+            dfe = float(table.loc[row_label, "df"])
+            F = float(table.loc[row_label, "F"])
+            p = float(table.loc[row_label, "PR(>F)"])
+            partial_eta2 = ss / (ss + ss_resid) if (ss + ss_resid) > 0 else 0.0
+            effects.append({
+                "name": name,
+                "factor": {"factor1": "factor1", "factor2": "factor2", "interaction": "factor1:factor2"}[name],
+                "f_statistic": F,
+                "p_value": p,
+                "df": dfe,
+                "df_residual": df_resid,
+                "sum_of_squares": ss,
+                "mean_square": ss / dfe if dfe > 0 else float("nan"),
+                "partial_eta_squared": partial_eta2,
+            })
+
+        # Balanced if every cell has the same non-zero n.
+        cell_ns = [int(np.sum(~np.isnan(np.asarray(groups[k], dtype=float)))) for k in range(n1 * n2)]
+        balanced = len(set(cell_ns)) == 1
+
+        return _json_safe({
+            "anova_type": "two_way",
+            "design": {
+                "factor1_n_levels": n1,
+                "factor2_n_levels": n2,
+                "balanced": balanced,
+                "cell_sizes": cell_ns,
+                "n_total": int(len(df)),
+                "sum_of_squares_type": sum_of_squares_type,
+                "interaction": interaction,
+            },
+            "effects": effects,
+            "residual": {"df": df_resid, "sum_of_squares": ss_resid, "mean_square": ms_resid},
+            "grand_mean": float(df["y"].mean()),
+            "r_squared": float(model.rsquared),
+            "adjusted_r_squared": float(model.rsquared_adj),
+        })
+
+    def repeated_measures_anova(self, groups: List[np.ndarray]) -> Dict[str, Any]:
         """
-        Perform repeated measures ANOVA
+        One-way repeated-measures (within-subjects) ANOVA with Mauchly's test of
+        sphericity and the Greenhouse-Geisser correction, via pingouin.
 
         Args:
-            data: 2D array where rows are subjects and columns are conditions
-            subject_factor: Optional subject identifiers
+            groups: one array per condition; ``groups[c][s]`` is subject s's value
+                in condition c. All conditions must have the same number of
+                subjects (rows aligned by subject); missing values are not allowed.
 
         Returns:
-            AnovaResult with sphericity corrections
+            A result dict with the uncorrected F/p, df, partial eta-squared, the
+            Mauchly sphericity test, the Greenhouse-Geisser epsilon + corrected
+            p-value, and the recommended p-value (sphericity-corrected when
+            Mauchly's test is significant). Not the one-way AnovaResult dataclass.
         """
-        # NOT IMPLEMENTED — previously returned None silently (audit 2026-05-31,
-        # ST-1). A real implementation would include Mauchly's test for
-        # sphericity and the Greenhouse-Geisser / Huynh-Feldt corrections.
-        raise NotImplementedError(
-            "Repeated-measures ANOVA is not implemented in HighPrecisionANOVA."
-        )
+        import pingouin as pg
 
-    def manova(self, data: pd.DataFrame, factors: List[str], dependents: List[str]) -> ManovaResult:
+        k = len(groups)
+        if k < 2:
+            raise ValueError("Repeated-measures ANOVA needs at least 2 conditions")
+        arrs = [np.asarray(g, dtype=float) for g in groups]
+        n = len(arrs[0])
+        if n < 2:
+            raise ValueError("Repeated-measures ANOVA needs at least 2 subjects")
+        if any(len(a) != n for a in arrs):
+            raise ValueError("All conditions must have the same number of subjects (aligned by row)")
+        if any(np.isnan(a).any() for a in arrs):
+            raise ValueError("Repeated-measures ANOVA does not support missing values")
+
+        rows = []
+        for c, a in enumerate(arrs):
+            for s in range(n):
+                rows.append({"subject": s, "condition": f"C{c}", "value": float(a[s])})
+        df = pd.DataFrame(rows)
+
+        aov = pg.rm_anova(data=df, dv="value", within="condition", subject="subject",
+                          detailed=True, correction=True)
+        # pingouin's detailed rm_anova has one row per Source ('condition', 'Error');
+        # DF is per-row (effect df on 'condition', residual df on 'Error').
+        cond = aov[aov["Source"] == "condition"].iloc[0]
+        err = aov[aov["Source"] == "Error"].iloc[0]
+
+        def _cv(rowobj, name):
+            return float(rowobj[name]) if (name in aov.columns and pd.notna(rowobj[name])) else None
+
+        f_stat = _cv(cond, "F")
+        p_unc = _cv(cond, "p-unc")
+        df_between = _cv(cond, "DF")
+        df_within = _cv(err, "DF")
+        eta2 = _cv(cond, "ng2")          # generalized eta-squared
+        eps_gg = _cv(cond, "eps")        # Greenhouse-Geisser epsilon
+        p_gg = _cv(cond, "p-GG-corr")    # GG-corrected p (None for k=2)
+
+        # Fail LOUDLY if the expected pingouin columns are absent (e.g. a version
+        # bump past the pinned 0.5.x renamed them) rather than silently returning
+        # a None statistic. pingouin is pinned <0.6 for exactly this reason.
+        if f_stat is None or p_unc is None or df_between is None or df_within is None:
+            raise RuntimeError(
+                "Unexpected pingouin rm_anova output (columns: "
+                f"{list(aov.columns)}). The repeated-measures ANOVA expects pingouin "
+                "0.5.x column names (Source/DF/F/p-unc); check the pinned pingouin version."
+            )
+
+        # Mauchly's test of sphericity: richer detail (W, chi2, dof) from pg.sphericity.
+        try:
+            spher = pg.sphericity(data=df, dv="value", within="condition", subject="subject")
+            sphericity_met = bool(spher.spher)
+            mauchly_w = float(spher.W) if spher.W is not None else None
+            mauchly_chi2 = float(spher.chi2) if getattr(spher, "chi2", None) is not None else None
+            mauchly_dof = float(spher.dof) if getattr(spher, "dof", None) is not None else None
+            mauchly_p = float(spher.pval) if spher.pval is not None else None
+        except Exception:
+            # k = 2 conditions: sphericity is trivially satisfied.
+            sphericity_met, mauchly_w, mauchly_chi2, mauchly_dof, mauchly_p = True, 1.0, None, None, None
+
+        recommended_p = p_unc if sphericity_met else (p_gg if p_gg is not None else p_unc)
+
+        return _json_safe({
+            "anova_type": "repeated_measures",
+            "n_subjects": int(n),
+            "n_conditions": int(k),
+            "f_statistic": f_stat,
+            "p_value": p_unc,
+            "df_between": df_between,
+            "df_within": df_within,
+            "partial_eta_squared": eta2,
+            "sphericity": {
+                "mauchly_w": mauchly_w,
+                "chi_square": mauchly_chi2,
+                "df": mauchly_dof,
+                "p_value": mauchly_p,
+                "assumption_met": sphericity_met,
+            },
+            "greenhouse_geisser": {"epsilon": eps_gg, "p_value": p_gg},
+            "recommended_p_value": recommended_p,
+            "recommended_p_basis": "uncorrected" if sphericity_met else "greenhouse_geisser",
+        })
+
+    def manova(self, groups: List[np.ndarray], dependent_variables: List[np.ndarray]) -> Dict[str, Any]:
         """
-        Perform MANOVA (Multivariate ANOVA)
+        One-way MANOVA via statsmodels: tests whether a categorical factor
+        (defined by ``groups``) affects the joint distribution of several
+        dependent variables. Returns the four standard multivariate test
+        statistics -- Wilks' lambda, Pillai's trace, Hotelling-Lawley trace, and
+        Roy's greatest root -- each with its F-approximation, df and p-value.
 
         Args:
-            data: DataFrame with data
-            factors: List of factor column names
-            dependents: List of dependent variable column names
+            groups: one array per factor level; the lengths/order define the
+                grouping factor (the values are NOT the DVs).
+            dependent_variables: list of m >= 2 DV columns, each of length
+                N = total observations (sum of group sizes), ordered by group
+                concatenation.
 
         Returns:
-            ManovaResult with multiple test statistics
+            A multi-statistic result dict (not the single-effect AnovaResult).
         """
-        # NOT IMPLEMENTED — previously returned None silently (audit 2026-05-31,
-        # ST-1). A real implementation would compute Wilks' Lambda, Pillai's
-        # trace, the Hotelling-Lawley trace, and Roy's largest root.
-        raise NotImplementedError(
-            "MANOVA is not implemented in HighPrecisionANOVA. "
-            "Use core.services.multivariate for multivariate analysis."
-        )
+        from statsmodels.multivariate.manova import MANOVA
+
+        k = len(groups)
+        if k < 2:
+            raise ValueError("MANOVA needs at least 2 groups")
+        sizes = [int(len(np.asarray(g))) for g in groups]
+        n_total = sum(sizes)
+        m = len(dependent_variables)
+        if m < 2:
+            raise ValueError("MANOVA needs at least 2 dependent variables")
+        dv = [np.asarray(d, dtype=float) for d in dependent_variables]
+        if any(len(d) != n_total for d in dv):
+            raise ValueError(f"Each dependent variable must have length {n_total} (total observations)")
+
+        factor = []
+        for i, s in enumerate(sizes):
+            factor += [f"G{i}"] * s
+        dv_names = [f"dv{j}" for j in range(m)]
+        data = {"factor": factor}
+        for j, name in enumerate(dv_names):
+            data[name] = dv[j]
+        df = pd.DataFrame(data)
+
+        formula = " + ".join(dv_names) + " ~ C(factor)"
+        table = MANOVA.from_formula(formula, data=df).mv_test().results["C(factor)"]["stat"]
+
+        label_to_key = {
+            "Wilks' lambda": "wilks_lambda",
+            "Pillai's trace": "pillai_trace",
+            "Hotelling-Lawley trace": "hotelling_lawley_trace",
+            "Roy's greatest root": "roy_greatest_root",
+        }
+        stats_out = {}
+        for label, key in label_to_key.items():
+            if label in table.index:
+                r = table.loc[label]
+                stats_out[key] = {
+                    "value": float(r["Value"]),
+                    "f_statistic": float(r["F Value"]),
+                    "num_df": float(r["Num DF"]),
+                    "den_df": float(r["Den DF"]),
+                    "p_value": float(r["Pr > F"]),
+                }
+
+        return _json_safe({
+            "anova_type": "manova",
+            "n_groups": k,
+            "n_dependent_variables": m,
+            "n_total": n_total,
+            "group_sizes": sizes,
+            "test_statistics": stats_out,
+            # Wilks' lambda is the conventional headline statistic.
+            "primary": stats_out.get("wilks_lambda"),
+        })
 
     _POST_HOC_ALIASES = {
         "tukey": PostHocTest.TUKEY_HSD,
@@ -738,18 +969,35 @@ class HighPrecisionANOVA:
         return Decimal(str(f_crit))
 
     def _calculate_power(self, f_stat: Decimal, df1: int, df2: int, alpha: Decimal = Decimal("0.05")) -> Optional[Decimal]:
-        """Observed (post-hoc) power for ANOVA.
+        """Observed (post-hoc) power for a one-way ANOVA via the non-central F
+        distribution.
 
-        NOT IMPLEMENTED. A correct observed power requires the non-central
-        F-distribution (non-centrality lambda = f_stat * df1). The previous body
-        returned a fabricated monotone heuristic (0.8 + 0.1*effect when
-        significant, else a flat 0.5) capped at 0.99 -- not a statistically
-        meaningful power. Return None ("not computed") so no fabricated power is
-        ever presented; generate_anova_report already omits the line when None.
-        A real non-central-F implementation is tracked as a follow-up.
-        (audit 2026-06-04, F-12.)
+        Computed honestly (replaces the fabricated 0.8 + 0.1*effect heuristic
+        removed in audit F-12):
+            Cohen's f^2 = df1 * F / df2          (= eta^2 / (1 - eta^2))
+            noncentrality lambda = f^2 * N,  N = df1 + df2 + 1
+            power = P(F_{df1, df2, lambda} > F_crit),  F_crit = F^{-1}_{df1,df2}(1 - alpha)
+        This matches G*Power / statsmodels FTestAnovaPower.
+
+        CAVEAT: observed (post-hoc) power is a deterministic monotone transform of
+        the p-value and is NOT a substitute for an a-priori power analysis; it is
+        reported for completeness only. Returns None when undefined (non-positive
+        df or F).
         """
-        return None
+        from scipy.stats import f as f_dist, ncf
+
+        f_obs = float(f_stat)
+        a = float(alpha)
+        if df1 <= 0 or df2 <= 0 or f_obs <= 0 or not (0 < a < 1):
+            return None
+        n_total = df1 + df2 + 1
+        cohen_f2 = (df1 * f_obs) / df2
+        noncentrality = cohen_f2 * n_total
+        f_crit = float(f_dist.ppf(1 - a, df1, df2))
+        power = float(ncf.sf(f_crit, df1, df2, noncentrality))
+        if not (0.0 <= power <= 1.0):
+            return None
+        return Decimal(str(power))
 
 
 def generate_anova_report(result: AnovaResult) -> str:

@@ -33,6 +33,13 @@ GROUPS_4 = [
     [3.0, 4.0, 5.0, 6.0],
     [4.0, 5.0, 6.0, 7.0],
 ]
+# Repeated-measures: 3 conditions x 6 subjects, NON-parallel (real within-subject
+# variation) so the error variance is non-zero (parallel data -> F=inf).
+GROUPS_RM = [
+    [12.0, 9.0, 14.0, 11.0, 13.0, 10.0],
+    [14.0, 10.0, 13.0, 12.0, 16.0, 11.0],
+    [18.0, 13.0, 17.0, 15.0, 20.0, 14.0],
+]
 
 # Fully-specified, serializer-valid payloads for each accepted type.
 PAYLOADS = {
@@ -43,15 +50,19 @@ PAYLOADS = {
         "factor1_levels": ["a", "b"],
         "factor2_levels": ["x", "y"],
     },
-    "repeated_measures": {"anova_type": "repeated_measures", "groups": GROUPS_3},
+    "repeated_measures": {"anova_type": "repeated_measures", "groups": GROUPS_RM},
     "manova": {
         "anova_type": "manova",
-        "groups": GROUPS_3,
-        # dependent_variables must match total observations (3 x 6 = 18).
-        "dependent_variables": [[float(i) for i in range(18)]],
+        "groups": GROUPS_3,  # 3 groups x 6 = 18 observations define the factor
+        # MANOVA needs >= 2 dependent variables, each of length = total obs (18).
+        "dependent_variables": [
+            [12.0, 9.0, 14.0, 11.0, 13.0, 10.0, 15.0, 12.0, 16.0, 13.0, 17.0, 14.0, 18.0, 15.0, 19.0, 16.0, 20.0, 17.0],
+            [5.0, 7.0, 6.0, 8.0, 5.0, 9.0, 7.0, 6.0, 9.0, 8.0, 7.0, 10.0, 8.0, 11.0, 9.0, 12.0, 10.0, 13.0],
+        ],
     },
 }
-UNIMPLEMENTED_TYPES = ["two_way", "repeated_measures", "manova"]
+# Every ANOVA type the serializer accepts is now implemented.
+IMPLEMENTED_TYPES = ["one_way", "two_way", "repeated_measures", "manova"]
 
 
 @override_settings(
@@ -71,13 +82,15 @@ class TestAnovaTypeContract(APITestCase):
         resp = self._post("one_way")
         self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
 
-    def test_unimplemented_types_return_501(self):
-        for t in UNIMPLEMENTED_TYPES:
+    def test_implemented_types_return_200(self):
+        # one-way, two-way, repeated-measures, and MANOVA are all implemented.
+        for t in IMPLEMENTED_TYPES:
             resp = self._post(t)
             self.assertEqual(
-                resp.status_code, 501,
-                msg=f"{t}: expected 501 Not Implemented, got {resp.status_code}: {resp.content[:200]}",
+                resp.status_code, 200,
+                msg=f"{t}: expected 200, got {resp.status_code}: {resp.content[:200]}",
             )
+            self.assertIn("high_precision_result", resp.data)
 
     def test_no_accepted_type_produces_a_500(self):
         # The core contract: no serializer-accepted type may yield a 500.
@@ -89,17 +102,22 @@ class TestAnovaTypeContract(APITestCase):
             )
 
     def test_error_responses_are_not_cached_as_200(self):
-        # A 501 must stay 501 on a repeat request (errors are never cached and
-        # re-served as a misleading 200), while a successful 200 may be cached.
-        first = self._post("two_way")
-        second = self._post("two_way")
-        self.assertEqual(first.status_code, 501)
-        self.assertEqual(second.status_code, 501)
+        # An error response must not be cached and re-served as a misleading 200
+        # (F-04 cache fix). MANOVA with only ONE dependent variable raises a
+        # ValueError -> HTTP 422; it must stay 422 on a repeat request.
+        bad = {
+            "anova_type": "manova",
+            "groups": GROUPS_3,
+            "dependent_variables": [[float(i) for i in range(18)]],  # 1 DV -> 422
+        }
+        first = self.client.post(ANOVA_URL, bad, format="json")
+        second = self.client.post(ANOVA_URL, bad, format="json")
+        self.assertEqual(first.status_code, 422, msg=first.content[:200])
+        self.assertEqual(second.status_code, 422)
 
+        # A successful 200 may be cached, and the cache path preserves the 200.
         ok1 = self._post("one_way")
         ok2 = self._post("one_way")
         self.assertEqual(ok1.status_code, 200)
         self.assertEqual(ok2.status_code, 200)
-        # The second one-way call should be served from cache, proving the cache
-        # path preserves a 200 (and the status round-trips correctly).
         self.assertTrue(ok2.data.get("_cache_hit", False))
