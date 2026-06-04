@@ -737,16 +737,19 @@ class HighPrecisionANOVA:
         f_crit = f.ppf(1 - float(alpha), df1, df2)
         return Decimal(str(f_crit))
 
-    def _calculate_power(self, f_stat: Decimal, df1: int, df2: int, alpha: Decimal = Decimal("0.05")) -> Decimal:
-        """Calculate observed power for ANOVA"""
-        # This requires non-central F-distribution
-        # Simplified approximation for now
-        if f_stat > self._get_f_critical(alpha, df1, df2):
-            # Rough approximation
-            effect_size = Decimal(str(mpmath.sqrt(float(f_stat * df1 / (df1 + df2)))))
-            power = Decimal("0.8") + effect_size * Decimal("0.1")
-            return min(power, Decimal("0.99"))
-        return Decimal("0.5")
+    def _calculate_power(self, f_stat: Decimal, df1: int, df2: int, alpha: Decimal = Decimal("0.05")) -> Optional[Decimal]:
+        """Observed (post-hoc) power for ANOVA.
+
+        NOT IMPLEMENTED. A correct observed power requires the non-central
+        F-distribution (non-centrality lambda = f_stat * df1). The previous body
+        returned a fabricated monotone heuristic (0.8 + 0.1*effect when
+        significant, else a flat 0.5) capped at 0.99 -- not a statistically
+        meaningful power. Return None ("not computed") so no fabricated power is
+        ever presented; generate_anova_report already omits the line when None.
+        A real non-central-F implementation is tracked as a follow-up.
+        (audit 2026-06-04, F-12.)
+        """
+        return None
 
 
 def generate_anova_report(result: AnovaResult) -> str:
