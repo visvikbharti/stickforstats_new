@@ -491,6 +491,16 @@ class HighPrecisionANOVA:
         eps_gg = _cv(cond, "eps")        # Greenhouse-Geisser epsilon
         p_gg = _cv(cond, "p-GG-corr")    # GG-corrected p (None for k=2)
 
+        # Fail LOUDLY if the expected pingouin columns are absent (e.g. a version
+        # bump past the pinned 0.5.x renamed them) rather than silently returning
+        # a None statistic. pingouin is pinned <0.6 for exactly this reason.
+        if f_stat is None or p_unc is None or df_between is None or df_within is None:
+            raise RuntimeError(
+                "Unexpected pingouin rm_anova output (columns: "
+                f"{list(aov.columns)}). The repeated-measures ANOVA expects pingouin "
+                "0.5.x column names (Source/DF/F/p-unc); check the pinned pingouin version."
+            )
+
         # Mauchly's test of sphericity: richer detail (W, chi2, dof) from pg.sphericity.
         try:
             spher = pg.sphericity(data=df, dv="value", within="condition", subject="subject")
