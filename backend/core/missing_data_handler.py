@@ -518,33 +518,33 @@ class MissingDataHandler:
         else:
             return MissingPattern.MNAR, Decimal(str(min(0.9, avg_corr)))
 
-    def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Decimal]:
+    def _littles_mcar_test(self, df: pd.DataFrame) -> Dict[str, Any]:
         """
-        Perform Little's MCAR test.
-        Simplified implementation - full version would require EM algorithm.
+        Little's MCAR test.
+
+        NOT YET IMPLEMENTED. The correct test requires EM estimation of the joint
+        mean vector and covariance matrix under the MCAR null, then a
+        pattern-weighted sum of Mahalanobis distances between pattern-specific
+        means and the EM grand mean, with
+        df = (sum of observed variables across patterns) - n_vars.
+
+        The previous code returned ``n * log(n_patterns)`` as the chi-square
+        statistic, which is a function of the sample size and the number of
+        missingness patterns -- NOT of the data values -- so its p-value and
+        ``is_mcar`` verdict were meaningless. Rather than ship a fabricated
+        statistic, we return an explicit "unavailable" result so that no
+        unverified MCAR verdict is ever presented to a user. A validated
+        EM-based implementation is tracked as a follow-up.
         """
-        # This is a simplified version
-        # Full implementation would use EM algorithm for parameter estimation
-
-        n = len(df)
-        df.shape[1]
-        n_patterns = df.isnull().value_counts().shape[0]
-
-        # Calculate test statistic (simplified)
-        # In practice, this would involve EM algorithm
-        chi2_stat = n * np.log(n_patterns)  # Simplified
-
-        # Degrees of freedom
-        df_val = n_patterns - 1
-
-        # P-value
-        p_value = 1 - stats.chi2.cdf(chi2_stat, df_val)
-
         return {
-            "chi2_statistic": Decimal(str(chi2_stat)),
-            "degrees_of_freedom": Decimal(str(df_val)),
-            "p_value": Decimal(str(p_value)),
-            "is_mcar": Decimal(str(p_value)) > Decimal("0.05"),
+            "available": False,
+            "test": "Little's MCAR test",
+            "reason": (
+                "Little's MCAR test is not yet implemented. A correct implementation "
+                "requires EM estimation of the joint distribution under the MCAR null; "
+                "no chi-square statistic, p-value, or MCAR verdict is reported here to "
+                "avoid presenting an unverified result."
+            ),
         }
 
     def _calculate_missing_correlations(self, df: pd.DataFrame) -> pd.DataFrame:
