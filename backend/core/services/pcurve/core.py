@@ -167,18 +167,30 @@ def _pvalue_cdf_under_ncp(study: Dict[str, Any], ncp: float, p_threshold: float)
     if tt in ("t", "r"):
         df = float(study["df1"])
         tc = stats.t.ppf(1 - p_threshold / 2.0, df)
-        return float(stats.nct.sf(tc, df, ncp) + stats.nct.cdf(-tc, df, ncp))
+        val = stats.nct.sf(tc, df, ncp) + stats.nct.cdf(-tc, df, ncp)
+        if not np.isfinite(val):
+            # scipy's noncentral t underflows to NaN at large noncentrality;
+            # there power -> 1, so the normal approximation (exact in that
+            # regime) keeps the power monotone and finite for the solver.
+            val = stats.norm.sf(tc - ncp) + stats.norm.cdf(-tc - ncp)
+        return float(np.clip(val, 0.0, 1.0))
     if tt == "z":
         zc = stats.norm.ppf(1 - p_threshold / 2.0)
-        return float(stats.norm.sf(zc - ncp) + stats.norm.cdf(-zc - ncp))
+        return float(np.clip(stats.norm.sf(zc - ncp) + stats.norm.cdf(-zc - ncp), 0.0, 1.0))
     if tt == "f":
         df1, df2 = float(study["df1"]), float(study["df2"])
         fc = stats.f.ppf(1 - p_threshold, df1, df2)
-        return float(stats.ncf.sf(fc, df1, df2, ncp))
+        val = stats.ncf.sf(fc, df1, df2, ncp)
+        if not np.isfinite(val):
+            val = 1.0  # ncf underflows only at large noncentrality, where power -> 1
+        return float(np.clip(val, 0.0, 1.0))
     if tt in ("chi2", "x2"):
         df = float(study["df1"])
         cc = stats.chi2.ppf(1 - p_threshold, df)
-        return float(stats.ncx2.sf(cc, df, ncp))
+        val = stats.ncx2.sf(cc, df, ncp)
+        if not np.isfinite(val):
+            val = 1.0  # ncx2 underflows only at large noncentrality, where power -> 1
+        return float(np.clip(val, 0.0, 1.0))
     raise ValueError(f"Non-noncentral test type: {tt}")
 
 
@@ -195,11 +207,15 @@ def _ncp_for_power(study: Dict[str, Any], target_power: float, alpha: float = AL
     def f(ncp):
         return _pvalue_cdf_under_ncp(study, ncp, alpha) - target_power
 
-    # power is monotone increasing in ncp; grow the bracket until it spans the root
-    hi = 20.0
-    while f(hi) < 0 and hi < 1e6:
-        hi *= 4.0
-    ncp = float(optimize.brentq(f, 0.0, hi, xtol=1e-7)) if f(0.0) < 0 else 0.0
+    # power is monotone increasing in ncp (and now always finite); grow a tight
+    # bracket from a small upper bound until it spans the root, then solve.
+    if f(0.0) >= 0:
+        ncp = 0.0
+    else:
+        hi = 8.0
+        while f(hi) < 0 and hi < 1e6:
+            hi *= 2.0
+        ncp = float(optimize.brentq(f, 0.0, hi, xtol=1e-7))
     _NCP_CACHE[key] = ncp
     return ncp
 
