@@ -9,7 +9,7 @@ Created: December 26, 2025
 
 from typing import Dict, Any, List
 import numpy as np
-from .core import PCurveResult
+from .core import PCurveResult, expected_pcurve_props
 
 
 def generate_pcurve_plot_data(result: PCurveResult) -> Dict[str, Any]:
@@ -36,12 +36,16 @@ def generate_pcurve_plot_data(result: PCurveResult) -> Dict[str, Any]:
     # Expected under null (uniform)
     expected_null_props = [0.2] * 5  # 20% in each bin
 
-    # Expected under 33% power (slightly right-skewed)
-    # Approximate distribution
-    expected_33_props = [0.356, 0.161, 0.161, 0.161, 0.161]
+    # Expected under 33% power -- df-aware, computed from the studies' test
+    # statistics inside compute_pcurve (monotonically decreasing, not the old
+    # hardcoded flat tail). Falls back to a representative df when only bare
+    # p-values were supplied.
+    s33 = sum(result.expected_33) or 1.0
+    expected_33_props = [c / s33 for c in result.expected_33]
 
-    # Expected under 80% power (highly right-skewed)
-    expected_80_props = [0.73, 0.10, 0.07, 0.05, 0.05]
+    # Expected under 80% power -- representative reference curve (the per-study
+    # statistics are not carried into the visualization layer).
+    expected_80_props = expected_pcurve_props(None, 0.80)
 
     return {
         "title": "P-Curve Analysis",
@@ -173,20 +177,30 @@ def generate_comparison_data(result: PCurveResult, include_power_curves: bool = 
             else "No significant right-skew",
         },
         "half_test": {
-            "test_name": "Binomial test",
+            "test_name": "Half-curve right-skew test",
             "n_below_025": result.half_test.get("n_below", 0),
             "n_total": result.half_test.get("n_total", 0),
             "proportion": result.half_test.get("prop", 0),
             "p": result.half_test.get("p", 1),
             "significant": result.half_test.get("significant", False),
         },
-        "flat_test": {
-            "test_name": "33% power test",
-            "p": result.flat_test.get("p", 1),
-            "conclusion": "Consistent with 33% power"
-            if result.flat_test.get("p", 1) > 0.05
-            else "Differs from 33% power",
-        },
+        "flat_test": (
+            {
+                "test_name": "Flat test (vs 33% power)",
+                "available": True,
+                "p": result.flat_test.get("p", 1),
+                "significant": result.flat_test.get("significant", False),
+                "conclusion": "Flatter than 33% power (evidential value inadequate)"
+                if result.flat_test.get("significant")
+                else "Not flatter than 33% power",
+            }
+            if result.flat_test.get("available", False)
+            else {
+                "test_name": "Flat test (vs 33% power)",
+                "available": False,
+                "conclusion": result.flat_test.get("reason", "Not available"),
+            }
+        ),
     }
 
     return {

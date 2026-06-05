@@ -37,6 +37,7 @@ class PCurveInput:
     original_string: str = ""
     is_valid: bool = True
     error_message: str = ""
+    is_bound: bool = False  # True if input was an inequality (e.g. "p < .05")
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -133,14 +134,14 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
     r_pattern = r"r\((\d+)\)\s*=\s*(-?\d*\.?\d+)"
     r_match = re.search(r_pattern, input_string)
     if r_match:
-        n_or_df = int(r_match.group(1))
+        # APA convention: r(df) with df = n - 2, so the captured number is df.
+        # (The previous code applied a discontinuous "+2 if <=10 else n" heuristic
+        # that made df non-monotonic and mis-derived the p-value.)
+        df = int(r_match.group(1))
         r_stat = float(r_match.group(2))
-        # Assume it's n; df = n - 2
-        n = n_or_df if n_or_df > 10 else n_or_df + 2  # Heuristic
-        df = n - 2
-        # Convert r to t
-        t_stat = r_stat * np.sqrt(df / (1 - r_stat**2)) if abs(r_stat) < 1 else 0
-        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+        n = df + 2
+        t_stat = r_stat * np.sqrt(df / (1 - r_stat**2)) if abs(r_stat) < 1 else 0.0
+        p_value = 2 * stats.t.sf(abs(t_stat), df)
         return PCurveInput(
             study_id=study_id,
             test_type="r",
@@ -151,11 +152,30 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
             original_string=original,
         )
 
-    # Pattern for direct p-value: p = value or p < value
-    p_pattern = r"p\s*[=<]\s*(\d*\.?\d+)"
+    # Pattern for direct p-value: p = value  (or a bound  p < value)
+    p_pattern = r"p\s*([=<])\s*(\d*\.?\d+)"
     p_match = re.search(p_pattern, input_string)
     if p_match:
-        p_value = float(p_match.group(1))
+        op = p_match.group(1)
+        p_value = float(p_match.group(2))
+        if op == "<":
+            # A bound (e.g. "p < .05") cannot be placed in a p-curve bin and is
+            # excluded per the p-curve protocol (the old code silently treated it
+            # as an exact p = value, which biases bin placement and pp-values).
+            # The user should supply the exact p-value or the test statistic.
+            return PCurveInput(
+                study_id=study_id,
+                test_type="p",
+                statistic=p_value,
+                p_value=None,
+                is_bound=True,
+                is_valid=False,
+                error_message=(
+                    f"'{original}' is a bound (inequality). Provide an exact p-value "
+                    "or the test statistic (e.g. t(48)=2.10) for p-curve analysis."
+                ),
+                original_string=original,
+            )
         return PCurveInput(
             study_id=study_id, test_type="p", statistic=p_value, p_value=float(p_value), original_string=original
         )

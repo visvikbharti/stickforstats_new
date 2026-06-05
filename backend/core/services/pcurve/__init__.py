@@ -27,8 +27,9 @@ from .core import (
     compute_pcurve,
     compute_pp_values,
     stouffer_test,
-    binomial_test_33,
-    binomial_test_half,
+    half_test_stouffer,
+    flat_test_33,
+    estimate_power,
     get_pcurve_interpretation,
 )
 
@@ -42,8 +43,9 @@ __all__ = [
     "compute_pcurve",
     "compute_pp_values",
     "stouffer_test",
-    "binomial_test_33",
-    "binomial_test_half",
+    "half_test_stouffer",
+    "flat_test_33",
+    "estimate_power",
     "get_pcurve_interpretation",
     # Input
     "parse_test_statistic",

@@ -1178,35 +1178,37 @@ class PCurveAnalysisView(APIView):
         try:
             data = serializer.validated_data
 
-            # Collect p-values from various input methods
+            # Collect p-values AND per-study test statistics. The df-aware flat
+            # test and average-power estimate need each study's test statistic
+            # (df), so we forward full study records, not just bare p-values.
             p_values = []
+            study_records = []
 
-            if data.get("p_values"):
-                p_values.extend(data["p_values"])
+            for pv in data.get("p_values") or []:
+                p_values.append(pv)
+                study_records.append({"p_value": pv, "test_type": "p"})
 
-            if data.get("studies"):
-                parsed, errors = parse_multiple_studies(data["studies"])
-                for p in parsed:
-                    if p.p_value is not None:
-                        p_values.append(p.p_value)
+            for source in ("studies", "detailed_inputs"):
+                if data.get(source):
+                    parsed, _errors = parse_multiple_studies(data[source])
+                    for s in parsed:
+                        if s.p_value is not None:
+                            p_values.append(s.p_value)
+                            study_records.append({
+                                "p_value": s.p_value,
+                                "test_type": s.test_type,
+                                "df1": s.df1,
+                                "df2": s.df2,
+                                "n": s.n,
+                            })
 
-                if errors:
-                    # Include parsing errors in response
-                    pass  # Will be included in result
-
-            if data.get("detailed_inputs"):
-                parsed, errors = parse_multiple_studies(data["detailed_inputs"])
-                for p in parsed:
-                    if p.p_value is not None:
-                        p_values.append(p.p_value)
-
-            if not p_values:
+            if not study_records:
                 return Response(
                     {"error": "No valid p-values could be extracted from input"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Perform p-curve analysis
-            result = compute_pcurve(p_values)
+            # Perform p-curve analysis (df-aware when test statistics are present)
+            result = compute_pcurve(p_values, studies=study_records)
 
             return Response(result.to_dict(), status=status.HTTP_200_OK)
 
