@@ -27,7 +27,7 @@ from dataclasses import dataclass, asdict
 import numpy as np
 from scipy import stats, integrate
 
-from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability
+from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability, json_safe
 from .priors import get_prior_scale_value, CauchyPrior, PRIOR_SCALES
 from .posterior import (
     compute_posterior_ttest,
@@ -93,63 +93,90 @@ class BayesianTTestResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        result = asdict(self)
-        # Convert numpy types to native Python types
-        for key, value in result.items():
-            if isinstance(value, np.ndarray):
-                result[key] = value.tolist()
-            elif isinstance(value, (np.float64, np.float32)):
-                result[key] = float(value)
-            elif isinstance(value, (np.int64, np.int32)):
-                result[key] = int(value)
-        return result
+        return json_safe(asdict(self))
+
+
+def _jzs_bf10_from_t(t: float, n_eff: float, df: int, r: float = 0.707) -> float:
+    """
+    JZS Bayes factor (BF10) from a t-statistic via the Rouder et al. (2009)
+    closed-form g-integral.
+
+    BF10 = integral_0^inf f(g) dg / (1 + t^2/df)^(-(df+1)/2), with
+
+        f(g) = (1 + n_eff*g*r^2)^(-1/2)
+               * (1 + t^2 / ((1 + n_eff*g*r^2) * df))^(-(df+1)/2)
+               * (2*pi)^(-1/2) * g^(-3/2) * exp(-1/(2*g))
+
+    The integration is over the prior-variance parameter g on (0, inf) and
+    never evaluates the noncentral-t density, so it is numerically stable.
+    (The previous implementation integrated nct.pdf over (-inf, +inf); scipy's
+    nct.pdf returns NaN at the Cauchy prior's extreme-noncentrality tails, the
+    integral came back NaN, the ``marginal_h1 > 0`` guard was False, and EVERY
+    t-test silently returned the fabricated fallback BF10 = 1.0.)
+
+    Verified against ``pingouin.bayesfactor_ttest`` to machine precision.
+
+    Args:
+        t: observed t-statistic
+        n_eff: effective sample size (N for one-sample/paired;
+            n1*n2/(n1+n2) for two-sample)
+        df: degrees of freedom
+        r: Cauchy prior scale on the standardized effect size
+
+    Returns:
+        BF10 (evidence for H1 over H0)
+    """
+    if np.isinf(t):
+        # Zero within-sample variance with a non-null mean: infinite
+        # separation from H0 => unbounded evidence for H1.
+        return float("inf")
+    if np.isnan(t) or df <= 0:
+        raise ValueError(
+            f"JZS Bayes factor is undefined for t={t}, df={df} "
+            "(degenerate input: zero variance or insufficient sample size)."
+        )
+
+    def integrand(g):
+        return (
+            (1.0 + n_eff * g * r ** 2) ** (-0.5)
+            * (1.0 + t ** 2 / ((1.0 + n_eff * g * r ** 2) * df)) ** (-(df + 1) / 2.0)
+            * (2.0 * np.pi) ** (-0.5)
+            * g ** (-1.5)
+            * np.exp(-1.0 / (2.0 * g))
+        )
+
+    numerator, _ = integrate.quad(integrand, 0, np.inf, limit=100)
+    denominator = (1.0 + t ** 2 / df) ** (-(df + 1) / 2.0)
+    bf10 = numerator / denominator
+
+    if not np.isfinite(bf10) or bf10 <= 0:
+        # Should be unreachable for finite t and df >= 1; never silently
+        # downgrade a failed integral to the misleading BF10 = 1.0.
+        raise ValueError(
+            f"JZS Bayes factor integration produced a non-finite value "
+            f"(t={t}, n_eff={n_eff}, df={df}, r={r})."
+        )
+    return float(bf10)
 
 
 def _compute_jzs_bf_one_sample(t: float, n: int, r: float = 0.707) -> float:
     """
-    Compute JZS Bayes Factor for one-sample t-test.
-
-    Uses numerical integration of the marginal likelihood.
+    Compute the JZS Bayes Factor (BF10) for a one-sample (or paired) t-test.
 
     Args:
         t: Observed t-statistic
-        n: Sample size
+        n: Sample size (number of observations / pairs)
         r: Cauchy prior scale
 
     Returns:
         BF10 (Bayes Factor in favor of H1)
     """
-    df = n - 1
-
-    # Likelihood under H0
-    likelihood_h0 = stats.t.pdf(t, df)
-
-    # Marginal likelihood under H1 (integrate over effect sizes)
-    def integrand(delta):
-        # Non-centrality parameter
-        ncp = delta * np.sqrt(n)
-        # Likelihood of t given delta
-        likelihood = stats.nct.pdf(t, df, ncp)
-        # Prior on delta (Cauchy)
-        prior = stats.cauchy.pdf(delta, loc=0, scale=r)
-        return likelihood * prior
-
-    # Numerical integration over reasonable range
-    # The Cauchy prior has heavy tails, so we need wide bounds
-    marginal_h1, _ = integrate.quad(integrand, -np.inf, np.inf, limit=100)
-
-    # Bayes Factor
-    if likelihood_h0 > 0 and marginal_h1 > 0:
-        bf10 = marginal_h1 / likelihood_h0
-    else:
-        bf10 = 1.0  # Fallback
-
-    return bf10
+    return _jzs_bf10_from_t(t, n_eff=n, df=n - 1, r=r)
 
 
 def _compute_jzs_bf_two_sample(t: float, n1: int, n2: int, r: float = 0.707) -> float:
     """
-    Compute JZS Bayes Factor for two-sample t-test.
+    Compute the JZS Bayes Factor (BF10) for a two-sample t-test.
 
     Args:
         t: Observed t-statistic
@@ -160,27 +187,8 @@ def _compute_jzs_bf_two_sample(t: float, n1: int, n2: int, r: float = 0.707) -> 
     Returns:
         BF10 (Bayes Factor in favor of H1)
     """
-    df = n1 + n2 - 2
     n_eff = (n1 * n2) / (n1 + n2)
-
-    # Likelihood under H0
-    likelihood_h0 = stats.t.pdf(t, df)
-
-    # Marginal likelihood under H1
-    def integrand(delta):
-        ncp = delta * np.sqrt(n_eff)
-        likelihood = stats.nct.pdf(t, df, ncp)
-        prior = stats.cauchy.pdf(delta, loc=0, scale=r)
-        return likelihood * prior
-
-    marginal_h1, _ = integrate.quad(integrand, -np.inf, np.inf, limit=100)
-
-    if likelihood_h0 > 0 and marginal_h1 > 0:
-        bf10 = marginal_h1 / likelihood_h0
-    else:
-        bf10 = 1.0
-
-    return bf10
+    return _jzs_bf10_from_t(t, n_eff=n_eff, df=n1 + n2 - 2, r=r)
 
 
 def bayesian_one_sample_ttest(

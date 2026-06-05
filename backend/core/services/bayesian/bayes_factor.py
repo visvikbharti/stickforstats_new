@@ -274,3 +274,33 @@ def generate_bf_interpretation_text(bf10: float, test_name: str = "test") -> str
     )
 
     return text
+
+
+def json_safe(value):
+    """
+    Recursively coerce a result structure into JSON-serializable form for
+    Django REST Framework's ``JSONRenderer`` (which rejects inf/-inf/nan).
+
+    - non-finite floats (inf, -inf, nan) -> ``None``
+    - numpy scalars -> native Python ``int``/``float`` (then non-finite -> ``None``)
+    - numpy arrays / tuples -> lists
+    - dicts / lists recursed element-wise
+
+    This lets a degenerate analysis that legitimately yields a non-finite
+    statistic (e.g. F = inf under perfect separation, or BF10 = inf) serialize
+    as ``null`` instead of 500-ing the endpoint -- without ever substituting a
+    fabricated finite value for the real result.
+    """
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return [json_safe(v) for v in value.tolist()]
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        value = float(value)
+    if isinstance(value, float):
+        return value if np.isfinite(value) else None
+    return value

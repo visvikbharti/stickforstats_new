@@ -21,7 +21,7 @@ from dataclasses import dataclass, asdict
 import numpy as np
 from scipy import stats, integrate
 
-from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability
+from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability, json_safe
 from .priors import get_prior_scale_value, PRIOR_SCALES
 
 
@@ -70,15 +70,7 @@ class BayesianAnovaResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        result = asdict(self)
-        for key, value in result.items():
-            if isinstance(value, np.ndarray):
-                result[key] = value.tolist()
-            elif isinstance(value, (np.float64, np.float32)):
-                result[key] = float(value)
-            elif isinstance(value, (np.int64, np.int32)):
-                result[key] = int(value)
-        return result
+        return json_safe(asdict(self))
 
 
 def _compute_anova_bf(groups: List[np.ndarray], r: float = 0.707) -> float:
@@ -108,9 +100,6 @@ def _compute_anova_bf(groups: List[np.ndarray], r: float = 0.707) -> float:
     # SS Within
     ss_within = sum(np.sum((g - np.mean(g)) ** 2) for g in groups)
 
-    # SS Total
-    ss_total = np.sum((all_data - grand_mean) ** 2)
-
     # Degrees of freedom
     df_between = k - 1
     df_within = n_total - k
@@ -119,11 +108,17 @@ def _compute_anova_bf(groups: List[np.ndarray], r: float = 0.707) -> float:
     ms_between = ss_between / df_between
     ms_within = ss_within / df_within
 
-    # F statistic
-    f_stat = ms_between / ms_within if ms_within > 0 else 0
+    # Perfect separation (zero within-group variance): F -> inf and the
+    # evidence for H1 is unbounded. Report it honestly as inf (sanitized to
+    # null on the wire by to_dict) rather than the misleading BF10 = 1.0 the
+    # generic NaN-integration fallback used to return. If the group means are
+    # also identical (no between-group variance), the data are constant and
+    # there is genuinely no evidence either way (BF10 = 1).
+    if ms_within <= 0:
+        return float("inf") if ms_between > 0 else 1.0
 
-    # Effect size measures
-    ss_between / ss_total if ss_total > 0 else 0
+    # F statistic
+    f_stat = ms_between / ms_within
 
     # BF approximation using BIC method (Masson, 2011)
     # log(BF10) ≈ (df_between/2) * log(1 + f * df_between/df_within) - (df_between/2) * log(n_total)
