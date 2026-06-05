@@ -21,6 +21,7 @@ from typing import Dict, Any, Tuple, Optional, List
 from dataclasses import dataclass, asdict
 import numpy as np
 from scipy import stats
+from scipy.integrate import trapezoid  # np.trapz was removed in NumPy 2.1
 
 from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability, json_safe
 
@@ -181,7 +182,7 @@ def _compute_correlation_posterior(
 
     # Normalize
     rho_vals[1] - rho_vals[0]
-    normalizing_constant = np.trapz(posterior, rho_vals)
+    normalizing_constant = trapezoid(posterior, rho_vals)
 
     if normalizing_constant > 0:
         posterior = posterior / normalizing_constant

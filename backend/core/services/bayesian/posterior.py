@@ -21,6 +21,7 @@ Created: December 26, 2025
 from typing import Tuple, Dict, Any
 import numpy as np
 from scipy import stats
+from scipy.integrate import trapezoid  # np.trapz was removed in NumPy 2.1
 from dataclasses import dataclass
 
 
@@ -102,7 +103,7 @@ def compute_posterior_ttest(
     posterior_unnorm = prior * likelihood
 
     # Normalize
-    normalizing_constant = np.trapz(posterior_unnorm, delta_range)
+    normalizing_constant = trapezoid(posterior_unnorm, delta_range)
     if normalizing_constant > 0:
         posterior = posterior_unnorm / normalizing_constant
     else:
@@ -167,7 +168,7 @@ def compute_posterior_two_sample(
 
     # Posterior
     posterior_unnorm = prior * likelihood
-    normalizing_constant = np.trapz(posterior_unnorm, delta_range)
+    normalizing_constant = trapezoid(posterior_unnorm, delta_range)
 
     if normalizing_constant > 0:
         posterior = posterior_unnorm / normalizing_constant
