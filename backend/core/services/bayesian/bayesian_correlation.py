@@ -20,9 +20,10 @@ Created: December 26, 2025
 from typing import Dict, Any, Tuple, Optional, List
 from dataclasses import dataclass, asdict
 import numpy as np
-from scipy import stats, integrate
+from scipy import stats
+from scipy.integrate import trapezoid  # np.trapz was removed in NumPy 2.1
 
-from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability
+from .bayes_factor import interpret_bayes_factor, bayes_factor_to_probability, json_safe
 
 
 @dataclass
@@ -71,15 +72,7 @@ class BayesianCorrelationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        result = asdict(self)
-        for key, value in result.items():
-            if isinstance(value, np.ndarray):
-                result[key] = value.tolist()
-            elif isinstance(value, (np.float64, np.float32)):
-                result[key] = float(value)
-            elif isinstance(value, (np.int64, np.int32)):
-                result[key] = int(value)
-        return result
+        return json_safe(asdict(self))
 
 
 def _stretched_beta_pdf(rho: np.ndarray, kappa: float = 1.0) -> np.ndarray:
@@ -108,83 +101,49 @@ def _stretched_beta_pdf(rho: np.ndarray, kappa: float = 1.0) -> np.ndarray:
 
 def _compute_correlation_bf(r: float, n: int, kappa: float = 1.0) -> float:
     """
-    Compute Bayes Factor for correlation using exact method.
+    Compute the default Bayesian correlation Bayes factor (BF10) for
+    H1: rho != 0 vs H0: rho = 0.
 
-    Based on Wetzels & Wagenmakers (2012), Equation 5.
+    This is the exact reduced-likelihood Bayes factor of Ly, Verhagen &
+    Wagenmakers (2016) / Wetzels & Wagenmakers (2012), with a stretched-beta
+    prior on rho parameterised by ``kappa`` (kappa = 1 -> uniform on [-1, 1]).
+    It is evaluated in log space via ``pingouin.bayesfactor_pearson``
+    (method='ly'), so it is numerically stable at large n.
+
+    NOTE: the previous implementation integrated a Fisher-z NORMAL
+    APPROXIMATION of the likelihood and was mislabeled "exact"; it was within
+    a few percent for n <= 30 but over-stated BF10 by orders of magnitude as n
+    grew (e.g. ~10,000x too large at n ~ 1600), reporting "Extreme evidence"
+    where the exact BF was far smaller.
 
     Args:
-        r: Sample correlation
+        r: Sample Pearson correlation
         n: Sample size
-        kappa: Prior parameter for stretched beta
+        kappa: Stretched-beta prior width (1 = uniform on [-1, 1])
 
     Returns:
         BF10 (Bayes Factor in favor of H1: rho != 0)
     """
-    # Special case: exact 0 or 1 correlation
+    # |r| ~ 1 is the degenerate limit: evidence for a non-zero correlation is
+    # unbounded.
     if abs(r) >= 0.9999:
-        return float("inf") if abs(r) > 0.5 else 1.0
+        return float("inf")
 
-    # Likelihood function for correlation
-    # Under H0: rho = 0, the likelihood uses the marginal
-    # Under H1: integrate over rho with prior
+    # The correlation test statistic is undefined below n = 3.
+    if n < 3:
+        return float("nan")
 
-    def log_likelihood(rho, r_obs, n):
-        """
-        Log-likelihood for observing sample correlation r_obs
-        given population correlation rho.
-        """
-        if abs(rho) >= 1:
-            return -np.inf
+    # pingouin is a declared runtime dependency (requirements.txt) and is
+    # already imported elsewhere in the backend; import locally to keep this
+    # module importable even in stripped environments.
+    import pingouin as pg
 
-        # Approximate using Fisher transformation
-        z_obs = np.arctanh(r_obs)
-        z_pop = np.arctanh(rho)
-        se = 1 / np.sqrt(n - 3)
+    bf10 = float(pg.bayesfactor_pearson(r, n, alternative="two-sided", method="ly", kappa=kappa))
 
-        log_lik = stats.norm.logpdf(z_obs, z_pop, se)
-        return log_lik
-
-    # Marginal likelihood under H1
-    def integrand(rho):
-        if abs(rho) >= 0.999:
-            return 0
-        log_lik = log_likelihood(rho, r, n)
-        prior = _stretched_beta_pdf(np.array([rho]), kappa)[0]
-        return np.exp(log_lik) * prior
-
-    try:
-        # Numerical integration. scipy.integrate.quad can raise
-        # IntegrationWarning, ValueError on degenerate integrands, or
-        # RuntimeError on convergence failure. We catch only those
-        # families (NOT bare ``except:``, which used to swallow
-        # KeyboardInterrupt and SystemExit too) and fall back to the
-        # BIC approximation below. Failure is logged so it does not
-        # vanish silently. See docs/CRITICAL_REVIEW_2026-05-06.md
-        # §P1-12.
-        marginal_h1, _ = integrate.quad(integrand, -0.999, 0.999, limit=100)
-    except (ValueError, RuntimeError, ArithmeticError) as exc:
-        import logging as _logging
-        _logging.getLogger(__name__).debug(
-            "BF10 quad integration failed (r=%s, n=%s): %s; falling back to BIC",
-            r, n, exc,
-        )
-        marginal_h1 = 0
-
-    # Likelihood under H0: rho = 0
-    likelihood_h0 = np.exp(log_likelihood(0, r, n))
-
-    # Bayes Factor
-    if likelihood_h0 > 0 and marginal_h1 > 0:
-        bf10 = marginal_h1 / likelihood_h0
-    else:
-        # Fallback using approximate method
-        # Based on t-statistic approach
-        t_stat = r * np.sqrt((n - 2) / (1 - r**2)) if abs(r) < 1 else 0
-        df = n - 2
-
-        # BIC approximation
-        bf10 = np.sqrt(n) * np.exp(-0.5 * t_stat**2 / n + 0.5 * t_stat**2 / df)
-
+    if not np.isfinite(bf10) or bf10 <= 0:
+        # Exact BF overflowed (only for |r| -> 1 at very large n): the limiting
+        # evidence is unbounded. Never substitute a fabricated finite value.
+        return float("inf")
     return bf10
 
 
@@ -223,7 +182,7 @@ def _compute_correlation_posterior(
 
     # Normalize
     rho_vals[1] - rho_vals[0]
-    normalizing_constant = np.trapz(posterior, rho_vals)
+    normalizing_constant = trapezoid(posterior, rho_vals)
 
     if normalizing_constant > 0:
         posterior = posterior / normalizing_constant
