@@ -248,7 +248,15 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/1")
 try:
     import redis as _redis_module
 
-    _redis_client = _redis_module.StrictRedis.from_url(REDIS_URL)
+    # socket_*_timeout are REQUIRED here: this ping runs at module-import time, so
+    # without them an unreachable-but-not-refused Redis (firewalled host, dead
+    # remote, half-open socket) blocks the connect/recv syscall indefinitely and
+    # hangs Django startup -- the except below cannot fire because nothing is
+    # raised. With the timeouts, redis raises TimeoutError/ConnectionError (both
+    # subclass Exception) and we fall through cleanly to LocMemCache.
+    _redis_client = _redis_module.StrictRedis.from_url(
+        REDIS_URL, socket_connect_timeout=0.5, socket_timeout=0.5
+    )
     _redis_client.ping()
     REDIS_AVAILABLE = True
 except Exception:
