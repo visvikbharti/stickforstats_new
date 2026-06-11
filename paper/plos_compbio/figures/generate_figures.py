@@ -152,11 +152,13 @@ def fig5_validation():
 
     # Panel A: Numerical agreement with reference implementations
     ax = axes[0]
+    # Power analysis is intentionally omitted: G*Power cross-validation is planned but
+    # not yet wired (the in-app toggle reports "not implemented"), so no validated row.
     tests = ['t-test', 'ANOVA', 'Pearson r', 'Spearman ρ', 'Chi-square',
-             'Mann-Whitney', 'Shapiro-Wilk', 'Regression', 'Meta-analysis', 'Power']
-    agreements = [16, 14, 16, 16, 14, 16, 10, 12, 10, 99]  # decimal places (99 = "within 1%")
+             'Mann-Whitney', 'Shapiro-Wilk', 'Regression', 'Meta-analysis']
+    agreements = [16, 14, 16, 16, 14, 16, 10, 12, 10]  # decimal places of agreement
     refs = ['SciPy', 'SciPy', 'SciPy', 'SciPy', 'SciPy',
-            'SciPy', 'SciPy', 'statsmodels', 'R metafor', 'G*Power']
+            'SciPy', 'SciPy', 'statsmodels', 'R metafor']
 
     colors_val = ['#4CAF50' if a >= 14 else '#FF9800' if a >= 10 else '#2196F3' for a in agreements]
     bars = ax.barh(range(len(tests)), [min(a, 16) for a in agreements], color=colors_val, height=0.6)

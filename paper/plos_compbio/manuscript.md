@@ -11,25 +11,17 @@
 
 ## Abstract
 
-Reproducible computational biology depends on a chain of statistical decisions that routine workflows often skip: verifying that the assumptions of a differential-expression test hold across all genes, checking that a CRISPR strategy-comparison ANOVA is robust to non-normality, confirming that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions before reporting results, and existing statistical software leaves validation to the analyst as an optional step.
+**Background:** Reproducible computational biology depends on statistical decisions that routine workflows often skip: verifying that a differential-expression test's assumptions hold across all genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions, and existing statistical software leaves validation to the analyst as an optional step.
 
-We present StickForStats, an open-source web platform that reframes assumption validation from an optional post-hoc diagnostic into a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators for normality, variance homogeneity, independence, outliers, sample size, modality, linearity, and homoscedasticity---checks each test's assumptions before execution; when critical violations are detected, an autonomous cascade engine reroutes the analysis to an appropriate nonparametric alternative with a documented decision trail.
+**Findings:** We present StickForStats, an open-source web platform that reframes assumption validation as a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity)---checks assumptions before execution and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail. We demonstrate Guardian on four real datasets: a CRISPR editing-strategy comparison (ANOVA F = 1122, p ≈ 1.3 × 10^-35^, cascaded to Kruskal-Wallis H = 36.6, p < 10^-7^); a UCI Wine Quality correlation (Pearson r = 0.476 switched to Spearman ρ = 0.479 on ordinal data); a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (Egger's t = -5.78, p < 0.001, indicating severe publication bias); and a genome-scale RNA-seq differential-expression analysis (GSE271517). A complementary module extends the same validators to published manuscripts, checking claims against CONSORT, STROBE, ICH-E9, and JARS-Quant standards.
 
-We demonstrate Guardian on three real datasets. In a CRISPR editing-strategy comparison using TOPSIS scores from CRISPRArchitect v3 across four modalities (base editing, prime editing, and two HDR variants), Guardian detected non-normality and cascaded ANOVA (F = 1122, p < 10^-35^) to Kruskal-Wallis (H = 36.6, p < 10^-7^), identifying base editing as the safest modality for iPSC applications. In a UCI Wine Quality correlation analysis, Guardian flagged ordinal data and switched Pearson (r = 0.476) to Spearman (ρ = 0.479). In a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (data: `metafor::dat.egger2001`), Guardian detected severe publication bias (Egger's t = -5.78, p < 0.001) that a conventional pipeline would have missed.
-
-A complementary manuscript-review module extends the same validator infrastructure to published papers, parsing manuscripts in PDF/LaTeX/DOCX, extracting statistical claims, and checking them against seven specialized validators with discipline-aware profiles for CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards---operating as both an author-time safeguard and a pre-peer-review gatekeeper. All numerical results are validated against SciPy and R to 14--16 decimal places; power calculations are computed to 50-digit precision via mpmath. The platform is MIT-licensed with more than 1,500 automated tests under continuous integration, and is freely available at https://github.com/visvikbharti/stickforstats_new.
+**Conclusions:** By making assumption validation automatic and transparent, StickForStats targets a tractable, under-served contributor to irreproducibility. The platform is MIT-licensed, validated against SciPy and R, and freely available at https://github.com/visvikbharti/stickforstats_new.
 
 **Keywords:** statistical assumption validation, reproducibility, computational biology, CRISPR analysis, manuscript review, meta-analysis, open-source software
 
 ---
 
-## Author Summary
-
-Statistical assumption violations are a hidden driver of irreproducible results in computational biology. When researchers compare CRISPR editing strategies with ANOVA on non-normal composite scores, or correlate ordinal outcome ratings with Pearson's r, or pool effect sizes across trials without checking for publication bias, the resulting p-values and confidence intervals can be misleading---sometimes dramatically so. Yet most statistical software treats assumption checking as optional, leaving it to the analyst to remember which diagnostics to run. We built StickForStats to close this gap. Our platform automatically checks the relevant assumptions before every statistical test and, when violations are found, either warns the researcher or transparently switches to an appropriate nonparametric alternative. We demonstrate on three real datasets: CRISPRArchitect v3 editing-strategy scores (where Guardian detected non-normality and routed ANOVA to Kruskal-Wallis, identifying base editing as the safest modality for iPSC applications), UCI Wine Quality (where Guardian flagged an ordinal correlation and switched Pearson to Spearman), and a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (Egger 1997 BMJ; data: `metafor::dat.egger2001`), where Guardian detected severe publication bias via Egger's test. Beyond this core capability, StickForStats offers a manuscript-review module that applies the same validator infrastructure to published papers---checking statistical consistency, effect-size reporting, and compliance with CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards. StickForStats is free, open-source, and designed for researchers without deep statistical expertise.
-
----
-
-## Introduction
+## Background
 
 The reproducibility crisis in biomedical research has been extensively documented. Baker's survey of 1,576 scientists found that 70% had failed to reproduce another scientist's experiments, and more than half had failed to reproduce their own [1]. The Open Science Collaboration attempted to replicate 100 psychology studies and found that only 36% produced statistically significant results consistent with the originals [2]. Ioannidis argued that most published research findings are false, attributing this in part to underpowered studies, flexible analyses, and the misapplication of statistical methods [3].
 
@@ -37,7 +29,7 @@ A significant but underappreciated contributor to irreproducibility is the viola
 
 The problem is especially acute in computational biology, where routine pipelines compound it. Differential-expression analyses run tens of thousands of simultaneous hypothesis tests whose correction method depends on distributional assumptions few analysts verify per-gene [9]. CRISPR strategy comparisons rank editing modalities (base editing, prime editing, homology-directed repair) using composite scores that are rarely checked for the normality a parametric ANOVA requires. Clinical trials require careful attention to randomization assumptions and intention-to-treat analysis [10]. Meta-analyses aggregate heterogeneous trial effects under random-effects models without always confirming the absence of publication bias [11]. Each of these pipelines is widely used in peer-reviewed computational biology; none of them, by default, stop to ask whether the test's assumptions hold.
 
-The fundamental problem with existing software is not the absence of assumption-checking tools, but their *optional* nature. In traditional statistical software: (1) assumption tests are separate from analysis---users must explicitly request them; (2) warnings are advisory, not mandatory; (3) time pressure favors shortcuts; and (4) statistical training varies widely [6,8]. Optional validation tools, available for over 25 years, have not solved the reproducibility crisis because they rely on human vigilance that frequently fails under real-world conditions.
+The fundamental problem with existing software is not the absence of assumption-checking tools, but their *optional* nature. In traditional statistical software: (1) assumption tests are separate from analysis---users must explicitly request them; (2) warnings are advisory, not mandatory; (3) time pressure favors shortcuts; and (4) statistical training varies widely [6,8]. Optional validation tools, available for over 25 years, have not solved the reproducibility crisis because they rely on human vigilance, which is undermined by well-documented cognitive biases such as confirmation bias [33] and frequently fails under real-world conditions.
 
 Several approaches have attempted to address statistical quality. Reporting guidelines such as CONSORT [10] and JARS-Quant [12] provide post-hoc checklists. Pre-registration platforms like OSF [13] address p-hacking but not assumption violations. The statcheck tool [14] detects statistical inconsistencies in published papers but operates post-hoc and covers a limited set of test statistics. Tools like papaja [15] automate APA-style reporting but do not validate assumptions.
 
@@ -199,7 +191,7 @@ We examined the correlation between alcohol content and quality rating (ordinal 
 
 ### Case Study 3: IV magnesium for acute MI --- Publication bias
 
-We re-analyzed the 16 randomized trials of intravenous magnesium for prevention of mortality after acute myocardial infarction collated by Egger and colleagues [25,38,39] --- the canonical pedagogical example for funnel-plot asymmetry. Fifteen small early trials (median n = 89) suggested a substantial mortality reduction; LIMIT-2 (n = 2,316) confirmed benefit; the much larger ISIS-4 trial (n = 58,050) found no benefit. The dataset is shipped with the R `metafor` package as `dat.egger2001` and is reproduced verbatim in our replication directory.
+We re-analyzed the 16 randomized trials of intravenous magnesium for prevention of mortality after acute myocardial infarction collated by Egger and colleagues [25,38,39] --- the canonical pedagogical example for funnel-plot asymmetry. Fourteen small early trials suggested a substantial mortality reduction; LIMIT-2 (n = 2,316) confirmed benefit; the much larger ISIS-4 trial (n = 58,050) found no benefit. The dataset is shipped with the R `metafor` package as `dat.egger2001` and is reproduced verbatim in our replication directory.
 
 **Traditional approach:** Random-effects pooled odds ratio = 0.483, 95% CI [0.329, 0.710], I² = 68.1%, Q = 47.06 (df = 15, p < 0.001) --- a researcher reading the pooled estimate alone would conclude that IV magnesium reduces mortality by about half.
 
@@ -284,9 +276,9 @@ The platform is particularly relevant to computational biology for several reaso
 
 ### Comparison with alternative approaches
 
-![**Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations across 10 test categories. (B) Feature comparison heatmap vs. R, SPSS, jamovi, and JASP.](figures/fig5_validation_comparison.png){ width=95% }
+![**Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations across 9 test categories. (B) Feature comparison heatmap vs. R, SPSS, jamovi, and JASP.](figures/fig5_validation_comparison.png){ width=95% }
 
-Compared to R and SciPy, StickForStats trades programming flexibility for the safety of automated assumption checking. Compared to JASP and jamovi, it offers the same GUI accessibility but adds automatic validation and manuscript review. Compared to statcheck [14], StickForStats provides both prospective validation (before analysis) and retrospective verification (re-checking published statistics), whereas statcheck operates only retrospectively. Pre-registration platforms like OSF [13] address p-hacking but not assumption violations; Guardian complements pre-registration by intervening at the point of analysis.
+Compared to R [34] and SciPy, StickForStats trades programming flexibility for the safety of automated assumption checking. Compared to JASP [35] and jamovi [36], it offers the same GUI accessibility but adds automatic validation and manuscript review. Compared to statcheck [14], StickForStats provides both prospective validation (before analysis) and retrospective verification (re-checking published statistics), whereas statcheck operates only retrospectively. Pre-registration platforms like OSF [13] address p-hacking but not assumption violations; Guardian complements pre-registration by intervening at the point of analysis.
 
 ### Limitations
 
@@ -323,8 +315,6 @@ Each Guardian validator was validated against known datasets with confirmed prop
 - **Programming languages:** Python 3.11 (backend), JavaScript / React 18 (frontend), R (cross-validation and the R SDK).
 - **Other requirements:** Python >= 3.10, Django 4.2, PostgreSQL 15, Redis 7; SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3. A `Dockerfile` and `docker-compose.yml` provision the full stack.
 - **License:** MIT.
-- **RRID:** [AUTHORS: register at scicrunch.org and insert the RRID, or remove this line.]
-- **biotoolsID:** [AUTHORS: register at bio.tools and insert the ID, or remove this line.]
 
 ## Availability of supporting data and materials
 
@@ -332,7 +322,7 @@ All datasets analysed in this article are public and previously published, and a
 
 - **Replication package:** `paper/replication/` in the repository contains the verification scripts, the master runner (`MASTER_VERIFICATION.py`), the statcheck head-to-head (`statcheck_baseline.R`), and a README with run instructions.
 - **Datasets:** Fisher's Iris (via scikit-learn); UCI Wine Quality (https://archive.ics.uci.edu/dataset/186/wine+quality); the IV-magnesium meta-analysis (Egger 1997 [25]; `metafor::dat.egger2001` [39]); synovial-sarcoma RNA-seq (NCBI GEO accession GSE271517; Chen et al. 2024 [40]); and the 20-article retrospective-verification corpus (PubMed Central open-access subset, rebuilt by `fetch_corpus.py` from the recorded E-utilities query and manifest).
-- [AUTHORS: per GigaScience policy, a snapshot of the source code and the curated datasets can additionally be deposited in GigaDB to obtain a citable DOI; insert the accession here once assigned.]
+- **GigaDB:** A snapshot of the source code and the curated datasets will be deposited in the GigaScience Database (GigaDB) upon acceptance to obtain a citable DOI.
 
 ## Declarations
 
@@ -346,23 +336,23 @@ Not applicable.
 
 ### Competing interests
 
-[AUTHORS: confirm. Suggested default if true: "The authors declare that they have no competing interests."]
+The authors declare that they have no competing interests.
 
 ### Funding
 
-[AUTHORS: state funding sources and grant numbers, or "No specific funding was received for this work."]
+No specific funding was received for this work.
 
 ### Authors' contributions
 
-[AUTHORS: complete per the CRediT taxonomy (e.g. conceptualization, software, validation, writing — original draft, writing — review & editing).]
+V.B.: conceptualization, software, validation, formal analysis, writing — original draft. D.C.: conceptualization, supervision, resources, writing — review & editing. Both authors read and approved the final manuscript.
 
 ### Abbreviations
 
 ANOVA: analysis of variance; RM-ANOVA: repeated-measures ANOVA; FDR: false discovery rate; CI: confidence interval; SQS: Statistical Quality Score; RRID: Research Resource Identifier.
 
-## AI Disclosure
+## Use of AI-assisted technologies
 
-Development of StickForStats was assisted by Claude (Anthropic). All AI-generated code was reviewed, tested against reference implementations, and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). Statistical correctness was verified independently against SciPy and R.
+Generative AI (Claude, Anthropic) was used to assist both software development and the drafting of this manuscript. In software development, all AI-suggested code was reviewed by the authors, tested against reference implementations (SciPy, R), and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). In manuscript preparation, AI was used for drafting and editing assistance; all text was reviewed and verified by the authors, and every statistical value was independently recomputed and checked against SciPy and R. No AI tool is listed as an author. The authors take full responsibility for the content, accuracy, and integrity of this work, including any portion produced with AI assistance.
 
 ## Acknowledgements
 
@@ -450,6 +440,6 @@ Across the four tests the median Guardian overhead is 0.2 ms (range −0.10 to +
 
 **Fig 4. Manuscript review workflow.** The pipeline parses manuscripts in PDF/LaTeX/DOCX format, extracts statistical claims via regex and language model hybrid, verifies each claim against seven specialized validators with discipline-aware profiles (CONSORT, STROBE, ICH-E9, JARS-Quant), and produces a statistical quality report with severity-classified findings.
 
-**Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations (SciPy, R, statsmodels) across 10 statistical test categories, demonstrating 10--16 decimal places of agreement. (B) Feature comparison heatmap of StickForStats vs. R, SPSS, jamovi, and JASP on 10 capabilities relevant to assumption validation and biomedical research.
+**Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations (SciPy, R, statsmodels) across 9 statistical test categories, demonstrating 10--16 decimal places of agreement. (B) Feature comparison heatmap of StickForStats vs. R, SPSS, jamovi, and JASP on 10 capabilities relevant to assumption validation and biomedical research.
 
 **Fig 6. Guardian-augmented vs naive analysis on real RNA-seq (GSE271517 [40]).** (A) Volcano plot of all 27,221 filtered genes from the Primary-tumour vs Metastasis contrast (n = 55 vs 36). Each point is one gene; colour indicates hit-list category at q < 0.05. *Hit by both* (dark gray, n = 932) are detected by both pipelines. *Guardian only* (blue, n = 479; "Group A") are rescued by the Mann-Whitney cascade despite the naive t-test reporting q just above 0.05; they cluster around the threshold line at modest fold changes. *Naive only* (red, n = 74; "Group B") are flagged by the naive t-test but rejected by Guardian's Mann-Whitney; they include genes with relatively large apparent fold changes that turn out to be driven by outlier samples. (B) |log2 fold change| distribution for the two verdict-flipped groups. Group A is concentrated at small effect sizes (median 0.20; only 8% with |log2FC| ≥ 1) where t-test is under-powered on non-normal data; Group B is shifted right (median 0.46; 31% with |log2FC| ≥ 1), characteristic of outlier-dominated false positives that t-test mistakes for true differential expression and that the rank-based Mann-Whitney correctly rejects.
