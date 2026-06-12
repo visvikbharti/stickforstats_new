@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "stickforstats"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python SDK and CLI (sfs) for StickForStats — statistical analysis with automatic assumption validation (Guardian) and manuscript statistical verification"
 readme = "README.md"
 license = "MIT"
@@ -52,6 +52,8 @@ Issues = "https://github.com/visvikbharti/stickforstats_new/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stickforstats"]
+# Ship the PEP 561 typing marker (the "Typing :: Typed" classifier promises it).
+artifacts = ["src/stickforstats/py.typed"]
 
 [tool.ruff]
 target-version = "py38"
