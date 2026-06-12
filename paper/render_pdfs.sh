@@ -129,7 +129,7 @@ render_one \
   "$PAPER_DIR/plos_compbio/manuscript.md" \
   "$PAPER_DIR/plos_compbio" \
   "$PAPER_DIR/plos_compbio/manuscript_rendered.pdf" \
-  "StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation"
+  ""  # title comes from the manuscript's own H1; empty here avoids a duplicate title block
 
 echo ""
 echo "==> Rendering JOSS paper"

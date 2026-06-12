@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-MASTER VERIFICATION SCRIPT FOR JSS PAPER
-=========================================
+MASTER VERIFICATION SCRIPT
+==========================
 This script runs ALL verifications and confirms scientific integrity.
 
 Run this to verify all claims in the paper are reproducible.
@@ -17,7 +17,7 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 print("=" * 70)
-print("JSS PAPER - MASTER VERIFICATION")
+print("MANUSCRIPT - MASTER VERIFICATION")
 print("Scientific Integrity Certification")
 print("=" * 70)
 print(f"\nDate: 2026-01-27")
@@ -86,7 +86,7 @@ if all_passed:
     ║                                                                  ║
     ║   ✓ ALL VERIFICATIONS PASSED                                    ║
     ║                                                                  ║
-    ║   The JSS paper claims are SCIENTIFICALLY SOUND:                ║
+    ║   The paper claims are SCIENTIFICALLY SOUND:                    ║
     ║                                                                  ║
     ║   • SciPy validation: All statistical tests match               ║
     ║   • Case Study 1 (CRISPR TOPSIS): Real CRISPRArchitect v3       ║

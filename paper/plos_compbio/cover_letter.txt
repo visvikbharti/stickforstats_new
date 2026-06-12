@@ -1,22 +1,29 @@
 Dear Editors,
 
-We submit "StickForStats: Automated Statistical Assumption Validation for Reproducible Computational Biology" as a Software article for PLOS Computational Biology.
+We are pleased to submit "StickForStats: Automated Statistical Assumption Validation for Reproducible Computational Biology" for consideration as a Technical Note in GigaScience.
 
-Statistical assumption violations are pervasive in published biomedical research, yet no widely adopted platform enforces assumption checking automatically. StickForStats addresses this gap through the Guardian system — a middleware pipeline of eight validators that intercept every statistical test, check assumptions, and either proceed with confidence reporting or cascade to an appropriate nonparametric alternative.
+Statistical assumption violations are a pervasive and under-addressed contributor to irreproducibility in biomedical research, yet no widely adopted platform enforces assumption checking automatically. StickForStats closes this gap through the Guardian system — a middleware pipeline of eight validators that intercepts every statistical test, checks its assumptions before execution, and either proceeds with a transparent confidence report or cascades to an appropriate nonparametric alternative with a documented decision trail. A complementary module extends the same validator infrastructure to published manuscripts, checking statistical claims against CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards.
 
-The platform is particularly relevant to computational biology:
-- We demonstrate Guardian on real genome editing strategy scores from CRISPRArchitect v3, where it detects normality violations and cascades from ANOVA to Kruskal-Wallis
-- A genomics differential expression module performs per-gene Guardian validation with Benjamini-Hochberg FDR correction
-- Clinical trial manuscript review validates against CONSORT and ICH-E9 guidelines
-- Five curated biological example datasets are included
+We believe the work is a natural fit for GigaScience's focus on reproducibility and openly available research objects:
+- The platform is fully open-source (MIT license), containerized, and released at a citable version (v1.0.0).
+- We demonstrate Guardian on four real datasets — a CRISPR editing-strategy comparison (CRISPRArchitect v3 scores), a UCI Wine Quality correlation, a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (metafor::dat.egger2001), and a genome-scale RNA-seq differential-expression analysis (GEO GSE271517).
+- All reported values are reproducible from the scripts in the repository's replication directory, validated against SciPy and R, and the source code and curated datasets will be deposited in GigaDB upon acceptance.
 
-The software is open source (MIT license), with 1,088 automated tests, continuous integration, and all calculations validated against SciPy and R to 14-16 decimal places.
+The software comprises more than 1,500 automated tests under continuous integration, with all calculations cross-validated against SciPy and R.
+
+Use of AI-assisted technologies: generative AI (Claude, Anthropic) was used to assist software development and manuscript drafting; all code and text were reviewed and verified by the authors, every statistical value was independently recomputed, and the authors take full responsibility for the content. No AI tool is listed as an author.
+
+The authors declare no competing interests. All authors have read and approved the manuscript for submission, and the work is not under consideration for publication elsewhere.
+
+A Python client SDK and CLI are available on PyPI (pip install stickforstats). A live
+demonstration instance of the platform is available for hands-on evaluation by the editor
+and reviewers; please let us know and we will provide access credentials through the
+editorial system.
 
 Repository: https://github.com/visvikbharti/stickforstats_new
 Release: v1.0.0
 
-No conflicts of interest. This manuscript has not been published or submitted elsewhere. A shorter software description was previously desk-rejected by JSS (not fitting their novel-methods scope); this is a substantially different, expanded manuscript for PLOS Computational Biology's software-focused review.
-
 Sincerely,
 Vishal Bharti and Debojyoti Chakraborty
 CSIR-Institute of Genomics and Integrative Biology, New Delhi, India
+Corresponding authors: vishalvikashbharti@gmail.com, debojyoti.chakraborty@igib.in
