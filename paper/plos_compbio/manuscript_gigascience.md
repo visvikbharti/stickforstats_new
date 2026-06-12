@@ -1,4 +1,4 @@
-# StickForStats: automated statistical assumption validation for reproducible computational biology
+# StickForStats: Automated Statistical Assumption Validation for Reproducible Computational Biology
 
 **Vishal Bharti**^1\*, **Debojyoti Chakraborty**^1,2\*
 
@@ -13,19 +13,17 @@ ORCID: Vishal Bharti https://orcid.org/0009-0003-1431-4457; Debojyoti Chakrabort
 
 ## Abstract
 
-Reproducible computational biology depends on statistical decisions that routine workflows often skip: verifying that a differential-expression test's assumptions hold across all genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions, and existing statistical software leaves validation to the analyst as an optional step. We present StickForStats, an open-source web platform that reframes assumption validation as a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity)---checks assumptions before execution and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail. We demonstrate Guardian on four real datasets: a CRISPR editing-strategy comparison (ANOVA F = 1122, p ≈ 1.3 × 10^-35^, cascaded to Kruskal-Wallis H = 36.6, p < 10^-7^); a UCI Wine Quality correlation (Pearson r = 0.476 switched to Spearman ρ = 0.479 on ordinal data); a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (Egger's t = -5.78, p < 0.001, indicating severe publication bias); and a genome-scale RNA-seq differential-expression analysis (GSE271517). A complementary module extends the same validators to published manuscripts, checking claims against CONSORT, STROBE, ICH-E9, and JARS-Quant standards. By making assumption validation automatic and transparent, StickForStats targets a tractable, under-served contributor to irreproducibility. The platform is MIT-licensed, validated against SciPy and R, and freely available at https://github.com/visvikbharti/stickforstats_new.
+**Background:** Reproducible computational biology depends on statistical decisions that routine workflows often skip: verifying that a differential-expression test's assumptions hold across all genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions, and existing statistical software leaves validation to the analyst as an optional step.
+
+**Findings:** We present StickForStats, an open-source web platform that reframes assumption validation as a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity)---checks assumptions before execution and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail. We demonstrate Guardian on four real datasets: a CRISPR editing-strategy comparison (ANOVA F = 1122, p ≈ 1.3 × 10^-35^, cascaded to Kruskal-Wallis H = 36.6, p < 10^-7^); a UCI Wine Quality correlation (Pearson r = 0.476 switched to Spearman ρ = 0.479 on ordinal data); a sixteen-trial meta-analysis of intravenous magnesium for acute myocardial infarction (Egger's t = -5.78, p < 0.001, indicating severe publication bias); and a genome-scale RNA-seq differential-expression analysis (GSE271517). A complementary module extends the same validators to published manuscripts, checking claims against CONSORT, STROBE, ICH-E9, and JARS-Quant standards.
+
+**Conclusions:** By making assumption validation automatic and transparent, StickForStats targets a tractable, under-served contributor to irreproducibility. The platform is MIT-licensed, validated against SciPy and R, and freely available at https://github.com/visvikbharti/stickforstats_new.
 
 **Keywords:** statistical assumption validation, reproducibility, computational biology, CRISPR analysis, manuscript review, meta-analysis, open-source software
 
 ---
 
-## Author summary
-
-Most scientific conclusions rest on statistical tests, and every test comes with fine print: assumptions about the data that must hold for the result to be trustworthy. In practice, this fine print is often left unchecked. Surveys find that fewer than one in five published studies reports verifying these assumptions, partly because popular software treats the check as an optional extra that busy researchers easily skip. When the assumptions are ignored, a study can report a difference that is not really there. We built StickForStats to make this checking automatic. Before it runs any statistical test, our platform inspects the data, reports whether each assumption is met, and---if a serious problem is found---switches to a more appropriate method and records why. On four real biomedical datasets, including a gene-editing comparison and a large gene-expression study, we show that this safety net changes which findings are flagged as reliable. A companion tool applies the same checks to finished manuscripts, helping catch reporting problems before publication. By turning assumption checking from something you must remember into something that happens by default, we aim to make everyday analyses more reproducible.
-
----
-
-## Introduction
+## Background
 
 The reproducibility crisis in biomedical research has been extensively documented. Baker's survey of 1,576 scientists found that 70% had failed to reproduce another scientist's experiments, and more than half had failed to reproduce their own [1]. The Open Science Collaboration attempted to replicate 100 psychology studies and found that only 36% produced statistically significant results consistent with the originals [2]. Ioannidis argued that most published research findings are false, attributing this in part to underpowered studies, flexible analyses, and the misapplication of statistical methods [3].
 
@@ -39,9 +37,9 @@ Several approaches have attempted to address statistical quality. Reporting guid
 
 StickForStats takes a fundamentally different approach: rather than providing assumption tests as optional add-ons, it integrates validation directly into the analysis pipeline through the Guardian system. **Assumptions are checked automatically before every statistical test, and violations are reported alongside results.** This represents a shift from optional validation (requiring user initiative) to default validation (requiring user opt-out). The same validator infrastructure extends to a manuscript-review pipeline (Fig 4) that applies parallel checks to published papers with discipline-aware reporting profiles, enabling pre-peer-review statistical auditing rather than only author-time assurance. Beyond Guardian, StickForStats also provides survival analysis, meta-analysis, multiple testing correction, causal inference, and high-precision power analysis.
 
-## Results
+## Design and Implementation
 
-### Platform architecture
+### Architecture overview
 
 StickForStats follows a three-tier architecture (Fig 1): a user interface layer (React 18 with Material-UI), an application layer (Django REST Framework with Guardian integration), and a data layer (PostgreSQL with Redis caching).
 
@@ -55,7 +53,7 @@ The Guardian operates on a simple principle: **assumptions are checked automatic
 
 Guardian is designed around four principles: (1) *Comprehensiveness*---check the major statistical assumptions for each test type; (2) *Transparency*---report all validation results, not just failures; (3) *Actionability*---provide specific recommendations when violations occur; and (4) *Configurable protection*---block by default (Protected Mode), with expert override available (Expert Mode).
 
-**Validator suite.** The eight validators and their methods are (full specifications in S1 Text):
+**Validator suite.** The eight validators and their methods are:
 
 1. **Normality** --- Shapiro-Wilk [17] (n <= 5000) and Anderson-Darling [18] (n > 5000 or as confirmation).
 2. **Variance homogeneity** --- Levene's test [19] with Brown-Forsythe median correction [20].
@@ -145,6 +143,8 @@ Table 3 compares StickForStats with existing statistical platforms on features r
 | High-precision option | X | -- | Partial | -- | -- |
 | Code export (R/Python) | X | -- | Native | -- | -- |
 
+## Results
+
 ### Validation against reference implementations
 
 All statistical calculations were validated against SciPy and R. Table 4 summarizes per-test agreement.
@@ -181,7 +181,7 @@ To demonstrate StickForStats' integration with computational biology pipelines, 
 
 **Traditional approach (ANOVA):** F = 1122.10, p = 1.34e-35. A researcher might conclude significant differences and stop here.
 
-**Guardian-augmented approach:** Guardian detected a normality WARNING in the ABE group (Shapiro-Wilk W = 0.793, p = 0.012) and a sample size WARNING (n = 10 per group). Confidence score = 0.72 (CAUTION). Guardian cascaded to Kruskal-Wallis H test, which yielded H = 36.59, p = 5.62e-08 with eta-squared H = 0.93 (unbiased form per Tomczak & Tomczak 2014; large effect). All six pairwise Mann-Whitney comparisons were significant after Benjamini-Hochberg correction (all adjusted p < 0.001). Base editing consistently achieved the highest composite scores (mean = 0.587), driven by its superior safety profile (safety = 1.0, no DSBs)---aligning with iPSC safety concerns regarding p53-mediated selection of TP53-mutant clones. This case study demonstrates that even highly significant ANOVA results (p = 10^-35^) should not exempt the analysis from assumption checking; Guardian catches the normality violation regardless of the effect magnitude.
+**Guardian-augmented approach:** Guardian detected a normality WARNING in the ABE group (Shapiro-Wilk W = 0.793, p = 0.012) and a sample size WARNING (n = 10 per group). Confidence score = 0.72 (CAUTION). Guardian cascaded to Kruskal-Wallis H test, which yielded H = 36.59, p = 5.62e-08 with eta-squared H = 0.93 (unbiased form per Tomczak & Tomczak 2014; large effect). All six pairwise Mann-Whitney comparisons were significant after Benjamini-Hochberg correction (all adjusted p < 0.001). Base editing consistently achieved the highest composite scores (mean = 0.587), driven by its superior safety profile (safety = 1.0, no DSBs)---aligning with iPSC safety concerns regarding p53-mediated selection of TP53-mutant clones. This case study demonstrates that even highly significant ANOVA results (p = 10^-35) should not exempt the analysis from assumption checking; Guardian catches the normality violation regardless of the effect magnitude.
 
 ### Case Study 2: UCI Wine Quality --- Correlation assumptions
 
@@ -220,6 +220,8 @@ Both proliferation markers MKI67 (log2FC = +0.23, q = 0.019) and TOP2A (+0.24, q
 
 ![**Fig 6. Guardian-augmented vs naive analysis on real RNA-seq (GSE271517).** (A) Volcano plot of all 27,221 filtered genes from the Primary-tumour vs Metastasis contrast. Each point is one gene; colour indicates hit-list category at q < 0.05. *Hit by both* (dark gray, n = 932) are detected by both pipelines. *Guardian only* (blue, n = 479; "Group A") are rescued by the Mann-Whitney cascade despite the naive t-test reporting q just above 0.05; they cluster around the threshold line at modest fold changes. *Naive only* (red, n = 74; "Group B") are flagged by the naive t-test but rejected by Guardian's Mann-Whitney; they include genes with relatively large apparent fold changes that turn out to be driven by outlier samples. (B) |log2 fold change| distribution for the two verdict-flipped groups. Group A is concentrated at small effect sizes (median 0.20; only 8% with |log2FC| ≥ 1) where t-test is under-powered on non-normal data; Group B is shifted right (median 0.46; 31% with |log2FC| ≥ 1), characteristic of outlier-dominated false positives that t-test mistakes for true differential expression and that the rank-based Mann-Whitney correctly rejects.](figures/fig6_genomics_case_study.png){ width=95% }
 
+**Fig 7. Guardian assumption validation in the StickForStats web interface.** A two-sample t-test computed by the real backend at 50-decimal precision on a hosted instance of the platform. Before reporting results, Guardian's "Assumption Checks" panel evaluates each assumption and flags violations in place: for the non-normal input shown, normality and equal variance are flagged as violated and independence is referred to study design. Assumption status is presented as an integral, default part of every analysis rather than an optional post-hoc diagnostic.
+
 ### Case study summary
 
 **Table 6. Summary of case study findings.**
@@ -239,7 +241,7 @@ In all four cases, Guardian flagged a methodological issue and recommended an ap
 
 To evaluate the retrospective verification engine---the statcheck-style consistency checker that recomputes reported p-values from the reported test statistic and degrees of freedom (cf. [15])---we assembled a corpus of 20 open-access articles from PubMed Central that report inline APA-style statistics, retrieved by a fixed query (Methods; the fetch script, corpus manifest, and results are provided under `paper/replication/manuscript_validation/`). The engine extracted 980 statistical claims, of which 468 carried a test statistic and 295 were fully specified (statistic, degrees of freedom, and p-value) and therefore recomputable. Recomputing each p-value with SciPy and comparing in a rounding- and inequality-aware manner (as statcheck does [15]), 276 of 295 recomputable claims (93.6%) were consistent and 19 were flagged for review.
 
-Manual review of the 19 flagged claims, each read back against its source article (Table 7), shows that most are not author errors. Nine were repeated-measures ANOVAs carrying a Greenhouse-Geisser or Huynh-Feldt sphericity correction: these articles report the *uncorrected* degrees of freedom alongside the *corrected* p-value, so any tool that recomputes from the reported df necessarily disagrees---a limitation shared with statcheck, which likewise cannot recover the sphericity estimate. Five were tool false positives in which the reported p was not the raw test-of-that-statistic p the checker recomputes: four formed a single cluster of two-way-ANOVA post-hoc comparisons in one article in which the reported value is a Tukey/Dunnett multiplicity-adjusted p (necessarily larger than the raw-statistic p), and one was a non-significant value rounded coarsely. One was a sample-size-determination formula (Z = 1.96 with an assumed proportion in Cochran's equation), not a hypothesis test. The remaining four were genuine recompute-versus-reported discrepancies surfaced for human review---internally inconsistent reports that the study design cannot explain; for example, a reported F(6, 128) = 6.8, p = 0.03 recomputes to p approximately 3 x 10^-6^ (the reported p is implausibly large for that statistic and its reported effect size, and a sphericity correction cannot account for a gap of this magnitude), and an independent-samples t(91) = 2.28 reported at p = 0.050 recomputes to p approximately 0.025. The exercise confirms that the engine recovers the large majority of correctly reported statistics, and that nearly all of its residual flags are explainable tool limitations or false positives rather than author errors---a distribution we report in full rather than obscure.
+Manual review of the 19 flagged claims, each read back against its source article (Table 7), shows that most are not author errors. Nine were repeated-measures ANOVAs carrying a Greenhouse-Geisser or Huynh-Feldt sphericity correction: these articles report the *uncorrected* degrees of freedom alongside the *corrected* p-value, so any tool that recomputes from the reported df necessarily disagrees---a limitation shared with statcheck, which likewise cannot recover the sphericity estimate. Five were tool false positives in which the reported p was not the raw test-of-that-statistic p the checker recomputes: four formed a single cluster of two-way-ANOVA post-hoc comparisons in one article in which the reported value is a Tukey/Dunnett multiplicity-adjusted p (necessarily larger than the raw-statistic p), and one was a non-significant value rounded coarsely. One was a sample-size-determination formula (Z = 1.96 with an assumed proportion in Cochran's equation), not a hypothesis test. The remaining four were genuine recompute-versus-reported discrepancies surfaced for human review---internally inconsistent reports that the study design cannot explain; for example, a reported F(6, 128) = 6.8, p = 0.03 recomputes to p approximately 3 x 10^-6 (the reported p is implausibly large for that statistic and its reported effect size, and a sphericity correction cannot account for a gap of this magnitude), and an independent-samples t(91) = 2.28 reported at p = 0.050 recomputes to p approximately 0.025. The exercise confirms that the engine recovers the large majority of correctly reported statistics, and that nearly all of its residual flags are explainable tool limitations or false positives rather than author errors---a distribution we report in full rather than obscure.
 
 **Table 7. Classification of the 19 claims flagged in the 20-article verification corpus.** Each flag was read back against its source article; counts sum to 19 (14 discrepancy-level + 5 gross-error-level flags).
 
@@ -262,7 +264,7 @@ To benchmark the engine against the field standard rather than report self-consi
 
 ### Software testing and continuous integration
 
-StickForStats maintains more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed via GitHub Actions on every commit (per-suite counts in S1 Text). The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
+StickForStats maintains more than 1,500 automated tests (approximately 860 backend, 654 frontend) executed via GitHub Actions on every commit. The CI pipeline runs eight jobs (three lint, three test, two Docker build/push) plus a separate security workflow with Trivy and CodeQL scanning. A Design Contract ensures that "no statistical result may exist without an explicit, traceable assumption context"---enforced by 38 Guardian-specific tests (22 integration, 16 middleware) and 46 dedicated validator unit tests in `backend/tests/test_guardian_validators.py`. Zero lint errors across all codebases.
 
 ## Discussion
 
@@ -288,9 +290,9 @@ We acknowledge several limitations. *Threshold dependence:* Guardian's severity 
 
 ### Future directions
 
-The platform includes five curated biological example datasets (CRISPR editing strategies, clinical trial survival, gene expression, epidemiological case-control, and dose-response) with documented analysis vignettes (availability details are given in Materials and Methods). Future work will expand the Bayesian analysis suite, add dose-response modeling for pharmacological studies, CONSORT flow diagram generation, and integrate with biological data repositories (GEO, ClinicalTrials.gov).
+The platform includes five curated biological example datasets (CRISPR editing strategies, clinical trial survival, gene expression, epidemiological case-control, and dose-response) with documented analysis vignettes (availability details are given below). Future work will expand the Bayesian analysis suite, add dose-response modeling for pharmacological studies, CONSORT flow diagram generation, and integrate with biological data repositories (GEO, ClinicalTrials.gov).
 
-## Materials and methods
+## Methods
 
 ### Software implementation
 
@@ -308,17 +310,58 @@ Reference calculations were performed independently in R 4.3.2 and Python (SciPy
 
 ### Guardian evaluation
 
-Each Guardian validator was validated against known datasets with confirmed properties: exponential distributions for normality (Shapiro-Wilk W = 0.886, p < 0.001, exact SciPy agreement), unequal-variance groups for homogeneity (Levene F = 8.92, p = 0.004, exact agreement), quadratic relationships for linearity (R-squared improvement = 45%, exact agreement with manual calculation). Edge case testing verified correct handling of empty arrays, single observations, identical values (zero variance), very large datasets (n = 10^6^, completed within 5 seconds), and extreme values (10^308^, no overflow errors).
+Each Guardian validator was validated against known datasets with confirmed properties: exponential distributions for normality (Shapiro-Wilk W = 0.886, p < 0.001, exact SciPy agreement), unequal-variance groups for homogeneity (Levene F = 8.92, p = 0.004, exact agreement), quadratic relationships for linearity (R-squared improvement = 45%, exact agreement with manual calculation). Edge case testing verified correct handling of empty arrays, single observations, identical values (zero variance), very large datasets (n = 10^6, completed within 5 seconds), and extreme values (10^308, no overflow errors).
 
-### Availability and reproducibility
+## Availability of source code and requirements
 
-StickForStats is open-source under the MIT license; the version described here (v1.0.0, release tag `v1.0.0`) is archived at https://github.com/visvikbharti/stickforstats_new, and a versioned snapshot will be deposited on Zenodo to obtain a citable DOI. The platform is platform-independent (Docker / Docker Compose) and runs in any modern browser; the backend requires Python >= 3.10, Django 4.2, PostgreSQL 15, and Redis 7 (SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3). A `Dockerfile` and `docker-compose.yml` provision the full stack. A Python client SDK and command-line interface are available on PyPI (`pip install stickforstats`, or `pip install stickforstats[cli]` for the `sfs` command); the SDK connects to a StickForStats backend---a local Docker deployment or a hosted instance---through its REST API. All datasets analysed in this article are public and previously published; the replication package (`paper/replication/`) contains the verification scripts, the master runner (`MASTER_VERIFICATION.py`), and the statcheck head-to-head (`statcheck_baseline.R`) with run instructions. Per-dataset sources are: Fisher's Iris (via scikit-learn); UCI Wine Quality (https://archive.ics.uci.edu/dataset/186/wine+quality); the IV-magnesium meta-analysis (Egger 1997 [26]; `metafor::dat.egger2001` [33]); synovial-sarcoma RNA-seq (NCBI GEO accession GSE271517; Chen et al. 2024 [34]); and the 20-article retrospective-verification corpus (PubMed Central open-access subset, rebuilt by `fetch_corpus.py` from the recorded E-utilities query and manifest).
+- **Project name:** StickForStats
+- **Project home page:** https://github.com/visvikbharti/stickforstats_new
+- **Version used in this article:** v1.0.0 (release tag `v1.0.0`)
+- **Operating system(s):** Platform independent (Docker / Docker Compose); the web application runs in any modern browser.
+- **Programming languages:** Python 3.11 (backend), JavaScript / React 18 (frontend), R (cross-validation and the R SDK).
+- **Other requirements:** Python >= 3.10, Django 4.2, PostgreSQL 15, Redis 7; SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3. A `Dockerfile` and `docker-compose.yml` provision the full stack.
+- **Programmatic access:** a Python client SDK and command-line interface are available on PyPI (`pip install stickforstats`, or `pip install stickforstats[cli]` for the `sfs` command); the SDK connects to a StickForStats backend---a local Docker deployment or a hosted instance---through its REST API.
+- **License:** MIT.
 
-### Use of AI-assisted technologies
+## Availability of supporting data and materials
+
+All datasets analysed in this article are public and previously published, and all analysis code is openly available under the MIT license at the project home page.
+
+- **Replication package:** `paper/replication/` in the repository contains the verification scripts, the master runner (`MASTER_VERIFICATION.py`), the statcheck head-to-head (`statcheck_baseline.R`), and a README with run instructions.
+- **Datasets:** Fisher's Iris (via scikit-learn); UCI Wine Quality (https://archive.ics.uci.edu/dataset/186/wine+quality); the IV-magnesium meta-analysis (Egger 1997 [26]; `metafor::dat.egger2001` [33]); synovial-sarcoma RNA-seq (NCBI GEO accession GSE271517; Chen et al. 2024 [34]); and the 20-article retrospective-verification corpus (PubMed Central open-access subset, rebuilt by `fetch_corpus.py` from the recorded E-utilities query and manifest).
+- **GigaDB:** A snapshot of the source code and the curated datasets will be deposited in the GigaScience Database (GigaDB) upon acceptance to obtain a citable DOI.
+
+## Declarations
+
+### Ethics approval and consent to participate
+
+Not applicable. This work is a secondary analysis of publicly available, previously published, de-identified datasets and published summary statistics; no new human or animal data were collected.
+
+### Consent for publication
+
+Not applicable.
+
+### Competing interests
+
+The authors declare that they have no competing interests.
+
+### Funding
+
+No specific funding was received for this work.
+
+### Authors' contributions
+
+V.B.: conceptualization, software, validation, formal analysis, writing — original draft. D.C.: conceptualization, supervision, resources, writing — review & editing. Both authors read and approved the final manuscript.
+
+### Abbreviations
+
+ANOVA: analysis of variance; RM-ANOVA: repeated-measures ANOVA; FDR: false discovery rate; CI: confidence interval; SQS: Statistical Quality Score; RRID: Research Resource Identifier.
+
+## Use of AI-assisted technologies
 
 Generative AI (Claude, Anthropic) was used to assist both software development and the drafting of this manuscript. In software development, all AI-suggested code was reviewed by the authors, tested against reference implementations (SciPy, R), and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). In manuscript preparation, AI was used for drafting and editing assistance; all text was reviewed and verified by the authors, and every statistical value was independently recomputed and checked against SciPy and R. No AI tool is listed as an author. The authors take full responsibility for the content, accuracy, and integrity of this work, including any portion produced with AI assistance.
 
-## Acknowledgments
+## Acknowledgements
 
 We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutional support. We thank the developers of NumPy [38], SciPy [39], statsmodels [40], lifelines, and mpmath [27] whose libraries form the computational foundation of StickForStats.
 
@@ -365,13 +408,32 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 39. Virtanen P, et al. SciPy 1.0: Fundamental Algorithms for Scientific Computing in Python. Nat Methods. 2020;17(3):261-272.
 40. Seabold S, Perktold J. Statsmodels: Econometric and Statistical Modeling with Python. Proc 9th Python Sci Conf. 2010:57-61.
 
-## Supporting information
+## Additional files
 
-**S1 Text. Supplementary Information.** A single supporting document with five sections, all reproducible from the open-source repository (https://github.com/visvikbharti/stickforstats_new): (S1.1) Guardian validator specifications --- the eight validators, the assumption each checks, its statistical method, and the test-type-to-validator mapping; (S1.2) Programmatic access --- Python SDK (`pip install stickforstats`) and `sfs` CLI usage examples; (S1.3) Additional validation on standard R datasets --- Guardian results on `mtcars` (regression), `ToothGrowth` (two-sample t-test), and `PlantGrowth` (one-way ANOVA), reproducible via `paper/replication/additional_real_data_analysis.py`; (S1.4) Guardian test-suite coverage --- per-suite test counts (22 integration, 16 middleware, 46 validator-unit, 12 math-correctness backend tests; 25 component and 30 hook frontend tests); (S1.5) Performance benchmarks --- end-to-end API latency with and without the Guardian pipeline (mean ± SD over 100 requests; `paper/replication/benchmark_api.py`), showing a median Guardian overhead of 0.2 ms with all latencies below 10 ms at the 99th percentile.
+**Additional file 1 — Supplementary Information** (`additional_file_1_supplementary_information.pdf`). A single supporting document with five sections, all reproducible from the open-source repository (https://github.com/visvikbharti/stickforstats_new):
+
+- **S1. Guardian validator specifications** — the eight validators, the assumption each checks, its statistical method, and the test-type-to-validator mapping.
+- **S2. Programmatic access** — Python SDK (`pip install stickforstats`) and `sfs` CLI usage examples.
+- **S3. Additional validation on standard R datasets** — Guardian results on `mtcars` (regression), `ToothGrowth` (two-sample t-test), and `PlantGrowth` (one-way ANOVA), reproducible via `paper/replication/additional_real_data_analysis.py`.
+- **S4. Guardian test-suite coverage** — per-suite test counts (22 integration, 16 middleware, 46 validator-unit, 12 math-correctness backend tests; 25 component and 30 hook frontend tests).
+- **S5. Performance benchmarks** — end-to-end API latency with and without the Guardian pipeline (mean ± SD over 100 requests; `paper/replication/benchmark_api.py`).
+
+| Endpoint              | Mode     | Mean (ms) | SD (ms) | Min (ms) | Max (ms) | n   |
+|-----------------------|----------|-----------|---------|----------|----------|-----|
+| t-test (independent)  | standard | 3.58      | 0.94    | 2.37     | 6.18     | 100 |
+| t-test (independent)  | Guardian | 3.59      | 0.80    | 2.40     | 8.90     | 100 |
+| ANOVA (one-way)       | standard | 4.01      | 0.56    | 2.91     | 5.68     | 100 |
+| ANOVA (one-way)       | Guardian | 3.91      | 1.02    | 2.59     | 11.70    | 100 |
+| Pearson correlation   | standard | 4.15      | 1.04    | 3.40     | 12.46    | 100 |
+| Pearson correlation   | Guardian | 5.16      | 0.51    | 4.43     | 7.42     | 100 |
+| Linear regression     | standard | 3.99      | 0.54    | 3.18     | 6.74     | 100 |
+| Linear regression     | Guardian | 3.91      | 1.12    | 2.67     | 11.59    | 100 |
+
+Across the four tests the median Guardian overhead is 0.2 ms (range −0.10 to +1.01 ms); for three of four endpoints the difference falls within one standard deviation of the baseline. All measured latencies remain below 10 ms at the 99th percentile, indicating that automatic assumption validation adds no user-perceptible cost to interactive statistical analysis. The benchmark is reproducible via `python paper/replication/benchmark_api.py --iterations 100 --warmup 10`; raw per-request timings are written to `paper/replication/benchmark_results.csv` for independent re-analysis.
 
 ---
 
-## Figure legends
+## Figure Legends
 
 **Fig 1. StickForStats system architecture.** Three-tier design: user interface (React 18 with genomics workflow, AI advisor, and manuscript review modules), application layer (Django REST with Guardian integration, statistical engine, and genomics differential expression service), and data layer (PostgreSQL, Redis, Celery workers, file storage).
 
@@ -384,5 +446,3 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 **Fig 5. Platform comparison and validation.** (A) Numerical agreement between StickForStats and reference implementations (SciPy, R, statsmodels) across 9 statistical test categories, demonstrating 10--16 decimal places of agreement. (B) Feature comparison heatmap of StickForStats vs. R, SPSS, jamovi, and JASP on 10 capabilities relevant to assumption validation and biomedical research.
 
 **Fig 6. Guardian-augmented vs naive analysis on real RNA-seq (GSE271517 [34]).** (A) Volcano plot of all 27,221 filtered genes from the Primary-tumour vs Metastasis contrast (n = 55 vs 36). Each point is one gene; colour indicates hit-list category at q < 0.05. *Hit by both* (dark gray, n = 932) are detected by both pipelines. *Guardian only* (blue, n = 479; "Group A") are rescued by the Mann-Whitney cascade despite the naive t-test reporting q just above 0.05; they cluster around the threshold line at modest fold changes. *Naive only* (red, n = 74; "Group B") are flagged by the naive t-test but rejected by Guardian's Mann-Whitney; they include genes with relatively large apparent fold changes that turn out to be driven by outlier samples. (B) |log2 fold change| distribution for the two verdict-flipped groups. Group A is concentrated at small effect sizes (median 0.20; only 8% with |log2FC| ≥ 1) where t-test is under-powered on non-normal data; Group B is shifted right (median 0.46; 31% with |log2FC| ≥ 1), characteristic of outlier-dominated false positives that t-test mistakes for true differential expression and that the rank-based Mann-Whitney correctly rejects.
-
-**Fig 7. Guardian assumption validation in the StickForStats web interface.** A two-sample t-test computed by the real backend at 50-decimal precision on a hosted instance of the platform. Before reporting results, Guardian's "Assumption Checks" panel evaluates each assumption and flags violations in place: for the non-normal input shown, normality and equal variance are flagged as violated and independence is referred to study design. Assumption status is presented as an integral, default part of every analysis rather than an optional post-hoc diagnostic.
