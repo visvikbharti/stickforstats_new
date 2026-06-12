@@ -7,6 +7,8 @@
 
 \* Corresponding authors: vishalvikashbharti@gmail.com, debojyoti.chakraborty@igib.in
 
+ORCID: Vishal Bharti https://orcid.org/0009-0003-1431-4457; Debojyoti Chakraborty https://orcid.org/0000-0003-1460-7594
+
 ---
 
 ## Abstract
@@ -408,17 +410,13 @@ We acknowledge CSIR-Institute of Genomics and Integrative Biology for institutio
 
 ## Additional files
 
-The following supplementary materials accompany this submission; each is also available in the project repository (https://github.com/visvikbharti/stickforstats_new).
+**Additional file 1 — Supplementary Information** (`additional_file_1_supplementary_information.pdf`). A single supporting document with five sections, all reproducible from the open-source repository (https://github.com/visvikbharti/stickforstats_new):
 
-**Additional file 1: Detailed validator specifications.** Complete description of all eight Guardian validators including severity thresholds, methods, and recommendations for each violation type.
-
-**Additional file 2: Code examples.** Python API usage examples for t-tests, ANOVA, correlation, meta-analysis, and batch analysis with Guardian validation handling (Listings 1--7 from implementation).
-
-**Additional file 3: Additional case studies.** Guardian validation results on mtcars (regression), ToothGrowth (two-sample t-test), and PlantGrowth (ANOVA) datasets from R's standard library.
-
-**Additional file 4: Guardian test suite coverage.** Complete breakdown of 38 backend tests (22 integration, 16 middleware) and 59 frontend tests with coverage areas.
-
-**Additional file 5: Performance benchmarks.** End-to-end API latency for the four statistical tests cited in the manuscript, measured against a local Django development server on an Apple M-series laptop (macOS, Python 3.9, `DJANGO_DEBUG=True`). Each cell reports mean ± SD over 100 successive requests following 10 warm-up requests; inputs are fixed-seed synthetic samples (t-test: two groups of n = 50; ANOVA: four groups of n = 30; correlation: n = 100 paired observations; regression: n = 100, two predictors). The *standard* column disables the assumption-validation pipeline (`check_assumptions = false`); the *Guardian* column enables the full eight-validator pipeline with result validation (`check_assumptions = true`).
+- **S1. Guardian validator specifications** — the eight validators, the assumption each checks, its statistical method, and the test-type-to-validator mapping.
+- **S2. Programmatic access** — Python SDK (`pip install stickforstats`) and `sfs` CLI usage examples.
+- **S3. Additional validation on standard R datasets** — Guardian results on `mtcars` (regression), `ToothGrowth` (two-sample t-test), and `PlantGrowth` (one-way ANOVA), reproducible via `paper/replication/additional_real_data_analysis.py`.
+- **S4. Guardian test-suite coverage** — per-suite test counts (22 integration, 16 middleware, 46 validator-unit, 12 math-correctness backend tests; 25 component and 30 hook frontend tests).
+- **S5. Performance benchmarks** — end-to-end API latency with and without the Guardian pipeline (mean ± SD over 100 requests; `paper/replication/benchmark_api.py`).
 
 | Endpoint              | Mode     | Mean (ms) | SD (ms) | Min (ms) | Max (ms) | n   |
 |-----------------------|----------|-----------|---------|----------|----------|-----|
