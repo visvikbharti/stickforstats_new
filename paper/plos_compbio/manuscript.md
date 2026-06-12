@@ -318,6 +318,7 @@ Each Guardian validator was validated against known datasets with confirmed prop
 - **Operating system(s):** Platform independent (Docker / Docker Compose); the web application runs in any modern browser.
 - **Programming languages:** Python 3.11 (backend), JavaScript / React 18 (frontend), R (cross-validation and the R SDK).
 - **Other requirements:** Python >= 3.10, Django 4.2, PostgreSQL 15, Redis 7; SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3. A `Dockerfile` and `docker-compose.yml` provision the full stack.
+- **Programmatic access:** a Python client SDK and command-line interface are available on PyPI (`pip install stickforstats`, or `pip install stickforstats[cli]` for the `sfs` command); the SDK connects to a StickForStats backend---a local Docker deployment or a hosted instance---through its REST API.
 - **License:** MIT.
 
 ## Availability of supporting data and materials

@@ -15,6 +15,11 @@ Use of AI-assisted technologies: generative AI (Claude, Anthropic) was used to a
 
 The authors declare no competing interests. All authors have read and approved the manuscript for submission, and the work is not under consideration for publication elsewhere.
 
+A Python client SDK and CLI are available on PyPI (pip install stickforstats). A live
+demonstration instance of the platform is available for hands-on evaluation by the editor
+and reviewers; please let us know and we will provide access credentials through the
+editorial system.
+
 Repository: https://github.com/visvikbharti/stickforstats_new
 Release: v1.0.0
 
