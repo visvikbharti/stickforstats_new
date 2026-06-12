@@ -12,14 +12,16 @@
 |---|---|
 | `manuscript.docx` | Manuscript (main article file — includes title page, abstract, author summary, body, references, figure legends, S1 caption) |
 | `cover_letter.txt` | Cover Letter (separate upload; also paste into the cover-letter box) |
-| `figures/fig1_architecture.png` | Figure 1 |
-| `figures/fig2_guardian_flowchart.png` | Figure 2 |
-| `figures/fig3_case_studies.png` | Figure 3 |
-| `figures/fig4_manuscript_review.png` | Figure 4 |
-| `figures/fig5_validation_comparison.png` | Figure 5 |
-| `figures/fig6_genomics_case_study.png` | Figure 6 |
-| `figures/fig7_guardian_report.png` | Figure 7 |
+| `figures_plos/fig1_architecture.png` | Figure 1 (system architecture) |
+| `figures_plos/fig2_guardian_flowchart.png` | Figure 2 (Guardian workflow) |
+| `figures_plos/fig3_manuscript_review.png` | Figure 3 (manuscript review) |
+| `figures_plos/fig4_case_studies.png` | Figure 4 (CRISPR + IV-magnesium meta-analysis) |
+| `figures_plos/fig5_genomics_case_study.png` | Figure 5 (RNA-seq GSE271517) |
+| `figures_plos/fig6_validation_comparison.png` | Figure 6 (platform comparison + validation) |
+| `figures_plos/fig7_guardian_report.png` | Figure 7 (live web interface) |
 | `s1_text_supplementary_information.docx` | Supporting Information (label: **S1 Text**) |
+
+> **Figure numbering:** use the files in `figures_plos/` (already numbered in the manuscript's citation order). The older `figures/` directory holds the GigaScience numbering — do **not** upload from there for PLOS.
 
 Notes: PLOS accepts a single combined manuscript file (DOC/DOCX/PDF) at first submission; figures may be embedded in that file for review, but also upload them as separate files. At the *revision* stage PLOS requires each figure as an individual TIFF/EPS file at 300–600 dpi (use PACE, https://pacev2.apexcovantage.com, to check figure files).
 
@@ -83,13 +85,16 @@ PLOS lets you (optionally) suggest reviewers and an Academic Editor, and oppose 
 
 ## 11. Before you click Submit
 - [ ] Co-author (D. Chakraborty) has approved this PLOS version.
+- [ ] **(Recommended) Mint a Zenodo DOI** for the code: at https://zenodo.org enable the GitHub integration, archive the existing `v1.0.0` release (a few minutes), then replace the future-tense Zenodo sentence in the manuscript (§Availability and reproducibility) and the form Data-Availability statement with the concrete `DOI: 10.5281/zenodo.XXXXXXX`. PLOS strongly recommends an archived code DOI; the public MIT GitHub repo already satisfies the mandatory requirement, so this is a "nice to have," not a blocker.
 - [ ] Title is in **sentence case**; short title ≤70 characters entered.
 - [ ] Abstract pasted (unstructured, ≤300 words) and **Author Summary** pasted (150–200 words) — both required by PLOS.
-- [ ] Figures uploaded in order 1→7; S1 Text uploaded and labelled.
+- [ ] Figures uploaded **from `figures_plos/`** in order 1→7; S1 Text uploaded and labelled.
 - [ ] ORCID entered for the corresponding author (both authors ideally).
 - [ ] **Financial Disclosure, Competing Interests, and Data Availability** filled in the FORM (not in the manuscript file).
+- [ ] Confirm with the PI: **Competing Interests = "none"** is accurate (no company/paid licensing/patent tied to StickForStats or CRISPRArchitect). If any commercial interest exists, declare it.
+- [ ] Confirm the GitHub repo is still **public** on submission day.
 - [ ] Beta password filled into the confidential comments only (never in any public field or committed file).
-- [ ] **Review the EM-built PDF** — figures render in order, abstract + author summary present, references intact.
+- [ ] **Review the EM-built PDF** — figures render in order 1→7, abstract + author summary present, references intact.
 
 ## 12. After submission
 - You receive a manuscript number and confirmation email.
