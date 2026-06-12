@@ -36,11 +36,16 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 # ---------------------------------------------------------------------------
 
 def _load_config() -> dict[str, Any]:
-    """Load saved configuration from disk."""
-    if CONFIG_FILE.exists():
+    """Load saved configuration from disk, tolerating a missing or corrupt file."""
+    if not CONFIG_FILE.exists():
+        return {}
+    try:
         with open(CONFIG_FILE) as f:
-            return json.load(f)
-    return {}
+            cfg = json.load(f)
+        return cfg if isinstance(cfg, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        # A corrupt config must not crash the CLI; fall back to defaults/env vars.
+        return {}
 
 
 def _save_config(cfg: dict[str, Any]) -> None:
@@ -51,14 +56,19 @@ def _save_config(cfg: dict[str, Any]) -> None:
 
 
 def _make_client(**overrides: Any) -> Any:
-    """Create a StickForStats client using saved config + overrides."""
+    """Create a StickForStats client from overrides > saved config > env vars/defaults.
+
+    Passing ``None`` for base_url/api_key/timeout lets the client itself apply its
+    environment-variable and built-in defaults.
+    """
     from stickforstats.client import StickForStats
 
     cfg = _load_config()
+    timeout = overrides.get("timeout") or cfg.get("timeout")
     return StickForStats(
-        base_url=overrides.get("base_url") or cfg.get("base_url", "http://localhost:8000/api/v1"),
+        base_url=overrides.get("base_url") or cfg.get("base_url"),
         api_key=overrides.get("api_key") or cfg.get("api_key"),
-        timeout=float(overrides.get("timeout") or cfg.get("timeout", 60)),
+        timeout=float(timeout) if timeout else None,
     )
 
 
@@ -139,7 +149,10 @@ if _cli_available:
             table.add_column("Key", style="cyan")
             table.add_column("Value", style="green")
             for k, v in cfg.items():
-                display = f"{v[:4]}...{v[-4:]}" if k == "api_key" and v else str(v)
+                if k == "api_key" and v:
+                    display = f"{v[:4]}...{v[-4:]}" if len(str(v)) > 8 else "***"
+                else:
+                    display = str(v)
                 table.add_row(k, display)
             console.print(table)
             return

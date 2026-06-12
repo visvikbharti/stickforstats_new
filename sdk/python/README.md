@@ -4,17 +4,40 @@ Python client for the **StickForStats** statistical analysis platform -- featuri
 the Guardian Statistical Protection System, Autonomous Intelligence Layer, and
 Manuscript Review Engine.
 
+This is a **thin client**: it talks to a running StickForStats backend over its
+REST API; it does not perform the statistics locally.
+
+## Requirements
+
+- **Python 3.10+**
+- A reachable **StickForStats backend** — either a local deployment (the project's
+  `docker compose up`) or a hosted instance — plus an API key for authenticated endpoints.
+
 ## Installation
 
 ```bash
 pip install stickforstats
 ```
 
-With CLI support (adds `sfs` command):
+With CLI support (adds the `sfs` command):
 
 ```bash
 pip install stickforstats[cli]
 ```
+
+## Configuration
+
+Point the client at your backend via arguments or environment variables:
+
+```bash
+export STICKFORSTATS_BASE_URL="http://localhost:8000/api/v1"
+export STICKFORSTATS_API_KEY="your-api-key"
+```
+
+The client retries transient failures (connection errors, timeouts, HTTP
+429/502/503/504) with exponential backoff, and raises typed exceptions
+(`AuthenticationError`, `ValidationError`, `RateLimitError`, `ConnectionError`, ...)
+all deriving from `StickForStatsError`.
 
 ## Quick Start
 
