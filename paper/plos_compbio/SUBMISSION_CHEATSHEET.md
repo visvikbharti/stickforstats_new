@@ -73,8 +73,20 @@ statistical assumption validation; reproducibility; computational biology; CRISP
 
 ---
 
-## 9. Suggested + opposed reviewers (your PI is sourcing these)
-PLOS lets you (optionally) suggest reviewers and an Academic Editor, and oppose specific reviewers. Suggest independent researchers in **reproducibility / biostatistics / research software / computational biology** with NO conflict (not co-authors, not at CSIR-IGIB, no recent collaboration). For each: name, affiliation, email, and a one-line reason. The PI is identifying these and the Academic Editor.
+## 9. Suggested + opposed reviewers
+PLOS lets you suggest reviewers (4–5 recommended) and an Academic Editor, and oppose specific reviewers. Suggested reviewers must have **no conflict** (not co-authors, not same institution, no recent collaboration or personal relationship). PI-supplied list, verified 2026-06-13 (affiliation/email/ORCID confirmed; checked for co-authorship + shared institution with V. Bharti / D. Chakraborty):
+
+| Name | Email | Institution | ORCID | Reason |
+|---|---|---|---|---|
+| Sunil Laxman | sunil@instem.res.in | Institute for Stem Cell Science and Regenerative Medicine (inStem), Bengaluru, India | 0000-0002-0861-5080 | Systems/quantitative biologist (omics, metabolic regulation) and PLOS Comp Biol Academic Editor; evaluates computational-biology methodology, reproducibility, and genome-scale statistics — fits automated assumption validation + reproducible DE pipelines. |
+| Sushmita Roy | sroy8@wisc.edu | University of Wisconsin–Madison, USA | 0000-0002-3694-1705 | Professor of Biostatistics & Medical Informatics; statistical/ML methods + open-source tools for genome-scale and single-cell omics; dual biostatistics-and-genomics fit for assumption checking, per-gene RNA-seq stats, research-software claims. |
+| Gaurav Ahuja | gaurav.ahuja@iiitd.ac.in | IIIT-Delhi, India | 0000-0002-2837-9361 | Computational-biology faculty; statistical/ML methods for genomics and single-cell/RNA-seq; methods-and-analysis focus maps onto the paper's biostatistics, RNA-seq DE, and reproducibility themes. |
+
+**COI notes:** all three clean (no co-authorship/shared institution). Roy is PLOS Comp Biol **Section Editor** (Genomics/Epigenomics/Proteomics) and Laxman is a PLOS Academic Editor — suggesting board members is allowed, but PLOS may route Roy as the handling editor instead. **Need a 4th clean name from the PI** to reach 4–5.
+
+**DROPPED — Andreas Deutsch (TU Dresden, ORCID 0000-0002-9005-6897):** likely **personal-relationship COI** — appears to be a bandmate of D. Chakraborty in the Dresden ensemble "Dhun" (he plays saxophone, Chakraborty sitar). **Confirm with Dr. Chakraborty; do not suggest him unless he confirms there is no relationship.** Topical fit was only partial anyway (agent-/PDE-based modeling, not biostatistics).
+
+**Opposed reviewers (optional):** none planned unless the authors have a specific concern.
 
 ---
 
