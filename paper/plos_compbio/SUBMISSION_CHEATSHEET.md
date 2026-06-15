@@ -1,5 +1,15 @@
 # PLOS Computational Biology submission cheat-sheet — StickForStats
 
+> ## ✅ SUBMITTED — 2026-06-15
+> **Manuscript number: `PCOMPBIOL-S-26-01887`** (Research Article, PLOS Computational Biology).
+> Approved by author in Editorial Manager on 2026-06-15. Standard publication fee **$3,165 USD accepted pay-on-acceptance** (invoiced only if accepted; need-based assistance not pursued). bioRxiv preprint opt-in ticked. Built PDF (39 pp) proofread clean — no blockers.
+> **Status now:** awaiting PLOS in-house technical/QC check → editor assignment → peer review → first decision.
+> The checklist below is preserved as the submission record (and for the option-B GigaScience path if PLOS declines).
+>
+> **Deferred to revision stage (non-blocking):** (1) Fig 4B forest-plot CI whiskers visually cross some small-trial labels; (2) Fig 2 shows routing gate as "Score ≥ 0.7" while text describes critical-violation-triggered routing + 0.8/0.6 bands; (3) manuscript marks both authors corresponding (`*`) but EM lists only D. Chakraborty (V. Bharti non-corresponding to dodge ORCID-namesake bug) — reconcile at production if co-corresponding wanted; (4) revision stage requires each figure as individual TIFF/EPS 300–600 dpi (PACE), and PNG alpha/RGBA on figs 1–6 should be flattened.
+
+---
+
 **Portal:** https://www.editorialmanager.com/pcompbiol → "Submit New Manuscript". Log in / register as the corresponding author.
 **Article type:** **Research Article**
 **(GigaScience is held as option B — see `SUBMISSION_CHEATSHEET_gigascience.md` + `manuscript_gigascience.md`.)**
