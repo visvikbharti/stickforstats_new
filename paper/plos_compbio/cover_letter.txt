@@ -1,14 +1,19 @@
-Dear Editors,
+15 June 2026
+
+Dr. Feilim Mac Gabhann and Dr. Virginia Pitzer
+Editors-in-Chief, PLOS Computational Biology
+
+Dear Dr. Mac Gabhann and Dr. Pitzer,
 
 We are pleased to submit our manuscript, "StickForStats: automated statistical assumption validation for reproducible computational biology," for consideration as a Research Article in PLOS Computational Biology.
 
-A large share of irreproducible results in the life sciences can be traced not to fraud or exotic statistics, but to a mundane and well-documented gap: the assumptions underlying routine statistical tests are seldom checked. Surveys find that fewer than 20% of published studies report verifying them, and the statistical software in everyday use treats this checking as an optional step the analyst must remember to perform. The problem is especially acute in computational biology, where pipelines run tens of thousands of tests (differential expression), rank strategies on composite scores (CRISPR design), or pool heterogeneous trials (meta-analysis) without, by default, asking whether each test's assumptions hold.
+A large share of irreproducible results in the life sciences can be traced not to fraud or exotic statistics, but to a mundane and well documented gap: the assumptions underlying routine statistical tests are seldom checked. Surveys find that fewer than 20% of published studies report verifying them, and the statistical software in everyday use treats this checking as an optional step the analyst must remember to perform. The problem is especially acute in computational biology, where pipelines run tens of thousands of tests (differential expression), rank strategies on composite scores (CRISPR design), or pool heterogeneous trials (meta-analysis) without, by default, asking whether each test's assumptions hold.
 
-We present StickForStats, an open-source web platform whose Guardian system reframes assumption validation as a default precondition for every analysis: it checks the relevant assumptions before a test runs and, on a critical violation, transparently reroutes to an appropriate nonparametric alternative while recording the decision. We demonstrate the approach on four real datasets spanning the field — a CRISPR editing-strategy comparison, an ordinal correlation, a publication-bias-distorted clinical meta-analysis, and a genome-scale RNA-seq differential-expression analysis in which per-gene assumption checking cascades 90.6% of 27,221 genes to a rank-based test and changes 553 gene verdicts. A complementary module extends the same validators to finished manuscripts and is benchmarked head-to-head against statcheck on a 20-article corpus.
+We present StickForStats, an open-source web platform whose Guardian system reframes assumption validation as a default precondition for every analysis: it checks the relevant assumptions before a test runs and, on a critical violation, transparently reroutes to an appropriate nonparametric alternative while recording the decision. We demonstrate the approach on four real datasets spanning the field like a CRISPR editing-strategy comparison, an ordinal correlation, a publication-bias-distorted clinical meta-analysis, and a genome-scale RNA-seq differential-expression analysis in which per-gene assumption checking cascades 90.6% of 27,221 genes to a rank-based test and changes 553 gene verdicts. A complementary module extends the same validators to finished manuscripts and is benchmarked head-to-head against statcheck on a 20-article corpus.
 
-We believe the work is a natural fit for PLOS Computational Biology's readership because it targets a tractable, under-served cause of irreproducibility with a concrete, openly available tool rather than another checklist or post-hoc guideline. It should interest computational biologists who build and run analysis pipelines, methodologists concerned with statistical practice, and journals and reviewers seeking automated statistical screening. By making assumption checking the default rather than the exception — and by showing quantitatively how much a differential-expression gene list can change when it is enforced at scale — we hope to shift everyday analysis practice toward reproducibility.
+We believe the work is a natural fit for PLOS Computational Biology's readership because it targets a tractable, under served cause of irreproducibility with a concrete, openly available tool rather than another checklist or post hoc guideline. It should interest computational biologists who build and run analysis pipelines, methodologists concerned with statistical practice, and journals and reviewers seeking automated statistical screening. By making assumption checking the default rather than the exception, and by showing quantitatively how much a differential-expression gene list can change when it is enforced at scale we hope to shift everyday analysis practice toward reproducibility.
 
-StickForStats is released under the MIT license; the version described here is openly available at https://github.com/visvikbharti/stickforstats_new, with all datasets public and previously published and a complete replication package included. A Python client SDK and command-line interface are available on PyPI (pip install stickforstats).
+StickForStats is released under the MIT license; the version described here is openly available at https://github.com/visvikbharti/stickforstats_new, with all datasets public and previously published and a complete replication package included. A Python client SDK and command line interface are available on PyPI (pip install stickforstats).
 
 Generative AI (Claude, Anthropic) was used to assist software development and manuscript drafting; all code and text were reviewed and verified by the authors, and every statistical value was independently recomputed against SciPy and R. No AI tool is listed as an author. The manuscript is original, is not under consideration for publication elsewhere, and all authors have read and approved its submission. The authors declare no competing interests.
 
@@ -17,5 +22,6 @@ We thank you for considering our submission and look forward to the reviewers' f
 Sincerely,
 
 Vishal Bharti and Debojyoti Chakraborty
-CSIR-Institute of Genomics and Integrative Biology, New Delhi 110025, India
-vishalvikashbharti@gmail.com
+CSIR-Institute of Genomics and Integrative Biology, 
+New Delhi 110025, India
+vishalvikashbharti@gmail.com and debojyoti.chakraborty@igib.in
