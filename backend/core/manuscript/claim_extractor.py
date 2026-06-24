@@ -47,13 +47,13 @@ logger = logging.getLogger(__name__)
 # t-test patterns
 # Matches: t(24) = 2.45, p = .013; t(24)=2.45, p<.001
 T_TEST_PATTERN = re.compile(
-    r"t\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)", re.IGNORECASE
+    r"t\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)", re.IGNORECASE
 )
 
 # F-test patterns
 # Matches: F(2, 45) = 3.67, p = .034
 F_TEST_PATTERN = re.compile(
-    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Chi-square patterns
@@ -61,33 +61,33 @@ F_TEST_PATTERN = re.compile(
 # Handles both Unicode superscript (squared) and ASCII "2"
 CHI_SQUARE_PATTERN = re.compile(
     r"(?:\u03c7[\u00b2\u00322]|chi[- ]?square[d]?)\s*"
-    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Correlation patterns
 # Matches: r = .45, p < .001; r(48) = .67, p = .002
 CORRELATION_PATTERN = re.compile(
-    r"(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Spearman rho pattern
 # Matches: rho = .52, p = .003; rho(30) = .41, p < .05
 SPEARMAN_PATTERN = re.compile(
-    r"(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
     re.IGNORECASE,
 )
 
 # z-test pattern
 # Matches: z = 2.58, p < .01; Z = -1.96, p = .050
 Z_TEST_PATTERN = re.compile(
-    r"(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Regression: beta / B coefficient
 # Matches: beta = 0.34, SE = 0.12, p = .005; B = -1.23, p < .001
 BETA_PATTERN = re.compile(
     r"(?:\u03b2|[Bb]eta|(?<![A-Za-z])[Bb](?![A-Za-z]))\s*=\s*(-?\d+\.?\d*)"
-    r"\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*,?\s*p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # R-squared
@@ -149,7 +149,7 @@ SAMPLE_SIZE_PATTERN = re.compile(
 
 # Standalone p-value (not attached to a test statistic)
 STANDALONE_P_PATTERN = re.compile(
-    r"(?<![A-Za-z])p\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Non-significant marker
