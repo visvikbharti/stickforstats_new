@@ -24,7 +24,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from .claim_extractor import StatisticalClaimExtractor
+from .claim_extractor import StatisticalClaimExtractor, is_test_claim
 from .consistency_adapter import evaluate_consistency
 from .reanalysis_engine import verify_claim
 from .verdicts import ClaimVerdict, ClaimVerificationRequest, Verdict
@@ -92,11 +92,14 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
     the tabular linker; a genomics/other linker can be injected.
     """
     extractor = StatisticalClaimExtractor()
-    claims = extractor.extract(text, section="Results")
+    all_claims = extractor.extract(text, section="Results")
+    # coverage is computed on the FULL claim set (incl. standalone p-values) so recall is honest;
+    # but we VERIFY only genuine statistical-test claims (precision — drop N/CI/ES/standalone-p noise).
+    summary = extractor.summarize(all_claims, full_text=full_text or text)
+    claims = [c for c in all_claims if is_test_claim(c)]
     for i, c in enumerate(claims, 1):
         if not getattr(c, "claim_id", ""):
             c.claim_id = f"C{i:03d}"
-    summary = extractor.summarize(claims, full_text=full_text or text)
 
     if dataframe is not None and linker is None:
         from .claim_data_linker import link_claim_to_table as linker  # lazy (pandas)

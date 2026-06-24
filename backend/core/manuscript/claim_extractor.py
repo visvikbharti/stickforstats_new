@@ -231,6 +231,16 @@ VALID_CLAIM_TYPES = {
     CLAIM_TYPE_SW,
 }
 
+
+def is_test_claim(claim) -> bool:
+    """True for a verifiable statistical-TEST claim (a recognized test type, or a reported test
+    statistic). False for bare metadata fragments — a standalone sample size, confidence interval,
+    effect size, or a p-value with no accompanying statistic — which are not independently
+    verifiable and should not clutter the per-claim verdict list."""
+    return (getattr(claim, "claim_type", "") in VALID_CLAIM_TYPES) or \
+        (getattr(claim, "statistic_value", None) is not None)
+
+
 P_COMPARISON_EQUALS = "equals"
 P_COMPARISON_LESS = "less_than"
 P_COMPARISON_GREATER = "greater_than"

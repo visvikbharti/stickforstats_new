@@ -47,8 +47,10 @@ data-availability sentence → accession **GSE271517** → fetched **63,677 × 9
   → `INSUFFICIENT_DATA` dominates; **"% unverifiable" is the meta-research headline** (this is publishable).
 
 ## No-data tier at scale (Phase-B preview, `census_consistency.py`)
-Running the verifier (no data) over the 20-paper corpus: **1,105 claims, 100% coverage on every
-paper, and 35 statcheck inconsistencies across 12/20 papers (60%)** — consistent with the
+Running the verifier (no data) over the 20-paper corpus: **473 statistical-test claims** (filtered
+from 1,105 raw extractions — bare sample-size/CI/effect-size/standalone-p fragments are excluded by
+the `is_test_claim` precision gate, while coverage is still computed on the full set), **100% coverage
+on every paper, and 35 statcheck inconsistencies across 12/20 papers (60%)** — consistent with the
 meta-research literature (~50%, Nuijten 2016). This is the no-raw-data tier (statcheck + coverage)
 working on real papers; it previews the census's broad layer.
 
