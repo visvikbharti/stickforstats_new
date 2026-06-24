@@ -180,3 +180,14 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
     MKI67/TOP2A → VERIFIED; CFTR (ENSG00000001626) → ASSUMPTION_VIOLATED (t reproduces but 15.1% outliers).
   - Status doc for the PI: `docs/MANUSCRIPT_VERIFY_STATUS_2026-06-24.md`.
   - Phase A: **11/24**. **Next:** T08-CONSDEMOTE / T10-SCHEMA / T22-ORCHESTRATE (wire into the surface).
+- **2026-06-24 17:47 IST** — **verify-core entry point + CLI surface + FIRST real-paper run.**
+  - `verify_pipeline.verify_manuscript()` (T22+T23 standalone) + `verify_cli.py` (T24-lite:
+    `verify PAPER.txt [--data DATA.csv]`). Synthetic paper+data → VERIFIED 100%; check PASS.
+  - **First real-paper run (PMC13225248, no data):** 51 claims → 14 UNVERIFIABLE_EXTRACTION +
+    37 INSUFFICIENT_DATA; **the extractor captured 37 statistics but 0 of 79 p-value mentions →
+    coverage flagged 0% (LOW).** This is the T06 false-negative gate working as designed — AND it
+    pinpoints the real next priority: **the regex extractor's p-attachment fails on real-paper
+    formatting** (the p-merge proximity / single-line stripped text). → multi-leg / better p-merge
+    is the highest-leverage extraction fix before the census.
+  - Phase A: **14/24** (incl. T22/T23 standalone + T24-lite CLI). **Next:** fix extractor p-merge on
+    real papers; then T08/T10/T22-Django-wiring.
