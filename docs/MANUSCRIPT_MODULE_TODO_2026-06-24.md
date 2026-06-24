@@ -66,7 +66,7 @@
 
 ### ▶ Wave 4 — verdicts + linking
 - [ ] **T19-DECISION (M)** [dep T15,T16,T14,T17,T04] — Pure table-driven verdict-assignment function with the §2 precedence (ASSUMPTION_VIOLATED independent of p-match; INSUFFICIENT_DATA dominates; UNVERIFIABLE_EXTRACTION on low coverage). Guardian score only as `uncalibrated_engine_confidence`.
-- [ ] **T21-A3LINK (XL)** [dep T10,T11] — `claim_data_linker.py`: map claim variables/groups/design → dataset columns (header/label matching on column profiles) + human-in-the-loop review UI; **measure & report auto-link rate**; INSUFFICIENT_DATA when no confident link.
+- [~] **T21-A3LINK (XL)** [dep T10,T11] — **Tabular linker DONE 2026-06-24** (`claim_data_linker.py`: match claim context-text → value/group columns → `ClaimDataSpec`; two-group/correlation/k-group; returns `linked`/`ambiguous`/`unlinkable` + candidates for review; never fabricates). Proven in `demo_tabular_end_to_end.py` (text→VERDICT, VERIFIED + DISCREPANT). **Follow-ons:** genomics gene-row + sample-metadata linking; human-in-the-loop review UI; measured auto-link rate on a real corpus.
 
 ### ▶ Wave 5 — assemble + surface
 - [ ] **T20-CONTROLS (L)** [dep T19] — Positive/negative control suite (`test_verification_engine.py`): correct→VERIFIED, perturbed→DISCREPANT, parametric-on-nonnormal→ASSUMPTION_VIOLATED, no-data→INSUFFICIENT_DATA, garbled→UNVERIFIABLE_EXTRACTION. **Phase-A exit instrument (with T03).**
@@ -86,7 +86,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 4. ~~**T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction.~~ ✅ DONE 2026-06-24 (80-paper biomed pilot: 32% have a data accession; report in `pilot_out/`)
 5. ~~**T11-FETCH** (GEO-first)~~ ✅ GEO path DONE 2026-06-24 (funnel: 17% of GEO accessions directly ingestible).
 6. ~~**T12-RESOLVER** + **T13-ENGINE** (+T14/T15/T19)~~ ✅ DONE 2026-06-24 (7/7 — full verdict pipeline works on real data).
-7. **T21-A3LINK** (claim→data auto-linking, the XL blocker for *automatic* end-to-end) + **T10-SCHEMA** (persist) + **T08-CONSDEMOTE**. ← **next** → then a live-paper end-to-end demo.
+7. ~~**T21-A3LINK** (tabular) + tabular end-to-end demo~~ ✅ DONE 2026-06-24 (text→extract→import→link→verify→VERDICT).
+8. **Genomics end-to-end demo** (GSE271517 + gene claim) + **T10-SCHEMA** (persist) + **T08-CONSDEMOTE**. ← **next**
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---

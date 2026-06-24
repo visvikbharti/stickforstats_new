@@ -32,20 +32,26 @@ def _decimals(token) -> Optional[int]:
 
 
 def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
-                      claimed_raw=None, rel_tol: float = DEFAULT_REL_TOL) -> Optional[bool]:
+                      claimed_raw=None, rel_tol: float = DEFAULT_REL_TOL,
+                      symmetric: bool = False) -> Optional[bool]:
     """Rounding-aware match of a recomputed statistic to the claimed value.
 
     Returns None when either value is missing. Match iff the recomputed value falls within
     the ±0.5-last-digit interval implied by the claimed value's reported precision, OR within
-    a relative tolerance (covers cases where the reported precision is unknown)."""
+    a relative tolerance (covers cases where the reported precision is unknown).
+
+    ``symmetric=True`` compares magnitudes — for statistics whose SIGN depends on an arbitrary
+    group ordering (t, Mann-Whitney U), a paper reporting |t| should match either sign."""
     if claimed is None or recomputed is None:
         return None
+    c = abs(claimed) if symmetric else claimed
+    r = abs(recomputed) if symmetric else recomputed
     dec = _decimals(claimed_raw)
     if dec is not None:
         half = 0.5 * (10.0 ** (-dec))
-        if abs(recomputed - claimed) <= half + 1e-12:
+        if abs(r - c) <= half + 1e-12:
             return True
-    return abs(recomputed - claimed) <= rel_tol * max(abs(claimed), 1e-9)
+    return abs(r - c) <= rel_tol * max(abs(c), 1e-9)
 
 
 def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_available: bool,

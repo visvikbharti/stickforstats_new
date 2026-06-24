@@ -28,6 +28,10 @@ from .test_resolver import resolve_test
 from .verdict_decision import assign_verdict, statistic_matches
 from .verdicts import ClaimVerdict, ClaimVerificationRequest, Verdict
 
+# statistics whose sign depends on an arbitrary group ordering -> compare magnitude
+_SYMMETRIC_TESTS = frozenset({"independent_t", "welch_t", "paired_t", "one_sample_t",
+                              "mann_whitney_u", "wilcoxon_signed_rank"})
+
 _ENGINE = None
 
 
@@ -94,9 +98,10 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     crit = _critical_after_independence_gate(res.guardian_report, bool(spec.rows_sequential))
     assumptions_ok = (len(crit) == 0)
 
-    # 5. compare recomputed vs claimed (T15)
+    # 5. compare recomputed vs claimed (T15); sign-insensitive for order-dependent statistics
     smatch = statistic_matches(getattr(claim, "statistic_value", None), float(tres.statistic),
-                               getattr(claim, "statistic_raw", None))
+                               getattr(claim, "statistic_raw", None),
+                               symmetric=(intended in _SYMMETRIC_TESTS))
 
     # 6. assign verdict (T19)
     verdict = assign_verdict(extraction_reliable=True, test_resolved=True, data_available=True,
