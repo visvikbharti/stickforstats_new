@@ -1,0 +1,215 @@
+{
+  "set_sizes": {
+    "naive": 1006,
+    "guardian": 1411,
+    "DESeq2": 1782,
+    "edgeR": 2506,
+    "limma_voom": 964,
+    "countglm_consensus>=2of3": 1584,
+    "countglm_consensus=3of3": 712
+  },
+  "deseq_NA_padj": 1056,
+  "pydeseq2_vs_Rdeseq2": {
+    "TP": 1758,
+    "FP": 23,
+    "FN": 24,
+    "TN": 25416,
+    "sensitivity_recall": 0.9865,
+    "specificity": 0.9991,
+    "precision": 0.9871,
+    "F1": 0.9868,
+    "jaccard": 0.974,
+    "cohen_kappa": 0.9859,
+    "mcc": 0.9859
+  },
+  "agreement_with_countglm": {
+    "DESeq2": {
+      "naive": {
+        "TP": 678,
+        "FP": 328,
+        "FN": 1104,
+        "TN": 25111,
+        "sensitivity_recall": 0.3805,
+        "specificity": 0.9871,
+        "precision": 0.674,
+        "F1": 0.4864,
+        "jaccard": 0.3213,
+        "cohen_kappa": 0.4609,
+        "mcc": 0.4819
+      },
+      "guardian": {
+        "TP": 803,
+        "FP": 608,
+        "FN": 979,
+        "TN": 24831,
+        "sensitivity_recall": 0.4506,
+        "specificity": 0.9761,
+        "precision": 0.5691,
+        "F1": 0.503,
+        "jaccard": 0.336,
+        "cohen_kappa": 0.4725,
+        "mcc": 0.4761
+      }
+    },
+    "edgeR": {
+      "naive": {
+        "TP": 802,
+        "FP": 204,
+        "FN": 1704,
+        "TN": 24511,
+        "sensitivity_recall": 0.32,
+        "specificity": 0.9917,
+        "precision": 0.7972,
+        "F1": 0.4567,
+        "jaccard": 0.2959,
+        "cohen_kappa": 0.4265,
+        "mcc": 0.4778
+      },
+      "guardian": {
+        "TP": 927,
+        "FP": 484,
+        "FN": 1579,
+        "TN": 24231,
+        "sensitivity_recall": 0.3699,
+        "specificity": 0.9804,
+        "precision": 0.657,
+        "F1": 0.4733,
+        "jaccard": 0.31,
+        "cohen_kappa": 0.4359,
+        "mcc": 0.4569
+      }
+    },
+    "consensus>=2of3": {
+      "naive": {
+        "TP": 701,
+        "FP": 305,
+        "FN": 883,
+        "TN": 25332,
+        "sensitivity_recall": 0.4426,
+        "specificity": 0.9881,
+        "precision": 0.6968,
+        "F1": 0.5413,
+        "jaccard": 0.3711,
+        "cohen_kappa": 0.5196,
+        "mcc": 0.5344
+      },
+      "guardian": {
+        "TP": 798,
+        "FP": 613,
+        "FN": 786,
+        "TN": 25024,
+        "sensitivity_recall": 0.5038,
+        "specificity": 0.9761,
+        "precision": 0.5656,
+        "F1": 0.5329,
+        "jaccard": 0.3632,
+        "cohen_kappa": 0.5058,
+        "mcc": 0.5067
+      }
+    },
+    "consensus=3of3": {
+      "naive": {
+        "TP": 427,
+        "FP": 579,
+        "FN": 285,
+        "TN": 25930,
+        "sensitivity_recall": 0.5997,
+        "specificity": 0.9782,
+        "precision": 0.4245,
+        "F1": 0.4971,
+        "jaccard": 0.3308,
+        "cohen_kappa": 0.4812,
+        "mcc": 0.4889
+      },
+      "guardian": {
+        "TP": 474,
+        "FP": 937,
+        "FN": 238,
+        "TN": 25572,
+        "sensitivity_recall": 0.6657,
+        "specificity": 0.9647,
+        "precision": 0.3359,
+        "F1": 0.4465,
+        "jaccard": 0.2874,
+        "cohen_kappa": 0.4266,
+        "mcc": 0.4538
+      }
+    }
+  },
+  "groupA_rescue_confirmation": {
+    "DESeq2": {
+      "label": "GroupA rescues confirmed by DESeq2",
+      "n_group": 479,
+      "group_hits": 170,
+      "group_rate": 0.3549,
+      "background_rate": 0.0363,
+      "enrichment_ratio": 9.78,
+      "fisher_odds": 14.61,
+      "fisher_p": 2.588e-111
+    },
+    "edgeR": {
+      "label": "GroupA rescues confirmed by edgeR",
+      "n_group": 479,
+      "group_hits": 179,
+      "group_rate": 0.3737,
+      "background_rate": 0.0593,
+      "enrichment_ratio": 6.31,
+      "fisher_odds": 9.47,
+      "fisher_p": 5.806e-89
+    },
+    "consensus2": {
+      "label": "GroupA rescues confirmed by consensus2",
+      "n_group": 479,
+      "group_hits": 139,
+      "group_rate": 0.2902,
+      "background_rate": 0.0289,
+      "enrichment_ratio": 10.04,
+      "fisher_odds": 13.73,
+      "fisher_p": 1.307e-90
+    }
+  },
+  "groupB_reject_agreement": {
+    "DESeq2": {
+      "label": "GroupB rejects called NOT-DE by DESeq2",
+      "n_group": 74,
+      "group_hits": 29,
+      "group_rate": 0.3919,
+      "background_rate": 0.3208,
+      "enrichment_ratio": 1.22,
+      "fisher_odds": 1.36,
+      "fisher_p": 0.1305
+    },
+    "edgeR": {
+      "label": "GroupB rejects called NOT-DE by edgeR",
+      "n_group": 74,
+      "group_hits": 20,
+      "group_rate": 0.2703,
+      "background_rate": 0.1974,
+      "enrichment_ratio": 1.37,
+      "fisher_odds": 1.51,
+      "fisher_p": 0.09128
+    },
+    "consensus2": {
+      "label": "GroupB rejects called NOT-DE by consensus2",
+      "n_group": 74,
+      "group_hits": 32,
+      "group_rate": 0.4324,
+      "background_rate": 0.2929,
+      "enrichment_ratio": 1.48,
+      "fisher_odds": 1.84,
+      "fisher_p": 0.009944
+    }
+  },
+  "deseq_DErate_by_category": {
+    "hit_by_both": 0.6792,
+    "guardian_only(A)": 0.3549,
+    "naive_only(B)": 0.6081,
+    "neither": 0.0363
+  },
+  "effectsize": {
+    "spearman_guardian_vs_deseq": 0.869,
+    "spearman_naive_vs_deseq": 0.851,
+    "sign_agree_guardian": 0.7726,
+    "sign_agree_naive": 0.7726
+  }
+}

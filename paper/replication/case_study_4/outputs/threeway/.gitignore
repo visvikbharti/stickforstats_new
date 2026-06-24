@@ -1,0 +1,3 @@
+# Transient R input — a pure re-export of ../../data/GSE271517_Sample_Counts.csv.gz
+# (regenerable via the export step in docs/SESSION_HANDOFF_2026-06-24.md §E). 7.5 MB.
+filtered_raw_counts.csv
