@@ -1,0 +1,534 @@
+{
+  "label": "biomed",
+  "n_papers": 80,
+  "availability_class": {
+    "open_accession": 28,
+    "on_request": 15,
+    "statement_only": 13,
+    "in_paper_supp": 7,
+    "none": 17
+  },
+  "repositories": {
+    "PRIDE": 2,
+    "GEO": 32,
+    "Zenodo": 8,
+    "BioProject": 11,
+    "GitHub": 18,
+    "ArrayExpress": 2,
+    "BioSample": 1,
+    "MassIVE": 1,
+    "figshare": 1,
+    "dbGaP": 1
+  },
+  "papers_with_any_accession": 28,
+  "verifiable_candidate_papers": 35,
+  "verifiable_pct": 43.8,
+  "accession_pct": 35.0,
+  "rows": [
+    {
+      "paper": "PMC13290226",
+      "class": "open_accession",
+      "accessions": [
+        "PRIDE:PXD078483"
+      ]
+    },
+    {
+      "paper": "PMC13290227",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE303993",
+        "GEO:GSE67375"
+      ]
+    },
+    {
+      "paper": "PMC13289589",
+      "class": "open_accession",
+      "accessions": [
+        "Zenodo:20270981"
+      ]
+    },
+    {
+      "paper": "PMC13290237",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA396962",
+        "GitHub:UniMelb-Day-Lab/FOI_Pf_Ghana",
+        "GitHub:qzhan321/FOI"
+      ]
+    },
+    {
+      "paper": "PMC13289328",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289566",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289447",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289498",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287471",
+      "class": "open_accession",
+      "accessions": [
+        "ArrayExpress:E-MTAB-14883"
+      ]
+    },
+    {
+      "paper": "PMC13287651",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287151",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287227",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA1339138",
+        "BioSample:SAMN52625896"
+      ]
+    },
+    {
+      "paper": "PMC13287617",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287762",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287481",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287655",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287797",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287592",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSM3290315",
+        "GEO:GSE117273",
+        "BioProject:PRJNA1088510",
+        "BioProject:PRJNA481586",
+        "MassIVE:MSV000094380",
+        "Zenodo:10.5281/zenodo.19682030",
+        "GitHub:rrwick/Compare-annotations",
+        "GitHub:elitaone/cappable-seq"
+      ]
+    },
+    {
+      "paper": "PMC13287576",
+      "class": "open_accession",
+      "accessions": [
+        "Zenodo:10.5281/zenodo.20073415",
+        "Zenodo:10.5281/zenodo.19631706",
+        "GitHub:eegk/EVP-RNA-outperforms-extracellular-vesicles-as-blood-biomarkers-for-Alzheimer-disease"
+      ]
+    },
+    {
+      "paper": "PMC13287474",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287734",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE287628"
+      ]
+    },
+    {
+      "paper": "PMC13286999",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287748",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE295454"
+      ]
+    },
+    {
+      "paper": "PMC13288872",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289403",
+      "class": "open_accession",
+      "accessions": [
+        "ArrayExpress:E-MTAB-15003"
+      ]
+    },
+    {
+      "paper": "PMC13290085",
+      "class": "open_accession",
+      "accessions": [
+        "figshare:10.6084/m9.figshare.32644959"
+      ]
+    },
+    {
+      "paper": "PMC13287304",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA1054634"
+      ]
+    },
+    {
+      "paper": "PMC13287508",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287290",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287277",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287203",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE314267",
+        "GEO:GSE311784",
+        "PRIDE:PXD070990"
+      ]
+    },
+    {
+      "paper": "PMC13287220",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287149",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287270",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13287288",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA1308318"
+      ]
+    },
+    {
+      "paper": "PMC13290088",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13290091",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13288832",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13290079",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJEB114255",
+        "Zenodo:19554963"
+      ]
+    },
+    {
+      "paper": "PMC13288725",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289205",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289257",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289364",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA795330",
+        "Zenodo:10.5281/zenodo.17696459",
+        "Zenodo:10.5281/zenodo.20392612",
+        "GitHub:the-ouyang-lab/ShinyCell2"
+      ]
+    },
+    {
+      "paper": "PMC13289363",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289365",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289296",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE309375"
+      ]
+    },
+    {
+      "paper": "PMC13289227",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE3141",
+        "GEO:GSE26939",
+        "BioProject:PRJNA967199",
+        "BioProject:PRJNA1224547"
+      ]
+    },
+    {
+      "paper": "PMC13289317",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE330657"
+      ]
+    },
+    {
+      "paper": "PMC13289026",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13288977",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13290092",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE283043",
+        "GEO:GSE283044"
+      ]
+    },
+    {
+      "paper": "PMC13288536",
+      "class": "open_accession",
+      "accessions": [
+        "BioProject:PRJNA1428498"
+      ]
+    },
+    {
+      "paper": "PMC13288726",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13288719",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13288727",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE30718",
+        "GEO:GSE126805",
+        "GEO:GSE90861",
+        "GEO:GSE43974",
+        "GEO:GSE53769",
+        "GEO:GSE210622",
+        "GEO:GSE139107",
+        "GEO:GPL570",
+        "GEO:GPL21290",
+        "GEO:GPL18573",
+        "GEO:GPL10558",
+        "GEO:GPL16686",
+        "GEO:GPL20301",
+        "GEO:GPL24247",
+        "Zenodo:10.5281/zenodo.19365116"
+      ]
+    },
+    {
+      "paper": "PMC13287598",
+      "class": "open_accession",
+      "accessions": [
+        "GitHub:ValentinKoch/UNICORN"
+      ]
+    },
+    {
+      "paper": "PMC13288974",
+      "class": "open_accession",
+      "accessions": [
+        "dbGaP:phs002068.v1.p1"
+      ]
+    },
+    {
+      "paper": "PMC13289162",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289405",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289238",
+      "class": "open_accession",
+      "accessions": [
+        "GitHub:milaboratory/mixcr",
+        "GitHub:liulab-dfci/TRUST4",
+        "GitHub:Teichlab/tracer",
+        "GitHub:kmayerb/tcrdist3",
+        "GitHub:sidhomj/DeepTCR",
+        "GitHub:google-deepmind/alphafold3",
+        "GitHub:phbradley/TCRdock",
+        "GitHub:mnielLab/NetTCR-2",
+        "GitHub:louzounlab/ERGO",
+        "GitHub:IdoSpringer/ERGO-II",
+        "GitHub:pmoris/ImRex"
+      ]
+    },
+    {
+      "paper": "PMC13289303",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE300445",
+        "GEO:GSE300446"
+      ]
+    },
+    {
+      "paper": "PMC13289415",
+      "class": "on_request",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13288712",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13289118",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286710",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286711",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286728",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286732",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286730",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286713",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286715",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286725",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286723",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286726",
+      "class": "open_accession",
+      "accessions": [
+        "GEO:GSE63509",
+        "GEO:GSE289870"
+      ]
+    },
+    {
+      "paper": "PMC13286721",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286727",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286718",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286729",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286709",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13286720",
+      "class": "none",
+      "accessions": []
+    }
+  ]
+}

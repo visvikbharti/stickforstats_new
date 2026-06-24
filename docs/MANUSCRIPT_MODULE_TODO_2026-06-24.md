@@ -43,7 +43,7 @@
 - [x] **T02-SPINE (M)** — New `backend/core/manuscript/verdicts.py`: `Verdict` enum + `ClaimVerdict` + `ClaimVerificationRequest` + `ClaimDataSpec`. The contract everything plugs into. Modelled on genomics `GeneResult`. — **DONE 2026-06-24** (pure stdlib; imports clean; `calibrated_confidence` reserved for B3).
 - [x] **T05-A4POC (S)** [dep T02] — Prove `verify_one_claim` over `execute_with_cascade(max_cascades=0)`. — **DONE 2026-06-24, 4/4 PASS** (`paper/replication/verification/poc_a4_cascade.py`): Iris recomputed F=119.2645 vs claimed 119.26 → VERIFIED, perturbed 60 → DISCREPANT; Wine recomputed r=0.4762 vs claimed 0.476 → VERIFIED, perturbed 0.20 → DISCREPANT; `max_cascades=0` keeps the authors' test (no substitution) and returns assumptions separately. **Central reuse hypothesis confirmed.**
 - [ ] **T03-DEVSET (L)** — Curate 30–50 hand-labelled papers (data-available/absent; PDF/JATS/DOCX) + a recall/precision/coverage harness. The A1 acceptance instrument. Parallelizable.
-- [ ] **T09-ACCESSION (L)** — New `data_availability_extractor.py`: text → structured accessions (GEO GSE/GSM, SRA SRR/PRJNA, Dryad/Zenodo/figshare DOI, OSF, ArrayExpress). Upgrade existing presence-only regexes to capture-groups.
+- [x] **T09-ACCESSION (L)** — New `data_availability_extractor.py`: text → structured accessions (GEO/SRA/BioProject/BioSample/ArrayExpress/dbGaP/PRIDE/MetaboLights/MassIVE/Dryad/Zenodo/figshare/OSF/Dataverse/GitHub) + availability classification. — **DONE 2026-06-24** (11/11 check `check_t09_accession.py`).
 - [ ] **T07-PROVENANCE (M)** — Parser PDF path: char-offset→page map; thread `page`/`global_position` into `StatisticalClaim` (backward-compatible). Enables verdicts to cite a page.
 
 ### ▶ Wave 1 — build on the spine
@@ -83,7 +83,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 1. ~~**T02-SPINE** — the verdict contract.~~ ✅ DONE 2026-06-24
 2. ~~**T05-A4POC** — prove the cascade engine verifies Iris/Wine.~~ ✅ DONE 2026-06-24 (4/4 PASS)
 3. ~~**T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate.~~ ✅ DONE 2026-06-24 (12/12)
-4. **T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction. ← **next**
+4. ~~**T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction.~~ ✅ DONE 2026-06-24 (80-paper biomed pilot: 32% have a data accession; report in `pilot_out/`)
+5. **T11-FETCH** (GEO-first, per pilot) + **T12-RESOLVER** / **T10-SCHEMA** / **T08-CONSDEMOTE**. ← **next**
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---
@@ -132,3 +133,16 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
     Live extractor smoke: F/t/r claims, coverage 1.0. Backward-compatible (additive defaults).
   - **Next:** T08-CONSDEMOTE + T12-RESOLVER, or the higher-leverage **T09-ACCESSION + ~50-paper
     data-availability pilot** (sizes the verifiable fraction before the XL ingestion/linking build).
+- **2026-06-24 16:47 IST** — **T09-ACCESSION DONE + data-availability pilot RUN.**
+  - T09: `backend/core/manuscript/data_availability_extractor.py` — capture-group accessions for 15
+    repositories + availability classification (open_accession / in_paper_supp / on_request /
+    statement_only / none). 11/11 check (`check_t09_accession.py`).
+  - **Pilot (`pilot_data_availability.py`, report in `pilot_out/PILOT_REPORT_2026-06-24.md`):**
+    80-paper biomedical/genomics PMC-OA sample (XML on `/Volumes/My_Passport`, 19 MB) →
+    **32% have a real data-repository accession, 44% verifiable candidates**; GEO is #1 (32 papers);
+    19% "on request"; 21% no statement. Psychology baseline (existing 20): 10% / 35%.
+    **Honest headline confirmed: even in genomics ~⅔ of papers are unverifiable from public data →
+    INSUFFICIENT_DATA dominates; "% unverifiable" is the meta-research finding.**
+  - **Implication for T11:** build the **GEO fetch path first**. Next funnel stages to measure on
+    this same 80-paper corpus: resolves? (T11) ingestible? (T11) linkable to the claim? (T21).
+  - **Next:** T11-FETCH (GEO-first) / T10-SCHEMA / T12-RESOLVER / T08-CONSDEMOTE.

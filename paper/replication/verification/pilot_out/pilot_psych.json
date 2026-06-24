@@ -1,0 +1,124 @@
+{
+  "label": "psych",
+  "n_papers": 20,
+  "availability_class": {
+    "none": 8,
+    "statement_only": 5,
+    "in_paper_supp": 5,
+    "open_accession": 2
+  },
+  "repositories": {
+    "OSF": 1,
+    "Zenodo": 1
+  },
+  "papers_with_any_accession": 2,
+  "verifiable_candidate_papers": 7,
+  "verifiable_pct": 35.0,
+  "accession_pct": 10.0,
+  "rows": [
+    {
+      "paper": "PMC12704721",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC12704728",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223243",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223308",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223338",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223457",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223527",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223738",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223791",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13223804",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13224422",
+      "class": "statement_only",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13224435",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13224458",
+      "class": "in_paper_supp",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13224698",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13225232",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13225248",
+      "class": "open_accession",
+      "accessions": [
+        "OSF:x3f6g"
+      ]
+    },
+    {
+      "paper": "PMC13225301",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13225338",
+      "class": "none",
+      "accessions": []
+    },
+    {
+      "paper": "PMC13225384",
+      "class": "open_accession",
+      "accessions": [
+        "Zenodo:10.5281/zenodo.19225928"
+      ]
+    },
+    {
+      "paper": "PMC7619117",
+      "class": "statement_only",
+      "accessions": []
+    }
+  ]
+}
