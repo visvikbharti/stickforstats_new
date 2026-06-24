@@ -168,8 +168,40 @@ Rscript code/threeway/phase_e_figure_and_verify.R
 
 ---
 
-## H. Last lab-meeting discussion — TO BE BRIEFED
+## H. Last lab-meeting discussion — manuscript verification module (captured)
 
-The user mentioned an important discussion from last week's lab meeting and will brief
-it in the next exchange. **Placeholder — capture it here once described**, with how it
-affects the venue choice / manuscript framing / scope.
+The lab meeting (week of 2026-06-15) focused entirely on **Pillar 2 (manuscript review
+module)**. Full design + work plan: **`docs/MANUSCRIPT_MODULE_PLAN_2026-06-24.md`**.
+
+**Key steer (repositions the module):**
+- **Internal-consistency flagging (statcheck-style) is NOT the goal** — demoted to a cheap
+  secondary signal, not the product.
+- The module must **verify claims using the authors' RAW DATA**, or explicitly return
+  **"insufficient data to verify"** (first-class verdict).
+- It must **check whether authors performed assumption checking** (reported it, and where
+  data exist, whether assumptions actually hold) — this is where the Guardian engine plugs in.
+
+**Lab's seven points** (all addressed in the plan): (1) regex misses figures/plots/stars →
+hybrid extraction + vision-LLM; (2) can't verify correctness from a PDF without raw data →
+the whole point, hence the raw-data tier + INSUFFICIENT_DATA verdict; (3) regex corpus
+coverage gaps both directions → coverage metric, low-coverage ⇒ low confidence; (4) separate,
+robust tool with a confidence score → **decision: shared engine, separate surface**, with a
+verification-centric calibrated score; (5) data security → on-prem/Docker, no-retention, no
+raw data to external LLMs; (6) the **5–10k-paper systematic study** → the flagship
+meta-research paper (converges with venue strategy: a measurement is novel by definition);
+(+) right-test-in-right-order / power → mostly undecidable from text → emit
+ASSUMPTION_UNREPORTED / INSUFFICIENT_DATA, not a verdict.
+
+**Two phases:** Phase A = make the module robust (extraction → data ingestion → Guardian
+re-analysis → calibrated scoring → standalone surface). Phase B = the 5–10k study
+(recommend years **2016–2025**, PMC-OA corpus, OSF pre-registration, manual double-coding
+for κ + sensitivity/specificity, census + deep verification, then meta-research venue +
+editor/publisher pitch).
+
+**Convergence:** this is the same direction as the venue strategy (§B, Reframe #1 =
+meta-research measurement) and the Case Study 4 lesson (scope claims to what's verifiable).
+The manuscript module becomes the *instrument*; the meta-research census is the headline paper.
+
+**Open decisions for PI** (see plan §10): year window (2016–2025 vs 2018–2025); field scope;
+greenlight "shared engine, separate surface"; DISCREPANT tolerance; who are the two manual
+coders; whether this becomes the *next* paper or folds into the current reframe.
