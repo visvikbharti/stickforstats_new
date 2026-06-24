@@ -88,9 +88,9 @@ manuscript) and `verifier-batch` (the 5–10k corpus pipeline).
 PDF / XML / DOCX
    │
    ▼  T0  EXTRACTION (hybrid)
-   ├─ regex (high-precision canonical forms)
-   ├─ LLM claim extractor  (existing: statistical_claim_extractor.py)
-   ├─ table parser (Camelot / GROBID / JATS)
+   ├─ regex (high-precision canonical forms)  ← EXISTS today: claim_extractor.py (~30 APA regexes)
+   ├─ LLM claim extractor  (NEW — none today; no LLM client anywhere in core/)
+   ├─ table parser (Camelot / GROBID / JATS)  (NEW)
    ├─ vision-LLM for figure-embedded values + significance stars (bounds only)
    └─ → structured claims with provenance (page/loc) + extraction-confidence + COVERAGE metric
    │
@@ -107,6 +107,41 @@ PDF / XML / DOCX
    │
    ▼  SCORING + CALIBRATED CONFIDENCE  (§6)  →  report (per-claim + paper-level)
 ```
+
+### 4a. Implementation reality + decisions (post-audit 2026-06-24)
+
+**What already exists to reuse** (verified by the A0 audit; full TODO in
+`docs/MANUSCRIPT_MODULE_TODO_2026-06-24.md`):
+- **The verification engine is largely built:** `cascade_engine.execute_with_cascade(data,
+  authors_test, alpha, max_cascades=0)` re-runs the *authors' stated test* (14 test types)
+  and returns stat/p/effect/CI **+** the Guardian assumption report. Drive it with
+  `max_cascades=0` so it does NOT auto-substitute the test (that would conflate DISCREPANT
+  with ASSUMPTION_VIOLATED). `guardian_core.check` supplies the assumption verdict.
+- `consistency_core` (pure, tested) = the no-raw-data `INCONSISTENT_REPORTING` fallback.
+- `claim_extractor.py` = the regex leg; `data_import_service` = the importer; `effect_size_calculator` = effect comparison.
+- **Correction:** earlier notes named `statistical_claim_extractor.py` (LLM) and a
+  GROBID-backed parser as existing — **neither exists.** Today: regex-only `claim_extractor.py`
+  + pdfplumber/PyPDF2 `parser.py`, **no LLM client anywhere in `core/`**.
+
+**Document-parsing decision — prefer structured XML over PDF.**
+- For the Phase-B corpus (PMC Open-Access subset = **JATS/NXML XML**), ingest the XML with
+  `lxml` (already a dep), NOT the PDF — this removes the PDF-extraction problem for the bulk
+  of the 10k and natively yields sections + `<table-wrap>` + data-availability.
+- When PDF is unavoidable: upgrade `parser.py` (pdfplumber/PyPDF2 today) with **GROBID**
+  (scholarly PDF→TEI), **PyMuPDF/fitz** (text+layout+page map), **Camelot/Tabula** (tables),
+  **vision-LLM** (figure-embedded values + significance stars), **Tesseract/Nougat** (scanned/math).
+- **No PDF parser is trusted blind:** every claim carries an extraction-confidence; low
+  coverage ⇒ `UNVERIFIABLE_EXTRACTION`, never a silent pass (§5; TODO T06).
+
+**Model strategy (LLM use) — tiered by data sensitivity, no vendor lock-in.**
+- The **verification step itself needs no LLM** — it is deterministic statistics
+  (cascade + Guardian). LLMs only help with *extraction* and *claim↔data linking*.
+- **Published/non-sensitive tier** (PMC-OA text is already public): a hosted model
+  (**Claude**, via the existing `anthropic` SDK) is fine and best-accuracy.
+- **Sensitive tier** (unpublished manuscripts + authors' RAW DATA): **open-weight model run
+  locally/on-prem** (Llama / Qwen / Mistral / Gemma / DeepSeek via Ollama/vLLM) **or no LLM
+  at all**. Note: Anthropic/OpenAI flagship models are closed-weight (API-only), so
+  on-prem/no-egress ⇒ open-weight local models or deterministic-only. (§A7, TODO T11/T24.)
 
 ---
 
@@ -129,7 +164,7 @@ Per paper, report a **verification profile**, not a single grade:
 
 | # | Item | Approach | Deliverable / acceptance |
 |---|---|---|---|
-| **A0** | Audit current state | Read `statistical_claim_extractor.py`, `consistency_validator.py`, `manuscript/advanced_validators.py`, `manuscript_parser.py`; map to §4 | Gap list + what's reusable |
+| **A0** | Audit current state ✅ **DONE 2026-06-24** | Audited `core/manuscript/{claim_extractor,parser,consistency_core,consistency_validator,advanced_validators,discipline_profiles,manuscript_guardian}.py` + `cascade_engine.py` + `guardian_core.py` + `data_import_service.py` | **Sequenced 24-item TODO in `docs/MANUSCRIPT_MODULE_TODO_2026-06-24.md`.** Key find: `cascade_engine.execute_with_cascade(max_cascades=0)` IS the A4 engine |
 | **A1** | Extraction overhaul (T0) | regex + LLM + table parser + vision-LLM; emit provenance + per-claim extraction-confidence + paper-level coverage | On a 30-paper dev set, recall ≥ target vs hand-labelled claims; coverage reported, never silently 100% |
 | **A2** | Data-ingestion layer | parse data-availability statements; accession detection (GEO/SRA/Dryad/Zenodo/OSF/figshare); supplementary download; import via existing `data_import_service` | Given a paper w/ data, the linked dataset(s) are retrieved + loaded |
 | **A3** | Claim→data linking | map claim variables/groups/design to dataset columns; semi-automated with a human-in-the-loop review UI for ambiguous links | % auto-linked measured; ambiguous cases surfaced, not guessed |
