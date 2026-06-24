@@ -51,12 +51,12 @@
 - [x] **T06-COVERAGE (M)** [dep T02,T03] — Add a real coverage denominator to `ExtractionSummary` (can NEVER silently report 100%); split `confidence` into completeness vs extraction-confidence; gate `UNVERIFIABLE_EXTRACTION`. *Closes the false-negative trap the lab cares most about.* — **DONE 2026-06-24** (`claim_extractor.py` coverage + `extraction_confidence` reserved field; `extraction_quality.py` gate). *(T03 dev-set tuning deferred; threshold default 0.6.)*
 - [ ] **T08-CONSDEMOTE (M)** [dep T04] — Demote `overall_consistency_rate` to a labelled fallback signal; route `could_not_check` into Coverage (≠ INSUFFICIENT_DATA); add the "does NOT certify correctness" note.
 - [ ] **T10-SCHEMA (L)** [dep T02] — Django `LinkedDataset` model + persisted per-claim verdict (today `models.py` has only free-form JSON). Mirror the `report_token_hash` IDOR pattern.
-- [ ] **T12-RESOLVER (M)** [dep T02] — Map extractor `claim_type` (+ design hints: paired/independent/1-sample; pearson/spearman; chi²/fisher) → cascade `intended_test`; ambiguous → INSUFFICIENT_DATA, never guess. Flag unverifiable families (multiple/logistic regression, mixed models).
+- [x] **T12-RESOLVER (M)** [dep T02] — Map extractor `claim_type` (+ design hints) → cascade `intended_test`; unverifiable families (beta/odds/hazard/z/Shapiro) → None → INSUFFICIENT_DATA. — **DONE 2026-06-24** (`test_resolver.py`; control suite caught + fixed a `'dependent'⊂'independent'` substring bug).
 - [ ] **T17-A5IDETECT (L)** [dep T02] — `test→required-assumptions` table + per-claim `ASSUMPTION_UNREPORTED` detector localized to `claim.position`. Drop the current bad gating (only fires on stated-non-normality / N<20 / doc-level boolean). Use `claim.test_name` so Mann-Whitney isn't flagged for normality.
 
 ### ▶ Wave 2 — ingestion + engine
 - [~] **T11-FETCH (XL)** [dep T09] — **GEO path DONE 2026-06-24** (`data_fetcher.py`: resolve GSE → list suppl → pick count/matrix table → size-capped download → decompress `.gz`/`.zip` → ingest; `DataImportService` extended with `.tsv`/`.txt`/`.tab` delimited importer). Verified on GSE271517 (63677×92) + GEO funnel run (`funnel_geo.py`: 2/12 accessions yield a directly-ingestible matrix — **17%**, a lower bound). **Follow-ons:** `_RAW.tar`/GSM-level/series-matrix extraction; Zenodo/Dryad/figshare/OSF fetchers; MD5; no-egress hardening.
-- [ ] **T13-ENGINE (L)** [dep T02,T12] — New `verification/reanalysis_engine.py`: `verify_one_claim` over `execute_with_cascade(max_cascades=0)` + `guardian.check`; map None/failure → INSUFFICIENT_DATA, never silent pass. Port genomics `test_failed` discipline.
+- [x] **T13-ENGINE (L)** [dep T02,T12] — `reanalysis_engine.verify_claim()` over `execute_with_cascade(max_cascades=0)`; maps None/error → INSUFFICIENT_DATA. — **DONE 2026-06-24** (includes **T14** independence-gate + **T15** rounding-aware tolerance + **T19** decision; 7/7 control suite `check_t12_t13_t19.py`).
 - [ ] **T18-DISCIPLINE (M)** [dep T17] — Add the assumption-reporting checklist item to all 8 discipline profiles (only psychology has it today), claim-localized.
 
 ### ▶ Wave 3 — comparison logic
@@ -85,7 +85,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 3. ~~**T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate.~~ ✅ DONE 2026-06-24 (12/12)
 4. ~~**T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction.~~ ✅ DONE 2026-06-24 (80-paper biomed pilot: 32% have a data accession; report in `pilot_out/`)
 5. ~~**T11-FETCH** (GEO-first)~~ ✅ GEO path DONE 2026-06-24 (funnel: 17% of GEO accessions directly ingestible).
-6. **T10-SCHEMA** (persist LinkedDataset + verdicts) + **T12-RESOLVER** (claim_type→cascade test) + **T08-CONSDEMOTE**. ← **next** (then T13 wires the engine end-to-end)
+6. ~~**T12-RESOLVER** + **T13-ENGINE** (+T14/T15/T19)~~ ✅ DONE 2026-06-24 (7/7 — full verdict pipeline works on real data).
+7. **T21-A3LINK** (claim→data auto-linking, the XL blocker for *automatic* end-to-end) + **T10-SCHEMA** (persist) + **T08-CONSDEMOTE**. ← **next** → then a live-paper end-to-end demo.
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---
@@ -158,3 +159,14 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
     17% is a LOWER bound (no `_RAW.tar`/GSM/series-matrix extraction yet). Honest compound finding:
     directly-verifiable raw data is the exception even for the #1 repository.
   - **Next:** T10-SCHEMA + T12-RESOLVER → then T13 wires fetch→link→re-analyze→verdict end-to-end.
+- **2026-06-24 17:20 IST** — **T12 + T13 + T19 DONE (+ T14, T15 folded in) — the verdict pipeline is real.**
+  - `test_resolver.py` (T12): claim_type(+test_name hints) → cascade test; unverifiable families → None.
+  - `verdict_decision.py` (T15 rounding-aware `statistic_matches` + T19 `assign_verdict` §2 precedence).
+  - `reanalysis_engine.py` (T13): `verify_claim(request)` → extraction-gate → resolve → re-run authors'
+    test (max_cascades=0) → T14 independence-gate → compare → ClaimVerdict. cascade imported lazily.
+  - **Control suite `check_t12_t13_t19.py`: 7/7** — all six verdicts on real data, incl. the §2 precedence
+    (Pearson on non-normal wine: value reproduces r=0.4762 BUT normality fails → ASSUMPTION_VIOLATED).
+    Caught + fixed a real resolver bug (`'dependent'` matched inside `'independent'` → ran paired t).
+  - Phase A: **10/24** (T01,T02,T04,T05,T06,T09,T11-GEO,T12,T13,T19 + T14/T15).
+  - **Next:** T21-A3LINK (auto claim→data linking — the XL blocker for *automatic* end-to-end) + T10-SCHEMA
+    (persist) → a live-paper demo. The engine works; what's left is feeding it linked data automatically.
