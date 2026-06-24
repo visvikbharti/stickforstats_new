@@ -70,8 +70,8 @@
 
 ### ▶ Wave 5 — assemble + surface
 - [ ] **T20-CONTROLS (L)** [dep T19] — Positive/negative control suite (`test_verification_engine.py`): correct→VERIFIED, perturbed→DISCREPANT, parametric-on-nonnormal→ASSUMPTION_VIOLATED, no-data→INSUFFICIENT_DATA, garbled→UNVERIFIABLE_EXTRACTION. **Phase-A exit instrument (with T03).**
-- [ ] **T22-ORCHESTRATE (XL)** [dep T19,T21] — Wire a net-new Guardian re-analysis stage into `manuscript_guardian.py`; replace `_generate_findings`/`_determine_assessment` so the single grade no longer hides unverifiable claims.
-- [ ] **T23-SCORING (M)** [dep T19] — Render the §5 verification profile (verifiability rate, %VERIFIED/%DISCREPANT/%ASSUMPTION_VIOLATED among verifiable, assumption-reporting completeness, coverage) + calibration slot + mandatory certify/not-certify box. Never a single "pass."
+- [~] **T22-ORCHESTRATE (XL)** [dep T19,T21] — **Standalone version DONE 2026-06-24** (`verify_pipeline.verify_manuscript()` — the Django-free `verification-core` entry point: extract→coverage→consistency-fallback→link→verify→profile; sentence-scoped context so claims link only to their own sentence's variables; check `check_verify_pipeline.py` PASS). **Follow-on:** wire this stage into the Django `manuscript_guardian.py` surface (replace `_generate_findings`/`_determine_assessment`).
+- [~] **T23-SCORING (M)** [dep T19] — **`VerificationProfile` DONE 2026-06-24** in `verify_pipeline.py` (verifiability rate, verdict distribution, coverage, n_inconsistent, **certify/not-certify note**; never a single grade). **Follow-on:** %-among-verifiable + assumption-reporting completeness + the B3 calibration slot.
 - [ ] **T24-SURFACE (L)** [dep T10,T22] — `POST /api/v1/verify/analyze/` (manuscript + optional data/accessions → per-claim verdicts + verifiability_rate + coverage); keep `/manuscript/analyze` as the no-data fallback. Frontend `ManuscriptAnalyzer`/`ReviewerReport` reframe + CLI `--no-egress`. (B2 Celery batch for the 5–10k census = follow-on, not Phase A.)
 
 ---
