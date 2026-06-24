@@ -39,9 +39,9 @@
 ## Recommended execution order (waves by dependency)
 
 ### ▶ Wave 0 — start immediately (no/low deps, de-risks everything)
-- [ ] **T01-A0FIX (S)** — Correct the plan/MEMORY overclaim (no LLM extractor / no GROBID). *Doc only.* — **DONE in this commit.**
-- [ ] **T02-SPINE (M)** — New `backend/core/manuscript/verdicts.py`: `Verdict` enum + `ClaimVerdict` + `ClaimVerificationRequest`. The contract everything plugs into (0 hits for the taxonomy in the codebase today). Model on genomics `GeneResult`.
-- [ ] **T05-A4POC (S)** [dep T02] — Prove `verify_one_claim` over `execute_with_cascade(max_cascades=0)`: Iris F=119.26 / Wine r=0.476 → VERIFIED; perturbed → DISCREPANT. De-risks the central reuse hypothesis with zero new stats code. *Do this before the XL ingestion build.*
+- [x] **T01-A0FIX (S)** — Correct the plan/MEMORY overclaim (no LLM extractor / no GROBID). *Doc only.* — **DONE 2026-06-24.**
+- [x] **T02-SPINE (M)** — New `backend/core/manuscript/verdicts.py`: `Verdict` enum + `ClaimVerdict` + `ClaimVerificationRequest` + `ClaimDataSpec`. The contract everything plugs into. Modelled on genomics `GeneResult`. — **DONE 2026-06-24** (pure stdlib; imports clean; `calibrated_confidence` reserved for B3).
+- [x] **T05-A4POC (S)** [dep T02] — Prove `verify_one_claim` over `execute_with_cascade(max_cascades=0)`. — **DONE 2026-06-24, 4/4 PASS** (`paper/replication/verification/poc_a4_cascade.py`): Iris recomputed F=119.2645 vs claimed 119.26 → VERIFIED, perturbed 60 → DISCREPANT; Wine recomputed r=0.4762 vs claimed 0.476 → VERIFIED, perturbed 0.20 → DISCREPANT; `max_cascades=0` keeps the authors' test (no substitution) and returns assumptions separately. **Central reuse hypothesis confirmed.**
 - [ ] **T03-DEVSET (L)** — Curate 30–50 hand-labelled papers (data-available/absent; PDF/JATS/DOCX) + a recall/precision/coverage harness. The A1 acceptance instrument. Parallelizable.
 - [ ] **T09-ACCESSION (L)** — New `data_availability_extractor.py`: text → structured accessions (GEO GSE/GSM, SRA SRR/PRJNA, Dryad/Zenodo/figshare DOI, OSF, ArrayExpress). Upgrade existing presence-only regexes to capture-groups.
 - [ ] **T07-PROVENANCE (M)** — Parser PDF path: char-offset→page map; thread `page`/`global_position` into `StatisticalClaim` (backward-compatible). Enables verdicts to cite a page.
@@ -80,7 +80,40 @@
 End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-claim verdicts across all six types, with calibrated-confidence slot reserved for B3. Then → Phase B (corpus study) per the plan.
 
 ## Immediate next 3 (what we do first)
-1. **T02-SPINE** — the verdict contract (half a day, unblocks everything).
-2. **T05-A4POC** — prove the cascade engine verifies Iris/Wine before building ingestion.
-3. **T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate.
+1. ~~**T02-SPINE** — the verdict contract.~~ ✅ DONE 2026-06-24
+2. ~~**T05-A4POC** — prove the cascade engine verifies Iris/Wine.~~ ✅ DONE 2026-06-24 (4/4 PASS)
+3. **T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate. ← **next**
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
+
+---
+
+## Dev environment (cross-session — read before running engine code)
+
+The local anaconda Python 3.9 has a **numpy-2 vs scipy/sklearn/matplotlib ABI break**, so any
+verification code that imports the engine (scipy) **cannot run there**. Use the dedicated venv:
+
+```bash
+python3.11 -m venv .venv-verify           # gitignored
+.venv-verify/bin/pip install numpy scipy pandas scikit-learn statsmodels matplotlib seaborn
+.venv-verify/bin/python paper/replication/verification/poc_a4_cascade.py
+```
+
+**Engine-import gotcha:** `backend/core/services/__init__.py` imports Django (via
+`dataset_service`), and `guardian_core` pulls `matplotlib`+`seaborn` (via
+`visualization_generator`). The PoC sidesteps Django by registering lightweight **namespace
+packages** for `core` / `core.services` / `core.guardian` / `core.manuscript` so the pure
+numpy/scipy leaf modules import Django-free (see `poc_a4_cascade.py` top). Future verification
+code (T13 engine, T20 controls) should reuse that pattern, or run under a full Django setup.
+
+## Progress log
+- **2026-06-24 16:13 IST** — **T01 + T02-SPINE + T05-A4POC DONE.**
+  - T02: `backend/core/manuscript/verdicts.py` — `Verdict` enum (6 + secondary
+    INCONSISTENT_REPORTING), `ClaimVerdict`, `ClaimVerificationRequest`, `ClaimDataSpec`.
+    Pure stdlib; `calibrated_confidence` reserved (None) pending B3.
+  - T05: `paper/replication/verification/poc_a4_cascade.py` — **4/4 PASS** against the
+    project's own replication anchors (Iris F=119.26, Wine r=0.476). Confirmed
+    `execute_with_cascade(max_cascades=0)` re-runs the authors' test without substitution and
+    returns the Guardian assumption report separately. **The A4 engine is reuse, not a rebuild.**
+  - Set up the `.venv-verify` dev environment (above) to work around the broken local scipy.
+  - **Next:** T04-CONSADAPT (consistency→INCONSISTENT_REPORTING adapter) + T06-COVERAGE
+    (coverage gate). Then T09-ACCESSION + the ~50-paper data-availability pilot.
