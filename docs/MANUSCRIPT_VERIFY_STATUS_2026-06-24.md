@@ -46,6 +46,18 @@ data-availability sentence → accession **GSE271517** → fetched **63,677 × 9
 - **Compound finding:** directly-verifiable raw data is the **exception**, even for the #1 repository.
   → `INSUFFICIENT_DATA` dominates; **"% unverifiable" is the meta-research headline** (this is publishable).
 
+## No-data tier at scale (Phase-B preview, `census_consistency.py`)
+Running the verifier (no data) over the 20-paper corpus: **1,105 claims, 100% coverage on every
+paper, and 35 statcheck inconsistencies across 12/20 papers (60%)** — consistent with the
+meta-research literature (~50%, Nuijten 2016). This is the no-raw-data tier (statcheck + coverage)
+working on real papers; it previews the census's broad layer.
+
+> **Manuscript note:** a real-paper run exposed an extraction bug — the F/χ²/correlation/z/beta and
+> standalone-p regexes only matched lowercase `p`, so papers reporting `P = 0.193` (the majority)
+> got *no* p-value attached (claims-with-p 0→79 after the fix; coverage 0%→100%). The current
+> manuscript's statcheck head-to-head (Table 8) was computed with the buggy extractor, so its recall
+> is understated — relevant when the verifier becomes its own paper / for the census.
+
 ## Verified (all green, in `.venv-verify` / plain python)
 - `poc_a4_cascade.py` 4/4 · `check_t04_t06.py` 12/12 · `check_t09_accession.py` 11/11 ·
   `check_t12_t13_t19.py` 7/7 (every verdict type) · both demos.

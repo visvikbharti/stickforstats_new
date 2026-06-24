@@ -191,3 +191,13 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
     is the highest-leverage extraction fix before the census.
   - Phase A: **14/24** (incl. T22/T23 standalone + T24-lite CLI). **Next:** fix extractor p-merge on
     real papers; then T08/T10/T22-Django-wiring.
+- **2026-06-24 17:55 IST** — **capital-P extraction fix + corpus consistency census.**
+  - **Fix:** F/χ²/correlation/z/beta/standalone-p regexes only matched lowercase `p` → `[Pp]`
+    (`claim_extractor.py`). Real-paper impact (PMC13225248): claims-with-p **0→79**, coverage **0%→100%**.
+    No regression (7/7, 12/12, verify-pipeline PASS). **⚠ Table 8 (statcheck head-to-head) in the
+    current manuscript used the buggy extractor → its recall is understated** (note for the verifier paper).
+  - **Census (`census_consistency.py`, no-data tier over 20 papers):** 1,105 claims, **100% coverage
+    every paper**, **35 statcheck inconsistencies across 12/20 papers (60%)** — matches the literature
+    (~50%, Nuijten 2016). The no-raw-data tier works at scale on real papers; previews Phase B.
+  - **Next priority:** extractor PRECISION (15 fragmentary UNVERIFIABLE_EXTRACTION on the sample paper)
+    → multi-leg / better claim boundaries; then T08/T10/Django wiring; then Phase-B pre-registration.
