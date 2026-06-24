@@ -63,6 +63,19 @@ not parsing artifacts.
 > manuscript's statcheck head-to-head (Table 8) was computed with the buggy extractor, so its recall
 > is understated — relevant when the verifier becomes its own paper / for the census.
 
+## Extraction benchmark (T03, vs statcheck — the Phase-A exit instrument)
+`eval_vs_statcheck.py` benchmarks our extractor against statcheck 1.5.0 (the de-facto NHST
+extractor; its 266 recomputable statistics across the 20-paper corpus are the objective reference):
+- **Recall 97.7%** (260/266) · **Precision 93.2%** (on statcheck-covered papers) · **F1 95.4%**.
+- Near-perfect agreement where both operate (per-paper mostly 100%/100%).
+- **+84 additional recomputable statistics in 6 papers statcheck extracted nothing from** — a recall
+  advantage (real claims, validated), not false positives.
+- Flagged inconsistent: statcheck 47, ours 34, ours decision-changing 5 (precision-over-recall by design).
+
+> **Table 8 refresh:** the manuscript's statcheck head-to-head was computed with the buggy
+> lowercase-`p` extractor (recall understated). With the fix the extractor recovers **97.7%** of
+> statcheck's statistics plus 84 it misses — the head-to-head should be re-run for the verifier paper.
+
 ## Verified (all green, in `.venv-verify` / plain python)
 - `poc_a4_cascade.py` 4/4 · `check_t04_t06.py` 12/12 · `check_t09_accession.py` 11/11 ·
   `check_t12_t13_t19.py` 7/7 (every verdict type) · both demos.
