@@ -281,7 +281,11 @@ class StatisticalClaim:
     raw_text: str = ""
     location: str = "unknown"
     position: int = 0
-    confidence: float = 0.5
+    confidence: float = 0.5  # extraction COMPLETENESS (fields present); see _score_confidence
+    # RESERVED (T06): extraction-CORRECTNESS confidence — how sure we are this is a real
+    # claim (vs a regex false positive). None until the multi-leg extractor (regex + LLM +
+    # table/vision) can cross-agree; do not conflate with `confidence` (completeness).
+    extraction_confidence: Optional[float] = None
 
     def __post_init__(self) -> None:
         if self.claim_type and self.claim_type not in VALID_CLAIM_TYPES:
@@ -304,6 +308,10 @@ class ExtractionSummary:
     claims_with_df: int = 0
     unique_test_types: List[str] = field(default_factory=list)
     extraction_warnings: List[str] = field(default_factory=list)
+    # --- T06 extraction coverage (recall proxy; computed only when source text given) ---
+    candidate_statistical_mentions: int = 0  # reported p-value mentions in the source text
+    coverage: Optional[float] = None          # claims_with_p / candidate; None if not computed
+    low_coverage: bool = False                # coverage below threshold -> may have missed claims
 
 
 # =============================================================================
@@ -348,6 +356,24 @@ def _safe_float(value: Optional[str]) -> Optional[float]:
         return float(value)
     except (ValueError, TypeError):
         return None
+
+
+# Coverage denominator (T06): reported p-value mentions. Every NHST result typically
+# reports one p-value, so counting "p < / = / > <number>" tokens is a recall proxy.
+_PVALUE_MENTION_RE = re.compile(r"\bp\s*[<>=]\s*\.?\d", re.IGNORECASE)
+
+
+def count_statistical_mentions(text: str) -> int:
+    """Number of reported p-value mentions in ``text`` — the coverage denominator.
+
+    A recall proxy (claims_with_p / p-mentions), pending the multi-leg extractor's
+    cross-agreement coverage. Imperfect (misses results reported without a p-value,
+    over/under-counts edge phrasings) but it gives an honest denominator so low recall
+    can never silently masquerade as a clean paper (plan §1/§5).
+    """
+    if not text:
+        return 0
+    return len(_PVALUE_MENTION_RE.findall(text))
 
 
 # =============================================================================
@@ -485,14 +511,24 @@ class StatisticalClaimExtractor:
         )
         return all_claims
 
-    def summarize(self, claims: List[StatisticalClaim]) -> ExtractionSummary:
+    def summarize(
+        self,
+        claims: List[StatisticalClaim],
+        full_text: Optional[str] = None,
+        coverage_threshold: float = 0.6,
+    ) -> ExtractionSummary:
         """Produce an aggregate summary from a list of claims.
 
         Parameters
         ----------
         claims : List[StatisticalClaim]
-            Claims as returned by :meth:`extract` or
-            :meth:`extract_from_sections`.
+            Claims as returned by :meth:`extract` or :meth:`extract_from_sections`.
+        full_text : str, optional
+            The source manuscript text. When supplied, an extraction-coverage proxy is
+            computed (claims_with_p / reported-p-value-mentions) so low recall cannot
+            silently read as a clean paper (T06). When omitted, coverage is left ``None``.
+        coverage_threshold : float
+            Below this, ``low_coverage`` is set and a warning is emitted.
 
         Returns
         -------
@@ -537,6 +573,21 @@ class StatisticalClaimExtractor:
                 "Consider reporting df with all test statistics."
             )
 
+        # --- Extraction coverage (T06): a recall proxy that stops low recall from
+        # masquerading as a clean paper. Only computed when the source text is supplied. ---
+        candidate = count_statistical_mentions(full_text) if full_text else 0
+        coverage: Optional[float] = None
+        low_coverage = False
+        if candidate > 0:
+            coverage = min(1.0, with_p / candidate)
+            low_coverage = coverage < coverage_threshold
+            if low_coverage:
+                warnings_list.append(
+                    f"Low extraction coverage: captured {with_p} of ~{candidate} reported "
+                    f"p-value mentions ({coverage:.0%}). The analysis may have missed claims; "
+                    f"treat an absence of flagged issues with caution."
+                )
+
         return ExtractionSummary(
             total_claims=len(claims),
             claims_by_type=by_type,
@@ -546,6 +597,9 @@ class StatisticalClaimExtractor:
             claims_with_df=with_df,
             unique_test_types=sorted(test_types_seen),
             extraction_warnings=warnings_list,
+            candidate_statistical_mentions=candidate,
+            coverage=coverage,
+            low_coverage=low_coverage,
         )
 
     # ------------------------------------------------------------------

@@ -47,8 +47,8 @@
 - [ ] **T07-PROVENANCE (M)** — Parser PDF path: char-offset→page map; thread `page`/`global_position` into `StatisticalClaim` (backward-compatible). Enables verdicts to cite a page.
 
 ### ▶ Wave 1 — build on the spine
-- [ ] **T04-CONSADAPT (M)** [dep T02] — Wrap pure `consistency_core.classify` into the `INCONSISTENT_REPORTING` adapter (the always-available fallback). Don't edit the pure fn.
-- [ ] **T06-COVERAGE (M)** [dep T02,T03] — Add a real coverage denominator to `ExtractionSummary` (can NEVER silently report 100%); split `confidence` into completeness vs extraction-confidence; gate `UNVERIFIABLE_EXTRACTION`. *Closes the false-negative trap the lab cares most about.*
+- [x] **T04-CONSADAPT (M)** [dep T02] — Wrap pure `consistency_core.classify` into the `INCONSISTENT_REPORTING` adapter (the always-available fallback). Don't edit the pure fn. — **DONE 2026-06-24** (`consistency_adapter.py`: `evaluate_consistency` → `ConsistencySignal` + `as_verdict`; `consistency_core` untouched).
+- [x] **T06-COVERAGE (M)** [dep T02,T03] — Add a real coverage denominator to `ExtractionSummary` (can NEVER silently report 100%); split `confidence` into completeness vs extraction-confidence; gate `UNVERIFIABLE_EXTRACTION`. *Closes the false-negative trap the lab cares most about.* — **DONE 2026-06-24** (`claim_extractor.py` coverage + `extraction_confidence` reserved field; `extraction_quality.py` gate). *(T03 dev-set tuning deferred; threshold default 0.6.)*
 - [ ] **T08-CONSDEMOTE (M)** [dep T04] — Demote `overall_consistency_rate` to a labelled fallback signal; route `could_not_check` into Coverage (≠ INSUFFICIENT_DATA); add the "does NOT certify correctness" note.
 - [ ] **T10-SCHEMA (L)** [dep T02] — Django `LinkedDataset` model + persisted per-claim verdict (today `models.py` has only free-form JSON). Mirror the `report_token_hash` IDOR pattern.
 - [ ] **T12-RESOLVER (M)** [dep T02] — Map extractor `claim_type` (+ design hints: paired/independent/1-sample; pearson/spearman; chi²/fisher) → cascade `intended_test`; ambiguous → INSUFFICIENT_DATA, never guess. Flag unverifiable families (multiple/logistic regression, mixed models).
@@ -82,7 +82,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 ## Immediate next 3 (what we do first)
 1. ~~**T02-SPINE** — the verdict contract.~~ ✅ DONE 2026-06-24
 2. ~~**T05-A4POC** — prove the cascade engine verifies Iris/Wine.~~ ✅ DONE 2026-06-24 (4/4 PASS)
-3. **T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate. ← **next**
+3. ~~**T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate.~~ ✅ DONE 2026-06-24 (12/12)
+4. **T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction. ← **next**
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---
@@ -117,3 +118,17 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
   - Set up the `.venv-verify` dev environment (above) to work around the broken local scipy.
   - **Next:** T04-CONSADAPT (consistency→INCONSISTENT_REPORTING adapter) + T06-COVERAGE
     (coverage gate). Then T09-ACCESSION + the ~50-paper data-availability pilot.
+- **2026-06-24 16:26 IST** — **T04-CONSADAPT + T06-COVERAGE DONE** (12/12 check PASS via
+  `paper/replication/verification/check_t04_t06.py`).
+  - T04: `backend/core/manuscript/consistency_adapter.py` — `evaluate_consistency()` →
+    `ConsistencySignal` (exposes `checkable` for T08 coverage routing) → `as_verdict()` emits
+    `INCONSISTENT_REPORTING` only for real inconsistencies (major vs gross_error). Verified on
+    t(38)=2.10: p=.042 consistent (no verdict), p=.001 → major, p=.60 → gross, stat-only → not-checkable.
+    `consistency_core` left untouched (single source of truth).
+  - T06: `claim_extractor.py` — `ExtractionSummary` gains `coverage`/`candidate_statistical_mentions`/
+    `low_coverage`; `summarize(claims, full_text=)` computes coverage = claims_with_p / p-mentions
+    (warns + flags below 0.6); `StatisticalClaim.extraction_confidence` reserved (None) split from
+    completeness `confidence`. `extraction_quality.py` — per-claim `UNVERIFIABLE_EXTRACTION` gate.
+    Live extractor smoke: F/t/r claims, coverage 1.0. Backward-compatible (additive defaults).
+  - **Next:** T08-CONSDEMOTE + T12-RESOLVER, or the higher-leverage **T09-ACCESSION + ~50-paper
+    data-availability pilot** (sizes the verifiable fraction before the XL ingestion/linking build).
