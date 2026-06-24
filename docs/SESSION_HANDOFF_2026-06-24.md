@@ -174,8 +174,9 @@ The lab meeting (week of 2026-06-15) focused entirely on **Pillar 2 (manuscript 
 module)**. Full design + work plan: **`docs/MANUSCRIPT_MODULE_PLAN_2026-06-24.md`**.
 
 **Key steer (repositions the module):**
-- **Internal-consistency flagging (statcheck-style) is NOT the goal** — demoted to a cheap
-  secondary signal, not the product.
+- **Internal-consistency flagging (statcheck-style) is NOT the goal** — repositioned as a
+  complementary, always-available signal (the no-raw-data fallback); existing code reused,
+  not discarded; not the product headline.
 - The module must **verify claims using the authors' RAW DATA**, or explicitly return
   **"insufficient data to verify"** (first-class verdict).
 - It must **check whether authors performed assumption checking** (reported it, and where

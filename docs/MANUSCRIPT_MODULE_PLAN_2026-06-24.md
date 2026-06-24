@@ -11,7 +11,9 @@ The lab/PI position, which this plan adopts:
 
 1. **Internal-consistency flagging is NOT the goal.** Checking only "is this reported
    p-value arithmetically possible?" (statcheck-style) does **not** carry the weight the
-   lab/PI care about. It stays as a cheap *secondary* signal, never the headline.
+   lab/PI care about. It is **repositioned as a complementary, always-available signal —
+   the fallback used when raw data are unavailable** — never the headline. (The existing
+   consistency code is reused, not discarded.)
 2. **The module must verify statistical claims using the authors' RAW DATA**, or
    explicitly return **"insufficient data to verify the claim"** (or similar). The
    "insufficient data" verdict is a first-class output, not a failure.
@@ -27,7 +29,7 @@ reuses the Guardian engine we already built.
 
 ## 1. The two questions, and why we are choosing the hard one
 
-- **Q1 — internal consistency / completeness** (answerable from the PDF alone, statcheck/GRIM territory). *Demoted to a secondary signal.*
+- **Q1 — internal consistency / completeness** (answerable from the PDF alone, statcheck/GRIM territory). *Repositioned as a complementary, always-available signal (the no-raw-data fallback) — existing code reused, not discarded.*
 - **Q2 — analytical correctness** ("did they use the right test, with assumptions met, and does the reported result reproduce?"). **Not answerable from a PDF — it needs the raw data, the design, and context.** This is now the product.
 
 **The binding constraint, stated honestly up front:** most papers do **not** share usable
@@ -52,7 +54,7 @@ For every extracted statistical claim, the engine emits ONE verdict:
 | **ASSUMPTION_UNREPORTED** | a test requiring assumption checks was used, but no check is reported in the text | no (text) |
 | **INSUFFICIENT_DATA** | raw/supplementary data unavailable or not linkable to the claim → cannot verify | n/a |
 | **UNVERIFIABLE_EXTRACTION** | the claim could not be reliably extracted (low coverage) | n/a |
-| *(secondary)* INCONSISTENT_REPORTING | statcheck-style internal inconsistency — kept as a cheap flag, not the headline | no |
+| *(secondary)* INCONSISTENT_REPORTING | statcheck-style internal inconsistency — a complementary, always-available flag (the no-raw-data fallback), not the headline | no |
 
 A paper's report is the **distribution of these verdicts**, not a single "correct/incorrect" stamp.
 
