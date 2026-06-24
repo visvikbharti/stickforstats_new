@@ -55,7 +55,7 @@
 - [ ] **T17-A5IDETECT (L)** [dep T02] — `test→required-assumptions` table + per-claim `ASSUMPTION_UNREPORTED` detector localized to `claim.position`. Drop the current bad gating (only fires on stated-non-normality / N<20 / doc-level boolean). Use `claim.test_name` so Mann-Whitney isn't flagged for normality.
 
 ### ▶ Wave 2 — ingestion + engine
-- [ ] **T11-FETCH (XL)** [dep T09] — New `data_fetcher.py`: download (GEO FTP/HTTPS, Zenodo/Dryad/figshare/OSF REST, raw URLs) + size cap + MD5 + decompress (.gz/.zip/.tar) → `DataImportService`. Extend `SUPPORTED_FORMATS` with .tsv/.txt-delimited + compressed wrappers (genomics `*_Counts.csv.gz`). **No-egress mode.**
+- [~] **T11-FETCH (XL)** [dep T09] — **GEO path DONE 2026-06-24** (`data_fetcher.py`: resolve GSE → list suppl → pick count/matrix table → size-capped download → decompress `.gz`/`.zip` → ingest; `DataImportService` extended with `.tsv`/`.txt`/`.tab` delimited importer). Verified on GSE271517 (63677×92) + GEO funnel run (`funnel_geo.py`: 2/12 accessions yield a directly-ingestible matrix — **17%**, a lower bound). **Follow-ons:** `_RAW.tar`/GSM-level/series-matrix extraction; Zenodo/Dryad/figshare/OSF fetchers; MD5; no-egress hardening.
 - [ ] **T13-ENGINE (L)** [dep T02,T12] — New `verification/reanalysis_engine.py`: `verify_one_claim` over `execute_with_cascade(max_cascades=0)` + `guardian.check`; map None/failure → INSUFFICIENT_DATA, never silent pass. Port genomics `test_failed` discipline.
 - [ ] **T18-DISCIPLINE (M)** [dep T17] — Add the assumption-reporting checklist item to all 8 discipline profiles (only psychology has it today), claim-localized.
 
@@ -84,7 +84,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 2. ~~**T05-A4POC** — prove the cascade engine verifies Iris/Wine.~~ ✅ DONE 2026-06-24 (4/4 PASS)
 3. ~~**T04-CONSADAPT + T06-COVERAGE** — the fallback signal + the coverage honesty gate.~~ ✅ DONE 2026-06-24 (12/12)
 4. ~~**T09-ACCESSION + ~50-paper data-availability pilot** — sizes the verifiable fraction.~~ ✅ DONE 2026-06-24 (80-paper biomed pilot: 32% have a data accession; report in `pilot_out/`)
-5. **T11-FETCH** (GEO-first, per pilot) + **T12-RESOLVER** / **T10-SCHEMA** / **T08-CONSDEMOTE**. ← **next**
+5. ~~**T11-FETCH** (GEO-first)~~ ✅ GEO path DONE 2026-06-24 (funnel: 17% of GEO accessions directly ingestible).
+6. **T10-SCHEMA** (persist LinkedDataset + verdicts) + **T12-RESOLVER** (claim_type→cascade test) + **T08-CONSDEMOTE**. ← **next** (then T13 wires the engine end-to-end)
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---
@@ -146,3 +147,14 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
   - **Implication for T11:** build the **GEO fetch path first**. Next funnel stages to measure on
     this same 80-paper corpus: resolves? (T11) ingestible? (T11) linkable to the claim? (T21).
   - **Next:** T11-FETCH (GEO-first) / T10-SCHEMA / T12-RESOLVER / T08-CONSDEMOTE.
+- **2026-06-24 17:09 IST** — **T11-FETCH GEO path DONE + resolve→ingest funnel run.**
+  - `backend/core/manuscript/data_fetcher.py` (GEO: `_geo_suppl_url` nnn-dir, list suppl, skip
+    `_RAW.tar`/`filelist.txt`/tracks/images, pick count/matrix table, size-cap download, decompress
+    `.gz`/`.zip`, ingest). `data_import_service.py` extended: `.tsv`/`.txt`/`.tab` → `_import_delimited`
+    (sniffs separator). End-to-end on GSE271517 → 63677×92 ingested.
+  - **Funnel (`funnel_geo.py`, report addendum):** 12 GEO accessions → **2 ingested (17%)**, 5 no
+    suppl dir, 4 only `_RAW.tar`+filelist (no processed table), 1 corrupt xlsx (flagged, not silently
+    passed). **Caught + fixed a real bug:** initial picker chose `filelist.txt` (metadata) as data.
+    17% is a LOWER bound (no `_RAW.tar`/GSM/series-matrix extraction yet). Honest compound finding:
+    directly-verifiable raw data is the exception even for the #1 repository.
+  - **Next:** T10-SCHEMA + T12-RESOLVER → then T13 wires fetch→link→re-analyze→verdict end-to-end.

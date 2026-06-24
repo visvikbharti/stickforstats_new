@@ -1,0 +1,122 @@
+{
+  "n_geo_accessions_in_pilot": 24,
+  "n_attempted": 12,
+  "funnel": {
+    "ingested": 2,
+    "no_data_file": 4,
+    "no_suppl_dir": 5,
+    "downloaded_not_ingestible": 1
+  },
+  "ingested": 2,
+  "ingest_rate_of_attempted": 16.7,
+  "results": [
+    {
+      "accession": "GSE303993",
+      "status": "ingested",
+      "file": "GSE303993_MLO_Counts.xlsx",
+      "size_mb": 11.8,
+      "n_rows": 158368,
+      "n_cols": 8,
+      "note": ""
+    },
+    {
+      "accession": "GSE67375",
+      "status": "no_data_file",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE117273",
+      "status": "no_data_file",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE287628",
+      "status": "ingested",
+      "file": "GSE287628_DESeq2_vsd_data.csv.gz",
+      "size_mb": 0.9,
+      "n_rows": 21524,
+      "n_cols": 9,
+      "note": ""
+    },
+    {
+      "accession": "GSE295454",
+      "status": "no_suppl_dir",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE314267",
+      "status": "no_suppl_dir",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE311784",
+      "status": "no_suppl_dir",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE309375",
+      "status": "no_suppl_dir",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE3141",
+      "status": "no_suppl_dir",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE26939",
+      "status": "no_data_file",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE330657",
+      "status": "no_data_file",
+      "file": "",
+      "size_mb": 0.0,
+      "n_rows": null,
+      "n_cols": null,
+      "note": ""
+    },
+    {
+      "accession": "GSE283043",
+      "status": "downloaded_not_ingestible",
+      "file": "GSE283043_supplementary_table1.xlsx",
+      "size_mb": 0.1,
+      "n_rows": null,
+      "n_cols": null,
+      "note": "Failed to import EXCEL file: Worksheet index 0 is invalid, 0 worksheets found"
+    }
+  ]
+}

@@ -29,6 +29,9 @@ MAX_SAMPLE_VALUES = 5
 # Supported file extensions and their canonical format names
 SUPPORTED_FORMATS = {
     ".csv": "csv",
+    ".tsv": "delimited",   # T11: genomics supplementary tables are usually tab-delimited
+    ".txt": "delimited",
+    ".tab": "delimited",
     ".xlsx": "excel",
     ".xls": "excel",
     ".sav": "spss",
@@ -101,6 +104,7 @@ class DataImportService:
     # Map format names to importer methods
     _IMPORTERS = {
         "csv": "_import_csv",
+        "delimited": "_import_delimited",
         "excel": "_import_excel",
         "spss": "_import_spss",
         "sas": "_import_sas",
@@ -223,6 +227,23 @@ class DataImportService:
             if hasattr(file_obj, "seek"):
                 file_obj.seek(0)
             df = pd.read_csv(file_obj, encoding="latin-1")
+            warnings_list.append(f"File could not be read as {encoding}; fell back to latin-1 encoding.")
+        return df, {}, warnings_list
+
+    def _import_delimited(self, file_obj, encoding: str = "utf-8", **kwargs) -> Tuple[pd.DataFrame, Dict, List[str]]:
+        """Import a delimited text file (.tsv/.txt/.tab), sniffing the delimiter.
+
+        Used for genomics supplementary tables (T11), which are usually tab-delimited
+        count/expression matrices. ``sep=None`` + the python engine auto-detects the
+        separator (tab, comma, semicolon, whitespace).
+        """
+        warnings_list: List[str] = []
+        try:
+            df = pd.read_csv(file_obj, sep=None, engine="python", encoding=encoding)
+        except UnicodeDecodeError:
+            if hasattr(file_obj, "seek"):
+                file_obj.seek(0)
+            df = pd.read_csv(file_obj, sep=None, engine="python", encoding="latin-1")
             warnings_list.append(f"File could not be read as {encoding}; fell back to latin-1 encoding.")
         return df, {}, warnings_list
 

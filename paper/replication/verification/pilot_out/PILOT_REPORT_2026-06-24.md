@@ -57,6 +57,30 @@ necessarily raw data — only 2 papers were GitHub-only, hence 32% *data*-repo v
 - Text was stripped from JATS with a crude tag-remover; a structured JATS `<data-availability>`
   parser (plan §4 JATS-first) would raise recall of the statement text (not the accessions).
 
+## Update — funnel stage 2: GEO resolve → ingest (2026-06-24 17:09 IST)
+
+The pilot above measured stage 1 (is an accession *named*?). Stage 2 (`funnel_geo.py`, T11)
+asks: does a named **GEO** accession resolve to a downloadable, decompressible, **ingestible**
+processed table? On 12 of the 24 GEO accessions the pilot found:
+
+| Outcome | n/12 |
+|---|---|
+| **ingested** (resolved → downloaded → parsed to a DataFrame) | **2 (17%)** |
+| no series-level suppl dir | 5 |
+| suppl dir but no processed table (only `_RAW.tar` raw reads + filelist) | 4 |
+| downloaded but unparseable (corrupt xlsx — flagged, not silently passed) | 1 |
+
+The 2 successes: GSE303993 (`MLO_Counts.xlsx`, 158368×8) and GSE287628 (`DESeq2_vsd_data.csv.gz`,
+21524×9) — genuine processed matrices, auto-decompressed and ingested via the extended
+`DataImportService` (now reads tab/`.txt` + `.gz`/`.zip`).
+
+**So the funnel compounds:** ~32% of papers name a data accession, and of GEO accessions only
+~17% directly yield an ingestible processed matrix at the series suppl level. **17% is a LOWER
+bound** — many processed matrices live inside `_RAW.tar`, at the GSM (sample) level, or in GEO
+series-matrix softfiles, which this first-increment GEO fetcher does not yet open. Recovering
+them is more engineering (T11 follow-ups) and would raise the rate; the honest current finding is
+that **directly-verifiable raw data is the exception, not the rule**, even for the #1 repository.
+
 ## Repro
 ```bash
 # biomedical (fetch to external drive)
