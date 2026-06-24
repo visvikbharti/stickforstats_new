@@ -87,7 +87,8 @@ End-to-end run on the **T03 dev set** + the **T20 control suite**: correct per-c
 5. ~~**T11-FETCH** (GEO-first)~~ ✅ GEO path DONE 2026-06-24 (funnel: 17% of GEO accessions directly ingestible).
 6. ~~**T12-RESOLVER** + **T13-ENGINE** (+T14/T15/T19)~~ ✅ DONE 2026-06-24 (7/7 — full verdict pipeline works on real data).
 7. ~~**T21-A3LINK** (tabular) + tabular end-to-end demo~~ ✅ DONE 2026-06-24 (text→extract→import→link→verify→VERDICT).
-8. **Genomics end-to-end demo** (GSE271517 + gene claim) + **T10-SCHEMA** (persist) + **T08-CONSDEMOTE**. ← **next**
+8. ~~**Genomics end-to-end demo** (GSE271517 + gene claim)~~ ✅ DONE 2026-06-24 (MKI67/TOP2A VERIFIED; CFTR ASSUMPTION_VIOLATED — the engine works on real RNA-seq).
+9. **T08-CONSDEMOTE** + **T10-SCHEMA** (persist) + **T22-ORCHESTRATE** (wire into manuscript_guardian). ← **next**
 (In parallel, non-code: **T03-DEVSET** curation and the **~50-paper data-availability pilot** that sizes the whole product.)
 
 ---
@@ -171,3 +172,11 @@ code (T13 engine, T20 controls) should reuse that pattern, or run under a full D
   - Phase A: **10/24** (T01,T02,T04,T05,T06,T09,T11-GEO,T12,T13,T19 + T14/T15).
   - **Next:** T21-A3LINK (auto claim→data linking — the XL blocker for *automatic* end-to-end) + T10-SCHEMA
     (persist) → a live-paper demo. The engine works; what's left is feeding it linked data automatically.
+- **2026-06-24 17:37 IST** — **T21 tabular linker + BOTH end-to-end demos DONE. The engine is real, end to end.**
+  - `claim_data_linker.py` (T21 tabular): claim context → value/group columns → ClaimDataSpec; +T15 sign fix.
+  - `demo_tabular_end_to_end.py`: text → extract → import → link → verify. Faithful t(78)=2.9 → VERIFIED;
+    inflated 8.10 → DISCREPANT.
+  - `demo_genomics_end_to_end.py`: DAS text → GSE271517 → fetch 63677×92 → gene link → verify.
+    MKI67/TOP2A → VERIFIED; CFTR (ENSG00000001626) → ASSUMPTION_VIOLATED (t reproduces but 15.1% outliers).
+  - Status doc for the PI: `docs/MANUSCRIPT_VERIFY_STATUS_2026-06-24.md`.
+  - Phase A: **11/24**. **Next:** T08-CONSDEMOTE / T10-SCHEMA / T22-ORCHESTRATE (wire into the surface).
