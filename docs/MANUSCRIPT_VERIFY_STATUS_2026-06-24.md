@@ -52,7 +52,10 @@ from 1,105 raw extractions — bare sample-size/CI/effect-size/standalone-p frag
 the `is_test_claim` precision gate, while coverage is still computed on the full set), **100% coverage
 on every paper, and 35 statcheck inconsistencies across 12/20 papers (60%)** — consistent with the
 meta-research literature (~50%, Nuijten 2016). This is the no-raw-data tier (statcheck + coverage)
-working on real papers; it previews the census's broad layer.
+working on real papers; it previews the census's broad layer. **Spot-validated as TRUE positives:**
+in PMC13223457, F(2,58)=3.728 recomputes to p≈0.030 (reported 0.061 — a decision-changing error),
+and 5 further F-tests are off beyond rounding — i.e. the tool finds genuine mis-reported statistics,
+not parsing artifacts.
 
 > **Manuscript note:** a real-paper run exposed an extraction bug — the F/χ²/correlation/z/beta and
 > standalone-p regexes only matched lowercase `p`, so papers reporting `P = 0.193` (the majority)
