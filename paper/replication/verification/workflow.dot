@@ -1,0 +1,76 @@
+// Manuscript-verification module + meta-research census — complete workflow.
+// Render: dot -Tsvg workflow.dot -o WORKFLOW.svg ; dot -Tpng -Gdpi=150 workflow.dot -o WORKFLOW.png
+digraph verifier_census {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, labelloc="t", nodesep=0.35, ranksep=0.55,
+         label="StickForStats manuscript-verification module + meta-research census — workflow (2026-06-26)"];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", margin="0.12,0.07"];
+  edge  [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  // ---- shared engine (feeds BOTH pipelines) ----
+  subgraph cluster_shared {
+    label="Shared engine  (backend/core/manuscript/)";
+    style="rounded,filled"; fillcolor="#f0f0f0"; color="#999999"; fontsize=12;
+    extractor [label="claim_extractor.py\nregex extraction of NHST claims\n(scoped p-attachment, df guards)", fillcolor="#d9d9d9"];
+    consistency [label="consistency_core.py\nstatcheck-style recompute\n(rounding/inequality-aware)", fillcolor="#d9d9d9"];
+    verdicts [label="verdicts.py\n6-verdict taxonomy", fillcolor="#d9d9d9"];
+  }
+
+  // ================= A. RAW-DATA VERIFICATION ENGINE (the product) =================
+  subgraph cluster_engine {
+    label="A.  Raw-data verification engine  (the product — verify a paper against ITS data)";
+    style="rounded,filled"; fillcolor="#eaf2fb"; color="#1565c0"; fontsize=13;
+
+    ms        [label="manuscript\n(PDF / DOCX / text)", fillcolor="#ffffff"];
+    parser    [label="parser.py\nsections + tables", fillcolor="#cfe2f7"];
+    accession [label="accession resolver\n(GEO / Zenodo / Dryad / OSF / …)", fillcolor="#cfe2f7"];
+    datafetch [label="data_fetcher + genomics_linker\n+ geo_metadata\n(fetch & auto-link raw data)", fillcolor="#cfe2f7"];
+    reeng     [label="reanalysis_engine.py\nRE-RUN the test on the raw data\n(value reproduce? assumptions hold?)", fillcolor="#cfe2f7"];
+
+    vtypes    [label="VERIFIED · DISCREPANT · ASSUMPTION_VIOLATED\nASSUMPTION_UNREPORTED · INSUFFICIENT_DATA\nUNVERIFIABLE_EXTRACTION  (+ INCONSISTENT_REPORTING)",
+               shape=note, fillcolor="#fff4cc", color="#bfa000"];
+    service   [label="verification_service.py (T22)\norchestrate + persist (T10)\nVerificationRun / ClaimVerdictRecord", fillcolor="#cfe2f7"];
+    surface   [label="REST surface (T24)\nPOST /api/v1/verify/analyze/\nGET /verify/report/<uuid>  ·  verify_cli.py",
+               fillcolor="#bcd6f5"];
+    controls  [label="T20 control suite\ntest_verification_engine.py\n(pins all 5 verdict types)",
+               shape=component, fillcolor="#e6f0d4", color="#5a8000"];
+  }
+
+  ms -> parser -> extractor;
+  extractor -> accession -> datafetch -> reeng;
+  reeng -> consistency [style=dashed, label="no raw data →\nfallback signal"];
+  reeng -> verdicts;
+  consistency -> verdicts;
+  verdicts -> vtypes -> service -> surface;
+  controls -> reeng [style=dotted, dir=back, label="exercises", constraint=false];
+
+  // ================= B. META-RESEARCH CENSUS (the parallel paper) =================
+  subgraph cluster_census {
+    label="B.  Meta-research census  (the parallel paper — how verifiable is the OA literature?)";
+    style="rounded,filled"; fillcolor="#eaf6ec"; color="#2e7d32"; fontsize=13;
+
+    pmc      [label="pmc_fetcher.py\nNCBI E-utilities\nday-clustered random sample\n(10,103 OA papers, 744 days)", fillcolor="#d7ecd9"];
+    jats     [label="jats_parser.py\nPMC JATS XML → text\n(body + flattened tables)", fillcolor="#d7ecd9"];
+    census   [label="census_jats.py\nincremental ledger (per-PMCID)\nrate over CHECKABLE claims", fillcolor="#d7ecd9"];
+    ledger   [label="census ledger (JSONL, on drive)\n+ CENSUS_REPORT_LARGE", shape=cylinder, fillcolor="#ffffff"];
+    inspect  [label="inspect_inconsistencies.py\ndump each flagged claim + context", fillcolor="#d7ecd9"];
+    adjud    [label="adjudicate_inconsistencies.py\nTRUE vs FP categories\n+ LLM cross-check", fillcolor="#d7ecd9"];
+    fprep    [label="FP_VALIDATION_REPORT", shape=note, fillcolor="#fff4cc", color="#bfa000"];
+    ipw      [label="census_ipw.py\nIPW robustness\n(equal-probability, same population)", shape=component, fillcolor="#e6f0d4", color="#5a8000"];
+    oapilot  [label="oa_pilot.py\nOA web-service independent frame\n(generalizability check)", shape=component, fillcolor="#e6f0d4", color="#5a8000"];
+  }
+
+  pmc -> jats -> extractor;
+  jats -> census;
+  extractor -> census [style=dashed];
+  consistency -> census [style=dashed];
+  census -> ledger -> inspect -> adjud -> fprep;
+  ledger -> ipw;
+  pmc -> oapilot [style=dotted, dir=back, label="alt frame", constraint=false];
+
+  // headline result callout
+  result [label="HEADLINE (10,103 papers, post-fix):\n3.5% report an in-text recomputable NHST stat;\nof checkable claims 11.1% inconsistent (raw),\n~6–8% FP-validated true, 1.7% decision-changing.\nIPW-stable; FP_MISEXTRACTION 157→0.",
+          shape=folder, fillcolor="#fde9e9", color="#b71c1c", fontsize=10];
+  fprep -> result;
+  ipw -> result [style=dashed];
+}
