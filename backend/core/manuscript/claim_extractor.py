@@ -47,13 +47,13 @@ logger = logging.getLogger(__name__)
 # t-test patterns
 # Matches: t(24) = 2.45, p = .013; t(24)=2.45, p<.001
 T_TEST_PATTERN = re.compile(
-    r"t\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)", re.IGNORECASE
+    r"t\s*\(\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(-?\d+\.?\d*)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)", re.IGNORECASE
 )
 
 # F-test patterns
 # Matches: F(2, 45) = 3.67, p = .034
 F_TEST_PATTERN = re.compile(
-    r"F\s*\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"F\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Chi-square patterns
@@ -61,33 +61,33 @@ F_TEST_PATTERN = re.compile(
 # Handles both Unicode superscript (squared) and ASCII "2"
 CHI_SQUARE_PATTERN = re.compile(
     r"(?:\u03c7[\u00b2\u00322]|chi[- ]?square[d]?)\s*"
-    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"\(\s*(\d+)(?:\s*,\s*[Nn]\s*=\s*(\d+))?\s*\)\s*=\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Correlation patterns
 # Matches: r = .45, p < .001; r(48) = .67, p = .002
 CORRELATION_PATTERN = re.compile(
-    r"(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])r\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Spearman rho pattern
 # Matches: rho = .52, p = .003; rho(30) = .41, p < .05
 SPEARMAN_PATTERN = re.compile(
-    r"(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?:\u03c1|rho|r_s)\s*(?:\(\s*(\d+)\s*\)\s*)?=\s*(-?\.?\d+\.?\d*)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
     re.IGNORECASE,
 )
 
 # z-test pattern
 # Matches: z = 2.58, p < .01; Z = -1.96, p = .050
 Z_TEST_PATTERN = re.compile(
-    r"(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])[zZ]\s*=\s*(-?\d+\.?\d*)\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Regression: beta / B coefficient
 # Matches: beta = 0.34, SE = 0.12, p = .005; B = -1.23, p < .001
 BETA_PATTERN = re.compile(
     r"(?:\u03b2|[Bb]eta|(?<![A-Za-z])[Bb](?![A-Za-z]))\s*=\s*(-?\d+\.?\d*)"
-    r"\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*,?\s*[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"\s*(?:,\s*(?:SE|se)\s*=\s*(\d+\.?\d*))?\s*[;,]?\s*[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # R-squared
@@ -147,9 +147,10 @@ SAMPLE_SIZE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-# Standalone p-value (not attached to a test statistic)
+# Standalone p-value (not attached to a test statistic). The leading "." is
+# captured INSIDE the group so "p = .1" and "p = 1" are distinguishable.
 STANDALONE_P_PATTERN = re.compile(
-    r"(?<![A-Za-z])[Pp]\s*([=<>])\s*\.?(\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
+    r"(?<![A-Za-z])[Pp]\s*([=<>])\s*(\.?\d+(?:\.\d+)?(?:[eE][-+−]?\d+)?)",
 )
 
 # Non-significant marker
@@ -165,6 +166,20 @@ GENERIC_STAT_PATTERN = re.compile(
     r"(?:\(\s*(?P<df>[^)]*?)\s*\))?\s*=\s*(?P<stat>-?(?:\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?))",
     re.IGNORECASE,
 )
+
+# A single-letter "statistic" immediately preceded by a STANDALONE effect-size
+# letter ("d z" / "d_z" = Cohen's d_z; "g z" = Hedges') is an effect-size
+# subscript, not a reported test statistic. The d/g must itself be a token
+# boundary so real words ending in d/g ("observed z = ...") are not skipped.
+_EFFECT_SIZE_PREFIX = re.compile(r"(?:[^A-Za-z]|^)[dgDG][ _]\Z")
+
+# A "result break" between a statistic and a candidate p-value: sentence-ending
+# punctuation followed by whitespace/end. A ";" is NOT a break (results are
+# commonly written "F(1,31)=5.48; p=.02"); a "." inside a number ("0.14") is not
+# a break (not followed by whitespace). The gap is whitespace-normalized before
+# this test (so a soft line-wrap is not a break). Used to stop a generic
+# statistic from borrowing a p-value across a sentence boundary.
+_RESULT_BREAK = re.compile(r"[.!?](?:\s|$)")
 
 # Superscript digits/signs -> ASCII, for "x 10^n" scientific notation.
 _SUPERSCRIPT_MAP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+")
@@ -338,19 +353,31 @@ def _parse_p_comparison(symbol: str) -> str:
     return P_COMPARISON_EQUALS
 
 
-def _parse_p_value(raw: str) -> float:
+def _parse_p_value(raw: str) -> Optional[float]:
     """Parse a p-value string, handling optional leading zero.
 
-    '03' -> 0.03, '0.03' -> 0.03, '.03' -> 0.03, '001' -> 0.001.
-    The regex groups already strip the leading dot in many cases, so we
-    normalise here.
+    '.03' -> 0.03, '0.03' -> 0.03, '03' -> 0.03, '001' -> 0.001, '1' -> 1.0,
+    '0' -> 0.0, '2.83e-91' -> 2.83e-91. A malformed token (e.g. the two-dot
+    '.03.04', which the dot-capturing group can match) -> None, so the claim
+    degrades to not-checkable instead of crashing the whole extract() call.
+
+    The p-value capture groups now include the leading dot, so ".03" arrives
+    intact and is distinguishable from the bare integer "1" (a real point
+    p-value, e.g. ANCOVA p = 1) -- previously both collapsed to 0.1, flagging
+    genuine "p = 1" reports as inconsistent.
     """
     raw = raw.strip().replace("−", "-")  # normalise Unicode minus in exponents (e.g. 2.83e−91)
-    # Scientific notation or a decimal point present -> parse as-is (e.g. "2.83e-91", "0.03", ".03")
-    if "." in raw or "e" in raw or "E" in raw:
-        return float(raw)
-    # Raw digits only — treat as a decimal fraction (e.g. "03" -> 0.03)
-    return float(f"0.{raw}")
+    if raw.startswith("."):
+        raw = "0" + raw  # ".03" -> "0.03"
+    try:
+        # Scientific notation or a decimal point present -> parse as-is.
+        if "." in raw or "e" in raw or "E" in raw:
+            return float(raw)
+        # Bare integer token: "0"/"1" are real point p-values; any other bare digits
+        # are a leading-zero-stripped fraction (e.g. "03" -> 0.03), never a true p>1.
+        return float(raw) if raw in ("0", "1") else float(f"0.{raw}")
+    except ValueError:
+        return None
 
 
 def _to_num(raw: str) -> float:
@@ -467,6 +494,7 @@ class StatisticalClaimExtractor:
 
         # Merge standalone fragments into the nearest primary claim
         claims = self._merge_claims(
+            text,
             claims,
             standalone_p,
             standalone_ci,
@@ -666,7 +694,8 @@ class StatisticalClaimExtractor:
         """Extract F-test claims: F(df1, df2) = value, p = value."""
         claims: List[StatisticalClaim] = []
         for m in F_TEST_PATTERN.finditer(text):
-            df1 = int(m.group(1))
+            df1_raw = float(m.group(1))
+            df1 = int(df1_raw) if df1_raw == int(df1_raw) else df1_raw
             df2_raw = float(m.group(2))
             df2 = int(df2_raw) if df2_raw == int(df2_raw) else df2_raw
             stat_val = _to_num(m.group(3))
@@ -989,6 +1018,10 @@ class StatisticalClaimExtractor:
             mapped = _GENERIC_STAT_MAP.get(name)
             if mapped is None:
                 continue
+            # Skip an effect-size subscript ("d z" / "d_z" Cohen's, "g z" Hedges')
+            # masquerading as a test statistic.
+            if _EFFECT_SIZE_PREFIX.search(text[max(0, m.start() - 3):m.start()]):
+                continue
             claim_type, test_name = mapped
             try:
                 stat_val = _to_num(m.group("stat"))
@@ -1000,9 +1033,12 @@ class StatisticalClaimExtractor:
             df_raw = m.group("df")
             if df_raw:
                 nums = re.findall(r"-?\d+\.?\d*", df_raw)
-                if nums:
-                    parsed = [int(float(n)) if float(n) == int(float(n)) else float(n) for n in nums]
-                    df = tuple(parsed)
+                if not nums:
+                    # A df-group with no number is function/variable notation,
+                    # e.g. "Z(Y)" or "F(model)" -- not a reported test statistic.
+                    continue
+                parsed = [int(float(n)) if float(n) == int(float(n)) else float(n) for n in nums]
+                df = tuple(parsed)
 
             claims.append(
                 StatisticalClaim(
@@ -1236,6 +1272,7 @@ class StatisticalClaimExtractor:
 
     def _merge_claims(
         self,
+        text: str,
         primary: List[StatisticalClaim],
         standalone_p: List[StatisticalClaim],
         standalone_ci: List[StatisticalClaim],
@@ -1250,6 +1287,14 @@ class StatisticalClaimExtractor:
         dropped. Remaining standalone items that cannot be associated with
         any primary claim within a proximity window are kept as independent
         claims.
+
+        p-values use a STRICTER, scoped rule (see the p-merge block): they only
+        attach to the closest PRECEDING statistic, within a tight window, with no
+        sentence/paragraph break between -- because a mis-attached p-value is
+        recomputed against the wrong statistic and produces a false internal
+        inconsistency (the dominant false positive in the meta-research census,
+        2026-06). CIs/effect-sizes/sample-sizes keep the looser proximity rule:
+        they are descriptive metadata, not recomputed, so a near-miss is benign.
         """
         PROXIMITY_CHARS = 300  # max distance to associate fragments
 
@@ -1277,23 +1322,57 @@ class StatisticalClaimExtractor:
                 return best
             return None
 
-        # --- Merge standalone p-values ---
+        # --- Merge standalone p-values (scoped) ---
+        # A p-value belongs to a statistic only when it is part of the SAME
+        # reported result: it must FOLLOW the statistic, lie within a tight
+        # window, and not be separated by a sentence/paragraph break. This stops
+        # the dominant census false positive, where a generic statistic
+        # ("F = 5.48", no p in its own text) borrowed a p-value from a
+        # neighbouring, unrelated claim and was then flagged as inconsistent.
+        # Max chars between the statistic's end and the p-value. Calibrated on
+        # the 2026-06 corpus: across 400 papers, every legitimate generic-stat
+        # p-merge had a gap <= 33 chars (median 1, p99 33); 40 covers them with
+        # margin while rejecting a p-value borrowed across intervening prose.
+        MERGE_WINDOW = 40
         unmerged_p: List[StatisticalClaim] = []
-        for frag in standalone_p:
-            if _is_covered(frag):
+        for frag in sorted(standalone_p, key=lambda c: c.position):
+            if _is_covered(frag) or frag.p_value is None:
+                # A None p-value is a malformed token (see _parse_p_value);
+                # never attach it -- that would just blank an existing claim's p.
                 continue
-            target = _nearest_primary(frag.position, primary)
-            if target is not None and target.p_value is None:
-                target.p_value = frag.p_value
-                target.p_value_raw = frag.p_value_raw
-                target.p_comparison = frag.p_comparison
-                # Recalculate confidence now that we have p
-                target.confidence = self._score_confidence(
-                    has_statistic=(target.statistic_value is not None),
-                    has_df=(target.df is not None),
-                    has_p=True,
-                )
-            else:
+            p_start = frag.position
+            p_end = frag.position + len(frag.raw_text)
+            # Closest primary (still missing a p) whose span ends at or before
+            # the p-value -- i.e. the statistic that immediately precedes it.
+            befores = [
+                c for c in primary
+                if c.p_value is None and (c.position + len(c.raw_text)) <= p_start
+            ]
+            target = max(befores, key=lambda c: c.position + len(c.raw_text)) if befores else None
+            attached = False
+            if target is not None:
+                stat_end = target.position + len(target.raw_text)
+                # Collapse whitespace before the break test: a soft line-wrap
+                # ("stat\n(p = ...)", common in PDF-extracted text) is NOT a
+                # sentence/paragraph break, so it must not block a legitimate
+                # same-clause merge. Sentence punctuation still breaks.
+                between = re.sub(r"\s+", " ", text[stat_end:p_start]) if text else ""
+                if (p_start - stat_end) <= MERGE_WINDOW and not _RESULT_BREAK.search(between):
+                    target.p_value = frag.p_value
+                    target.p_value_raw = frag.p_value_raw
+                    target.p_comparison = frag.p_comparison
+                    # Provenance: extend raw_text to span through the merged
+                    # p-value so the p is visibly part of the claim (and is not
+                    # later mistaken for a mis-paired p-value).
+                    if text:
+                        target.raw_text = text[target.position:p_end]
+                    target.confidence = self._score_confidence(
+                        has_statistic=(target.statistic_value is not None),
+                        has_df=(target.df is not None),
+                        has_p=True,
+                    )
+                    attached = True
+            if not attached:
                 unmerged_p.append(frag)
 
         # --- Merge standalone CIs ---

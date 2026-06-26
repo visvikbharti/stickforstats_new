@@ -61,9 +61,10 @@ class ConsistencyVerdict:
 def decimals_from_token(token, is_p: bool) -> Optional[int]:
     """Decimal places implied by a reported numeric token.
 
-    For a p-value (``is_p=True``) the extractor may have stripped a leading
-    ".", so a token with no "." is a pure fraction (".049" captured as "049"
-    -> 3). For a general statistic a token with no "." is an integer (0).
+    For a p-value (``is_p=True``) a no-"." token is normally a leading-zero
+    stripped fraction (".049" captured as "049" -> 3), EXCEPT the bare integers
+    "0"/"1", which are real point p-values with zero decimals (e.g. ANCOVA
+    ``p = 1``). For a general statistic a token with no "." is an integer (0).
     Scientific notation -> ``None`` (treated as effectively exact).
     """
     if token is None:
@@ -75,17 +76,35 @@ def decimals_from_token(token, is_p: bool) -> Optional[int]:
         return None
     if "." in s:
         return len(s.split(".", 1)[1])
-    return len(s) if is_p else 0
+    if not is_p:
+        return 0
+    # is_p, no dot: bare "1" is the integer point value (0 decimals; the legitimate
+    # ANCOVA "p = 1"). Bare "0" keeps 1 decimal (the legacy +/-0.05 window) -- a true
+    # p is never exactly 0, so "p = 0" is shorthand for "small" and must still be
+    # checked (giving it 0 decimals would open a +/-0.5 window that masks gross
+    # errors). Other bare digits are a stripped fraction ("049" -> .049, 3 decimals).
+    return 0 if s == "1" else len(s)
 
 
-def _resolve_single_df(df) -> Optional[float]:
+def _resolve_single_df(df, *, require_single: bool = False) -> Optional[float]:
+    """Resolve a single degrees-of-freedom value.
+
+    ``require_single`` rejects a multi-element df tuple (returns None). A t-test
+    and a chi-square test each carry exactly ONE df; a 2-tuple such as
+    ``(1, 644)`` is an ambiguous mis-extraction (e.g. a table cell), and silently
+    taking df[0]=1 produces a wrong recomputed p and a false inconsistency. When
+    we cannot identify the single df, the claim is treated as not recomputable.
+    """
     if df is None:
         return None
     if isinstance(df, (int, float)):
         return float(df) if df != 0 else None
-    if isinstance(df, (list, tuple)) and df:
-        val = df[0]
-        return float(val) if val != 0 else None
+    if isinstance(df, (list, tuple)):
+        if require_single and len(df) != 1:
+            return None
+        if df:
+            val = df[0]
+            return float(val) if val != 0 else None
     return None
 
 
@@ -105,7 +124,7 @@ def recompute_p(claim_type: str, statistic: float, df, sample_size: Optional[int
     ct = normalize_type(claim_type)
     try:
         if ct == "t_statistic":
-            d = _resolve_single_df(df)
+            d = _resolve_single_df(df, require_single=True)
             return None if d is None or d <= 0 else float(scipy_stats.t.sf(abs(statistic), d) * 2)
         if ct == "f_statistic":
             if statistic < 0:
@@ -115,6 +134,10 @@ def recompute_p(claim_type: str, statistic: float, df, sample_size: Optional[int
         if ct == "chi_square":
             if statistic < 0:
                 return None
+            # A chi-square has exactly ONE df, so df[0] of a 2-tuple is unambiguous
+            # (it is the "(df, N)" reporting form, e.g. "chi2(2, 285)") -- unlike a
+            # t-test where "(1, 644)" is genuinely ambiguous. So do NOT require a
+            # single-element df here; only t_statistic does.
             d = _resolve_single_df(df)
             return None if d is None or d <= 0 else float(scipy_stats.chi2.sf(statistic, d))
         if ct == "z_statistic":
