@@ -47,7 +47,9 @@ class VerificationProfile:
     verifiability_rate: float           # fraction of claims we could actually attempt to verify
     coverage: Optional[float]           # extraction coverage (claims_with_p / p-mentions)
     low_coverage: bool
-    n_inconsistent_reporting: int       # secondary statcheck signal
+    n_inconsistent_reporting: int       # secondary statcheck signal (checkable AND inconsistent)
+    n_checkable: int = 0                 # claims whose p IS recomputable (statcheck denominator)
+    n_decision_changing: int = 0         # inconsistencies that flip significance (gross_error)
     claim_verdicts: List[ClaimVerdict] = field(default_factory=list)
     certify_note: str = CERTIFY_NOTE
 
@@ -59,6 +61,8 @@ class VerificationProfile:
             "coverage": self.coverage,
             "low_coverage": self.low_coverage,
             "n_inconsistent_reporting": self.n_inconsistent_reporting,
+            "n_checkable": self.n_checkable,
+            "n_decision_changing": self.n_decision_changing,
             "certify_note": self.certify_note,
             "claims": [v.to_dict() for v in self.claim_verdicts],
         }
@@ -105,7 +109,7 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
         from .claim_data_linker import link_claim_to_table as linker  # lazy (pandas)
 
     verdicts: List[ClaimVerdict] = []
-    n_inconsistent = 0
+    n_inconsistent = n_checkable = n_decision_changing = 0
     for claim in claims:
         # secondary statcheck signal (always available, no raw data needed)
         sig = evaluate_consistency(claim)
@@ -116,11 +120,16 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
             spec = lr.data_spec if lr.status == "linked" else None
 
         cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
+        cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
 
-        if sig.checkable and sig.is_consistent is False:
-            n_inconsistent += 1
-            cv.notes.append(f"secondary: reported statistics are internally INCONSISTENT "
-                            f"({sig.severity}; recomputed p={sig.computed_p:.3g})")
+        if sig.checkable:
+            n_checkable += 1                    # the statcheck-recomputable denominator
+            if sig.is_consistent is False:
+                n_inconsistent += 1
+                if sig.severity == "gross_error":
+                    n_decision_changing += 1
+                cv.notes.append(f"secondary: reported statistics are internally INCONSISTENT "
+                                f"({sig.severity}; recomputed p={sig.computed_p:.3g})")
         verdicts.append(cv)
 
     dist = Counter(v.verdict.value for v in verdicts)
@@ -134,5 +143,7 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
         coverage=summary.coverage,
         low_coverage=summary.low_coverage,
         n_inconsistent_reporting=n_inconsistent,
+        n_checkable=n_checkable,
+        n_decision_changing=n_decision_changing,
         claim_verdicts=verdicts,
     )

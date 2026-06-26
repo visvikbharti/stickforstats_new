@@ -19,7 +19,6 @@ Created: February 2026
 import hashlib
 import logging
 
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -30,6 +29,7 @@ from core.manuscript.parser import ManuscriptParser
 from core.manuscript.claim_extractor import StatisticalClaimExtractor
 from core.manuscript.consistency_validator import ConsistencyValidator
 from core.manuscript.manuscript_guardian import ManuscriptGuardian
+from ._upload_utils import file_too_large_error, manuscript_file_type
 
 try:
     from core.models import ManuscriptSubmission, ReviewReport
@@ -41,23 +41,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def _max_upload_bytes():
-    """Shared upload ceiling (bytes). Configurable via MAX_FILE_UPLOAD_MB."""
-    return getattr(settings, "MAX_FILE_UPLOAD_BYTES", 25 * 1024 * 1024)
-
-
-def _file_too_large_error(uploaded):
-    """Return a friendly error string if the upload exceeds the cap, else None."""
-    cap = _max_upload_bytes()
-    size = getattr(uploaded, "size", 0) or 0
-    if size > cap:
-        return (
-            f"File too large ({size / (1024 * 1024):.1f} MB). "
-            f"Maximum allowed is {cap / (1024 * 1024):.0f} MB."
-        )
-    return None
-
-
 def _get_file_and_type(request):
     """Extract uploaded file, enforce the size cap, and determine its type."""
     if "file" not in request.FILES:
@@ -65,22 +48,13 @@ def _get_file_and_type(request):
 
     uploaded = request.FILES["file"]
 
-    size_error = _file_too_large_error(uploaded)
+    size_error = file_too_large_error(uploaded)
     if size_error:
         return None, None, size_error
 
-    name = uploaded.name.lower()
-
-    if name.endswith(".pdf"):
-        file_type = "pdf"
-    elif name.endswith((".tex", ".latex")):
-        file_type = "latex"
-    elif name.endswith(".docx"):
-        file_type = "docx"
-    elif name.endswith(".txt"):
-        file_type = "latex"
-    else:
-        return None, None, (f"Unsupported file type: {name}. " "Accepted: .pdf, .tex, .docx, .txt")
+    file_type = manuscript_file_type(uploaded.name)
+    if file_type is None:
+        return None, None, (f"Unsupported file type: {uploaded.name}. " "Accepted: .pdf, .tex, .docx, .txt")
 
     return uploaded, file_type, None
 

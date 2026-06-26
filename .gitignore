@@ -9,6 +9,7 @@ backend/node_modules/
 backend/venv/
 backend/env/
 .venv-verify/
+.venv-django/
 backend/__pycache__/
 backend/**/__pycache__/
 *.pyc

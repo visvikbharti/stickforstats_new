@@ -151,6 +151,10 @@ from .manuscript_views import (
     SubmissionReportView,
     JournalSubmitView,
 )
+from .verify_views import (
+    VerifyAnalyzeView,
+    VerifyReportView,
+)
 from .batch_views import (
     BatchSubmitView,
     BatchStatusView,
@@ -382,6 +386,10 @@ urlpatterns = [
     path("manuscript/consistency/", ConsistencyCheckView.as_view(), name="manuscript-consistency"),
     path("manuscript/report/<uuid:submission_id>/", SubmissionReportView.as_view(), name="manuscript-report"),
     path("manuscript/journal/submit/", JournalSubmitView.as_view(), name="journal-submit"),
+    # Raw-data manuscript verification (re-runs each claim through Guardian on the authors'
+    # data; separate surface from /manuscript/* which is the no-data consistency fallback).
+    path("verify/analyze/", VerifyAnalyzeView.as_view(), name="verify-analyze"),
+    path("verify/report/<uuid:run_id>/", VerifyReportView.as_view(), name="verify-report"),
     # Signed reproducibility receipts (independently verifiable provenance)
     path("receipt/issue/", ReceiptIssueView.as_view(), name="receipt-issue"),
     path("receipt/jwks/", ReceiptJWKSView.as_view(), name="receipt-jwks"),

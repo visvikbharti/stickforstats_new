@@ -140,6 +140,7 @@ class ClaimVerdict:
 
     claim_id: str
     verdict: Verdict
+    claim_text: str = ""          # the originating claim's raw text (for the persisted report)
 
     # --- re-analysis (recomputed from the authors' raw data) ---
     recomputed_test: Optional[str] = None
@@ -202,6 +203,7 @@ class ClaimVerdict:
         return {
             "claim_id": self.claim_id,
             "verdict": self.verdict.value,
+            "claim_text": self.claim_text,
             "recomputed": {
                 "test": self.recomputed_test,
                 "statistic": self.recomputed_statistic,

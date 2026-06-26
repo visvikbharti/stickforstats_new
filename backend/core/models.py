@@ -1458,6 +1458,228 @@ class LTINonceUsed(models.Model):
         return f"{self.issuer[:40]} -> {self.nonce[:16]}..."
 
 
+# =====================================================================
+# Manuscript Verification (Pillar 2 — raw-data re-analysis surface)
+# =====================================================================
+#
+# These persist the output of the verification-core pipeline
+# (core/manuscript/verify_pipeline.verify_manuscript): per-claim verdicts
+# produced by RE-RUNNING the authors' tests on their raw data through the
+# Guardian/cascade engine. This is distinct from ManuscriptSubmission, which
+# stores the no-raw-data, statcheck-style internal-consistency review (the
+# always-available fallback). "Shared engine, separate surface" — see
+# docs/MANUSCRIPT_MODULE_PLAN_2026-06-24.md and TODO item T10-SCHEMA.
+
+
+class VerificationRun(models.Model):
+    """A single raw-data verification run over one manuscript.
+
+    Stores the paper-level VerificationProfile plus per-claim verdicts
+    (``ClaimVerdictRecord``) and any linked datasets (``LinkedDataset``).
+    Access to the stored result is gated by an unguessable share token whose
+    SHA-256 hash alone is persisted, mirroring ``ManuscriptSubmission``'s IDOR
+    protection (audit 2026-05-31, SEC-3).
+    """
+
+    VERDICT_CHOICES = [
+        ("VERIFIED", "Verified"),
+        ("DISCREPANT", "Discrepant"),
+        ("ASSUMPTION_VIOLATED", "Assumption violated"),
+        ("ASSUMPTION_UNREPORTED", "Assumption unreported"),
+        ("INSUFFICIENT_DATA", "Insufficient data"),
+        ("UNVERIFIABLE_EXTRACTION", "Unverifiable extraction"),
+        ("INCONSISTENT_REPORTING", "Inconsistent reporting"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Source manuscript identification
+    title = models.CharField(max_length=500, blank=True)
+    file_name = models.CharField(max_length=255, blank=True)
+    file_hash = models.CharField(max_length=128, blank=True, help_text="SHA-256 of the uploaded manuscript")
+
+    status = models.CharField(
+        max_length=20,
+        default="completed",
+        choices=[
+            ("pending", "Pending"),
+            ("completed", "Completed"),
+            ("failed", "Failed"),
+        ],
+        db_index=True,
+    )
+
+    # Paper-level VerificationProfile (verify_pipeline.VerificationProfile)
+    n_claims = models.IntegerField(default=0)
+    verifiability_rate = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="fraction of claims actually attempted (VERIFIED + DISCREPANT + ASSUMPTION_VIOLATED)",
+    )
+    coverage = models.FloatField(
+        null=True, blank=True, help_text="extraction coverage (claims_with_p / candidate p-mentions)"
+    )
+    low_coverage = models.BooleanField(default=False)
+    n_inconsistent_reporting = models.IntegerField(default=0, help_text="secondary statcheck signal count")
+    verdict_distribution = JSONField(default=dict, blank=True)
+    certify_note = models.TextField(blank=True)
+
+    # Full archival payload (VerificationProfile.to_dict())
+    profile_data = JSONField(default=dict, blank=True)
+
+    # What, if anything, we verified against
+    data_source = models.CharField(
+        max_length=255,
+        blank=True,
+        default="none",
+        help_text="e.g. 'none', 'uploaded_table', 'geo:GSE271517'",
+    )
+
+    # Report access control (IDOR; only the SHA-256 hash is stored)
+    report_token_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="SHA-256 of the report share token (raw token never stored)",
+    )
+
+    processing_time_ms = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(blank=True)
+    warnings = JSONField(default=list, blank=True)
+
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at", "status"]),
+        ]
+        verbose_name = "Verification Run"
+        verbose_name_plural = "Verification Runs"
+
+    def __str__(self):
+        label = self.title[:50] if self.title else (self.file_name or str(self.id))
+        return f"{label} ({self.n_claims} claims, {self.status})"
+
+    @staticmethod
+    def hash_report_token(raw_token: str) -> str:
+        """SHA-256 of a raw report token (same scheme as ManuscriptSubmission)."""
+        return hashlib.sha256((raw_token or "").encode()).hexdigest()
+
+    def set_report_token(self) -> str:
+        """Generate a fresh report share token, store its hash, return the RAW token.
+
+        The raw token is returned to the caller once and never persisted.
+        """
+        import secrets
+
+        raw_token = secrets.token_urlsafe(32)
+        self.report_token_hash = self.hash_report_token(raw_token)
+        return raw_token
+
+    def verify_report_token(self, raw_token: str) -> bool:
+        """Timing-safe check of a supplied raw report token against the stored hash."""
+        if not self.report_token_hash:
+            return False
+        return hmac.compare_digest(self.hash_report_token(raw_token or ""), self.report_token_hash)
+
+
+class ClaimVerdictRecord(models.Model):
+    """One per-claim verdict within a ``VerificationRun`` (verdicts.ClaimVerdict).
+
+    A few hot fields are denormalized into indexed columns (verdict, test_name,
+    claimed/recomputed statistic + p) so the Phase-B corpus census can query at
+    scale; the complete ``ClaimVerdict.to_dict()`` is kept in ``detail`` for
+    full transparency.
+    """
+
+    run = models.ForeignKey(VerificationRun, on_delete=models.CASCADE, related_name="claim_verdicts")
+    claim_id = models.CharField(max_length=32)
+    verdict = models.CharField(max_length=32, choices=VerificationRun.VERDICT_CHOICES, db_index=True)
+
+    claim_text = models.TextField(blank=True)
+    test_name = models.CharField(max_length=64, blank=True)
+
+    claimed_statistic = models.FloatField(null=True, blank=True)
+    claimed_p_value = models.FloatField(null=True, blank=True)
+    recomputed_statistic = models.FloatField(null=True, blank=True)
+    recomputed_p_value = models.FloatField(null=True, blank=True)
+
+    data_available = models.BooleanField(default=False)
+    assumptions_satisfied = models.BooleanField(null=True, blank=True)
+
+    # Character offset of the claim in the source text. (Page-number provenance is deferred to
+    # TODO item T07-PROVENANCE, which threads a char-offset->page map through the parser; until
+    # then we persist only `position`, which the engine actually populates.)
+    position = models.IntegerField(null=True, blank=True)
+
+    # Full ClaimVerdict.to_dict() for transparency / re-rendering
+    detail = JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["run", "claim_id"]
+        indexes = [
+            models.Index(fields=["run", "verdict"]),
+        ]
+        verbose_name = "Claim Verdict Record"
+        verbose_name_plural = "Claim Verdict Records"
+
+    def __str__(self):
+        return f"{self.claim_id}: {self.verdict}"
+
+
+class LinkedDataset(models.Model):
+    """A dataset linked to (or fetched for) a ``VerificationRun`` (plan T10/T21).
+
+    Records the provenance of the data used to verify claims — an uploaded
+    table, or a public-repository accession that was fetched — and whether
+    linking succeeded. Never stores the raw data itself, only what was used.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    run = models.ForeignKey(VerificationRun, on_delete=models.CASCADE, related_name="datasets")
+
+    source_type = models.CharField(
+        max_length=32,
+        default="uploaded",
+        choices=[
+            ("uploaded", "Uploaded table"),
+            ("geo", "GEO"),
+            ("dryad", "Dryad"),
+            ("zenodo", "Zenodo"),
+            ("figshare", "figshare"),
+            ("osf", "OSF"),
+            ("other", "Other"),
+        ],
+    )
+    accession = models.CharField(max_length=128, blank=True)
+    file_name = models.CharField(max_length=255, blank=True)
+    n_rows = models.IntegerField(null=True, blank=True)
+    n_cols = models.IntegerField(null=True, blank=True)
+    link_status = models.CharField(
+        max_length=20,
+        default="linked",
+        choices=[
+            ("linked", "Linked"),
+            ("ambiguous", "Ambiguous"),
+            ("unlinkable", "Unlinkable"),
+            ("fetched", "Fetched"),
+            ("fetch_failed", "Fetch failed"),
+        ],
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["run", "created_at"]
+        verbose_name = "Linked Dataset"
+        verbose_name_plural = "Linked Datasets"
+
+    def __str__(self):
+        return f"{self.source_type}:{self.accession or self.file_name} ({self.link_status})"
+
+
 __all__ = [
     "Analysis",
     "Report",
@@ -1485,4 +1707,7 @@ __all__ = [
     "SiteLicense",
     "SiteLicenseUsageRecord",
     "LTINonceUsed",
+    "VerificationRun",
+    "ClaimVerdictRecord",
+    "LinkedDataset",
 ]
