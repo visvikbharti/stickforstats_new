@@ -20,9 +20,9 @@ Created: 2026-06-25 IST.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, List, Optional, Union
 
 from lxml import etree
 
@@ -42,6 +42,11 @@ class JatsDoc:
     article_type: str
     n_paragraphs: int
     n_tables: int
+    # cross-reference graph (Phase 1, docs/manuscript_verifier/): the machine-readable JATS links
+    # the gold path relies on. artifacts: id -> {kind,label,caption,href}; xrefs: each in-text
+    # <xref> with its ref_type, target rid, and visible text (e.g. "Table 3").
+    artifacts: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    xrefs: List[Dict[str, str]] = field(default_factory=list)
 
     @property
     def has_body(self) -> bool:
@@ -55,6 +60,19 @@ class JatsDoc:
 
 
 _FLOAT = {"table-wrap", "table-wrap-foot", "table", "caption", "fig"}
+
+# xlink:href carries the external supplementary/data filename on <media>/<supplementary-material>.
+_XLINK_HREF = "{http://www.w3.org/1999/xlink}href"
+
+# JATS element tag -> normalized artifact kind (matches reference_types.ArtifactKind values).
+_ARTIFACT_KINDS = {
+    "table-wrap": "table",
+    "fig": "figure",
+    "supplementary-material": "supplementary",
+    "media": "dataset",
+    "inline-supplementary-material": "supplementary",
+    "disp-formula": "equation",
+}
 
 
 def _text(el) -> str:
@@ -126,10 +144,46 @@ def parse_jats(source: Union[str, Path, bytes]) -> Optional[JatsDoc]:
                 tables.append(t)
                 n_tables += 1
 
+    # --- cross-reference graph (Phase 1) ---------------------------------------------------
+    # Harvest from `art` (not just `body`): supplementary material and floats can live in
+    # <back>/<floats-group>. Read the structural attributes itertext() throws away.
+    artifacts: Dict[str, Dict[str, str]] = {}
+    for tag, kind in _ARTIFACT_KINDS.items():
+        for el in art.iter(tag):
+            aid = el.get("id")
+            if not aid:
+                continue
+            lab = el.find("label")
+            cap = el.find("caption")
+            href = el.get(_XLINK_HREF, "")
+            if not href:  # <media>/<graphic> child may carry the href
+                child = el.find(".//media") if tag != "media" else None
+                if child is None:
+                    child = el.find(".//graphic")
+                if child is not None:
+                    href = child.get(_XLINK_HREF, "")
+            artifacts[aid] = {
+                "kind": kind,
+                "label": _text(lab) if lab is not None else "",
+                "caption": _text(cap) if cap is not None else "",
+                "href": href or "",
+            }
+
+    xrefs: List[Dict[str, str]] = []
+    if body is not None:
+        for x in body.iter("xref"):
+            ref_type = x.get("ref-type", "")
+            if ref_type == "bibr":  # citations are not artifact references
+                continue
+            vis = _text(x)
+            for rid in (x.get("rid") or "").split():  # rid may target multiple ids
+                xrefs.append({"ref_type": ref_type, "rid": rid, "text": vis})
+
     body_text = "\n".join(body_parts)
     tables_text = "\n".join(tables)
     results_text = "\n".join(results_parts) or body_text
     full_text = "\n".join(x for x in (title, abstract, body_text, tables_text) if x)
     return JatsDoc(pmcid=pmcid, title=title, abstract=abstract, body_text=body_text,
                    results_text=results_text, tables_text=tables_text, full_text=full_text,
-                   article_type=article_type, n_paragraphs=n_p, n_tables=n_tables)
+                   article_type=article_type, n_paragraphs=n_p, n_tables=n_tables,
+                   artifacts=artifacts, xrefs=xrefs)

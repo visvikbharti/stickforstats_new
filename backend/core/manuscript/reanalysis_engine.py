@@ -57,8 +57,12 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     prov = {
         "section": getattr(claim, "location", None),
         "position": getattr(claim, "position", None),
+        # cross-reference provenance (Phase 0/1): home file + the references the claim cites and
+        # which one resolved to an artifact (set by the reference resolver before verification).
         "source_file": getattr(claim, "source_file", None),
         "cited_references": list(getattr(claim, "cited_references", []) or []),
+        "resolved_reference": getattr(claim, "resolved_reference", "") or None,
+        "resolution_confidence": getattr(claim, "resolution_confidence", None),
     }
     spec = request.data_spec
     base = {
@@ -68,9 +72,6 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         "claimed_effect_size": getattr(claim, "effect_size_value", None),
         "data_available": request.data_available(),
         "linked_dataset_id": spec.linked_dataset_id if spec else None,
-        # cross-reference provenance carried from the resolved link (Phase 0).
-        "resolved_reference": spec.resolved_reference if spec else None,
-        "resolution_confidence": spec.link_confidence if spec else None,
         **prov,
     }
 

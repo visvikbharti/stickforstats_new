@@ -113,20 +113,34 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
 
         try:
             if kind == "manuscript":
-                parsed = parser.parse(io.BytesIO(content), file_type=detail)
-                text = parsed.full_text or ""
-                rec.warnings.extend(parsed.warnings or [])
-                # scanned/image-only PDF -> OCR fallback
-                if detail == "pdf" and len(text.strip()) < 50:
-                    ocr_text, ocr_warns = image_ocr.maybe_ocr_pdf_if_empty(io.BytesIO(content), text)
-                    rec.warnings.extend(ocr_warns)
-                    if ocr_text.strip():
-                        text = ocr_text
-                        rec.ocr_used = True
-                        res.ocr_used = True
+                ref_ctx = None
+                if detail == "jats":
+                    # JATS: parse structurally so we get the cross-reference graph (artifacts +
+                    # xrefs) the resolver needs — the gold path for exact reference resolution.
+                    from .jats_parser import parse_jats
+                    from .artifact_index import context_from_jats
+                    jdoc = parse_jats(content)
+                    if jdoc is None or not jdoc.full_text.strip():
+                        text = ""
+                        rec.warnings.append("XML did not parse as a JATS article, or had no body.")
+                    else:
+                        text = jdoc.full_text
+                        ref_ctx = context_from_jats(jdoc, home_file=name)
+                else:
+                    parsed = parser.parse(io.BytesIO(content), file_type=detail)
+                    text = parsed.full_text or ""
+                    rec.warnings.extend(parsed.warnings or [])
+                    # scanned/image-only PDF -> OCR fallback
+                    if detail == "pdf" and len(text.strip()) < 50:
+                        ocr_text, ocr_warns = image_ocr.maybe_ocr_pdf_if_empty(io.BytesIO(content), text)
+                        rec.warnings.extend(ocr_warns)
+                        if ocr_text.strip():
+                            text = ocr_text
+                            rec.ocr_used = True
+                            res.ocr_used = True
                 if text.strip():
                     manuscript_chunks.append(text)
-                    res.segments.append((name, text))
+                    res.segments.append((name, text, ref_ctx) if ref_ctx is not None else (name, text))
                     rec.ok = True
                     rec.role = "manuscript_text"
                     rec.chars = len(text)

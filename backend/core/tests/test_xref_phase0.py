@@ -92,8 +92,8 @@ class PerFileExtractionTest(SimpleTestCase):
         self.assertEqual(prof.claim_verdicts[0].source_file, "")
 
 
-class LinkConfidenceThreadingTest(SimpleTestCase):
-    def test_resolution_confidence_set_when_linked(self):
+class DataLinkAndSourceFileTest(SimpleTestCase):
+    def test_data_link_verifies_and_tags_source_file(self):
         rng = np.random.default_rng(7)
         treat = rng.normal(58.0, 8.0, 40)
         ctrl = rng.normal(50.0, 8.0, 40)
@@ -105,6 +105,7 @@ class LinkConfidenceThreadingTest(SimpleTestCase):
         prof = verify_segments([("main.csv-paper", text)], dataframe=df)
         verified = [v for v in prof.claim_verdicts if v.verdict == Verdict.VERIFIED]
         self.assertTrue(verified, prof.verdict_distribution)
-        # the linker's confidence is no longer discarded — it reaches the verdict
-        self.assertIsNotNone(verified[0].resolution_confidence)
         self.assertEqual(verified[0].source_file, "main.csv-paper")
+        # resolution_confidence now reflects the REFERENCE resolution; this sentence cites no
+        # artifact ("Table N"), so it stays None (the data-link confidence lives on the spec).
+        self.assertIsNone(verified[0].resolution_confidence)

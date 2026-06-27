@@ -142,7 +142,7 @@ loss → per-file extraction in Phase 0.
 | Phase | Checkpoint | State | Notes / commit |
 |---|---|---|---|
 | 0 Foundations | C0 | ✅ DONE (2026-06-27) | reference_types + provenance fields + link-confidence threaded + per-file extraction (verify_segments); 7 new tests, 142 suite green, flake8 clean; no migration (JSON-blob round-trip) |
-| 1 JATS gold path | C1 | NOT STARTED | additive jats_parser; exact xref resolution |
+| 1 JATS gold path | C1 | ✅ DONE (2026-06-27) | jats_parser emits artifacts+xrefs; reference_grammar (minimal) + artifact_index + reference_resolver; verify_segments resolves per claim; bundle builds JATS ref-context. Claim→exact artifact, conf 1.0, provenance on verdict. 8 P1 tests, 154 suite green, flake8 clean. NOTE: single /verify/analyze JATS resolution is a follow-up (bundle path done); grammar hardening is Phase 2. |
 | 2 Grammar + label index | C2 | NOT STARTED | reference_grammar + artifact_index (PDF/DOCX) |
 | 3 Data mapping + disambig | C3 | NOT STARTED | reference-driven table selection + conflict flag |
 | 4 Persistence + API | C4 | NOT STARTED | migration 0015 (D2) + report surfacing |
