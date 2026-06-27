@@ -153,6 +153,7 @@ from .manuscript_views import (
 )
 from .verify_views import (
     VerifyAnalyzeView,
+    VerifyBundleView,
     VerifyReportView,
 )
 from .batch_views import (
@@ -389,6 +390,7 @@ urlpatterns = [
     # Raw-data manuscript verification (re-runs each claim through Guardian on the authors'
     # data; separate surface from /manuscript/* which is the no-data consistency fallback).
     path("verify/analyze/", VerifyAnalyzeView.as_view(), name="verify-analyze"),
+    path("verify/bundle/", VerifyBundleView.as_view(), name="verify-bundle"),
     path("verify/report/<uuid:run_id>/", VerifyReportView.as_view(), name="verify-report"),
     # Signed reproducibility receipts (independently verifiable provenance)
     path("receipt/issue/", ReceiptIssueView.as_view(), name="receipt-issue"),

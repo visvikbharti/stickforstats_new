@@ -7,14 +7,22 @@ integrate with the SQS (Statistical Quality Score) scoring pipeline as
 part of StickForStats' journal integration platform.
 
 Supported formats:
-- PDF (via pdfplumber with PyPDF2 fallback)
+- PDF (via pdfplumber with PyPDF2 fallback; reconstructs TABLE cells so
+  statistics reported inside tables are not lost to column reflow)
 - LaTeX (.tex)
-- DOCX (via python-docx)
+- DOCX (via python-docx; reads paragraph text AND table cells)
+- JATS / NLM XML (.xml / .nxml, via lxml) — the highest-fidelity source,
+  used when a publisher supplies the structured full text
 
 The parser segments manuscripts into academic sections (Abstract, Methods,
 Results, etc.), extracts metadata, detects statistical test mentions, and
 identifies figure/table references --- producing a ParsedManuscript that
-downstream components (SQSScorer, Guardian) can consume directly.
+downstream components (SQSScorer, Guardian, the verification engine) can
+consume directly.
+
+Figure-image and scanned-page OCR (TIFF/PNG/JPEG and image-only PDFs) lives
+in the sibling ``image_ocr`` module; this parser handles the text layer only.
+See ``docs/INGESTION_ARCHITECTURE.md`` for the full ingestion design.
 """
 
 from __future__ import annotations
@@ -256,6 +264,8 @@ class ManuscriptParser:
         ".latex": "latex",
         ".docx": "docx",
         ".txt": "latex",
+        ".xml": "jats",
+        ".nxml": "jats",
     }
 
     def __init__(self) -> None:
@@ -373,6 +383,11 @@ class ManuscriptParser:
             if header[:2] == b"PK":
                 return "docx"
 
+            # JATS / NLM XML: starts with an XML declaration or an <article> root
+            head_stripped = header.lstrip()
+            if head_stripped[:5] == b"<?xml" or head_stripped[:8] == b"<article":
+                return "jats"
+
             # LaTeX heuristic: starts with \ or %
             if header[:1] in (b"\\", b"%"):
                 return "latex"
@@ -396,6 +411,8 @@ class ManuscriptParser:
             return self._extract_text_latex(file)
         elif file_type == "docx":
             return self._extract_text_docx(file)
+        elif file_type == "jats":
+            return self._extract_text_jats(file)
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
 
@@ -427,9 +444,22 @@ class ManuscriptParser:
                 with pdfplumber.open(file) as pdf:
                     page_count = len(pdf.pages)
                     for page in pdf.pages:
-                        page_text = page.extract_text()
+                        page_text = page.extract_text() or ""
                         if page_text:
                             text += page_text + "\n"
+                        # Reconstruct TABLE cells. extract_text() reads in linear
+                        # order, so a statistic split across table columns (e.g.
+                        # "t(28)" | "p=0.02") arrives separated; extract_tables()
+                        # restores row adjacency so the extractor can pair them.
+                        # Skip rows already present in the linear text to avoid
+                        # double-counting cleanly-extracted tables.
+                        try:
+                            tbl_text = self._tables_to_text(page.extract_tables(), existing=page_text)
+                        except Exception as exc:  # table extraction is best-effort
+                            logger.debug("pdfplumber table extraction failed on a page: %s", exc)
+                            tbl_text = ""
+                        if tbl_text:
+                            text += tbl_text + "\n"
                 if text.strip():
                     return text, page_count, warnings
             except Exception as exc:
@@ -606,6 +636,22 @@ class ManuscriptParser:
 
             full_text = "\n".join(paragraphs)
 
+            # python-docx exposes table cell text ONLY via doc.tables (table cells
+            # are NOT part of doc.paragraphs), so statistics reported in Word tables
+            # would otherwise be silently dropped. Append each table's rows.
+            try:
+                table_rows = [
+                    [cell.text for cell in row.cells]
+                    for table in doc.tables
+                    for row in table.rows
+                ]
+                tbl_text = self._tables_to_text([table_rows]) if table_rows else ""
+            except Exception as exc:  # best-effort; never fail the whole parse on tables
+                logger.debug("DOCX table extraction failed: %s", exc)
+                tbl_text = ""
+            if tbl_text:
+                full_text = (full_text + "\n" + tbl_text).strip()
+
             # Rough page estimate
             word_count = len(full_text.split())
             page_count = max(1, -(-word_count // 250))
@@ -616,6 +662,84 @@ class ManuscriptParser:
             logger.warning("DOCX extraction failed: %s", exc)
             warnings.append(f"DOCX extraction failed: {exc}")
             return "", 0, warnings
+
+    # ------------------------------------------------------------------
+    # JATS / NLM XML extraction (publisher-supplied structured full text)
+    # ------------------------------------------------------------------
+
+    def _extract_text_jats(self, file: Any) -> Tuple[str, int, List[str]]:
+        """
+        Extract text from a JATS / NLM XML article using the structured
+        ``jats_parser`` (lxml). This is the highest-fidelity path: section
+        structure, native super/subscripts, and table cells are preserved,
+        and the reference list is excluded.
+
+        Returns ``(text, page_count, warnings)`` with an estimated page count.
+        """
+        warnings: List[str] = []
+        try:
+            from .jats_parser import parse_jats
+        except Exception as exc:  # pragma: no cover - lxml import guard
+            warnings.append(f"JATS parser unavailable: {exc}")
+            return "", 0, warnings
+
+        try:
+            file.seek(0)
+            raw = file.read()
+            if isinstance(raw, str):
+                raw = raw.encode("utf-8", errors="replace")
+        except Exception as exc:
+            warnings.append(f"Could not read XML file: {exc}")
+            return "", 0, warnings
+
+        doc = parse_jats(raw)
+        if doc is None or not doc.full_text.strip():
+            warnings.append("XML did not parse as a JATS/NLM article, or had no readable body.")
+            return "", 0, warnings
+
+        text = doc.full_text
+        word_count = len(text.split())
+        page_count = max(1, -(-word_count // 250))
+        return text, page_count, warnings
+
+    # ------------------------------------------------------------------
+    # Table-cell -> text helper (shared by the PDF and DOCX extractors)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _tables_to_text(tables: Any, existing: Optional[str] = None) -> str:
+        """
+        Flatten extracted tables (list-of-tables, each a list-of-rows, each a
+        list-of-cells) into tab-delimited rows, one row per line.
+
+        Each row's cells are kept on a SINGLE line so a statistic split across
+        columns (``t(28)`` | ``= 2.5`` | ``p = 0.02``) re-forms adjacently for
+        the claim extractor's scoped p-attachment. When ``existing`` text is
+        given, a row already present there (whitespace-normalised substring) is
+        skipped to avoid double-counting tables that linear extraction already
+        captured cleanly.
+        """
+        if not tables:
+            return ""
+        existing_norm = re.sub(r"\s+", " ", existing).strip().lower() if existing else None
+        out_lines: List[str] = []
+        for table in tables:
+            if not table:
+                continue
+            for row in table:
+                if not row:
+                    continue
+                cells = [re.sub(r"\s+", " ", (c or "").strip()) for c in row]
+                cells = [c for c in cells if c]
+                if not cells:
+                    continue
+                line = "\t".join(cells)
+                if existing_norm is not None:
+                    row_norm = re.sub(r"\s+", " ", line.replace("\t", " ")).strip().lower()
+                    if row_norm and row_norm in existing_norm:
+                        continue  # already captured by linear text extraction
+                out_lines.append(line)
+        return "\n".join(out_lines)
 
     # ------------------------------------------------------------------
     # Section segmentation

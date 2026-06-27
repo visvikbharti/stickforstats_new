@@ -37,6 +37,18 @@ Pillow==10.1.0
 python-docx==1.1.0
 lxml==4.9.3
 
+# PDF parsing (manuscript ingestion) — were missing here, so a pinned-install deploy
+# silently lost ALL PDF extraction (every PDF upload returned empty text). See
+# docs/INGESTION_ARCHITECTURE.md.
+PyPDF2==3.0.1  # PDF text extraction (fallback engine)
+pdfplumber==0.10.3  # advanced PDF parsing + table extraction (primary engine)
+
+# OCR (optional) — figure images (TIFF/PNG/JPEG) and scanned PDFs. Requires the system
+# binaries `tesseract` (apt: tesseract-ocr / brew: tesseract) and `poppler` (apt: poppler-utils
+# / brew: poppler). If absent, image/scanned-PDF OCR degrades gracefully with a warning.
+pytesseract==0.3.10  # Tesseract OCR Python binding
+pdf2image==1.17.0  # rasterize scanned-PDF pages for OCR (needs poppler)
+
 # AI Integration (optional)
 anthropic==0.39.0
 

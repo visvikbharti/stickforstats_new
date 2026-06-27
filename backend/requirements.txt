@@ -58,7 +58,13 @@ pyreadstat>=1.2.0  # SPSS (.sav), SAS (.sas7bdat), Stata (.dta)
 # File handling
 Pillow>=9.5.0
 python-docx>=1.0.0  # Manuscript DOCX parsing
-lxml>=4.9.0  # XML/HTML parsing
+lxml>=4.9.0  # XML/HTML parsing (also JATS-XML manuscript ingestion)
+
+# OCR (optional) — figure images (TIFF/PNG/JPEG) and scanned PDFs.
+# Requires system binaries: tesseract (tesseract-ocr) and poppler (poppler-utils).
+# Degrades gracefully with a warning if the binaries are absent.
+pytesseract>=0.3.10  # Tesseract OCR Python binding
+pdf2image>=1.17.0  # rasterize scanned-PDF pages for OCR (needs poppler)
 
 # AI Integration
 anthropic>=0.39.0  # Claude API SDK for AI Statistical Advisor

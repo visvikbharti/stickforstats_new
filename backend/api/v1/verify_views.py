@@ -22,10 +22,8 @@ TODO:    docs/MANUSCRIPT_MODULE_TODO_2026-06-24.md
 """
 
 import hashlib
-import io
 import logging
 import time
-import zipfile
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,7 +33,9 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from core.manuscript.parser import ManuscriptParser
 from core.manuscript.verification_service import run_verification
-from ._upload_utils import file_too_large_error, manuscript_file_type
+from core.manuscript.data_loader import load_dataframe
+from core.manuscript.bundle_ingest import ingest_bundle, make_multitable_linker
+from ._upload_utils import file_too_large_error, manuscript_file_type, classify_upload
 
 try:
     from core.models import VerificationRun
@@ -46,46 +46,15 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Bounds for the uploaded data table. The upload-size cap (file_too_large_error) only bounds the
-# COMPRESSED bytes; these bound what is actually materialized in the request thread, so a crafted
-# small file cannot OOM the worker (e.g. an .xlsx is a zip — a ~MB workbook can inflate to GBs).
-_MAX_DATA_ROWS = 1_000_000
-_MAX_DATA_COLS = 10_000
-_MAX_XLSX_UNCOMPRESSED = 200 * 1024 * 1024  # reject workbooks that decompress past 200 MB (zip-bomb guard)
-
 
 def _load_dataframe(uploaded):
-    """Read an uploaded tabular data file into a *bounded* pandas DataFrame (csv/tsv/txt/xlsx).
+    """Read an uploaded tabular data file into a *bounded* pandas DataFrame.
 
-    Raises ValueError on a malformed/oversized table (surfaced as a 400 by the caller).
+    Thin wrapper over ``core.manuscript.data_loader.load_dataframe`` (shared with the
+    bundle endpoint). Raises ValueError on a malformed/oversized table (-> 400 by the caller).
     """
-    import pandas as pd  # lazy (pandas)
-
-    name = (uploaded.name or "").lower()
     uploaded.seek(0)
-    raw = uploaded.read()
-
-    if name.endswith((".xlsx", ".xls")):
-        if name.endswith(".xlsx"):
-            # decompression-bomb guard: bound the uncompressed size BEFORE openpyxl materializes it
-            try:
-                with zipfile.ZipFile(io.BytesIO(raw)) as zf:
-                    total = sum(zi.file_size for zi in zf.infolist())
-            except zipfile.BadZipFile as exc:
-                raise ValueError("Not a valid .xlsx workbook.") from exc
-            if total > _MAX_XLSX_UNCOMPRESSED:
-                raise ValueError(
-                    f"Spreadsheet decompresses to {total // (1024 * 1024)} MB, exceeding the "
-                    f"{_MAX_XLSX_UNCOMPRESSED // (1024 * 1024)} MB limit."
-                )
-        df = pd.read_excel(io.BytesIO(raw), nrows=_MAX_DATA_ROWS)
-    else:
-        sep = "\t" if name.endswith((".tsv", ".tab")) else None  # None -> sniff delimiter (python engine)
-        df = pd.read_csv(io.BytesIO(raw), sep=sep, engine="python", nrows=_MAX_DATA_ROWS)
-
-    if df.shape[1] > _MAX_DATA_COLS:
-        raise ValueError(f"Too many columns ({df.shape[1]}); the limit is {_MAX_DATA_COLS}.")
-    return df
+    return load_dataframe(uploaded.name or "", uploaded.read())
 
 
 class VerifyAnalyzeView(APIView):
@@ -121,7 +90,7 @@ class VerifyAnalyzeView(APIView):
             file_type = manuscript_file_type(uploaded.name)
             if file_type is None:
                 return Response(
-                    {"error": f"Unsupported manuscript type: {uploaded.name}. Accepted: .pdf, .tex, .docx, .txt"},
+                    {"error": f"Unsupported manuscript type: {uploaded.name}. Accepted: .pdf, .tex, .docx, .txt, .xml"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             try:
@@ -203,6 +172,128 @@ class VerifyAnalyzeView(APIView):
             return Response({"error": "Verification failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(result.to_response(), status=status.HTTP_200_OK)
+
+
+# Max files accepted in a single bundle submission (per-file size is bounded by
+# file_too_large_error; this bounds the count so a request can't fan out unbounded work).
+_MAX_BUNDLE_FILES = 50
+
+
+class VerifyBundleView(APIView):
+    """POST /api/v1/verify/bundle/
+
+    The editor / publisher case: upload a WHOLE submission at once — the
+    manuscript plus supplementary documents, raw-data files, and figure images.
+
+    Body (multipart/form-data): send every file under the repeated field name
+    ``files`` (any other file fields are also accepted). Each file is routed by
+    type:
+        - manuscript: .pdf .docx .tex/.latex .txt .xml(JATS)
+        - data:       .csv .tsv .tab .txt .xlsx .xls .sav .sas7bdat .dta .json
+        - image:      .png .jpg .jpeg .tif .tiff .bmp .gif .webp  (OCR'd)
+    Optional fields: ``alpha`` (default 0.05), ``title``.
+
+    Returns the paper-level VerificationProfile + per-claim verdicts (claims are
+    linked against ALL uploaded data tables), plus an ``ingestion`` report
+    describing how every file was handled. Privacy/no-egress is unchanged: only
+    the uploaded files are read; no external repositories are fetched.
+    """
+
+    permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        t0 = time.time()
+
+        # ---- 1. gather every uploaded file (across all field names) ----
+        uploaded_files = []
+        for key in request.FILES:
+            uploaded_files.extend(request.FILES.getlist(key))
+
+        if not uploaded_files:
+            return Response(
+                {"error": "No files uploaded. Send one or more files under the `files` field."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(uploaded_files) > _MAX_BUNDLE_FILES:
+            return Response(
+                {"error": f"Too many files ({len(uploaded_files)}); the limit is {_MAX_BUNDLE_FILES} per bundle."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ---- 2. size-check + classify + read each file ----
+        items = []
+        hasher = hashlib.sha256()
+        for uploaded in uploaded_files:
+            err = file_too_large_error(uploaded)
+            if err:
+                return Response({"error": f"{uploaded.name}: {err}"}, status=status.HTTP_400_BAD_REQUEST)
+            kind, detail = classify_upload(uploaded.name)
+            uploaded.seek(0)
+            content = uploaded.read()
+            hasher.update(content)
+            items.append({"name": uploaded.name, "kind": kind, "detail": detail or "", "content": content})
+
+        # ---- 3. ingest the bundle (parse manuscripts, OCR images, load tables) ----
+        try:
+            bundle = ingest_bundle(items)
+        except Exception:
+            logger.exception("verify-bundle: ingestion failed")
+            return Response({"error": "Failed to ingest the uploaded bundle."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not bundle.manuscript_text.strip():
+            return Response(
+                {
+                    "error": "No manuscript text could be extracted from the bundle "
+                    "(no readable manuscript or OCR'able figure was found).",
+                    "ingestion": bundle.report(),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ---- 4. alpha + claim->data linker across ALL uploaded tables ----
+        try:
+            alpha = float(request.data.get("alpha", 0.05))
+        except (TypeError, ValueError):
+            alpha = 0.05
+
+        linker = make_multitable_linker(bundle.dataframes)
+        first_df = bundle.dataframes[0][1] if bundle.dataframes else None
+        linked_datasets = [
+            {
+                "source_type": "uploaded",
+                "file_name": name,
+                "n_rows": int(df.shape[0]),
+                "n_cols": int(df.shape[1]),
+                "link_status": "candidate",
+            }
+            for name, df in bundle.dataframes
+        ] or None
+
+        title = request.data.get("title", "") or ""
+        n_files = len(items)
+
+        # ---- 5. verify + (best-effort) persist ----
+        try:
+            result = run_verification(
+                bundle.manuscript_text,
+                dataframe=first_df,
+                linker=linker,
+                alpha=alpha,
+                file_name=f"bundle ({n_files} files)",
+                file_hash=hasher.hexdigest(),
+                title=title,
+                data_source="bundle" if bundle.dataframes else "none",
+                linked_datasets=linked_datasets,
+                processing_time_ms=int((time.time() - t0) * 1000),
+            )
+        except Exception:
+            logger.exception("verify-bundle: analysis failed")
+            return Response({"error": "Verification failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        payload = result.to_response()
+        payload["ingestion"] = bundle.report()
+        return Response(payload, status=status.HTTP_200_OK)
 
 
 class VerifyReportView(APIView):
