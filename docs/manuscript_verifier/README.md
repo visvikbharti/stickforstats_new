@@ -1,5 +1,8 @@
 # Manuscript-verifier — living documentation
 
+> **New to this project?** Start with **`docs/PROJECT_ONBOARDING_2026-06-27.md`** (the
+> project-wide entry point: reading order, what's done, code map, and guardrails), then come back here.
+
 This directory is the **single source of truth** for the manuscript-verification
 module's ongoing design, decisions, and work plans. It exists so the work stays
 coherent across sessions and contributors — read these before changing the module,
@@ -17,6 +20,8 @@ and update them as part of any change (not after).
    acceptance criteria, test strategy, risk register, and a live status table.
 4. **`DECISIONS.md`** — the decision log (ADR-style): every significant design
    decision, the alternatives, the rationale, and any [PI DECISION] items still open.
+5. **`FRONTEND_INTEGRATION_PLAN_2026-06-27.md`** — the plan to wire a React UI for the
+   `/verify/bundle/` endpoint (next coding session) + the deploy housekeeping.
 
 ## How to keep this consistent across sessions
 
