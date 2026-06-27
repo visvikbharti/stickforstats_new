@@ -61,7 +61,7 @@ and the adjudicated clear-false-positive rate **45% → 14%**. No statcheck-benc
 ## Measured results (10,103-paper corpus)
 | metric | PRE-FIX | POST-FIX |
 |---|---|---|
-| census inconsistent-claim rate | 14.5% (450/3110) | **11.1% (333/3002)** |
+| census inconsistent-claim rate | 14.5% (450/3110) | **11.1% (333/3005)** |
 | decision-changing | 4.2% (131) | **1.7% (52)** |
 | papers w/ inconsistency | 42.0% (148/352) | **37.8% (129/341)** |
 | flagged-set `FP_MISEXTRACTION` | 157 (35%) | **0** |
