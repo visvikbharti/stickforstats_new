@@ -138,6 +138,13 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
                             text = ocr_text
                             rec.ocr_used = True
                             res.ocr_used = True
+                    # non-JATS reference index: detect Table/Figure captions so claims here can
+                    # resolve to labeled artifacts (the label tier; no machine-readable xrefs).
+                    if text.strip():
+                        from .artifact_index import context_from_text
+                        _ctx = context_from_text(text, home_file=name)
+                        if _ctx.artifacts:
+                            ref_ctx = _ctx
                 if text.strip():
                     manuscript_chunks.append(text)
                     res.segments.append((name, text, ref_ctx) if ref_ctx is not None else (name, text))

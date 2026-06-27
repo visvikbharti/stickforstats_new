@@ -82,6 +82,41 @@ def parse_reference(text: str) -> Optional[ReferenceKey]:
     return _key_from_match(m) if m else None
 
 
+# Supplement filename conventions -> a reference key, for mapping an uploaded data file to the
+# reference an author cites. Checked in order: explicitly-named forms first, then opaque
+# publisher codes. (Q1 scope: Elsevier, Springer-Nature, PLOS, PNAS, generic.)
+_FILENAME_PATTERNS = [
+    # explicitly named (highest precision)
+    (re.compile(r"supp(?:lementary|lemental|l)?[_\s-]*table[_\s-]*S?-?(\d+)", re.I), ArtifactKind.TABLE),
+    (re.compile(r"supp(?:lementary|lemental|l)?[_\s-]*fig(?:ure)?[_\s-]*S?-?(\d+)", re.I), ArtifactKind.FIGURE),
+    (re.compile(r"supp(?:lementary|lemental|l)?[_\s-]*data[_\s-]*S?-?(\d+)", re.I), ArtifactKind.DATASET),
+    (re.compile(r"additional[_\s-]*file[_\s-]*(\d+)", re.I), ArtifactKind.SUPPLEMENTARY),
+    (re.compile(r"\btable[_\s-]*S-?(\d+)", re.I), ArtifactKind.TABLE),
+    (re.compile(r"\bdata[_\s-]*S-?(\d+)", re.I), ArtifactKind.DATASET),
+    # PLOS: "S3_Table", "S1_File", "S2_Data", "S4_Fig"
+    (re.compile(r"\bS(\d+)[_\s-]*table", re.I), ArtifactKind.TABLE),
+    (re.compile(r"\bS(\d+)[_\s-]*fig", re.I), ArtifactKind.FIGURE),
+    (re.compile(r"\bS(\d+)[_\s-]*(?:data|dataset)", re.I), ArtifactKind.DATASET),
+    (re.compile(r"\bS(\d+)[_\s-]*file", re.I), ArtifactKind.SUPPLEMENTARY),
+    # opaque publisher codes (lowest precision, kind unknown -> supplementary)
+    (re.compile(r"\bmmc(\d+)\b", re.I), ArtifactKind.SUPPLEMENTARY),     # Elsevier
+    (re.compile(r"MOESM(\d+)", re.I), ArtifactKind.SUPPLEMENTARY),       # Springer-Nature
+    (re.compile(r"\bsd(\d+)\b", re.I), ArtifactKind.DATASET),            # PNAS source data
+]
+
+
+def parse_supplement_filename(name: str) -> Optional[ReferenceKey]:
+    """Map an uploaded supplement's *filename* to a reference key (e.g. ``mmc1.xlsx`` ->
+    supplementary #1, ``Supplementary_Table_S3.xlsx`` -> supplementary table 3). Returns None
+    if the name follows no recognized convention. Used by the data-file mapping tier (Phase 3)."""
+    base = (name or "").rsplit("/", 1)[-1]
+    for rx, kind in _FILENAME_PATTERNS:
+        m = rx.search(base)
+        if m:
+            return ReferenceKey(kind=kind, number=int(m.group(1)), supplementary=True)
+    return None
+
+
 def detect_references(text: str) -> List[ArtifactRef]:
     """Find every in-text reference token in a span of text (e.g. a claim's sentence).
 

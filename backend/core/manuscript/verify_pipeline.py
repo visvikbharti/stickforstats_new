@@ -158,8 +158,7 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
 
         # cross-reference resolution: detect the references the author cites in this claim's
         # sentence, and (when an artifact index is available) resolve to the cited artifact.
-        resolved = None
-        resolved_artifacts: List[str] = []
+        ref_notes: List[str] = []
         refs = detect_references(sentence)
         if refs:
             claim.cited_references = [r.raw for r in refs]
@@ -171,6 +170,22 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
                 if resolved is not None and resolved.reference is not None:
                     claim.resolved_reference = resolved.reference.raw
                     claim.resolution_confidence = resolved.confidence
+                    ref_notes.append(
+                        f"reference: cited '{resolved.reference.raw}' -> artifact "
+                        f"{resolved.artifact_id} in {resolved.home_file or 'this file'} "
+                        f"({resolved.method.value}, conf {resolved.confidence:.2f})")
+                    if len(resolved_artifacts) > 1:
+                        ref_notes.append(
+                            f"note: this sentence cites multiple artifacts "
+                            f"({', '.join(resolved_artifacts)}); which one backs the data is "
+                            f"resolved at linking time")
+                else:
+                    # no confident resolution — surface ambiguous candidates rather than guess (D4)
+                    cands = sorted({a for link in links for a in link.alternatives})
+                    if cands:
+                        ref_notes.append(
+                            f"ambiguous reference {[r.raw for r in refs]}: candidate artifacts "
+                            f"{cands} — needs disambiguation")
 
         # secondary statcheck signal (always available, no raw data needed)
         sig = evaluate_consistency(claim)
@@ -187,17 +202,7 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
 
         cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
-
-        if resolved is not None:
-            cv.notes.append(
-                f"reference: cited '{resolved.reference.raw}' -> artifact {resolved.artifact_id} "
-                f"in {resolved.home_file or 'this file'} ({resolved.method.value}, "
-                f"conf {resolved.confidence:.2f})")
-            if len(resolved_artifacts) > 1:
-                # the sentence cites several artifacts; do not silently bind to one — surface them
-                cv.notes.append(
-                    f"note: this sentence cites multiple artifacts ({', '.join(resolved_artifacts)}); "
-                    f"which one backs the data is resolved at linking time")
+        cv.notes.extend(ref_notes)
 
         if sig.checkable:
             n_checkable += 1                    # the statcheck-recomputable denominator
