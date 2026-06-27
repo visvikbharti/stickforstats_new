@@ -108,6 +108,13 @@ class ClaimDataSpec:
     linked_dataset_id: Optional[str] = None
     auto_linked: bool = False
 
+    #: cross-reference provenance (Phase 0, docs/manuscript_verifier/): which uploaded file the
+    #: data came from, which in-text reference (e.g. "Table S3") this link satisfied, and the
+    #: linker's confidence in the link (distinct from the re-analysis confidence).
+    source_file: Optional[str] = None
+    resolved_reference: Optional[str] = None
+    link_confidence: Optional[float] = None
+
     def has_data(self) -> bool:
         return bool(self.groups) or (self.x is not None and self.y is not None) or bool(self.table)
 
@@ -185,6 +192,12 @@ class ClaimVerdict:
     section: Optional[str] = None
     page: Optional[int] = None
     position: Optional[int] = None
+    # cross-reference provenance (Phase 0): the file this claim came from, the in-text references
+    # in its sentence, the reference its data link satisfied, and the resolution confidence.
+    source_file: Optional[str] = None
+    cited_references: List[str] = field(default_factory=list)
+    resolved_reference: Optional[str] = None
+    resolution_confidence: Optional[float] = None
 
     notes: List[str] = field(default_factory=list)
 
@@ -236,6 +249,11 @@ class ClaimVerdict:
             },
             "test_failed": self.test_failed,
             "test_failure_reason": self.test_failure_reason,
-            "provenance": {"section": self.section, "page": self.page, "position": self.position},
+            "provenance": {
+                "section": self.section, "page": self.page, "position": self.position,
+                "source_file": self.source_file, "cited_references": self.cited_references,
+                "resolved_reference": self.resolved_reference,
+                "resolution_confidence": self.resolution_confidence,
+            },
             "notes": self.notes,
         }

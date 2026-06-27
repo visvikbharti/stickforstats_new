@@ -277,6 +277,7 @@ class VerifyBundleView(APIView):
         try:
             result = run_verification(
                 bundle.manuscript_text,
+                segments=bundle.segments,
                 dataframe=first_df,
                 linker=linker,
                 alpha=alpha,

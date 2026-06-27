@@ -89,7 +89,27 @@ Work:
 resolution provenance; report renders the reference graph; token-gated retrieval intact; tests.
 Sign-off.
 
-## Phase 5 — Robustness, evaluation, hardening
+## Phase 5 — Figure-stat extraction (OCR baseline + pluggable vision tier)
+**Goal:** capture statistics that live in figures, treating figures as first-class throughout
+(decision D7). Reference-target resolution for figures and caption-text extraction land earlier
+(Phases 1–2); this phase is specifically the **image-stat extraction** tier.
+
+Work:
+- Formalise a `figure_stat_extractor` interface with two implementations:
+  (a) **OCR baseline** — already built (`image_ocr.py`); harden it (panel splitting, caption vs
+  in-plot text, confidence per region).
+  (b) **Vision tier (opt-in / self-hostable)** — a pluggable extractor for stats OCR cannot read
+  (tiny/rotated/overlapping text; values encoded as bar heights/error bars). Off by default;
+  no external egress unless explicitly enabled; self-hosted model path documented.
+- Cross-check figure-extracted stats against the manuscript text/tables (a figure value that
+  contradicts the text is a finding, not noise); feed into the same verdict + provenance model.
+
+**Checkpoint C5 — acceptance:** figure-sourced claims carry `source_file` + extraction method
+(`ocr` | `vision`) + confidence; the vision tier is off by default and, when enabled with a
+self-hosted model, recovers stats OCR misses on a fixture; privacy invariant (no egress by
+default) tested. Sign-off.
+
+## Phase 6 — Robustness, evaluation, hardening
 **Goal:** measure it, harden it, scale it.
 
 Work:
@@ -99,7 +119,7 @@ Work:
 - Ambiguous-link **review UI** (frontend; separate workstream).
 - Performance pass (many files / large supplements).
 
-**Checkpoint C5 — acceptance:** evaluation report meets precision/recall thresholds; documented
+**Checkpoint C6 — acceptance:** evaluation report meets precision/recall thresholds; documented
 limitations; async path tested; UI usable. Sign-off → feature complete.
 
 ---
@@ -121,12 +141,13 @@ loss → per-file extraction in Phase 0.
 ## Status (update this table every session)
 | Phase | Checkpoint | State | Notes / commit |
 |---|---|---|---|
-| 0 Foundations | C0 | NOT STARTED | data model + per-file extraction; no migration |
+| 0 Foundations | C0 | ✅ DONE (2026-06-27) | reference_types + provenance fields + link-confidence threaded + per-file extraction (verify_segments); 7 new tests, 142 suite green, flake8 clean; no migration (JSON-blob round-trip) |
 | 1 JATS gold path | C1 | NOT STARTED | additive jats_parser; exact xref resolution |
 | 2 Grammar + label index | C2 | NOT STARTED | reference_grammar + artifact_index (PDF/DOCX) |
 | 3 Data mapping + disambig | C3 | NOT STARTED | reference-driven table selection + conflict flag |
 | 4 Persistence + API | C4 | NOT STARTED | migration 0015 (D2) + report surfacing |
-| 5 Eval + hardening | C5 | NOT STARTED | gold set, async, review UI |
+| 5 Figure-stat extraction | C5 | NOT STARTED | OCR baseline (built) + opt-in vision tier (D7) |
+| 6 Eval + hardening | C6 | NOT STARTED | gold set, async, review UI |
 
 ## Open decisions gating the plan (see DECISIONS.md)
 - **D2** persistence shape (columns vs join) — needed before Phase 4.

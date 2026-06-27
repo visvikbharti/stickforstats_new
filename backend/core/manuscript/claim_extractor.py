@@ -306,6 +306,9 @@ class StatisticalClaim:
     raw_text: str = ""
     location: str = "unknown"
     position: int = 0
+    # cross-reference provenance (Phase 0; populated by the bundle + reference layers).
+    source_file: str = ""                       # the uploaded file this claim was extracted from
+    cited_references: List[str] = field(default_factory=list)  # raw in-text refs in the claim's sentence
     confidence: float = 0.5  # extraction COMPLETENESS (fields present); see _score_confidence
     # RESERVED (T06): extraction-CORRECTNESS confidence — how sure we are this is a real
     # claim (vs a regex false positive). None until the multi-leg extractor (regex + LLM +

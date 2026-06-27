@@ -23,7 +23,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from .verify_pipeline import VerificationProfile, verify_manuscript
+from .verify_pipeline import VerificationProfile, verify_manuscript, verify_segments
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,7 @@ class VerificationRunResult:
 def run_verification(
     manuscript_text: str,
     *,
+    segments=None,
     dataframe=None,
     linker=None,
     alpha: float = 0.05,
@@ -94,7 +95,10 @@ def run_verification(
     """Verify a manuscript end to end and (optionally) persist the result.
 
     Args:
-        manuscript_text: the manuscript's text (results/full text).
+        manuscript_text: the manuscript's text (results/full text). Used when ``segments`` is None.
+        segments: optional list of ``(source_file, text)`` pairs for a multi-file bundle — each
+            claim is then tagged with its home file (per-file extraction). When given, it takes
+            precedence over ``manuscript_text``.
         dataframe: an optional single imported table to link claims against (tabular case).
             When omitted, unlinkable claims resolve to ``INSUFFICIENT_DATA`` — the honest,
             expected outcome for most papers (the data-availability pilot quantified this).
@@ -103,7 +107,10 @@ def run_verification(
         linked_datasets: optional dataset-provenance dicts persisted as ``LinkedDataset`` rows.
         persist: when False (or models unavailable) the result is returned without a DB row.
     """
-    profile = verify_manuscript(manuscript_text, dataframe=dataframe, linker=linker, alpha=alpha)
+    if segments is not None:
+        profile = verify_segments(segments, dataframe=dataframe, linker=linker, alpha=alpha)
+    else:
+        profile = verify_manuscript(manuscript_text, dataframe=dataframe, linker=linker, alpha=alpha)
 
     if not persist:
         return VerificationRunResult(profile=profile)

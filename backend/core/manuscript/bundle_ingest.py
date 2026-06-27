@@ -62,6 +62,7 @@ class BundleResult:
     """The combined, ready-to-verify view of a whole upload bundle."""
 
     manuscript_text: str = ""
+    segments: List[Tuple[str, str]] = field(default_factory=list)     # (source_file, text) per file
     dataframes: List[Tuple[str, Any]] = field(default_factory=list)   # (name, DataFrame)
     files: List[IngestedFile] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
@@ -125,6 +126,7 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
                         res.ocr_used = True
                 if text.strip():
                     manuscript_chunks.append(text)
+                    res.segments.append((name, text))
                     rec.ok = True
                     rec.role = "manuscript_text"
                     rec.chars = len(text)
@@ -136,6 +138,7 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
                 rec.warnings.extend(ocr_warns)
                 if ocr_text.strip():
                     ocr_chunks.append(ocr_text)
+                    res.segments.append((name, ocr_text))
                     rec.ok = True
                     rec.ocr_used = True
                     res.ocr_used = True

@@ -46,6 +46,20 @@ reproducibility + manuscript confidentiality (no external egress by default), co
 **Rationale:** concatenation makes a claim's true home file unrecoverable (design §2.2); we
 cannot resolve "which file does this claim live in / point from" without it.
 
+### D7 — Figures are first-class throughout; figure-stat extraction is a pluggable tier
+**Status:** ACCEPTED (supersedes open Q4). **Choice:** figures are first-class in every layer
+from the start: (a) as **reference targets** ("see Fig 2" resolves via the grammar / JATS
+`<fig id>`), (b) their **captions** are indexed and read for reported stats, (c) **text printed
+in figure images** is already extracted via OCR (`image_ocr.py`, implemented 2026-06-27 and
+running in the bundle). The one harder case — stats OCR cannot read (tiny/rotated/overlapping
+text, or values encoded only as bar heights/error bars) — needs a **vision model**. We design a
+**pluggable `figure_stat_extractor` tier** now (so it is architecturally first-class, not bolted
+on) and implement/enable the vision leg as its own scheduled phase (WORKPLAN Phase 5), kept
+**opt-in / self-hostable** because manuscript figures are confidential pre-publication (see D5).
+**Rationale:** the user's point is correct — a verifier that ignores figures misses where many
+results live; but the cloud-vision extraction carries a privacy decision and needs the gold set
+to calibrate, so it is sequenced (not omitted) while figures remain first-class everywhere else.
+
 ---
 
 ## Open product / PI questions (mirror of design §9)
@@ -54,7 +68,8 @@ cannot resolve "which file does this claim live in / point from" without it.
 - **Q2** Do we require/encourage **JATS-XML** from publishers as the preferred input (it makes
   resolution exact)?
 - **Q3** = D2 (persistence shape).
-- **Q4** Are **figure-only statistics** (needing the vision leg) in scope for this plan or a
-  later one?
+- ~~**Q4** figure-only statistics~~ → **RESOLVED as D7** (first-class; vision leg = Phase 5,
+  opt-in). Remaining sub-question: cloud vs self-hosted vision model default, and whether to
+  enable the vision leg by default for trusted/published content.
 - **Q5** Gold-set for evaluation — size, and who labels it (ties to the κ double-coding study)?
 - **Q6** How prominently should the editor report surface **citation-vs-content conflicts**?

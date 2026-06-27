@@ -88,20 +88,51 @@ def _context(text: str, position: int, radius: int = 200) -> str:
 
 def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None,
                       alpha: float = 0.05, linker=None) -> VerificationProfile:
-    """Verify every extractable statistical claim in `text`.
+    """Verify every extractable statistical claim in `text` (single-source case).
 
     `dataframe` (optional): a single imported table to link claims against (tabular case). When
     omitted, claims with no data resolve to INSUFFICIENT_DATA — which is the expected, honest
     outcome for most papers (the data-availability pilot quantified this). `linker` defaults to
     the tabular linker; a genomics/other linker can be injected.
     """
+    return verify_segments([("", text)], dataframe=dataframe, full_text=full_text,
+                           alpha=alpha, linker=linker)
+
+
+def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
+                    alpha: float = 0.05, linker=None) -> VerificationProfile:
+    """Verify claims across MULTIPLE source files, tagging each claim with its home file.
+
+    `segments`: a list of ``(source_file, text)`` pairs — e.g. the main manuscript and each
+    supplementary document in an uploaded bundle. Claims are extracted per file (so each claim
+    carries its true `source_file` and a file-relative position for sentence context), then
+    verified together against the shared data/`linker`, and merged into ONE VerificationProfile.
+    This replaces concatenate-then-extract, which lost a claim's home-file provenance.
+    """
     extractor = StatisticalClaimExtractor()
-    all_claims = extractor.extract(text, section="Results")
-    # coverage is computed on the FULL claim set (incl. standalone p-values) so recall is honest;
-    # but we VERIFY only genuine statistical-test claims (precision — drop N/CI/ES/standalone-p noise).
-    summary = extractor.summarize(all_claims, full_text=full_text or text)
-    claims = [c for c in all_claims if is_test_claim(c)]
-    for i, c in enumerate(claims, 1):
+
+    # 1. extract per file, tagging home file; keep each claim's own segment text for context.
+    per_claim_text: List[str] = []           # parallel to `test_claims`: the seg text for _context
+    test_claims: List[Any] = []
+    all_claims: List[Any] = []
+    full_parts: List[str] = []
+    for source_file, seg_text in segments:
+        seg_text = seg_text or ""
+        full_parts.append(seg_text)
+        seg_claims = extractor.extract(seg_text, section="Results")
+        for c in seg_claims:
+            c.source_file = source_file or ""
+        all_claims.extend(seg_claims)
+        for c in seg_claims:
+            if is_test_claim(c):
+                test_claims.append(c)
+                per_claim_text.append(seg_text)
+
+    # coverage on the FULL claim set (incl. standalone p) for honest recall; verify only test claims.
+    coverage_text = full_text if full_text is not None else "\n\n".join(full_parts)
+    summary = extractor.summarize(all_claims, full_text=coverage_text)
+
+    for i, c in enumerate(test_claims, 1):
         if not getattr(c, "claim_id", ""):
             c.claim_id = f"C{i:03d}"
 
@@ -110,14 +141,20 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
 
     verdicts: List[ClaimVerdict] = []
     n_inconsistent = n_checkable = n_decision_changing = 0
-    for claim in claims:
+    for claim, seg_text in zip(test_claims, per_claim_text):
         # secondary statcheck signal (always available, no raw data needed)
         sig = evaluate_consistency(claim)
 
         spec = None
         if dataframe is not None:
-            lr = linker(claim, dataframe, context_text=_context(text, getattr(claim, "position", 0)))
-            spec = lr.data_spec if lr.status == "linked" else None
+            # position is relative to this claim's OWN segment text -> use it for the sentence window
+            lr = linker(claim, dataframe, context_text=_context(seg_text, getattr(claim, "position", 0)))
+            if lr is not None and lr.status == "linked":
+                spec = lr.data_spec
+                if spec is not None:
+                    spec.link_confidence = getattr(lr, "confidence", None)
+                    if getattr(claim, "source_file", ""):
+                        spec.source_file = claim.source_file
 
         cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text

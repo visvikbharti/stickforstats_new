@@ -21,8 +21,6 @@ cascade_engine is imported lazily so the pure decision/resolver paths unit-test 
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .extraction_quality import is_claim_extraction_reliable
 from .test_resolver import resolve_test
 from .verdict_decision import assign_verdict, statistic_matches
@@ -56,7 +54,12 @@ def _critical_after_independence_gate(guardian_report, rows_sequential: bool):
 def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     claim = request.claim
     cid = getattr(claim, "claim_id", "")
-    prov = {"section": getattr(claim, "location", None), "position": getattr(claim, "position", None)}
+    prov = {
+        "section": getattr(claim, "location", None),
+        "position": getattr(claim, "position", None),
+        "source_file": getattr(claim, "source_file", None),
+        "cited_references": list(getattr(claim, "cited_references", []) or []),
+    }
     spec = request.data_spec
     base = {
         "claim_id": cid,
@@ -65,6 +68,9 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         "claimed_effect_size": getattr(claim, "effect_size_value", None),
         "data_available": request.data_available(),
         "linked_dataset_id": spec.linked_dataset_id if spec else None,
+        # cross-reference provenance carried from the resolved link (Phase 0).
+        "resolved_reference": spec.resolved_reference if spec else None,
+        "resolution_confidence": spec.link_confidence if spec else None,
         **prov,
     }
 

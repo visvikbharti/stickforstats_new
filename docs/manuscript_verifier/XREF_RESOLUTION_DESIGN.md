@@ -214,7 +214,9 @@ add the migration in Phase 4 once the shape is stable.
 - Q1 Which publisher supplement conventions are in scope for v1 (Elsevier/Springer/Nature/PLOS/…)?
 - Q2 Do we require/encourage JATS-XML from publishers (exact resolution) as the preferred input?
 - Q3 Persistence shape: denormalized columns vs `ClaimDatasetLink` join (D2)?
-- Q4 How to treat figure-only statistics (need the vision leg) — in scope now or deferred?
+- Q4 → RESOLVED as decision **D7**: figures are first-class throughout (reference targets +
+  captions + OCR now); the vision leg for OCR-unreadable stats is a pluggable tier scheduled as
+  WORKPLAN Phase 5, opt-in / self-hostable.
 - Q5 Gold-set construction for evaluating resolution precision/recall (size, who labels).
 - Q6 Disagreement policy in the editor report: how prominently to surface citation-vs-content conflicts.
 
