@@ -54,17 +54,20 @@ def _critical_after_independence_gate(guardian_report, rows_sequential: bool):
 def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     claim = request.claim
     cid = getattr(claim, "claim_id", "")
+    spec = request.data_spec
     prov = {
         "section": getattr(claim, "location", None),
         "position": getattr(claim, "position", None),
-        # cross-reference provenance (Phase 0/1): home file + the references the claim cites and
-        # which one resolved to an artifact (set by the reference resolver before verification).
+        # cross-reference provenance (Phase 0/1/3): home file + the references the claim cites and
+        # which one directed the link. Prefer the artifact-resolved reference (set on the claim);
+        # fall back to the reference the data linker used to SELECT the file (set on the spec).
         "source_file": getattr(claim, "source_file", None),
         "cited_references": list(getattr(claim, "cited_references", []) or []),
-        "resolved_reference": getattr(claim, "resolved_reference", "") or None,
+        "resolved_reference": (getattr(claim, "resolved_reference", "")
+                               or (getattr(spec, "resolved_reference", None) if spec else None)
+                               or None),
         "resolution_confidence": getattr(claim, "resolution_confidence", None),
     }
-    spec = request.data_spec
     base = {
         "claim_id": cid,
         "claimed_statistic": getattr(claim, "statistic_value", None),

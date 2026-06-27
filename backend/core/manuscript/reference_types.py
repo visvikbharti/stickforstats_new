@@ -66,6 +66,10 @@ class ReferenceKey:
             return False
         if self.supplementary != other.supplementary:
             return False
+        # "Extended Data Table 2" (extended) must not match a plain "Table 2" — the flag exists
+        # precisely to distinguish these online-only artifacts.
+        if self.extended != other.extended:
+            return False
         # a bare "Table 3" reference matches "Table 3a" artifact and vice versa
         if self.sub and other.sub and self.sub.lower() != other.sub.lower():
             return False

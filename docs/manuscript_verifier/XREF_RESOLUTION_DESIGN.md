@@ -209,6 +209,7 @@ add the migration in Phase 4 once the shape is stable.
 | Concatenation loses home-file provenance | switch bundle to **per-file extraction** with tagging (Phase 0) |
 | Scope creep | strictly phased with checkpoints; each phase independently shippable |
 | Census-scale query needs | denormalized columns/join + migration (Phase 4), JSON-blob interim |
+| Cross-publisher supplement-number collision (HARDEN-LATER) | `additional_file_N`/`mmcN`/`sdN` all normalize to `(SUPPLEMENTARY/DATASET, N, supp)`, so a claim citing "Additional File 1" could target an unrelated `mmc1.xlsx` and emit a spurious conflict. Low probability (one publisher per paper). Mitigation: carry the convention/publisher origin on the key so cross-publisher numbers don't collide. Surfaced by the Phase-3 adversarial review (2026-06-27). |
 
 ## 9. Open questions ([PI / product decisions], tracked in DECISIONS.md)
 - Q1 Which publisher supplement conventions are in scope for v1 (Elsevier/Springer/Nature/PLOS/…)?

@@ -38,6 +38,13 @@ class ReferenceTypesTest(SimpleTestCase):
         self.assertTrue(bare.matches(panel_b))      # "Fig 2" matches "Fig 2B"
         self.assertFalse(panel_b.matches(panel_c))  # "Fig 2B" != "Fig 2C"
 
+    def test_extended_data_does_not_match_plain(self):
+        # "Extended Data Table 2" must not match a plain "Table 2" (the flag distinguishes them).
+        ext = ReferenceKey(ArtifactKind.TABLE, 2, extended=True)
+        plain = ReferenceKey(ArtifactKind.TABLE, 2, extended=False)
+        self.assertFalse(ext.matches(plain))
+        self.assertTrue(ext.matches(ReferenceKey(ArtifactKind.TABLE, 2, extended=True)))
+
     def test_dataclass_serialization(self):
         art = Artifact(artifact_id="T3", kind=ArtifactKind.TABLE, label="Table 3", home_file="supp.docx")
         self.assertEqual(art.to_dict()["kind"], "table")

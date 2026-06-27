@@ -34,7 +34,8 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from core.manuscript.parser import ManuscriptParser
 from core.manuscript.verification_service import run_verification
 from core.manuscript.data_loader import load_dataframe
-from core.manuscript.bundle_ingest import ingest_bundle, make_multitable_linker
+from core.manuscript.bundle_ingest import ingest_bundle
+from core.manuscript.reference_linker import make_reference_aware_linker
 from ._upload_utils import file_too_large_error, manuscript_file_type, classify_upload
 
 try:
@@ -257,7 +258,12 @@ class VerifyBundleView(APIView):
         except (TypeError, ValueError):
             alpha = 0.05
 
-        linker = make_multitable_linker(bundle.dataframes)
+        # reference-aware linker: a claim's citation ("Supplementary Table S3" / "Additional File 2")
+        # selects which uploaded data table to re-run against; pooled artifacts let an href-bearing
+        # reference resolve to its data file.
+        pooled_artifacts = [a for seg in bundle.segments if len(seg) > 2 and seg[2] is not None
+                            for a in seg[2].artifacts]
+        linker = make_reference_aware_linker(bundle.dataframes, pooled_artifacts)
         first_df = bundle.dataframes[0][1] if bundle.dataframes else None
         linked_datasets = [
             {

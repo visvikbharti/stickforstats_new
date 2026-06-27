@@ -191,18 +191,25 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         sig = evaluate_consistency(claim)
 
         spec = None
+        link_reason = ""
         if dataframe is not None:
             lr = linker(claim, dataframe, context_text=sentence)
             if lr is not None and lr.status == "linked":
                 spec = lr.data_spec
                 if spec is not None:
                     spec.link_confidence = getattr(lr, "confidence", None)
-                    if getattr(claim, "source_file", ""):
-                        spec.source_file = claim.source_file
+                    link_reason = getattr(lr, "reason", "") or ""
 
         cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
         cv.notes.extend(ref_notes)
+
+        # surface how the data file was chosen, and citation-content conflicts (D4).
+        if "reference-directed" in link_reason or "conflict" in link_reason:
+            cv.notes.append(f"data link: {link_reason}")
+        if link_reason.startswith("reference-directed") and cv.verdict == Verdict.DISCREPANT:
+            cv.notes.append("citation-content conflict: the data the author cites does NOT "
+                            "reproduce the claimed result")
 
         if sig.checkable:
             n_checkable += 1                    # the statcheck-recomputable denominator
