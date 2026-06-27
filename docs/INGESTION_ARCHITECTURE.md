@@ -134,6 +134,12 @@ Privacy: no external egress — only the uploaded files are read.
 
 ## 7. Known limitations & roadmap
 
+> **Cross-reference resolution** (mapping the author's "Supplementary Table S3" / "Fig 2" /
+> "Additional File 1" pointers to the right artifact and data file across the bundle) has its
+> own design + work plan: see **`docs/manuscript_verifier/`** (`XREF_RESOLUTION_DESIGN.md`,
+> `XREF_RESOLUTION_WORKPLAN.md`, `DECISIONS.md`). It supersedes the "heuristic linker" bullet
+> below as the planned path to robust claim↔data binding.
+
 **Phase 2 — robustness for messy real uploads**
 - **Claim→column linking is heuristic** (`claim_data_linker.py`): matches column names
   mentioned in the claim's sentence; works on tidy, well-named tables, else degrades to
