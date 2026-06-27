@@ -159,12 +159,15 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         # cross-reference resolution: detect the references the author cites in this claim's
         # sentence, and (when an artifact index is available) resolve to the cited artifact.
         resolved = None
+        resolved_artifacts: List[str] = []
         refs = detect_references(sentence)
         if refs:
             claim.cited_references = [r.raw for r in refs]
             if pooled_artifacts:
                 xmap = getattr(ref_ctx, "xref_text_map", None) if ref_ctx is not None else None
-                resolved = best_link(resolve_in_text(sentence, pooled_artifacts, xmap))
+                links = resolve_in_text(sentence, pooled_artifacts, xmap)
+                resolved = best_link(links)
+                resolved_artifacts = sorted({link.artifact_id for link in links if link.resolved})
                 if resolved is not None and resolved.reference is not None:
                     claim.resolved_reference = resolved.reference.raw
                     claim.resolution_confidence = resolved.confidence
@@ -190,6 +193,11 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
                 f"reference: cited '{resolved.reference.raw}' -> artifact {resolved.artifact_id} "
                 f"in {resolved.home_file or 'this file'} ({resolved.method.value}, "
                 f"conf {resolved.confidence:.2f})")
+            if len(resolved_artifacts) > 1:
+                # the sentence cites several artifacts; do not silently bind to one — surface them
+                cv.notes.append(
+                    f"note: this sentence cites multiple artifacts ({', '.join(resolved_artifacts)}); "
+                    f"which one backs the data is resolved at linking time")
 
         if sig.checkable:
             n_checkable += 1                    # the statcheck-recomputable denominator

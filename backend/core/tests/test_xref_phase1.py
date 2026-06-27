@@ -56,6 +56,16 @@ class GrammarTest(SimpleTestCase):
         self.assertTrue(any("Table 3" in r for r in raws))
         self.assertTrue(any("Figure S1" in r for r in raws))
 
+    def test_bare_data_and_file_are_not_references(self):
+        # precision guard (C1 recheck): "data N" / "file N" without a supp/source prefix or an
+        # S-number must NOT be treated as references.
+        self.assertEqual(detect_references("the data 5 years later showed recovery"), [])
+        self.assertEqual(detect_references("file 3 of 10 was corrupted"), [])
+        # but real supplementary forms still parse
+        self.assertTrue(detect_references("see Supplementary Data 1"))
+        self.assertTrue(detect_references("see Data S1"))
+        self.assertTrue(detect_references("see Additional File 2"))
+
 
 class JatsGraphTest(SimpleTestCase):
     def test_artifacts_and_xrefs_and_href(self):
@@ -113,6 +123,9 @@ class JatsResolutionEndToEndTest(SimpleTestCase):
         prov = v.to_dict()["provenance"]
         self.assertEqual(prov["resolved_reference"], "Table 3")
         self.assertEqual(prov["resolution_confidence"], 1.0)
+        # the sentence also cites Supplementary Data 1 -> both recorded, multi-citation surfaced
+        self.assertIn("Supplementary Data 1", v.cited_references)
+        self.assertTrue(any("multiple artifacts" in n for n in v.notes), v.notes)
 
 
 class BundleJatsResolutionTest(SimpleTestCase):

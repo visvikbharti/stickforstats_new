@@ -56,8 +56,13 @@ def _key_from_match(m: "re.Match") -> Optional[ReferenceKey]:
     if kind is ArtifactKind.UNKNOWN:
         return None
     prefix = (m.group("prefix") or "").strip()
-    supplementary = bool(_SUPP_PREFIX.match(prefix)) or bool(m.group("sprefix")) \
-        or kind is ArtifactKind.SUPPLEMENTARY
+    sprefix = bool(m.group("sprefix"))
+    # Precision guard: bare "data N" / "file N" are too ambiguous to treat as references
+    # (e.g. "the data 5 years later", "file 3 of 10"). Require a supplementary/source/extended
+    # prefix or an S-number. Table/Figure/Equation are unambiguous enough on their own.
+    if kind in (ArtifactKind.DATASET, ArtifactKind.SUPPLEMENTARY) and not (prefix or sprefix):
+        return None
+    supplementary = bool(_SUPP_PREFIX.match(prefix)) or sprefix or kind is ArtifactKind.SUPPLEMENTARY
     extended = bool(_EXTENDED_PREFIX.match(prefix))
     try:
         number = int(m.group("num"))
