@@ -23,8 +23,13 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
    the file-list frame).
 4. **Pick a venue** — PLOS ONE / PeerJ / GigaByte / BMC Bioinformatics, or a meta-research venue (Research
    Integrity & Peer Review, BMC Medical Research Methodology, Royal Society Open Science).
-5. **Citable data deposit** — the corpus/ledger (~3.2 GB) currently lives only on the external drive; for
-   a census paper, deposit at least the per-paper JSONL + flagged-claims file on Zenodo/OSF and cite the DOI.
+5. **Data deposit (small — and OSF can do double duty).** This is NOT a substitute for journal
+   publication; it is the citable Data-Availability archive the journal will require. You do **not** need
+   to upload the full ~3.2 GB raw JATS corpus — it is re-fetchable from PMC by `fetch_corpus` (all public).
+   Deposit only the **derived data** (a few MB): the per-paper census ledger `.jsonl`, the
+   `flagged_inconsistencies.jsonl`, a manifest, and the scripts. Put these on the **same OSF project as the
+   pre-registration** (item 1) so one OSF DOI covers pre-reg + data — no separate Zenodo needed. Cite that
+   DOI in the paper's Data Availability statement.
 
 ## Relationship to the other papers
 This is one of **three** from the same program: the platform paper (`../submission_package/`), the
