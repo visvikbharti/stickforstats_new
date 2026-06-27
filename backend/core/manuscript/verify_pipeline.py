@@ -132,9 +132,10 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
     coverage_text = full_text if full_text is not None else "\n\n".join(full_parts)
     summary = extractor.summarize(all_claims, full_text=coverage_text)
 
+    # Renumber sequentially across ALL files: each segment's extractor numbers from C001
+    # independently, so without this the same claim_id would collide across files in a bundle.
     for i, c in enumerate(test_claims, 1):
-        if not getattr(c, "claim_id", ""):
-            c.claim_id = f"C{i:03d}"
+        c.claim_id = f"C{i:03d}"
 
     if dataframe is not None and linker is None:
         from .claim_data_linker import link_claim_to_table as linker  # lazy (pandas)

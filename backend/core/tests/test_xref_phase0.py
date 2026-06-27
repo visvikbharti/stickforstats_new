@@ -75,6 +75,17 @@ class PerFileExtractionTest(SimpleTestCase):
         self.assertTrue(any("2.50" in t for t in by_file["main.docx"]))
         self.assertTrue(any("6.10" in t for t in by_file["supplement.txt"]))
 
+    def test_claim_ids_are_unique_across_files(self):
+        # each segment's extractor numbers from C001 independently — the bundle must renumber
+        # so ids don't collide across files.
+        segs = [
+            ("fileA", "t(28) = 2.50, p = 0.002 and r = 0.40, p = 0.01."),
+            ("fileB", "F(2,45) = 6.10, p = 0.004 and z = 2.1, p = 0.03."),
+        ]
+        prof = verify_segments(segs)
+        ids = [v.claim_id for v in prof.claim_verdicts]
+        self.assertEqual(len(ids), len(set(ids)), f"duplicate claim_ids: {ids}")
+
     def test_verify_manuscript_default_source_file_is_blank(self):
         prof = verify_manuscript("A test, t(28) = 2.50, p = 0.002.")
         self.assertEqual(prof.n_claims, 1)
