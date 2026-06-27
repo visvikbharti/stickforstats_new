@@ -67,6 +67,7 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
                                or (getattr(spec, "resolved_reference", None) if spec else None)
                                or None),
         "resolution_confidence": getattr(claim, "resolution_confidence", None),
+        "extraction_method": getattr(claim, "extraction_method", "text") or "text",
     }
     base = {
         "claim_id": cid,

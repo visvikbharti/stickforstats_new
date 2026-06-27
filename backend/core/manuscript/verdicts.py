@@ -200,6 +200,7 @@ class ClaimVerdict:
     resolved_reference: Optional[str] = None
     resolution_confidence: Optional[float] = None
     link_method: Optional[str] = None       # reference-directed | conflict | content (data-file selection)
+    extraction_method: str = "text"         # text | ocr | vision — where the claim's text came from
 
     notes: List[str] = field(default_factory=list)
 
@@ -257,6 +258,7 @@ class ClaimVerdict:
                 "resolved_reference": self.resolved_reference,
                 "resolution_confidence": self.resolution_confidence,
                 "link_method": self.link_method,
+                "extraction_method": self.extraction_method,
             },
             "notes": self.notes,
         }

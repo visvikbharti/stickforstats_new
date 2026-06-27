@@ -311,6 +311,7 @@ class StatisticalClaim:
     cited_references: List[str] = field(default_factory=list)  # raw in-text refs in the claim's sentence
     resolved_reference: str = ""                # the cited reference that resolved to an artifact
     resolution_confidence: Optional[float] = None  # confidence of the reference->artifact resolution
+    extraction_method: str = "text"             # text | ocr | vision — where the claim's text came from
     confidence: float = 0.5  # extraction COMPLETENESS (fields present); see _score_confidence
     # RESERVED (T06): extraction-CORRECTNESS confidence — how sure we are this is a real
     # claim (vs a regex false positive). None until the multi-leg extractor (regex + LLM +

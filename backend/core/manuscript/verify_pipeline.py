@@ -130,12 +130,14 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
     for seg in segments:
         source_file, seg_text = seg[0], (seg[1] or "")
         ref_ctx = seg[2] if len(seg) > 2 else None
+        extraction_method = seg[3] if len(seg) > 3 else "text"   # text | ocr | vision
         if ref_ctx is not None and getattr(ref_ctx, "artifacts", None):
             pooled_artifacts.extend(ref_ctx.artifacts)
         full_parts.append(seg_text)
         seg_claims = extractor.extract(seg_text, section="Results")
         for c in seg_claims:
             c.source_file = source_file or ""
+            c.extraction_method = extraction_method
         all_claims.extend(seg_claims)
         for c in seg_claims:
             if is_test_claim(c):

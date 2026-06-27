@@ -82,13 +82,16 @@ class BundleResult:
         }
 
 
-def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
+def ingest_bundle(items: List[Dict[str, Any]], figure_extractor=None) -> BundleResult:
     """Ingest a classified bundle.
 
     Args:
         items: list of dicts, each ``{"name": str, "kind": str, "detail": str,
                "content": bytes}`` where ``kind`` is manuscript|data|image|unknown
                (the caller classifies — see ``api/v1/_upload_utils.classify_upload``).
+        figure_extractor: a ``figure_extractor.FigureStatExtractor`` for figure images. Defaults
+            to OCR-only (no external egress). Pass an extractor with the vision tier enabled only
+            when a (self-hosted) provider is configured.
 
     Returns:
         A :class:`BundleResult` with the concatenated manuscript text, the list
@@ -98,6 +101,9 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
     from .parser import ManuscriptParser
     from . import image_ocr
     from .data_loader import load_dataframe
+    from .figure_extractor import DEFAULT_FIGURE_EXTRACTOR
+
+    figure_extractor = figure_extractor or DEFAULT_FIGURE_EXTRACTOR
 
     res = BundleResult()
     manuscript_chunks: List[str] = []
@@ -155,19 +161,20 @@ def ingest_bundle(items: List[Dict[str, Any]]) -> BundleResult:
                     rec.error = "no text could be extracted"
 
             elif kind == "image":
-                ocr_text, ocr_warns = image_ocr.ocr_image(io.BytesIO(content))
-                rec.warnings.extend(ocr_warns)
-                if ocr_text.strip():
-                    ocr_chunks.append(ocr_text)
-                    res.segments.append((name, ocr_text))
+                fx = figure_extractor.extract(io.BytesIO(content))
+                rec.warnings.extend(fx.warnings)
+                if fx.text.strip():
+                    ocr_chunks.append(fx.text)
+                    # 4-tuple carries the extraction method so figure claims are tagged ocr/vision.
+                    res.segments.append((name, fx.text, None, fx.method))
                     rec.ok = True
-                    rec.ocr_used = True
-                    res.ocr_used = True
-                    rec.role = "ocr_text"
-                    rec.chars = len(ocr_text)
+                    rec.ocr_used = fx.method in ("ocr", "vision")
+                    res.ocr_used = res.ocr_used or rec.ocr_used
+                    rec.role = f"{fx.method}_text"
+                    rec.chars = len(fx.text)
                 else:
                     rec.role = "skipped"
-                    rec.error = "OCR produced no usable text"
+                    rec.error = "no statistic could be extracted from the figure"
 
             elif kind == "data":
                 df = load_dataframe(name, content)

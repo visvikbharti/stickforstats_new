@@ -158,14 +158,18 @@ Privacy: no external egress — only the uploaded files are read.
 - **Claim de-duplication**: the same stat appearing in both prose and a table can be
   counted twice; add claim-level dedup.
 
-**Phase 3 — figures & the vision leg**
-- Stats embedded in figures/scanned tables need a **vision model**; the extractor already
-  reserves a "regex + LLM + table/vision" multi-leg design (`claim_extractor.py:311`). The
-  right pattern is **cross-checked, not authoritative**: the deterministic regex stays the
-  source of truth; a vision leg only *proposes* additional claims that must agree.
-- **Privacy caveat (critical for journals):** the tool advertises **no external egress**
-  (manuscripts are confidential pre-publication). Any cloud LLM/vision leg must be
-  **opt-in** with a **self-hosted/local model** option, or it breaks that guarantee.
+**Phase 3 — figures & the vision leg** — IMPLEMENTED (xref Phase 5, 2026-06-27)
+- `core/manuscript/figure_extractor.FigureStatExtractor`: **OCR baseline** (Tesseract, always,
+  no egress) + an **opt-in vision tier** for stats OCR can't read. Claims from figures are tagged
+  `extraction_method` = `ocr`|`vision` (vs `text`) and treated as lower-confidence.
+- **Privacy invariant (enforced + tested):** the vision tier is **double-gated** (`enable_vision`
+  AND an injected `vision_fn`) and **OFF by default** — the default ingestion (and the
+  `/verify/bundle/` API) is OCR-only and makes **no external network call**. A confidential
+  figure never leaves the machine unless an operator explicitly configures a (recommended
+  **self-hosted**) provider. To enable: construct `FigureStatExtractor(vision_fn=<provider>,
+  enable_vision=True)` and pass it to `ingest_bundle(items, figure_extractor=...)`.
+- Follow-on (not yet built): cross-checking a figure-extracted stat against the text/tables (a
+  figure value that contradicts the text is a finding) — needs same-result matching across claims.
 
 ## 8. Operations
 
