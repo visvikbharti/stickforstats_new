@@ -10,6 +10,12 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
 - ✅ statcheck head-to-head: recall 97.7% / precision 98.1%.
 - ✅ Figures (`figures/fig1`–`fig7`) + reports (`CENSUS_REPORT_LARGE`, `FP_VALIDATION_REPORT`, `CENSUS_IPW_REPORT`, `CENSUS_OA_PILOT_REPORT`).
 - ✅ Draft skeleton (`DRAFT.md`) with abstract, outline, and all numbers traced to source files.
+- ✅ **Full descriptive manuscript** (`manuscript.md`) — Route A: submittable now as a descriptive
+  measurement; the confirmatory/κ sections are scaffolded and flagged `[CONFIRMATORY]`.
+- ✅ **OSF deposit bundler** (`prepare_osf_deposit.py`) — run it to build a ~3 MB upload-ready
+  `osf_deposit/` (derived ledger + flagged claims + scripts + reports + figures + MANIFEST w/ md5s).
+  The bundle is a regenerable build artifact (gitignored); the raw 3.2 GB corpus is NOT included
+  (re-fetchable from PMC).
 
 ## NEEDED before submission (decisions are yours; PI delegated them)
 1. **File the OSF pre-registration** — resolve the 10 `[PI DECISION]` items in
