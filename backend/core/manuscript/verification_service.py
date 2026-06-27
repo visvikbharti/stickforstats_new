@@ -118,7 +118,7 @@ def run_verification(
     try:
         from django.db import transaction
 
-        from core.models import ClaimVerdictRecord, LinkedDataset, VerificationRun
+        from core.models import ClaimDatasetLink, ClaimVerdictRecord, LinkedDataset, VerificationRun
     except Exception as exc:  # models unavailable (pure-core env) -> still return the verdicts
         logger.warning("Verification persistence unavailable: %s", exc)
         return VerificationRunResult(profile=profile)
@@ -144,6 +144,22 @@ def run_verification(
             raw_token = run.set_report_token()
             run.save(update_fields=["report_token_hash"])
 
+            # datasets first, so the per-claim links can reference them by file name.
+            ds_by_name: Dict[str, Any] = {}
+            for ds in linked_datasets or []:
+                obj = LinkedDataset.objects.create(
+                    run=run,
+                    source_type=ds.get("source_type", "uploaded"),
+                    accession=ds.get("accession", "") or "",
+                    file_name=ds.get("file_name", "") or "",
+                    n_rows=ds.get("n_rows"),
+                    n_cols=ds.get("n_cols"),
+                    link_status=ds.get("link_status", "linked"),
+                    notes=ds.get("notes", "") or "",
+                )
+                if obj.file_name:
+                    ds_by_name[obj.file_name] = obj
+
             ClaimVerdictRecord.objects.bulk_create(
                 [
                     ClaimVerdictRecord(
@@ -159,23 +175,36 @@ def run_verification(
                         data_available=bool(cv.data_available),
                         assumptions_satisfied=cv.assumptions_satisfied,
                         position=cv.position,
+                        # cross-reference provenance (Phase 4)
+                        section=(cv.section or "")[:64],
+                        source_file=(cv.source_file or "")[:255],
+                        cited_references=_json_safe(cv.cited_references or []),
+                        resolved_reference=(cv.resolved_reference or "")[:128],
+                        resolution_confidence=_safe_float(cv.resolution_confidence),
+                        link_method=(cv.link_method or "")[:32],
                         detail=_json_safe(cv.to_dict()),
                     )
                     for cv in profile.claim_verdicts
                 ]
             )
 
-            for ds in linked_datasets or []:
-                LinkedDataset.objects.create(
-                    run=run,
-                    source_type=ds.get("source_type", "uploaded"),
-                    accession=ds.get("accession", "") or "",
-                    file_name=ds.get("file_name", "") or "",
-                    n_rows=ds.get("n_rows"),
-                    n_cols=ds.get("n_cols"),
-                    link_status=ds.get("link_status", "linked"),
-                    notes=ds.get("notes", "") or "",
+            # claim<->dataset links: re-query the saved records (claim_id is unique per run, and
+            # bulk_create doesn't reliably return PKs on every backend) and join to the dataset used.
+            recs_by_cid = {r.claim_id: r for r in run.claim_verdicts.all()}
+            links = [
+                ClaimDatasetLink(
+                    claim=recs_by_cid[cv.claim_id],
+                    dataset=ds_by_name.get(cv.linked_dataset_id or ""),
+                    cited_reference=(cv.resolved_reference or "")[:128],
+                    method=(cv.link_method or "")[:32],
+                    confidence=_safe_float(cv.resolution_confidence),
+                    auto_linked=True,
                 )
+                for cv in profile.claim_verdicts
+                if cv.linked_dataset_id and cv.claim_id in recs_by_cid
+            ]
+            if links:
+                ClaimDatasetLink.objects.bulk_create(links)
 
         return VerificationRunResult(profile=profile, run_id=str(run.id), report_token=raw_token)
     except Exception:

@@ -98,6 +98,7 @@ def make_reference_aware_linker(dataframes: List[Tuple[str, Any]], artifacts: Op
             if lr is not None and lr.status == "linked" and lr.data_spec is not None:
                 lr.data_spec.source_file = name
                 lr.data_spec.linked_dataset_id = name
+                lr.data_spec.link_method = "reference-directed"
                 # carry the citation that directed this link, even when selection was by filename
                 # convention (so verdict.resolved_reference isn't blank for a citation-directed link).
                 lr.data_spec.resolved_reference = getattr(claim, "resolved_reference", "") or matched_ref
@@ -114,9 +115,11 @@ def make_reference_aware_linker(dataframes: List[Tuple[str, Any]], artifacts: Op
                 lr.data_spec.source_file = name
                 lr.data_spec.linked_dataset_id = name
                 if target_names:
+                    lr.data_spec.link_method = "conflict"
                     lr.reason = (f"citation-content conflict: the author cites a data file that did "
                                  f"not match this claim; it reproduces from '{name}' instead")
                 else:
+                    lr.data_spec.link_method = "content"
                     lr.reason = f"content match: '{name}'"
                 return lr
             fallback = fallback or lr

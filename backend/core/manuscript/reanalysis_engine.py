@@ -75,6 +75,7 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         "claimed_effect_size": getattr(claim, "effect_size_value", None),
         "data_available": request.data_available(),
         "linked_dataset_id": spec.linked_dataset_id if spec else None,
+        "link_method": getattr(spec, "link_method", None) if spec else None,
         **prov,
     }
 

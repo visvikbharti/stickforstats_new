@@ -1614,6 +1614,14 @@ class ClaimVerdictRecord(models.Model):
     # then we persist only `position`, which the engine actually populates.)
     position = models.IntegerField(null=True, blank=True)
 
+    # Cross-reference provenance (xref Phase 4): denormalized for queryable census-scale analysis.
+    section = models.CharField(max_length=64, blank=True)
+    source_file = models.CharField(max_length=255, blank=True)            # the file the claim came from
+    cited_references = JSONField(default=list, blank=True)                # raw in-text reference tokens
+    resolved_reference = models.CharField(max_length=128, blank=True)     # the reference that resolved/directed
+    resolution_confidence = models.FloatField(null=True, blank=True)
+    link_method = models.CharField(max_length=32, blank=True)             # reference-directed | conflict | content
+
     # Full ClaimVerdict.to_dict() for transparency / re-rendering
     detail = JSONField(default=dict, blank=True)
 
@@ -1621,6 +1629,7 @@ class ClaimVerdictRecord(models.Model):
         ordering = ["run", "claim_id"]
         indexes = [
             models.Index(fields=["run", "verdict"]),
+            models.Index(fields=["run", "link_method"]),
         ]
         verbose_name = "Claim Verdict Record"
         verbose_name_plural = "Claim Verdict Records"
@@ -1678,6 +1687,40 @@ class LinkedDataset(models.Model):
 
     def __str__(self):
         return f"{self.source_type}:{self.accession or self.file_name} ({self.link_status})"
+
+
+class ClaimDatasetLink(models.Model):
+    """The claim<->dataset link a verification used, with HOW the dataset was chosen (xref Phase 4).
+
+    A normalized join (decision D2) between a ``ClaimVerdictRecord`` and the ``LinkedDataset`` it
+    was re-run against, recording the citation that directed the link, the selection method, and the
+    confidence — so an editor (and the census) can query "which claims were verified against the data
+    the author actually cited" and "where citation and content conflict".
+    """
+
+    METHOD_CHOICES = [
+        ("reference-directed", "Reference-directed (author's citation selected the file)"),
+        ("conflict", "Citation-content conflict (cited file didn't match; another did)"),
+        ("content", "Content match (no citation; matched by columns)"),
+    ]
+
+    claim = models.ForeignKey(ClaimVerdictRecord, on_delete=models.CASCADE, related_name="dataset_links")
+    dataset = models.ForeignKey(LinkedDataset, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name="claim_links")
+    cited_reference = models.CharField(max_length=128, blank=True)       # e.g. "Supplementary Table S3"
+    method = models.CharField(max_length=32, blank=True, choices=METHOD_CHOICES)
+    confidence = models.FloatField(null=True, blank=True)
+    auto_linked = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["claim", "created_at"]
+        indexes = [models.Index(fields=["method"])]
+        verbose_name = "Claim-Dataset Link"
+        verbose_name_plural = "Claim-Dataset Links"
+
+    def __str__(self):
+        return f"{self.claim.claim_id} -> {self.dataset_id or '?'} ({self.method})"
 
 
 __all__ = [

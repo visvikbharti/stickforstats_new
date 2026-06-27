@@ -114,6 +114,7 @@ class ClaimDataSpec:
     source_file: Optional[str] = None
     resolved_reference: Optional[str] = None
     link_confidence: Optional[float] = None
+    link_method: Optional[str] = None       # how the data file was chosen (reference_linker)
 
     def has_data(self) -> bool:
         return bool(self.groups) or (self.x is not None and self.y is not None) or bool(self.table)
@@ -198,6 +199,7 @@ class ClaimVerdict:
     cited_references: List[str] = field(default_factory=list)
     resolved_reference: Optional[str] = None
     resolution_confidence: Optional[float] = None
+    link_method: Optional[str] = None       # reference-directed | conflict | content (data-file selection)
 
     notes: List[str] = field(default_factory=list)
 
@@ -254,6 +256,7 @@ class ClaimVerdict:
                 "source_file": self.source_file, "cited_references": self.cited_references,
                 "resolved_reference": self.resolved_reference,
                 "resolution_confidence": self.resolution_confidence,
+                "link_method": self.link_method,
             },
             "notes": self.notes,
         }

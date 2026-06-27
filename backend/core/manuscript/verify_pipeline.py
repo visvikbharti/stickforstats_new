@@ -52,6 +52,8 @@ class VerificationProfile:
     n_inconsistent_reporting: int       # secondary statcheck signal (checkable AND inconsistent)
     n_checkable: int = 0                 # claims whose p IS recomputable (statcheck denominator)
     n_decision_changing: int = 0         # inconsistencies that flip significance (gross_error)
+    n_references_resolved: int = 0       # claims whose cited reference resolved to an artifact/data file
+    n_citation_conflicts: int = 0        # claims flagged with a citation-content conflict
     claim_verdicts: List[ClaimVerdict] = field(default_factory=list)
     certify_note: str = CERTIFY_NOTE
 
@@ -65,6 +67,8 @@ class VerificationProfile:
             "n_inconsistent_reporting": self.n_inconsistent_reporting,
             "n_checkable": self.n_checkable,
             "n_decision_changing": self.n_decision_changing,
+            "n_references_resolved": self.n_references_resolved,
+            "n_citation_conflicts": self.n_citation_conflicts,
             "certify_note": self.certify_note,
             "claims": [v.to_dict() for v in self.claim_verdicts],
         }
@@ -153,6 +157,7 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
 
     verdicts: List[ClaimVerdict] = []
     n_inconsistent = n_checkable = n_decision_changing = 0
+    n_references_resolved = n_citation_conflicts = 0
     for claim, seg_text, ref_ctx in zip(test_claims, per_claim_text, per_claim_ctx):
         sentence = _context(seg_text, getattr(claim, "position", 0))
 
@@ -207,9 +212,15 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         # surface how the data file was chosen, and citation-content conflicts (D4).
         if "reference-directed" in link_reason or "conflict" in link_reason:
             cv.notes.append(f"data link: {link_reason}")
-        if link_reason.startswith("reference-directed") and cv.verdict == Verdict.DISCREPANT:
+        conflict_b = link_reason.startswith("reference-directed") and cv.verdict == Verdict.DISCREPANT
+        if conflict_b:
             cv.notes.append("citation-content conflict: the data the author cites does NOT "
                             "reproduce the claimed result")
+
+        if cv.resolved_reference:
+            n_references_resolved += 1
+        if "conflict" in link_reason or conflict_b:
+            n_citation_conflicts += 1
 
         if sig.checkable:
             n_checkable += 1                    # the statcheck-recomputable denominator
@@ -234,5 +245,7 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         n_inconsistent_reporting=n_inconsistent,
         n_checkable=n_checkable,
         n_decision_changing=n_decision_changing,
+        n_references_resolved=n_references_resolved,
+        n_citation_conflicts=n_citation_conflicts,
         claim_verdicts=verdicts,
     )
