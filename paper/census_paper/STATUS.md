@@ -17,16 +17,24 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   The bundle is a regenerable build artifact (gitignored); the raw 3.2 GB corpus is NOT included
   (re-fetchable from PMC).
 
-## NEEDED before submission (decisions are yours; PI delegated them)
-1. **File the OSF pre-registration** — resolve the 10 `[PI DECISION]` items in
-   `docs/MANUSCRIPT_VERIFY_OSF_PREREG_DRAFT_2026-06-25.md` (year window, field scope, target N, the two
-   human coders, DISCREPANT tolerance, κ threshold, gold-set size, etc.).
-2. **κ double-coding** — recruit **2 coders** to double-code a ~150-paper gold set (blinded), require
-   **Cohen's κ ≥ 0.6**, then estimate the tool's sensitivity/specificity/PPV per verdict. This is the
-   credibility anchor ("how do you know it's right?").
-3. **Run the confirmatory census** on the equal-probability PMC OA file-list frame (the descriptive one
-   used day-clustered sampling; IPW already shows it doesn't bias the rate, but the formal estimate uses
-   the file-list frame).
+## Route B chosen — confirmatory, pre-registered version. Infrastructure built this session:
+- ✅ **`PREREGISTRATION.md`** — FINALIZED and file-ready. All 10 decisions resolved (D1 2018–2025; D2 broad
+  biomedical w/ strata; D3 N=10,000 equal-probability frame; D5 frozen flagging+adjudication rules; D6 κ≥0.6;
+  D7 gold set 150 flagged + 50-paper extraction; D9 standalone; D10 Existing-Data template). Scoped to the
+  internal-consistency census (matches `manuscript.md`).
+- ✅ **`CODEBOOK.md`** — frozen 4-category coder rules (genuine / one_tailed / p_bound / mis_extraction) + examples.
+- ✅ **`build_gold_set.py`** — already drew the blinded **`gold_set_coding_sheet.csv`** (150 flagged claims,
+  stratified, seed 20260627) + a separate `gold_set_key.csv` (tool verdicts, held back for blinding).
+- ✅ **`compute_kappa.py`** — Cohen's κ between coders + tool sensitivity/specificity/PPV (math verified).
+
+## NEEDED before submission — only the irreducibly-human / external steps remain
+1. **Fill the 2 coder names** in `PREREGISTRATION.md` §6.2 and **file it on OSF** (your account).
+2. **The κ double-coding itself** (the only step neither of us can automate): give
+   `gold_set_coding_sheet.csv` + `CODEBOOK.md` to **2 coders**, they fill the category columns blinded, then
+   run `compute_kappa.py` (gate: **κ ≥ 0.6**). This is the credibility anchor.
+3. **Run the confirmatory census** on the equal-probability PMC OA frame *after* filing the pre-reg (I can do
+   this; needs the drive + a fresh fetch). IPW already shows the day-clustering didn't bias the descriptive
+   rate, so this is confirmation, not a different result.
 4. **Pick a venue** — PLOS ONE / PeerJ / GigaByte / BMC Bioinformatics, or a meta-research venue (Research
    Integrity & Peer Review, BMC Medical Research Methodology, Royal Society Open Science).
 5. **Data deposit (small — and OSF can do double duty).** This is NOT a substitute for journal

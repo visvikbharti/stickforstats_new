@@ -223,7 +223,9 @@ independently adjudicate a stratified sample of flagged and unflagged claims, bl
 other, with a third adjudicator for disagreements, requiring Cohen's κ ≥ 0.6 between coders before the gold
 set is used to estimate the tool's sensitivity, specificity, and positive predictive value per verdict. The
 descriptive estimates here become the priors; the confirmatory study delivers the calibrated, generalisable
-rate. `[CONFIRMATORY]`
+rate. The full protocol is pre-specified and file-ready (`PREREGISTRATION.md`), with a frozen coder codebook
+(`CODEBOOK.md`) and the gold-set sampling and κ/accuracy scripts (`build_gold_set.py`, `compute_kappa.py`);
+only the two coders' adjudication and the OSF filing remain. `[CONFIRMATORY]`
 
 ## Data and code availability
 
