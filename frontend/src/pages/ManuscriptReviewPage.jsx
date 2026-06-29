@@ -12,8 +12,10 @@ import {
   Box,
   Container,
   Typography,
+  Link,
   useTheme,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   VerifiedUser as VerifiedUserIcon,
 } from '@mui/icons-material';
@@ -35,6 +37,13 @@ function ManuscriptReviewPage() {
         <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 650, mx: 'auto' }}>
           Upload your manuscript for automated statistical quality review.
           Validates reported statistics, checks consistency, and scores reporting quality.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          Have the raw data too?{' '}
+          <Link component={RouterLink} to="/manuscript-verifier">
+            Try the Manuscript Verifier
+          </Link>{' '}
+          to re-run the authors&apos; tests on it.
         </Typography>
       </Box>
 

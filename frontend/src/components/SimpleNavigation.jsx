@@ -97,9 +97,24 @@ const NAV_CATEGORIES = [
     icon: <SmartToyIcon fontSize="small" />,
     items: [
       { name: 'Smart Analysis', path: '/smart-analysis', icon: <AutoFixHighIcon fontSize="small" /> },
-      { name: 'Manuscript Review', path: '/manuscript-review', icon: <DescriptionIcon fontSize="small" /> },
-      { name: 'Manuscript Verifier', path: '/manuscript-verifier', icon: <FactCheckIcon fontSize="small" /> },
-      { name: 'Reviewer Mode', path: '/reviewer', icon: <RateReviewIcon fontSize="small" /> },
+      {
+        name: 'Manuscript Review',
+        path: '/manuscript-review',
+        icon: <DescriptionIcon fontSize="small" />,
+        description: 'Check reported stats for consistency — no data needed',
+      },
+      {
+        name: 'Manuscript Verifier',
+        path: '/manuscript-verifier',
+        icon: <FactCheckIcon fontSize="small" />,
+        description: 'Re-run the authors’ tests on their raw data',
+      },
+      {
+        name: 'Reviewer Mode',
+        path: '/reviewer',
+        icon: <RateReviewIcon fontSize="small" />,
+        description: 'Editor triage view of a review',
+      },
       { name: 'Journal Analytics', path: '/journal-analytics', icon: <AnalyticsIcon fontSize="small" /> },
       { name: 'API Documentation', path: '/api-docs', icon: <ApiIcon fontSize="small" /> },
     ],
@@ -292,6 +307,7 @@ const SimpleNavigation = () => {
                         sx: {
                           mt: 0.5,
                           minWidth: 220,
+                          maxWidth: 300,
                           borderRadius: 1.5,
                           overflow: 'visible',
                           '&::before': {
@@ -338,9 +354,14 @@ const SimpleNavigation = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary={item.name}
+                            secondary={item.description}
                             primaryTypographyProps={{
                               variant: 'body2',
                               fontWeight: itemActive ? 600 : 400,
+                            }}
+                            secondaryTypographyProps={{
+                              variant: 'caption',
+                              sx: { whiteSpace: 'normal', lineHeight: 1.3, mt: 0.25 },
                             }}
                           />
                         </MenuItem>
@@ -489,9 +510,14 @@ const SimpleNavigation = () => {
                           </ListItemIcon>
                           <ListItemText
                             primary={item.name}
+                            secondary={item.description}
                             primaryTypographyProps={{
                               variant: 'body2',
                               fontWeight: itemActive ? 600 : 400,
+                            }}
+                            secondaryTypographyProps={{
+                              variant: 'caption',
+                              sx: { whiteSpace: 'normal', lineHeight: 1.3, mt: 0.25 },
                             }}
                           />
                         </ListItemButton>

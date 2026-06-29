@@ -13,7 +13,8 @@
  */
 
 import React from 'react';
-import { Box, Container, Typography, useTheme } from '@mui/material';
+import { Box, Container, Typography, Link, useTheme } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { FactCheck as FactCheckIcon } from '@mui/icons-material';
 import BundleVerifier from '../components/manuscript/BundleVerifier';
 
@@ -33,6 +34,13 @@ function ManuscriptVerifierPage() {
           Upload a whole submission — manuscript, supplements, raw-data tables, and figure images.
           The platform re-runs the authors&apos; reported statistics on their own data, resolves
           cross-references, and flags where a cited data file does not reproduce the claimed result.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          No raw data to attach?{' '}
+          <Link component={RouterLink} to="/manuscript-review">
+            Use Manuscript Review
+          </Link>{' '}
+          for an internal-consistency check that works on any paper.
         </Typography>
       </Box>
 
