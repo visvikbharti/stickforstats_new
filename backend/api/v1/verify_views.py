@@ -25,10 +25,13 @@ import hashlib
 import logging
 import time
 
+from django.conf import settings
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import BasePermission
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from core.manuscript.parser import ManuscriptParser
@@ -46,6 +49,47 @@ except ImportError:
     MODELS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+
+class VerifyAccessPermission(BasePermission):
+    """Access policy for the verification endpoints.
+
+    Open by default: the closed beta gates the whole site at the reverse proxy
+    (Basic-Auth), so these endpoints are reachable without per-request auth in that
+    context. Setting ``VERIFY_REQUIRE_AUTH=True`` (Django setting / env var) flips
+    them to require an authenticated user — the switch to throw before a public
+    launch, with no code change.
+    """
+
+    message = "Authentication is required to use the verification API."
+
+    def has_permission(self, request, view):
+        if getattr(settings, "VERIFY_REQUIRE_AUTH", False):
+            return bool(request.user and request.user.is_authenticated)
+        return True
+
+
+class VerifyAnonThrottle(AnonRateThrottle):
+    """Per-IP cap for unauthenticated verification calls (abuse / DoS guard).
+
+    Verification re-runs the authors' tests (and may OCR figures), so it is far
+    heavier than a typical read; this bounds anonymous fan-out per source IP.
+    """
+
+    scope = "verify_anon"
+    rate = "30/hour"
+
+
+class VerifyUserThrottle(UserRateThrottle):
+    """Per-user cap for authenticated verification calls (higher than anon)."""
+
+    scope = "verify_user"
+    rate = "200/hour"
+
+
+# Applied to every verification view: limits anonymous callers by IP and
+# authenticated callers by account, independent of the access policy above.
+VERIFY_THROTTLES = [VerifyAnonThrottle, VerifyUserThrottle]
 
 
 def _load_dataframe(uploaded):
@@ -71,7 +115,8 @@ class VerifyAnalyzeView(APIView):
     coverage, certify note) + per-claim verdicts, plus a run id and one-time retrieval token.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [VerifyAccessPermission]
+    throttle_classes = VERIFY_THROTTLES
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
@@ -200,7 +245,8 @@ class VerifyBundleView(APIView):
     the uploaded files are read; no external repositories are fetched.
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [VerifyAccessPermission]
+    throttle_classes = VERIFY_THROTTLES
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
@@ -312,7 +358,8 @@ class VerifyReportView(APIView):
     protection (audit 2026-05-31, SEC-3).
     """
 
-    permission_classes = [AllowAny]
+    permission_classes = [VerifyAccessPermission]
+    throttle_classes = VERIFY_THROTTLES
 
     def get(self, request, run_id):
         if not MODELS_AVAILABLE:

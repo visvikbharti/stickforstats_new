@@ -16,7 +16,9 @@ Created: 2026-06-25 IST  (TODO items T10-SCHEMA + T24-SURFACE)
 import numpy as np
 from scipy import stats
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -113,3 +115,55 @@ class VerifyAnalyzeAPITest(APITestCase):
         bad = SimpleUploadedFile("data.xlsx", b"not a real workbook", content_type="application/vnd.ms-excel")
         resp = self.client.post(self.ANALYZE, {"text": paper, "data": bad}, format="multipart")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class VerifyAccessControlTest(APITestCase):
+    """Access policy for the verification endpoints: open behind the beta gateway by
+    default, switchable to auth-required via VERIFY_REQUIRE_AUTH, and rate-limited."""
+
+    ANALYZE = "/api/v1/verify/analyze/"
+    BUNDLE = "/api/v1/verify/bundle/"
+
+    def setUp(self):
+        # isolate this class from the shared throttle cache so per-IP counters
+        # from other verify tests can't leak in and 429 these requests.
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_open_by_default(self):
+        """With the flag off, an unauthenticated request reaches the view (400 for an
+        empty body) rather than being rejected at the permission layer."""
+        resp = self.client.post(self.ANALYZE, {}, format="multipart")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(VERIFY_REQUIRE_AUTH=True)
+    def test_requires_auth_when_flag_set(self):
+        for url in (self.ANALYZE, self.BUNDLE):
+            resp = self.client.post(url, {}, format="multipart")
+            self.assertIn(
+                resp.status_code,
+                (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+                f"{url} should be gated when VERIFY_REQUIRE_AUTH is on, got {resp.status_code}",
+            )
+
+    @override_settings(VERIFY_REQUIRE_AUTH=True)
+    def test_authenticated_user_passes_when_flag_set(self):
+        user = get_user_model().objects.create_user(username="verifier", password="pw-test-123")  # nosec B106
+        self.client.force_authenticate(user)
+        resp = self.client.post(self.ANALYZE, {}, format="multipart")
+        # permission passes -> reaches the view -> 400 for an empty body (not 401/403)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_throttle_classes_declared(self):
+        from api.v1.verify_views import (
+            VerifyAnalyzeView,
+            VerifyAnonThrottle,
+            VerifyBundleView,
+            VerifyReportView,
+            VerifyUserThrottle,
+        )
+
+        for view in (VerifyAnalyzeView, VerifyBundleView, VerifyReportView):
+            self.assertIn(VerifyAnonThrottle, view.throttle_classes)
+            self.assertIn(VerifyUserThrottle, view.throttle_classes)

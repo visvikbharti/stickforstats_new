@@ -196,6 +196,13 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
+# Manuscript verification API access (api/v1/verify_views).
+# The closed beta gates the whole site at the reverse proxy (Basic-Auth), so the
+# /verify/* endpoints are open by default. Set VERIFY_REQUIRE_AUTH=True to require an
+# authenticated user before a public launch — a config flip, no code change. The
+# endpoints are rate-limited regardless (per-IP for anon, per-user for authenticated).
+VERIFY_REQUIRE_AUTH = os.environ.get("VERIFY_REQUIRE_AUTH", "false").lower() == "true"
+
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
 _cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")

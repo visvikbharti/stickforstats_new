@@ -13,6 +13,7 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import GradingIcon from '@mui/icons-material/Grading';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import ArticleIcon from '@mui/icons-material/Article';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
@@ -45,6 +46,7 @@ const CATEGORY_ICONS = {
   'SQS Manuscript Scoring': GradingIcon,
   'Autonomous Intelligence': SmartToyIcon,
   'Manuscript Review': ArticleIcon,
+  'Manuscript Verifier': FactCheckIcon,
   'Journal Analytics': AnalyticsIcon,
   'Platform Management': SettingsIcon,
   'GDPR/Privacy': PrivacyTipIcon,
@@ -306,6 +308,29 @@ const API_ENDPOINTS = [
     auth: 'Token / API Key', category: 'Manuscript Review',
     request: {},
     response: { example: { batch_id: 'batch-xyz', status: 'complete', completed: 2, failed: 0, results: ['sub-1', 'sub-2'] } },
+  },
+
+  // ── Manuscript Verifier (raw-data re-analysis) ──────────────────────────
+  {
+    method: 'POST', path: '/api/v1/verify/bundle/', name: 'Verify Submission Bundle',
+    description: 'Upload a whole submission (manuscript + supplements + raw-data tables + figure images) and re-run the authors’ reported statistics on their own data. Returns per-claim verdicts (VERIFIED / DISCREPANT / ASSUMPTION_VIOLATED / INSUFFICIENT_DATA / ...), citation–content conflicts, and a per-file ingestion report. Send every file under the repeated `files` field. No external data is fetched. Limits: ≤ 50 files, ≤ 25 MB each. Rate-limited (per-IP for anonymous callers).',
+    auth: 'None (beta gateway) · rate-limited', category: 'Manuscript Verifier',
+    request: { body: { files: '<repeated multipart files: PDF/DOCX/LaTeX/JATS-XML + CSV/Excel/SPSS/SAS/Stata + PNG/JPEG/TIFF>', alpha: 0.05, title: '(optional)' } },
+    response: { example: { n_claims: 3, verdict_distribution: { VERIFIED: 1, DISCREPANT: 1, INSUFFICIENT_DATA: 1 }, verifiability_rate: 0.667, coverage: 0.85, n_citation_conflicts: 1, certify_note: 'This report checks ... It does NOT certify the scientific validity ...', run_id: 'e6655447-a7bd-400b-b077-a8ecfc25c53f', report_token: '<one-time token>', claims: [{ claim_id: 'C001', verdict: 'DISCREPANT', claimed: { p_value: 0.011 }, recomputed: { test: 'pearson', p_value: 1.48e-10 }, provenance: { source_file: 'manuscript.pdf', link_method: 'content' } }], ingestion: { n_files: 2, n_data_files: 1, files: [{ name: 'manuscript.pdf', kind: 'manuscript', ok: true, role: 'manuscript_text' }, { name: 'data.csv', kind: 'data', ok: true, n_rows: 120, n_cols: 6 }] } } },
+  },
+  {
+    method: 'POST', path: '/api/v1/verify/analyze/', name: 'Verify Single Manuscript',
+    description: 'Single-file sibling of the bundle endpoint: verify one manuscript, optionally against one attached data table. Re-runs the claimed tests where the data link, otherwise returns INSUFFICIENT_DATA (the honest default). Accepts a `file` upload or raw `text`, plus an optional `data` table and `alpha`. Distinct from /sqs and /manuscript/analyze, which do internal-consistency review without raw-data re-analysis.',
+    auth: 'None (beta gateway) · rate-limited', category: 'Manuscript Verifier',
+    request: { body: { file: '<manuscript PDF/DOCX/LaTeX/TXT/XML>', data: '<optional CSV/TSV/XLSX>', alpha: 0.05, title: '(optional, when posting text)' } },
+    response: { example: { n_claims: 2, verdict_distribution: { VERIFIED: 1, INSUFFICIENT_DATA: 1 }, verifiability_rate: 0.5, certify_note: '...', run_id: '...', report_token: '...', claims: [] } },
+  },
+  {
+    method: 'GET', path: '/api/v1/verify/report/{run_id}/', name: 'Get Verification Report',
+    description: 'Retrieve a previously stored verification run. Token-gated: pass the one-time `token` (the report_token returned at analysis time) as a query param or the X-Report-Token header. A missing or incorrect token returns 404 — it never reveals whether the run id exists.',
+    auth: 'One-time report token', category: 'Manuscript Verifier',
+    request: { body: { '(query) token': '<report_token from the analyze/bundle response>' } },
+    response: { example: { run_id: 'e6655447-...', title: '', n_claims: 3, verdict_distribution: { VERIFIED: 1, DISCREPANT: 1, INSUFFICIENT_DATA: 1 }, certify_note: '...', claims: [] } },
   },
 
   // ── Journal Analytics ───────────────────────────────────────────────────
@@ -715,7 +740,7 @@ const API_ENDPOINTS = [
 // Derive categories in display order
 const CATEGORY_ORDER = [
   'Statistical Tests', 'Guardian Protection', 'SQS Manuscript Scoring',
-  'Autonomous Intelligence', 'Manuscript Review', 'Journal Analytics',
+  'Autonomous Intelligence', 'Manuscript Review', 'Manuscript Verifier', 'Journal Analytics',
   'Platform Management', 'GDPR/Privacy', 'Marketplace', 'LMS/LTI',
   'Certification', 'SSO', 'Site Licensing', 'AI Advisor',
 ];
