@@ -319,6 +319,66 @@ if _cli_available:
             raise SystemExit(1)
 
     # ------------------------------------------------------------------
+    # verify (raw-data re-analysis)
+    # ------------------------------------------------------------------
+
+    @main.command()
+    @click.option(
+        "--file", "-f", "file_paths", multiple=True, required=True,
+        help="File to verify — manuscript, data table, or figure. Repeat -f for a bundle.",
+    )
+    @click.option("--alpha", default=0.05, type=float, help="Significance level.")
+    @click.option("--title", default=None, help="Manuscript title (optional).")
+    def verify(file_paths: tuple[str, ...], alpha: float, title: str | None) -> None:
+        """Re-run a manuscript's reported statistics on its raw data.
+
+        Upload the manuscript plus any data tables / figures (repeat -f) and get
+        per-claim verdicts and citation-content conflicts. Without data, claims
+        resolve to INSUFFICIENT_DATA (the honest default).
+        """
+        client = _make_client()
+        try:
+            result = client.verify.bundle(list(file_paths), alpha=alpha, title=title)
+
+            summary = Table(title="Verification Summary")
+            summary.add_column("Metric", style="cyan")
+            summary.add_column("Value", style="green")
+            summary.add_row("Claims checked", str(result.n_claims))
+            rate = result.verifiability_rate
+            summary.add_row(
+                "Verifiability rate", f"{rate * 100:.1f}%" if rate is not None else "N/A"
+            )
+            cov = result.coverage
+            summary.add_row("Coverage", f"{cov * 100:.1f}%" if cov is not None else "N/A")
+            summary.add_row("Citation-content conflicts", str(result.n_citation_conflicts))
+            summary.add_row("Run ID", result.run_id or "(not persisted)")
+            console.print(summary)
+
+            dist = result.verdict_distribution or {}
+            if dist:
+                vt = Table(title="Verdict distribution")
+                vt.add_column("Verdict", style="cyan")
+                vt.add_column("Count", style="green", justify="right")
+                for verdict, count in dist.items():
+                    vt.add_row(verdict, str(count))
+                console.print(vt)
+
+            conflicts = result.conflicts
+            if conflicts:
+                console.print("[red bold]Citation-content conflicts:[/red bold]")
+                for claim in conflicts:
+                    console.print(f"  [red]- {claim.claim_id}[/red]: {claim.claim_text}")
+
+            if result.certify_note:
+                console.print(
+                    Panel(result.certify_note, title="What this does / does NOT certify")
+                )
+
+        except Exception as exc:
+            console.print(f"[red]Error: {exc}[/red]")
+            raise SystemExit(1)
+
+    # ------------------------------------------------------------------
     # usage
     # ------------------------------------------------------------------
 

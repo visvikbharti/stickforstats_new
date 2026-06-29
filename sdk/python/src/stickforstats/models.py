@@ -316,3 +316,106 @@ class TierInfo(BaseModel):
     rate_limit_per_minute: int | None = None
     features: list[str] = Field(default_factory=list)
     price: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Manuscript verification (raw-data re-analysis) results
+# ---------------------------------------------------------------------------
+
+class ClaimVerdict(BaseModel):
+    """A single per-claim verdict from the verification engine.
+
+    ``verdict`` is one of VERIFIED / DISCREPANT / ASSUMPTION_VIOLATED /
+    ASSUMPTION_UNREPORTED / INSUFFICIENT_DATA / UNVERIFIABLE_EXTRACTION /
+    INCONSISTENT_REPORTING. The nested dicts mirror the API verbatim
+    (``claimed``/``recomputed`` p-values & statistics, ``provenance`` with the
+    source file + cited references + link/extraction method, ``notes``).
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    claim_id: str = ""
+    verdict: str = ""
+    claim_text: str = ""
+    claimed: dict[str, Any] = Field(default_factory=dict)
+    recomputed: dict[str, Any] = Field(default_factory=dict)
+    match: dict[str, Any] = Field(default_factory=dict)
+    assumptions: dict[str, Any] = Field(default_factory=dict)
+    data_available: bool = False
+    linked_dataset_id: str | None = None
+    test_failed: bool = False
+    test_failure_reason: str = ""
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    notes: list[str] = Field(default_factory=list)
+
+
+class IngestedFileReport(BaseModel):
+    """How one uploaded file was handled in a bundle verification."""
+
+    model_config = ConfigDict(extra="allow")
+
+    name: str = ""
+    kind: str = ""  # manuscript | data | image | unknown
+    ok: bool = False
+    role: str = ""
+    chars: int = 0
+    n_rows: int = 0
+    n_cols: int = 0
+    ocr_used: bool = False
+    warnings: list[str] = Field(default_factory=list)
+    error: str = ""
+
+
+class IngestionReport(BaseModel):
+    """Per-file ingestion summary attached to a bundle verification."""
+
+    model_config = ConfigDict(extra="allow")
+
+    n_files: int = 0
+    n_manuscript_files: int = 0
+    n_data_files: int = 0
+    n_image_files: int = 0
+    n_unknown: int = 0
+    manuscript_chars: int = 0
+    ocr_used: bool = False
+    files: list[IngestedFileReport] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class VerificationReport(BaseModel):
+    """Response from ``/api/v1/verify/bundle/`` and ``/api/v1/verify/analyze/``.
+
+    Distinct from :class:`ManuscriptReport` (internal-consistency review): this is
+    the raw-data re-analysis surface — it re-runs the authors' tests on their data.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    n_claims: int = 0
+    verdict_distribution: dict[str, int] = Field(default_factory=dict)
+    verifiability_rate: float | None = None
+    coverage: float | None = None
+    low_coverage: bool = False
+    n_checkable: int = 0
+    n_inconsistent_reporting: int = 0
+    n_decision_changing: int = 0
+    n_references_resolved: int = 0
+    n_citation_conflicts: int = 0
+    certify_note: str = ""
+    claims: list[ClaimVerdict] = Field(default_factory=list)
+    ingestion: IngestionReport | None = None
+    run_id: str | None = None
+    report_token: str | None = None
+    report_url: str | None = None
+
+    @property
+    def conflicts(self) -> list[ClaimVerdict]:
+        """Claims flagged as citation–content conflicts (the highest-value output):
+        the author cited a data file that does not reproduce the claimed result."""
+        flagged: list[ClaimVerdict] = []
+        for claim in self.claims:
+            if (claim.provenance or {}).get("link_method") == "conflict":
+                flagged.append(claim)
+            elif any("conflict" in str(note).lower() for note in claim.notes):
+                flagged.append(claim)
+        return flagged

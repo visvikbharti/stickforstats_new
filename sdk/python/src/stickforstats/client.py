@@ -30,6 +30,7 @@ from stickforstats.nonparametric import NonparametricModule
 from stickforstats.platform import PlatformModule
 from stickforstats.power import PowerModule
 from stickforstats.stats import StatsModule
+from stickforstats.verify import VerifyModule
 
 _DEFAULT_BASE_URL = "http://localhost:8000/api/v1"
 _DEFAULT_TIMEOUT = 60.0
@@ -130,6 +131,7 @@ class StickForStats:
         self.categorical = CategoricalModule(self)
         self.autonomous = AutonomousModule(self)
         self.manuscript = ManuscriptModule(self)
+        self.verify = VerifyModule(self)
         self.platform = PlatformModule(self)
 
     # ------------------------------------------------------------------
@@ -157,7 +159,7 @@ class StickForStats:
         *,
         json: dict[str, Any] | None = None,
         params: dict[str, Any] | None = None,
-        files: dict[str, Any] | None = None,
+        files: dict[str, Any] | list[Any] | None = None,
         data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """

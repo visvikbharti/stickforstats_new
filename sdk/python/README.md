@@ -211,6 +211,41 @@ if not consistency.consistent:
         print(f"  Inconsistency: {issue}")
 ```
 
+## Manuscript Verifier (raw-data re-analysis)
+
+`client.verify` is the *raw-data* surface: it re-runs the authors' reported tests
+on their own data and returns per-claim verdicts, citation–content conflicts, and a
+per-file ingestion report. (This is distinct from `client.manuscript`, which does an
+internal-consistency review of the reported numbers without re-running anything.)
+Without attached data, checkable claims resolve to `INSUFFICIENT_DATA` — the honest default.
+
+```python
+# Verify a whole submission bundle (manuscript + data tables + figures)
+report = client.verify.bundle(
+    ["paper.pdf", "data.csv", "figure1.png"],
+    alpha=0.05,
+)
+print(f"{report.n_claims} claims; distribution: {report.verdict_distribution}")
+print(f"Verifiability: {report.verifiability_rate}; conflicts: {report.n_citation_conflicts}")
+
+# The highest-value output: claims whose cited data does NOT reproduce the result
+for claim in report.conflicts:
+    print(f"  CONFLICT {claim.claim_id}: claimed p={claim.claimed.get('p_value')} "
+          f"vs recomputed p={claim.recomputed.get('p_value')}")
+
+# Single manuscript, optionally against one data table
+report = client.verify.analyze("paper.pdf", data_path="data.csv")
+# ...or raw text:
+report = client.verify.analyze(text="Results. r = 0.46, p = 0.011.")
+
+# Retrieve a stored run later (token-gated)
+if report.run_id:
+    again = client.verify.report(report.run_id, report.report_token)
+```
+
+`report.certify_note` carries the mandatory "what this does / does NOT certify"
+statement — surface it whenever you display results.
+
 ## Platform Usage
 
 ```python
@@ -250,8 +285,11 @@ sfs profile --file data.csv
 # Natural-language query
 sfs query "compare groups" --file data.csv
 
-# Manuscript review
+# Manuscript review (internal-consistency, no data needed)
 sfs manuscript --file paper.pdf --field psychology
+
+# Manuscript verifier (re-run the reported tests on the raw data)
+sfs verify -f paper.pdf -f data.csv -f figure1.png
 
 # Check usage
 sfs usage
