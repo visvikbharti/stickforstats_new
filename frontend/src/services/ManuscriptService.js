@@ -18,6 +18,7 @@ import apiClient from './api';
 
 const MANUSCRIPT_BASE = '/v1/manuscript';
 const RECEIPT_BASE = '/v1/receipt';
+const VERIFY_BASE = '/v1/verify';
 
 /**
  * Analyze a manuscript — returns full statistical review report.
@@ -165,6 +166,56 @@ export const verifyReceipt = async (receiptId, token) => {
 export const receiptDownloadUrl = (receiptId, token, format = 'json') =>
   `/api/v1/receipt/${receiptId}/download/?token=${encodeURIComponent(token)}&fmt=${format}`;
 
+/**
+ * Raw-data verification of a WHOLE submission bundle (the editor/publisher case).
+ *
+ * Uploads the manuscript plus any supplementary documents, raw-data tables, and
+ * figure images in one multipart request to ``POST /api/v1/verify/bundle/``. Each
+ * file is routed by type server-side (manuscript / data / image); claims are
+ * re-run against ALL uploaded tables where they link. The response carries the
+ * paper-level VerificationProfile (verdict distribution, verifiability rate,
+ * coverage, citation-content conflicts), the per-claim verdicts, and an
+ * ``ingestion`` report describing how every file was handled.
+ *
+ * Privacy: only the uploaded files are read — no external repositories are fetched.
+ *
+ * @param {File[]} files - every file in the bundle (manuscript + supplements + data + images)
+ * @param {Object} [options={}]
+ * @param {number} [options.alpha=0.05] - significance level
+ * @param {string} [options.title] - optional manuscript title
+ * @param {(progressEvent: ProgressEvent) => void} [options.onUploadProgress] - upload progress callback
+ * @returns {Promise<Object>} the VerificationProfile + per-claim verdicts + ingestion report
+ */
+export const verifyBundle = async (files, options = {}) => {
+  const formData = new FormData();
+  (files || []).forEach((file) => formData.append('files', file));
+  formData.append('alpha', String(options.alpha ?? 0.05));
+  if (options.title) formData.append('title', options.title);
+
+  const response = await apiClient.post(`${VERIFY_BASE}/bundle/`, formData, {
+    headers: {  },
+    timeout: 300000, // 5 min — a bundle may include many files plus data re-runs
+    onUploadProgress: options.onUploadProgress,
+  });
+  return response.data;
+};
+
+/**
+ * Retrieve a previously stored verification run (token-gated, no account needed).
+ * Mirrors the one-time share-token contract of the manuscript report endpoint.
+ * @param {string} runId - VerificationRun id returned by verifyBundle()
+ * @param {string} token - the report_token returned at analysis time
+ * @returns {Promise<Object>} the same payload shape as verifyBundle()
+ */
+export const getVerificationReport = async (runId, token) => {
+  const params = token ? { token } : {};
+  const response = await apiClient.get(`${VERIFY_BASE}/report/${runId}/`, {
+    params,
+    timeout: 30000,
+  });
+  return response.data;
+};
+
 const ManuscriptService = {
   analyzeManuscript,
   parseManuscript,
@@ -175,6 +226,8 @@ const ManuscriptService = {
   issueReceipt,
   verifyReceipt,
   receiptDownloadUrl,
+  verifyBundle,
+  getVerificationReport,
 };
 
 export default ManuscriptService;
