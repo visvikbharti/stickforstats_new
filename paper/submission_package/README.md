@@ -31,5 +31,5 @@ Everything you need to upload is in this folder.
 
 - **The integrity fixes are already applied** in `manuscript.md` (you do not need to redo them) — but if you also post a **bioRxiv v2**, apply the same two corrections to that abstract/text (see `CHANGES_FROM_PREPRINT.md`).
 - Figure sources also live at `../plos_compbio/figures_plos/` (originals).
-- This is the **first of three** papers from this program. The **meta-research census paper** (the second) is being drafted under `../census_paper/` — keep them as separate submissions.
+- This is the **first of two** papers from this program (decision 2026-06-29). The second is a combined **verifier-method + 10k-census** meta-research paper under `../census_paper/` (the verification engine is its Methods backbone; the census is the result). Keep them as separate submissions. See `SUBMISSION_GUIDE.md` → "After this paper".
 - Replication scripts for every reported value are under `../replication/`.

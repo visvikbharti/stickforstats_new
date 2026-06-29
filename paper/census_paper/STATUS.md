@@ -45,9 +45,17 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
    pre-registration** (item 1) so one OSF DOI covers pre-reg + data — no separate Zenodo needed. Cite that
    DOI in the paper's Data Availability statement.
 
-## Relationship to the other papers
-This is one of **three** from the same program: the platform paper (`../submission_package/`), the
-verifier-tool software paper, and this census. Sequence so each preprint can cite the others.
+## Relationship to the other paper (decision 2026-06-29: TWO papers, not three)
+This is **paper 2 of 2**. The verifier-tool is **NOT** a separate third paper — it is folded into THIS paper
+as the **Methods backbone** (regex extraction + recompute + raw-data re-analysis + cross-reference + the
+statcheck head-to-head), with the census as the headline result. Paper 1 is the platform/Guardian software
+paper (`../submission_package/`). Rationale: two tool papers from one codebase risks salami-slicing optics
+(bad for an integrity project); the verifier's natural home is as the method behind the census.
+
+**Content TODO from this decision:** the census `manuscript.md` should gain a proper **"The verification
+engine" Methods section** (extraction grammar, recompute, re-analysis, cross-reference resolution, and the
+statcheck benchmark) so the tool is fully described here rather than in a separate paper. Meta-research venue
+keeps the *finding* in front; the engine sits in Methods/Supplement.
 
 ## Drive reminder
 Re-running the census or regenerating figures needs `/Volumes/My_Passport` mounted (the 3.2 GB
