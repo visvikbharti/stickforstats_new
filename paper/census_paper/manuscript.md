@@ -25,8 +25,9 @@ Independent re-computation of reported statistics—the approach popularised by 
 widespread internal inconsistencies in the psychology literature, but the verifiability of the biomedical
 literature at scale is largely uncharted. We assembled a census of 10,103 PubMed Central Open-Access
 biomedical articles (2018–2025) matching a classical quantitative-design query, parsed their JATS-XML full
-text, extracted every in-text null-hypothesis significance-testing (NHST) statistic with a deterministic
-regular-expression pipeline, and recomputed each two-tailed p-value in the statcheck style. Two findings
+text, extracted every in-text null-hypothesis significance-testing (NHST) statistic with a deterministic,
+open-source verification engine (StickForStats; regular-expression extraction, no language-model component),
+and recomputed each two-tailed p-value in the statcheck style. Two findings
 dominate. First, **machine-verifiability is rare**: only about 3.4% of papers (341 of 10,101 with a readable
 body) report even one in-text, recomputable test statistic; the overwhelming majority of reported statistics
 live in tables and figures and cannot be recovered from running text. Second, among the 3,005 recomputable
@@ -81,6 +82,33 @@ confirmatory extension with human double-coding as the follow-up.
 
 ## Methods
 
+### The verification engine
+
+The instrument behind this census is a deterministic, open-source verification engine (StickForStats;
+MIT-licensed) that operates in three layers, of which the census uses the first two. **(1) Extraction.**
+Reported NHST statistics are pulled from text with a fixed library of ~24 APA-style regular expressions
+covering t, F, χ², r, and z tests and their associated p-values; each statistic is paired to its p-value
+through a scoped, sentence-boundary-respecting proximity window, and every extracted claim carries provenance
+(section, source file, and character position). Extraction is purely regular-expression-based and contains no
+language-model component, so it is fully deterministic and inspectable — a prerequisite for a reproducible
+census. **(2) Internal-consistency checking.** For any claim that carries a statistic, the degrees of freedom
+needed to recompute it, and a point p-value, the engine recomputes the two-tailed p with SciPy and compares it
+to the reported value in a rounding- and inequality-aware manner, equivalent to statcheck; this is the layer
+applied at scale here. **(3) Raw-data re-analysis** (not exercised by the census, but described because it
+defines the engine's scope). When the underlying data are supplied, a claim-to-data linker resolves which
+uploaded table backs a claim — following the authors' own in-text cross-references (e.g. resolving
+"Supplementary Table S3" to the corresponding artifact) and flagging *citation–content conflicts* where the
+cited data fail to reproduce the stated result — then re-runs the authors' test, audits its assumptions through
+the Guardian subsystem (normality, variance homogeneity, independence; cascading to a nonparametric
+alternative when an assumption fails), and assigns one of seven verdicts (VERIFIED, DISCREPANT,
+ASSUMPTION_VIOLATED, ASSUMPTION_UNREPORTED, INSUFFICIENT_DATA, UNVERIFIABLE_EXTRACTION, INCONSISTENT_REPORTING).
+A multi-file ingestion layer accepts a whole submission (manuscript, supplementary documents, tabular data, and
+figure images via OCR). Every report states explicitly what it does and does not certify, and confidence
+scores are left uncalibrated pending the human double-coding study described below. The engine is available as
+a REST API and a Python package (`pip install stickforstats`). The census was produced entirely by layers
+(1)–(2): an in-text statistic can be checked for *internal consistency* without the raw data that layer (3)
+requires — data which, as we show, the literature rarely provides in linkable form.
+
 ### Corpus
 
 We sampled the PMC Open-Access subset via the NCBI E-utilities. The `esearch` query combined an open-access
@@ -98,10 +126,10 @@ editorials, letters, systematic reviews, data papers, and methods articles).
 
 JATS XML was parsed with lxml; the paper title is taken from `<front>` and body text strictly from `<body>`
 so that the reference list (in `<back>`) is excluded, with table-cell text included (statistics are often
-reported in tables). From the resulting text we extracted candidate NHST statistics with a deterministic
-library of ~24 APA-style regular-expression patterns (t, F, χ², r, z, and the associated p-values), pairing
-each statistic with its p-value through a scoped proximity window that respects sentence boundaries. A claim
-was deemed **checkable (recomputable)** when it carried a statistic, the degrees of freedom required to
+reported in tables). From the resulting text we extracted candidate NHST statistics with the engine's
+extraction layer described above (the ~24 deterministic APA-style patterns and scoped, sentence-aware
+p-attachment). A claim was deemed **checkable (recomputable)** when it carried a statistic, the degrees of
+freedom required to
 recompute it, and a reported p-value. For each checkable claim we recomputed the two-tailed p-value with
 SciPy (t → `t.sf(|t|, df)·2`; F → `f.sf`; χ² → `chi2.sf`; z → `norm.sf·2`; r converted to t) and compared it
 to the reported value in a rounding- and inequality-aware manner, exactly as statcheck does. A claim was
