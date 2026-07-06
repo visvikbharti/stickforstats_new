@@ -15,6 +15,12 @@ These corrections tighten claims to match what the evidence supports. They were 
 2. **Manuscript-verification module: claim extraction corrected from "regex + language-model hybrid" to "regex-based."**
    The preprint described the claim-extraction step of the manuscript-verification module as a "regex + language-model hybrid." This overstated the implemented system. Claim extraction is **regex-based**. The language-model leg is reserved/planned but not implemented in the released version, and the manuscript now says so plainly.
 
+3. **Independence validator scope clarified — arrangement-dependent, sequential-only, and excluded from the genome-scale cascade; Case Study 4 patient-clustering caveat added.**
+   The Guardian description and Limitations now state explicitly that the independence check is a lag-1 autocorrelation over observation order, so it is meaningful only for sequentially ordered data and is referred to study design for cross-sectional/omics matrices; the genome-scale per-gene cascade (Case Study 4) does not use it (it cascades on normality and variance, both invariant to sample ordering). We verified this on the real GSE271517 data (permuting the sample columns leaves the 90.55% cascade and the 1,411-gene significant set unchanged; script and memo under `paper/replication/verification/`). We also now disclose that GSE271517 is 91 samples from 55 patients, so the per-gene tests — reproducing the original authors' unpaired test selection — treat clustered observations as independent, a dependence the platform does not detect; the planned DESeq2/edgeR follow-up should use a patient-aware design.
+
+4. **Limitations expanded: demonstrated *change* vs benchmarked *improvement* in calibration.**
+   The Limitations now state plainly that the case studies show assumption-driven rerouting *changes* analytical decisions but do not claim or benchmark that it *improves* inferential calibration (Type I error / false-discovery control) relative to a naive parametric baseline or a count-GLM (DESeq2/edgeR) pipeline; a controlled calibration study under known ground truth is named as future work. This tightens the contribution to what the evidence supports.
+
 ## Reframing (venue fit)
 
 No results changed in this group; only the framing of contribution and language did.

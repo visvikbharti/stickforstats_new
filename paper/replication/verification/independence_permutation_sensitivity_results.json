@@ -1,0 +1,25 @@
+{
+  "experiment_1_genomics_invariance": {
+    "baseline_cascade_rate_pct": 90.5477,
+    "baseline_n_significant": 1411,
+    "baseline_n_cascaded": 24648,
+    "n_permutations": 8,
+    "max_abs_delta_cascade_rate_pp": 0.0,
+    "max_abs_delta_n_significant": 0,
+    "all_sig_sets_identical": true,
+    "min_jaccard_to_baseline": 1.0,
+    "invariant": true
+  },
+  "experiment_2_independence_order_sensitivity": {
+    "top_de_gene": "ENSG00000131002",
+    "grouped_order_lag1_r": 0.3139,
+    "grouped_order_parametric_p": 0.002591800327197564,
+    "grouped_order_verdict_violated": true,
+    "permutation_mean_lag1_r": -0.01225,
+    "permutation_p_for_grouped_r": 0.005,
+    "n_top_genes": 500,
+    "flag_rate_grouped_pct": 30.4,
+    "flag_rate_natural_pct": 32.0,
+    "flag_rate_random_pct": 0.2
+  }
+}
