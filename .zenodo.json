@@ -1,0 +1,48 @@
+{
+  "title": "StickForStats: A Statistical Analysis Platform with Automatic Assumption Validation",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "description": "<p>StickForStats is an open-source, web-based statistical analysis platform that makes statistical-assumption validation a default precondition for every analysis. Its core is the <strong>Guardian</strong> system, a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity) that checks assumptions before a test runs and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail.</p><p>The platform pairs this validation layer with an autonomous test-selection engine, a manuscript statistical-consistency checker (statcheck-style), and reproducible case studies spanning genomics (RNA-seq differential expression), CRISPR strategy comparison, ordinal correlation, and clinical meta-analysis. A controlled calibration benchmark characterizes when the assumption-driven cascade improves Type I / false-discovery control.</p><p>Backend: Python 3.11 + Django REST Framework, SciPy/NumPy/statsmodels, optional 50-decimal precision via mpmath. Frontend: React. Deployable via Docker Compose. A Python client SDK and CLI are available on PyPI (<code>pip install stickforstats</code>). All analyses in the accompanying manuscript are reproducible from <code>paper/replication/</code>. MIT-licensed. Source: https://github.com/visvikbharti/stickforstats_new</p>",
+  "creators": [
+    {
+      "name": "Bharti, Vishal",
+      "affiliation": "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India",
+      "orcid": "0009-0003-1431-4457"
+    },
+    {
+      "name": "Chakraborty, Debojyoti",
+      "affiliation": "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India; Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India",
+      "orcid": "0000-0003-1460-7594"
+    }
+  ],
+  "keywords": [
+    "statistics",
+    "assumption validation",
+    "reproducibility",
+    "Guardian system",
+    "differential expression",
+    "RNA-seq",
+    "meta-analysis",
+    "power analysis",
+    "manuscript verification",
+    "computational biology",
+    "open science"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.64898/2026.06.15.732278",
+      "relation": "isSupplementTo",
+      "scheme": "doi",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "https://github.com/visvikbharti/stickforstats_new",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    }
+  ],
+  "language": "eng",
+  "notes": "Companion software to the StickForStats manuscript (Bharti & Chakraborty, CSIR-IGIB). All datasets analysed are public and previously published (NCBI GEO GSE271517; UCI Wine Quality; Fisher's Iris; metafor::dat.egger2001; PubMed Central open-access subset). Reproduction scripts are under paper/replication/."
+}
