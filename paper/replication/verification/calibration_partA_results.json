@@ -1,0 +1,370 @@
+{
+  "meta": {
+    "seed": 20260706,
+    "G": 1000,
+    "pi_de": 0.1,
+    "R": 100,
+    "alpha": 0.05,
+    "delta_sd": 1.5,
+    "sample_sizes": [
+      [
+        20,
+        20
+      ],
+      [
+        55,
+        36
+      ]
+    ]
+  },
+  "results": {
+    "S1_normal_equalvar": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.0495,
+          "fdr": 0.0444,
+          "power": 0.9552
+        },
+        "welch": {
+          "type_I": 0.0491,
+          "fdr": 0.0431,
+          "power": 0.9542
+        },
+        "mannwhitney": {
+          "type_I": 0.0481,
+          "fdr": 0.0349,
+          "power": 0.9325
+        },
+        "guardian": {
+          "type_I": 0.0508,
+          "fdr": 0.045,
+          "power": 0.9541
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 86.5,
+          "welch_t_test": 3.7,
+          "mann_whitney": 9.8,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.0494,
+          "fdr": 0.0459,
+          "power": 1.0
+        },
+        "welch": {
+          "type_I": 0.0493,
+          "fdr": 0.044,
+          "power": 1.0
+        },
+        "mannwhitney": {
+          "type_I": 0.0485,
+          "fdr": 0.0401,
+          "power": 0.9999
+        },
+        "guardian": {
+          "type_I": 0.0508,
+          "fdr": 0.0479,
+          "power": 1.0
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 86.2,
+          "welch_t_test": 3.9,
+          "mann_whitney": 9.9,
+          "other": 0.0
+        }
+      }
+    },
+    "S2_normal_unequalvar": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.055,
+          "fdr": 0.0578,
+          "power": 0.0661
+        },
+        "welch": {
+          "type_I": 0.0505,
+          "fdr": 0.029,
+          "power": 0.0301
+        },
+        "mannwhitney": {
+          "type_I": 0.0675,
+          "fdr": 0.0546,
+          "power": 0.0361
+        },
+        "guardian": {
+          "type_I": 0.056,
+          "fdr": 0.0372,
+          "power": 0.0352
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 1.8,
+          "welch_t_test": 88.4,
+          "mann_whitney": 9.9,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.1,
+          "fdr": 0.1793,
+          "power": 0.6614
+        },
+        "welch": {
+          "type_I": 0.0495,
+          "fdr": 0.0467,
+          "power": 0.3538
+        },
+        "mannwhitney": {
+          "type_I": 0.0916,
+          "fdr": 0.1513,
+          "power": 0.4984
+        },
+        "guardian": {
+          "type_I": 0.0576,
+          "fdr": 0.0683,
+          "power": 0.3781
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 0.0,
+          "welch_t_test": 90.1,
+          "mann_whitney": 9.8,
+          "other": 0.0
+        }
+      }
+    },
+    "S3_heavy_tailed_t3": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.0443,
+          "fdr": 0.0311,
+          "power": 0.9332
+        },
+        "welch": {
+          "type_I": 0.0433,
+          "fdr": 0.03,
+          "power": 0.9301
+        },
+        "mannwhitney": {
+          "type_I": 0.0482,
+          "fdr": 0.0392,
+          "power": 0.9917
+        },
+        "guardian": {
+          "type_I": 0.0494,
+          "fdr": 0.0416,
+          "power": 0.9901
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 41.1,
+          "welch_t_test": 2.6,
+          "mann_whitney": 56.3,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.0457,
+          "fdr": 0.0339,
+          "power": 0.9916
+        },
+        "welch": {
+          "type_I": 0.0449,
+          "fdr": 0.0318,
+          "power": 0.9906
+        },
+        "mannwhitney": {
+          "type_I": 0.0491,
+          "fdr": 0.0377,
+          "power": 1.0
+        },
+        "guardian": {
+          "type_I": 0.0494,
+          "fdr": 0.0389,
+          "power": 1.0
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 14.5,
+          "welch_t_test": 1.2,
+          "mann_whitney": 84.4,
+          "other": 0.0
+        }
+      }
+    },
+    "S4_lognormal_skewed": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.0471,
+          "fdr": 0.0322,
+          "power": 0.9294
+        },
+        "welch": {
+          "type_I": 0.0453,
+          "fdr": 0.0262,
+          "power": 0.9237
+        },
+        "mannwhitney": {
+          "type_I": 0.0505,
+          "fdr": 0.039,
+          "power": 0.9816
+        },
+        "guardian": {
+          "type_I": 0.0543,
+          "fdr": 0.0434,
+          "power": 0.9819
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 10.9,
+          "welch_t_test": 1.3,
+          "mann_whitney": 87.8,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.0484,
+          "fdr": 0.0396,
+          "power": 0.9982
+        },
+        "welch": {
+          "type_I": 0.05,
+          "fdr": 0.0431,
+          "power": 0.999
+        },
+        "mannwhitney": {
+          "type_I": 0.0518,
+          "fdr": 0.0455,
+          "power": 1.0
+        },
+        "guardian": {
+          "type_I": 0.0518,
+          "fdr": 0.0455,
+          "power": 1.0
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 0.1,
+          "welch_t_test": 0.0,
+          "mann_whitney": 99.9,
+          "other": 0.0
+        }
+      }
+    },
+    "S5_outlier_contam": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.0426,
+          "fdr": 0.0244,
+          "power": 0.6256
+        },
+        "welch": {
+          "type_I": 0.0413,
+          "fdr": 0.0228,
+          "power": 0.6137
+        },
+        "mannwhitney": {
+          "type_I": 0.0498,
+          "fdr": 0.0336,
+          "power": 0.8447
+        },
+        "guardian": {
+          "type_I": 0.051,
+          "fdr": 0.0368,
+          "power": 0.845
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 38.7,
+          "welch_t_test": 2.1,
+          "mann_whitney": 59.2,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.0464,
+          "fdr": 0.0299,
+          "power": 0.9375
+        },
+        "welch": {
+          "type_I": 0.0447,
+          "fdr": 0.0285,
+          "power": 0.9313
+        },
+        "mannwhitney": {
+          "type_I": 0.0489,
+          "fdr": 0.0411,
+          "power": 0.9995
+        },
+        "guardian": {
+          "type_I": 0.0494,
+          "fdr": 0.0419,
+          "power": 0.9996
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 13.1,
+          "welch_t_test": 0.8,
+          "mann_whitney": 86.2,
+          "other": 0.0
+        }
+      }
+    },
+    "S6_unequalvar_heavy": {
+      "n20v20": {
+        "naive_student": {
+          "type_I": 0.0481,
+          "fdr": 0.0364,
+          "power": 0.2004
+        },
+        "welch": {
+          "type_I": 0.0439,
+          "fdr": 0.03,
+          "power": 0.1484
+        },
+        "mannwhitney": {
+          "type_I": 0.0644,
+          "fdr": 0.0686,
+          "power": 0.3557
+        },
+        "guardian": {
+          "type_I": 0.0598,
+          "fdr": 0.0569,
+          "power": 0.312
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 3.1,
+          "welch_t_test": 40.4,
+          "mann_whitney": 56.5,
+          "other": 0.0
+        }
+      },
+      "n55v36": {
+        "naive_student": {
+          "type_I": 0.0941,
+          "fdr": 0.1304,
+          "power": 0.7444
+        },
+        "welch": {
+          "type_I": 0.0446,
+          "fdr": 0.0296,
+          "power": 0.5419
+        },
+        "mannwhitney": {
+          "type_I": 0.085,
+          "fdr": 0.1167,
+          "power": 0.8984
+        },
+        "guardian": {
+          "type_I": 0.0801,
+          "fdr": 0.1077,
+          "power": 0.8705
+        },
+        "guardian_cascade_mix_pct": {
+          "t_test": 0.0,
+          "welch_t_test": 15.9,
+          "mann_whitney": 84.1,
+          "other": 0.0
+        }
+      }
+    }
+  }
+}

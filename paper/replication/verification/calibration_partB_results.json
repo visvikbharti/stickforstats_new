@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "seed": 20260706,
+    "G": 1000,
+    "pi_de": 0.1,
+    "R_datasets": 20,
+    "alpha": 0.05,
+    "lfc_log2": 0.585,
+    "nb_dispersion": 0.2,
+    "sample_sizes": [
+      [
+        55,
+        36
+      ],
+      [
+        20,
+        20
+      ]
+    ]
+  },
+  "results": {
+    "n55v36": {
+      "naive_student": {
+        "fdr": 0.0297,
+        "power": 0.711
+      },
+      "guardian": {
+        "fdr": 0.0394,
+        "power": 0.7355
+      },
+      "edgeR": {
+        "fdr": 0.0359,
+        "power": 0.8155
+      },
+      "DESeq2": {
+        "fdr": 0.0472,
+        "power": 0.8175
+      }
+    },
+    "n20v20": {
+      "naive_student": {
+        "fdr": 0.018,
+        "power": 0.1365
+      },
+      "guardian": {
+        "fdr": 0.0282,
+        "power": 0.1355
+      },
+      "edgeR": {
+        "fdr": 0.0448,
+        "power": 0.2835
+      },
+      "DESeq2": {
+        "fdr": 0.0622,
+        "power": 0.3045
+      }
+    }
+  }
+}
