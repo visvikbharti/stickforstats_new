@@ -21,8 +21,12 @@ empirical analysis in `INDEPENDENCE_PERMUTATION_SENSITIVITY_MEMO.md`.
 
 **Bottom line:** of its five "critical weaknesses," four are already fixed or acknowledged in our current
 manuscript, and the fifth (independence order-sensitivity) we have now answered empirically on the real data.
-One genuinely substantive, still-open item remains — a Type I error / FDR *calibration* benchmark — which is
-honest future work and does not undermine the paper as framed.
+The one genuinely substantive item it raised — a Type I error / FDR *calibration* benchmark — we have now
+**run** (new Fig 8, committed `eaf247e`): framed as an ablation of the assumption gate, it shows the cascade
+restores near-nominal Type I/FDR control under unbalanced heteroscedasticity and adds power under
+non-normality, with its limits reported honestly (see §Calibration). After this pass, no substantive criticism
+from the review is unaddressed; two — the S6 hetero-plus-heavy-tail gap and patient-clustering — stand as
+disclosed, bounded limitations rather than resolved.
 
 ---
 
@@ -34,8 +38,8 @@ honest future work and does not undermine the paper as framed.
 
 **Valid, partly acknowledged.** The Limitations section already flags *threshold dependence* and notes Guardian
 mitigates it by reporting the actual test statistics, not just classifications. The deeper part of this point
-— "are the reroutes *better*, not just *different*?" — is the one substantive open item; see **§Calibration**
-below.
+— "are the reroutes *better*, not just *different*?" — is now answered by the calibration benchmark; see
+**§Calibration** below.
 
 ### 4.2 — Independence / cluster-batch dependence
 > *The independence validator is lag-1 Pearson autocorrelation over observation order. Real biological
@@ -94,14 +98,15 @@ implemented system. Its suggested remedy — evaluate extraction against a gold-
 in fact what the companion census work does (gold set + κ double-coding).
 
 ### §6 — "What would change my confidence"
-- **(i) External blind benchmark showing better *calibration*** — the one open item; see below.
+- **(i) External blind benchmark showing better *calibration*** — now addressed by our own controlled,
+  reproducible benchmark under known ground truth (Fig 8); see below.
 - **(ii) Permutation-stability for independence *and outlier* validators** — independence: done (4.2); outlier:
   already order-invariant.
 - **(iii) Extraction precision/recall** — covered by the census gold-set + κ work.
 
 ---
 
-## The one substantive open item: calibration (not just "change")
+## The substantive item — calibration ("change" vs "improve") — now benchmarked
 
 Stripped of the already-handled points, BGPT's real recurring critique (4.1, 4.3, §6-i) is:
 
@@ -109,23 +114,42 @@ Stripped of the already-handled points, BGPT's real recurring critique (4.1, 4.3
 > Type I error / FDR calibration benchmark where the cascaded pipeline is measurably better-calibrated than a
 > naïve baseline (and vs a count-GLM baseline for the RNA-seq case).
 
-This is a fair "you-could-claim-more" critique, not a flaw in what we claim. The resubmission's framing already
-answers it defensively: StickForStats is presented as a **sound, useful, transparent tool with an honest
-evaluation**, *not* as a novel method with proven inferential superiority. The honest response is to name the
-calibration study as future work (one Limitations sentence — drafted in `MANUSCRIPT_EDITS_independence.md`,
-Edit 4). Actually running it — simulate data with known ground truth, compare Type I/FDR of the Guardian
-cascade vs naïve t-test vs DESeq2/edgeR under controlled batch/zero-inflation perturbations — is a worthwhile
-standalone study but is not required to defend the current paper.
+This is the one point that asked for new evidence, so we produced it (committed `eaf247e`; full write-up in
+`CALIBRATION_BENCHMARK_MEMO.md`, new **Fig 8**, new Results + Methods subsections in both manuscript versions).
+We ran a Monte Carlo benchmark under known ground truth (1,000 genes, 10% truly DE, on the **real** production
+`DifferentialExpressionService`), framed as an **ablation of the assumption gate** — the naïve baseline is the
+cascade's *own* parametric branch with the gate switched off — so the contrast measures the value of the gate
+itself:
+
+- **Part A (continuous).** At the case study's unbalanced 55-vs-36 design with unequal variances, the ungated
+  t-test's Type I error doubles to 0.100 and its FDR blows out to 0.179 (≈3.6× nominal); the cascade detects
+  the heterogeneity (Levene), routes ~90% of genes to Welch, and restores these to 0.058 / 0.068. It also gains
+  power under heavy-tailed / skewed / outlier data (S3–S5) via Mann-Whitney, with Type I near nominal.
+- **Honest limit (S6).** Under simultaneous heteroscedasticity *and* heavy tails the cascade routes on
+  normality first → mostly Mann-Whitney (itself variance-sensitive), so it only *partially* controls error
+  (Type I 0.080, down from the naïve 0.094 but not to nominal). A fixed always-Welch default controls it fully
+  here → the benchmark identifies a concrete fix (variance-aware routing), which we name in Limitations rather
+  than paper over.
+- **Part B (counts).** DESeq2/edgeR on raw counts are more powerful than the rank cascade on log-CPM (≈0.82 vs
+  0.74 at 55-vs-36; roughly double at 20-vs-20) at near-nominal FDR — quantifying the Group B reframing.
+
+This converts BGPT's strongest point from a "you-could-claim-more" critique into a demonstrated, bounded result.
+It is consistent with — and strengthens — the resubmission's framing of StickForStats as a **sound, useful,
+transparent tool with an honest evaluation**: the gate is shown to *improve* calibration where a naïve default
+fails, without over-claiming universal optimality. Remaining extensions (batch-structure and zero-inflation
+perturbations) are noted as future work; they refine the study but are no longer the open question.
 
 ---
 
 ## Suggested actions
 
 1. **Reply to the PI** (draft: `PI_REPLY_DRAFT_independence.md`) — the point is fair but mostly already
-   handled; the independence part is answered empirically.
-2. **Apply the four manuscript edits** (`MANUSCRIPT_EDITS_independence.md`, incl. the new calibration sentence)
-   on PI sign-off, then re-render.
+   handled; the independence part is answered empirically and the calibration part is now benchmarked.
+2. **Manuscript edits — done.** The independence edits and the calibration Results/Methods/Fig 8 are applied to
+   both `submission_package/manuscript.md` and `plos_compbio/manuscript.md`, reflected in
+   `CHANGES_FROM_PREPRINT.md`, committed (`7b40ab6`, `eaf247e`), and both PDFs re-render cleanly.
 3. **Do not engage BGPT's buttons** as if they were a real review; treat this as useful free QA of the public
    preprint.
-4. **Optional, larger:** scope the calibration benchmark as a future-work study (or a short simulation appendix)
-   if a target reviewer is likely to press on it.
+4. **Still open (optional):** gate the independence validator in code (behaviour change to a shipped validator),
+   and extend the calibration benchmark with batch-structure / zero-inflation perturbations if a target
+   reviewer is likely to press further.
