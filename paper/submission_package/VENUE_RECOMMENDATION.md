@@ -1,98 +1,85 @@
 # Venue recommendation — Paper 1 (StickForStats / Guardian platform)
 
-**Date:** 2026-07-06. Researched against current (2026) author guidelines across nine candidate venues.
-**Verify every APC and waiver rule live at submission** — several publisher price pages are JavaScript-gated;
-figures below are from DOAJ / official fee pages / archived snapshots.
+**Date:** 2026-07-06 (revised to a **Q1-JCR** target set). Researched across ~20 venues.
+**Verify APCs and the exact JCR rank live at submission** (aggregator data below is from ooir.org /
+wos-journal.info, which reproduce Clarivate JCR; confirm the paywalled Clarivate figure for any load-bearing
+cover-letter citation).
 **Context:** MIT-licensed statistical-assumption-validation tool + manuscript consistency checker + calibration
 benchmark, RNA-seq case study; single corresponding author + PI at **CSIR-IGIB, India**; bioRxiv preprint live;
-desk-rejected 3× (JSS, JOSS, PLOS Comp Biol) on **scope/novelty**, not quality → needs a **soundness-not-novelty**
-venue.
+desk-rejected 3× (JSS, JOSS, PLOS Comp Biol) on **scope/novelty**, not quality.
 
-## Decisive finding: India gets NO automatic APC waiver at ANY candidate
-India is lower-middle-income but is excluded from every publisher's waiver list because its total GNI/GDP
-exceeds Research4Life / World-Bank thresholds ("GNI > US$1 trillion excludes India, China, Brazil regardless of
-other factors"). Triangulated across Research4Life eligibility, Springer Nature/BMC, OUP, PeerJ, and
-F1000Research policies. **The only route anywhere is a discretionary, case-by-case hardship waiver requested in
-the cover letter at submission (not guaranteed).** So treat APC as full sticker price everywhere, and let cost
-weigh in the ranking.
+## Two findings that shape everything
 
-## Comparison at a glance
+**1. Q1 IS worth pursuing — but only through *soundness-based* Q1 journals, not novelty-gating ones.** All three
+prior desk-rejects gate on novelty/impact, so a sound-but-not-novel tool dies at the editor's desk. The fix is
+not to abandon Q1; it is to target journals that are **genuinely JCR Q1 in their category AND whose published
+policy forbids rejecting on impact/novelty.** That set is narrow but real and has a clear winner.
 
-| Venue | Soundness-not-novelty? | APC (full price) | India waiver | Indexing | 1st decision | Verdict |
+**2. Correction to the earlier draft of this doc (important): PeerJ, PLOS ONE, GigaByte, GigaScience, and
+Bioinformatics Advances are all JCR *Q2*, not Q1.** Their "Q1" badge online is **Scimago (SJR)**, a different
+system. GigaScience specifically is **JCR Q2** (Multidisciplinary Sciences, #17/64). Most Indian PhD/UGC/API
+frameworks count **JCR** quartiles — so if you require Q1, those venues do **not** qualify. This is why the
+recommendation below changed to BMC Bioinformatics.
+
+## Decisive constraint: India gets NO automatic APC waiver anywhere (except JOSS, which already rejected you)
+India is excluded from Research4Life (GNI > US$1T cap) and therefore from the income-based waivers of
+Springer Nature/BMC, OUP, PLOS, and PeerJ. Only relief is a **discretionary need-based request at submission**
+(PLOS PFA, Frontiers fee support) or an institutional Read-&-Publish deal. Budget full sticker (~$2,900–3,100).
+
+## The genuinely Q1 + soundness sweet spot
+
+| Journal | JIF | JCR category → quartile | Editorial bar | Tool article type | Index | APC (India, no waiver) |
 |---|---|---|---|---|---|---|
-| **PeerJ** | Yes — verbatim founding principle | **$1,995** | No | MEDLINE + Scopus + **WoS SCIE**, JIF ~2.6 | ~30–35 d | **Top pick** |
-| **GigaByte** | Yes — Technical Release, soundness-only | **$535** | No (low base; can ask) | PubMed + Scopus + **WoS ESCI** (no JIF) | n/a | **Backup 1 (best value)** |
-| **PLOS ONE** | Yes — "not perceived significance" | $2,477 | No | MEDLINE + Scopus + **WoS SCIE**, JIF 2.6 | median 40 d | **Backup 2** |
-| BMC Bioinformatics | Yes (editorial policy) | $3,090 | No | MEDLINE + SCIE + Scopus, IF ~4 | ~5 d screen | Strong fit, pricey |
-| Bioinformatics Advances | Yes — "usefulness", App Note | $2,620 ($2,096 ISCB) | No | PubMed + Scopus + ESCI, IF ~2.6 | ~27 d | Good, ESCI-only |
-| F1000Research | Yes — post-pub review | $1,268 (Software Tool) | No | PubMed/Scopus **only after review passes**; WoS unconfirmed | pub ~14 d | Viable, indexing risk |
-| GigaScience | Yes, but "big-data/complex" | ~$2,512 | No | MEDLINE + Scopus + SCIE, IF ~9.2 | n/a | Likely redirects to GigaByte |
-| JORS | Yes — reusability | £824–891 (~$1,050) | Discretionary | Scopus + DOAJ; **no WoS, no PubMed** | pub ~21 wk | Weak visibility |
-| SoftwareX | Soundness, but **code = primary object** | $1,560 | Probably no | Scopus + SCIE, **not PubMed** | ~9 wk to pub | **Structural misfit** |
+| **BMC Bioinformatics** ⭐ | 4.4 | **Q1** in Biochem Res Methods (#12/73), Biotech & Applied Micro (#30/142), **and** Math & Comp Bio (#6/51) | Soundness — "we do not judge impact/interest" | dedicated **"Software"** | SCIE | ~$2,890 |
+| **BMC Medical Research Methodology** | 3.7 | **Q1** Health Care Sciences & Services (#14/101) | Soundness | dedicated **"Software"** | SCIE | ~$3,090 |
+| **Frontiers in Bioinformatics** | 3.6 | **Q1** Math & Comp Bio (80.6th pct) | Soundness | **"Technology and Code"** | **ESCI** (not SCIE) | ~CHF 2,695 |
+| **Scientific Reports** (Nature) | 4.9 | **Q1** Multidisciplinary Sciences (~85th pct) | Soundness — "technically sound" | Research Article (tools OK) | SCIE | ~$2,890 |
 
 ## Ranked recommendation
 
-### 1. PeerJ (Life & Environment) — best target ★
-Closest structural cure for this paper's exact problem. Its **founding, stated** criterion is "an objective
-determination of scientific and methodological soundness, **not** … 'impact', 'novelty' or 'interest'"
-(https://peerj.com/about/aims-and-scope/) — directly neutralising the reason for all three prior desk-rejections.
-Lists **"Bioinformatics Software Tools"** and **"Method Articles"** as first-class types, so the cross-domain
-shape (general-stats tool + RNA-seq case study + manuscript checker) is in scope. APC **$1,995** (cheaper than
-PLOS ONE), plus an alternative individual-membership model (verify live). Requires all code + raw data public
-with a Zenodo DOI under an open license — **already satisfied** (MIT, GitHub, Zenodo planned). Accepts bioRxiv.
-**Full indexing: MEDLINE/PubMed/PMC + Scopus + WoS SCIE, JIF ~2.6** — strongest visibility among the
-soundness-only venues. ~30–35 d to first decision. Net: fixes the rejection cause, well-indexed with a JIF,
-accepts the paper's exact form, costs less than PLOS ONE.
+### 1. BMC Bioinformatics — submit here first ★
+The **only** venue that is JCR **Q1 in three categories** *and* carries an explicit "we do not make decisions on
+the basis of interest/impact" policy *and* has a purpose-built **"Software"** article type. It breaks your
+desk-reject pattern while staying unambiguously Q1. The genomics/RNA-seq case study anchors it squarely in
+scope; frame the manuscript-checker as a reproducibility companion module. Mild caveat: an originality/
+duplication screen (must not merely re-implement an existing tool) — an assumption-validation + statcheck-style
+platform + calibration benchmark clears it. IF 4.4, ~$2,890, ~3–6 mo review, SCIE.
+Sources: https://ooir.org/j.php?issn=1471-2105 · https://www.biomedcentral.com/getpublished/editorial-policies ·
+https://bmcbioinformatics.biomedcentral.com/submission-guidelines/preparing-your-manuscript/software-article
 
-### 2. GigaByte (GigaScience Press) — best value / pick first if budget-bound
-"Technical Release" type is purpose-built for "an open-source software tool or a computational method," reviewed
-"solely on whether the information would be usable … scientifically sound," explicitly not on impact
-(https://gigabytejournal.com/technical-release-description). APC **$535** (cheapest by far), discretionary
-hardship waivers on request. The **article** is the reviewed object (no code-archive restructuring). bioRxiv-native.
-PubMed + PMC + Scopus + **WoS ESCI** — the one drawback is ESCI-only (no JIF), slightly lower discoverability
-than PeerJ. Trade $535-and-PubMed against the lack of a JIF.
+### 2. BMC Medical Research Methodology — strong #2 with the medical/methodology framing
+JCR **Q1 Health Care Sciences & Services**, soundness bar, dedicated "Software" type. Lead with the
+assumption-checking + FDR-calibration + RNA-seq-DE angle so it reads as health-research methodology (its scope
+otherwise redirects generic tool papers). IF 3.7, ~$3,090, SCIE.
+Sources: https://ooir.org/j.php?issn=1471-2288 ·
+https://bmcmedresmethodol.biomedcentral.com/submission-guidelines/preparing-your-manuscript/software-article
 
-### 3. PLOS ONE — backup 2
-The other large "judged on validity, not perceived significance" megajournal; covers "methods, software,
-databases, or other tools" (https://journals.plos.org/plosone/s/journal-information). APC **$2,477** (priciest of
-the three strong-indexed picks). Open code + public data — satisfied. bioRxiv fine. MEDLINE + Scopus + WoS SCIE,
-JIF 2.6, median 40 d. Choose over PeerJ only if you specifically want the PLOS brand; otherwise PeerJ dominates
-it on cost at equal indexing.
+### 3. Frontiers in Bioinformatics — fastest Q1 route, one asterisk
+JCR **Q1 Math & Comp Bio**, soundness bar, dedicated **"Technology and Code"** type, fast collaborative review
+(~2–3 mo). **Asterisk: ESCI, not SCIE** — Web-of-Science-indexed and JCR-ranked, but some Indian committees
+distinguish ESCI from SCIE; confirm your PhD framework accepts ESCI before choosing it. IF 3.6, ~CHF 2,695.
+Sources: https://wos-journal.info/journalid/23899 ·
+https://www.frontiersin.org/journals/bioinformatics/for-authors/article-types
 
-## Watch-outs
-- **Verify every APC live** (PeerJ/PLOS/OUP price pages are JS-gated); PeerJ membership dollar prices unverified.
-- **Request the discretionary hardship waiver at submission**, in the cover letter — the only fee relief for
-  India-based authors, and it must be asked for *before* review.
-- **F1000Research:** you pay $1,268 on acceptance of *pre-publication checks* regardless of review outcome, and
-  PubMed/Scopus indexing applies **only after** the article passes open review (WoS unconfirmed) — conditional
-  visibility.
-- **Scope-edge:** at a life-sciences venue (PeerJ) the statcheck-style manuscript-checker is the least
-  "biological" component — frame the primary object as reproducible computational-biology statistics (Guardian +
-  RNA-seq case study), manuscript checker as a companion module.
-- **Format effort:** manuscript is in PLOS format (`figures_plos/`, PLOS refs, Author Summary). PeerJ and GigaByte
-  accept flexible formatting at initial submission (reformat only on acceptance) — low effort. PLOS ONE needs none.
-- **PLOS software nuance:** PLOS prefers "well-established" projects; submit as a research/methods article with
-  validation + case studies (which is what this is), not a pure software paper.
+### 4. Scientific Reports — Q1 safety net
+JCR **Q1 Multidisciplinary Sciences**, soundness-only ("technically sound"), near-zero novelty desk-reject risk.
+Trade-off: high volume, lower prestige-per-Q1, no dedicated software type. IF 4.9, ~$2,890, SCIE.
+Source: https://wos-journal.info/journalid/13280
 
-## Do-not-submit flags for this specific paper
-- **SoftwareX** — structurally disqualified: its model requires the **code archive as the primary object**, the
-  manuscript demoted to a note; this paper's primary object is a scientific evaluation → wrong shape, high
-  desk-reject risk; also not in PubMed.
-- **BMC Medical Research Methodology** — scope explicitly redirects general method/tool descriptions to subject
-  journals; only viable if re-centred on the calibration/Type-I methodology in a health-research framing.
-- **JORS** — no Web of Science, no PubMed (Scopus + DOAJ only) — poor discoverability for a biomedical audience.
-- **GigaScience (vs GigaByte)** — ~$2,512, no India waiver, prefers "big-data/complex" resources; a single-tool
-  paper would likely be redirected to GigaByte anyway.
-- **BMC Bioinformatics** — genuinely strong scope match (Software type, ~5-day screen, IF ~4, MEDLINE+SCIE) but
-  **$3,090 with zero India relief**; pursue only if the genomics framing is central and budget allows.
-  Bioinformatics Advances ($2,620 / $2,096 ISCB, ~27 d, bioRxiv B2J) is the cheaper OUP alternative, ESCI-only.
+## Do NOT resubmit to — Q1 but will desk-reject again (same failure mode as your 3 rejects)
+Briefings in Bioinformatics (IF 7.3, hard novelty gate), Bioinformatics/OUP (Application Notes gate on "advance"
++ broad user base), Patterns/Cell Press (explicit novelty + cross-disciplinary-appeal gate), and the three that
+already rejected you (PLOS Comp Biol, JSS, JOSS).
+
+## If your framework accepts Scimago (SJR) Q1 instead of JCR
+Your pool widens to PeerJ, PeerJ Computer Science, GigaScience, and BioData Mining (all **Scimago Q1** but
+**JCR Q2**). Only pursue these if your evaluators count Scimago — otherwise they fail your "no Q2" rule.
 
 ## Suggested path
-Submit to **PeerJ** first (fixes the rejection cause, SCIE-indexed with a JIF, accepts the exact form, mid-price),
-requesting the hardship waiver in the cover letter. If cost is the binding constraint, go **GigaByte** ($535).
-Keep **PLOS ONE** as the branded backup. Whichever you pick, post **bioRxiv v2** first (see
-`BIORXIV_V2_UPLOAD.md`) so the public record matches what an editor will find, and mint the **Zenodo DOI** before
-submission (PeerJ requires a code/data DOI).
+Submit to **BMC Bioinformatics** first (request the discretionary APC waiver in the cover letter). Keep **BMC MRM**
+and **Frontiers in Bioinformatics** (ESCI-permitting) as ranked backups, **Scientific Reports** as the Q1 safety
+net. Before submitting: post **bioRxiv v2** (see `BIORXIV_V2_UPLOAD.md`) and mint the **Zenodo DOI** for the
+code/data-availability statement.
 
-*(Synthesis from a 2026-07 web-research pass; re-verify APCs and waiver rules on each journal's own pages before
-submitting.)*
+*(Synthesis from two 2026-07 web-research passes; JCR figures reflect the JCR 2025 edition, stable vs 2024 for
+all recommended journals. Re-verify APCs and exact ranks at submission.)*
