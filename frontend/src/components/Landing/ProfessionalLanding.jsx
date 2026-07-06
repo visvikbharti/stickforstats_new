@@ -113,7 +113,7 @@ const ProfessionalLanding = ({ onEnter }) => {
             {/* Value Proposition */}
             <p className="value-proposition">
               The first statistical analysis platform with built-in Guardian protection
-              that prevents Type I errors before they happen. Trusted by researchers
+              that guards against Type I errors before they happen. Trusted by researchers
               who value scientific integrity over p-hacking.
             </p>
 
@@ -123,7 +123,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <div className="feature-icon guardian-icon">🛡️</div>
                 <div className="feature-content">
                   <h3>Guardian System</h3>
-                  <p>8 assumption validators prevent false positives</p>
+                  <p>8 assumption validators guard against false positives</p>
                 </div>
               </div>
               <div className="feature-item">
@@ -290,8 +290,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="doc-content">
                 <h4>What It Does</h4>
                 <p>
-                  Guardian validates statistical assumptions BEFORE running tests, preventing
-                  Type I errors and false positives that plague published research.
+                  Guardian validates statistical assumptions BEFORE running tests, guarding
+                  against the Type I errors and false positives that plague published research.
                 </p>
                 <h4>8 Validators</h4>
                 <ul className="doc-list">
