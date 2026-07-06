@@ -201,7 +201,11 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        # CI=false so react-scripts does not treat pre-existing ESLint
+        # warnings as errors (GitHub sets CI=true by default). This matches
+        # the production Docker build, where CI is unset inside the build
+        # context, so the E2E build behaves the same as the shipped image.
+        run: CI=false npm run build
 
       - name: Start backend
         working-directory: backend

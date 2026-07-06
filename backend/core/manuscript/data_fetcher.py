@@ -46,8 +46,9 @@ _PREFER = re.compile(r"count|matrix|expression|fpkm|tpm|deseq|readcount|rawcount
 class FetchResult:
     accession: str
     repository: str
-    status: str  # ingested | downloaded_not_ingestible | no_data_file | too_large |
-                 # no_suppl_dir | fetch_error | unsupported_repo
+    # status values: ingested | downloaded_not_ingestible | no_data_file |
+    # too_large | no_suppl_dir | fetch_error | unsupported_repo
+    status: str
     source_url: str = ""
     local_path: Optional[str] = None
     file_name: str = ""

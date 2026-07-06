@@ -31,7 +31,10 @@ extend-ignore =
     # blank line contains whitespace — cosmetic
     W293,
     # blank line at end of file — cosmetic
-    W391
+    W391,
+    # continuation line over-indented for visual indent — conflicts with the
+    # deliberate columnar alignment of spec tables and with Black
+    E127
 per-file-ignores =
     # imported but unused in __init__.py (re-exports)
     */__init__.py:F401
