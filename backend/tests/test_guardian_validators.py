@@ -158,6 +158,37 @@ class IndependenceValidatorTests(TestCase):
         if result["violated"]:
             self.assertEqual(result["severity"], "critical")
 
+    def _ar1(self, n=200, rho=0.8, sd=0.5):
+        ar = np.zeros(n)
+        ar[0] = np.random.normal()
+        for i in range(1, n):
+            ar[i] = rho * ar[i - 1] + np.random.normal(0, sd)
+        return ar
+
+    def test_gated_off_when_declared_non_sequential(self):
+        """sequential_order=False -> not-applicable, never a violation, even on
+        strongly autocorrelated data (the arrangement is declared meaningless)."""
+        ar_data = self._ar1()
+        result = self.validator.validate([ar_data], sequential_order=False)
+        self.assertFalse(result["violated"])
+        self.assertTrue(result.get("not_applicable"))
+        self.assertIn("study design", result["message"].lower())
+        self.assertEqual(result["test_name"], "Independence (study design)")
+
+    def test_runs_when_sequential_declared(self):
+        """sequential_order=True runs the lag-1 test; AR(1) data is flagged."""
+        ar_data = self._ar1()
+        result = self.validator.validate([ar_data], sequential_order=True)
+        self.assertTrue(result["violated"])
+        self.assertIn("lag-1", result["message"].lower())
+
+    def test_default_none_preserves_lag1_behaviour(self):
+        """No flag (order unspecified) preserves the original lag-1 behaviour,
+        so existing direct callers/tests are unaffected."""
+        ar_data = self._ar1()
+        result = self.validator.validate([ar_data])
+        self.assertTrue(result["violated"])
+
 
 class OutlierDetectorTests(TestCase):
     """Test the OutlierDetector."""
@@ -387,6 +418,39 @@ class GuardianCoreIntegrationTests(TestCase):
         self.assertEqual(len(report.assumptions_checked), 0)
         self.assertEqual(len(report.violations), 0)
         self.assertEqual(report.confidence_score, 1.0)
+
+    def _ar1_groups(self):
+        """Two strongly autocorrelated (AR(1)) groups -- lag-1 would flag them
+        if run, so they isolate the independence-gate behaviour."""
+        def ar1(n=200, rho=0.85, sd=0.4):
+            ar = np.zeros(n)
+            ar[0] = np.random.normal()
+            for i in range(1, n):
+                ar[i] = rho * ar[i - 1] + np.random.normal(0, sd)
+            return ar.tolist()
+        return {"group1": ar1(), "group2": ar1()}
+
+    def test_independence_referred_to_study_design_by_default(self):
+        """Without an observation_order declaration, the independence check is
+        referred to study design and never contributes a violation, even for
+        strongly autocorrelated data (which would flag if lag-1 ran)."""
+        data = self._ar1_groups()
+        report = self.guardian.check(data, "t_test")
+        self.assertIn("independence", report.assumptions_checked)
+        violated = {v.assumption for v in report.violations}
+        self.assertNotIn("independence", violated)
+        # audit trail records it as not_applicable rather than pass/violation
+        indep = [e for e in report.audit_trail if e.assumption == "independence"]
+        self.assertTrue(indep)
+        self.assertEqual(indep[0].result, "not_applicable")
+
+    def test_independence_checked_when_sequential_declared(self):
+        """Declaring observation_order='sequential' re-enables the lag-1 check,
+        which flags the autocorrelated data."""
+        data = self._ar1_groups()
+        report = self.guardian.check(data, "t_test", observation_order="sequential")
+        violated = {v.assumption for v in report.violations}
+        self.assertIn("independence", violated)
 
 
 class ConfidenceScoreTests(TestCase):

@@ -407,7 +407,21 @@ class GuardianCore:
         # Context-aware severity adjuster (v2)
         self.severity_adjuster = ContextualSeverityAdjuster()
 
-    def check(self, data: Any, test_type: str, alpha: float = 0.05) -> GuardianReport:
+    # Values of ``observation_order`` that mean "rows are in genuine
+    # time/sequence order", which is the only situation in which the
+    # lag-1 autocorrelation independence check is informative.
+    _SEQUENTIAL_ORDER_VALUES = frozenset({
+        "sequential", "temporal", "time", "timeseries",
+        "time_series", "time-series", "ordered", "serial",
+    })
+
+    def check(
+        self,
+        data: Any,
+        test_type: str,
+        alpha: float = 0.05,
+        observation_order: Optional[str] = None,
+    ) -> GuardianReport:
         """
         Main Guardian check - validates all assumptions for a given test
 
@@ -419,6 +433,16 @@ class GuardianCore:
             The statistical test to be performed
         alpha : float
             Significance level for assumption tests
+        observation_order : str, optional
+            Declares what the row order of the data means, which gates the
+            independence (lag-1 autocorrelation) check. Pass ``"sequential"``
+            (or ``"temporal"``/``"time_series"``/etc.) when the rows are a
+            genuine time series or repeated-measures sequence so that the
+            lag-1 check is run. For any other value -- including the default
+            ``None`` -- the order is treated as non-sequential (e.g.
+            cross-sectional or omics data) and independence is referred to
+            study design rather than tested by lag-1 autocorrelation, since
+            that statistic is otherwise an artifact of sample arrangement.
 
         Returns:
         --------
@@ -431,6 +455,15 @@ class GuardianCore:
         # Get requirements for this test
         requirements = self.test_requirements.get(test_type, [])
 
+        # Gate for the independence validator: only run the lag-1
+        # autocorrelation test when the caller declares the row order is
+        # temporal/sequential; otherwise refer independence to study design.
+        sequential_order = (
+            observation_order is not None
+            and str(observation_order).strip().lower()
+            in self._SEQUENTIAL_ORDER_VALUES
+        )
+
         violations = []
         visual_evidence = {}
         audit_trail = []
@@ -440,7 +473,13 @@ class GuardianCore:
         for req in requirements:
             if req in self.validators:
                 validator = self.validators[req]
-                result = validator.validate(data_arrays, alpha)
+                if req == "independence":
+                    result = validator.validate(
+                        data_arrays, alpha,
+                        sequential_order=sequential_order,
+                    )
+                else:
+                    result = validator.validate(data_arrays, alpha)
 
                 if result["violated"]:
                     violations.append(
@@ -468,7 +507,9 @@ class GuardianCore:
                         )
                     )
                 else:
-                    # Audit: record pass
+                    # Audit: record pass, or "not_applicable" when a
+                    # validator (e.g. independence on non-sequential data)
+                    # declined to test rather than passing.
                     audit_trail.append(
                         GuardianAuditEntry(
                             timestamp=now_iso,
@@ -476,7 +517,11 @@ class GuardianCore:
                             test_performed=result.get(
                                 "test_name", req
                             ),
-                            result="pass",
+                            result=(
+                                "not_applicable"
+                                if result.get("not_applicable")
+                                else "pass"
+                            ),
                             severity="none",
                             p_value=result.get("p_value"),
                             citation=self._get_citation_for_assumption(req),
@@ -841,17 +886,65 @@ class IndependenceValidator:
     rows represent successive time points or sequential measurements.
     If the rows have been shuffled or come from independent units
     in unspecified order, the lag-1 autocorrelation is meaningless.
-    Callers using this validator on cross-sectional data should ignore
-    its verdict (or use Expert Mode to suppress it).
+
+    Because the lag-1 statistic is a function of *arrangement*, running
+    it on cross-sectional/omics data can report a spurious "violation"
+    that is an artifact of how the samples happen to be ordered. The
+    validator is therefore gated: the caller declares whether the
+    observation order is temporal/sequential (``sequential_order``).
+    When the order is not declared sequential, the check returns a
+    "not applicable -- independence is a matter of study design" result
+    rather than a lag-1 verdict. Called directly with no flag
+    (``sequential_order=None``) it preserves the original behaviour so
+    that unit tests of the lag-1 mathematics remain valid.
     """
 
-    def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
+    def validate(
+        self,
+        data_arrays: List[np.ndarray],
+        alpha: float = 0.05,
+        sequential_order: Optional[bool] = None,
+    ) -> Dict:
         """Test for lag-1 serial autocorrelation in each input array.
 
         Returns a violation if any group's lag-1 autocorrelation is
         statistically significant at the given alpha AND practically
         meaningful (|r| > 0.3 warning / |r| > 0.5 critical).
+
+        ``sequential_order`` gates the check:
+          * ``False`` -- the caller has declared the observation order is
+            not temporal/sequential (e.g. a cross-sectional or omics
+            matrix), so the lag-1 test is not informative and the
+            validator returns a non-violating "not applicable" result
+            that refers independence to study design.
+          * ``True`` / ``None`` -- run the lag-1 autocorrelation test.
+            ``None`` (the default when the validator is called directly,
+            i.e. order unspecified) preserves the historical behaviour.
         """
+        if sequential_order is False:
+            return {
+                "violated": False,
+                "not_applicable": True,
+                "test_name": "Independence (study design)",
+                "statistic": None,
+                "p_value": None,
+                "message": (
+                    "Independence was not auto-tested: the lag-1 "
+                    "autocorrelation check is only informative for data "
+                    "in time/sequence order, and the observation order "
+                    "was not declared sequential. Independence here is a "
+                    "matter of study design (randomisation, clustering, "
+                    "repeated measures)."
+                ),
+                "recommendation": (
+                    "Confirm from the study design that observations are "
+                    "independent. If the rows are a genuine time series or "
+                    "repeated-measures sequence, re-run declaring the "
+                    "observation order as sequential to enable the lag-1 "
+                    "autocorrelation check."
+                ),
+            }
+
         max_autocorr = 0.0
         max_p = 1.0
         for arr in data_arrays:
