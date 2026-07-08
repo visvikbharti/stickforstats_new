@@ -20,10 +20,16 @@ export const endpoints = {
   },
 
   // Guardian System
+  // NOTE: the assumption-check endpoint is mounted at `/guardian/check/`
+  // (backend/core/guardian/urls.py -> path("check/", GuardianCheckView)).
+  // The former `/guardian/check-assumptions/` value was stale (no such route);
+  // `services/GuardianService.js` is the canonical caller and already uses
+  // `/guardian/check/`.
   guardian: {
     health: '/guardian/health/',
     preflight: '/guardian/preflight/',
-    checkAssumptions: '/guardian/check-assumptions/',
+    check: '/guardian/check/',
+    checkAssumptions: '/guardian/check/',
   },
 
   // Assumptions
