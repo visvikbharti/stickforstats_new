@@ -1,11 +1,10 @@
 # Cover letter — BMC Bioinformatics (Software article)
 
-*Fill the two placeholders before sending: `[DATE]` and `[ZENODO_CONCEPT_DOI]` (from Phase 1 of the playbook).
-Paste the body into the submission system's cover-letter field.*
+*Paste the body into the submission system's cover-letter field.*
 
 ---
 
-[DATE]
+8 July 2026
 
 To the Editors,
 *BMC Bioinformatics*
@@ -49,7 +48,8 @@ technical soundness, transparency, and full reproducibility, consistent with the
 
 **Availability.** StickForStats is MIT-licensed and openly available at
 https://github.com/visvikbharti/stickforstats_new; a versioned, citable snapshot is archived on Zenodo
-(DOI: [ZENODO_CONCEPT_DOI]). A Python client SDK and command-line interface are on PyPI
+(concept DOI: https://doi.org/10.5281/zenodo.21258381, always resolving to the latest version; this
+submission corresponds to v1.1.0, DOI 10.5281/zenodo.21258382). A Python client SDK and command-line interface are on PyPI
 (`pip install stickforstats`), and a hosted instance is available for evaluation at https://stickforstats.com.
 All datasets analysed are public and previously published.
 

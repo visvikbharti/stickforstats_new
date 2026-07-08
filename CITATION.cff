@@ -17,8 +17,13 @@ authors:
     given-names: Debojyoti
     orcid: "https://orcid.org/0000-0003-1460-7594"
     affiliation: "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India; Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India"
-version: 1.0.0
-date-released: "2026-04-09"
+version: 1.1.0
+date-released: "2026-07-08"
+doi: 10.5281/zenodo.21258381
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21258382
+    description: "Archived snapshot of v1.1.0 (this release)"
 license: MIT
 repository-code: "https://github.com/visvikbharti/stickforstats_new"
 url: "https://github.com/visvikbharti/stickforstats_new"

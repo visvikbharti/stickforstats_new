@@ -132,6 +132,14 @@ render_one \
   ""  # title comes from the manuscript's own H1; empty here avoids a duplicate title block
 
 echo ""
+echo "==> Rendering submission-package manuscript (BMC Bioinformatics / bioRxiv v2)"
+render_one \
+  "$PAPER_DIR/submission_package/manuscript.md" \
+  "$PAPER_DIR/submission_package" \
+  "$PAPER_DIR/submission_package/manuscript_rendered.pdf" \
+  ""  # title from the manuscript's own H1
+
+echo ""
 echo "==> Rendering JOSS paper"
 render_one \
   "$PAPER_DIR/paper.md" \
@@ -142,4 +150,5 @@ render_one \
 echo ""
 echo "Done. Output:"
 echo "  $PAPER_DIR/plos_compbio/manuscript_rendered.pdf"
+echo "  $PAPER_DIR/submission_package/manuscript_rendered.pdf"
 echo "  $PAPER_DIR/paper_rendered.pdf"
