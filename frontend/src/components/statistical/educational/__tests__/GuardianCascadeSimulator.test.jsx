@@ -13,11 +13,12 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { getTheme } from '../../../../theme';
 import GuardianCascadeSimulator from '../GuardianCascadeSimulator';
+import guardianService from '../../../../services/GuardianService';
 
 // Mock the Guardian backend service (singleton default export).
 jest.mock('../../../../services/GuardianService', () => ({
@@ -26,7 +27,6 @@ jest.mock('../../../../services/GuardianService', () => ({
     checkAssumptions: jest.fn(),
   },
 }));
-import guardianService from '../../../../services/GuardianService';
 
 const theme = getTheme('light');
 const renderSim = () =>
@@ -102,6 +102,18 @@ describe('GuardianCascadeSimulator', () => {
     ).toBeInTheDocument();
   });
 
+  it('reveals the "How to read this" guide when the toggle is pressed', async () => {
+    renderSim();
+    // The guide is collapsed (unmountOnExit) — its section headers are absent.
+    expect(screen.queryByText(/THE SIX SCENARIOS/i)).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /How to read this simulator/i })
+    );
+    expect(await screen.findByText(/THE SIX SCENARIOS/i)).toBeInTheDocument();
+    expect(screen.getByText(/THE CONTROLS/i)).toBeInTheDocument();
+    expect(screen.getByText(/THE READOUTS/i)).toBeInTheDocument();
+  });
+
   it('switches measurement mode when the Power toggle is pressed', () => {
     renderSim();
     const power = screen.getByRole('button', { name: /Power \(real effect\)/i });
@@ -134,9 +146,7 @@ describe('GuardianCascadeSimulator', () => {
     expect(alpha).toBe(0.05);
 
     // Result alert renders once the promise resolves.
-    await waitFor(() =>
-      expect(screen.getByText(/production Guardian routed to/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/production Guardian routed to/i);
     expect(screen.getByText(/Levene p=0.0120/i)).toBeInTheDocument();
   });
 
@@ -148,9 +158,7 @@ describe('GuardianCascadeSimulator', () => {
         name: /Run this exact draw through the production Guardian/i,
       })
     );
-    await waitFor(() =>
-      expect(screen.getByText(/Guardian endpoint unreachable/i)).toBeInTheDocument()
-    );
+    await screen.findByText(/Guardian endpoint unreachable/i);
     // The component itself must not crash — its heading is still present.
     expect(screen.getByText(/Why one t-test isn/i)).toBeInTheDocument();
   });

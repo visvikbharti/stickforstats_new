@@ -677,7 +677,7 @@ const NonParametricTestsReal = () => {
       )}
 
       {/* Why non-parametric? — interactive Guardian cascade lecture demo */}
-      <Accordion sx={{ mb: 3 }} defaultExpanded={false}>
+      <Accordion sx={{ mb: 3 }} defaultExpanded={false} TransitionProps={{ unmountOnExit: true }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <SecurityIcon fontSize="small" color="primary" />

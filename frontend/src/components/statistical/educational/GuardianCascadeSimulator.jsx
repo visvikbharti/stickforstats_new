@@ -11,6 +11,7 @@ import {
   Alert,
   AlertTitle,
   CircularProgress,
+  Collapse,
   Divider,
   useTheme,
 } from '@mui/material';
@@ -22,6 +23,8 @@ import {
   Verified as VerifiedIcon,
   Security as ShieldIcon,
   Bolt as BoltIcon,
+  MenuBook as GuideIcon,
+  ExpandMore as ExpandIcon,
 } from '@mui/icons-material';
 
 import guardianService from '../../../services/GuardianService';
@@ -411,6 +414,104 @@ const SCENARIOS = [
 
 const ROUTE_LABELS = ["Student's t", 'Welch', 'Mann-Whitney'];
 
+/* ---- In-app "How to read this" documentation (data-driven so the copy stays
+ * out of the render tree and ESLint's no-unescaped-entities never trips). ---- */
+const GUIDE_CONTROLS = [
+  [
+    'Scenario (S1–S6)',
+    'Chooses which statistical assumption the data violates. Each pick re-seeds and restarts the run so both analysts see identical data. S6 is border-flagged in amber because it is the honest failure case.',
+  ],
+  [
+    'Measurement mode',
+    '“False positives” runs with no real difference between the groups, so every rejection is an error (target 0.05). “Power” adds a genuine effect, so every rejection is a correct catch (higher is better). Flip to Power to see Guardian’s payoff on S3–S5.',
+  ],
+  [
+    'Run / Pause / Run again',
+    'Starts, freezes, or replays the animated Monte-Carlo. The random seed is fixed, so a replay reproduces the identical trajectory — that is what lets a reviewer reproduce the figure deterministically.',
+  ],
+  ['Reset', 'Clears every counter and restarts the current scenario from experiment zero.'],
+  [
+    'New draw',
+    'Redraws only the single example dataset shown in the histogram — not the aggregate meters. Use it to see the natural draw-to-draw variability, and to get a fresh dataset to send through the Verify button.',
+  ],
+  [
+    'Verify against the production Guardian',
+    'POSTs the displayed draw to the real /api/guardian/check/ engine and checks it picks the same test as the simulation. Green = match; amber “different route” happens only on borderline draws; red = endpoint unreachable (the simulation is unaffected).',
+  ],
+  [
+    'Fixed setup (n = 55 vs 36, α = 0.05)',
+    'Not adjustable — these are the manuscript’s benchmark conditions, which is why the live rates line up with the published numbers.',
+  ],
+];
+
+const GUIDE_READOUTS = [
+  [
+    'Naïve analyst number',
+    'How often the always-pooled Student’s t-test rejected. In False-positives mode it should sit at 0.05; on S2 and S6 it climbs to ~0.10 — assumption violations roughly doubling the error rate.',
+  ],
+  [
+    'Guardian cascade number',
+    'The same rate for the assumption-gated cascade. Colour-coded in False-positives mode: green ≤ 0.065 (control restored), amber ≤ 0.09, red above. On S2 it pulls ~0.10 back down to ~0.06.',
+  ],
+  [
+    'Meter bar + amber tick',
+    'A gauge on a 0–0.20 scale; the amber tick marks the 0.05 target. A bar sitting past the tick means inflated false positives.',
+  ],
+  [
+    'Dot matrix',
+    'Each cell is one recent experiment; a filled cell rejected the null — red in False-positives mode (a false alarm), green in Power mode (a correct detection).',
+  ],
+  [
+    'Routing bars',
+    'The share of tests Guardian sent to Student’s t / Welch / Mann-Whitney — the mechanism behind the rate gap (e.g. ~90% Welch on S2).',
+  ],
+  [
+    'Verdict card',
+    'A plain-language reading of the current scenario. It turns amber on S6 to flag the openly-disclosed limitation.',
+  ],
+  [
+    'Published-benchmark strip',
+    'The exact Fig 8 numbers for the current scenario, so you can confirm the live simulation is converging to the published result.',
+  ],
+  [
+    'Verify result alert',
+    'Third-party corroboration that the animated cascade matches the real deployed engine on a concrete draw.',
+  ],
+];
+
+const GUIDE_SCENARIOS = [
+  ['S1 · clean', 'Normal, equal variance — the textbook ideal. Both analysts sit near 0.05; the gate does no harm.'],
+  [
+    'S2 · unequal variance',
+    'The smaller group is ~3× as spread (the RNA-seq case). The pooled t-test’s error roughly doubles; Guardian’s Levene check routes ~90% to Welch and restores control.',
+  ],
+  [
+    'S3 · heavy tails',
+    't₃ noise. False positives stay near nominal, so flip to Power — Guardian routes to Mann-Whitney and recovers sensitivity the t-test loses.',
+  ],
+  [
+    'S4 · skewed',
+    'Right-skewed log-normal. Guardian sends ~100% to Mann-Whitney; error stays controlled and Power mode shows the gain.',
+  ],
+  [
+    'S5 · outliers',
+    '~5% gross outliers. Both control error, but the outliers quietly cost the t-test power; Mann-Whitney routing is robust to them.',
+  ],
+  [
+    'S6 · both',
+    'Heteroscedastic AND heavy-tailed — the hardest case. Normality-first routing only partly fixes the inflation; a fixed always-Welch default would do better. Reported, not hidden.',
+  ],
+];
+
+const GUIDE_USES = [
+  'Students: pick S2 and watch the naïve t-test’s false-positive rate double while Guardian holds ~0.06 — then read the routing bars to see why it happened.',
+  'Reviewers: press Run across S1–S6, confirm the live rates settle onto the published-benchmark strip, then press Verify to prove the sim matches the deployed engine.',
+  'Instructors: step through the scenarios live, use New draw for sampling variability, and use Verify as a live “the classroom demo is faithful to production” moment.',
+];
+
+const GUIDE_NOTE =
+  'The in-browser normality test is Jarque–Bera; the production engine uses Shapiro–Wilk. On clearly-clean or clearly-violated data they agree; on a borderline draw the Verify result may report a different route — that is expected, and pressing New draw gives another example to try.';
+
 const TARGET = 4000;
 const POWER_SHIFT = 0.55;
 const DOTCAP = 600;
@@ -470,7 +571,6 @@ const GuardianCascadeSimulator = () => {
     }),
     [theme]
   );
-  const routeColors = [pal.student, pal.welch, pal.mwu];
 
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return false;
@@ -493,6 +593,7 @@ const GuardianCascadeSimulator = () => {
     status: 'running',
   });
   const [previewSimRoute, setPreviewSimRoute] = useState(null); // route on the displayed draw
+  const [showGuide, setShowGuide] = useState(false); // "How to read this" panel
 
   // Backend anchor state
   const [anchor, setAnchor] = useState({ status: 'idle' }); // idle|loading|done|error
@@ -503,6 +604,7 @@ const GuardianCascadeSimulator = () => {
   const modeRef = useRef(mode);
   const runningRef = useRef(running);
   const rafRef = useRef(null);
+  const mountedRef = useRef(true); // guards async setState after unmount
 
   const seedObjRef = useRef({ s: SEED0 });
   const rngRef = useRef(null);
@@ -780,6 +882,16 @@ const GuardianCascadeSimulator = () => {
   // Cleanup on unmount.
   useEffect(() => stopLoop, [stopLoop]);
 
+  // Track mount state so an in-flight backend response never sets state after
+  // the component unmounts (e.g. the user collapses the accordion or navigates
+  // away mid-request).
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   /* ---- control handlers ---- */
   const toggleRun = () => {
     const sim = simRef.current;
@@ -827,6 +939,7 @@ const GuardianCascadeSimulator = () => {
       );
       if (report && report.error) throw new Error(report.error);
       const backend = deriveRouteFromGuardian(report);
+      if (!mountedRef.current) return;
       setAnchor({
         status: 'done',
         backendRoute: backend.route,
@@ -837,6 +950,7 @@ const GuardianCascadeSimulator = () => {
         confidence: report ? report.confidence_score : null,
       });
     } catch (err) {
+      if (!mountedRef.current) return;
       setAnchor({
         status: 'error',
         message:
@@ -902,6 +1016,32 @@ const GuardianCascadeSimulator = () => {
         analysing your data. Use the button below to send the displayed draw through the{' '}
         <b>real</b> Guardian and verify the routing matches.
       </Alert>
+
+      {/* "How to read this" — in-app documentation */}
+      <Box sx={{ mt: 1.5 }}>
+        <Button
+          size="small"
+          variant="text"
+          onClick={() => setShowGuide((v) => !v)}
+          startIcon={<GuideIcon fontSize="small" />}
+          endIcon={
+            <ExpandIcon
+              fontSize="small"
+              sx={{
+                transition: prefersReducedMotion ? 'none' : 'transform 0.2s ease',
+                transform: showGuide ? 'rotate(180deg)' : 'none',
+              }}
+            />
+          }
+          aria-expanded={showGuide}
+          sx={{ textTransform: 'none' }}
+        >
+          {showGuide ? 'Hide the guide' : 'How to read this simulator'}
+        </Button>
+        <Collapse in={showGuide} timeout={prefersReducedMotion ? 0 : 'auto'} unmountOnExit>
+          <GuardianSimulatorGuide monoFont={monoFont} />
+        </Collapse>
+      </Box>
 
       <Divider sx={{ my: 2.5 }} />
 
@@ -1099,7 +1239,7 @@ const GuardianCascadeSimulator = () => {
               {rateLabel}
             </Typography>
           </Box>
-          <Meter value={readout.naiveRate} max={maxScale} color={pal.error} showTarget={!isPower} pal={pal} />
+          <Meter value={readout.naiveRate} max={maxScale} color={pal.error} showTarget={!isPower} pal={pal} reducedMotion={prefersReducedMotion} />
           <canvas ref={naiveCanvasRef} style={canvasSx} />
         </Paper>
 
@@ -1132,7 +1272,7 @@ const GuardianCascadeSimulator = () => {
               {rateLabel}
             </Typography>
           </Box>
-          <Meter value={readout.guardRate} max={maxScale} color={guardRateColor} showTarget={!isPower} pal={pal} />
+          <Meter value={readout.guardRate} max={maxScale} color={guardRateColor} showTarget={!isPower} pal={pal} reducedMotion={prefersReducedMotion} />
           <canvas ref={guardCanvasRef} style={canvasSx} />
 
           <Typography
@@ -1357,7 +1497,7 @@ function BenchStat({ k, v, monoFont, sx }) {
 
 // A meter bar with an optional 5% target marker (avoids MUI LinearProgress so
 // we can colour-code and place the target tick).
-function Meter({ value, max, color, showTarget, pal }) {
+function Meter({ value, max, color, showTarget, pal, reducedMotion }) {
   const pct = Math.min(value / max, 1) * 100;
   const targetPct = (0.05 / max) * 100;
   return (
@@ -1379,7 +1519,7 @@ function Meter({ value, max, color, showTarget, pal }) {
             borderRadius: '5px 0 0 5px',
             bgcolor: color,
             width: `${pct}%`,
-            transition: 'width 0.18s ease',
+            transition: reducedMotion ? 'none' : 'width 0.18s ease',
           }}
         />
         {showTarget && (
@@ -1430,6 +1570,108 @@ function LinearProgressLike({ value }) {
         }}
       />
     </Box>
+  );
+}
+
+/* ---- In-app "How to read this" guide (presentational, theme-driven) ---- */
+
+function GuideRow({ term, desc }) {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: '210px 1fr' },
+        gap: { xs: 0.25, sm: 2 },
+        py: 0.75,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Typography variant="body2" sx={{ fontWeight: 650, color: 'text.primary' }}>
+        {term}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {desc}
+      </Typography>
+    </Box>
+  );
+}
+
+function GuideSection({ title, children }) {
+  return (
+    <Box sx={{ mt: 2.25 }}>
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'block',
+          color: 'text.disabled',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          mb: 0.5,
+        }}
+      >
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  );
+}
+
+function GuardianSimulatorGuide({ monoFont }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{ mt: 1.5, p: { xs: 1.75, sm: 2.25 }, borderRadius: 2, bgcolor: 'background.subtle' }}
+    >
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '80ch' }}>
+        This widget is <b>Figure 8 of the manuscript, made interactive</b>. It draws two groups of
+        numbers, hands the <i>identical</i> data to two analysts — one who always runs a pooled
+        Student&rsquo;s t-test, one who runs the assumption-checking Guardian cascade — and counts how
+        often each is wrong over thousands of repeats. Everything you see is a fast in-browser
+        simulation; the <b>Verify</b> button sends a real draw to the production engine to prove the
+        two agree.
+      </Typography>
+
+      <GuideSection title="THE CONTROLS">
+        {GUIDE_CONTROLS.map(([term, desc]) => (
+          <GuideRow key={term} term={term} desc={desc} />
+        ))}
+      </GuideSection>
+
+      <GuideSection title="THE READOUTS">
+        {GUIDE_READOUTS.map(([term, desc]) => (
+          <GuideRow key={term} term={term} desc={desc} />
+        ))}
+      </GuideSection>
+
+      <GuideSection title="THE SIX SCENARIOS">
+        {GUIDE_SCENARIOS.map(([term, desc]) => (
+          <GuideRow key={term} term={term} desc={desc} />
+        ))}
+      </GuideSection>
+
+      <GuideSection title="WHEN TO USE IT">
+        <Box component="ul" sx={{ m: 0, pl: 2.5, color: 'text.secondary', '& li': { mb: 0.75 } }}>
+          {GUIDE_USES.map((u) => (
+            <Typography key={u} component="li" variant="body2">
+              {u}
+            </Typography>
+          ))}
+        </Box>
+      </GuideSection>
+
+      <Alert severity="info" sx={{ mt: 2.25 }} icon={<VerifiedIcon fontSize="inherit" />}>
+        {GUIDE_NOTE}
+      </Alert>
+
+      <Typography
+        variant="caption"
+        sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontFamily: monoFont }}
+      >
+        Reference: Bharti &amp; Chakraborty — StickForStats calibration benchmark (Fig 8), seed
+        20260706.
+      </Typography>
+    </Paper>
   );
 }
 
