@@ -43,7 +43,8 @@ which becomes the default shown; v1 stays in the version history.
 ## Summary of changes (paste into the bioRxiv revision form)
 
 > **Version 2 — summary of changes.** This revision makes three author-initiated scientific-integrity
-> corrections and adds one new analysis; no case-study data changed.
+> corrections, adds one new analysis, and records a citable code archive plus formal declarations; no
+> case-study data changed.
 >
 > 1. **New calibration benchmark (new Fig 8).** We added a controlled Monte-Carlo study, under known ground
 >    truth, of whether the Guardian assumption cascade *improves* inference or merely *changes* it. Framed as an
@@ -64,6 +65,14 @@ which becomes the default shown; v1 stays in the version history.
 >    per-gene tests do not model, and note the planned patient-aware follow-up.
 > 4. **Claim-extraction description corrected.** The manuscript-verification module's claim extraction is
 >    regex-based; the earlier "regex + language-model hybrid" wording is withdrawn.
+> 5. **Citable code archive added.** The software is now archived on Zenodo (concept DOI
+>    10.5281/zenodo.21258381, always resolving to the latest version; this article corresponds to v1.1.0,
+>    version DOI 10.5281/zenodo.21258382); the data-availability statement and described version were updated
+>    accordingly (v1.0.0 -> v1.1.0).
+> 6. **Formal declarations added.** Explicit Competing interests and Funding statements were added: the authors
+>    disclose that CRISPRArchitect---the tool that generated the Case Study 1 dataset---is their own
+>    (open-source, non-commercial) tool, held with no patent, licensing, equity, or consulting interest; and
+>    that no specific grant funded this work (infrastructure support from CSIR-IGIB).
 >
 > Framing was also softened from novelty-claiming toward a soundness/tool presentation. The Guardian system, all
 > four real-data case studies, the statistical-consistency evaluation, and data/code availability are otherwise
