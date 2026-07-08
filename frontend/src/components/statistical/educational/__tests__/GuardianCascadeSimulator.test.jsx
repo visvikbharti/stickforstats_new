@@ -95,8 +95,11 @@ describe('GuardianCascadeSimulator', () => {
     const s6 = screen.getByRole('button', { name: /S6 · both/i });
     fireEvent.click(s6);
     expect(s6).toHaveAttribute('aria-pressed', 'true');
-    // S6 verdict text should now be shown.
-    expect(screen.getByText(/The honest limit/i)).toBeInTheDocument();
+    // S6 verdict headline should now be shown. Match a phrase unique to the
+    // verdict title — the S6 toggle-button hint also contains "the honest limit".
+    expect(
+      screen.getByText(/why variance-aware routing is the fix/i)
+    ).toBeInTheDocument();
   });
 
   it('switches measurement mode when the Power toggle is pressed', () => {
