@@ -10,7 +10,7 @@ import {
 import { Info, School, Assessment,
   Psychology, Science, Functions, CheckCircle,
   Warning, Error, BarChart, Lightbulb,
-  ExpandMore, NavigateNext, Casino
+  ExpandMore, NavigateNext, Casino, Security
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import ProfessionalContainer from '../components/common/ProfessionalContainer';
@@ -28,6 +28,10 @@ import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
 // REAL BACKEND INTEGRATION
 import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
+
+// Interactive "why assumptions matter" lecture demo (backend-anchored to the
+// real Guardian engine). Introduces the module with the Fig 8 cascade benchmark.
+import { GuardianCascadeSimulator } from '../components/statistical/educational';
 
 // Initialize service
 const service = new HighPrecisionStatisticalService();
@@ -805,6 +809,7 @@ const HypothesisTestingModuleReal = () => {
           scrollButtons="auto"
         >
           <Tab icon={<Psychology />} label="Theory" />
+          <Tab icon={<Security />} label="Why Guardian?" />
           <Tab icon={<Warning />} label="Type I & II Errors" />
           <Tab icon={<BarChart />} label="P-Values" />
           <Tab icon={<Functions />} label="Real Examples" />
@@ -915,7 +920,7 @@ const HypothesisTestingModuleReal = () => {
         {activeTab === 1 && (
           <Fade in timeout={500}>
             <Box>
-              <TypeITypeIIErrorSimulation darkMode={darkMode} />
+              <GuardianCascadeSimulator />
             </Box>
           </Fade>
         )}
@@ -923,12 +928,20 @@ const HypothesisTestingModuleReal = () => {
         {activeTab === 2 && (
           <Fade in timeout={500}>
             <Box>
-              <PValueDistributionExplorer darkMode={darkMode} />
+              <TypeITypeIIErrorSimulation darkMode={darkMode} />
             </Box>
           </Fade>
         )}
 
         {activeTab === 3 && (
+          <Fade in timeout={500}>
+            <Box>
+              <PValueDistributionExplorer darkMode={darkMode} />
+            </Box>
+          </Fade>
+        )}
+
+        {activeTab === 4 && (
           <Fade in timeout={500}>
             <Box>
               <Grid container spacing={3}>
