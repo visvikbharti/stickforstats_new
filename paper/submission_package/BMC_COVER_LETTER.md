@@ -56,8 +56,12 @@ All datasets analysed are public and previously published.
 **Declarations.** This manuscript is original, has not been published previously, and is not under consideration
 by any other journal. A preprint of an earlier version is posted on bioRxiv
 (doi:10.64898/2026.06.15.732278); an updated version corresponding to this submission is being posted there.
-Both authors have read and approved the manuscript and its submission. The authors declare that they have no
-competing interests. Data and code availability are as described above.
+Both authors have read and approved the manuscript and its submission. The authors are the developers of
+CRISPRArchitect, the genome-editing strategy-design tool used to generate the Case Study 1 dataset; neither
+author holds any patent, licensing arrangement, equity, or consulting income related to CRISPRArchitect,
+genome-editing technology, or a commercial version of StickForStats, and the authors declare no other
+competing interests. The authors received no specific grant for this work; infrastructure and administrative
+support were provided by CSIR-IGIB. Data and code availability are as described above.
 
 **Article-processing charge.** The corresponding author is based at a public research institute in India
 (CSIR-Institute of Genomics and Integrative Biology). India does not qualify for the automatic country-based

@@ -312,6 +312,14 @@ StickForStats is open-source under the MIT license; the version described here (
 
 Generative AI (Claude, Anthropic) was used to assist both software development and the drafting of this manuscript. In software development, all AI-suggested code was reviewed by the authors, tested against reference implementations (SciPy, R), and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). In manuscript preparation, AI was used for drafting and editing assistance; all text was reviewed and verified by the authors, and every statistical value was independently recomputed and checked against SciPy and R. No AI tool is listed as an author. The authors take full responsibility for the content, accuracy, and integrity of this work, including any portion produced with AI assistance.
 
+### Competing interests
+
+The authors are the developers of CRISPRArchitect (reference [31]), the genome-editing strategy-design tool whose composite scores constitute the dataset analysed in Case Study 1; in that case study StickForStats was applied as an independent statistical-validation step on those scores. Neither author holds any patent, licensing arrangement, equity, or consulting income related to CRISPRArchitect, genome-editing technology, or a commercial version of StickForStats. The authors declare no other competing interests.
+
+### Funding
+
+The authors received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors for this work. Infrastructure and administrative support were provided by the CSIR-Institute of Genomics and Integrative Biology.
+
 ## Acknowledgments
 
 We thank CSIR-Institute of Genomics and Integrative Biology for infrastructure and administrative support. We thank the developers of NumPy [38], SciPy [39], statsmodels [40], lifelines, and mpmath [27] whose libraries form the computational foundation of StickForStats.

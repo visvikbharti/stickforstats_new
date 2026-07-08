@@ -73,7 +73,7 @@ statistical assumption validation; reproducibility; computational biology; CRISP
 - **Financial Disclosure (Funding):** "The authors received no specific funding for this work."
   (PLOS rule: do NOT put funding anywhere in the manuscript file — only in this field. If your PI later wishes to acknowledge institutional support as funding, add it here, not in the text.)
 
-- **Competing Interests:** "The authors have declared that no competing interests exist."
+- **Competing Interests:** The authors are the developers of CRISPRArchitect (used in Case Study 1); neither holds any patent, licensing, equity, or consulting interest in CRISPRArchitect, genome-editing, or a commercial StickForStats; no other competing interests. (Do NOT enter "none".)
 
 - **Data Availability Statement:** "All data underlying the findings are fully available and were previously published: Fisher's Iris (via scikit-learn); the UCI Wine Quality dataset (https://archive.ics.uci.edu/dataset/186/wine+quality); the intravenous-magnesium meta-analysis dataset (the metafor R package, dat.egger2001); the synovial-sarcoma RNA-seq dataset (NCBI GEO accession GSE271517); and a 20-article corpus from the PubMed Central open-access subset, rebuilt from a recorded query. All author-generated code is openly available under the MIT license at https://github.com/visvikbharti/stickforstats_new (release v1.0.0); a versioned snapshot will be archived on Zenodo with a citable DOI. A complete replication package is included under paper/replication/ in the repository."
 

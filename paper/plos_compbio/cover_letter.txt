@@ -15,7 +15,7 @@ We believe the work is a natural fit for PLOS Computational Biology's readership
 
 StickForStats is released under the MIT license; the version described here is openly available at https://github.com/visvikbharti/stickforstats_new, with all datasets public and previously published and a complete replication package included. A Python client SDK and command line interface are available on PyPI (pip install stickforstats).
 
-Generative AI (Claude, Anthropic) was used to assist software development and manuscript drafting; all code and text were reviewed and verified by the authors, and every statistical value was independently recomputed against SciPy and R. No AI tool is listed as an author. The manuscript is original, is not under consideration for publication elsewhere, and all authors have read and approved its submission. The authors declare no competing interests.
+Generative AI (Claude, Anthropic) was used to assist software development and manuscript drafting; all code and text were reviewed and verified by the authors, and every statistical value was independently recomputed against SciPy and R. No AI tool is listed as an author. The manuscript is original, is not under consideration for publication elsewhere, and all authors have read and approved its submission. The authors are the developers of CRISPRArchitect, the genome-editing strategy-design tool used to generate the Case Study 1 dataset; neither author holds any patent, licensing, equity, or consulting interest related to CRISPRArchitect, genome-editing technology, or a commercial version of StickForStats, and the authors declare no other competing interests.
 
 We thank you for considering our submission and look forward to the reviewers' feedback.
 
