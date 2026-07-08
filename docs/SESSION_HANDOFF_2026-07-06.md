@@ -7,6 +7,14 @@ is committed + pushed). **CI: green.** Working tree clean except the pre-existin
 **Resume entry point:** this file. The step-by-step for the remaining human actions is
 `docs/RELEASE_AND_SUBMISSION_PLAYBOOK.md`.
 
+> **✅ UPDATE 2026-07-08 — Phases 1 & 2 DONE.** Zenodo GitHub webhook enabled; `v1.1.0` released (tag stays
+> at `8d8ca8f` = the archived snapshot); **concept DOI `10.5281/zenodo.21258381`** (version DOI `.21258382`)
+> minted and wired into both canonical manuscripts + `BMC_COVER_LETTER.md` + `CITATION.cff` (v1.1.0,
+> date-released 2026-07-08); all PDFs re-rendered with the DOI baked in (verified via `pdftotext`).
+> Committed + pushed — **`main` = `1495d5b`** (branch in sync). Remaining: **Phase 3** (post bioRxiv v2),
+> **Phase 4** (submit to BMC Bioinformatics), optional **Phase 0** (redeploy). Rendered PDFs are gitignored
+> (`paper/**/*_rendered.pdf`) — run `bash paper/render_pdfs.sh` to regenerate before uploading to a portal.
+
 ---
 
 ## What this session did (12 commits, `eaf247e`..`78fffb7`)

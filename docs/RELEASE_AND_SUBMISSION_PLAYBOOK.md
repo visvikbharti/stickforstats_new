@@ -13,6 +13,11 @@ Phase 4  Submit to BMC Bioinformatics     (uses the DOI + updated PDF)
 
 Legend: 🧑 = you (portal/creds needed) · 🤖 = I can do it in-repo when you say go.
 
+> **✅ STATUS 2026-07-08 — Phase 1 (DONE) & Phase 2 (DONE).** Webhook enabled, `v1.1.0` released, **concept
+> DOI `10.5281/zenodo.21258381`** minted; DOI wired into both manuscripts + cover letter + `CITATION.cff`,
+> PDFs re-rendered, pushed (`main` = `1495d5b`). **Next: Phase 3 (bioRxiv v2) → Phase 4 (BMC submission).**
+> Phase 0 (redeploy) still optional/independent.
+
 ---
 
 ## Phase 0 — Redeploy the live site 🧑  (independent; the code changes are already on `main`, images built from `79800c4`)
