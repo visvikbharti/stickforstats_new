@@ -63,7 +63,7 @@ genome-editing technology, or a commercial version of StickForStats, and the aut
 competing interests. The authors received no specific grant for this work; infrastructure and administrative
 support were provided by CSIR-IGIB. Data and code availability are as described above.
 
-**Article-processing charge.** The corresponding author is based at a public research institute in India
+**Article-processing charge.** The corresponding authors are based at a public research institute in India
 (CSIR-Institute of Genomics and Integrative Biology). India does not qualify for the automatic country-based
 APC waiver, and we would be grateful for the editorial office's consideration of a discretionary, need-based
 waiver or discount for this open-source, non-commercial work. We are of course happy to provide any information
@@ -75,10 +75,9 @@ and we hope you will consider it for peer review. Thank you for your time.
 
 Sincerely,
 
-**Vishal Bharti** (corresponding author), on behalf of both authors
+**Vishal Bharti** and **Debojyoti Chakraborty** (co-corresponding authors)
 CSIR-Institute of Genomics and Integrative Biology, New Delhi 110025, India
-vishalvikashbharti@gmail.com · ORCID 0009-0003-1431-4457
 
-Co-author: Debojyoti Chakraborty (debojyoti.chakraborty@igib.in; ORCID 0000-0003-1460-7594),
-CSIR-Institute of Genomics and Integrative Biology, New Delhi & Academy of Scientific and Innovative Research
-(AcSIR), Ghaziabad, India.
+Vishal Bharti --- vishalvikashbharti@gmail.com · ORCID 0009-0003-1431-4457
+Debojyoti Chakraborty --- debojyoti.chakraborty@igib.in · ORCID 0000-0003-1460-7594
+(also affiliated with the Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India)

@@ -13,7 +13,13 @@ ORCID: Vishal Bharti https://orcid.org/0009-0003-1431-4457; Debojyoti Chakrabort
 
 ## Abstract
 
-Reproducible computational biology depends on statistical decisions that routine workflows often skip: verifying that a differential-expression test's assumptions hold across all genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions, and existing statistical software leaves validation to the analyst as an optional step. We present StickForStats, an open-source web platform that reframes assumption validation as a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity)---checks assumptions before execution and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail. At genome scale, applying Guardian to a 91-sample synovial-sarcoma RNA-seq study (GSE271517) cascaded 90.6% of 27,221 genes to a rank-based test and flipped the differential-expression verdict for 553 genes---479 rescued from an under-powered t-test, plus 74 large-effect, outlier-influenced genes the rank-based cascade declines to call (a disagreement where count-based genomics models may differ)---materially changing the gene list a biologist would act on while illustrating both the impact and the limits of automatic, assumption-driven test selection. The same automatic validation generalizes across domains: a CRISPR editing-strategy comparison (ANOVA F = 1122, with Guardian recommending Kruskal-Wallis H = 36.6), an ordinal correlation (Pearson r = 0.476 corrected to Spearman ρ = 0.479), and a sixteen-trial clinical meta-analysis revealing severe publication bias (Egger's t = -5.78, p < 0.001); a complementary module extends the same validators to published manuscripts, checking claims against CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards. By making assumption validation automatic and transparent, StickForStats targets a tractable, under-served contributor to irreproducibility. The platform is MIT-licensed, validated against SciPy and R, and freely available at https://github.com/visvikbharti/stickforstats_new.
+**Background:** Reproducible computational biology depends on statistical decisions that routine workflows often skip: verifying that a differential-expression test's assumptions hold across all genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking these assumptions, and existing statistical software leaves validation to the analyst as an optional step.
+
+**Results:** We present StickForStats, an open-source web platform that reframes assumption validation as a default precondition for every analysis. Its Guardian system---a middleware pipeline of eight validators (normality, variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity)---checks assumptions before execution and, on critical violations, reroutes to an appropriate nonparametric alternative with a documented decision trail. At genome scale, applying Guardian to a 91-sample synovial-sarcoma RNA-seq study (GSE271517) cascaded 90.6% of 27,221 genes to a rank-based test and flipped the differential-expression verdict for 553 genes---479 rescued from an under-powered t-test, plus 74 large-effect, outlier-influenced genes the rank-based cascade declines to call (a disagreement where count-based genomics models may differ)---materially changing the gene list a biologist would act on. The same automatic validation generalizes across domains: a CRISPR editing-strategy comparison (ANOVA F = 1122, with Guardian recommending Kruskal-Wallis H = 36.6), an ordinal correlation (Pearson r = 0.476 corrected to Spearman ρ = 0.479), and a sixteen-trial clinical meta-analysis revealing severe publication bias (Egger's t = -5.78, p < 0.001); a complementary module extends the same validators to published manuscripts, checking claims against CONSORT, STROBE, ICH-E9, and JARS-Quant reporting standards. All computations are validated against SciPy and R.
+
+**Conclusions:** By making assumption validation automatic and transparent rather than an optional, easily skipped step, StickForStats targets a tractable, under-served contributor to irreproducibility. The platform is MIT-licensed and freely available at https://github.com/visvikbharti/stickforstats_new, with a citable archived snapshot on Zenodo (DOI 10.5281/zenodo.21258381).
+
+**Keywords:** Statistical assumption validation; Reproducibility; Differential expression; RNA-seq; Nonparametric methods; Meta-analysis; Manuscript screening; Open-source software
 
 ---
 
@@ -308,6 +314,17 @@ Each Guardian validator was validated against known datasets with confirmed prop
 
 StickForStats is open-source under the MIT license; the version described here (v1.1.0, release tag `v1.1.0`) is openly available at https://github.com/visvikbharti/stickforstats_new and is archived on Zenodo with the concept DOI https://doi.org/10.5281/zenodo.21258381 (which always resolves to the latest archived version; the snapshot for this article is v1.1.0, DOI 10.5281/zenodo.21258382), providing a citable DOI for the published version. The platform is platform-independent (Docker / Docker Compose) and runs in any modern browser; the backend requires Python >= 3.10, Django 4.2, PostgreSQL 15, and Redis 7 (SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3). A `Dockerfile` and `docker-compose.yml` provision the full stack. A Python client SDK and command-line interface are available on PyPI (`pip install stickforstats`, or `pip install stickforstats[cli]` for the `sfs` command); the SDK connects to a StickForStats backend---a local Docker deployment or a hosted instance---through its REST API. All datasets analysed in this article are public and previously published; the replication package (`paper/replication/`) contains the verification scripts, the master runner (`MASTER_VERIFICATION.py`), and the statcheck head-to-head (`statcheck_baseline.R`) with run instructions. Per-dataset sources are: Fisher's Iris (via scikit-learn); UCI Wine Quality (https://archive.ics.uci.edu/dataset/186/wine+quality); the IV-magnesium meta-analysis (Egger 1997 [26]; `metafor::dat.egger2001` [33]); synovial-sarcoma RNA-seq (NCBI GEO accession GSE271517; Chen et al. 2024 [34]); and the 20-article retrospective-verification corpus (PubMed Central open-access subset, rebuilt by `fetch_corpus.py` from the recorded E-utilities query and manifest).
 
+### Availability and requirements
+
+- **Project name:** StickForStats
+- **Project home page:** https://github.com/visvikbharti/stickforstats_new (hosted evaluation instance: https://stickforstats.com)
+- **Archived version:** Zenodo concept DOI 10.5281/zenodo.21258381 (this article: v1.1.0, version DOI 10.5281/zenodo.21258382)
+- **Operating system(s):** Platform-independent (Docker / Docker Compose; runs in any modern web browser)
+- **Programming language:** Python (backend), JavaScript / React (frontend)
+- **Other requirements:** Python >= 3.10, Django 4.2, PostgreSQL 15, Redis 7 (SciPy >= 1.11, NumPy >= 1.24, statsmodels 0.14, mpmath 1.3)
+- **License:** MIT
+- **Any restrictions to use by non-academics:** None
+
 ### Use of AI-assisted technologies
 
 Generative AI (Claude, Anthropic) was used to assist both software development and the drafting of this manuscript. In software development, all AI-suggested code was reviewed by the authors, tested against reference implementations (SciPy, R), and validated through the project's continuous integration pipeline (more than 1,500 automated tests across backend and frontend, all required checks green). In manuscript preparation, AI was used for drafting and editing assistance; all text was reviewed and verified by the authors, and every statistical value was independently recomputed and checked against SciPy and R. No AI tool is listed as an author. The authors take full responsibility for the content, accuracy, and integrity of this work, including any portion produced with AI assistance.
@@ -319,6 +336,18 @@ The authors are the developers of CRISPRArchitect (reference [31]), the genome-e
 ### Funding
 
 The authors received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors for this work. Infrastructure and administrative support were provided by the CSIR-Institute of Genomics and Integrative Biology.
+
+### Ethics approval and consent to participate
+
+Not applicable. This study analysed only publicly available, previously published, de-identified secondary datasets and involved no new human participants, human data, or animal subjects.
+
+### Consent for publication
+
+Not applicable.
+
+### Authors' contributions
+
+V.B. conceived and developed the software, designed and performed the analyses and case studies, and wrote the manuscript. D.C. supervised the project, provided resources, and revised the manuscript. Both authors read and approved the final manuscript.
 
 ## Acknowledgments
 
