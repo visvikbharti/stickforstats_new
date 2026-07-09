@@ -37,6 +37,9 @@ import {
   Fade,
   Zoom,
   Grow,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 
 import {
@@ -48,7 +51,9 @@ import {
   Timeline as TimelineIcon,
   DataUsage as DataUsageIcon,
   BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  ExpandMore as ExpandMoreIcon,
+  Security as SecurityIcon
 } from '@mui/icons-material';
 
 // Import Professional Container for consistent UI
@@ -59,6 +64,10 @@ import { NonParametricTestsService } from '../services/NonParametricTestsService
 
 // Import real datasets
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
+
+// Interactive "why non-parametric routing matters" lecture demo, backend-anchored
+// to the real Guardian engine (reproduces the Fig 8 cascade calibration benchmark).
+import { GuardianCascadeSimulator } from '../components/statistical/educational';
 
 const NonParametricTestsRealProfessional = () => {
   // State management
@@ -539,6 +548,21 @@ const NonParametricTestsRealProfessional = () => {
         Distribution-free statistical tests powered by high-precision backend calculations.
         All calculations performed with 50-decimal precision using real datasets.
       </Typography>
+
+      {/* Why non-parametric? — interactive Guardian cascade lecture demo */}
+      <Accordion sx={{ mb: 3 }} defaultExpanded={false} TransitionProps={{ unmountOnExit: true }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SecurityIcon fontSize="small" color="primary" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Why one t-test isn&rsquo;t enough — interactive Guardian cascade
+            </Typography>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <GuardianCascadeSimulator />
+        </AccordionDetails>
+      </Accordion>
 
       {error && (
         <Fade in>
