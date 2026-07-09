@@ -34,6 +34,7 @@ const ANOVARealBackend = lazy(() => import('../modules/ANOVARealBackend'));
 
 // Using Real Backend-Connected Modules (50-decimal precision)
 const HypothesisTestingModule = lazy(() => import('../modules/HypothesisTestingModuleReal'));
+const WhyGuardianPage = lazy(() => import('../pages/WhyGuardianPage'));
 const CorrelationRegressionModule = lazy(() => import('../modules/CorrelationRegressionModuleReal'));
 const NonParametricTestsRealProfessional = lazy(() => import('../modules/NonParametricTestsRealProfessional'));
 const PowerAnalysisReal = lazy(() => import('../modules/PowerAnalysisReal'));
@@ -197,6 +198,7 @@ const ROUTE_CONFIG = [
 
   // Education hubs
   { path: '/learn', component: LearningHub, loadingMessage: 'Loading Learning Hub...' },
+  { path: '/why-guardian', component: WhyGuardianPage, loadingMessage: 'Loading the Why Guardian? demo...' },
   { path: '/pca-learn', component: PCAEducationHub, loadingMessage: 'Loading PCA Education...' },
   { path: '/ci-learn', component: CIEducationHub, loadingMessage: 'Loading CI Education...' },
   { path: '/doe-learn', component: DOEEducationHub, loadingMessage: 'Loading DOE Education...' },

@@ -65,6 +65,7 @@ const NAV_CATEGORIES = [
     icon: <BarChartIcon fontSize="small" />,
     items: [
       { name: 'Statistical Analysis', path: '/statistical-analysis-tools', icon: <QueryStatsIcon fontSize="small" /> },
+      { name: 'Hypothesis Testing', path: '/modules/hypothesis-testing', icon: <ScienceIcon fontSize="small" /> },
       { name: 'Meta-Analysis', path: '/meta-analysis', icon: <AccountTreeIcon fontSize="small" /> },
       { name: 'Survival Analysis', path: '/survival-analysis', icon: <TimelineIcon fontSize="small" /> },
       { name: 'Factor Analysis', path: '/factor-analysis', icon: <ScatterPlotIcon fontSize="small" /> },
@@ -134,6 +135,7 @@ const NAV_CATEGORIES = [
     icon: <SchoolIcon fontSize="small" />,
     items: [
       { name: 'Learning Hub', path: '/learn', icon: <SchoolIcon fontSize="small" /> },
+      { name: 'Why Guardian?', path: '/why-guardian', icon: <SecurityIcon fontSize="small" /> },
     ],
   },
 ];
