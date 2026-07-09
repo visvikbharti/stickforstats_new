@@ -427,12 +427,18 @@ class NonParametricTestsService {
     const results = data.results || data;
     const processed = { ...results };
 
-    // Process pairwise comparisons
-    if (processed.comparisons) {
-      processed.comparisons = processed.comparisons.map(comparison => {
-        const comp = { ...comparison };
+    // Process pairwise comparisons. The backend returns `comparisons` as an
+    // object keyed by "Group_1_vs_Group_2" (not an array), so normalize to a
+    // labelled array before rendering.
+    if (processed.comparisons && typeof processed.comparisons === 'object') {
+      const entries = Array.isArray(processed.comparisons)
+        ? processed.comparisons.map((c, i) => [`Comparison ${i + 1}`, c])
+        : Object.entries(processed.comparisons);
 
-        // Convert high-precision values
+      processed.comparisons = entries.map(([label, comparison]) => {
+        const comp = { label: String(label).replace(/_/g, ' '), ...comparison };
+
+        // Convert any high-precision string values for display
         if (comp.p_value && typeof comp.p_value === 'string') {
           comp.p_value_decimal = new Decimal(comp.p_value);
           comp.p_value_display = this.formatHighPrecision(comp.p_value);
