@@ -38,10 +38,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
+  Tab
 } from '@mui/material';
 
 import {
@@ -49,14 +46,8 @@ import {
   Calculate as CalculateIcon,
   CloudUpload as CloudUploadIcon,
   Refresh as RefreshIcon,
-  CheckCircle as CheckCircleIcon,
-  Security as SecurityIcon,
-  ExpandMore as ExpandMoreIcon
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
-
-// Interactive "why non-parametric routing matters" lecture demo, backend-anchored
-// to the real Guardian engine (reproduces the Fig 8 cascade calibration benchmark).
-import { GuardianCascadeSimulator } from '../components/statistical/educational';
 
 // Import the existing NonParametricTestsService which connects to backend
 import { NonParametricTestsService } from '../services/NonParametricTestsService';
@@ -675,21 +666,6 @@ const NonParametricTestsReal = () => {
           {error}
         </Alert>
       )}
-
-      {/* Why non-parametric? — interactive Guardian cascade lecture demo */}
-      <Accordion sx={{ mb: 3 }} defaultExpanded={false} TransitionProps={{ unmountOnExit: true }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SecurityIcon fontSize="small" color="primary" />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              Why one t-test isn&rsquo;t enough — interactive Guardian cascade
-            </Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <GuardianCascadeSimulator />
-        </AccordionDetails>
-      </Accordion>
 
       {/* Test Selection */}
       <Card sx={{ mb: 3 }}>

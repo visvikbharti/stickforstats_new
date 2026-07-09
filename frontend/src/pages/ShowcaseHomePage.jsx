@@ -25,8 +25,11 @@ import {
   CheckCircle as CheckCircleIcon,
   Speed as SpeedIcon,
   Storage as StorageIcon,
-  Cloud as CloudIcon
+  Cloud as CloudIcon,
+  Security as SecurityIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
 
 
 const ShowcaseHomePage = () => {
@@ -148,6 +151,53 @@ const ShowcaseHomePage = () => {
           </Box>
         </Container>
       </Box>
+
+      {/* Featured: Guardian live demo */}
+      <Container maxWidth="lg" sx={{ mb: 8 }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 3, md: 4 },
+            borderRadius: 3,
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-start', md: 'center' },
+            gap: 3,
+            borderLeft: '5px solid',
+            borderLeftColor: 'primary.main',
+            background: (theme) =>
+              `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.10)} 0%, ${alpha(
+                theme.palette.secondary.main,
+                0.06
+              )} 100%)`,
+          }}
+        >
+          <SecurityIcon sx={{ fontSize: 56, color: 'primary.main', flex: 'none' }} />
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                Why one t-test isn&rsquo;t enough
+              </Typography>
+              <Chip label="Live demo" size="small" color="primary" variant="outlined" />
+            </Box>
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: '70ch' }}>
+              Watch a na&iuml;ve t-test&rsquo;s false-positive rate double while the Guardian cascade
+              holds it near 5% &mdash; a live, reproducible demonstration of the manuscript&rsquo;s
+              calibration benchmark (Figure&nbsp;8), running right in your browser.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            size="large"
+            component={Link}
+            to="/why-guardian"
+            endIcon={<ArrowForwardIcon />}
+            sx={{ flex: 'none', whiteSpace: 'nowrap' }}
+          >
+            Launch the live demo
+          </Button>
+        </Paper>
+      </Container>
 
       {/* Platform Features */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>

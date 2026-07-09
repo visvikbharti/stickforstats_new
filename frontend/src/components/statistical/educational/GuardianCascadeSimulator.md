@@ -37,8 +37,9 @@ Guardian"** button POSTs the currently-displayed two-sample draw to the real eng
 
 | Module | Location |
 | --- | --- |
+| `WhyGuardianPage.jsx` (`/why-guardian`) | dedicated top-level page, linked from the nav (**Learn → Why Guardian?**) |
 | `HypothesisTestingModuleReal.jsx` | dedicated **"Why Guardian?"** tab (renders only when the tab is active) |
-| `NonParametricTestsReal.jsx` | a collapsed intro **Accordion** (`unmountOnExit` — mounts only when expanded, so the simulation never runs hidden) |
+| `NonParametricTestsRealProfessional.jsx` | a collapsed intro **Accordion** (`unmountOnExit` — mounts only when expanded, so the simulation never runs hidden) |
 
 Exported from `frontend/src/components/statistical/educational/index.js`.
 
