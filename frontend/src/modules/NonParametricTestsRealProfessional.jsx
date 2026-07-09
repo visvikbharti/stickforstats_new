@@ -14,7 +14,8 @@
  * - 50-decimal precision backend
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -90,6 +91,14 @@ const NonParametricTestsRealProfessional = () => {
   const [animationKey, setAnimationKey] = useState(0);
   const [postHoc, setPostHoc] = useState(null);
   const [postHocLoading, setPostHocLoading] = useState(false);
+
+  // Guardian hand-off: a parametric module (t-test / ANOVA) can navigate here
+  // with the user's data + a pre-selected test via react-router location.state.
+  const location = useLocation();
+  const pendingHandoffRef = useRef(
+    location.state && location.state.fromGuardian ? location.state : null
+  );
+  const [pendingAutoRun, setPendingAutoRun] = useState(false);
 
   // Service instance
   const service = new NonParametricTestsService();
@@ -171,7 +180,25 @@ const NonParametricTestsRealProfessional = () => {
     }
   }, [selectedTest]);
 
+  // Seed the module's data. If we arrived from a Guardian hand-off, hydrate the
+  // user's data + pre-selected test instead of loading example data (and never
+  // let the example loader clobber the injected data).
   useEffect(() => {
+    const handoff = pendingHandoffRef.current;
+    if (handoff) {
+      // First align selectedTest, then apply the data on the follow-up run so
+      // the data lands under the correct test config.
+      if (handoff.selectedTest && handoff.selectedTest !== selectedTest) {
+        setSelectedTest(handoff.selectedTest);
+        return;
+      }
+      pendingHandoffRef.current = null; // consume once
+      if (handoff.dataGroups) setDataGroups(handoff.dataGroups);
+      if (handoff.pairedData) setPairedData(handoff.pairedData);
+      setSelectedDataset(handoff.datasetLabel || 'Imported from your parametric test');
+      if (handoff.autoRun) setPendingAutoRun(true);
+      return;
+    }
     loadExampleData();
   }, [selectedTest, loadExampleData]);
 
@@ -274,6 +301,21 @@ const NonParametricTestsRealProfessional = () => {
       setLoading(false);
     }
   };
+
+  // Auto-run the test once the Guardian-injected data is present in state.
+  useEffect(() => {
+    if (!pendingAutoRun) return;
+    const ready = testConfigs[selectedTest]?.dataType === 'paired'
+      ? (pairedData.before.length > 0 && pairedData.after.length > 0)
+      : (dataGroups.length > 0 && dataGroups.every((g) => g.values && g.values.length > 0));
+    if (ready) {
+      setPendingAutoRun(false);
+      performTest();
+    }
+    // performTest is redefined every render; we only want to fire when the
+    // injected data becomes ready, so it is intentionally not a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoRun, dataGroups, pairedData, selectedTest]);
 
   // Format number with precision
   const formatNumber = (value, precision = 6) => {

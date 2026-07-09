@@ -19,9 +19,12 @@ import {
   CompareArrows as CompareIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import jStat from 'jstat';
 import { getApiUrl } from '../config/apiConfig';
+import guardianService from '../services/GuardianService';
+import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
 import {
   LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
@@ -41,9 +44,17 @@ const colors = {
   light: '#f7fafc'
 };
 
+// Which distribution-free test replaces each parametric t-test design when the
+// Guardian assumption check fails. (one-sample is out of scope for this pass.)
+const TTEST_NP_FALLBACK = {
+  'two-sample': { test: 'mann-whitney', label: 'Run Mann-Whitney U instead' },
+  'paired': { test: 'wilcoxon', label: 'Run Wilcoxon signed-rank instead' },
+};
+
 // Comprehensive T-Test Module
 const TTestCompleteModule = () => {
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
 
   // Main navigation tabs
@@ -65,6 +76,34 @@ const TTestCompleteModule = () => {
   const [results, setResults] = useState(null);
   const [assumptions, setAssumptions] = useState(null);
   const [interpretation, setInterpretation] = useState(null);
+
+  // Guardian backend assumption report (non-parametric fallback)
+  const [guardianReport, setGuardianReport] = useState(null);
+
+  // Hand the user's data to the Non-Parametric module and auto-run the
+  // recommended distribution-free test for the current t-test design.
+  const runNonParametricFallback = () => {
+    const fb = TTEST_NP_FALLBACK[testType];
+    if (!fb) return;
+    const g1 = parseData(sample1);
+    const g2 = parseData(sample2);
+    if (!g1 || !g2) return;
+    const state = {
+      fromGuardian: true,
+      selectedTest: fb.test,
+      autoRun: true,
+      datasetLabel: 'Imported from your t-test',
+    };
+    if (fb.test === 'wilcoxon') {
+      state.pairedData = { before: g1, after: g2 };
+    } else {
+      state.dataGroups = [
+        { name: 'Sample 1', values: g1 },
+        { name: 'Sample 2', values: g2 },
+      ];
+    }
+    navigate('/modules/nonparametric-real', { state });
+  };
 
   // Simulation state
   const [simRunning, setSimRunning] = useState(false);
@@ -237,6 +276,22 @@ const TTestCompleteModule = () => {
       // Check assumptions
       const data2 = testType !== 'one-sample' ? parseData(sample2) : null;
       setAssumptions(checkAssumptions(data1, data2));
+
+      // Backend Guardian assumption check (non-blocking): if the parametric
+      // assumptions are violated, offer a distribution-free alternative.
+      setGuardianReport(null);
+      if (TTEST_NP_FALLBACK[testType] && data2 && data2.length >= 2) {
+        // Paired t-test assumes normality of the within-pair DIFFERENCES, so
+        // send those as a flat array; independent t-test checks each group.
+        const guardianData =
+          testType === 'paired'
+            ? data1.map((v, i) => v - data2[i])
+            : { group1: data1, group2: data2 };
+        guardianService
+          .checkAssumptions(guardianData, 't_test', 1 - confidenceLevel / 100)
+          .then(setGuardianReport)
+          .catch(() => setGuardianReport(null));
+      }
 
       // Generate interpretation
       generateInterpretation(response.data);
@@ -548,7 +603,7 @@ const TTestCompleteModule = () => {
               <Select
                 value={testType}
                 label="Test Type"
-                onChange={(e) => setTestType(e.target.value)}
+                onChange={(e) => { setTestType(e.target.value); setGuardianReport(null); }}
               >
                 <MenuItem value="one-sample">One-Sample T-Test</MenuItem>
                 <MenuItem value="two-sample">Two-Sample T-Test</MenuItem>
@@ -724,6 +779,7 @@ const TTestCompleteModule = () => {
                   setResults(null);
                   setAssumptions(null);
                   setInterpretation(null);
+                  setGuardianReport(null);
                 }}
                 startIcon={<ClearIcon />}
               >
@@ -770,6 +826,15 @@ const TTestCompleteModule = () => {
               </Grid>
             </CardContent>
           </Card>
+        )}
+
+        {/* Guardian non-parametric fallback (only for designs with a mapping) */}
+        {TTEST_NP_FALLBACK[testType] && (
+          <GuardianFallbackCard
+            report={guardianReport}
+            actionLabel={TTEST_NP_FALLBACK[testType].label}
+            onRun={runNonParametricFallback}
+          />
         )}
 
         {/* Results */}

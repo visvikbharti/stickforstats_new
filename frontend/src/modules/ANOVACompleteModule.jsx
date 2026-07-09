@@ -29,6 +29,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
+import guardianService from '../services/GuardianService';
+import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
 
 // Import shared components
 import {
@@ -49,14 +51,38 @@ const ANOVACompleteModule = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [assumptionResults, setAssumptionResults] = useState(null);
+  const [guardianReport, setGuardianReport] = useState(null);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
+  // Hand the user's groups to the Non-Parametric module and auto-run
+  // Kruskal-Wallis (the distribution-free one-way ANOVA alternative).
+  const runNonParametricFallback = () => {
+    if (!anovaData || !anovaData.length) return;
+    navigate('/modules/nonparametric-real', {
+      state: {
+        fromGuardian: true,
+        selectedTest: 'kruskal-wallis',
+        autoRun: true,
+        datasetLabel: 'Imported from your ANOVA',
+        dataGroups: anovaData.map((values, i) => ({ name: `Group ${i + 1}`, values })),
+      },
+    });
+  };
+
   const handleDataSubmit = async (data) => {
     setAnovaData(data);
     setError(null);
+    setGuardianReport(null);
+
+    // Backend Guardian assumption check (non-blocking): runs on the real
+    // submitted groups regardless of whether the ANOVA call itself succeeds.
+    guardianService
+      .checkAssumptions(data, 'anova', 0.05)
+      .then(setGuardianReport)
+      .catch(() => setGuardianReport(null));
 
     // Perform ANOVA analysis
     try {
@@ -406,6 +432,16 @@ MS = Mean Square`}
               }
             ]}
             onValidation={handleAssumptionValidation}
+          />
+        </Grid>
+      )}
+
+      {guardianReport && (
+        <Grid item xs={12}>
+          <GuardianFallbackCard
+            report={guardianReport}
+            actionLabel="Run Kruskal-Wallis instead"
+            onRun={runNonParametricFallback}
           />
         </Grid>
       )}
