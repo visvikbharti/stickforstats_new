@@ -28,6 +28,7 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import HomeIcon from '@mui/icons-material/Home';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ScienceIcon from '@mui/icons-material/Science';
+import FunctionsIcon from '@mui/icons-material/Functions';
 import BuildIcon from '@mui/icons-material/Build';
 import SchoolIcon from '@mui/icons-material/School';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -66,6 +67,7 @@ const NAV_CATEGORIES = [
     items: [
       { name: 'Statistical Analysis', path: '/statistical-analysis-tools', icon: <QueryStatsIcon fontSize="small" /> },
       { name: 'Hypothesis Testing', path: '/modules/hypothesis-testing', icon: <ScienceIcon fontSize="small" /> },
+      { name: 'Non-Parametric Tests', path: '/modules/nonparametric-real', icon: <FunctionsIcon fontSize="small" /> },
       { name: 'Meta-Analysis', path: '/meta-analysis', icon: <AccountTreeIcon fontSize="small" /> },
       { name: 'Survival Analysis', path: '/survival-analysis', icon: <TimelineIcon fontSize="small" /> },
       { name: 'Factor Analysis', path: '/factor-analysis', icon: <ScatterPlotIcon fontSize="small" /> },
