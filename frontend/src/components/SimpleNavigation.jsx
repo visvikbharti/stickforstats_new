@@ -27,6 +27,9 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import HomeIcon from '@mui/icons-material/Home';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import StackedBarChartIcon from '@mui/icons-material/StackedBarChart';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ScienceIcon from '@mui/icons-material/Science';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import BuildIcon from '@mui/icons-material/Build';
@@ -67,6 +70,9 @@ const NAV_CATEGORIES = [
     items: [
       { name: 'Statistical Analysis', path: '/statistical-analysis-tools', icon: <QueryStatsIcon fontSize="small" /> },
       { name: 'Hypothesis Testing', path: '/modules/hypothesis-testing', icon: <ScienceIcon fontSize="small" /> },
+      { name: 'T-Test', path: '/modules/t-test', icon: <CompareArrowsIcon fontSize="small" /> },
+      { name: 'ANOVA', path: '/modules/anova', icon: <StackedBarChartIcon fontSize="small" /> },
+      { name: 'Correlation & Regression', path: '/modules/correlation-regression', icon: <ShowChartIcon fontSize="small" /> },
       { name: 'Non-Parametric Tests', path: '/modules/nonparametric-real', icon: <FunctionsIcon fontSize="small" /> },
       { name: 'Meta-Analysis', path: '/meta-analysis', icon: <AccountTreeIcon fontSize="small" /> },
       { name: 'Survival Analysis', path: '/survival-analysis', icon: <TimelineIcon fontSize="small" /> },
