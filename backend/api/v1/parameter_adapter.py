@@ -257,15 +257,12 @@ class UniversalParameterAdapter:
             params["group2"] = params.pop("data2")
 
         # Handle groups parameter (list of groups)
-        # ✅ FIXED: Use .get() instead of .pop() to preserve 'data' key for effect sizes endpoint
-        # The 'data' key serves as structural container in some endpoints
-        if "data" in params and "groups" not in params:
-            # Only transform if 'data' is a list (actual data), not a dict (structural container)
-            if isinstance(params["data"], list):
-                params["groups"] = params.pop("data")
-            else:
-                # Preserve 'data' key for endpoints that use it as a structural container
-                params["groups"] = params.get("data")
+        # Only transform if 'data' is a list (actual data). When 'data' is a dict
+        # (a structural envelope like {"data": {"groups": [...]}}), leave it alone:
+        # assigning the dict to 'groups' makes downstream np.array()/np.isnan() crash
+        # on the dict's string keys.
+        if "data" in params and "groups" not in params and isinstance(params["data"], list):
+            params["groups"] = params.pop("data")
 
         return params
 

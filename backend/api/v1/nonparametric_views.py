@@ -62,19 +62,22 @@ def adapt_nonparametric_params(data: Dict[str, Any], original_data: Dict[str, An
         adapted["y"] = adapted.get("after")
 
     # For Kruskal-Wallis Test
-    # Map data, samples to groups
+    # Map data, samples to groups — but ONLY when they hold an actual list of
+    # groups. A nested {"data": {"groups": [...]}} envelope must never be treated
+    # as the group list: iterating a dict yields its string keys, which then crash
+    # np.isnan() with "ufunc 'isnan' not supported for the input types".
     if "groups" not in adapted:
-        if "data" in adapted:
+        if isinstance(adapted.get("data"), list):
             adapted["groups"] = adapted.get("data")
-        elif "samples" in adapted:
+        elif isinstance(adapted.get("samples"), list):
             adapted["groups"] = adapted.get("samples")
 
     # For Friedman Test
-    # Map data, groups to measurements
+    # Map data, groups to measurements (list payloads only, same reasoning as above)
     if "measurements" not in adapted:
-        if "data" in adapted:
+        if isinstance(adapted.get("data"), list):
             adapted["measurements"] = adapted.get("data")
-        elif "groups" in adapted:
+        elif isinstance(adapted.get("groups"), list):
             adapted["measurements"] = adapted.get("groups")
 
     return adapted

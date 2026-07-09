@@ -83,23 +83,17 @@ class NonParametricTestsService {
    */
   async mannWhitneyU(group1, group2, options = {}) {
     try {
+      // Backend reads parameters flat at the top level (see nonparametric_views.py).
+      // Do NOT nest under data/parameters/options — the adapter would treat the
+      // wrapper dict as the group list and np.isnan() would crash on its keys.
       const requestData = {
-        data: {
-          group1: group1,
-          group2: group2
-        },
-        test: 'mann_whitney_u',
-        parameters: {
-          alternative: options.alternative || 'two-sided',
-          use_continuity: options.use_continuity !== false,
-          exact: options.exact || false,
-          confidence_level: options.confidence_level || 0.95
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_visualization: options.include_visualization || false,
-          include_descriptive_stats: options.include_descriptive_stats !== false
-        }
+        group1: group1,
+        group2: group2,
+        alternative: options.alternative || 'two-sided',
+        use_continuity: options.use_continuity !== false,
+        exact: options.exact || false,
+        confidence_level: options.confidence_level || 0.95,
+        calculate_effect_size: options.include_effect_size !== false
       };
 
       const response = await api.post('/nonparametric/mann-whitney/', requestData);
@@ -120,24 +114,15 @@ class NonParametricTestsService {
    */
   async wilcoxonSignedRank(data1, data2 = null, options = {}) {
     try {
+      // Wilcoxon view reads x/y (or data1/data2) flat from request.data.
       const requestData = {
-        data: {
-          data1: data1,
-          data2: data2
-        },
-        test: 'wilcoxon_signed_rank',
-        parameters: {
-          alternative: options.alternative || 'two-sided',
-          mode: options.mode || 'auto',
-          zero_method: options.zero_method || 'wilcox',
-          correction: options.correction !== false,
-          exact: options.exact || false
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_hodges_lehmann: options.include_hodges_lehmann || true,
-          include_confidence_interval: options.include_confidence_interval !== false
-        }
+        x: data1,
+        y: data2,
+        alternative: options.alternative || 'two-sided',
+        mode: options.mode || 'auto',
+        zero_method: options.zero_method || 'wilcox',
+        correction: options.correction !== false,
+        exact: options.exact || false
       };
 
       const response = await api.post('/nonparametric/wilcoxon/', requestData);
@@ -157,23 +142,13 @@ class NonParametricTestsService {
    */
   async kruskalWallis(groups, options = {}) {
     try {
+      // Kruskal-Wallis view reads groups/nan_policy flat at the top level.
       const requestData = {
-        data: {
-          groups: groups,
-          group_names: options.group_names || groups.map((_, i) => `Group ${i + 1}`)
-        },
-        test: 'kruskal_wallis',
-        parameters: {
-          nan_policy: options.nan_policy || 'omit',
-          tie_correction: options.tie_correction !== false
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_post_hoc: options.include_post_hoc || false,
-          post_hoc_method: options.post_hoc_method || 'dunn',
-          include_descriptive_stats: options.include_descriptive_stats !== false,
-          include_visualization: options.include_visualization || false
-        }
+        groups: groups,
+        group_names: options.group_names || groups.map((_, i) => `Group ${i + 1}`),
+        nan_policy: options.nan_policy || 'omit',
+        tie_correction: options.tie_correction !== false,
+        calculate_effect_size: options.include_effect_size !== false
       };
 
       const response = await api.post('/nonparametric/kruskal-wallis/', requestData);
@@ -193,23 +168,13 @@ class NonParametricTestsService {
    */
   async friedmanTest(data, options = {}) {
     try {
+      // Friedman view reads measurements flat at the top level.
       const requestData = {
-        data: {
-          measurements: data,
-          condition_names: options.condition_names || data[0].map((_, i) => `Condition ${i + 1}`)
-        },
-        test: 'friedman',
-        parameters: {
-          use_ranks: options.use_ranks !== false,
-          tie_correction: options.tie_correction !== false
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_post_hoc: options.include_post_hoc || false,
-          post_hoc_method: options.post_hoc_method || 'nemenyi',
-          include_kendalls_w: options.include_kendalls_w !== false,
-          include_visualization: options.include_visualization || false
-        }
+        measurements: data,
+        condition_names: options.condition_names || data[0].map((_, i) => `Condition ${i + 1}`),
+        use_ranks: options.use_ranks !== false,
+        tie_correction: options.tie_correction !== false,
+        calculate_effect_size: options.include_effect_size !== false
       };
 
       const response = await api.post('/nonparametric/friedman/', requestData);
@@ -230,21 +195,13 @@ class NonParametricTestsService {
    */
   async signTest(data1, data2, options = {}) {
     try {
+      // Sign test view reads x/y (or data1/data2) flat from request.data.
       const requestData = {
-        data: {
-          data1: data1,
-          data2: data2
-        },
-        test: 'sign',
-        parameters: {
-          alternative: options.alternative || 'two-sided',
-          mu: options.mu || 0,
-          exact: options.exact || true
-        },
-        options: {
-          include_confidence_interval: options.include_confidence_interval !== false,
-          confidence_level: options.confidence_level || 0.95
-        }
+        x: data1,
+        y: data2,
+        alternative: options.alternative || 'two-sided',
+        mu: options.mu || 0,
+        exact: options.exact || true
       };
 
       const response = await api.post('/nonparametric/sign/', requestData);
@@ -264,20 +221,13 @@ class NonParametricTestsService {
    */
   async moodsMedianTest(groups, options = {}) {
     try {
+      // Mood's median view reads groups/ties/nan_policy flat at the top level.
       const requestData = {
-        data: {
-          groups: groups
-        },
-        test: 'moods_median',
-        parameters: {
-          ties: options.ties || 'below',
-          correction: options.correction !== false,
-          lambda_: options.lambda_ || null
-        },
-        options: {
-          include_contingency_table: options.include_contingency_table !== false,
-          include_effect_size: options.include_effect_size !== false
-        }
+        groups: groups,
+        ties: options.ties || 'average',
+        nan_policy: options.nan_policy || 'omit',
+        correction: options.correction !== false,
+        lambda_: options.lambda_ || null
       };
 
       const response = await api.post('/nonparametric/mood/', requestData);
@@ -297,20 +247,11 @@ class NonParametricTestsService {
    */
   async jonckheereTerpstraTest(groups, options = {}) {
     try {
+      // Jonckheere-Terpstra view reads groups/alternative flat at the top level.
       const requestData = {
-        data: {
-          groups: groups,
-          order: options.order || 'increasing'
-        },
-        test: 'jonckheere_terpstra',
-        parameters: {
-          alternative: options.alternative || 'increasing',
-          exact: options.exact || false
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_trend_statistics: options.include_trend_statistics !== false
-        }
+        groups: groups,
+        alternative: options.alternative || 'increasing',
+        exact: options.exact || false
       };
 
       const response = await api.post('/nonparametric/jonckheere/', requestData);
@@ -330,20 +271,11 @@ class NonParametricTestsService {
    */
   async pagesTrendTest(data, options = {}) {
     try {
+      // Page's trend view reads data (or groups) + ranked flat at the top level.
       const requestData = {
-        data: {
-          measurements: data,
-          predicted_ranks: options.predicted_ranks || null
-        },
-        test: 'pages_trend',
-        parameters: {
-          alternative: options.alternative || 'increasing',
-          exact: options.exact || false
-        },
-        options: {
-          include_effect_size: options.include_effect_size !== false,
-          include_correlation: options.include_correlation !== false
-        }
+        data: data,
+        ranked: options.ranked || false,
+        alternative: options.alternative || 'increasing'
       };
 
       const response = await api.post('/nonparametric/page/', requestData);
@@ -362,20 +294,13 @@ class NonParametricTestsService {
    */
   async dunnsTest(groups, options = {}) {
     try {
+      // Post-hoc view reads groups/test_type/p_adjust flat at the top level.
       const requestData = {
-        data: {
-          groups: groups
-        },
-        test: 'dunns',
-        parameters: {
-          p_adjust_method: options.p_adjust_method || 'bonferroni',
-          use_rank: options.use_rank !== false
-        },
-        options: {
-          include_effect_sizes: options.include_effect_sizes !== false,
-          include_confidence_intervals: options.include_confidence_intervals !== false,
-          alpha: options.alpha || 0.05
-        }
+        groups: groups,
+        test_type: 'dunn',
+        p_adjust: options.p_adjust_method || 'bonferroni',
+        use_rank: options.use_rank !== false,
+        alpha: options.alpha || 0.05
       };
 
       const response = await api.post('/nonparametric/post-hoc/', requestData);
