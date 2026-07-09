@@ -103,6 +103,53 @@ Move dev/test/admin/monitoring routes behind a dev-only flag (or drop from the p
 
 ---
 
+## ▶ NEXT SESSION — RESUME HERE (steps 2–5)
+
+**Status at end of 2026-07-10:** Step 1 DONE + DEPLOYED (nav fix, commit `01b7185`, live image `sha256:0d311ad7`, bundle `main.1cdc7296.js`, rollback-prev `sha256:4bfcafdb`). Steps 2–5 not started. On branch `main`, working tree clean except a pre-existing `paper/**/.bak` (ignore).
+
+Do these in order; each is an independent, low-risk deploy. **Adversarially review before each deploy and verify live**, same discipline as step 1.
+
+### Step 2 — Redirect the 4 duplicate routes
+File: `frontend/src/routes/routeConfig.js`.
+- `/analysis` → `/statistical-analysis-tools`
+- `/modules/t-test-real` → `/modules/t-test`
+- `/modules/anova-real` → `/modules/anova`
+- (keep `/debug-login`)
+**First inspect routeConfig.js** to see if it already supports a redirect field or if you add a `<Navigate to=… replace />` element route. Confirm the canonical targets already render the 50-decimal path (`/api/v1/stats/*` returns `high_precision_result`) so nothing is lost.
+
+### Step 3 — Delete the 6 dead files
+**Re-grep first** to reconfirm zero imports (`grep -rn "CorrelationRegressionModule[^R]" frontend/src` etc.), then delete by exact path:
+- `frontend/src/modules/CorrelationRegressionModule.jsx` (NOT the `…Real` twin)
+- `frontend/src/modules/HypothesisTestingModule.jsx`
+- `frontend/src/modules/NonParametricTestsReal.jsx`
+- `frontend/src/modules/TTestProfessionalModule.jsx`
+- `frontend/src/pages/ProfessionalStatisticalAnalysis.jsx`
+- `frontend/src/pages/StatisticalTestsPage.jsx` (top-level; keep `pages/statistics/StatisticalTestsPage.jsx`)
+
+### Step 4 — Unify home + hub, retire `/dashboard` ⚠️ NEEDS A DECISION
+Keep `ShowcaseHomePage` (home) + `StatisticalAnalysisHub` at `/statistical-analysis-tools` (hub). Then EITHER retire `/dashboard` OR fix its ~9 dead card links; and make the hub link real `/modules/*` routes instead of opening modules in-page via state. **Ask the user which before editing** (retire vs fix).
+
+### Step 5 — Gate the 23 orphan routes out of the prod bundle
+Move dev/test/admin/monitoring routes behind a dev-only flag or remove from `routeConfig.js`. Keep the "built but never linked" pages only if on the roadmap. Full list in §4 above. **Confirm the keep/cut list with the user** before removing anything user-facing.
+
+### Deploy recipe (verified 2026-07-10)
+```
+# after commit + push to main + CI green (gh run watch <id> --exit-status):
+ssh -i ~/.ssh/id_ed25519 root@91.98.93.98 'set -e; cd /opt/stickforstats_new; \
+  docker tag stickforstats/frontend:1.0.0 stickforstats/frontend:rollback-prev; \
+  docker pull ghcr.io/visvikbharti/stickforstats_new/frontend:latest; \
+  docker tag ghcr.io/visvikbharti/stickforstats_new/frontend:latest stickforstats/frontend:1.0.0; \
+  docker compose up -d --force-recreate frontend; docker compose restart nginx; echo DEPLOYED'
+```
+Rollback: retag `rollback-prev` → `1.0.0`, recreate + restart nginx.
+Verify: `docker exec stickforstats-frontend sh -c "grep -o '<distinctive string>' /usr/share/nginx/html/static/js/main.*.js"`.
+NOTE: the production deploy step triggers a permission gate — the user must explicitly authorize it each time (it is not covered by a generic "proceed").
+
+### Still pending (user, needs beta creds)
+Visual click-through of the step-1 nav + Guardian fallback on stickforstats.com → Analysis menu.
+
+---
+
 ## Provenance
 
 Produced by a read-only 4-agent audit (workflow `w5y7a05bg`) that inventoried every entry in `routeConfig.js`, cross-referenced imports across `frontend/src`, and traced inbound links from nav (`SimpleNavigation.jsx`), home, hubs, and `/dashboard`. No files were modified during the audit.
