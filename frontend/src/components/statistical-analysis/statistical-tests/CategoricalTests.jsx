@@ -241,9 +241,8 @@ const CategoricalTests = ({ data }) => {
     // Degrees of freedom
     const df = (categories1.length - 1) * (categories2.length - 1);
 
-    // Approximate p-value using chi-square distribution
-    // This is a simplified approximation
-    const pValue = chiSquareCDF(chiSquare, df);
+    // Upper-tail p-value P(chi^2 >= observed) for the test of independence.
+    const pValue = chiSquareUpperTail(chiSquare, df);
 
     // Cramer's V (effect size)
     const minDim = Math.min(categories1.length - 1, categories2.length - 1);
@@ -261,42 +260,72 @@ const CategoricalTests = ({ data }) => {
   }, [contingencyTable, alpha]);
 
   /**
-   * Chi-square CDF approximation
+   * Chi-square upper-tail probability P(chi^2 >= x) with `df` degrees of
+   * freedom — i.e. the p-value for the chi-square test of independence. This is
+   * the regularized upper incomplete gamma function Q(df/2, x/2).
+   *
+   * The previous implementation summed the full Poisson mass for df <= 2 and
+   * returned 1 - 1 = 0, so EVERY 2x2 (df=1) and 2x3 (df=2) table reported
+   * p = 0.0000 and was flagged "Significant" regardless of the data.
    */
-  const chiSquareCDF = (x, df) => {
-    // Using Normal approximation for large df
-    if (df > 30) {
-      const z = (Math.sqrt(2 * x) - Math.sqrt(2 * df - 1));
-      return 1 - normalCDF(z);
-    }
-
-    // Simplified approximation for smaller df
-    const k = df / 2;
-    const lambda = x / 2;
-
-    let sum = 0;
-    let term = Math.exp(-lambda);
-    sum += term;
-
-    for (let i = 1; i < 50; i++) {
-      term *= lambda / i;
-      if (i >= k) {
-        sum += term;
-      }
-      if (term < 1e-10) break;
-    }
-
-    return 1 - sum;
+  const chiSquareUpperTail = (x, df) => {
+    if (x <= 0) return 1;
+    if (df <= 0) return 1;
+    return regularizedGammaQ(df / 2, x / 2);
   };
 
-  /**
-   * Normal CDF approximation
-   */
-  const normalCDF = (z) => {
-    const t = 1 / (1 + 0.2316419 * Math.abs(z));
-    const d = 0.3989423 * Math.exp(-z * z / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-    return z > 0 ? 1 - p : p;
+  // log-gamma via the Lanczos approximation
+  const logGamma = (z) => {
+    const g = 7;
+    const c = [
+      0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+      771.32342877765313, -176.61502916214059, 12.507343278686905,
+      -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
+    ];
+    if (z < 0.5) {
+      return Math.log(Math.PI / Math.sin(Math.PI * z)) - logGamma(1 - z);
+    }
+    z -= 1;
+    let a = c[0];
+    const t = z + g + 0.5;
+    for (let i = 1; i < g + 2; i++) a += c[i] / (z + i);
+    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+  };
+
+  // Regularized upper incomplete gamma Q(s, z) = 1 - P(s, z), evaluated by the
+  // lower-tail series when z < s+1 and by the Lentz continued fraction otherwise.
+  const regularizedGammaQ = (s, z) => {
+    if (z <= 0) return 1;
+    if (z < s + 1) {
+      let term = 1 / s;
+      let sum = term;
+      for (let n = 1; n < 300; n++) {
+        term *= z / (s + n);
+        sum += term;
+        if (Math.abs(term) < Math.abs(sum) * 1e-15) break;
+      }
+      const p = sum * Math.exp(-z + s * Math.log(z) - logGamma(s));
+      return 1 - p;
+    }
+    // Continued fraction (Numerical Recipes gcf) for Q directly.
+    const FPMIN = 1e-300;
+    let b = z + 1 - s;
+    let c = 1 / FPMIN;
+    let d = 1 / b;
+    let h = d;
+    for (let i = 1; i < 300; i++) {
+      const an = -i * (i - s);
+      b += 2;
+      d = an * d + b;
+      if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = b + an / c;
+      if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d;
+      const del = d * c;
+      h *= del;
+      if (Math.abs(del - 1) < 1e-15) break;
+    }
+    return Math.exp(-z + s * Math.log(z) - logGamma(s)) * h;
   };
 
   /**
