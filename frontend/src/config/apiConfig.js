@@ -105,9 +105,23 @@ export const endpoints = {
   },
 };
 
-// Helper to get full API URL
+// Helper to get full API URL.
+//
+// Call sites use two conventions: most pass a path relative to the /api mount
+// (as the `endpoints` map above does — '/v1/stats/anova/'), but a few pass the
+// absolute path ('/api/v1/stats/ttest/'). Every deployment sets a base URL that
+// already ends in '/api' (CI builds the prod image with REACT_APP_API_URL=/api),
+// so naive concatenation turned the absolute form into '/api/api/v1/...', which
+// Django has no route for. Collapse the duplicate so both conventions resolve.
 export const getApiUrl = (endpoint) => {
-  return `${API_BASE_URL}${endpoint}`;
+  const base = API_BASE_URL.replace(/\/+$/, '');
+  let path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (base.endsWith('/api') && (path === '/api' || path.startsWith('/api/'))) {
+    path = path.slice('/api'.length) || '/';
+  }
+
+  return `${base}${path}`;
 };
 
 // WebSocket endpoints configuration

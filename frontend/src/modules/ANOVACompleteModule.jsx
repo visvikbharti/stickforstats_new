@@ -28,9 +28,10 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { getApiUrl } from '../config/apiConfig';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 import guardianService from '../services/GuardianService';
 import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
+import { adaptAnovaResponse, formatStat, formatPValue } from './anovaResultAdapter';
 
 // Import shared components
 import {
@@ -87,91 +88,32 @@ const ANOVACompleteModule = () => {
     // Perform ANOVA analysis
     try {
       setLoading(true);
+      setAnovaResults(null);
 
-      // API call to backend for ANOVA calculation
-      const response = await axios.post(getApiUrl('/statistical-tests/anova/'), {
+      // The backend rejects a post-hoc request with fewer than three groups.
+      const wantsPostHoc = data.length >= 3;
+
+      const response = await axios.post(getApiUrl(endpoints.stats.anova), {
+        anova_type: 'one_way',
         groups: data,
-        alpha: 0.05
+        ...(wantsPostHoc ? { post_hoc: 'bonferroni' } : {}),
+        options: {
+          check_assumptions: true,
+          calculate_effect_sizes: true,
+          generate_visualizations: false,
+        },
       });
 
-      setAnovaResults(response.data);
+      setAnovaResults(adaptAnovaResponse(response.data));
     } catch (err) {
       console.error('ANOVA calculation error:', err);
-      setError('Failed to perform ANOVA analysis. Please check your data and try again.');
-
-      // Mock results for demonstration
-      const mockResults = {
-        f_statistic: 4.573,
-        p_value: 0.012,
-        degrees_of_freedom_between: data.length - 1,
-        degrees_of_freedom_within: data.flat().length - data.length,
-        sum_of_squares_between: 125.45,
-        sum_of_squares_within: 234.67,
-        mean_square_between: 125.45 / (data.length - 1),
-        mean_square_within: 234.67 / (data.flat().length - data.length),
-        eta_squared: 0.348,
-        omega_squared: 0.312,
-        group_means: data.map(group => {
-          const mean = group.reduce((a, b) => a + b, 0) / group.length;
-          return mean;
-        }),
-        group_variances: data.map(group => {
-          const mean = group.reduce((a, b) => a + b, 0) / group.length;
-          const variance = group.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / group.length;
-          return variance;
-        }),
-        levene_test: {
-          statistic: 1.234,
-          p_value: 0.298
-        },
-        post_hoc: generatePostHocResults(data)
-      };
-      setAnovaResults(mockResults);
+      setError(
+        err.response?.data?.error ||
+          'Failed to perform ANOVA analysis. Please check your data and try again.'
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  const generatePostHocResults = (groups) => {
-    // Compute pooled within-group variance (MSW) for Bonferroni-corrected post-hoc
-    const allN = groups.map(g => g.length);
-    const totalN = allN.reduce((a, b) => a + b, 0);
-    const k = groups.length;
-    const groupMeans = groups.map(g => g.reduce((a, b) => a + b, 0) / g.length);
-    const groupVars = groups.map((g, idx) => {
-      const m = groupMeans[idx];
-      return g.reduce((acc, val) => acc + Math.pow(val - m, 2), 0);
-    });
-    const ssWithin = groupVars.reduce((a, b) => a + b, 0);
-    const dfWithin = totalN - k;
-    const msWithin = dfWithin > 0 ? ssWithin / dfWithin : 0;
-
-    const numComparisons = k * (k - 1) / 2;
-
-    const results = [];
-    for (let i = 0; i < groups.length; i++) {
-      for (let j = i + 1; j < groups.length; j++) {
-        const meanDiff = Math.abs(groupMeans[i] - groupMeans[j]);
-        // Standard error for the difference of two group means
-        const se = msWithin > 0 ? Math.sqrt(msWithin * (1 / allN[i] + 1 / allN[j])) : 0;
-        // t-statistic for pairwise comparison
-        const tStat = se > 0 ? meanDiff / se : 0;
-        // Approximate two-tailed p-value using normal approximation (for large df)
-        // For small df this is approximate; proper computation requires t-distribution CDF
-        const rawP = se > 0 ? Math.exp(-0.717 * tStat - 0.416 * tStat * tStat) : 1;
-        // Bonferroni correction
-        const adjustedP = Math.min(rawP * numComparisons, 1);
-
-        results.push({
-          group1: `Group ${i + 1}`,
-          group2: `Group ${j + 1}`,
-          mean_diff: meanDiff,
-          p_value: adjustedP,
-          significant: adjustedP < 0.05
-        });
-      }
-    }
-    return results;
   };
 
   const handleAssumptionValidation = (results) => {
@@ -493,7 +435,7 @@ MS = Mean Square`}
                 },
                 {
                   type: 'effect',
-                  text: `Effect size (η² = ${anovaResults.eta_squared.toFixed(3)}) indicates ${
+                  text: `Effect size (η² = ${formatStat(anovaResults.eta_squared, 3)}) indicates ${
                     anovaResults.eta_squared < 0.01 ? 'negligible' :
                     anovaResults.eta_squared < 0.06 ? 'small' :
                     anovaResults.eta_squared < 0.14 ? 'medium' : 'large'
@@ -508,7 +450,7 @@ MS = Mean Square`}
             <Grid item xs={12}>
               <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                  Post-Hoc Comparisons (Tukey HSD)
+                  Post-Hoc Comparisons (Bonferroni-corrected pairwise t-tests)
                 </Typography>
                 <Box sx={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -516,7 +458,7 @@ MS = Mean Square`}
                       <tr>
                         <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Comparison</th>
                         <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Mean Difference</th>
-                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>p-value</th>
+                        <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Adjusted p-value</th>
                         <th style={{ padding: '8px', borderBottom: '2px solid var(--divider-color, #ddd)' }}>Significant</th>
                       </tr>
                     </thead>
@@ -527,10 +469,10 @@ MS = Mean Square`}
                             {comparison.group1} vs {comparison.group2}
                           </td>
                           <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
-                            {comparison.mean_diff.toFixed(3)}
+                            {formatStat(comparison.mean_diff, 3)}
                           </td>
                           <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
-                            {comparison.p_value.toFixed(4)}
+                            {formatPValue(comparison.p_value, 4)}
                           </td>
                           <td style={{ padding: '8px', borderBottom: '1px solid var(--divider-color, #eee)', textAlign: 'center' }}>
                             {comparison.significant ? (

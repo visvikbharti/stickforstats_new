@@ -22,7 +22,7 @@ import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import jStat from 'jstat';
-import { getApiUrl } from '../config/apiConfig';
+import { getApiUrl, endpoints } from '../config/apiConfig';
 import guardianService from '../services/GuardianService';
 import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
 import {
@@ -228,7 +228,7 @@ const TTestCompleteModule = () => {
 
     switch (testType) {
       case 'one-sample':
-        endpoint = '/api/v1/stats/ttest/';
+        endpoint = endpoints.stats.ttest;
         payload = {
           test_type: 'one_sample',
           data: data1,
@@ -243,7 +243,7 @@ const TTestCompleteModule = () => {
           enqueueSnackbar('Please enter valid data for sample 2', { variant: 'error' });
           return;
         }
-        endpoint = '/api/v1/stats/ttest/';
+        endpoint = endpoints.stats.ttest;
         payload = {
           test_type: 'two_sample',
           data1: data1,
@@ -259,7 +259,7 @@ const TTestCompleteModule = () => {
           enqueueSnackbar('Paired samples must have equal length', { variant: 'error' });
           return;
         }
-        endpoint = '/api/v1/stats/ttest/';
+        endpoint = endpoints.stats.ttest;
         payload = {
           test_type: 'paired',
           data1: data1,
@@ -269,29 +269,32 @@ const TTestCompleteModule = () => {
         break;
     }
 
+    // Check assumptions. This runs on the submitted samples regardless of
+    // whether the analysis call itself succeeds — a violated assumption (and the
+    // non-parametric alternative it implies) is worth surfacing even when the
+    // parametric test cannot be computed.
+    const data2 = testType !== 'one-sample' ? parseData(sample2) : null;
+    setAssumptions(checkAssumptions(data1, data2));
+
+    // Backend Guardian assumption check (non-blocking): if the parametric
+    // assumptions are violated, offer a distribution-free alternative.
+    setGuardianReport(null);
+    if (TTEST_NP_FALLBACK[testType] && data2 && data2.length >= 2) {
+      // Paired t-test assumes normality of the within-pair DIFFERENCES, so
+      // send those as a flat array; independent t-test checks each group.
+      const guardianData =
+        testType === 'paired'
+          ? data1.map((v, i) => v - data2[i])
+          : { group1: data1, group2: data2 };
+      guardianService
+        .checkAssumptions(guardianData, 't_test', 1 - confidenceLevel / 100)
+        .then(setGuardianReport)
+        .catch(() => setGuardianReport(null));
+    }
+
     try {
       const response = await axios.post(getApiUrl(endpoint), payload);
       setResults(response.data);
-
-      // Check assumptions
-      const data2 = testType !== 'one-sample' ? parseData(sample2) : null;
-      setAssumptions(checkAssumptions(data1, data2));
-
-      // Backend Guardian assumption check (non-blocking): if the parametric
-      // assumptions are violated, offer a distribution-free alternative.
-      setGuardianReport(null);
-      if (TTEST_NP_FALLBACK[testType] && data2 && data2.length >= 2) {
-        // Paired t-test assumes normality of the within-pair DIFFERENCES, so
-        // send those as a flat array; independent t-test checks each group.
-        const guardianData =
-          testType === 'paired'
-            ? data1.map((v, i) => v - data2[i])
-            : { group1: data1, group2: data2 };
-        guardianService
-          .checkAssumptions(guardianData, 't_test', 1 - confidenceLevel / 100)
-          .then(setGuardianReport)
-          .catch(() => setGuardianReport(null));
-      }
 
       // Generate interpretation
       generateInterpretation(response.data);
@@ -299,6 +302,7 @@ const TTestCompleteModule = () => {
       enqueueSnackbar('Analysis completed successfully!', { variant: 'success' });
     } catch (error) {
       console.error('Analysis error:', error);
+      setResults(null);
       enqueueSnackbar('Analysis failed', { variant: 'error' });
     }
   };
