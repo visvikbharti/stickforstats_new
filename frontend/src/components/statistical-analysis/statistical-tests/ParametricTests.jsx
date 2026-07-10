@@ -60,6 +60,7 @@ import {
   oneWayANOVA,
   calculateDescriptiveStats
 } from '../utils/statisticalUtils';
+import { formatPValue } from '../../../utils/formatStats';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import {
@@ -754,7 +755,7 @@ const ParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{oneSampleResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(oneSampleResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -889,7 +890,7 @@ const ParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{independentResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(independentResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -1021,7 +1022,7 @@ const ParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{pairedResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(pairedResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -1149,7 +1150,7 @@ const ParametricTests = ({ data }) => {
                     <TableCell align="right">{anovaResult.dfb}</TableCell>
                     <TableCell align="right">{anovaResult.msb.toFixed(4)}</TableCell>
                     <TableCell align="right">{anovaResult.fStatistic.toFixed(4)}</TableCell>
-                    <TableCell align="right">{anovaResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(anovaResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Within Groups</TableCell>

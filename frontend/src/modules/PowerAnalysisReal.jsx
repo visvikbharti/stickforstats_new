@@ -553,7 +553,13 @@ const PowerAnalysisReal = () => {
               Results
             </Typography>
             <Chip
-              label={`${backendPrecision}-decimal precision`}
+              // backendPrecision starts as the number 50 but is replaced by the
+              // backend's descriptive string ("50 decimal places"); render each
+              // cleanly instead of concatenating them into "50 decimal
+              // places-decimal precision".
+              label={typeof backendPrecision === 'number'
+                ? `${backendPrecision}-decimal precision`
+                : String(backendPrecision)}
               color="success"
               icon={<CheckCircleIcon />}
             />

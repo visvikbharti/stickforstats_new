@@ -62,6 +62,7 @@ import {
   calculateDescriptiveStats
 } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
+import { formatPValue } from '../../../utils/formatStats';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
@@ -1082,7 +1083,7 @@ const NonParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{mannWhitneyResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(mannWhitneyResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -1200,7 +1201,7 @@ const NonParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{kruskalWallisResult.pValue.toFixed(6)}</TableCell>
+                    <TableCell align="right">{formatPValue(kruskalWallisResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Effect Size (η²)</TableCell>
@@ -1303,7 +1304,7 @@ const NonParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{wilcoxonResult.pValue.toFixed(6)}</TableCell>
+                    <TableCell align="right">{formatPValue(wilcoxonResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Effect Size (r)</TableCell>
@@ -1390,7 +1391,7 @@ const NonParametricTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{friedmanResult.pValue.toFixed(6)}</TableCell>
+                    <TableCell align="right">{formatPValue(friedmanResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Kendall's W (Effect Size)</TableCell>
