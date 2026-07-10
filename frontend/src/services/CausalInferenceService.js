@@ -17,7 +17,10 @@ import axios from 'axios';
 
 class CausalInferenceService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+    // The causal routes live under /api/v1/core/causal/... . REACT_APP_API_URL
+    // is the /api mount, so every '/core/causal/...' path below needs the /v1
+    // segment; without it the requests hit /api/core/... which 404s.
+    this.baseURL = `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/v1`;
     this.setupAxios();
   }
 
@@ -47,7 +50,17 @@ class CausalInferenceService {
 
     // Handle responses
     this.client.interceptors.response.use(
-      response => response,
+      response => {
+        // The causal endpoints wrap their payload in a
+        // { success, method, results: {...} } envelope, but callers read the
+        // fields directly (e.g. treatmentEffects.ate, didResults.did_estimate).
+        // Flatten `results` into response.data so those reads resolve.
+        const d = response.data;
+        if (d && typeof d === 'object' && d.results && typeof d.results === 'object' && !Array.isArray(d.results)) {
+          response.data = { ...d.results, success: d.success, method: d.method };
+        }
+        return response;
+      },
       error => {
         if (error.response?.status === 401) {
           localStorage.removeItem('authToken');

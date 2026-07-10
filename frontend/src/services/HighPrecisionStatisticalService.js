@@ -146,6 +146,24 @@ class HighPrecisionStatisticalService {
   }
 
   /**
+   * Perform high-precision linear regression.
+   * The correlation endpoint only accepts pearson/spearman/kendall, so a
+   * regression request must go to its own endpoint. Response shape:
+   *   { coefficients: {X1: str}, intercept: str,
+   *     metrics: {r_squared, adjusted_r_squared, rmse, mae, aic, bic, ...},
+   *     statistics: {f_statistic, f_p_value}, p_values, standard_errors }
+   */
+  async performRegression({ X, y, type = 'simple_linear', ...rest }) {
+    const response = await this.client.post('/v1/stats/regression/', {
+      type,
+      X,
+      y,
+      ...rest,
+    });
+    return response.data;
+  }
+
+  /**
    * Get descriptive statistics
    */
   async getDescriptiveStatistics(data, options = {}) {

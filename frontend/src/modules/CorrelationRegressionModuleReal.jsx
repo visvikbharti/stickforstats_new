@@ -107,10 +107,18 @@ const InteractiveCorrelationSimulation = ({ darkMode }) => {
       });
 
       if (result && result.high_precision_result) {
+        // Backend keys are correlation_coefficient and confidence_interval_lower/
+        // _upper (decimal strings). Reading .correlation / .confidence_interval
+        // yielded undefined -> parseFloat -> NaN, so the headline r rendered as
+        // "NaN" and the CI block never appeared.
+        const hp = result.high_precision_result;
         setCorrelationResult({
-          correlation: parseFloat(result.high_precision_result.correlation),
-          p_value: parseFloat(result.high_precision_result.p_value),
-          confidence_interval: result.high_precision_result.confidence_interval,
+          correlation: parseFloat(hp.correlation_coefficient),
+          p_value: parseFloat(hp.p_value),
+          confidence_interval: [
+            parseFloat(hp.confidence_interval_lower),
+            parseFloat(hp.confidence_interval_upper),
+          ],
           precision: result.precision || 50
         });
 
@@ -428,42 +436,45 @@ const MultipleRegressionSimulation = ({ darkMode }) => {
         y: realDataset.afterData[i]
       }));
 
-      // Perform regression via backend
-      const result = await service.performCorrelation({
-        x: realDataset.beforeData,
+      // Regression has its own backend endpoint. The previous call went to the
+      // correlation endpoint with method:'regression', which only accepts
+      // pearson/spearman/kendall and 400'd -- so this tab never worked.
+      const result = await service.performRegression({
+        X: realDataset.beforeData,
         y: realDataset.afterData,
-        method: 'regression',
-        include_diagnostics: true
       });
 
-      if (result && result.high_precision_result) {
-        // Extract regression metrics
-        const regression = result.high_precision_result.regression || {};
+      if (result && result.metrics) {
+        const metrics = result.metrics;
+        // simple_linear: one predictor, coefficient keyed "X1".
+        const slope = parseFloat(result.coefficients?.X1 ?? 0);
+        const intercept = parseFloat(result.intercept ?? 0);
+        const rmse = parseFloat(metrics.rmse ?? 0);
 
         setModelMetrics({
-          rSquared: parseFloat(regression.r_squared || 0),
-          adjustedRSquared: parseFloat(regression.adjusted_r_squared || 0),
-          rmse: parseFloat(regression.rmse || 0),
-          mae: parseFloat(regression.mae || 0),
-          aic: parseFloat(regression.aic || 0),
-          bic: parseFloat(regression.bic || 0),
-          slope: parseFloat(regression.slope || 0),
-          intercept: parseFloat(regression.intercept || 0)
+          rSquared: parseFloat(metrics.r_squared ?? 0),
+          adjustedRSquared: parseFloat(metrics.adjusted_r_squared ?? 0),
+          rmse,
+          mae: parseFloat(metrics.mae ?? 0),
+          aic: parseFloat(metrics.aic ?? 0),
+          bic: parseFloat(metrics.bic ?? 0),
+          slope,
+          intercept,
+          fStatistic: parseFloat(result.statistics?.f_statistic ?? 0),
         });
 
         setBackendPrecision(result.precision || 50);
 
-        // Prepare visualization data
-        const vizData = regressionData.map((point, i) => {
-          const prediction = modelMetrics.slope * point.x + modelMetrics.intercept;
-          const residual = point.y - prediction;
-
+        // Prepare visualization from the values we just computed -- not from
+        // modelMetrics, whose setState has not applied yet within this handler.
+        const vizData = regressionData.map((point) => {
+          const prediction = slope * point.x + intercept;
           return {
             ...point,
             prediction,
-            residual,
-            upperBound: prediction + 1.96 * (modelMetrics.rmse || 2),
-            lowerBound: prediction - 1.96 * (modelMetrics.rmse || 2)
+            residual: point.y - prediction,
+            upperBound: prediction + 1.96 * (rmse || 2),
+            lowerBound: prediction - 1.96 * (rmse || 2),
           };
         });
 
@@ -740,19 +751,26 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
             row.push(1.0);
           } else {
             try {
+              // These illustrative series have no inherent row-pairing and can
+              // differ in length; the backend requires equal-length inputs, so
+              // align each pair to its common length. A failed pair becomes null
+              // (blank cell) -- never a fabricated 0.
+              const xi = variables[varNames[i]];
+              const yj = variables[varNames[j]];
+              const m = Math.min(xi.length, yj.length);
               const result = await service.performCorrelation({
-                x: variables[varNames[i]],
-                y: variables[varNames[j]],
+                x: xi.slice(0, m),
+                y: yj.slice(0, m),
                 method: correlationType
               });
 
               if (result && result.high_precision_result) {
-                row.push(parseFloat(result.high_precision_result.correlation));
+                row.push(parseFloat(result.high_precision_result.correlation_coefficient));
               } else {
-                row.push(0);
+                row.push(null);
               }
             } catch (err) {
-              row.push(0);
+              row.push(null);
             }
           }
         }
@@ -768,17 +786,10 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
     } catch (err) {
       console.error('Error calculating correlation matrix:', err);
       setError('Failed to calculate correlation matrix');
-
-      // Fallback matrix for visualization
-      setCorrelationMatrix({
-        variables: ['Var1', 'Var2', 'Var3', 'Var4'],
-        matrix: [
-          [1.00, 0.85, -0.30, 0.45],
-          [0.85, 1.00, -0.25, 0.50],
-          [-0.30, -0.25, 1.00, -0.60],
-          [0.45, 0.50, -0.60, 1.00]
-        ]
-      });
+      // No fabricated fallback matrix: showing invented correlations under a
+      // "calculated from real data" caption is exactly the failure this module
+      // is meant to avoid. Clear the matrix and surface the error instead.
+      setCorrelationMatrix(null);
     } finally {
       setLoading(false);
     }
@@ -887,19 +898,25 @@ const CorrelationMatrixHeatmap = ({ darkMode }) => {
                           {correlationMatrix.variables[i]}
                         </Typography>
                         {row.map((value, j) => (
-                          <Tooltip
-                            key={j}
-                            title={`r = ${value.toFixed(4)}${getSignificance(value)}`}
-                          >
-                            <HeatmapCell value={value}>
-                              {value.toFixed(2)}
-                              {getSignificance(value) && (
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                  {getSignificance(value)}
-                                </Typography>
-                              )}
-                            </HeatmapCell>
-                          </Tooltip>
+                          value === null || value === undefined || Number.isNaN(value) ? (
+                            <Tooltip key={j} title="Not available for this pair">
+                              <HeatmapCell value={0}>—</HeatmapCell>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip
+                              key={j}
+                              title={`r = ${value.toFixed(4)}${getSignificance(value)}`}
+                            >
+                              <HeatmapCell value={value}>
+                                {value.toFixed(2)}
+                                {getSignificance(value) && (
+                                  <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                    {getSignificance(value)}
+                                  </Typography>
+                                )}
+                              </HeatmapCell>
+                            </Tooltip>
+                          )
                         ))}
                       </Box>
                     ))}

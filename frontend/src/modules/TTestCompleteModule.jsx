@@ -247,10 +247,14 @@ const TTestCompleteModule = () => {
     switch (testType) {
       case 'one-sample':
         endpoint = endpoints.stats.ttest;
+        // The serializer requires `data1`, and the view reads the hypothesized
+        // mean from parameters.mu specifically -- top-level mu / population_mean
+        // are dropped and the test silently runs against 0. Sending `data` (the
+        // old key) 400'd every run outright.
         payload = {
           test_type: 'one_sample',
-          data: data1,
-          population_mean: populationMean,
+          data1: data1,
+          parameters: { mu: populationMean },
           alternative: alternative
         };
         break;

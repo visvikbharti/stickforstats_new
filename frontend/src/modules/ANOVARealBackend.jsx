@@ -205,6 +205,15 @@ const ANOVARealBackend = () => {
   const renderResults = () => {
     if (!results) return null;
 
+    // The backend serializes the high-precision p-value as a STRING (e.g.
+    // "0.177978515625"). Calling .toFixed() on it throws, which crashed the
+    // whole results panel for any ANOVA with p >= 0.001 -- the demo data is
+    // strongly significant so it took the "<0.001" branch and hid the bug.
+    const pValue = Number(results.p_value);
+    const pDisplay = Number.isFinite(pValue)
+      ? (pValue < 0.001 ? '<0.001' : pValue.toFixed(6))
+      : 'N/A';
+
     return (
       <Zoom in timeout={600}>
         <Card sx={{ mt: 3 }}>
@@ -268,9 +277,9 @@ const ANOVARealBackend = () => {
                   <TableCell align="right">
                     <Typography
                       variant="body2"
-                      color={results.p_value < 0.05 ? 'error' : 'textPrimary'}
+                      color={pValue < 0.05 ? 'error' : 'textPrimary'}
                     >
-                      {results.p_value < 0.001 ? '<0.001' : results.p_value.toFixed(6)}
+                      {pDisplay}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -307,12 +316,12 @@ const ANOVARealBackend = () => {
           </TableContainer>
 
           {/* Interpretation */}
-          <Alert severity={results.p_value < 0.05 ? "success" : "info"} sx={{ mt: 2 }}>
+          <Alert severity={pValue < 0.05 ? "success" : "info"} sx={{ mt: 2 }}>
             <Typography variant="body2">
               <strong>Interpretation:</strong> {
-                results.p_value < 0.05
-                  ? `There IS a significant difference between groups (p = ${results.p_value.toFixed(6)})`
-                  : `There is NO significant difference between groups (p = ${results.p_value.toFixed(6)})`
+                pValue < 0.05
+                  ? `There IS a significant difference between groups (p = ${pDisplay})`
+                  : `There is NO significant difference between groups (p = ${pDisplay})`
               }
             </Typography>
           </Alert>

@@ -257,6 +257,21 @@ const TTestRealBackend = () => {
   const renderAssumptions = () => {
     if (!assumptions) return null;
 
+    // The backend keys each assumption as normality_data1 / normality_data2 /
+    // equal_variance with an { is_met, p_value } shape. The module previously
+    // read .normality.passed / .equal_variance.passed / .independence.passed --
+    // none of which exist -- so every run showed "⚠️ Violated" (and printed the
+    // real high equal-variance p-value right next to a "Violated" label).
+    const fmtP = (v) =>
+      v === null || v === undefined || Number.isNaN(Number(v)) ? 'N/A' : Number(v).toFixed(4);
+    const norm1 = assumptions.normality_data1;
+    const norm2 = assumptions.normality_data2;
+    const normalityMet = norm1 ? norm1.is_met && (norm2 ? norm2.is_met : true) : undefined;
+    const normalityP = norm2
+      ? `${fmtP(norm1?.p_value)}, ${fmtP(norm2?.p_value)}`
+      : fmtP(norm1?.p_value);
+    const eqVar = assumptions.equal_variance;
+
     return (
       <Card sx={{ mt: 3 }}>
         <CardContent>
@@ -267,31 +282,33 @@ const TTestRealBackend = () => {
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <Alert severity={assumptions.normality?.passed ? "success" : "warning"}>
+              <Alert severity={normalityMet ? "success" : "warning"}>
                 <Typography variant="body2">
-                  <strong>Normality:</strong> {assumptions.normality?.passed ? "✅ Met" : "⚠️ Violated"}
+                  <strong>Normality:</strong> {normalityMet ? "✅ Met" : "⚠️ Violated"}
                 </Typography>
                 <Typography variant="caption">
-                  p-value: {assumptions.normality?.p_value || 'N/A'}
+                  p-value: {normalityP}
                 </Typography>
               </Alert>
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <Alert severity={assumptions.equal_variance?.passed ? "success" : "warning"}>
-                <Typography variant="body2">
-                  <strong>Equal Variance:</strong> {assumptions.equal_variance?.passed ? "✅ Met" : "⚠️ Violated"}
-                </Typography>
-                <Typography variant="caption">
-                  p-value: {assumptions.equal_variance?.p_value || 'N/A'}
-                </Typography>
-              </Alert>
-            </Grid>
+            {eqVar && (
+              <Grid item xs={12} md={4}>
+                <Alert severity={eqVar.is_met ? "success" : "warning"}>
+                  <Typography variant="body2">
+                    <strong>Equal Variance:</strong> {eqVar.is_met ? "✅ Met" : "⚠️ Violated"}
+                  </Typography>
+                  <Typography variant="caption">
+                    p-value: {fmtP(eqVar.p_value)}
+                  </Typography>
+                </Alert>
+              </Grid>
+            )}
 
             <Grid item xs={12} md={4}>
-              <Alert severity={assumptions.independence?.passed ? "success" : "info"}>
+              <Alert severity="info">
                 <Typography variant="body2">
-                  <strong>Independence:</strong> {assumptions.independence?.passed ? "✅ Met" : "ℹ️ Check design"}
+                  <strong>Independence:</strong> ℹ️ Based on study design
                 </Typography>
               </Alert>
             </Grid>
