@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -61,6 +62,13 @@ import {
 } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
+import {
+  NON_PARAMETRIC_ROUTE,
+  NP_FALLBACK_BY_DESIGN,
+  buildNonParametricHandoff,
+  correctAlternatives,
+  displayNameFor,
+} from './guardianFallback';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
@@ -74,6 +82,7 @@ const ParametricTests = ({ data }) => {
   const { expertMode, shouldBlockTest } = useSettings();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const navigate = useNavigate();
 
   const [testType, setTestType] = useState('');
   const [selectedColumn, setSelectedColumn] = useState('');
@@ -87,7 +96,7 @@ const ParametricTests = ({ data }) => {
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [guardianError, setGuardianError] = useState(null);
   const [isTestBlocked, setIsTestBlocked] = useState(false);
-  const [selectedAlternative, setSelectedAlternative] = useState(null);
+  const [alternativeNotice, setAlternativeNotice] = useState(null);
   const [showVisualEvidence, setShowVisualEvidence] = useState(false);
 
   /**
@@ -278,6 +287,7 @@ const ParametricTests = ({ data }) => {
       setGuardianReport(null);
       setGuardianError(null);
       setIsTestBlocked(false);
+      setAlternativeNotice(null);
 
       // Only check if we have a test type and sufficient data
       if (!testType || !data || data.length === 0) {
@@ -341,25 +351,50 @@ const ParametricTests = ({ data }) => {
   }, [testType, columnData, columnData2, groupedData, alpha, data, expertMode]);
 
   /**
-   * Handle alternative test selection from Guardian
+   * Guardian's alternative list, rewritten to fit the design the user chose.
+   *
+   * The backend collapses one-sample / independent / paired onto `t_test`, so it
+   * would otherwise offer Mann-Whitney U for paired data. Correcting the list
+   * here keeps every button's label equal to the test it actually runs.
+   */
+  const guardianReportForDisplay = useMemo(() => {
+    if (!guardianReport) return null;
+    return {
+      ...guardianReport,
+      alternative_tests: correctAlternatives(guardianReport.alternative_tests, testType)
+    };
+  }, [guardianReport, testType]);
+
+  /**
+   * Handle alternative test selection from Guardian.
+   *
+   * The one rank test that suits this design is run for real: we hand the user's
+   * data to the non-parametric module and let it execute against the backend.
+   * The remaining suggestions (permutation, bootstrap, Welch) are sound advice
+   * that this app cannot yet run, so they say so inline rather than pretending.
    */
   const handleSelectAlternative = (alternativeTest) => {
-    setSelectedAlternative(alternativeTest);
+    const fallback = NP_FALLBACK_BY_DESIGN[testType];
+    const displayName = displayNameFor(alternativeTest);
 
-    // Map alternative test names to user-friendly display
-    const testDisplayNames = {
-      'bootstrap': 'Bootstrap Test',
-      'permutation_test': 'Permutation Test',
-      'mann_whitney': 'Mann-Whitney U Test',
-      'wilcoxon': 'Wilcoxon Signed-Rank Test',
-      'kruskal_wallis': 'Kruskal-Wallis H Test',
-      'friedman': 'Friedman Test'
-    };
+    if (fallback && alternativeTest === fallback.suggestionId) {
+      const handoff = buildNonParametricHandoff({ testType, columnData, columnData2, groupedData });
+      if (handoff) {
+        setAlternativeNotice(null);
+        navigate(NON_PARAMETRIC_ROUTE, { state: handoff });
+        return;
+      }
+      setAlternativeNotice({
+        name: displayName,
+        detail: 'cannot run on the current selection. Check that every group has at least two values, and that paired columns are the same length.'
+      });
+      return;
+    }
 
-    const displayName = testDisplayNames[alternativeTest] || alternativeTest.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-    // Alert user about the alternative test recommendation
-    alert(`Alternative Test Selected: ${displayName}\n\nTo use this non-parametric alternative:\n1. Navigate to "Non-Parametric Tests" in the Statistical Analysis module\n2. Select "${displayName}" from the available tests\n3. Use the same data columns for analysis\n\nNon-parametric tests don't assume normal distribution and are robust to violations detected by Guardian.`);
+    setAlternativeNotice({
+      name: displayName,
+      detail: "is a sound choice for this data, but this screen cannot run it for you. Guardian's report above records the recommendation, and you can export it alongside your results."
+    });
   };
 
   /**
@@ -623,9 +658,9 @@ const ParametricTests = ({ data }) => {
       )}
 
       {/* Guardian Warning Display */}
-      {guardianReport && (
+      {guardianReportForDisplay && (
         <GuardianWarning
-          guardianReport={guardianReport}
+          guardianReport={guardianReportForDisplay}
           data={columnData}
           alpha={alpha}
           onProceed={() => {
@@ -635,6 +670,19 @@ const ParametricTests = ({ data }) => {
           onViewEvidence={handleViewEvidence}
           educationalMode={true}
         />
+      )}
+
+      {/* An alternative Guardian recommends but this app cannot run for you */}
+      {alternativeNotice && (
+        <Alert
+          severity="info"
+          sx={{ mb: 3 }}
+          onClose={() => setAlternativeNotice(null)}
+        >
+          <Typography variant="body2">
+            <strong>{alternativeNotice.name}</strong> {alternativeNotice.detail}
+          </Typography>
+        </Alert>
       )}
 
       {/* Test Blocked Notice */}
