@@ -11,8 +11,12 @@ export const calculateDescriptiveStats = (data) => {
   const _sorted = [...data].sort((a, b) => a - b);
   const mean = ss.mean(data);
   const median = ss.median(data);
-  const std = ss.standardDeviation(data);
-  const variance = ss.variance(data);
+  // Sample SD/variance (÷ n-1), matching R, Excel STDEV, and scipy ddof=1 --
+  // the convention a researcher expects for a sample. simple-statistics'
+  // standardDeviation()/variance() divide by n (population), which understates
+  // the spread of a sample.
+  const std = ss.sampleStandardDeviation(data);
+  const variance = ss.sampleVariance(data);
   const min = ss.min(data);
   const max = ss.max(data);
   const q1 = ss.quantile(data, 0.25);
@@ -26,7 +30,9 @@ export const calculateDescriptiveStats = (data) => {
   const n = data.length;
   const meanCentered = data.map(x => x - mean);
   const m4 = meanCentered.reduce((sum, x) => sum + Math.pow(x, 4), 0) / n;
-  const m2 = variance;
+  // Excess kurtosis uses the population second moment (÷ n), not the sample
+  // variance reported above -- keep it independent of that change.
+  const m2 = meanCentered.reduce((sum, x) => sum + x * x, 0) / n;
   const kurtosis = (m4 / Math.pow(m2, 2)) - 3; // Excess kurtosis
 
   return {
@@ -158,7 +164,9 @@ export const oneSampleTTest = (data, populationMean = 0) => {
 
   const n = data.length;
   const sampleMean = ss.mean(data);
-  const sampleStd = ss.standardDeviation(data);
+  // Sample SD (÷ n-1): the t-statistic estimates the population SD from the
+  // sample. ss.standardDeviation() divides by n and inflates t by sqrt(n/(n-1)).
+  const sampleStd = ss.sampleStandardDeviation(data);
   const standardError = sampleStd / Math.sqrt(n);
 
   const tStatistic = (sampleMean - populationMean) / standardError;
@@ -188,8 +196,11 @@ export const independentTTest = (group1, group2) => {
   const n2 = group2.length;
   const mean1 = ss.mean(group1);
   const mean2 = ss.mean(group2);
-  const var1 = ss.variance(group1);
-  const var2 = ss.variance(group2);
+  // Sample variance (÷ n-1): the pooled-variance formula below weights each
+  // group's variance by (n-1), which assumes these are sample variances.
+  // ss.variance() divides by n, double-counting the correction and inflating t.
+  const var1 = ss.sampleVariance(group1);
+  const var2 = ss.sampleVariance(group2);
 
   // Pooled standard deviation
   const pooledVar = ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2);
