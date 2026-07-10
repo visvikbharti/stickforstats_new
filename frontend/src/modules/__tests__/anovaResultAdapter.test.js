@@ -15,6 +15,12 @@ import {
  * The payload below mirrors HighPrecisionANOVAView (backend/api/v1/views.py),
  * which serialises every Decimal as a string to preserve 50-decimal precision.
  */
+const omit = (obj, key) => {
+  const copy = { ...obj };
+  delete copy[key];
+  return copy;
+};
+
 const backendPayload = {
   high_precision_result: {
     f_statistic: '4.57312345678901234567890123456789012345678901234567',
@@ -91,13 +97,13 @@ describe('adaptAnovaResponse', () => {
   });
 
   it('falls back to high_precision_result when effect_sizes is absent', () => {
-    const { effect_sizes, ...withoutEffects } = backendPayload;
+    const withoutEffects = omit(backendPayload, 'effect_sizes');
     const result = adaptAnovaResponse(withoutEffects);
     expect(result.eta_squared).toBeCloseTo(0.348351, 5);
   });
 
   it('yields a null post_hoc when the backend omits it (fewer than 3 groups)', () => {
-    const { post_hoc_results, ...noPostHoc } = backendPayload;
+    const noPostHoc = omit(backendPayload, 'post_hoc_results');
     expect(adaptAnovaResponse(noPostHoc).post_hoc).toBeNull();
   });
 });
