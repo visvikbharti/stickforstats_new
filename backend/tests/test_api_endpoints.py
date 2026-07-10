@@ -5,6 +5,7 @@ data import, OpenAPI schema, audit endpoints.
 """
 
 import io
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
@@ -123,6 +124,140 @@ class TTestEndpointTests(TestCase):
         response = self.client.post("/api/v1/stats/ttest/", payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("assumptions", response.data)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TTestEqualVarianceFlagTests(TestCase):
+    """
+    The equal-variance flag must reach the calculator and change the answer.
+
+    Regression: the view reads ``parameters["equal_var"]``, but every frontend
+    caller sends a flat ``equal_variance``. DRF drops fields a serializer does
+    not declare, so the flag vanished and the API always ran Student's pooled
+    t-test -- while the UI announced "using Welch's t-test".
+
+    Asserting 200 OK cannot catch that, which is why it survived. These assert
+    the value of t and, decisively, of df: Student's df is n1+n2-2 = 11, while
+    Welch-Satterthwaite gives ~7.09 for this data.
+    """
+
+    # Unequal n and unequal variances, so the two tests disagree loudly.
+    DATA1 = [1, 2, 3, 4, 5]
+    DATA2 = [10, 20, 30, 40, 50, 60, 70, 80]
+
+    STUDENT_T = -3.7658490220
+    STUDENT_DF = 11.0
+    WELCH_T = -4.8336568362
+    WELCH_DF = 7.0930927595
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+
+    def _payload(self, **extra):
+        return {
+            "test_type": "two_sample",
+            "data1": self.DATA1,
+            "data2": self.DATA2,
+            "options": {
+                "check_assumptions": False,
+                "validate_results": False,
+                "compare_standard": False,
+            },
+            **extra,
+        }
+
+    def _run(self, **extra):
+        response = self.client.post("/api/v1/stats/ttest/", self._payload(**extra), format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        hp = response.data["high_precision_result"]
+        return float(hp["t_statistic"]), float(hp["df"])
+
+    def test_fixture_actually_separates_the_two_tests(self):
+        """If Student and Welch ever agreed here, every assertion below would be vacuous."""
+        self.assertNotAlmostEqual(self.STUDENT_T, self.WELCH_T, places=3)
+        self.assertNotAlmostEqual(self.STUDENT_DF, self.WELCH_DF, places=3)
+
+    def test_scipy_agrees_with_our_expected_values(self):
+        """Pin the expected values to scipy rather than to a previous run of our own code."""
+        from scipy import stats as scipy_stats
+
+        student = scipy_stats.ttest_ind(self.DATA1, self.DATA2, equal_var=True)
+        welch = scipy_stats.ttest_ind(self.DATA1, self.DATA2, equal_var=False)
+        self.assertAlmostEqual(float(student.statistic), self.STUDENT_T, places=8)
+        self.assertAlmostEqual(float(welch.statistic), self.WELCH_T, places=8)
+        # df is the decisive discriminator, so pin it to scipy too rather than
+        # only to our own calculator.
+        self.assertAlmostEqual(float(student.df), self.STUDENT_DF, places=8)
+        self.assertAlmostEqual(float(welch.df), self.WELCH_DF, places=8)
+
+    def test_production_path_with_default_options_also_runs_welch(self):
+        """
+        Real callers omit `options` entirely, so `compare_standard` defaults to
+        True and views.py re-reads the flag for the scipy comparison. The other
+        tests switch those options off, so this is the only one that exercises
+        the code path an actual request takes -- and it checks that the
+        high-precision and standard-precision results agree on which test ran.
+        """
+        response = self.client.post(
+            "/api/v1/stats/ttest/",
+            {
+                "test_type": "two_sample",
+                "data1": self.DATA1,
+                "data2": self.DATA2,
+                "equal_variance": False,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertAlmostEqual(
+            float(response.data["high_precision_result"]["t_statistic"]), self.WELCH_T, places=8
+        )
+        self.assertAlmostEqual(
+            float(response.data["standard_precision_result"]["t_statistic"]), self.WELCH_T, places=8
+        )
+
+    def test_a_null_flag_is_tolerated_and_falls_back_to_students(self):
+        """`null` meant "not supplied" before the field was declared; keep it that way."""
+        t, df = self._run(equal_variance=None)
+        self.assertAlmostEqual(t, self.STUDENT_T, places=8)
+        self.assertAlmostEqual(df, self.STUDENT_DF, places=8)
+
+    def test_a_malformed_flag_is_rejected_rather_than_silently_ignored(self):
+        """Silently discarding this flag is precisely the bug being fixed."""
+        response = self.client.post(
+            "/api/v1/stats/ttest/", self._payload(equal_variance="maybe"), format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+
+    def test_no_flag_runs_students_pooled_t(self):
+        t, df = self._run()
+        self.assertAlmostEqual(t, self.STUDENT_T, places=8)
+        self.assertAlmostEqual(df, self.STUDENT_DF, places=8)
+
+    def test_flat_equal_variance_false_runs_welch(self):
+        """This is the exact payload TTestCompleteModule and DataPipeline send."""
+        t, df = self._run(equal_variance=False)
+        self.assertAlmostEqual(t, self.WELCH_T, places=8)
+        self.assertAlmostEqual(df, self.WELCH_DF, places=8)
+
+    def test_flat_equal_variance_true_runs_students(self):
+        t, df = self._run(equal_variance=True)
+        self.assertAlmostEqual(t, self.STUDENT_T, places=8)
+        self.assertAlmostEqual(df, self.STUDENT_DF, places=8)
+
+    def test_documented_nested_shape_still_runs_welch(self):
+        t, df = self._run(parameters={"equal_var": False})
+        self.assertAlmostEqual(t, self.WELCH_T, places=8)
+        self.assertAlmostEqual(df, self.WELCH_DF, places=8)
+
+    def test_explicit_nested_parameter_wins_over_the_flat_alias(self):
+        t, _ = self._run(equal_variance=True, parameters={"equal_var": False})
+        self.assertAlmostEqual(t, self.WELCH_T, places=8)
+
+    def test_equal_var_flat_alias_is_also_accepted(self):
+        t, _ = self._run(equal_var=False)
+        self.assertAlmostEqual(t, self.WELCH_T, places=8)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)

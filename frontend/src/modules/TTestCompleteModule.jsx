@@ -197,8 +197,12 @@ const TTestCompleteModule = () => {
       ? 'Data appears approximately normal'
       : 'Data may violate normality - interpret with caution';
 
-    // Variance equality check (F-test with proper p-value)
-    if (data2) {
+    // Variance equality check (F-test with proper p-value). Equal variances are
+    // an assumption of the two-sample t-test only: the one-sample and paired
+    // tests compare a single distribution (of values, or of differences), so
+    // reporting the check there would render a failed assumption that does not
+    // apply to the test being run.
+    if (testType === 'two-sample' && data2) {
       const var1 = data1.reduce((a, b, i, arr) => a + Math.pow(b - arr.reduce((x, y) => x + y, 0) / arr.length, 2), 0) / (data1.length - 1);
       const var2 = data2.reduce((a, b, i, arr) => a + Math.pow(b - arr.reduce((x, y) => x + y, 0) / arr.length, 2), 0) / (data2.length - 1);
       const fStat = Math.max(var1, var2) / Math.min(var1, var2);
@@ -207,9 +211,23 @@ const TTestCompleteModule = () => {
       const fPValue = 2 * Math.min(1 - jStat.centralF.cdf(fStat, df1, df2), jStat.centralF.cdf(fStat, df1, df2));
       assumptions.equalVariance.passed = fPValue > 0.05;
       assumptions.equalVariance.pValue = fPValue;
-      assumptions.equalVariance.message = assumptions.equalVariance.passed
-        ? `Variances appear equal (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)})`
-        : `Unequal variances detected (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)}) - using Welch's t-test`;
+
+      // Which test actually runs is decided by the "Assume equal variances"
+      // switch, not by this check. Say what will happen, not what ought to.
+      //
+      // Future tense, deliberately: this panel is populated before the request
+      // is sent, and it deliberately survives a failed request (see the caller),
+      // so "was used" would assert a result that may never have been computed.
+      const finding = `${assumptions.equalVariance.passed ? 'Variances appear equal' : 'Unequal variances detected'} (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)})`;
+      if (assumptions.equalVariance.passed) {
+        assumptions.equalVariance.message = finding;
+      } else if (equalVariance) {
+        assumptions.equalVariance.message = `${finding} - "Assume equal variances" is on, so Student's pooled t-test will be used. Turn it off to run Welch's t-test.`;
+      } else {
+        assumptions.equalVariance.message = `${finding} - Welch's t-test will be used, which does not assume equal variances.`;
+      }
+    } else {
+      delete assumptions.equalVariance;
     }
 
     return assumptions;

@@ -97,6 +97,17 @@ class TTestRequestSerializer(serializers.Serializer):
     mu = serializers.CharField(required=False)  # Alias for hypothesized_mean
     alpha = serializers.FloatField(required=False, default=0.05)  # Alternative to confidence_level
 
+    # Top-level aliases for parameters["equal_var"]. The view reads the nested
+    # key, but every frontend caller sends the flag flat, and DRF drops fields
+    # that are not declared -- so an undeclared flag meant the request silently
+    # ran Student's pooled t-test while the UI announced Welch's.
+    #
+    # allow_null keeps an explicit `null` as lenient as it was before this field
+    # existed (treated as "not supplied"). A *malformed* value still 400s rather
+    # than being ignored: silently discarding this flag is the bug being fixed.
+    equal_variance = serializers.BooleanField(required=False, allow_null=True)
+    equal_var = serializers.BooleanField(required=False, allow_null=True)
+
     parameters = serializers.DictField(required=False, default=dict)
     options = serializers.DictField(required=False, default=dict)
 
@@ -142,6 +153,18 @@ class TTestRequestSerializer(serializers.Serializer):
         if "mu" in params:
             if "hypothesized_mean" not in data:
                 data["hypothesized_mean"] = str(params["mu"])
+
+        # Fold the top-level equal_variance / equal_var aliases into parameters,
+        # which is where the view reads them. An explicit parameters["equal_var"]
+        # wins, so a caller that already sends the documented shape is unaffected.
+        if "equal_var" not in params:
+            for alias in ("equal_var", "equal_variance"):
+                if data.get(alias) is not None:
+                    params["equal_var"] = bool(data[alias])
+                    break
+        data["parameters"] = params
+        data.pop("equal_variance", None)
+        data.pop("equal_var", None)
 
         # Get normalized test type for validation
         test_type = data["test_type"]

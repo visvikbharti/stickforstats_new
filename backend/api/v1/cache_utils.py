@@ -13,10 +13,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def generate_cache_key(prefix, data_dict):
+# Bump whenever a cached endpoint's *result* changes for an unchanged request
+# body. The key is derived from the request alone, so without this salt a fix
+# that changes what a request computes keeps serving the old, wrong answer from
+# Redis until the entry expires. v2: `equal_variance` now reaches the t-test.
+CACHE_SCHEMA_VERSION = 2
+
+
+def generate_cache_key(prefix, data_dict, version=CACHE_SCHEMA_VERSION):
     """
     Generate a consistent cache key from request data.
     Uses SHA256 hash of sorted JSON for consistency.
+
+    `prefix` must identify the endpoint, not merely the method: every decorated
+    handler is called `post`, so a bare method name lets two different endpoints
+    that receive the same body read each other's cached responses.
     """
     try:
         # Sort keys for consistent ordering
@@ -24,7 +35,7 @@ def generate_cache_key(prefix, data_dict):
         # Create hash
         data_hash = hashlib.sha256(sorted_data.encode()).hexdigest()[:16]
         # Return prefixed key
-        return f"{prefix}:{data_hash}"
+        return f"{prefix}:v{version}:{data_hash}"
     except Exception as e:
         logger.warning(f"Cache key generation failed: {e}")
         return None
@@ -54,8 +65,8 @@ def cache_statistical_result(timeout=3600, cache_name="default"):
                 # No request object found, execute without caching
                 return func(*args, **kwargs)
 
-            # Generate cache key from endpoint name and request data
-            cache_key = generate_cache_key(func.__name__, dict(request.data))
+            # Qualname, not name: every decorated handler here is called `post`.
+            cache_key = generate_cache_key(func.__qualname__, dict(request.data))
 
             if cache_key:
                 from rest_framework.response import Response
