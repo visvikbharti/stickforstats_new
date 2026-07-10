@@ -527,10 +527,15 @@ class HighPrecisionCategorical:
             # Calculate p-value
             p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), 1))
 
-            # For small samples, use exact binomial test
+            # For small samples, use exact binomial test.
+            # scipy.stats.binom_test was removed in scipy 1.12; binomtest returns
+            # a result object whose .pvalue is the two-sided exact p. Without this
+            # the exact branch (b+c < 25 -- the primary McNemar use case) raised
+            # AttributeError and the endpoint 500'd.
             if b + c < 25:
-                # Exact test
-                p_exact = self._to_decimal(stats.binom_test(min(b, c), b + c, 0.5, alternative="two-sided"))
+                p_exact = self._to_decimal(
+                    stats.binomtest(min(b, c), b + c, 0.5, alternative="two-sided").pvalue
+                )
                 p_value = p_exact
 
         # Calculate odds ratio for paired data
