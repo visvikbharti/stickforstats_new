@@ -44,6 +44,15 @@ describe('ROUTE_CONFIG', () => {
     expect(byPath('/statistical-analysis-tools').component).toBeDefined();
   });
 
+  it('no longer routes the retired /dashboard', () => {
+    expect(byPath('/dashboard')).toBeUndefined();
+  });
+
+  it('still routes /enhanced-analysis, whose only inbound link was /dashboard', () => {
+    // Retiring the dashboard stranded this page; the nav now links it directly.
+    expect(byPath('/enhanced-analysis').component).toBeDefined();
+  });
+
   it('keeps /debug-login as a real page, not a redirect', () => {
     // It is an intentional legacy alias whose component is the login page.
     expect(byPath('/debug-login').component).toBeDefined();

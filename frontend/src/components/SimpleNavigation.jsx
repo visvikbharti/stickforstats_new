@@ -69,6 +69,7 @@ const NAV_CATEGORIES = [
     icon: <BarChartIcon fontSize="small" />,
     items: [
       { name: 'Statistical Analysis', path: '/statistical-analysis-tools', icon: <QueryStatsIcon fontSize="small" /> },
+      { name: 'Enhanced Analysis', path: '/enhanced-analysis', icon: <BarChartIcon fontSize="small" /> },
       { name: 'Hypothesis Testing', path: '/modules/hypothesis-testing', icon: <ScienceIcon fontSize="small" /> },
       { name: 'T-Test', path: '/modules/t-test', icon: <CompareArrowsIcon fontSize="small" /> },
       { name: 'ANOVA', path: '/modules/anova', icon: <StackedBarChartIcon fontSize="small" /> },

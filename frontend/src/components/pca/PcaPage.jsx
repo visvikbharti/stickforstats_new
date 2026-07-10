@@ -280,7 +280,7 @@ const PcaPage = () => {
           ) : (
             <Button 
               variant="contained" 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/statistical-analysis-tools')}
             >
               Finish
             </Button>

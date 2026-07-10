@@ -81,7 +81,7 @@ describe('Legacy `gradients` export — backward compatibility', () => {
   });
 
   it('covers every key the old palette exposed so existing imports resolve', () => {
-    // Keys referenced by `modules/pages/StatisticalDashboard.jsx` and kin.
+    // Keys the pre-v2 palette exposed, still consumed across modules/ and pages/.
     const expected = [
       'primary',
       'success',

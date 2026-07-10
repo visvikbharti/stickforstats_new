@@ -40,10 +40,10 @@
       "description": "Statistical quality review of papers"
     },
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "url": "/dashboard",
-      "description": "Statistical dashboard"
+      "name": "Statistical Analysis",
+      "short_name": "Analysis",
+      "url": "/statistical-analysis-tools",
+      "description": "Statistical analysis hub"
     },
     {
       "name": "Test Universe",

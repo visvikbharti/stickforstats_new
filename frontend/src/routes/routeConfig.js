@@ -45,7 +45,6 @@ const CausalInferenceModule = lazy(() => import('../modules/CausalInferenceModul
 
 // Multiple Testing Correction Panel
 const MultiplicityCorrectionPanel = lazy(() => import('../components/MultiplicityCorrectionPanel/MultiplicityCorrectionPanel'));
-const StatisticalDashboard = lazy(() => import('../pages/StatisticalDashboard'));
 
 // Test Universe - Access to 40+ Statistical Tests
 const TestSelectionDashboard = lazy(() => import('../components/TestSelectionDashboard'));
@@ -142,7 +141,11 @@ const ROUTE_CONFIG = [
   { path: '/platform', component: PlatformDashboardPage, loadingMessage: 'Loading Platform Dashboard...', skeleton: 'dashboard' },
 
   // Main statistical pages
-  { path: '/dashboard', component: StatisticalDashboard, loadingMessage: 'Loading Statistical Dashboard...', skeleton: 'dashboard' },
+  // /dashboard (StatisticalDashboard) is gone: it was absent from the nav, nine
+  // of its thirteen cards pointed at routes that never existed, and its
+  // "Learning Paths" buttons were no-ops. /statistical-analysis-tools is the
+  // single hub.
+  //
   // /analysis rendered the very same StatisticalAnalysisHub as
   // /statistical-analysis-tools, which is the one the nav and home page link.
   { path: '/analysis', redirect: '/statistical-analysis-tools' },
