@@ -117,6 +117,23 @@ const POWER_SCENARIOS = {
   }
 };
 
+// Which (calculation mode, test type) pairs the backend actually implements.
+// Power solves for t-test, ANOVA, correlation and chi-square; sample-size and
+// effect-size solving are currently t-test only. Advertising the others led to
+// silent 404s, so the UI gates on this map instead.
+const POWER_CAPABILITIES = {
+  power: ['t_test', 'anova', 'correlation', 'chi_square'],
+  sampleSize: ['t_test'],
+  effectSize: ['t_test'],
+};
+
+const isPowerSupported = (mode, testType) =>
+  (POWER_CAPABILITIES[mode] || []).includes(testType);
+
+// Backend routes use hyphenated slugs (t-test, chi-square); the UI stores
+// underscored test-type ids.
+const powerSlug = (testType) => testType.replace(/_/g, '-');
+
 const PowerAnalysisReal = () => {
   // State management
   const [calculationMode, setCalculationMode] = useState('power'); // power, sampleSize, effectSize
@@ -178,9 +195,21 @@ const PowerAnalysisReal = () => {
       let endpoint = '';
       let requestData = {};
 
+      // Guard against combinations the backend does not implement, so the user
+      // sees a clear message instead of a raw 404.
+      if (!isPowerSupported(calculationMode, testType)) {
+        setError(
+          'This combination is not available yet. Power is supported for ' +
+          't-test, ANOVA, correlation and chi-square; sample-size and ' +
+          'effect-size solving are currently available for t-tests only.'
+        );
+        setLoading(false);
+        return;
+      }
+
       // Prepare request based on calculation mode and test type
       if (calculationMode === 'power') {
-        endpoint = `/api/v1/power/${testType === 't_test' ? 't-test' : testType}/`;
+        endpoint = `/api/v1/power/${powerSlug(testType)}/`;
         requestData = {
           alpha: parameters.alpha,
           effect_size: parameters.effectSize,
@@ -189,7 +218,7 @@ const PowerAnalysisReal = () => {
           power_calculation: true
         };
       } else if (calculationMode === 'sampleSize') {
-        endpoint = `/api/v1/power/sample-size/${testType === 't_test' ? 't-test' : testType}/`;
+        endpoint = `/api/v1/power/sample-size/${powerSlug(testType)}/`;
         requestData = {
           alpha: parameters.alpha,
           power: parameters.power,
@@ -197,7 +226,7 @@ const PowerAnalysisReal = () => {
           tails: parameters.tails
         };
       } else if (calculationMode === 'effectSize') {
-        endpoint = `/api/v1/power/effect-size/${testType === 't_test' ? 't-test' : testType}/`;
+        endpoint = `/api/v1/power/effect-size/${powerSlug(testType)}/`;
         requestData = {
           alpha: parameters.alpha,
           power: parameters.power,
@@ -220,12 +249,15 @@ const PowerAnalysisReal = () => {
       // Make API call
       const response = await axios.post(`${API_BASE}${endpoint}`, requestData);
 
-      // Process results
-      const result = response.data;
+      // The backend wraps the numbers as { success, results, precision }, so the
+      // real power / sample_size / effect_size live under `results`. Reading
+      // response.data directly is why every calculation used to render N/A.
+      const envelope = response.data || {};
+      const result = envelope.results || envelope;
 
-      // Extract precision if available
-      if (result.precision) {
-        setBackendPrecision(result.precision);
+      // Extract precision if available (it sits on the envelope, not results)
+      if (envelope.precision) {
+        setBackendPrecision(envelope.precision);
       }
 
       // Add calculation metadata
@@ -257,7 +289,7 @@ const PowerAnalysisReal = () => {
 
       for (const es of effectSizes) {
         const response = await axios.post(
-          `${API_BASE}/api/v1/power/${testType === 't_test' ? 't-test' : testType}/`,
+          `${API_BASE}/api/v1/power/${powerSlug(testType)}/`,
           {
             alpha: parameters.alpha,
             effect_size: es,
@@ -267,9 +299,12 @@ const PowerAnalysisReal = () => {
           }
         );
 
+        const curveResult = response.data?.results || response.data || {};
         curveData.push({
           effectSize: es,
-          power: response.data.power || response.data.calculated_power
+          power: Number(
+            curveResult.power_float ?? curveResult.power ?? curveResult.calculated_power
+          )
         });
       }
 
@@ -475,11 +510,19 @@ const PowerAnalysisReal = () => {
           )}
         </Alert>
 
+        {!isPowerSupported(calculationMode, testType) && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            {calculationMode === 'power'
+              ? 'Power for this test is not available yet. Supported: t-test, ANOVA, correlation, chi-square.'
+              : 'Sample-size and effect-size solving are currently available for t-tests only.'}
+          </Alert>
+        )}
+
         <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
             onClick={performCalculation}
-            disabled={loading}
+            disabled={loading || !isPowerSupported(calculationMode, testType)}
             startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
           >
             {loading ? 'Calculating...' : 'Calculate'}
@@ -568,29 +611,29 @@ const PowerAnalysisReal = () => {
               </Grow>
             </Grid>
 
-            {/* Critical Values */}
-            {results.critical_value && (
+            {/* Critical Values (t-tests report critical_value, ANOVA critical_f) */}
+            {(results.critical_value || results.critical_f) && (
               <Grid item xs={12}>
                 <Paper sx={{ p: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Critical Value
                   </Typography>
                   <Typography variant="body1">
-                    {formatNumber(results.critical_value, 6)}
+                    {formatNumber(results.critical_value || results.critical_f, 6)}
                   </Typography>
                 </Paper>
               </Grid>
             )}
 
-            {/* Non-centrality Parameter */}
-            {results.noncentrality && (
+            {/* Non-centrality Parameter (backend key is non_centrality) */}
+            {(results.non_centrality || results.noncentrality) && (
               <Grid item xs={12}>
                 <Paper sx={{ p: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Non-centrality Parameter (λ)
                   </Typography>
                   <Typography variant="body1">
-                    {formatNumber(results.noncentrality, 6)}
+                    {formatNumber(results.non_centrality || results.noncentrality, 6)}
                   </Typography>
                 </Paper>
               </Grid>
@@ -603,7 +646,9 @@ const PowerAnalysisReal = () => {
                   High Precision Result (50 decimals)
                 </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                  {results.high_precision_result || results.power || results.sample_size || results.effect_size}
+                  {results.power || results.required_sample_size ||
+                   results.detectable_effect_size || results.sample_size ||
+                   results.effect_size}
                 </Typography>
               </Paper>
             </Grid>
@@ -614,7 +659,7 @@ const PowerAnalysisReal = () => {
             <AlertTitle>Interpretation</AlertTitle>
             {calculationMode === 'power' && (
               <Typography variant="body2">
-                With the given parameters, you have a {formatNumber(results.power || results.calculated_power, 2)}%
+                With the given parameters, you have a {formatNumber(Number(results.power || results.calculated_power) * 100, 1)}%
                 probability of detecting a statistically significant effect if it truly exists.
                 {(results.power || results.calculated_power) < 0.8 &&
                   ' Consider increasing sample size or effect size to achieve adequate power (≥80%).'}

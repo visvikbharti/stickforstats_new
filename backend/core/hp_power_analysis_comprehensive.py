@@ -60,18 +60,98 @@ class HighPrecisionPowerAnalysis:
         return sqrt(mpf("2")) * erfinv(mpf("2") * p - mpf("1"))
 
     def _t_cdf(self, x: mpf, df: mpf) -> mpf:
-        """High-precision t-distribution cumulative distribution function."""
-        # Using scipy for now, convert to high precision later
-        from scipy.stats import t
+        """
+        High-precision central Student-t CDF via the regularized incomplete
+        beta function, P(T<=x) = 1 - 0.5*I_{df/(df+x^2)}(df/2, 1/2) for x>0.
 
-        return mpf(str(t.cdf(float(x), float(df))))
+        The previous version cast to float64 and called scipy, so every digit
+        past the 15th was noise despite the 50-decimal claim.
+        """
+        from mpmath import betainc
+
+        x = mpf(x)
+        df = mpf(df)
+        if x == 0:
+            return mpf("0.5")
+        xb = df / (df + x * x)
+        tail = mpf("0.5") * betainc(df / 2, mpf("0.5"), 0, xb, regularized=True)
+        return tail if x < 0 else mpf("1") - tail
 
     def _t_ppf(self, p: mpf, df: mpf) -> mpf:
-        """High-precision t-distribution percent point function."""
-        # Using scipy for now, convert to high precision later
-        from scipy.stats import t
+        """High-precision central Student-t quantile (inverse CDF)."""
+        from scipy.stats import t as _scipy_t
+        from mpmath import findroot
 
-        return mpf(str(t.ppf(float(p), float(df))))
+        p = mpf(p)
+        df = mpf(df)
+        # Seed with the float64 quantile, then refine against the high-precision
+        # CDF so the result carries the full working precision.
+        seed = mpf(str(_scipy_t.ppf(float(p), float(df))))
+        return findroot(lambda z: self._t_cdf(z, df) - p, seed)
+
+    def _nct_cdf(self, t: mpf, df: mpf, ncp: mpf) -> mpf:
+        """
+        High-precision non-central Student-t CDF, Algorithm AS 243 (Lenth 1989)
+        — the same series R and scipy use — evaluated at full mpmath precision.
+
+        The power routines previously approximated the non-central t by shifting
+        the CENTRAL t by the non-centrality parameter, which is only accurate to
+        ~3 decimals (t-test power came out 0.80138 instead of 0.80146).
+        """
+        from mpmath import betainc, loggamma
+
+        t = mpf(t)
+        df = mpf(df)
+        ncp = mpf(ncp)
+        if ncp == 0:
+            return self._t_cdf(t, df)
+
+        negdel = False
+        tt = t
+        deel = ncp
+        if t < 0:
+            negdel = True
+            tt = -t
+            deel = -ncp
+
+        x = (tt * tt) / (tt * tt + df)
+        tnc = mpf("0")
+        if x > 0:
+            lam = deel * deel
+            p = mpf("0.5") * exp(-mpf("0.5") * lam)
+            q = sqrt(mpf("2") / mp.pi) * p * deel
+            s = mpf("0.5") - p
+            a = mpf("0.5")
+            b = mpf("0.5") * df
+            rxb = mp_power(mpf("1") - x, b)
+            albeta = loggamma(a) + loggamma(b) - loggamma(a + b)
+            xodd = betainc(a, b, 0, x, regularized=True)
+            godd = mpf("2") * rxb * exp(a * log(x) - albeta)
+            xeven = mpf("1") - rxb
+            geven = b * x * rxb
+            tnc = p * xodd + q * xeven
+            tol = mpf("10") ** (-(self.precision + 2))
+            for it in range(1, 5000):
+                a += 1
+                xodd -= godd
+                xeven -= geven
+                godd *= x * (a + b - mpf("1")) / a
+                geven *= x * (a + b - mpf("0.5")) / (a + mpf("0.5"))
+                p *= lam / (2 * it)
+                q *= lam / (2 * it + 1)
+                s -= p
+                tnc += p * xodd + q * xeven
+                errbd = mpf("2") * s * (xodd - godd)
+                if abs(errbd) < tol:
+                    break
+
+        tnc += self._normal_cdf(-deel)
+        res = (mpf("1") - tnc) if negdel else tnc
+        if res < 0:
+            return mpf("0")
+        if res > 1:
+            return mpf("1")
+        return res
 
     def _f_cdf(self, x: mpf, df1: mpf, df2: mpf) -> mpf:
         """High-precision F-distribution cumulative distribution function."""
@@ -88,6 +168,89 @@ class HighPrecisionPowerAnalysis:
         if x <= 0:
             return mpf("0")
         return gammainc(df / 2, 0, x / 2, regularized=True)
+
+    def _f_ppf(self, p: mpf, df1: mpf, df2: mpf) -> mpf:
+        """High-precision central F quantile (refined against the mpmath CDF)."""
+        from scipy.stats import f as _scipy_f
+        from mpmath import findroot
+
+        p = mpf(p)
+        seed = mpf(str(_scipy_f.ppf(float(p), float(df1), float(df2))))
+        return findroot(lambda z: self._f_cdf(z, df1, df2) - p, seed)
+
+    def _chi2_ppf(self, p: mpf, df: mpf) -> mpf:
+        """High-precision central chi-square quantile (refined against the CDF)."""
+        from scipy.stats import chi2 as _scipy_chi2
+        from mpmath import findroot
+
+        p = mpf(p)
+        seed = mpf(str(_scipy_chi2.ppf(float(p), float(df))))
+        return findroot(lambda z: self._chi2_cdf(z, df) - p, seed)
+
+    def _ncf_cdf(self, f: mpf, df1: mpf, df2: mpf, ncp: mpf) -> mpf:
+        """
+        High-precision non-central F CDF as a Poisson mixture of central-F
+        (regularized incomplete beta) terms. Replaces a float64 scipy.ncf call
+        that could not deliver the advertised 50 decimals.
+        """
+        from mpmath import betainc
+
+        f = mpf(f)
+        df1 = mpf(df1)
+        df2 = mpf(df2)
+        ncp = mpf(ncp)
+        if ncp == 0:
+            return self._f_cdf(f, df1, df2)
+        if f <= 0:
+            return mpf("0")
+
+        y = df1 * f / (df1 * f + df2)  # independent of the mixture index
+        lam = ncp / mpf("2")
+        weight = exp(-lam)
+        total = mpf("0")
+        poisson_mass = mpf("0")
+        tol = mpf("10") ** (-(self.precision + 2))
+        j = 0
+        while j < 10000:
+            total += weight * betainc(df1 / mpf("2") + j, df2 / mpf("2"), 0, y, regularized=True)
+            poisson_mass += weight
+            # Stop once essentially all of the Poisson mass is accounted for.
+            if j > float(lam) and (mpf("1") - poisson_mass) < tol:
+                break
+            weight *= lam / (j + 1)
+            j += 1
+        return total
+
+    def _ncx2_cdf(self, x: mpf, df: mpf, ncp: mpf) -> mpf:
+        """
+        High-precision non-central chi-square CDF as a Poisson mixture of central
+        chi-square (regularized lower incomplete gamma) terms. Replaces a float64
+        scipy.ncx2 call.
+        """
+        from mpmath import gammainc
+
+        x = mpf(x)
+        df = mpf(df)
+        ncp = mpf(ncp)
+        if ncp == 0:
+            return self._chi2_cdf(x, df)
+        if x <= 0:
+            return mpf("0")
+
+        lam = ncp / mpf("2")
+        weight = exp(-lam)
+        total = mpf("0")
+        poisson_mass = mpf("0")
+        tol = mpf("10") ** (-(self.precision + 2))
+        j = 0
+        while j < 10000:
+            total += weight * gammainc(df / mpf("2") + j, 0, x / mpf("2"), regularized=True)
+            poisson_mass += weight
+            if j > float(lam) and (mpf("1") - poisson_mass) < tol:
+                break
+            weight *= lam / (j + 1)
+            j += 1
+        return total
 
     def calculate_power_t_test(
         self,
@@ -145,21 +308,22 @@ class HighPrecisionPowerAnalysis:
         # Calculate non-centrality parameter
         non_centrality = d * nc_factor
 
-        # Determine critical value(s)
+        # Determine critical value(s). Power uses the true non-central t CDF at
+        # the (central-t) critical value, not the central t shifted by the
+        # non-centrality parameter.
         if alternative == "two-sided":
             critical_value = self._t_ppf(mpf("1") - alpha_hp / mpf("2"), df)
-            # Power calculation for two-sided test
             power = (
                 mpf("1")
-                - self._t_cdf(critical_value - non_centrality, df)
-                + self._t_cdf(-critical_value - non_centrality, df)
+                - self._nct_cdf(critical_value, df, non_centrality)
+                + self._nct_cdf(-critical_value, df, non_centrality)
             )
         elif alternative == "greater":
             critical_value = self._t_ppf(mpf("1") - alpha_hp, df)
-            power = mpf("1") - self._t_cdf(critical_value - non_centrality, df)
+            power = mpf("1") - self._nct_cdf(critical_value, df, non_centrality)
         else:  # less
             critical_value = self._t_ppf(alpha_hp, df)
-            power = self._t_cdf(critical_value - non_centrality, df)
+            power = self._nct_cdf(critical_value, df, non_centrality)
 
         return {
             "power": str(power),
@@ -222,30 +386,30 @@ class HighPrecisionPowerAnalysis:
         else:
             n_approx = mp_power((z_alpha + z_beta) / d, mpf("2"))
 
-        # Refine using iterative approach
-        n = max(mpf("2"), n_approx)
-
-        for iteration in range(100):
-            result = self.calculate_power_t_test(
+        # Power is monotonically increasing in n, so search for the SMALLEST
+        # integer sample size whose power meets or exceeds the target. The old
+        # loop nudged n by ratios and stopped near the target, then rounded, so
+        # it could return an under-powered n (e.g. 63 instead of 64 for d=0.5,
+        # power=0.80) — silently under-powering the study.
+        def power_at(n_int):
+            res = self.calculate_power_t_test(
                 effect_size=str(d),
-                sample_size=str(int(n)),
+                sample_size=str(n_int),
                 alpha=str(alpha_hp),
                 alternative=alternative,
                 test_type=test_type,
             )
+            return mpf(res["power"])
 
-            current_power = mpf(result["power"])
+        n_final = max(2, int(n_approx))
 
-            if abs(current_power - power_hp) < mpf("0.0001"):
-                break
-
-            # Adjust sample size
-            if current_power < power_hp:
-                n = n * mpf("1.1")
-            else:
-                n = n * mpf("0.95")
-
-        n_final = int(n) + (1 if mpf(int(n)) < n else 0)  # Round up
+        # Walk up until the target is met (bounded to avoid runaway searches).
+        max_n = 10_000_000
+        while power_at(n_final) < power_hp and n_final < max_n:
+            n_final += 1
+        # Walk down to the smallest n that still meets the target.
+        while n_final > 2 and power_at(n_final - 1) >= power_hp:
+            n_final -= 1
 
         # Final verification
         final_result = self.calculate_power_t_test(
@@ -378,16 +542,11 @@ class HighPrecisionPowerAnalysis:
         # Non-centrality parameter
         lambda_nc = n * k * f * f
 
-        # Critical F-value
-        from scipy.stats import f as f_dist
+        # Critical F-value (high-precision central F quantile)
+        critical_f = self._f_ppf(mpf("1") - alpha_hp, df1, df2)
 
-        critical_f = mpf(str(f_dist.ppf(1 - float(alpha_hp), float(df1), float(df2))))
-
-        # Calculate power using non-central F distribution
-        # Approximation for high precision
-        from scipy.stats import ncf
-
-        power = mpf("1") - mpf(str(ncf.cdf(float(critical_f), float(df1), float(df2), float(lambda_nc))))
+        # Power from the genuinely high-precision non-central F CDF
+        power = mpf("1") - self._ncf_cdf(critical_f, df1, df2, lambda_nc)
 
         return {
             "power": str(power),
@@ -513,15 +672,11 @@ class HighPrecisionPowerAnalysis:
         # Non-centrality parameter
         lambda_nc = n * w * w
 
-        # Critical chi-square value
-        from scipy.stats import chi2
+        # Critical chi-square value (high-precision central chi-square quantile)
+        critical_chi2 = self._chi2_ppf(mpf("1") - alpha_hp, df_hp)
 
-        critical_chi2 = mpf(str(chi2.ppf(1 - float(alpha_hp), float(df_hp))))
-
-        # Calculate power using non-central chi-square
-        from scipy.stats import ncx2
-
-        power = mpf("1") - mpf(str(ncx2.cdf(float(critical_chi2), float(df_hp), float(lambda_nc))))
+        # Power from the genuinely high-precision non-central chi-square CDF
+        power = mpf("1") - self._ncx2_cdf(critical_chi2, df_hp, lambda_nc)
 
         return {
             "power": str(power),
