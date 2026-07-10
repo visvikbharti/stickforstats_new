@@ -367,7 +367,10 @@ class GuardianCore:
         self.test_requirements = {
             # Parametric tests
             "t_test": ["normality", "variance_homogeneity", "independence", "outliers"],
-            "anova": ["normality", "variance_homogeneity", "independence"],
+            # ANOVA's F-test is at least as outlier-sensitive as the t-test (a
+            # single extreme value inflates a group mean and the between-group
+            # sum of squares), so it checks outliers on the same footing.
+            "anova": ["normality", "variance_homogeneity", "independence", "outliers"],
             "pearson": ["normality", "linearity", "outliers"],
             "regression": ["normality", "independence", "homoscedasticity", "linearity"],
             # Non-parametric tests
@@ -421,6 +424,7 @@ class GuardianCore:
         test_type: str,
         alpha: float = 0.05,
         observation_order: Optional[str] = None,
+        design: Optional[str] = None,
     ) -> GuardianReport:
         """
         Main Guardian check - validates all assumptions for a given test
@@ -452,8 +456,29 @@ class GuardianCore:
         # Prepare data
         data_arrays = self._prepare_data(data)
 
+        # Resolve the design (one_sample / paired / independent for t_test;
+        # between / repeated for anova) so downstream checks and recommendations
+        # are design-correct rather than keyed on the collapsed test_type.
+        design = self._normalize_design(test_type, design, data_arrays)
+
         # Get requirements for this test
-        requirements = self.test_requirements.get(test_type, [])
+        requirements = list(self.test_requirements.get(test_type, []))
+
+        # A paired or one-sample t-test is a one-sample test (on the paired
+        # differences, or on the single column). Homogeneity of variance between
+        # two independent groups does not apply, so drop it rather than record a
+        # meaningless "Satisfied" for a test that never ran.
+        if design in ("one_sample", "paired") and "variance_homogeneity" in requirements:
+            requirements.remove("variance_homogeneity")
+
+        # For a paired design the t-test operates on the differences, so
+        # normality and outliers must be assessed on the differences — not on
+        # the raw columns. Build the analysis arrays accordingly; independent
+        # and one-sample designs analyse the arrays as given.
+        analysis_arrays = data_arrays
+        if design == "paired" and len(data_arrays) >= 2:
+            n = min(len(data_arrays[0]), len(data_arrays[1]))
+            analysis_arrays = [np.asarray(data_arrays[0][:n]) - np.asarray(data_arrays[1][:n])]
 
         # Gate for the independence validator: only run the lag-1
         # autocorrelation test when the caller declares the row order is
@@ -475,11 +500,11 @@ class GuardianCore:
                 validator = self.validators[req]
                 if req == "independence":
                     result = validator.validate(
-                        data_arrays, alpha,
+                        analysis_arrays, alpha,
                         sequential_order=sequential_order,
                     )
                 else:
-                    result = validator.validate(data_arrays, alpha)
+                    result = validator.validate(analysis_arrays, alpha)
 
                 if result["violated"]:
                     violations.append(
@@ -542,10 +567,12 @@ class GuardianCore:
                     )
                 )
 
-        # Apply context-aware severity adjustments (Guardian v2)
-        sample_sizes = [len(arr) for arr in data_arrays]
+        # Apply context-aware severity adjustments (Guardian v2). Use the
+        # analysis arrays (differences for a paired design) so the CLT-based
+        # downgrade keys off the effective sample the test actually uses.
+        sample_sizes = [len(arr) for arr in analysis_arrays]
         group_sizes = (
-            sample_sizes if len(data_arrays) > 1 else []
+            sample_sizes if len(analysis_arrays) > 1 else []
         )
         context_adjusted = False
 
@@ -585,16 +612,18 @@ class GuardianCore:
         ]
         can_proceed = len(critical_violations) == 0
 
-        # Get alternative tests if needed
-        alternatives = self._get_alternatives(test_type, violations)
+        # Get alternative tests if needed (design-aware)
+        alternatives = self._get_alternatives(test_type, violations, design)
 
         # Calculate confidence score (severity-weighted; see _calculate_confidence)
         confidence = self._calculate_confidence(violations)
 
         # Generate publication-ready visualizations
         try:
-            # Prepare data for visualization (flatten if needed)
-            viz_data = data_arrays[0] if len(data_arrays) == 1 else data_arrays
+            # Prepare data for visualization (flatten if needed). Uses the
+            # analysis arrays so a paired design plots the differences that the
+            # normality check actually assessed.
+            viz_data = analysis_arrays[0] if len(analysis_arrays) == 1 else analysis_arrays
 
             # Convert violations to dict format for visualization generator
             violation_dicts = [
@@ -654,29 +683,121 @@ class GuardianCore:
             }
         return summary
 
-    def _get_alternatives(self, test_type: str, violations: List[AssumptionViolation]) -> List[str]:
-        """Recommend alternative tests based on violations"""
-        alternatives = []
+    def _normalize_design(
+        self,
+        test_type: str,
+        design: Optional[str],
+        data_arrays: List[np.ndarray],
+    ) -> Optional[str]:
+        """
+        Resolve the design sub-type for a collapsed test_type.
 
-        # Map parametric to non-parametric alternatives
-        alternatives_map = {
+        Returns one of {one_sample, paired, independent} for t_test and
+        {between, repeated} for anova. Honours an explicit `design` (normalizing
+        common aliases); when none is given, infers a safe default from the data
+        shape (a single array is one-sample; multiple arrays are
+        independent/between).
+        """
+        if design:
+            d = str(design).strip().lower().replace("-", "_").replace(" ", "_")
+            aliases = {
+                "onesample": "one_sample", "single": "one_sample", "one": "one_sample",
+                "paired_samples": "paired", "dependent": "paired", "matched": "paired",
+                "repeated_measures": "repeated", "within": "repeated",
+                "within_subjects": "repeated",
+                "independent_samples": "independent", "two_sample": "independent",
+                "twosample": "independent", "unpaired": "independent",
+                "between_subjects": "between", "one_way": "between",
+            }
+            d = aliases.get(d, d)
+            if test_type == "t_test":
+                if d in ("one_sample", "paired", "independent"):
+                    return d
+                if d == "between":
+                    return "independent"
+                if d == "repeated":
+                    return "paired"
+            elif test_type == "anova":
+                if d in ("between", "repeated"):
+                    return d
+                if d == "independent":
+                    return "between"
+                if d == "paired":
+                    return "repeated"
+
+        # Infer a safe default from the data shape.
+        if test_type == "t_test":
+            return "one_sample" if len(data_arrays) == 1 else "independent"
+        if test_type == "anova":
+            return "between"
+        return None
+
+    def _get_alternatives(
+        self,
+        test_type: str,
+        violations: List[AssumptionViolation],
+        design: Optional[str] = None,
+    ) -> List[str]:
+        """
+        Recommend alternative tests based on violations, respecting the DESIGN.
+
+        The frontend collapses one-sample / paired / independent t-tests to
+        "t_test" and between- / repeated-measures ANOVA to "anova". Recommending
+        by test_type alone therefore offered design-inappropriate tests — e.g.
+        Mann-Whitney (a two-independent-sample test) for a paired or one-sample
+        design, or Friedman (repeated-measures) for a between-subjects ANOVA.
+        When `design` is known we map to the correct non-parametric analogue;
+        otherwise we fall back to the design-agnostic list (independent /
+        between-subjects), which is the safest default for the collapsed types.
+        """
+        alternatives: List[str] = []
+
+        # Design-specific maps take priority when the design is declared.
+        design_map = {
+            ("t_test", "one_sample"): ["wilcoxon_signed_rank", "sign_test", "bootstrap"],
+            ("t_test", "paired"): ["wilcoxon_signed_rank", "permutation_test", "bootstrap"],
+            ("t_test", "independent"): ["mann_whitney", "permutation_test", "bootstrap"],
+            ("anova", "between"): ["kruskal_wallis", "permutation_anova"],
+            ("anova", "repeated"): ["friedman", "permutation_anova"],
+        }
+        # Design-agnostic fallback (assumes the between-subjects / independent
+        # design that the collapsed test_type most commonly denotes). Friedman is
+        # deliberately absent from the ANOVA fallback because it is only valid
+        # for repeated-measures data, which is never the default here.
+        default_map = {
             "t_test": ["mann_whitney", "permutation_test", "bootstrap"],
-            "anova": ["kruskal_wallis", "friedman", "permutation_anova"],
+            "anova": ["kruskal_wallis", "permutation_anova"],
             "pearson": ["spearman", "kendall", "distance_correlation"],
             "regression": ["robust_regression", "quantile_regression", "gam"],
         }
 
-        if test_type in alternatives_map:
-            # Check which assumptions are violated
+        base = design_map.get((test_type, design)) if design else None
+        if base is None:
+            base = default_map.get(test_type)
+
+        if base is not None:
             violated_assumptions = {v.assumption for v in violations}
 
             if "normality" in violated_assumptions:
-                alternatives.extend(alternatives_map[test_type])
+                alternatives.extend(base)
 
-            if "variance_homogeneity" in violated_assumptions and test_type == "t_test":
+            # Welch's t-test only makes sense for a two-independent-sample
+            # comparison with unequal variances.
+            if (
+                "variance_homogeneity" in violated_assumptions
+                and test_type == "t_test"
+                and design in (None, "independent")
+            ):
                 alternatives.append("welch_t_test")
 
-        return list(set(alternatives))  # Remove duplicates
+        # De-duplicate while preserving order (list(set()) was nondeterministic).
+        seen = set()
+        ordered = []
+        for a in alternatives:
+            if a not in seen:
+                seen.add(a)
+                ordered.append(a)
+        return ordered
 
     def _calculate_confidence(self, violations: List[AssumptionViolation]) -> float:
         """
@@ -783,7 +904,11 @@ class NormalityValidator:
         violations = [r for r in results if r["p_value"] < alpha]
 
         if violations:
-            severity = "critical" if all(r["p_value"] < alpha / 10 for r in results) else "warning"
+            # Severity keys off the VIOLATING groups, not every group. Using
+            # all()-across-all-groups demoted a single catastrophically
+            # non-normal group to a mere 'warning' whenever any co-group was
+            # normal, letting can_proceed stay True on grossly non-normal data.
+            severity = "critical" if any(r["p_value"] < alpha / 10 for r in violations) else "warning"
             return {
                 "violated": True,
                 "test_name": violations[0]["test_name"],

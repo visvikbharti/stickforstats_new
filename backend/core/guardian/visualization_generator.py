@@ -64,37 +64,136 @@ class VisualizationGenerator:
         """
         plots = {}
 
-        # Convert list to numpy array if needed (for single group data)
-        if isinstance(data, list) and len(data) > 0:
-            # Check if it's a list of arrays (multiple groups) or single list
-            if isinstance(data[0], (list, np.ndarray)):
-                # Multiple groups - combine for overall visualization
-                data_combined = np.concatenate([np.array(g).flatten() for g in data])
-            else:
-                # Single list - convert to array
-                data_combined = np.array(data)
+        # Identify whether we were handed several arrays (multiple groups, or the
+        # X/Y variables of a correlation/regression). Normality and outliers are
+        # assessed PER group, so pooling every group into one vector — as this
+        # method used to do — produces a bimodal Q-Q/histogram that screams
+        # "non-normal" even when each group is perfectly normal (and, for
+        # correlation, mixes two differently-scaled variables into nonsense).
+        arrays = None
+        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], (list, np.ndarray)):
+            arrays = [np.asarray(g).flatten() for g in data]
+            if len(arrays) == 1:
+                data_combined = arrays[0]
+                arrays = None
+        elif isinstance(data, list) and len(data) > 0:
+            data_combined = np.array(data)
         elif isinstance(data, np.ndarray):
             data_combined = data.flatten() if len(data.shape) > 1 else data
         else:
             # Invalid data type - skip visualization
             return plots
 
-        # Always generate basic plots
+        if arrays is not None and len(arrays) > 1:
+            # Per-group / per-variable diagnostics (faceted, one panel each).
+            labels = self._facet_labels(test_type, len(arrays))
+            plots["histogram"] = self.generate_histogram_grouped(arrays, labels)
+            plots["boxplot"] = self.generate_boxplot_grouped(arrays, labels)
+            if test_type in ["t_test", "anova", "pearson", "regression"]:
+                plots["qq_plot"] = self.generate_qq_plot_grouped(arrays, labels)
+            if test_type in ["t_test", "anova", "mann_whitney"]:
+                plots["group_comparison"] = self.generate_group_comparison(data)
+            return plots
+
+        # Single array: assess that one distribution directly.
         plots["histogram"] = self.generate_histogram(data_combined)
         plots["boxplot"] = self.generate_boxplot(data_combined)
-
-        # Generate Q-Q plot for tests that check normality (parametric tests)
-        # Show Q-Q plot for any test that requires normality assumption
         if test_type in ["t_test", "anova", "pearson", "regression"]:
             plots["qq_plot"] = self.generate_qq_plot(data_combined)
 
-        # Generate additional plots based on test type
-        if test_type in ["t_test", "anova", "mann_whitney"]:
-            if isinstance(data, list) and len(data) > 1:
-                # Multiple groups - generate comparison plot
-                plots["group_comparison"] = self.generate_group_comparison(data)
-
         return plots
+
+    def _facet_labels(self, test_type: str, count: int) -> List[str]:
+        """Label the arrays for faceted diagnostics."""
+        if test_type in ("pearson", "regression") and count == 2:
+            return ["X", "Y"]
+        return [f"Group {i + 1}" for i in range(count)]
+
+    def generate_qq_plot_grouped(self, arrays: List[np.ndarray], labels: List[str]) -> str:
+        """Faceted Q-Q plot: one normality panel per group/variable."""
+        cleaned = [(np.asarray(a).flatten(), lab) for a, lab in zip(arrays, labels)]
+        valid = [(a[~np.isnan(a)], lab) for a, lab in cleaned]
+        valid = [(a, lab) for a, lab in valid if len(a) >= 3]
+        if not valid:
+            return self._generate_error_plot("Insufficient data for Q-Q plot")
+
+        ncols = len(valid)
+        fig, axes = plt.subplots(
+            1, ncols, figsize=(max(4, 3.3 * ncols), 3.8), dpi=self.dpi, squeeze=False
+        )
+        for ax, (a, lab) in zip(axes[0], valid):
+            (theoretical, ordered), (slope, intercept, r) = stats.probplot(a, dist="norm", plot=None)
+            ax.scatter(theoretical, ordered, alpha=0.6, s=22, color="#1976d2",
+                       edgecolors="navy", linewidth=0.4)
+            ax.plot(theoretical, slope * theoretical + intercept, "r--", linewidth=1.6, alpha=0.85)
+            if abs(r) > 0.98:
+                fit, color = "Excellent", "green"
+            elif abs(r) > 0.95:
+                fit, color = "Good", "orange"
+            else:
+                fit, color = "Poor", "red"
+            ax.set_title(f"{lab}", fontsize=10, fontweight="bold")
+            ax.set_xlabel("Theoretical quantiles", fontsize=8)
+            ax.set_ylabel("Sample quantiles", fontsize=8)
+            ax.grid(True, alpha=0.3, linestyle="--")
+            ax.text(0.05, 0.95, f"R² = {r ** 2:.3f}\n{fit} fit", transform=ax.transAxes,
+                    verticalalignment="top", fontsize=8,
+                    bbox=dict(boxstyle="round", facecolor=color, alpha=0.2))
+        fig.suptitle("Q-Q Plot: Per-Group Normality Assessment", fontsize=12, fontweight="bold")
+        plt.tight_layout()
+        return self._fig_to_base64(fig)
+
+    def generate_histogram_grouped(self, arrays: List[np.ndarray], labels: List[str]) -> str:
+        """Faceted histogram: one distribution panel per group/variable."""
+        cleaned = [(np.asarray(a).flatten(), lab) for a, lab in zip(arrays, labels)]
+        valid = [(a[~np.isnan(a)], lab) for a, lab in cleaned]
+        valid = [(a, lab) for a, lab in valid if len(a) >= 3]
+        if not valid:
+            return self._generate_error_plot("Insufficient data for histogram")
+
+        ncols = len(valid)
+        fig, axes = plt.subplots(
+            1, ncols, figsize=(max(4, 3.3 * ncols), 3.6), dpi=self.dpi, squeeze=False
+        )
+        for ax, (a, lab) in zip(axes[0], valid):
+            ax.hist(a, bins="auto", color="#1976d2", alpha=0.7, edgecolor="navy")
+            ax.axvline(np.mean(a), color="red", linestyle="--", linewidth=1.5, label="Mean")
+            ax.set_title(f"{lab}", fontsize=10, fontweight="bold")
+            ax.set_xlabel("Value", fontsize=8)
+            ax.set_ylabel("Frequency", fontsize=8)
+            ax.grid(True, alpha=0.3, linestyle="--")
+            ax.legend(fontsize=8)
+        fig.suptitle("Histogram: Per-Group Distribution", fontsize=12, fontweight="bold")
+        plt.tight_layout()
+        return self._fig_to_base64(fig)
+
+    def generate_boxplot_grouped(self, arrays: List[np.ndarray], labels: List[str]) -> str:
+        """Side-by-side box plots, one per group/variable, for outlier assessment."""
+        cleaned = [(np.asarray(a).flatten(), lab) for a, lab in zip(arrays, labels)]
+        valid = [(a[~np.isnan(a)], lab) for a, lab in cleaned]
+        valid = [(a, lab) for a, lab in valid if len(a) >= 3]
+        if not valid:
+            return self._generate_error_plot("Insufficient data for box plot")
+
+        fig, ax = plt.subplots(figsize=(max(5, 1.6 * len(valid) + 2), 6), dpi=self.dpi)
+        ax.boxplot(
+            [a for a, _ in valid],
+            vert=True,
+            patch_artist=True,
+            widths=0.6,
+            tick_labels=[lab for _, lab in valid],
+            boxprops=dict(facecolor="#1976d2", alpha=0.7, edgecolor="navy"),
+            whiskerprops=dict(color="navy", linewidth=1.5),
+            capprops=dict(color="navy", linewidth=1.5),
+            medianprops=dict(color="red", linewidth=2),
+            flierprops=dict(marker="o", markerfacecolor="red", markersize=6, alpha=0.6,
+                            markeredgecolor="darkred"),
+        )
+        ax.set_title("Box Plot: Per-Group Outlier Assessment", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Value", fontsize=10)
+        ax.grid(True, alpha=0.3, linestyle="--", axis="y")
+        plt.tight_layout()
+        return self._fig_to_base64(fig)
 
     def generate_qq_plot(self, data: np.ndarray) -> str:
         """
@@ -379,7 +478,7 @@ class VisualizationGenerator:
         group_labels = [f"Group {i+1}" for i in range(len(cleaned_groups))]
 
         # Left plot: Box plots
-        bp = ax1.boxplot(cleaned_groups, labels=group_labels, patch_artist=True, widths=0.6)
+        bp = ax1.boxplot(cleaned_groups, tick_labels=group_labels, patch_artist=True, widths=0.6)
 
         # Color each box differently
         colors = ["#1976d2", "#f57c00", "#2e7d32", "#d32f2f", "#7b1fa2"]

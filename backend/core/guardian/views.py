@@ -45,6 +45,11 @@ class GuardianCheckView(APIView):
             data = request.data.get("data")
             test_type = request.data.get("test_type", "t_test")
             alpha = request.data.get("alpha", 0.05)
+            observation_order = request.data.get("observation_order")
+            # design distinguishes one-sample / paired / independent (t-test)
+            # and between / repeated (ANOVA) so recommendations and the
+            # normality check are design-correct.
+            design = request.data.get("design")
 
             # Validate input
             if not data:
@@ -59,7 +64,11 @@ class GuardianCheckView(APIView):
             guardian = GuardianCore()
 
             # Perform check
-            report = guardian.check(data, test_type, alpha)
+            report = guardian.check(
+                data, test_type, alpha,
+                observation_order=observation_order,
+                design=design,
+            )
 
             # Convert report to JSON-serializable format
             response_data = self._serialize_report(report)
@@ -293,6 +302,8 @@ class GuardianExportPDFView(APIView):
             data = request.data.get("data")
             test_type = request.data.get("test_type", "t_test")
             alpha = request.data.get("alpha", 0.05)
+            observation_order = request.data.get("observation_order")
+            design = request.data.get("design")
 
             # Validate input
             if not data:
@@ -300,7 +311,11 @@ class GuardianExportPDFView(APIView):
 
             # Initialize Guardian and perform check
             guardian = GuardianCore()
-            report = guardian.check(data, test_type, alpha)
+            report = guardian.check(
+                data, test_type, alpha,
+                observation_order=observation_order,
+                design=design,
+            )
 
             # Generate PDF report
             report_generator = GuardianReportGenerator()
@@ -346,6 +361,8 @@ class GuardianExportJSONView(APIView):
             data = request.data.get("data")
             test_type = request.data.get("test_type", "t_test")
             alpha = request.data.get("alpha", 0.05)
+            observation_order = request.data.get("observation_order")
+            design = request.data.get("design")
 
             # Validate input
             if not data:
@@ -353,7 +370,11 @@ class GuardianExportJSONView(APIView):
 
             # Initialize Guardian and perform check
             guardian = GuardianCore()
-            report = guardian.check(data, test_type, alpha)
+            report = guardian.check(
+                data, test_type, alpha,
+                observation_order=observation_order,
+                design=design,
+            )
 
             # Generate JSON report
             report_generator = GuardianReportGenerator()

@@ -222,12 +222,22 @@ class GuardianReportGenerator:
         critical_count = sum(1 for v in report.violations if v.severity == "critical")
         warning_count = sum(1 for v in report.violations if v.severity == "warning")
 
+        # Count only assumptions that were actually tested (exclude ones the
+        # engine recorded as not_applicable / skipped in the audit trail), so
+        # the header does not overstate how many checks ran.
+        not_tested = {
+            e.assumption
+            for e in (getattr(report, "audit_trail", None) or [])
+            if e.result in ("not_applicable", "skipped")
+        }
+        tested_count = sum(1 for a in report.assumptions_checked if a not in not_tested)
+
         summary_text = f"""
         This report documents the automatic validation performed by the Guardian system
         on {datetime.now().strftime("%Y-%m-%d")} for a <b>{report.test_type}</b> statistical test.
         <br/><br/>
         <b>Validation Summary:</b><br/>
-        • Total assumptions checked: <b>{len(report.assumptions_checked)}</b><br/>
+        • Total assumptions checked: <b>{tested_count}</b><br/>
         • Critical violations: <b>{critical_count}</b><br/>
         • Warnings: <b>{warning_count}</b><br/>
         • Confidence score: <b>{report.confidence_score * 100:.1f}%</b><br/>
@@ -338,16 +348,30 @@ class GuardianReportGenerator:
         # Create results table
         results_data = [["Assumption", "Status", "Test Statistic", "P-value", "Severity"]]
 
-        # Add row for each assumption checked
+        # Map each assumption to what the engine ACTUALLY did, from the audit
+        # trail: "violation", "pass", "not_applicable", or "skipped". Without
+        # this, an assumption the validator declined to test (independence on
+        # non-sequential data, variance homogeneity on a single group) was
+        # printed as "✅ Satisfied / PASSED" — certifying a check that never ran.
+        audit_result = {}
+        for entry in getattr(report, "audit_trail", None) or []:
+            audit_result[entry.assumption] = entry.result
+
         for assumption in report.assumptions_checked:
             # Find if this assumption was violated
             violation = next((v for v in report.violations if v.assumption == assumption), None)
+            outcome = audit_result.get(assumption)
 
             if violation:
                 status = "❌ Violated"
                 stat = f"{violation.statistic:.4f}" if violation.statistic else "N/A"
                 pval = f"{violation.p_value:.4f}" if violation.p_value else "N/A"
                 severity = violation.severity.upper()
+            elif outcome in ("not_applicable", "skipped"):
+                status = "➖ Not tested"
+                stat = "N/A"
+                pval = "N/A"
+                severity = "NOT APPLICABLE" if outcome == "not_applicable" else "NOT TESTED"
             else:
                 status = "✅ Satisfied"
                 stat = "N/A"
@@ -624,6 +648,36 @@ class GuardianReportGenerator:
                     "why": "Non-parametric correlation that assesses monotonic (not just linear) relationships",
                     "how": "Navigate to Module 4 → Statistical Tests → Correlation Tests → Spearman Correlation",
                     "reporting": "Spearman's rank correlation was used due to non-normal distributions. Results showed rs = X, p = Y.",
+                },
+                "wilcoxon_signed_rank": {
+                    "full_name": "Wilcoxon Signed-Rank Test",
+                    "why": "Non-parametric alternative to the one-sample / paired t-test; tests the median of a single sample or of the paired differences without assuming normality",
+                    "how": "Navigate to Module 4 → Statistical Tests → Non-Parametric Tests → Wilcoxon Signed-Rank Test",
+                    "reporting": "A Wilcoxon signed-rank test was used due to non-normal differences (Shapiro-Wilk p < 0.05). Results showed W = X, p = Y, r = Z.",
+                },
+                "sign_test": {
+                    "full_name": "Sign Test",
+                    "why": "Distribution-free test of the median for one-sample / paired data; makes no shape assumption beyond a meaningful median",
+                    "how": "Navigate to Module 4 → Statistical Tests → Non-Parametric Tests → Sign Test",
+                    "reporting": "A sign test was used for the median. Results showed p = X.",
+                },
+                "friedman": {
+                    "full_name": "Friedman Test",
+                    "why": "Non-parametric alternative to repeated-measures ANOVA (each subject measured under every condition)",
+                    "how": "Navigate to Module 4 → Statistical Tests → Non-Parametric Tests → Friedman Test",
+                    "reporting": "A Friedman test was used for the repeated-measures design due to non-normal distributions. Results showed χ² = X, p = Y.",
+                },
+                "permutation_anova": {
+                    "full_name": "Permutation ANOVA",
+                    "why": "Distribution-free one-way test using randomization; makes no distributional assumption",
+                    "how": "Navigate to Module 4 → Statistical Tests → Non-Parametric Tests → Permutation ANOVA",
+                    "reporting": "A permutation ANOVA (10,000 iterations) was used due to assumption violations. Results showed p = X.",
+                },
+                "kendall": {
+                    "full_name": "Kendall's Tau",
+                    "why": "Rank-based correlation robust to non-normality and small samples with ties",
+                    "how": "Navigate to Module 4 → Statistical Tests → Correlation Tests → Kendall's Tau",
+                    "reporting": "Kendall's tau was used due to non-normal distributions. Results showed τ = X, p = Y.",
                 },
             }
 
