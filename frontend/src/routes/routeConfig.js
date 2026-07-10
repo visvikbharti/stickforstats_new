@@ -122,7 +122,11 @@ const CertificationPage = lazy(() => import('../pages/CertificationPage'));
 const APIDocsPage = lazy(() => import('../pages/APIDocsPage'));
 
 // --- Route configuration ---
-// Each entry: { path, component, loadingMessage, protected?, requiredRole?, props? }
+// Each entry is either
+//   { path, component, loadingMessage, protected?, requiredRole?, props?, skeleton? }
+// or a retired alias
+//   { path, redirect }
+// which renders <Navigate to={redirect} replace /> so old links do not 404.
 
 const ROUTE_CONFIG = [
   // Home
@@ -139,7 +143,9 @@ const ROUTE_CONFIG = [
 
   // Main statistical pages
   { path: '/dashboard', component: StatisticalDashboard, loadingMessage: 'Loading Statistical Dashboard...', skeleton: 'dashboard' },
-  { path: '/analysis', component: StatisticalAnalysisHub, loadingMessage: 'Loading Analysis Interface...', skeleton: 'analysis' },
+  // /analysis rendered the very same StatisticalAnalysisHub as
+  // /statistical-analysis-tools, which is the one the nav and home page link.
+  { path: '/analysis', redirect: '/statistical-analysis-tools' },
   { path: '/enhanced-analysis', component: EnhancedStatisticalAnalysis, loadingMessage: 'Loading Enhanced Analysis...', skeleton: 'analysis' },
 
   // Test modules
@@ -156,7 +162,16 @@ const ROUTE_CONFIG = [
   { path: '/unified-test', component: UnifiedTestExecutor, loadingMessage: 'Loading Unified Test Executor...' },
   { path: '/audit', component: AuditDashboard, loadingMessage: 'Loading Audit Dashboard...', skeleton: 'table' },
 
-  // Real backend modules (50-decimal precision)
+  // Real backend modules (50-decimal precision).
+  //
+  // These look like duplicates of /modules/t-test and /modules/anova but are
+  // not, and must not be collapsed into them without porting the differences:
+  //   - t-test-real renders the Guardian report/badge, the confidence interval
+  //     and Cohen's d, none of which the canonical module shows. It is also the
+  //     page e2e/capture_guardian.js drives to regenerate manuscript Figure 7.
+  //   - anova-real reports the full 50-decimal SS/MS/F and every effect size
+  //     (eta^2, omega^2, partial eta^2, Cohen's f) straight from
+  //     high_precision_result; the canonical module rounds for display.
   { path: '/modules/t-test-real', component: TTestRealBackend, loadingMessage: 'Loading Real T-Test with Backend...' },
   { path: '/modules/anova-real', component: ANOVARealBackend, loadingMessage: 'Loading Real ANOVA with Backend...' },
   { path: '/modules/nonparametric-real', component: NonParametricTestsRealProfessional, loadingMessage: 'Loading Non-Parametric Tests with Professional UI...' },
@@ -223,7 +238,10 @@ const ROUTE_CONFIG = [
   { path: '/search', component: SearchResultsPage, loadingMessage: 'Loading Search Results...' },
 
   // v2.0 platform pages
-  { path: '/privacy', component: PrivacyDashboardPage, loadingMessage: 'Loading Privacy Dashboard...', skeleton: 'dashboard' },
+  // The GDPR data-controls dashboard lives at /privacy-settings, not /privacy:
+  // the footer, beta banner and the register page's consent checkbox all link
+  // /privacy expecting the legal Privacy Policy, which AppRoutes serves there.
+  { path: '/privacy-settings', component: PrivacyDashboardPage, loadingMessage: 'Loading Privacy Settings...', skeleton: 'dashboard' },
   { path: '/marketplace', component: MarketplacePage, loadingMessage: 'Loading Plugin Marketplace...', skeleton: 'dashboard' },
   { path: '/certification', component: CertificationPage, loadingMessage: 'Loading Certification Program...', skeleton: 'form' },
   { path: '/api-docs', component: APIDocsPage, loadingMessage: 'Loading API Documentation...', skeleton: 'table' },

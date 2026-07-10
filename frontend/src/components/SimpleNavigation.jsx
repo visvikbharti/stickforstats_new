@@ -134,7 +134,7 @@ const NAV_CATEGORIES = [
     items: [
       { name: 'Marketplace', path: '/marketplace', icon: <StorefrontIcon fontSize="small" /> },
       { name: 'Certification', path: '/certification', icon: <VerifiedUserIcon fontSize="small" /> },
-      { name: 'Privacy Dashboard', path: '/privacy', icon: <SecurityIcon fontSize="small" /> },
+      { name: 'Privacy Settings', path: '/privacy-settings', icon: <SecurityIcon fontSize="small" /> },
       { name: 'Platform Dashboard', path: '/platform', icon: <DashboardIcon fontSize="small" /> },
     ],
   },

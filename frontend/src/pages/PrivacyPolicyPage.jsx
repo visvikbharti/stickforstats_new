@@ -38,7 +38,15 @@ const PrivacyPolicyPage = () => (
       anything you intend to publish.
     </Typography>
 
-    <Button variant="outlined" href="/" sx={{ mt: 2 }}>Return Home</Button>
+    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Manage your data</Typography>
+    <Typography variant="body1" paragraph>
+      If you have an account, the privacy settings page lets you export or erase the data we hold about you.
+    </Typography>
+
+    <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+      <Button variant="contained" href="/privacy-settings">Privacy settings</Button>
+      <Button variant="outlined" href="/">Return Home</Button>
+    </Box>
   </Box>
 );
 
