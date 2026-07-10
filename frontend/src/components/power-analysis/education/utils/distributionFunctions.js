@@ -213,46 +213,48 @@ export function regularizedIncompleteBeta(x, a, b) {
   if (x <= 0) return 0;
   if (x >= 1) return 1;
 
-  // Use symmetry relation when x > (a+1)/(a+b+2)
-  if (x > (a + 1) / (a + b + 2)) {
-    return 1 - regularizedIncompleteBeta(1 - x, b, a);
-  }
-
-  // Continued fraction expansion
   const lnBeta = logGamma(a) + logGamma(b) - logGamma(a + b);
-  const front = Math.exp(a * Math.log(x) + b * Math.log(1 - x) - lnBeta) / a;
+  const front = Math.exp(a * Math.log(x) + b * Math.log(1 - x) - lnBeta);
 
-  let f = 1;
-  let c = 1;
-  let d = 0;
-
-  for (let m = 0; m <= 200; m++) {
-    const m2 = 2 * m;
-
-    // Even step
-    let aa = m * (b - m) * x / ((a + m2 - 1) * (a + m2));
-    d = 1 + aa * d;
-    if (Math.abs(d) < 1e-30) d = 1e-30;
-    c = 1 + aa / c;
-    if (Math.abs(c) < 1e-30) c = 1e-30;
+  // Continued-fraction evaluation via Lentz's modified algorithm
+  // (Numerical Recipes `betacf`). Converges fastest for x < (a+1)/(a+b+2),
+  // so the symmetry relation below routes every call into that regime.
+  const betacf = (bx, ba, bb) => {
+    const FPMIN = 1e-300;
+    const qab = ba + bb;
+    const qap = ba + 1;
+    const qam = ba - 1;
+    let c = 1;
+    let d = 1 - qab * bx / qap;
+    if (Math.abs(d) < FPMIN) d = FPMIN;
     d = 1 / d;
-    f *= c * d;
+    let h = d;
+    for (let m = 1; m <= 300; m++) {
+      const m2 = 2 * m;
+      let aa = m * (bb - m) * bx / ((qam + m2) * (ba + m2));
+      d = 1 + aa * d;
+      if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = 1 + aa / c;
+      if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d;
+      h *= d * c;
+      aa = -(ba + m) * (qab + m) * bx / ((ba + m2) * (qap + m2));
+      d = 1 + aa * d;
+      if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = 1 + aa / c;
+      if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d;
+      const del = d * c;
+      h *= del;
+      if (Math.abs(del - 1) < 1e-12) break;
+    }
+    return h;
+  };
 
-    // Odd step
-    aa = -(a + m) * (a + b + m) * x / ((a + m2) * (a + m2 + 1));
-    d = 1 + aa * d;
-    if (Math.abs(d) < 1e-30) d = 1e-30;
-    c = 1 + aa / c;
-    if (Math.abs(c) < 1e-30) c = 1e-30;
-    d = 1 / d;
-
-    const del = c * d;
-    f *= del;
-
-    if (Math.abs(del - 1) < 1e-10) break;
+  if (x < (a + 1) / (a + b + 2)) {
+    return front * betacf(x, a, b) / a;
   }
-
-  return front * (f - 1);
+  return 1 - front * betacf(1 - x, b, a) / b;
 }
 
 /**
@@ -394,40 +396,62 @@ export function nonCentralTCDF(t, df, ncp) {
   if (ncp === 0) {
     return tCDF(t, df);
   }
-
-  // Use normal approximation for large df
-  if (df > 1000) {
-    const z = (t - ncp) / Math.sqrt(1 + t * t / (2 * df));
-    return normalCDF(z);
+  if (!isFinite(t)) {
+    return t > 0 ? 1 : 0;
   }
 
-  // Series expansion using Poisson weights
-  const maxIter = 100;
-  let sum = 0;
-  const lambda = ncp * ncp / 2;
-  let poissonWeight = Math.exp(-lambda);
-  let prevSum = -1;
-
-  for (let j = 0; j < maxIter; j++) {
-    // P(T ≤ t) for central t with modified df
-    const contribution = tCDF(t * Math.sqrt((df + 2 * j) / df), df + 2 * j);
-
-    // Weight by Poisson probability
-    sum += poissonWeight * contribution;
-
-    if (Math.abs(sum - prevSum) < 1e-12) break;
-    prevSum = sum;
-
-    // Update Poisson weight
-    poissonWeight *= lambda / (j + 1);
+  // Algorithm AS 243 (Lenth 1989), the same series R and scipy use. The
+  // previous implementation summed central-t CDFs at inflated df weighted by
+  // Poisson terms — that is not the non-central t CDF and returned ~1 for
+  // values well below the mean, so every t/paired power calculation collapsed
+  // to roughly alpha. Handle t < 0 by the reflection F(t;ν,δ)=1−F(−t;ν,−δ).
+  let del = ncp;
+  let negdel = false;
+  let tt = t;
+  if (t < 0) {
+    negdel = true;
+    tt = -t;
+    del = -ncp;
   }
 
-  // Adjust for sign of ncp
-  if (ncp < 0) {
-    return 1 - nonCentralTCDF(-t, df, -ncp);
+  const x = (tt * tt) / (tt * tt + df);
+  let tnc = 0;
+
+  if (x > 0) {
+    const lambda = del * del;
+    let p = 0.5 * Math.exp(-0.5 * lambda);
+    let q = Math.sqrt(2 / Math.PI) * p * del;
+    let s = 0.5 - p;
+    let a = 0.5;
+    const b = 0.5 * df;
+    const rxb = Math.pow(1 - x, b);
+    const albeta = logGamma(a) + logGamma(b) - logGamma(a + b);
+    let xodd = regularizedIncompleteBeta(x, a, b);
+    let godd = 2 * rxb * Math.exp(a * Math.log(x) - albeta);
+    let xeven = 1 - rxb;
+    let geven = b * x * rxb;
+    tnc = p * xodd + q * xeven;
+
+    const itrmax = 1000;
+    const errmax = 1e-12;
+    for (let it = 1; it <= itrmax; it++) {
+      a += 1;
+      xodd -= godd;
+      xeven -= geven;
+      godd *= (x * (a + b - 1)) / a;
+      geven *= (x * (a + b - 0.5)) / (a + 0.5);
+      p *= lambda / (2 * it);
+      q *= lambda / (2 * it + 1);
+      s -= p;
+      tnc += p * xodd + q * xeven;
+      const errbd = 2 * s * (xodd - godd);
+      if (Math.abs(errbd) < errmax) break;
+    }
   }
 
-  return sum;
+  tnc += normalCDF(-del);
+  const result = negdel ? 1 - tnc : tnc;
+  return Math.max(0, Math.min(1, result));
 }
 
 // ============================================================================
@@ -546,6 +570,42 @@ export function chiSquarePDF(x, df) {
 export function chiSquareCDF(x, df) {
   if (x <= 0) return 0;
   return regularizedIncompleteGamma(df / 2, x / 2);
+}
+
+/**
+ * Non-central chi-square CDF, as a Poisson-weighted mixture of central
+ * chi-square CDFs:
+ *   F(x; k, λ) = Σ_j  e^{-λ/2}(λ/2)^j / j!  ·  F_central(x; k + 2j)
+ *
+ * This is the correct distribution for chi-square power: 1 - F(crit; df, ncp).
+ * Do NOT approximate it by shifting the central CDF's argument by the
+ * non-centrality parameter -- that gives power = 1 whenever crit - ncp <= 0.
+ *
+ * @param {number} x - Value at which to evaluate the CDF
+ * @param {number} df - Degrees of freedom
+ * @param {number} ncp - Non-centrality parameter (λ)
+ * @returns {number} P(X <= x)
+ */
+export function nonCentralChiSquareCDF(x, df, ncp) {
+  if (x <= 0) return 0;
+  if (!ncp || ncp === 0) return chiSquareCDF(x, df);
+
+  const maxIter = 1000;
+  const lambda = ncp / 2;
+  let poissonWeight = Math.exp(-lambda);
+  let sum = 0;
+  let prevSum = -1;
+
+  for (let j = 0; j < maxIter; j++) {
+    sum += poissonWeight * chiSquareCDF(x, df + 2 * j);
+    // Only test convergence past the peak of the Poisson weights (near j=λ);
+    // early terms can be small enough to trip a premature stop.
+    if (j > lambda && Math.abs(sum - prevSum) < 1e-12) break;
+    prevSum = sum;
+    poissonWeight *= lambda / (j + 1);
+  }
+
+  return Math.min(1, Math.max(0, sum));
 }
 
 // ============================================================================

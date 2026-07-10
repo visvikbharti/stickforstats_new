@@ -19,7 +19,8 @@ import {
   fCDF,
   chiSquareCDF,
   nonCentralTCDF,
-  nonCentralFCDF
+  nonCentralFCDF,
+  nonCentralChiSquareCDF
 } from './distributionFunctions';
 
 // ============================================================================
@@ -429,9 +430,10 @@ export function powerChiSquare(n, w, df, alpha = 0.05) {
   // Critical chi-square value
   const criticalChi2 = chiSquareQuantile(1 - alpha, df);
 
-  // Power using non-central chi-square
-  // Note: This is an approximation; for exact, use non-central chi-square CDF
-  const power = 1 - chiSquareCDF(criticalChi2 - ncp, df);
+  // Power = 1 - F_noncentral(crit; df, ncp). The previous code used the CENTRAL
+  // chi-square CDF shifted by ncp (chiSquareCDF(crit - ncp, df)), which returns
+  // 0 whenever crit - ncp <= 0 and so reported power = 1.0000 for most inputs.
+  const power = 1 - nonCentralChiSquareCDF(criticalChi2, df, ncp);
 
   return {
     power: Math.max(0, Math.min(1, power)),
@@ -758,6 +760,13 @@ export function generatePowerCurve(testType, sampleSizes, effectSizes, alpha = 0
         case 'kruskal-wallis':
           power = powerKruskalWallis(n, options.k || 3, es, alpha).power;
           break;
+        case 'chi-square':
+        case 'chi-squared':
+          // es is Cohen's w here, not d. Without this case the switch fell to
+          // default and computed a two-sample t-test on w, so chi-square sample
+          // size / MDE (which route through here) returned the wrong answer.
+          power = powerChiSquare(n, es, options.df || 1, alpha).power;
+          break;
         default:
           power = powerTwoSampleTTest(n, n, es, alpha).power;
       }
@@ -892,8 +901,19 @@ function fQuantile(p, df1, df2) {
 
 // Helper: Chi-square quantile (inverse CDF)
 function chiSquareQuantile(p, df) {
-  // Wilson-Hilferty approximation
-  const z = normalQuantile(p);
-  const term = 1 - 2 / (9 * df) + z * Math.sqrt(2 / (9 * df));
-  return df * Math.pow(term, 3);
+  // Invert the (accurate) chi-square CDF by bisection. The Wilson-Hilferty
+  // approximation used previously is off by ~0.05 at df=1, enough to shift
+  // chi-square power a few tenths of a percent from the G*Power reference the
+  // UI claims to match.
+  if (p <= 0) return 0;
+  if (p >= 1) return Infinity;
+  let lo = 0;
+  let hi = Math.max(10, df * 4);
+  while (chiSquareCDF(hi, df) < p) hi *= 2;
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    if (chiSquareCDF(mid, df) < p) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
 }
