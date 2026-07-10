@@ -33,9 +33,9 @@ const TTestRealBackend = lazy(() => import('../modules/TTestRealBackend'));
 const ANOVARealBackend = lazy(() => import('../modules/ANOVARealBackend'));
 
 // Using Real Backend-Connected Modules (50-decimal precision)
-const HypothesisTestingModule = lazy(() => import('../modules/HypothesisTestingModuleReal'));
+const HypothesisTestingModuleReal = lazy(() => import('../modules/HypothesisTestingModuleReal'));
 const WhyGuardianPage = lazy(() => import('../pages/WhyGuardianPage'));
-const CorrelationRegressionModule = lazy(() => import('../modules/CorrelationRegressionModuleReal'));
+const CorrelationRegressionModuleReal = lazy(() => import('../modules/CorrelationRegressionModuleReal'));
 const NonParametricTestsRealProfessional = lazy(() => import('../modules/NonParametricTestsRealProfessional'));
 const PowerAnalysisReal = lazy(() => import('../modules/PowerAnalysisReal'));
 
@@ -176,8 +176,8 @@ const ROUTE_CONFIG = [
   { path: '/modules/anova-real', component: ANOVARealBackend, loadingMessage: 'Loading Real ANOVA with Backend...' },
   { path: '/modules/nonparametric-real', component: NonParametricTestsRealProfessional, loadingMessage: 'Loading Non-Parametric Tests with Professional UI...' },
   { path: '/modules/power-analysis-real', component: PowerAnalysisReal, loadingMessage: 'Loading Power Analysis with Backend...' },
-  { path: '/modules/hypothesis-testing', component: HypothesisTestingModule, loadingMessage: 'Loading Hypothesis Testing Module...' },
-  { path: '/modules/correlation-regression', component: CorrelationRegressionModule, loadingMessage: 'Loading Correlation & Regression Module...' },
+  { path: '/modules/hypothesis-testing', component: HypothesisTestingModuleReal, loadingMessage: 'Loading Hypothesis Testing Module...' },
+  { path: '/modules/correlation-regression', component: CorrelationRegressionModuleReal, loadingMessage: 'Loading Correlation & Regression Module...' },
   { path: '/modules/mixed-models', component: MixedModelsModule, loadingMessage: 'Loading Mixed Effects Models...' },
   { path: '/modules/causal-inference', component: CausalInferenceModule, loadingMessage: 'Loading Causal Inference Toolkit...' },
   { path: '/modules/multiplicity', component: MultiplicityCorrectionPanel, loadingMessage: 'Loading Multiplicity Correction...' },
