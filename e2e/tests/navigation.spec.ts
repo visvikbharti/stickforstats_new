@@ -1,19 +1,23 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Navigation smoke test — walks the main routes and asserts that each
- * lands on a page without crashing (root mounts, #root has children).
+ * Navigation smoke test — walks the main routes and asserts that each lands on
+ * a real page without crashing.
  *
- * Routes are taken from frontend/src/routes/ (the 25 primary pages). We
- * sample a handful of the highest-traffic ones so the test stays fast.
+ * A retired route still returns HTTP 200 (the SPA serves index.html for
+ * everything) and still mounts #root with children, because the catch-all
+ * renders NotFoundPage. So "it rendered" is not enough: assert we did NOT land
+ * on the 404. Without that check this file silently walked /dashboard and
+ * /test-selection long after both stopped existing.
  */
 
 const ROUTES = [
   { path: '/', label: 'home' },
-  { path: '/dashboard', label: 'dashboard' },
+  { path: '/statistical-analysis-tools', label: 'analysis hub' },
   { path: '/modules/hypothesis-testing', label: 'hypothesis testing module' },
   { path: '/modules/t-test', label: 't-test module' },
-  { path: '/test-selection', label: 'test selection' },
+  { path: '/modules/anova', label: 'anova module' },
+  { path: '/modules/nonparametric-real', label: 'non-parametric module' },
 ];
 
 for (const { path, label } of ROUTES) {
@@ -30,7 +34,15 @@ for (const { path, label } of ROUTES) {
     const count = await root.evaluate((node) => node.childElementCount);
     expect(count).toBeGreaterThan(0);
 
+    // The route must exist: the catch-all NotFoundPage must not be what mounted.
+    await expect(page.getByText('Page Not Found')).toHaveCount(0);
+
     // No uncaught JavaScript exceptions on mount.
     expect(errors, errors.join('\n')).toEqual([]);
   });
 }
+
+test('a retired route lands on the 404 page rather than a blank screen', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page.getByText('Page Not Found')).toBeVisible();
+});

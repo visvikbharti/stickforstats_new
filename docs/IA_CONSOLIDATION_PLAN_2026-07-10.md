@@ -1,7 +1,9 @@
 # StickForStats — Information-Architecture Consolidation Plan
 
 **Date:** 2026-07-10
-**Status:** Read-only audit complete. Step 1 approved for immediate execution; steps 2–5 deferred to a post-BMC-submission cleanup pass.
+**Status:** **All five steps executed 2026-07-10.** Read the **OUTCOME** section at the bottom before trusting
+anything above it: executing the plan disproved two of its own recommendations and uncovered a
+data-fabrication bug the audit never looked for.
 **Visual map:** `scratchpad/ia-audit.html` (published as an Artifact) — same content, scannable.
 
 ---
@@ -56,7 +58,11 @@ All four canonicals are real-backend and 50-decimal; the Guardian fallback lives
 | `/modules/anova-real`   | `/modules/anova`                                     | redirect |
 | `/debug-login`          | `/login` (intentional legacy alias)                  | keep     |
 
-The canonicals already return 50-decimal precision via `/api/v1/stats/*`, so redirecting the `-real` variants loses no precision.
+> ⚠️ **This was wrong.** The claim below — "the canonicals already return 50-decimal precision via
+> `/api/v1/stats/*`, so redirecting the `-real` variants loses no precision" — did not survive contact with
+> the code. `/modules/anova` was posting to a route that does not exist and rendering hard-coded numbers;
+> `ANOVARealBackend` was the only working ANOVA. `TTestRealBackend` has UI the canonical lacks and backs
+> manuscript Figure 7. **Only `/analysis` was redirected.** See the OUTCOME section.
 
 ---
 
@@ -77,10 +83,14 @@ Zero imports and zero routes anywhere in `frontend/src` (confirmed by name + imp
 
 Routed but nothing in nav/home/hub/dashboard links to them — reachable only by URL.
 
-- **Dev & test harnesses (6, remove from prod):** `/test/calculator`, `/test/performance`, `/testing/browser-compatibility`, `/test-universe`, `/test-runner`, `/unified-test`
-- **Admin & monitoring (5, gate behind auth/flag):** `/security`, `/monitoring/websocket`, `/monitoring/rag-performance`, `/admin/branding`, `/enterprise`
-- **Built but never linked (6, decide link-or-cut):** `/statistics`, `/advanced-statistics`, `/visualization-studio`, `/workflows`, `/reports`, `/reporting-studio`
-- **Standalone orphans (6, triage):** `/dashboard`, `/audit`, `/guardian-demo`, `/modules/power-analysis-real`, `/genomics-analysis`, `/shortcuts`
+- **Dev & test harnesses (6, remove from prod):** `/test/calculator`, `/test/performance`, `/testing/browser-compatibility`, `/test-universe`, `/test-runner`, `/unified-test` — ✅ done, dev-gated
+- **Admin & monitoring (5, gate behind auth/flag):** `/security`, `/monitoring/websocket`, `/monitoring/rag-performance`, `/admin/branding`, `/enterprise` — ⚠️ **already gated**; four carry `requiredRole: 'admin'`, `/enterprise` is `protected`. No change made.
+- **Built but never linked (6, decide link-or-cut):** `/statistics`, `/advanced-statistics`, `/visualization-studio`, `/workflows`, `/reports`, `/reporting-studio` — left routed, pending a product call
+- **Standalone orphans (6, triage):** `/dashboard` (retired), `/audit`, `/guardian-demo`, `/modules/power-analysis-real` (⚠️ **a working feature — now in the nav**), `/genomics-analysis` (⚠️ **ditto; backs Case Study 4**), `/shortcuts`
+
+> The audit missed a **fifth duplicate route** (`/privacy`, declared in both `routeConfig` and `AppRoutes`)
+> and the fact that `components/Navigation.jsx` is **never imported** yet lists eleven of these routes, which
+> is what makes them look reachable to an import-graph crawl. Both handled; see OUTCOME.
 
 ---
 
@@ -103,52 +113,90 @@ Move dev/test/admin/monitoring routes behind a dev-only flag (or drop from the p
 
 ---
 
-## ▶ NEXT SESSION — RESUME HERE (steps 2–5)
+## ▶ OUTCOME — steps 2–5 executed 2026-07-10
 
-**Status at end of 2026-07-10:** Step 1 DONE + DEPLOYED (nav fix, commit `01b7185`, live image `sha256:0d311ad7`, bundle `main.1cdc7296.js`, rollback-prev `sha256:4bfcafdb`). Steps 2–5 not started. On branch `main`, working tree clean except a pre-existing `paper/**/.bak` (ignore).
+All five steps are implemented. Executing them surfaced three defects this audit had not looked for, one of
+them serious, and disproved two of the audit's own recommendations. Both are recorded below, because the
+corrections matter more than the plan did.
 
-Do these in order; each is an independent, low-risk deploy. **Adversarially review before each deploy and verify live**, same discipline as step 1.
+### What the audit got wrong
 
-### Step 2 — Redirect the 4 duplicate routes
-File: `frontend/src/routes/routeConfig.js`.
-- `/analysis` → `/statistical-analysis-tools`
-- `/modules/t-test-real` → `/modules/t-test`
-- `/modules/anova-real` → `/modules/anova`
-- (keep `/debug-login`)
-**First inspect routeConfig.js** to see if it already supports a redirect field or if you add a `<Navigate to=… replace />` element route. Confirm the canonical targets already render the 50-decimal path (`/api/v1/stats/*` returns `high_precision_result`) so nothing is lost.
+**The `-real` modules are not duplicates.** §2 said "the canonicals already return 50-decimal precision via
+`/api/v1/stats/*`, so redirecting the `-real` variants loses no precision." False in both cases:
 
-### Step 3 — Delete the 6 dead files
-**Re-grep first** to reconfirm zero imports (`grep -rn "CorrelationRegressionModule[^R]" frontend/src` etc.), then delete by exact path:
-- `frontend/src/modules/CorrelationRegressionModule.jsx` (NOT the `…Real` twin)
-- `frontend/src/modules/HypothesisTestingModule.jsx`
-- `frontend/src/modules/NonParametricTestsReal.jsx`
-- `frontend/src/modules/TTestProfessionalModule.jsx`
-- `frontend/src/pages/ProfessionalStatisticalAnalysis.jsx`
-- `frontend/src/pages/StatisticalTestsPage.jsx` (top-level; keep `pages/statistics/StatisticalTestsPage.jsx`)
+- `ANOVACompleteModule` (`/modules/anova`) was posting to `/statistical-tests/anova/`, **a route that does not
+  exist**. `ANOVARealBackend` was the only working ANOVA in the app.
+- `TTestRealBackend` renders the Guardian report/badge, the confidence interval and Cohen's d, none of which
+  `TTestCompleteModule` shows — and `e2e/capture_guardian.js` drives it to regenerate manuscript Figure 7.
 
-### Step 4 — Unify home + hub, retire `/dashboard` ⚠️ NEEDS A DECISION
-Keep `ShowcaseHomePage` (home) + `StatisticalAnalysisHub` at `/statistical-analysis-tools` (hub). Then EITHER retire `/dashboard` OR fix its ~9 dead card links; and make the hub link real `/modules/*` routes instead of opening modules in-page via state. **Ask the user which before editing** (retire vs fix).
+Only `/analysis → /statistical-analysis-tools` was redirected. Both `-real` routes stay, and `routeConfig`
+now documents why so a future pass does not collapse them.
 
-### Step 5 — Gate the 23 orphan routes out of the prod bundle
-Move dev/test/admin/monitoring routes behind a dev-only flag or remove from `routeConfig.js`. Keep the "built but never linked" pages only if on the roadmap. Full list in §4 above. **Confirm the keep/cut list with the user** before removing anything user-facing.
+**The admin routes were already gated.** §5 recommended gating `/security`, `/monitoring/*`, `/admin/branding`
+behind auth. Four already carry `protected: true, requiredRole: 'admin'`; `/enterprise` is `protected`. No
+change was needed.
 
-### Deploy recipe (verified 2026-07-10)
-```
-# after commit + push to main + CI green (gh run watch <id> --exit-status):
-ssh -i ~/.ssh/id_ed25519 root@91.98.93.98 'set -e; cd /opt/stickforstats_new; \
-  docker tag stickforstats/frontend:1.0.0 stickforstats/frontend:rollback-prev; \
-  docker pull ghcr.io/visvikbharti/stickforstats_new/frontend:latest; \
-  docker tag ghcr.io/visvikbharti/stickforstats_new/frontend:latest stickforstats/frontend:1.0.0; \
-  docker compose up -d --force-recreate frontend; docker compose restart nginx; echo DEPLOYED'
-```
-Rollback: retag `rollback-prev` → `1.0.0`, recreate + restart nginx.
-Verify: `docker exec stickforstats-frontend sh -c "grep -o '<distinctive string>' /usr/share/nginx/html/static/js/main.*.js"`.
-NOTE: the production deploy step triggers a permission gate — the user must explicitly authorize it each time (it is not covered by a generic "proceed").
+**Two "orphans" were working features, not junk.** `/modules/power-analysis-real` and `/genomics-analysis`
+(which backs Case Study 4) were unreachable only because nothing linked them. They are now in the nav.
 
-### Still pending (user, needs beta creds)
-Visual click-through of the step-1 nav + Guardian fallback on stickforstats.com → Analysis menu.
+**The audit missed a fifth duplicate route and a dead nav file.**
 
----
+- `/privacy` was declared twice — `routeConfig → PrivacyDashboardPage` and `AppRoutes → PrivacyPolicyPage`.
+  React Router's tie-break gave it to `routeConfig`, so the footer's "Privacy Policy" link, the beta banner,
+  and the register page's *"I accept the … Privacy Policy"* consent checkbox all opened the GDPR data
+  dashboard. The dashboard moved to `/privacy-settings`; the policy now renders at `/privacy`.
+- `components/Navigation.jsx` was never imported (`App.jsx` mounts `SimpleNavigation`) yet listed eleven
+  routes. Any import-graph audit that reads it reports those routes as reachable when they are not. Deleted.
+
+### The defects found while executing
+
+1. **`/modules/anova` fabricated results.** Its POST 404'd, and the `catch` wrote hard-coded numbers
+   (`F=4.573, p=0.012, η²=0.348`) into the results state. The results table renders above the error alert and
+   is not gated on it, so users saw a complete, plausible, fake ANOVA table on every run — including
+   post-hoc comparisons. Step 1's nav change had just made this module discoverable.
+2. **`getApiUrl()` doubled the `/api` prefix.** `API_BASE_URL` already ends in `/api` (CI builds prod with
+   `REACT_APP_API_URL=/api`), so call sites passing an absolute `/api/v1/stats/ttest/` requested
+   `/api/api/v1/stats/ttest/` → 404. This silently broke the t-test module, Enhanced Statistical Analysis,
+   and the Test Universe harness.
+3. **The t-test Guardian fallback never fired.** In `TTestCompleteModule` the Guardian check sat *inside* the
+   `try`, after that failing POST — so the assumption→non-parametric fallback shipped in `e3cacde` was dead in
+   production. It now runs on the submitted samples regardless of whether the parametric test succeeds.
+
+Fixed in `166d187`, verified against a local Django server: `POST /api/v1/stats/anova/` returns 200 and its
+F and p match `scipy.stats.f_oneway` to 1e-9 and 1e-12, with 50-decimal precision preserved end to end.
+
+### Commits
+
+| Commit | Step | Change |
+|--------|------|--------|
+| `166d187` | 0 | Stop ANOVA fabricating results; repair the doubled `/api` prefix; fire the t-test Guardian check unconditionally |
+| `223817c` | 0 | Satisfy CI's `--max-warnings 0` eslint gate |
+| `a53919c` | 2 | Retire `/analysis`; serve the privacy policy at `/privacy` |
+| `2d089b1` | 3 | Delete six superseded modules |
+| `148fa6c` | 4 | Retire `/dashboard`, repoint its three callers |
+| `909072b` | 5 | Drop dev harnesses from the prod bundle; surface Power Analysis and Genomics |
+
+### Notes for the next pass
+
+- **The dev-only gate must be written inline.** `if (process.env.NODE_ENV !== 'production') { ... }` lets
+  webpack's DefinePlugin fold the branch and drop the `import()` chunks. Hoisting the test into a
+  `const IS_DEV_BUILD` does *not* work — webpack will not propagate the constant into the branch and still
+  emits a chunk per harness. The first attempt did exactly that and shipped them. Verify with:
+  `grep -rlF 'Master Test Runner' build/static/js/` — must return nothing. Chunks: 209 → 196.
+
+- **Still open, deliberately not done:**
+  - The hub (`/statistical-analysis-tools`) opens its ten modules in-page via React state and renders an older
+    `ParametricTests` twin. Its Guardian "select alternative" fires a blocking `window.alert()` with manual
+    instructions (`ParametricTests.jsx:362`) instead of running the test, whereas the canonical
+    `TTestCompleteModule` auto-navigates to `/modules/nonparametric-real` with the data prefilled. **Users get
+    a different Guardian experience depending on which entry point they used.**
+  - `components/AdvancedVisualization/VisualizationDashboard.jsx` imports `./StatisticalDashboard`, which does
+    not exist. Nothing imports `VisualizationDashboard`, so it never compiles — dead code with a broken import.
+  - The omnibus p-value renders as `0.0000` for highly significant results, because the shared
+    `ResultDisplay.formatValue` uses `toFixed(4)`. The ANOVA post-hoc table now shows `< 0.0001` instead;
+    the shared component was left alone.
+  - Correlation Pearson→Spearman fallback, one-sample t-test fallback, and the backend `is_met` / `is_normal`
+    dead code remain out of scope.
 
 ## Provenance
 

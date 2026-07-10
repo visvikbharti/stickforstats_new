@@ -406,7 +406,7 @@ const StatisticalModuleTemplate = ({
         <Link
           component="button"
           variant="body2"
-          onClick={() => navigate('/statistical-dashboard')}
+          onClick={() => navigate('/statistical-analysis-tools')}
           sx={{ cursor: 'pointer' }}
         >
           Dashboard
@@ -425,7 +425,7 @@ const StatisticalModuleTemplate = ({
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} md={8}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton onClick={() => navigate('/statistical-dashboard')}>
+            <IconButton onClick={() => navigate('/statistical-analysis-tools')}>
               <BackIcon />
             </IconButton>
             <Box>

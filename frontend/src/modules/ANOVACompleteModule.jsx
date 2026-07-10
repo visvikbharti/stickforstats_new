@@ -643,7 +643,7 @@ MS = Mean Square`}
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => navigate('/statistical-dashboard')}>
+          <IconButton onClick={() => navigate('/statistical-analysis-tools')}>
             <BackIcon />
           </IconButton>
           <Box>
