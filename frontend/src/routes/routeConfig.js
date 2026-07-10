@@ -46,13 +46,7 @@ const CausalInferenceModule = lazy(() => import('../modules/CausalInferenceModul
 // Multiple Testing Correction Panel
 const MultiplicityCorrectionPanel = lazy(() => import('../components/MultiplicityCorrectionPanel/MultiplicityCorrectionPanel'));
 
-// Test Universe - Access to 40+ Statistical Tests
-const TestSelectionDashboard = lazy(() => import('../components/TestSelectionDashboard'));
 const GuardianWarning = lazy(() => import('../components/Guardian/GuardianWarning'));
-const MasterTestRunner = lazy(() => import('../components/MasterTestRunner'));
-
-// Unified Test Executor - Complete test workflow with all 46 tests
-const UnifiedTestExecutor = lazy(() => import('../components/UnifiedTestExecutor'));
 
 // Statistical Practice Audit Dashboard
 const AuditDashboard = lazy(() => import('../components/AuditDashboard'));
@@ -79,15 +73,12 @@ const WorkflowManagementPage = lazy(() => import('../pages/WorkflowManagementPag
 const ReportManagementPage = lazy(() => import('../pages/ReportManagementPage'));
 const ConfidenceIntervalsPage = lazy(() => import('../components/confidence_intervals/ConfidenceIntervalsPage'));
 const ProbabilityDistributionsPage = lazy(() => import('../pages/LazyProbabilityDistributionsPage'));
-const TestCalculator = lazy(() => import('../components/probability_distributions/TestCalculator'));
 const AdvancedStatisticsPage = lazy(() => import('../pages/AdvancedStatisticsPage'));
 const VisualizationStudioPage = lazy(() => import('../pages/VisualizationStudioPage'));
 const ReportingStudioPage = lazy(() => import('../pages/ReportingStudioPage'));
 const SecurityDashboardPage = lazy(() => import('../pages/SecurityDashboardPage'));
-const PerformanceTestDashboard = lazy(() => import('../components/performance/PerformanceTestDashboard'));
 const WebSocketMonitoringPage = lazy(() => import('../pages/WebSocketMonitoringPage'));
 const RAGPerformanceMonitoringPage = lazy(() => import('../pages/RAGPerformanceMonitoringPage'));
-const BrowserCompatibilityTestPage = lazy(() => import('../pages/BrowserCompatibilityTestPage'));
 
 // Autonomous Intelligence Layer (v2.0)
 const SmartAnalysisPage = lazy(() => import('../pages/SmartAnalysisPage'));
@@ -119,6 +110,56 @@ const CertificationPage = lazy(() => import('../pages/CertificationPage'));
 
 // API Documentation
 const APIDocsPage = lazy(() => import('../pages/APIDocsPage'));
+
+// --- Dev-only harnesses ---
+//
+// Manual test rigs and benchmark pages. They are unlinked from the navigation
+// and were reachable in production only by typing the URL.
+//
+// The condition must be written inline, as `if (process.env.NODE_ENV !== ...)`.
+// Webpack's DefinePlugin substitutes that expression literally, leaving
+// `if (false) { ... }` for dead-code elimination to remove along with the
+// import() calls inside it. Hoisting the test into a `const` defeats this:
+// webpack does not propagate the constant into the branch, so it still emits a
+// chunk for every harness. Verify with:
+//   grep -rlF 'Master Test Runner' build/static/js/   # must return nothing
+const DEV_ONLY_ROUTES = [];
+
+if (process.env.NODE_ENV !== 'production') {
+  DEV_ONLY_ROUTES.push(
+    {
+      path: '/test-universe',
+      component: lazy(() => import('../components/TestSelectionDashboard')),
+      loadingMessage: 'Loading Test Universe...',
+      skeleton: 'dashboard',
+    },
+    {
+      path: '/test-runner',
+      component: lazy(() => import('../components/MasterTestRunner')),
+      loadingMessage: 'Loading Master Test Runner...',
+    },
+    {
+      path: '/unified-test',
+      component: lazy(() => import('../components/UnifiedTestExecutor')),
+      loadingMessage: 'Loading Unified Test Executor...',
+    },
+    {
+      path: '/test/calculator',
+      component: lazy(() => import('../components/probability_distributions/TestCalculator')),
+      loadingMessage: 'Loading Test Calculator...',
+    },
+    {
+      path: '/test/performance',
+      component: lazy(() => import('../components/performance/PerformanceTestDashboard')),
+      loadingMessage: 'Loading Performance Test Dashboard...',
+    },
+    {
+      path: '/testing/browser-compatibility',
+      component: lazy(() => import('../pages/BrowserCompatibilityTestPage')),
+      loadingMessage: 'Loading Browser Compatibility Testing...',
+    }
+  );
+}
 
 // --- Route configuration ---
 // Each entry is either
@@ -154,15 +195,12 @@ const ROUTE_CONFIG = [
   // Test modules
   { path: '/modules/t-test', component: TTestCompleteModule, loadingMessage: 'Loading T-Test Module...', skeleton: 'analysis' },
   { path: '/modules/anova', component: ANOVACompleteModule, loadingMessage: 'Loading ANOVA Module...', skeleton: 'analysis' },
-  { path: '/test-universe', component: TestSelectionDashboard, loadingMessage: 'Loading Test Universe...', skeleton: 'dashboard' },
   {
     path: '/guardian-demo',
     component: GuardianWarning,
     loadingMessage: 'Loading Guardian System...',
     props: { educationalMode: true, onProceed: () => {}, onSelectAlternative: () => {}, onViewEvidence: () => {} }
   },
-  { path: '/test-runner', component: MasterTestRunner, loadingMessage: 'Loading Master Test Runner...' },
-  { path: '/unified-test', component: UnifiedTestExecutor, loadingMessage: 'Loading Unified Test Executor...' },
   { path: '/audit', component: AuditDashboard, loadingMessage: 'Loading Audit Dashboard...', skeleton: 'table' },
 
   // Real backend modules (50-decimal precision).
@@ -225,11 +263,6 @@ const ROUTE_CONFIG = [
   { path: '/power-learn', component: PowerAnalysisEducationHub, loadingMessage: 'Loading Power Analysis Education...' },
   { path: '/biophysics-learn', component: BiophysicsLearningHub, loadingMessage: 'Loading Biophysics Education...' },
 
-  // Test & dev routes
-  { path: '/test/calculator', component: TestCalculator, loadingMessage: 'Loading Test Calculator...' },
-  { path: '/test/performance', component: PerformanceTestDashboard, loadingMessage: 'Loading Performance Test Dashboard...' },
-  { path: '/testing/browser-compatibility', component: BrowserCompatibilityTestPage, loadingMessage: 'Loading Browser Compatibility Testing...' },
-
   // Admin routes (require admin role)
   { path: '/security', component: SecurityDashboardPage, loadingMessage: 'Loading Security Dashboard...', protected: true, requiredRole: 'admin' },
   { path: '/monitoring/websocket', component: WebSocketMonitoringPage, loadingMessage: 'Loading WebSocket Monitoring...', protected: true, requiredRole: 'admin' },
@@ -248,6 +281,8 @@ const ROUTE_CONFIG = [
   { path: '/marketplace', component: MarketplacePage, loadingMessage: 'Loading Plugin Marketplace...', skeleton: 'dashboard' },
   { path: '/certification', component: CertificationPage, loadingMessage: 'Loading Certification Program...', skeleton: 'form' },
   { path: '/api-docs', component: APIDocsPage, loadingMessage: 'Loading API Documentation...', skeleton: 'table' },
+
+  ...DEV_ONLY_ROUTES,
 ];
 
 export default ROUTE_CONFIG;

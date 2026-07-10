@@ -41,6 +41,8 @@ import TuneIcon from '@mui/icons-material/Tune';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import BiotechIcon from '@mui/icons-material/Biotech';
+import GrainIcon from '@mui/icons-material/Grain';
+import BoltIcon from '@mui/icons-material/Bolt';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -79,12 +81,14 @@ const NAV_CATEGORIES = [
       { name: 'Survival Analysis', path: '/survival-analysis', icon: <TimelineIcon fontSize="small" /> },
       { name: 'Factor Analysis', path: '/factor-analysis', icon: <ScatterPlotIcon fontSize="small" /> },
       { name: 'PCA Analysis', path: '/pca-analysis', icon: <BiotechIcon fontSize="small" /> },
+      { name: 'Genomics Analysis', path: '/genomics-analysis', icon: <GrainIcon fontSize="small" /> },
     ],
   },
   {
     label: 'Advanced Methods',
     icon: <ScienceIcon fontSize="small" />,
     items: [
+      { name: 'Power Analysis', path: '/modules/power-analysis-real', icon: <BoltIcon fontSize="small" /> },
       { name: 'Mixed Models (Preview)', path: '/modules/mixed-models', icon: <PsychologyIcon fontSize="small" /> },
       { name: 'Causal Inference (Preview)', path: '/modules/causal-inference', icon: <AccountTreeIcon fontSize="small" /> },
       { name: 'Multiple Testing', path: '/modules/multiplicity', icon: <FactCheckIcon fontSize="small" /> },

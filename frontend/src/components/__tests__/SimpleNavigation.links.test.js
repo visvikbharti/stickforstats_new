@@ -56,4 +56,20 @@ describe('SimpleNavigation', () => {
   it('does not link the retired /dashboard', () => {
     expect(navPaths).not.toContain('/dashboard');
   });
+
+  it('links the two working features that were reachable only by URL', () => {
+    expect(navPaths).toContain('/modules/power-analysis-real');
+    expect(navPaths).toContain('/genomics-analysis');
+  });
+
+  it('never links a dev-only test harness', () => {
+    [
+      '/test-universe',
+      '/test-runner',
+      '/unified-test',
+      '/test/calculator',
+      '/test/performance',
+      '/testing/browser-compatibility',
+    ].forEach((p) => expect(navPaths).not.toContain(p));
+  });
 });

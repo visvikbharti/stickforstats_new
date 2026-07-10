@@ -44,12 +44,6 @@
       "short_name": "Analysis",
       "url": "/statistical-analysis-tools",
       "description": "Statistical analysis hub"
-    },
-    {
-      "name": "Test Universe",
-      "short_name": "Tests",
-      "url": "/test-universe",
-      "description": "40+ statistical tests"
     }
   ],
   "screenshots": []

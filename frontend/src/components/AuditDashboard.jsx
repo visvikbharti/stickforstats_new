@@ -573,7 +573,7 @@ Version: 1.0.0
                 variant="outlined"
                 startIcon={<ScienceIcon />}
                 sx={{ mt: 3 }}
-                href="/unified-test"
+                href="/statistical-analysis-tools"
               >
                 Go to Statistical Tests
               </Button>
