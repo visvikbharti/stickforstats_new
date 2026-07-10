@@ -271,9 +271,13 @@ class HighPrecisionNonParametric:
         ties = self._count_ties(np.concatenate([x_arr, y_arr]))
 
         if ties["has_ties"]:
-            # Correction for ties
-            tie_correction = sum(self._to_decimal(t * (t**2 - 1)) for t in ties["tie_counts"]) / (12 * n * (n - 1))
-            var_u = self._to_decimal(n1 * n2) * (n + 1) / 12 - tie_correction
+            # Tie-corrected variance of U:
+            #   var_u = (n1*n2 / 12) * [ (n+1) - Σ(t³ - t) / (n(n-1)) ]
+            # The previous form omitted the n1*n2 factor on the correction term,
+            # making the correction hundreds of times too small (i.e. ties were
+            # effectively ignored in the z-score).
+            tie_sum = sum(self._to_decimal(t * (t**2 - 1)) for t in ties["tie_counts"])
+            var_u = self._to_decimal(n1 * n2) / 12 * ((n + 1) - tie_sum / (n * (n - 1)))
         else:
             var_u = self._to_decimal(n1 * n2 * (n + 1) / 12)
 
@@ -292,18 +296,27 @@ class HighPrecisionNonParametric:
         else:  # greater
             z = (u_stat - mu_u - continuity) / sigma_u
 
-        # Calculate p-value
-        if n1 < 20 and n2 < 20:
-            # Use exact p-value for small samples
-            p_value = self._mann_whitney_exact_p(u_stat, n1, n2, alternative)
+        # P-value: delegate to scipy. It builds the exact null distribution when
+        # there are no ties (valid only then, small samples), and otherwise uses
+        # the tie- and continuity-corrected normal approximation. The previous
+        # hand-rolled exact CDF was wrong for small n -- it returned p-values that
+        # flipped the significance decision on a large fraction of inputs, and p=0
+        # on the module's own default example.
+        if not ties["has_ties"] and n1 < 20 and n2 < 20:
+            p_method = "exact"
         else:
-            # Use normal approximation for large samples
-            if alternative == "two-sided":
-                p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
-            elif alternative == "less":
-                p_value = self._to_decimal(stats.norm.cdf(float(z)))
-            else:  # greater
-                p_value = self._to_decimal(1 - stats.norm.cdf(float(z)))
+            p_method = "asymptotic"
+        p_value = self._to_decimal(
+            float(
+                stats.mannwhitneyu(
+                    x_arr,
+                    y_arr,
+                    use_continuity=use_continuity,
+                    alternative=alternative,
+                    method=p_method,
+                ).pvalue
+            )
+        )
 
         # Calculate effect size (rank-biserial correlation)
         effect_size = 1 - (2 * u_stat) / self._to_decimal(n1 * n2)
@@ -604,29 +617,37 @@ class HighPrecisionNonParametric:
         n_dec = self._to_decimal(n)
         k_dec = self._to_decimal(k)
 
-        # Standard Friedman statistic
-        chi_f = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(r_j[j] ** 2 for j in range(k)) - 3 * n_dec * (k_dec + 1)
+        # Friedman chi-square statistic with the standard within-block tie
+        # correction, paired with its chi-square p-value (df = k-1). This matches
+        # scipy.stats.friedmanchisquare.
+        #
+        # Previously this chi-square statistic was reported but the p-value came
+        # from an Iman-Davenport F transform, so the displayed statistic and p
+        # disagreed (an F p-value under a "chi-squared statistic" label). Worse,
+        # for perfectly concordant data (Kendall's W = 1) the F denominator
+        # n(k-1) - chi_f underflowed to a tiny negative Decimal, so f_stat went
+        # hugely negative and p collapsed to 1.0 -- a maximally significant result
+        # reported as null. The tie correction was also absent.
+        chi_f_uncorrected = (12 / (n_dec * k_dec * (k_dec + 1))) * sum(
+            r_j[j] ** 2 for j in range(k)
+        ) - 3 * n_dec * (k_dec + 1)
 
-        # Iman-Davenport statistic (better for small samples)
-        # Add safety check for division by zero
-        denominator = n_dec * (k_dec - 1) - chi_f
-        if abs(denominator) < self._to_decimal("1e-50"):  # Effectively zero
-            # Edge case: use chi-square approximation only
-            f_stat = chi_f
+        # Tie correction factor: 1 - Σ(t³ - t) / (n·(k³ - k)) over within-block ties.
+        tie_term = 0
+        for i in range(n):
+            _, counts = np.unique(data[i], return_counts=True)
+            tie_term += sum(int(c) ** 3 - int(c) for c in counts if c > 1)
+        tie_correction = 1 - self._to_decimal(tie_term) / (n_dec * (k_dec**3 - k_dec))
+
+        if tie_correction == 0:
+            # Every block fully tied -> no rank information; statistic is 0.
+            chi_f = self._to_decimal(0)
         else:
-            f_stat = ((n_dec - 1) * chi_f) / denominator
+            chi_f = chi_f_uncorrected / tie_correction
 
-        # Calculate p-values
-        chi_p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi_f), k - 1))
-        f_p_value = self._to_decimal(1 - stats.f.cdf(float(f_stat), k - 1, (n - 1) * (k - 1)))
+        p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi_f), k - 1))
 
-        # Use F-distribution p-value for small samples
-        if n < 10 or k < 5:
-            p_value = f_p_value
-        else:
-            p_value = chi_p_value
-
-        # Calculate Kendall's W (coefficient of concordance) as effect size
+        # Kendall's W (coefficient of concordance) as effect size.
         w = chi_f / (n_dec * (k_dec - 1))
 
         # Mean ranks for each group
@@ -1160,114 +1181,6 @@ class HighPrecisionNonParametric:
         u1 = r1 - n1 * (n1 + 1) / 2
 
         return self._to_decimal(u1)
-
-    def _mann_whitney_exact_p(self, u: Decimal, n1: int, n2: int, alternative: str) -> Decimal:
-        """
-        Calculate exact p-value for Mann-Whitney U test using the distribution of U.
-
-        For small samples (n1, n2 < 20), we calculate the exact p-value by
-        using the exact distribution of the U statistic under the null hypothesis.
-        This uses dynamic programming to efficiently compute the distribution.
-
-        Args:
-            u: Mann-Whitney U statistic
-            n1: Size of first sample
-            n2: Size of second sample
-            alternative: 'two-sided', 'less', or 'greater'
-
-        Returns:
-            Exact p-value as Decimal
-        """
-
-        # Convert U to integer for exact calculation
-        u_int = int(float(u))
-
-        # Maximum possible U value
-        max_u = n1 * n2
-
-        # Calculate exact p-value using the distribution of U
-        # Under H0, all rank assignments are equally likely
-        # We use dynamic programming to count favorable outcomes
-
-        if alternative == "two-sided":
-            # Two-tailed: probability of being this extreme on either tail
-            u_lower = min(u_int, max_u - u_int)
-
-            # Calculate P(U <= u_lower) using exact distribution
-            prob = self._mann_whitney_cdf(u_lower, n1, n2)
-
-            # Two-tailed probability
-            p_value = 2.0 * min(prob, 0.5)
-
-        elif alternative == "less":
-            # P(U <= u)
-            p_value = self._mann_whitney_cdf(u_int, n1, n2)
-
-        else:  # 'greater'
-            # P(U >= u) = 1 - P(U < u) = 1 - P(U <= u-1)
-            if u_int > 0:
-                p_value = 1.0 - self._mann_whitney_cdf(u_int - 1, n1, n2)
-            else:
-                p_value = 1.0
-
-        return self._to_decimal(p_value)
-
-    def _mann_whitney_cdf(self, u: int, n1: int, n2: int) -> float:
-        """
-        Calculate P(U <= u) using dynamic programming.
-
-        The distribution of U can be computed using the recursive relationship:
-        f(u, n1, n2) = [n1/(n1+n2)] * f(u, n1-1, n2) + [n2/(n1+n2)] * f(u-n1, n1, n2-1)
-
-        We use DP to accumulate the cumulative probability.
-        """
-        from scipy.special import comb
-
-        # Total number of possible rank assignments
-        total = comb(n1 + n2, n1, exact=True)
-
-        # Count number of rank assignments giving U <= u
-
-        # Use DP table: dp[i][j][k] = number of ways to get U=k with i items from group1, j from group2
-        # This is memory-intensive, so for very small samples we can enumerate
-
-        # For small n1, n2, we can use exact enumeration
-        # Dynamic programming approach:
-        dp = {}
-
-        def count_arrangements(remaining_u, rem_n1, rem_n2):
-            """Count arrangements giving U <= remaining_u"""
-            if remaining_u < 0:
-                return 0
-            if rem_n1 == 0 and rem_n2 == 0:
-                return 1
-            if rem_n1 == 0:
-                # All remaining ranks go to group 2
-                return 1 if remaining_u >= 0 else 0
-            if rem_n2 == 0:
-                # All remaining ranks go to group 1
-                # Each contributes n2 to U
-                total_contrib = rem_n1 * n2
-                return 1 if total_contrib <= remaining_u else 0
-
-            key = (remaining_u, rem_n1, rem_n2)
-            if key in dp:
-                return dp[key]
-
-            # Next rank can go to either group
-            # If it goes to group 1: contributes rem_n2 to U
-            # If it goes to group 2: contributes 0 to U
-            count = count_arrangements(remaining_u - rem_n2, rem_n1 - 1, rem_n2) + count_arrangements(
-                remaining_u, rem_n1, rem_n2 - 1
-            )
-
-            dp[key] = count
-            return count
-
-        # Count favorable outcomes
-        favorable = count_arrangements(u, n1, n2)
-
-        return float(favorable) / float(total)
 
     def _wilcoxon_exact_p(self, w: Decimal, n: int, alternative: str) -> Decimal:
         """
