@@ -90,11 +90,10 @@ const CorrelationTests = ({ data }) => {
   };
 
   const handleSelectAlternative = (alternativeTest) => {
+    // Only Spearman is offered/runnable here; switch the correlation type so the
+    // non-parametric alternative runs in place on the same data.
     if (alternativeTest === 'spearman') {
       setCorrelationType('spearman');
-      alert('Switched to Spearman correlation (non-parametric alternative)');
-    } else {
-      alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the available options.`);
     }
   };
 
@@ -487,7 +486,17 @@ const CorrelationTests = ({ data }) => {
       {/* Guardian Warning Display */}
       {guardianReport && (
         <GuardianWarning
-          guardianReport={guardianReport}
+          // Only Spearman is runnable on this screen (the correlation-type
+          // dropdown offers Pearson and Spearman). The backend also suggests
+          // Kendall and distance correlation, which used to dead-end in an
+          // alert pointing at options that do not exist here — so offer only
+          // what this screen can actually run.
+          guardianReport={{
+            ...guardianReport,
+            alternative_tests: (guardianReport.alternative_tests || []).filter(
+              (t) => t === 'spearman'
+            ),
+          }}
           data={combinedData}
           alpha={alpha}
           onProceed={handleGuardianProceed}

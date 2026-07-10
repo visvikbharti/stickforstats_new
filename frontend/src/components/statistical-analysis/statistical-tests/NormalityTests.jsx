@@ -120,14 +120,6 @@ const NormalityTests = ({ data }) => {
   };
 
   /**
-   * Handle alternative test selection from Guardian
-   */
-  const handleSelectAlternative = (alternativeTest) => {
-    const displayName = alternativeTest.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    alert(`Alternative Test Selected: ${displayName}\n\nPlease navigate to the appropriate test module to use this alternative.`);
-  };
-
-  /**
    * Handle visual evidence viewing from Guardian
    */
   const handleViewEvidence = (evidence) => {
@@ -428,11 +420,14 @@ const NormalityTests = ({ data }) => {
             ℹ️ Data Quality Information
           </Typography>
           <GuardianWarning
-            guardianReport={guardianReport}
+            // This screen is a distributional check, not a group comparison, so
+            // the backend's two-sample "alternative tests" (Mann-Whitney, etc.)
+            // are semantically wrong here and used to dead-end in an alert.
+            // Suppress them; the normality verdict itself is still shown.
+            guardianReport={{ ...guardianReport, alternative_tests: [] }}
             data={columnData}
             alpha={alpha}
             onProceed={handleGuardianProceed}
-            onSelectAlternative={handleSelectAlternative}
             onViewEvidence={handleViewEvidence}
           />
           <Alert severity="info" sx={{ mt: 2 }}>

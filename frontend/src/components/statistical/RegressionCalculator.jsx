@@ -257,19 +257,25 @@ const RegressionCalculator = () => {
           formattedData = [...xTransposed, dataPoints.y];
         }
 
-        // Call Guardian API for linear regression validation
+        // Call Guardian API for linear regression validation. The backend key
+        // is 'regression'; 'linear_regression' matched no requirement map, so
+        // the Guardian checked nothing and offered no alternatives.
         const result = await GuardianService.checkAssumptions(
           formattedData,
-          'linear_regression',  // Test type for linear regression
+          'regression',
           1 - modelOptions.confidenceLevel // alpha
         );
 
         setGuardianResult(result);
 
-        // Block test if critical violations detected (respects Expert Mode setting)
-        const hasCritical = result.criticalViolations && result.criticalViolations.length > 0;
+        // Block test if critical violations detected (respects Expert Mode setting).
+        // Backend returns snake_case `violations`/`can_proceed`; the old camelCase
+        // keys never existed so the block never fired in normal mode.
+        const violations = result.violations || [];
+        const hasCritical =
+          violations.some(v => v.severity === 'critical') || result.can_proceed === false;
         setIsTestBlocked(
-          shouldBlockTest(result.hasViolations, hasCritical)
+          shouldBlockTest(violations.length > 0, hasCritical)
         );
 
         // Guardian validation result received
@@ -919,7 +925,7 @@ const RegressionCalculator = () => {
               </Typography>
             </Alert>
           )}
-          {expertMode && guardianResult?.criticalViolations?.length > 0 && !isTestBlocked && (
+          {expertMode && guardianResult?.violations?.some(v => v.severity === 'critical') && !isTestBlocked && (
             <Alert severity="warning">
               <AlertTitle>⚠️ Expert Mode Active</AlertTitle>
               Critical violations detected but Expert Mode is enabled. Proceeding with caution.
@@ -1543,11 +1549,20 @@ const RegressionCalculator = () => {
             guardianReport={guardianResult}
             onProceed={() => setIsTestBlocked(false)}
             onSelectAlternative={(test) => {
-              // Suggest robust regression or regularized methods for violated assumptions
-              if (test.toLowerCase().includes('robust')) {
+              // Route the Guardian's regression alternatives to the nearest
+              // method this calculator can actually run. The backend returns
+              // robust_regression / quantile_regression / gam; quantile and GAM
+              // have no dedicated type here, so map them to their closest
+              // runnable analogue (robust for outlier/heavy-tail violations,
+              // polynomial for a non-linearity violation) instead of silently
+              // doing nothing.
+              const t = String(test).toLowerCase();
+              if (t.includes('robust') || t.includes('quantile')) {
                 setRegressionType('robust');
-              } else if (test.toLowerCase().includes('ridge')) {
+              } else if (t.includes('ridge')) {
                 setRegressionType('ridge');
+              } else if (t.includes('gam') || t.includes('polynomial') || t.includes('spline')) {
+                setRegressionType('polynomial');
               }
             }}
             onViewEvidence={() => {

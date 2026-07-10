@@ -21,10 +21,15 @@ class GuardianService {
    * @param {Array|Object} data - The data to validate
    * @param {string} testType - The statistical test to be performed
    * @param {number} alpha - Significance level for assumption tests (default: 0.05)
+   * @param {Object} [options] - Optional { design, observationOrder }. `design`
+   *   distinguishes one_sample / paired / independent (t-test) and between /
+   *   repeated (ANOVA) so recommendations and the normality check are
+   *   design-correct.
    * @returns {Promise<Object>} Guardian report with violations and recommendations
    */
-  async checkAssumptions(data, testType, alpha = 0.05) {
+  async checkAssumptions(data, testType, alpha = 0.05, options = {}) {
     try {
+      const { design, observationOrder } = options;
       const response = await fetch(`${API_BASE_URL}/check/`, {
         method: 'POST',
         headers: {
@@ -33,7 +38,9 @@ class GuardianService {
         body: JSON.stringify({
           data,
           test_type: testType,
-          alpha
+          alpha,
+          ...(design ? { design } : {}),
+          ...(observationOrder ? { observation_order: observationOrder } : {})
         })
       });
 

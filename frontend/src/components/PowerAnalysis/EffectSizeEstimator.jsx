@@ -100,7 +100,7 @@ const EffectSizeEstimator = ({
 
         // Block estimation if critical violations detected
         setIsEstimationBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          (result.violations || []).some(v => v.severity === 'critical') || result.can_proceed === false
         );
 
         // Guardian validation result received

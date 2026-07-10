@@ -129,9 +129,11 @@ const AdvancedStatisticalTests = () => {
 
         setGuardianResult(result);
 
-        // Block test if critical violations detected
+        // Block test if critical violations detected. Backend returns
+        // snake_case `violations`/`can_proceed`; the old camelCase keys never
+        // existed so this never blocked.
         setIsTestBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          (result.violations || []).some(v => v.severity === 'critical') || result.can_proceed === false
         );
 
         // Guardian validation result received

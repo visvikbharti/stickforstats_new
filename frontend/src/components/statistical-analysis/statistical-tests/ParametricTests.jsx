@@ -294,32 +294,41 @@ const ParametricTests = ({ data }) => {
         return;
       }
 
-      // Prepare data based on test type
+      // Prepare data based on test type. `design` tells the backend which
+      // t-test / ANOVA sub-type this is so its normality check and its
+      // recommendations are design-correct (a paired test is checked on the
+      // DIFFERENCES and recommends Wilcoxon, not Mann-Whitney).
       let dataToCheck = null;
       let backendTestType = '';
+      let design = null;
 
       try {
         if (testType === 'one-sample') {
           if (columnData.length < 2) return;
           dataToCheck = columnData;
           backendTestType = 't_test';
+          design = 'one_sample';
         } else if (testType === 'independent') {
           if (Object.keys(groupedData).length !== 2) return;
           const groups = Object.values(groupedData);
           if (groups[0].length < 2 || groups[1].length < 2) return;
           dataToCheck = groupedData;
           backendTestType = 't_test';
+          design = 'independent';
         } else if (testType === 'paired') {
           if (columnData.length < 2 || columnData2.length < 2) return;
           if (columnData.length !== columnData2.length) return;
-          dataToCheck = columnData; // Check first column for normality
+          // Send BOTH columns so the backend can test the paired differences.
+          dataToCheck = [columnData, columnData2];
           backendTestType = 't_test';
+          design = 'paired';
         } else if (testType === 'anova') {
           if (Object.keys(groupedData).length < 2) return;
           const groups = Object.values(groupedData);
           if (groups.some(g => g.length < 2)) return;
           dataToCheck = groupedData;
           backendTestType = 'anova';
+          design = 'between';
         } else {
           return;
         }
@@ -329,7 +338,8 @@ const ParametricTests = ({ data }) => {
         const report = await guardianService.checkAssumptions(
           dataToCheck,
           backendTestType,
-          alpha
+          alpha,
+          { design }
         );
 
         setGuardianReport(report);

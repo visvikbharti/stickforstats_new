@@ -26,6 +26,10 @@
 export const RANK_TEST_SUGGESTIONS = new Set([
   'mann_whitney',
   'wilcoxon',
+  // The design-aware backend emits the one-sample / paired rank tests under
+  // these ids; they are normalized to the design's routable suggestion below.
+  'wilcoxon_signed_rank',
+  'sign_test',
   'kruskal_wallis',
   'friedman',
 ]);

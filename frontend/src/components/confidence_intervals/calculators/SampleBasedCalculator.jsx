@@ -168,7 +168,7 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
 
         // Block calculation if critical violations detected
         setIsCalculationBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          (result.violations || []).some(v => v.severity === 'critical') || result.can_proceed === false
         );
 
         // Guardian validation result received

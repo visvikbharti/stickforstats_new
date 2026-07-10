@@ -261,10 +261,15 @@ const TTestCalculator = () => {
 
         setGuardianResult(result);
 
-        // Block test if critical violations detected (respects Expert Mode setting)
-        const hasCritical = result.criticalViolations && result.criticalViolations.length > 0;
+        // Block test if critical violations detected (respects Expert Mode setting).
+        // The backend returns snake_case `violations` (each with `severity`) and
+        // `can_proceed`; the old camelCase keys never existed, so in normal mode
+        // the block never fired and invalid tests ran anyway.
+        const violations = result.violations || [];
+        const hasCritical =
+          violations.some(v => v.severity === 'critical') || result.can_proceed === false;
         setIsTestBlocked(
-          shouldBlockTest(result.hasViolations, hasCritical)
+          shouldBlockTest(violations.length > 0, hasCritical)
         );
 
       } catch (error) {
@@ -1055,7 +1060,7 @@ const TTestCalculator = () => {
                 </Typography>
               </Alert>
             )}
-            {expertMode && guardianResult?.criticalViolations?.length > 0 && !isTestBlocked && (
+            {expertMode && guardianResult?.violations?.some(v => v.severity === 'critical') && !isTestBlocked && (
               <Alert severity="warning" sx={{ mt: 2 }}>
                 <AlertTitle>⚠️ Expert Mode Active</AlertTitle>
                 Critical violations detected but Expert Mode is enabled. Proceeding with caution.

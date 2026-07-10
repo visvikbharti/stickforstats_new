@@ -65,6 +65,21 @@ describe('correctAlternatives', () => {
     expect(correctAlternatives([], 'anova')).toEqual([]);
   });
 
+  it('normalizes the design-aware backend ids to the routable rank test', () => {
+    // The design-aware backend now emits wilcoxon_signed_rank (paired /
+    // one-sample) and sign_test; these must map to the design's routable id so
+    // the button reaches the non-parametric module instead of dead-ending.
+    expect(correctAlternatives(['wilcoxon_signed_rank', 'permutation_test', 'bootstrap'], 'paired')).toEqual([
+      'wilcoxon',
+      'permutation_test',
+      'bootstrap',
+    ]);
+    // One-sample still has no runnable rank test, so both rank ids drop out.
+    expect(correctAlternatives(['wilcoxon_signed_rank', 'sign_test', 'bootstrap'], 'one-sample')).toEqual([
+      'bootstrap',
+    ]);
+  });
+
   it('never emits a rank test the module cannot run', () => {
     const runnable = new Set(Object.values(NP_FALLBACK_BY_DESIGN).map((f) => f.suggestionId));
     const everything = [...GUARDIAN_T_TEST_ALTERNATIVES, ...GUARDIAN_ANOVA_ALTERNATIVES, 'welch_t_test'];

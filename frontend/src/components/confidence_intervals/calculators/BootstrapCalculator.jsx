@@ -247,7 +247,7 @@ const BootstrapCalculator = ({ project, projectData, onSaveResult }) => {
         // Bootstrap is robust, so only block on CRITICAL violations
         // (extreme outliers, very small sample size, severe data quality issues)
         setIsCalculationBlocked(
-          result.hasViolations && result.criticalViolations && result.criticalViolations.length > 0
+          (result.violations || []).some(v => v.severity === 'critical') || result.can_proceed === false
         );
 
         // Guardian validation result received
