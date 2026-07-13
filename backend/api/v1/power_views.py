@@ -622,6 +622,10 @@ def power_curve(request):
             n_max=data.get("n_max", 200),
             step=data.get("step", 5),
             t_test_type=canonical_t_test_type(data.get("t_test_type")),
+            # n2/n1, held fixed as n1 varies. Without it the curve was always BALANCED while the
+            # headline honoured the group-2 box, so both claimed to be the power of the same design
+            # and disagreed.
+            allocation_ratio=data.get("allocation_ratio", 1.0),
         )
 
         return Response({"success": True, "results": result}, status=status.HTTP_200_OK)

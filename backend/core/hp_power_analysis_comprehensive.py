@@ -986,6 +986,7 @@ class HighPrecisionPowerAnalysis:
         n_max=200,
         step=5,
         t_test_type="independent",
+        allocation_ratio=1.0,
     ):
         """
         Power as a function of sample size, for plotting.
@@ -994,10 +995,23 @@ class HighPrecisionPowerAnalysis:
         e.g. n = 3 for a correlation, where the Fisher transform divides by sqrt(0)) are OMITTED
         from the series rather than emitted as a placeholder value. A gap in a line is honest; a
         point at 0.001 is not.
+
+        `allocation_ratio` = n2 / n1 is held FIXED as n1 varies along the curve, which is what
+        G*Power does and the only reading of "power vs n" that makes sense for an unequal design.
+        It defaults to 1.0, so a balanced curve is unchanged.
+
+        Without it the curve was always drawn for a BALANCED design while the headline beside it
+        honoured the group-2 box -- so a 30/60 design got a headline power of 0.6633 sitting above a
+        curve reading 0.4779 at n = 30. Two numbers, one screen, one design, both claiming to be its
+        power. That is the defect this module has now been through four times; the curve was the last
+        place it was still live.
         """
         effect_size = float(effect_size)
         alpha = float(alpha)
         groups = int(groups)
+        allocation_ratio = float(allocation_ratio)
+        if allocation_ratio <= 0:
+            raise ValueError(f"The allocation ratio n2/n1 must be positive; got {allocation_ratio}.")
 
         points = []
         for n in range(int(n_min), int(n_max) + 1, int(step)):
@@ -1011,7 +1025,12 @@ class HighPrecisionPowerAnalysis:
                 # curve, plotted under the label of the design the user actually chose. The
                 # paired t needs n = d*sqrt(n) and df = n - 1, not d*sqrt(n/2) and df = 2n - 2,
                 # and it reaches a given power at roughly half the sample size.
-                power = self._t_power_float(effect_size, n, alpha, t_test_type, alternative)
+                # The second arm tracks n1 at the fixed allocation ratio, so the point at the
+                # user's own n1 IS the headline power, and the curve passes through it.
+                n2 = None
+                if t_test_type == "independent" and allocation_ratio != 1.0:
+                    n2 = max(2, int(round(n * allocation_ratio)))
+                power = self._t_power_float(effect_size, n, alpha, t_test_type, alternative, n2=n2)
 
             if power is not None and np.isfinite(power):
                 points.append({"n": n, "power": float(power)})
@@ -1024,6 +1043,9 @@ class HighPrecisionPowerAnalysis:
             "groups": groups if test_type == "anova" else None,
             "alternative": alternative,
             "t_test_type": t_test_type if test_type not in ("anova", "correlation") else None,
+            "allocation_ratio": (
+                allocation_ratio if test_type == "t-test" and t_test_type == "independent" else None
+            ),
         }
 
     def calculate_sample_size_anova(

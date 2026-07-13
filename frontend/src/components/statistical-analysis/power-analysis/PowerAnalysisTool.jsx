@@ -261,6 +261,14 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const curveBenchmarks = CURVE_BENCHMARKS[usesCohensF ? 'f' : 'd'];
   const effectSizeSymbol = usesCohensF ? 'f' : 'd';
 
+  // The curve was always drawn for a BALANCED design, while the headline beside it honoured the
+  // group-2 box. So a 30/60 t-test showed a headline power of 0.6633 sitting directly above a
+  // curve that reads 0.4779 at n = 30 -- two numbers, one screen, one design, both claiming to be
+  // its power. Holding n2/n1 fixed as n1 varies is what G*Power does, and it is the only reading of
+  // "power vs n" that means anything for an unequal design.
+  const curveAllocationRatio =
+    acceptsSecondArm(testType) && sampleSize2 && sampleSize ? sampleSize2 / sampleSize : 1;
+
   const buildPowerCurves = useCallback(async () => {
     if (!isPowerTestSupported(testType)) return null;
 
@@ -277,6 +285,9 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           nMin: 10,
           nMax: 500,
           step: 10,
+          // Hold n2/n1 fixed as n1 moves along the curve, so the curve passes through the headline
+          // point instead of describing a balanced design the user did not ask for.
+          allocationRatio: curveAllocationRatio,
         }).then((points) => ({ es, points }))
       )
     );
@@ -292,7 +303,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     }
 
     return [...byN.values()].sort((a, b) => a.n - b.n);
-  }, [testType, alpha, alternative, numGroups, curveBenchmarks]);
+  }, [testType, alpha, alternative, numGroups, curveBenchmarks, curveAllocationRatio]);
 
   /**
    * All three modes now run on the backend, against the exact non-central distributions.

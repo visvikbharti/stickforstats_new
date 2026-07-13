@@ -608,6 +608,7 @@ export const runPowerCurve = async ({
   nMin = 5,
   nMax = 200,
   step = 5,
+  allocationRatio = 1,
 }) => {
   // The curve is drawn for the parametric families. A rank test has no closed-form curve, and a
   // chi-square curve would need its df; rather than draw an approximation of an approximation,
@@ -626,6 +627,14 @@ export const runPowerCurve = async ({
     n_max: nMax,
     step,
   };
+
+  // n2/n1, held fixed as n1 moves along the curve. The curve was always drawn for a BALANCED design
+  // while the headline above it honoured the group-2 box, so a 30/60 design showed a headline power
+  // of 0.6633 over a curve reading 0.4779 at n = 30 -- two numbers on one screen, same design, both
+  // claiming to be its power. With the ratio fixed, the curve passes through the headline point.
+  if (acceptsSecondArm(testType) && allocationRatio && allocationRatio !== 1) {
+    body.allocation_ratio = allocationRatio;
+  }
 
   // The curve endpoint used to pin the t-test variant to "independent", so a curve requested for
   // a PAIRED or one-sample design came back as the independent one and was drawn under the label

@@ -590,3 +590,78 @@ class TheExportedTableIsPerTestNotPerMannWhitney(TestCase):
             with self.subTest(test=test):
                 sizes = [n for _, _, n in rows]
                 self.assertEqual(sizes, sorted(sizes, reverse=True))
+
+
+class TheCurvePassesThroughTheHeadline(TestCase):
+    """
+    The last place the group-2 box was still being ignored: the power curve underneath the answer.
+
+    The curve was always drawn for a BALANCED design while the headline honoured the second arm, so
+    a 30/60 t-test put a headline power of 0.6633 directly above a curve reading 0.4779 at n = 30.
+    Two numbers, one screen, one design, both claiming to be its power -- the same defect this
+    module has now been through four times, in its last hiding place.
+
+    Holding n2/n1 fixed as n1 varies is what G*Power does, and it is the only reading of "power vs
+    n" that means anything for an unequal design.
+    """
+
+    def setUp(self):
+        self.engine = HighPrecisionPowerAnalysis()
+
+    def test_the_curve_at_the_users_own_n_is_the_headline_power(self):
+        headline = self.engine.calculate_power_t_test(
+            effect_size="0.5", sample_size="30", sample_size2="60", alpha="0.05"
+        )["power_float"]
+
+        curve = self.engine.power_curve(
+            test_type="t-test", effect_size=0.5, alpha=0.05, n_min=30, n_max=30, step=1,
+            allocation_ratio=2.0,
+        )
+        at_30 = next(p["power"] for p in curve["points"] if p["n"] == 30)
+
+        self.assertAlmostEqual(at_30, headline, places=9)
+
+        # And it is NOT the balanced answer, which is what was plotted before.
+        balanced = self.engine.power_curve(
+            test_type="t-test", effect_size=0.5, alpha=0.05, n_min=30, n_max=30, step=1
+        )["points"][0]["power"]
+        self.assertNotAlmostEqual(at_30, balanced, places=3)
+
+    def test_a_balanced_curve_is_completely_unchanged(self):
+        # Nothing that worked before may move.
+        default = self.engine.power_curve(test_type="t-test", effect_size=0.5, n_min=10, n_max=100, step=10)
+        explicit = self.engine.power_curve(
+            test_type="t-test", effect_size=0.5, n_min=10, n_max=100, step=10, allocation_ratio=1.0
+        )
+        self.assertEqual(default["points"], explicit["points"])
+
+    def test_the_ratio_is_echoed_only_where_it_applies(self):
+        t = self.engine.power_curve(test_type="t-test", effect_size=0.5, allocation_ratio=2.0)
+        self.assertEqual(t["allocation_ratio"], 2.0)
+
+        # A paired t, an ANOVA and a correlation have no second arm; the ratio is meaningless there
+        # and must not be echoed as though it had been used.
+        for kwargs in (
+            {"test_type": "t-test", "t_test_type": "paired"},
+            {"test_type": "anova", "groups": 3},
+            {"test_type": "correlation"},
+        ):
+            with self.subTest(**kwargs):
+                curve = self.engine.power_curve(effect_size=0.3, allocation_ratio=2.0, **kwargs)
+                self.assertIsNone(curve["allocation_ratio"])
+
+    def test_a_paired_curve_ignores_the_ratio_entirely(self):
+        with_ratio = self.engine.power_curve(
+            test_type="t-test", t_test_type="paired", effect_size=0.5, n_min=10, n_max=50, step=10,
+            allocation_ratio=2.0,
+        )
+        without = self.engine.power_curve(
+            test_type="t-test", t_test_type="paired", effect_size=0.5, n_min=10, n_max=50, step=10
+        )
+        self.assertEqual(with_ratio["points"], without["points"])
+
+    def test_a_nonsense_ratio_is_refused(self):
+        for ratio in (0, -1.0):
+            with self.subTest(ratio=ratio):
+                with self.assertRaises(ValueError):
+                    self.engine.power_curve(test_type="t-test", effect_size=0.5, allocation_ratio=ratio)
