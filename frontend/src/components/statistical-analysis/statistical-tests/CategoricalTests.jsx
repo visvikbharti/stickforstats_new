@@ -58,80 +58,14 @@ import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
 import { useSettings } from '../../../context/SettingsContext';
+import { runChiSquareIndependence } from '../utils/hubTestService';
+import { formatPValue, formatNumber } from '../../../utils/formatStats';
 
-// log-gamma via the Lanczos approximation
-const logGamma = (z) => {
-  const g = 7;
-  const c = [
-    0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-    771.32342877765313, -176.61502916214059, 12.507343278686905,
-    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7
-  ];
-  if (z < 0.5) {
-    return Math.log(Math.PI / Math.sin(Math.PI * z)) - logGamma(1 - z);
-  }
-  z -= 1;
-  let a = c[0];
-  const t = z + g + 0.5;
-  for (let i = 1; i < g + 2; i++) a += c[i] / (z + i);
-  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
-};
-
-// Regularized upper incomplete gamma Q(s, z) = 1 - P(s, z), evaluated by the
-// lower-tail series when z < s+1 and by the Lentz continued fraction otherwise.
-const regularizedGammaQ = (s, z) => {
-  if (z <= 0) return 1;
-  if (z < s + 1) {
-    let term = 1 / s;
-    let sum = term;
-    for (let n = 1; n < 300; n++) {
-      term *= z / (s + n);
-      sum += term;
-      if (Math.abs(term) < Math.abs(sum) * 1e-15) break;
-    }
-    const p = sum * Math.exp(-z + s * Math.log(z) - logGamma(s));
-    return 1 - p;
-  }
-  // Continued fraction (Numerical Recipes gcf) for Q directly.
-  const FPMIN = 1e-300;
-  let b = z + 1 - s;
-  let c = 1 / FPMIN;
-  let d = 1 / b;
-  let h = d;
-  for (let i = 1; i < 300; i++) {
-    const an = -i * (i - s);
-    b += 2;
-    d = an * d + b;
-    if (Math.abs(d) < FPMIN) d = FPMIN;
-    c = b + an / c;
-    if (Math.abs(c) < FPMIN) c = FPMIN;
-    d = 1 / d;
-    const del = d * c;
-    h *= del;
-    if (Math.abs(del - 1) < 1e-15) break;
-  }
-  return Math.exp(-z + s * Math.log(z) - logGamma(s)) * h;
-};
-
-/**
- * Chi-square upper-tail probability P(chi^2 >= x) with `df` degrees of
- * freedom — i.e. the p-value for the chi-square test of independence. This is
- * the regularized upper incomplete gamma function Q(df/2, x/2).
- *
- * The previous implementation summed the full Poisson mass for df <= 2 and
- * returned 1 - 1 = 0, so EVERY 2x2 (df=1) and 2x3 (df=2) table reported
- * p = 0.0000 and was flagged "Significant" regardless of the data.
- *
- * These three helpers must stay at module scope: `chiSquareResult` calls
- * chiSquareUpperTail from inside a useMemo that runs during render, so a
- * component-scoped `const` would still be in its temporal dead zone and throw
- * "Cannot access 'chiSquareUpperTail' before initialization".
- */
-const chiSquareUpperTail = (x, df) => {
-  if (x <= 0) return 1;
-  if (df <= 0) return 1;
-  return regularizedGammaQ(df / 2, x / 2);
-};
+// The chi-square upper tail used to be implemented right here, in the browser: a Lanczos
+// log-gamma plus a continued-fraction incomplete gamma, about 70 lines of it, carrying its own
+// comment about the p = 0.0000 bug it had once had. It is gone. The test is computed by the
+// backend now, so there is one tested implementation of this rather than a second copy that has
+// to be kept correct by hand.
 
 /**
  * Main Categorical Tests Component
@@ -159,9 +93,10 @@ const CategoricalTests = ({ data }) => {
     setIsTestBlocked(false);
   };
 
-  const handleSelectAlternative = (alternativeTest) => {
-    alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the available tests.`);
-  };
+  // Guardian's alternative for a sparse contingency table is Fisher's exact test, which the
+  // backend runs automatically when the expected counts are too small. There is nothing for the
+  // user to go and select, so there is nothing to pop an alert about.
+  const handleSelectAlternative = () => {};
 
   const handleViewEvidence = () => {
     setShowVisualEvidence(true);
@@ -283,54 +218,76 @@ const CategoricalTests = ({ data }) => {
   }, [data, variable1, variable2]);
 
   /**
-   * Calculate expected frequencies and chi-square
+   * The chi-square test is run by the backend.
+   *
+   * The cross-tabulation above is just counting, and stays here. The TEST does not: the browser
+   * copy had no check that the expected frequencies are large enough for the chi-square
+   * approximation to hold, and no Fisher's exact fallback for when they are not -- so on a
+   * sparse table it reported a chi-square p-value that the chi-square distribution does not
+   * license. The backend checks `expected_frequencies_ge_5` and says so.
    */
-  const chiSquareResult = useMemo(() => {
-    if (!contingencyTable) return null;
+  const [chiSquareResult, setChiSquareResult] = useState(null);
+  const [testLoading, setTestLoading] = useState(false);
+  const [testError, setTestError] = useState(null);
 
-    const { table, rowTotals, colTotals, grandTotal, categories1, categories2 } = contingencyTable;
+  useEffect(() => {
+    let cancelled = false;
 
-    // Calculate expected frequencies and chi-square
-    let chiSquare = 0;
-    const expected = {};
-    const residuals = {};
+    if (!contingencyTable) {
+      setChiSquareResult(null);
+      setTestError(null);
+      return undefined;
+    }
 
-    categories1.forEach(cat1 => {
-      expected[cat1] = {};
-      residuals[cat1] = {};
+    const { table, categories1, categories2 } = contingencyTable;
 
-      categories2.forEach(cat2 => {
-        const exp = (rowTotals[cat1] * colTotals[cat2]) / grandTotal;
-        expected[cat1][cat2] = exp;
+    const run = async () => {
+      setTestLoading(true);
+      setTestError(null);
 
-        const obs = table[cat1][cat2];
-        const residual = (obs - exp) / Math.sqrt(exp);
-        residuals[cat1][cat2] = residual;
+      try {
+        const matrix = categories1.map((cat1) => categories2.map((cat2) => table[cat1][cat2]));
+        const result = await runChiSquareIndependence(matrix, alpha);
+        if (cancelled) return;
 
-        // Chi-square contribution
-        chiSquare += Math.pow(obs - exp, 2) / exp;
-      });
-    });
+        // Re-key the backend's row-major arrays onto the category names the table renders with.
+        const byCategory = (grid) => {
+          if (!Array.isArray(grid)) return null;
+          const out = {};
+          categories1.forEach((cat1, i) => {
+            out[cat1] = {};
+            categories2.forEach((cat2, j) => {
+              out[cat1][cat2] = grid[i]?.[j] ?? null;
+            });
+          });
+          return out;
+        };
 
-    // Degrees of freedom
-    const df = (categories1.length - 1) * (categories2.length - 1);
-
-    // Upper-tail p-value P(chi^2 >= observed) for the test of independence.
-    const pValue = chiSquareUpperTail(chiSquare, df);
-
-    // Cramer's V (effect size)
-    const minDim = Math.min(categories1.length - 1, categories2.length - 1);
-    const cramersV = Math.sqrt(chiSquare / (grandTotal * minDim));
-
-    return {
-      chiSquare,
-      df,
-      pValue,
-      significant: pValue < alpha,
-      expected,
-      residuals,
-      cramersV
+        setChiSquareResult({
+          chiSquare: result.statistic,
+          df: result.df,
+          pValue: result.pValue,
+          // `null < alpha` is true in JavaScript. A missing p-value is not a significant one.
+          significant: result.pValue === null ? null : result.pValue < alpha,
+          cramersV: result.cramersV,
+          expected: byCategory(result.expected),
+          residuals: byCategory(result.raw?.results?.standardized_residuals),
+          expectedFrequenciesOk: result.assumptionsMet?.expected_frequencies_ge_5 ?? null,
+          recommendations: result.recommendations || [],
+          interpretation: result.interpretation
+        });
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Chi-square backend call failed:', error);
+        setTestError(error.message || 'The chi-square test could not be computed.');
+        setChiSquareResult(null);
+      } finally {
+        if (!cancelled) setTestLoading(false);
+      }
     };
+
+    run();
+    return () => { cancelled = true; };
   }, [contingencyTable, alpha]);
 
   /**
@@ -413,7 +370,7 @@ const CategoricalTests = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [variable1, variable2, contingencyTable, alpha, data]);
+  }, [variable1, variable2, contingencyTable, alpha, data, expertMode]);
 
   /**
    * Prepare visualization data
@@ -585,6 +542,32 @@ const CategoricalTests = ({ data }) => {
       )}
 
       {/* Results */}
+      {testLoading && (
+        <Paper elevation={2} sx={{ p: 4, mb: 3, textAlign: 'center' }}>
+          <CircularProgress />
+          <Typography variant="body2" sx={{ mt: 2 }}>Running the chi-square test...</Typography>
+        </Paper>
+      )}
+
+      {testError && !testLoading && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          <Typography variant="body2" fontWeight={600} gutterBottom>
+            The chi-square test could not be computed.
+          </Typography>
+          <Typography variant="body2">{testError}</Typography>
+        </Alert>
+      )}
+
+      {/* The chi-square approximation needs expected counts of about 5. Say so when it fails. */}
+      {chiSquareResult && chiSquareResult.expectedFrequenciesOk === false && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            Some expected cell counts are below 5, so the chi-square approximation is unreliable
+            on this table. Fisher's exact test is the appropriate test here.
+          </Typography>
+        </Alert>
+      )}
+
       {contingencyTable && chiSquareResult && !isTestBlocked && (
         <>
           {/* Test Statistics */}
@@ -593,7 +576,7 @@ const CategoricalTests = ({ data }) => {
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">χ² Statistic</Typography>
-                  <Typography variant="h6">{chiSquareResult.chiSquare.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(chiSquareResult.chiSquare, 4)}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -609,9 +592,11 @@ const CategoricalTests = ({ data }) => {
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">p-value</Typography>
-                  <Typography variant="h6">{chiSquareResult.pValue.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatPValue(chiSquareResult.pValue)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {chiSquareResult.significant ? 'Significant' : 'Not Significant'}
+                    {chiSquareResult.significant === null
+                      ? 'Undefined'
+                      : chiSquareResult.significant ? 'Significant' : 'Not Significant'}
                   </Typography>
                 </CardContent>
               </Card>
@@ -620,7 +605,7 @@ const CategoricalTests = ({ data }) => {
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">Cramer's V</Typography>
-                  <Typography variant="h6">{chiSquareResult.cramersV.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(chiSquareResult.cramersV, 4)}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     {getEffectSize(chiSquareResult.cramersV)}
                   </Typography>
@@ -649,7 +634,7 @@ const CategoricalTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Chi-square (χ²)</TableCell>
-                    <TableCell align="right">{chiSquareResult.chiSquare.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatNumber(chiSquareResult.chiSquare, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Degrees of Freedom</TableCell>
@@ -657,11 +642,11 @@ const CategoricalTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{chiSquareResult.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(chiSquareResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Cramer's V (Effect Size)</TableCell>
-                    <TableCell align="right">{chiSquareResult.cramersV.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatNumber(chiSquareResult.cramersV, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -687,13 +672,13 @@ const CategoricalTests = ({ data }) => {
                   {chiSquareResult.significant ? (
                     <>
                       There is a <strong>significant association</strong> between {variable1} and {variable2}
-                      (χ² = {chiSquareResult.chiSquare.toFixed(2)}, df = {chiSquareResult.df}, p = {chiSquareResult.pValue.toFixed(4)} {'<'} {alpha}).
-                      Effect size is <strong>{getEffectSize(chiSquareResult.cramersV).toLowerCase()}</strong> (V = {chiSquareResult.cramersV.toFixed(3)}).
+                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, p = {formatPValue(chiSquareResult.pValue)} {'<'} {alpha}).
+                      Effect size is <strong>{getEffectSize(chiSquareResult.cramersV).toLowerCase()}</strong> (V = {formatNumber(chiSquareResult.cramersV, 3)}).
                     </>
                   ) : (
                     <>
                       There is <strong>no significant association</strong> between {variable1} and {variable2}
-                      (χ² = {chiSquareResult.chiSquare.toFixed(2)}, df = {chiSquareResult.df}, p = {chiSquareResult.pValue.toFixed(4)} {'>='} {alpha}).
+                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, p = {formatPValue(chiSquareResult.pValue)} {'>='} {alpha}).
                       The variables appear to be independent.
                     </>
                   )}
@@ -803,7 +788,7 @@ const CategoricalTests = ({ data }) => {
                             color: theme.palette.text.primary
                           }}
                         >
-                          {chiSquareResult.expected[row][col].toFixed(2)}
+                          {formatNumber(chiSquareResult.expected?.[row]?.[col], 2)}
                         </td>
                       ))}
                     </tr>
@@ -842,7 +827,7 @@ const CategoricalTests = ({ data }) => {
                         {row}
                       </td>
                       {contingencyTable.categories2.map((col) => {
-                        const residual = chiSquareResult.residuals[row][col];
+                        const residual = chiSquareResult.residuals?.[row]?.[col] ?? null;
                         const isSignificant = Math.abs(residual) > 2;
                         return (
                           <td

@@ -133,8 +133,10 @@ class ICCResult:
                 "proportion_between": round(self.icc_value, 4),
             },
             "interpretation": {"label": self.interpretation_label, "description": self.interpretation},
-            "design_effect": round(self.design_effect, 4) if self.design_effect else None,
-            "effective_sample_size": round(self.effective_sample_size, 2) if self.effective_sample_size else None,
+            "design_effect": round(self.design_effect, 4) if self.design_effect is not None else None,
+            "effective_sample_size": (
+                round(self.effective_sample_size, 2) if self.effective_sample_size is not None else None
+            ),
             "sample_info": {"n_subjects": self.n_subjects, "n_raters": self.n_raters},
         }
 

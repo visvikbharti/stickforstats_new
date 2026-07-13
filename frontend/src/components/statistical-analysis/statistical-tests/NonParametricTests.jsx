@@ -8,7 +8,7 @@
  * - Friedman Test (repeated measures)
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { endpoints, getApiUrl } from '../../../config/apiConfig';
 import { useSettings } from '../../../context/SettingsContext';
 import {
@@ -26,9 +26,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  FormControlLabel,
   Checkbox,
   CircularProgress,
   Dialog,
@@ -54,19 +52,65 @@ import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import {
-  mannWhitneyUTest,
-  kruskalWallisTest,
-  wilcoxonSignedRankTest,
-  friedmanTest,
-  calculateDescriptiveStats
-} from '../utils/statisticalUtils';
+import { calculateDescriptiveStats } from '../utils/statisticalUtils';
 import guardianService from '../../../services/GuardianService';
-import { formatPValue } from '../../../utils/formatStats';
+import { formatPValue, formatNumber } from '../../../utils/formatStats';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+
+/**
+ * What each test reports, so the results panel names the right statistic and the right null
+ * hypothesis. The panel used to be hard-coded to Mann-Whitney: run Kruskal-Wallis with the
+ * backend on and it still said "the two groups have significantly different distributions",
+ * for three or more groups.
+ */
+const TEST_SPECS = {
+  'mann-whitney': {
+    title: 'Mann-Whitney U Test',
+    nullHypothesis: 'the two groups have the same distribution',
+    statisticLabel: 'U statistic',
+    statisticKeys: ['u_statistic', 'test_statistic'],
+    effectSizeLabel: 'Rank-biserial r',
+    exportKey: 'mann_whitney_u'
+  },
+  'kruskal-wallis': {
+    title: 'Kruskal-Wallis H Test',
+    nullHypothesis: 'all groups have the same distribution',
+    statisticLabel: 'H statistic',
+    statisticKeys: ['h_statistic', 'test_statistic'],
+    effectSizeLabel: 'Epsilon-squared',
+    exportKey: 'kruskal_wallis'
+  },
+  wilcoxon: {
+    title: 'Wilcoxon Signed-Rank Test',
+    nullHypothesis: 'the paired differences are symmetric about zero',
+    statisticLabel: 'W statistic',
+    statisticKeys: ['w_statistic', 'test_statistic'],
+    effectSizeLabel: 'Effect size r',
+    exportKey: 'wilcoxon_signed_rank'
+  },
+  friedman: {
+    title: 'Friedman Test',
+    nullHypothesis: 'all conditions have the same distribution',
+    statisticLabel: 'Chi-square statistic',
+    statisticKeys: ['chi_squared', 'test_statistic'],
+    effectSizeLabel: "Kendall's W",
+    exportKey: 'friedman'
+  }
+};
+
+/**
+ * The backend sends every number as a decimal STRING (it carries 50 digits; a JS number cannot).
+ * Parse for display only, and return null -- never 0 -- when the value is absent. `parseFloat(null)`
+ * is NaN and `Number(null)` is 0, and a 0 here would render as a real statistic.
+ */
+const num = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = typeof value === 'number' ? value : parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 /**
  * Main Non-Parametric Tests Component
@@ -82,8 +126,11 @@ const NonParametricTests = ({ data }) => {
   const [selectedColumns, setSelectedColumns] = useState([]); // For Friedman test (multiple columns)
   const [groupColumn, setGroupColumn] = useState('');
   const [alpha, setAlpha] = useState(0.05);
-  const [useBackend, setUseBackend] = useState(false);
-  const [backendResult, setBackendResult] = useState(null);
+  // There is no "use the backend?" checkbox any more. There used to be one, defaulting to OFF,
+  // so the number on screen was by default the browser's own float64 re-implementation of the
+  // test, and the backend -- the tested, 50-digit, exact-p-value one -- was the opt-in. Two
+  // implementations of one test is two answers to one question; the honest count is one.
+  const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
@@ -101,8 +148,17 @@ const NonParametricTests = ({ data }) => {
     setIsTestBlocked(false);
   };
 
+  // Guardian names an alternative test; switch to it, rather than popping an alert that tells
+  // the user to go and do it themselves.
   const handleSelectAlternative = (alternativeTest) => {
-    alert(`Alternative test suggested: ${alternativeTest}\n\nPlease select this test from the Test Type dropdown.`);
+    const key = String(alternativeTest || '').toLowerCase().replace(/[\s_]+/g, '-');
+    const known = ['mann-whitney', 'kruskal-wallis', 'wilcoxon', 'friedman'];
+    const match = known.find((t) => key.includes(t));
+    if (match) {
+      setTestType(match);
+      setResult(null);
+      setBackendError(null);
+    }
   };
 
   const handleViewEvidence = () => {
@@ -283,195 +339,50 @@ const NonParametricTests = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [testType, groupedData, alpha, data]);
+  }, [testType, groupedData, alpha, data, expertMode]);
 
   /**
-   * Call backend API for high-precision Mann-Whitney U test with exact p-values
+   * Every non-parametric test on this screen is computed by the backend.
+   *
+   * The response envelope is {success, high_precision_result, results, ...}. The component used
+   * to store that WHOLE envelope and then render on `backendResult.test_statistic` -- a key that
+   * only exists one level down, inside `high_precision_result`. It was therefore always
+   * undefined, and the results panel never rendered at all: ticking the "High-Precision Backend
+   * API" box made the results disappear. Unwrap it once, here.
    */
-  const callBackendMannWhitney = async (group1, group2) => {
-    try {
-      setIsLoading(true);
-      setBackendError(null);
+  const runBackendTest = useCallback(async (endpoint, body) => {
+    setIsLoading(true);
+    setBackendError(null);
+    setResult(null);
 
-      const response = await fetch(getApiUrl(endpoints.nonparametric.mannWhitney), {
+    try {
+      const response = await fetch(getApiUrl(endpoint), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          group1: group1,
-          group2: group2,
-          alternative: 'two-sided',
-          use_continuity: true,
-          calculate_effect_size: true
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
 
+      const payload = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error(`Backend API error: ${response.statusText}`);
+        throw new Error(
+          payload?.error || payload?.detail || `Backend returned ${response.status} ${response.statusText}`
+        );
       }
 
-      const result = await response.json();
-      setBackendResult(result);
-      return result;
+      const inner = payload?.high_precision_result || payload?.results;
+      if (!inner) throw new Error('The backend returned no result for this test.');
+
+      setResult(inner);
+      return inner;
     } catch (error) {
-      console.error('Backend API error:', error);
-      setBackendError(error.message);
+      console.error('Non-parametric backend call failed:', error);
+      setBackendError(error.message || 'The test could not be computed.');
       return null;
     } finally {
       setIsLoading(false);
     }
-  };
-
-  /**
-   * Call backend API for high-precision Kruskal-Wallis test
-   */
-  const callBackendKruskalWallis = async (groups) => {
-    try {
-      setIsLoading(true);
-      setBackendError(null);
-
-      const response = await fetch(getApiUrl(endpoints.nonparametric.kruskalWallis), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groups: Object.values(groups),
-          group_names: Object.keys(groups)
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setBackendResult(result);
-      return result;
-    } catch (error) {
-      console.error('Backend API error:', error);
-      setBackendError(error.message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Call backend API for high-precision Wilcoxon Signed-Rank test
-   */
-  const callBackendWilcoxon = async (sample1, sample2) => {
-    try {
-      setIsLoading(true);
-      setBackendError(null);
-
-      const response = await fetch(getApiUrl(endpoints.nonparametric.wilcoxon), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          x: sample1,
-          y: sample2,
-          alternative: 'two-sided',
-          zero_method: 'wilcox'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setBackendResult(result);
-      return result;
-    } catch (error) {
-      console.error('Backend API error:', error);
-      setBackendError(error.message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Call backend API for high-precision Friedman test
-   */
-  const callBackendFriedman = async (measurements, conditionNames) => {
-    try {
-      setIsLoading(true);
-      setBackendError(null);
-
-      const response = await fetch(getApiUrl(endpoints.nonparametric.friedman), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          measurements: measurements,
-          condition_names: conditionNames
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setBackendResult(result);
-      return result;
-    } catch (error) {
-      console.error('Backend API error:', error);
-      setBackendError(error.message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Perform Mann-Whitney U test (frontend calculation)
-   */
-  const mannWhitneyResult = useMemo(() => {
-    if (testType !== 'mann-whitney' || Object.keys(groupedData).length !== 2) return null;
-    if (useBackend) return null; // Backend results handled separately
-
-    const groups = Object.values(groupedData);
-    if (groups[0].length < 1 || groups[1].length < 1) return null;
-
-    return mannWhitneyUTest(groups[0], groups[1]);
-  }, [testType, groupedData, useBackend]);
-
-  /**
-   * Perform Kruskal-Wallis H test (frontend calculation)
-   */
-  const kruskalWallisResult = useMemo(() => {
-    if (testType !== 'kruskal-wallis' || Object.keys(groupedData).length < 3) return null;
-    if (useBackend) return null;
-
-    return kruskalWallisTest(groupedData);
-  }, [testType, groupedData, useBackend]);
-
-  /**
-   * Perform Wilcoxon Signed-Rank test (frontend calculation)
-   */
-  const wilcoxonResult = useMemo(() => {
-    if (testType !== 'wilcoxon' || !pairedData) return null;
-    if (useBackend) return null;
-
-    return wilcoxonSignedRankTest(pairedData.sample1, pairedData.sample2);
-  }, [testType, pairedData, useBackend]);
-
-  /**
-   * Perform Friedman test (frontend calculation)
-   */
-  const friedmanResult = useMemo(() => {
-    if (testType !== 'friedman' || !friedmanData) return null;
-    if (useBackend) return null;
-
-    return friedmanTest(friedmanData.measurements, friedmanData.conditionNames);
-  }, [testType, friedmanData, useBackend]);
+  }, []);
 
   /**
    * Prepare visualization data
@@ -511,24 +422,82 @@ const NonParametricTests = ({ data }) => {
   }, [groupedData]);
 
   /**
-   * Automatically call backend when useBackend is enabled and data is ready
+   * Run the test as soon as the selection is complete.
    */
   useEffect(() => {
-    if (!useBackend) return;
+    if (!testType) {
+      setResult(null);
+      setBackendError(null);
+      return;
+    }
 
     if (testType === 'mann-whitney' && Object.keys(groupedData).length === 2) {
       const groups = Object.values(groupedData);
       if (groups[0].length >= 1 && groups[1].length >= 1) {
-        callBackendMannWhitney(groups[0], groups[1]);
+        runBackendTest(endpoints.nonparametric.mannWhitney, {
+          group1: groups[0],
+          group2: groups[1],
+          alternative: 'two-sided',
+          use_continuity: true,
+          calculate_effect_size: true
+        });
       }
     } else if (testType === 'kruskal-wallis' && Object.keys(groupedData).length >= 3) {
-      callBackendKruskalWallis(groupedData);
+      runBackendTest(endpoints.nonparametric.kruskalWallis, {
+        groups: Object.values(groupedData),
+        group_names: Object.keys(groupedData)
+      });
     } else if (testType === 'wilcoxon' && pairedData) {
-      callBackendWilcoxon(pairedData.sample1, pairedData.sample2);
+      runBackendTest(endpoints.nonparametric.wilcoxon, {
+        x: pairedData.sample1,
+        y: pairedData.sample2,
+        alternative: 'two-sided'
+      });
     } else if (testType === 'friedman' && friedmanData) {
-      callBackendFriedman(friedmanData.measurements, friedmanData.conditionNames);
+      // friedmanData.measurements is one array PER CONDITION. The backend reads a 2-D array as
+      // rows = subjects, columns = conditions, and Friedman ranks WITHIN each row -- so sending
+      // it condition-major ranked subjects against each other instead of conditions within a
+      // subject. That is a different test, and it changed verdicts: on a 4-subject x
+      // 3-condition example it turned chi2 = 8.00, p = 0.018 (significant) into chi2 = 7.11,
+      // p = 0.068 (not significant). Transpose to subject-major before sending.
+      const conditionMajor = friedmanData.measurements;
+      const nSubjects = conditionMajor[0]?.length || 0;
+      const subjectMajor = Array.from({ length: nSubjects }, (_, subject) =>
+        conditionMajor.map((condition) => condition[subject])
+      );
+
+      runBackendTest(endpoints.nonparametric.friedman, {
+        measurements: subjectMajor,
+        condition_names: friedmanData.conditionNames
+      });
     }
-  }, [useBackend, testType, groupedData, pairedData, friedmanData]);
+  }, [testType, groupedData, pairedData, friedmanData, runBackendTest]);
+
+  /**
+   * The numbers the results panel renders, derived from the backend result only.
+   */
+  const spec = TEST_SPECS[testType] || TEST_SPECS['mann-whitney'];
+
+  const statistic = useMemo(() => {
+    if (!result) return null;
+    for (const key of spec.statisticKeys) {
+      const value = num(result[key]);
+      if (value !== null) return value;
+    }
+    return null;
+  }, [result, spec]);
+
+  const pValue = useMemo(() => {
+    if (!result) return null;
+    return num(result.exact_p_value) ?? num(result.p_value);
+  }, [result]);
+
+  const zScore = useMemo(() => (result ? num(result.z_score) : null), [result]);
+  const effectSize = useMemo(() => (result ? num(result.effect_size) : null), [result]);
+
+  // `null < alpha` is TRUE in JavaScript (null coerces to 0), so a missing p-value would render
+  // as the most significant result possible. Undefined stays undefined.
+  const significant = pValue === null ? null : pValue < alpha;
 
   /**
    * Render data requirement message
@@ -592,67 +561,26 @@ const NonParametricTests = ({ data }) => {
 
           <Grid item xs={12}>
             <Paper sx={{ p: 2, bgcolor: theme.palette.grey[isDarkMode ? 900 : 50], border: `1px solid ${theme.palette.divider}` }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={useBackend}
-                    onChange={(e) => {
-                      setUseBackend(e.target.checked);
-                      setBackendResult(null);
-                      setBackendError(null);
-                    }}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body1" fontWeight={500}>High-Precision Backend API</Typography>
-                    <Chip
-                      label="50-decimal precision"
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                    />
-                  </Box>
-                }
-              />
-
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4, mt: 0.5 }}>
-                Calculates exact p-values for small samples (n₁, n₂ &lt; 20 per group) using dynamic programming.
-                For larger samples, uses high-precision normal approximation with continuity correction.
+              <Typography variant="body2" color="text.secondary">
+                Computed on the server. Exact p-values are used for small samples (n&#8321;, n&#8322; &lt; 20 per
+                group) via dynamic programming; larger samples use a normal approximation with a
+                continuity correction. Which one was used is stated on the result.
               </Typography>
 
               {/* Sample Size Information */}
               {sampleSizeInfo && testType === 'mann-whitney' && (
-                <Box sx={{ ml: 4, mt: 1.5, p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
-                  <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Current Sample Sizes:
-                  </Typography>
+                <Box sx={{ mt: 1.5, p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Typography variant="caption">
-                      {sampleSizeInfo.groupNames[0]}: <strong>n₁ = {sampleSizeInfo.n1}</strong>
+                      {sampleSizeInfo.groupNames[0]}: <strong>n&#8321; = {sampleSizeInfo.n1}</strong>
                     </Typography>
                     <Typography variant="caption">
-                      {sampleSizeInfo.groupNames[1]}: <strong>n₂ = {sampleSizeInfo.n2}</strong>
+                      {sampleSizeInfo.groupNames[1]}: <strong>n&#8322; = {sampleSizeInfo.n2}</strong>
                     </Typography>
                     <Typography variant="caption">
                       Total: <strong>N = {sampleSizeInfo.totalN}</strong>
                     </Typography>
                   </Box>
-
-                  {sampleSizeInfo.qualifiesForExact ? (
-                    <Alert severity="success" sx={{ mt: 1, py: 0.5 }}>
-                      <Typography variant="caption">
-                        ✓ Small sample detected - Exact p-values will be calculated
-                      </Typography>
-                    </Alert>
-                  ) : (
-                    <Alert severity="info" sx={{ mt: 1, py: 0.5 }}>
-                      <Typography variant="caption">
-                        ⓘ Large sample detected - High-precision normal approximation will be used (exact p-values only available when both n₁, n₂ &lt; 20)
-                      </Typography>
-                    </Alert>
-                  )}
                 </Box>
               )}
             </Paper>
@@ -904,564 +832,184 @@ const NonParametricTests = ({ data }) => {
         </Paper>
       )}
 
-      {/* Mann-Whitney U Test Results (Backend) */}
-      {backendResult && backendResult.test_statistic !== undefined && !isTestBlocked && (
+      {/* Backend error -- shown, never silently swallowed */}
+      {backendError && !isLoading && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          <Typography variant="body2" fontWeight={600} gutterBottom>
+            The test could not be computed.
+          </Typography>
+          <Typography variant="body2">{backendError}</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            No result is shown, because there is no result. Nothing on this screen is calculated
+            in the browser as a stand-in.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* Results */}
+      {result && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.primary.main}` }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Box>
-                <Typography variant="h6">
-                  Mann-Whitney U Test Results
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6">{result.test_name || spec.title}</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                <Chip
+                  label={result.exact_p_value ? 'Exact p-value' : 'Normal approximation'}
+                  color={result.exact_p_value ? 'success' : 'default'}
+                  size="small"
+                  variant={result.exact_p_value ? 'filled' : 'outlined'}
+                  icon={result.exact_p_value ? <CheckCircleIcon /> : undefined}
+                />
+                {result.ties_present && (
                   <Chip
-                    label="Backend API"
-                    color="primary"
-                    size="small"
-                    icon={<CheckCircleIcon />}
-                  />
-                  <Chip
-                    label="50-decimal precision"
-                    color="success"
+                    label={result.ties_correction_applied ? 'Ties: correction applied' : 'Ties present'}
+                    color="warning"
                     size="small"
                     variant="outlined"
                   />
-                  {backendResult.exact_p_value && (
-                    <Chip
-                      label="Exact calculation"
-                      color="warning"
-                      size="small"
-                    />
+                )}
+              </Box>
+            </Box>
+
+            <Typography variant="caption" color="text.secondary" paragraph>
+              H&#8320;: {spec.nullHypothesis}
+            </Typography>
+
+            <TableContainer>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell><strong>{spec.statisticLabel}</strong></TableCell>
+                    <TableCell align="right">{formatNumber(statistic, 4)}</TableCell>
+                  </TableRow>
+                  {zScore !== null && (
+                    <TableRow>
+                      <TableCell><strong>z</strong></TableCell>
+                      <TableCell align="right">{formatNumber(zScore, 4)}</TableCell>
+                    </TableRow>
                   )}
-                  {!backendResult.exact_p_value && (
+                  <TableRow>
+                    <TableCell>
+                      <strong>p-value {result.exact_p_value ? '(exact)' : '(normal approximation)'}</strong>
+                    </TableCell>
+                    <TableCell align="right">
+                      <strong>{formatPValue(pValue)}</strong>
+                    </TableCell>
+                  </TableRow>
+                  {effectSize !== null && (
+                    <TableRow>
+                      <TableCell><strong>{spec.effectSizeLabel}</strong></TableCell>
+                      <TableCell align="right">{formatNumber(effectSize, 4)}</TableCell>
+                    </TableRow>
+                  )}
+                  {Array.isArray(result.sample_sizes) && result.sample_sizes.length > 0 && (
+                    <TableRow>
+                      <TableCell><strong>Sample sizes</strong></TableCell>
+                      <TableCell align="right">{result.sample_sizes.join(' , ')}</TableCell>
+                    </TableRow>
+                  )}
+                  <TableRow>
+                    <TableCell><strong>Decision at &alpha; = {alpha}</strong></TableCell>
+                    <TableCell align="right">
+                      {significant === null ? (
+                        <Chip label="No p-value" size="small" variant="outlined" />
+                      ) : significant ? (
+                        <Chip label="Reject H&#8320;" color="warning" size="small" icon={<CheckCircleOutlineIcon />} />
+                      ) : (
+                        <Chip label="Do not reject H&#8320;" color="default" size="small" icon={<CancelOutlinedIcon />} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Rank detail, where the test provides it */}
+            {result.mean_ranks && Object.keys(result.mean_ranks).length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>Mean ranks</Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {Object.entries(result.mean_ranks).map(([group, meanRank]) => (
                     <Chip
-                      label="Normal approximation"
-                      color="default"
+                      key={group}
+                      label={`${group}: ${formatNumber(parseFloat(meanRank), 2)}${
+                        result.sum_ranks?.[group] ? ` (R = ${formatNumber(parseFloat(result.sum_ranks[group]), 1)})` : ''
+                      }`}
                       size="small"
                       variant="outlined"
                     />
-                  )}
+                  ))}
                 </Box>
               </Box>
-            </Box>
-            <Typography variant="caption" color="text.secondary" paragraph>
-              H₀: The two groups have the same distribution
-            </Typography>
+            )}
 
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>U Statistic</TableCell>
-                    <TableCell align="right">{backendResult.test_statistic}</TableCell>
-                  </TableRow>
-                  <TableRow sx={{ bgcolor: isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30' }}>
-                    <TableCell>
-                      <strong>p-value {backendResult.exact_p_value ? '(Exact)' : '(Normal Approximation)'}</strong>
-                    </TableCell>
-                    <TableCell align="right">
-                      <strong>{backendResult.exact_p_value || backendResult.p_value}</strong>
-                    </TableCell>
-                  </TableRow>
-                  {backendResult.exact_p_value && (
-                    <TableRow>
-                      <TableCell colSpan={2}>
-                        <Alert severity="success" icon={false}>
-                          <Typography variant="caption">
-                            ✨ <strong>Exact p-value</strong> calculated using the exact distribution of U (n₁, n₂ &lt; 20). This is more accurate than normal approximation for small samples.
-                          </Typography>
-                        </Alert>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {backendResult.effect_size && (
-                    <TableRow>
-                      <TableCell>Effect Size (r)</TableCell>
-                      <TableCell align="right">{backendResult.effect_size}</TableCell>
-                    </TableRow>
-                  )}
-                  <TableRow>
-                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
-                    <TableCell align="right">
-                      {parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha ? (
-                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
-                      ) : (
-                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+            {result.interpretation && (
+              <Alert severity={significant ? 'warning' : 'info'} sx={{ mt: 2 }}>
+                <Typography variant="body2">{result.interpretation}</Typography>
+              </Alert>
+            )}
 
-            <Alert severity={parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha ? "warning" : "info"} sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                {parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha
-                  ? `The two groups have significantly different distributions (p = ${backendResult.exact_p_value || backendResult.p_value} < ${alpha}).`
-                  : `The two groups do not have significantly different distributions (p = ${backendResult.exact_p_value || backendResult.p_value} >= ${alpha}).`}
-              </Typography>
-            </Alert>
+            {Array.isArray(result.recommendations) && result.recommendations.length > 0 && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                {result.recommendations.map((rec, i) => (
+                  <Typography variant="body2" key={i}>{rec}</Typography>
+                ))}
+              </Alert>
+            )}
           </Paper>
 
-          {/* R/Python Code Export */}
+          {/* Group medians */}
+          {vizData.length > 0 && (
+            <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>Group Medians</Typography>
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={vizData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Bar dataKey="median" fill="#2196f3" name="Median" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </Paper>
+          )}
+
           <CodeExportPanel
-            testType="mann_whitney_u"
-            data={{
-              groups: groupedData,
-              columnName: selectedColumn,
-              groupColumn: groupColumn
-            }}
+            testType={spec.exportKey}
+            data={{ groups: groupedData, columnName: selectedColumn, groupColumn }}
             results={{
-              statistic: parseFloat(backendResult.test_statistic),
-              pValue: parseFloat(backendResult.exact_p_value || backendResult.p_value),
-              effectSize: backendResult.effect_size ? parseFloat(backendResult.effect_size) : null,
-              isExact: !!backendResult.exact_p_value,
-              significant: parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha
+              statistic,
+              pValue,
+              effectSize,
+              isExact: !!result.exact_p_value,
+              significant
             }}
             assumptions={guardianReport || {}}
-            options={{
-              alpha,
-              alternative: 'two-sided'
-            }}
+            options={{ alpha, alternative: 'two-sided' }}
           />
 
-          {/* Statistical Debugger */}
           <DebuggerPanel
-            testType="mann_whitney_u"
+            testType={spec.exportKey}
             data={{
               groups: groupedData,
               columnName: selectedColumn,
-              groupColumn: groupColumn,
+              groupColumn,
               n1: sampleSizeInfo?.n1,
               n2: sampleSizeInfo?.n2
             }}
             results={{
-              statistic: parseFloat(backendResult.test_statistic),
-              pValue: parseFloat(backendResult.exact_p_value || backendResult.p_value),
-              effectSize: backendResult.effect_size ? parseFloat(backendResult.effect_size) : null,
-              isExact: !!backendResult.exact_p_value,
-              significant: parseFloat(backendResult.exact_p_value || backendResult.p_value) < alpha
+              statistic,
+              pValue,
+              effectSize,
+              isExact: !!result.exact_p_value,
+              significant
             }}
             assumptions={guardianReport || {}}
-            options={{
-              alpha,
-              alternative: 'two-sided'
-            }}
+            options={{ alpha, alternative: 'two-sided' }}
           />
-        </>
-      )}
-
-      {/* Mann-Whitney U Test Results (Frontend) */}
-      {mannWhitneyResult && !isTestBlocked && (
-        <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Mann-Whitney U Test Results
-            </Typography>
-            <Typography variant="caption" color="text.secondary" paragraph>
-              H₀: The two groups have the same distribution
-            </Typography>
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>U Statistic</TableCell>
-                    <TableCell align="right">{mannWhitneyResult.statistic.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>p-value</TableCell>
-                    <TableCell align="right">{formatPValue(mannWhitneyResult.pValue)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
-                    <TableCell align="right">
-                      {mannWhitneyResult.significant ? (
-                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
-                      ) : (
-                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Alert severity={mannWhitneyResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                {mannWhitneyResult.significant
-                  ? `The two groups have significantly different distributions (p = ${mannWhitneyResult.pValue.toFixed(4)} < ${alpha}).`
-                  : `The two groups do not have significantly different distributions (p = ${mannWhitneyResult.pValue.toFixed(4)} >= ${alpha}).`}
-              </Typography>
-            </Alert>
-          </Paper>
-
-          {/* Visualization */}
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Group Medians Comparison
-            </Typography>
-            <Box sx={{ width: '100%', height: 400 }}>
-              <ResponsiveContainer>
-                <BarChart data={vizData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis label={{ value: 'Median', angle: -90, position: 'insideLeft' }} />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="median" fill="#82ca9d" name="Median" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-
-          {/* R/Python Code Export */}
-          <CodeExportPanel
-            testType="mann_whitney_u"
-            data={{
-              groups: groupedData,
-              columnName: selectedColumn,
-              groupColumn: groupColumn
-            }}
-            results={{
-              statistic: mannWhitneyResult.statistic,
-              pValue: mannWhitneyResult.pValue,
-              significant: mannWhitneyResult.significant
-            }}
-            assumptions={guardianReport || {}}
-            options={{
-              alpha,
-              alternative: 'two-sided'
-            }}
-          />
-
-          {/* Statistical Debugger */}
-          <DebuggerPanel
-            testType="mann_whitney_u"
-            data={{
-              groups: groupedData,
-              columnName: selectedColumn,
-              groupColumn: groupColumn,
-              n1: sampleSizeInfo?.n1,
-              n2: sampleSizeInfo?.n2
-            }}
-            results={{
-              statistic: mannWhitneyResult.statistic,
-              pValue: mannWhitneyResult.pValue,
-              significant: mannWhitneyResult.significant
-            }}
-            assumptions={guardianReport || {}}
-            options={{
-              alpha,
-              alternative: 'two-sided'
-            }}
-          />
-        </>
-      )}
-
-      {/* Kruskal-Wallis H Test Results (Frontend) */}
-      {kruskalWallisResult && !isTestBlocked && (
-        <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.secondary.main}` }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main }}>
-              Kruskal-Wallis H Test Results
-            </Typography>
-            <Typography variant="caption" color="text.secondary" paragraph>
-              H₀: All groups have the same distribution (non-parametric ANOVA alternative)
-            </Typography>
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>H Statistic (Chi-Square)</TableCell>
-                    <TableCell align="right">{kruskalWallisResult.statistic.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Degrees of Freedom</TableCell>
-                    <TableCell align="right">{kruskalWallisResult.df}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>p-value</TableCell>
-                    <TableCell align="right">{formatPValue(kruskalWallisResult.pValue)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Effect Size (η²)</TableCell>
-                    <TableCell align="right">{kruskalWallisResult.etaSquared.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
-                    <TableCell align="right">
-                      {kruskalWallisResult.significant ? (
-                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
-                      ) : (
-                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* Group Rank Sums */}
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>Group Rank Sums:</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {Object.entries(kruskalWallisResult.groupRankSums).map(([group, sum]) => (
-                  <Chip
-                    key={group}
-                    label={`${group}: R = ${sum.toFixed(1)} (n = ${kruskalWallisResult.groupSizes[group]})`}
-                    size="small"
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            <Alert severity={kruskalWallisResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                {kruskalWallisResult.significant
-                  ? `At least one group differs significantly from the others (H = ${kruskalWallisResult.statistic.toFixed(4)}, p = ${kruskalWallisResult.pValue.toFixed(6)} < ${alpha}). Consider post-hoc pairwise comparisons (e.g., Dunn's test).`
-                  : `All groups appear to have similar distributions (H = ${kruskalWallisResult.statistic.toFixed(4)}, p = ${kruskalWallisResult.pValue.toFixed(6)} >= ${alpha}).`}
-              </Typography>
-            </Alert>
-          </Paper>
-
-          {/* Visualization */}
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Group Medians Comparison
-            </Typography>
-            <Box sx={{ width: '100%', height: 400 }}>
-              <ResponsiveContainer>
-                <BarChart data={vizData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis label={{ value: 'Median', angle: -90, position: 'insideLeft' }} />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="median" fill="#9c27b0" name="Median" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </>
-      )}
-
-      {/* Wilcoxon Signed-Rank Test Results (Frontend) */}
-      {wilcoxonResult && !isTestBlocked && (
-        <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.warning.main}` }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.warning.main }}>
-              Wilcoxon Signed-Rank Test Results
-            </Typography>
-            <Typography variant="caption" color="text.secondary" paragraph>
-              H₀: The median difference between paired observations is zero (non-parametric paired t-test alternative)
-            </Typography>
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>W Statistic (smaller of W+ and W-)</TableCell>
-                    <TableCell align="right">{wilcoxonResult.statistic.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>W+ (positive rank sum)</TableCell>
-                    <TableCell align="right">{wilcoxonResult.wPlus.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>W- (negative rank sum)</TableCell>
-                    <TableCell align="right">{wilcoxonResult.wMinus.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Z-score</TableCell>
-                    <TableCell align="right">{wilcoxonResult.zScore.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>p-value</TableCell>
-                    <TableCell align="right">{formatPValue(wilcoxonResult.pValue)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Effect Size (r)</TableCell>
-                    <TableCell align="right">{wilcoxonResult.effectSize.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Pairs (total / non-zero)</TableCell>
-                    <TableCell align="right">{wilcoxonResult.nPairs} / {wilcoxonResult.nNonZero}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
-                    <TableCell align="right">
-                      {wilcoxonResult.significant ? (
-                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
-                      ) : (
-                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Alert severity={wilcoxonResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                {wilcoxonResult.significant
-                  ? `There is a significant difference between the paired measurements (W = ${wilcoxonResult.statistic.toFixed(4)}, p = ${wilcoxonResult.pValue.toFixed(6)} < ${alpha}). Effect size r = ${wilcoxonResult.effectSize.toFixed(3)}.`
-                  : `There is no significant difference between the paired measurements (W = ${wilcoxonResult.statistic.toFixed(4)}, p = ${wilcoxonResult.pValue.toFixed(6)} >= ${alpha}).`}
-              </Typography>
-            </Alert>
-          </Paper>
-
-          {/* Visualization */}
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Paired Measurements Comparison
-            </Typography>
-            <Box sx={{ width: '100%', height: 400 }}>
-              <ResponsiveContainer>
-                <BarChart data={[
-                  { name: selectedColumn, median: calculateDescriptiveStats(pairedData.sample1).median },
-                  { name: selectedColumn2, median: calculateDescriptiveStats(pairedData.sample2).median }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis label={{ value: 'Median', angle: -90, position: 'insideLeft' }} />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="median" fill="#ff9800" name="Median" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </>
-      )}
-
-      {/* Friedman Test Results (Frontend) */}
-      {friedmanResult && !isTestBlocked && (
-        <>
-          <Paper elevation={2} sx={{ p: 3, mb: 3, border: `2px solid ${theme.palette.info.main}` }}>
-            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.info.main }}>
-              Friedman Test Results
-            </Typography>
-            <Typography variant="caption" color="text.secondary" paragraph>
-              H₀: All conditions have the same distribution (non-parametric repeated measures ANOVA alternative)
-            </Typography>
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Chi-Square Statistic</TableCell>
-                    <TableCell align="right">{friedmanResult.statistic.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Degrees of Freedom</TableCell>
-                    <TableCell align="right">{friedmanResult.df}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>p-value</TableCell>
-                    <TableCell align="right">{formatPValue(friedmanResult.pValue)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Kendall's W (Effect Size)</TableCell>
-                    <TableCell align="right">{friedmanResult.kendallW.toFixed(4)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Subjects × Conditions</TableCell>
-                    <TableCell align="right">{friedmanResult.nSubjects} × {friedmanResult.nConditions}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
-                    <TableCell align="right">
-                      {friedmanResult.significant ? (
-                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
-                      ) : (
-                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* Condition Mean Ranks */}
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>Condition Mean Ranks:</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {Object.entries(friedmanResult.conditionMeanRanks).map(([condition, meanRank]) => (
-                  <Chip
-                    key={condition}
-                    label={`${condition}: R̄ = ${meanRank.toFixed(2)}`}
-                    size="small"
-                    variant="outlined"
-                    color={meanRank === Math.min(...Object.values(friedmanResult.conditionMeanRanks)) ? 'success' :
-                           meanRank === Math.max(...Object.values(friedmanResult.conditionMeanRanks)) ? 'error' : 'default'}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            <Alert severity={friedmanResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                {friedmanResult.significant
-                  ? `At least one condition differs significantly from the others (χ² = ${friedmanResult.statistic.toFixed(4)}, p = ${friedmanResult.pValue.toFixed(6)} < ${alpha}). Kendall's W = ${friedmanResult.kendallW.toFixed(3)} indicates ${friedmanResult.kendallW < 0.3 ? 'weak' : friedmanResult.kendallW < 0.6 ? 'moderate' : 'strong'} concordance. Consider post-hoc pairwise comparisons (e.g., Nemenyi test).`
-                  : `All conditions appear to have similar distributions (χ² = ${friedmanResult.statistic.toFixed(4)}, p = ${friedmanResult.pValue.toFixed(6)} >= ${alpha}).`}
-              </Typography>
-            </Alert>
-          </Paper>
-
-          {/* Visualization */}
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Condition Mean Ranks
-            </Typography>
-            <Box sx={{ width: '100%', height: 400 }}>
-              <ResponsiveContainer>
-                <BarChart data={Object.entries(friedmanResult.conditionMeanRanks).map(([name, meanRank]) => ({
-                  name,
-                  meanRank
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis label={{ value: 'Mean Rank', angle: -90, position: 'insideLeft' }} />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="meanRank" fill="#2196f3" name="Mean Rank" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
         </>
       )}
 

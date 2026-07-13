@@ -82,23 +82,10 @@ const fmtP = (value) => {
 /**
  * Standard normal CDF (approximation)
  */
-const normalCDF = (z) => {
-  const t = 1 / (1 + 0.2316419 * Math.abs(z));
-  const d = 0.3989423 * Math.exp(-z * z / 2);
-  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-  return z > 0 ? 1 - p : p;
-};
 
 /**
  * Chi-square CDF (approximation for df=2)
  */
-const chiSquareCDF = (x, df) => {
-  if (df === 2) {
-    return 1 - Math.exp(-x / 2);
-  }
-  // For other df, use a rough approximation
-  return normalCDF((Math.pow(x / df, 1 / 3) - (1 - 2 / (9 * df))) / Math.sqrt(2 / (9 * df)));
-};
 
 /**
  * Inverse normal CDF (approximation)

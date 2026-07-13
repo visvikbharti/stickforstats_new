@@ -54,6 +54,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
 import { pearsonCorrelation, spearmanCorrelation } from '../utils/statisticalUtils';
+import { runCorrelation } from '../utils/hubTestService';
+import { formatPValue, formatNumber } from '../../../utils/formatStats';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
@@ -74,6 +76,11 @@ const CorrelationTests = ({ data }) => {
   const [yColumn, setYColumn] = useState('');
   const [correlationType, setCorrelationType] = useState('pearson');
   const [alpha, setAlpha] = useState(0.05);
+
+  // The headline correlation is computed by the backend, not in this browser.
+  const [pairwiseCorrelation, setPairwiseCorrelation] = useState(null);
+  const [pairwiseLoading, setPairwiseLoading] = useState(false);
+  const [pairwiseError, setPairwiseError] = useState(null);
 
   // Guardian Integration State
   const [guardianReport, setGuardianReport] = useState(null);
@@ -96,6 +103,12 @@ const CorrelationTests = ({ data }) => {
       setCorrelationType('spearman');
     }
   };
+
+  // r^2 of a correlation that does not exist is not 0.
+  const rSquared =
+    pairwiseCorrelation && pairwiseCorrelation.coefficient !== null
+      ? pairwiseCorrelation.coefficient ** 2
+      : null;
 
   const handleViewEvidence = () => {
     setShowVisualEvidence(true);
@@ -162,20 +175,60 @@ const CorrelationTests = ({ data }) => {
   }, [pairwiseData]);
 
   /**
-   * Calculate pairwise correlation
+   * The pairwise correlation comes from the backend.
+   *
+   * It used to be computed here, in the browser, by `pearsonCorrelation` -- whose p-value came
+   * out of a `1 - cdf(t)` that returns exactly 0 for any |t| big enough to matter, so a
+   * decisive correlation printed as "p = 0.0000". The backend computes the tail directly and
+   * reports r = null (not r = 0) when a variable is constant, which is the one case where a
+   * correlation genuinely does not exist.
    */
-  const pairwiseCorrelation = useMemo(() => {
-    if (pairwiseData.length < 3) return null;
+  useEffect(() => {
+    let cancelled = false;
 
-    const xValues = pairwiseData.map(d => d.x);
-    const yValues = pairwiseData.map(d => d.y);
-
-    if (correlationType === 'pearson') {
-      return pearsonCorrelation(xValues, yValues);
-    } else {
-      return spearmanCorrelation(xValues, yValues);
+    if (analysisMode !== 'pairwise' || pairwiseData.length < 3) {
+      setPairwiseCorrelation(null);
+      setPairwiseError(null);
+      return undefined;
     }
-  }, [pairwiseData, correlationType]);
+
+    const run = async () => {
+      setPairwiseLoading(true);
+      setPairwiseError(null);
+
+      try {
+        const result = await runCorrelation(
+          pairwiseData.map((d) => d.x),
+          pairwiseData.map((d) => d.y),
+          correlationType,
+          1 - alpha
+        );
+        if (cancelled) return;
+
+        setPairwiseCorrelation({
+          // `null` for r and p is preserved deliberately: `null < alpha` is TRUE in JavaScript,
+          // so a missing p-value must never be handed to a `< alpha` comparison as a number.
+          coefficient: result.r,
+          pValue: result.pValue,
+          n: result.n ?? pairwiseData.length,
+          significant: result.pValue === null ? null : result.pValue < alpha,
+          ciLower: result.ciLower,
+          ciUpper: result.ciUpper,
+          interpretation: result.interpretation
+        });
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Correlation backend call failed:', error);
+        setPairwiseError(error.message || 'The correlation could not be computed.');
+        setPairwiseCorrelation(null);
+      } finally {
+        if (!cancelled) setPairwiseLoading(false);
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
+  }, [pairwiseData, correlationType, alpha, analysisMode]);
 
   /**
    * Calculate correlation matrix
@@ -190,19 +243,24 @@ const CorrelationTests = ({ data }) => {
       matrix[col1] = {};
       pValues[col1] = {};
 
-      const values1 = data
-        .map(row => parseFloat(row[col1]))
-        .filter(v => !isNaN(v));
-
       numericColumns.forEach(col2 => {
-        const values2 = data
-          .map(row => parseFloat(row[col2]))
-          .filter(v => !isNaN(v));
-
-        // Ensure same length for comparison
-        const minLength = Math.min(values1.length, values2.length);
-        const v1 = values1.slice(0, minLength);
-        const v2 = values2.slice(0, minLength);
+        // Pairwise-complete rows: keep a row only if BOTH columns are numeric in it.
+        //
+        // This used to filter each column INDEPENDENTLY and then truncate both to the shorter
+        // (`values1.slice(0, minLength)`). That destroys the row correspondence: if col1 is
+        // missing at row 3 and col2 at row 7, every subsequent value is paired with a value
+        // from a DIFFERENT row, and the resulting r describes nothing. It cannot be detected by
+        // eye, because the number that comes out still looks like a correlation.
+        const v1 = [];
+        const v2 = [];
+        data.forEach(row => {
+          const a = parseFloat(row[col1]);
+          const b = parseFloat(row[col2]);
+          if (!isNaN(a) && !isNaN(b)) {
+            v1.push(a);
+            v2.push(b);
+          }
+        });
 
         if (v1.length < 3) {
           matrix[col1][col2] = null;
@@ -212,7 +270,11 @@ const CorrelationTests = ({ data }) => {
 
         if (col1 === col2) {
           matrix[col1][col2] = 1.0;
-          pValues[col1][col2] = 0;
+          // A variable's correlation with itself is 1 by definition -- it is not the outcome of
+          // a hypothesis test, so there is no p-value. This used to be 0, which the matrix then
+          // rendered with significance stars: the strongest possible evidence, for a fact that
+          // was never tested.
+          pValues[col1][col2] = null;
         } else {
           const result = correlationType === 'pearson'
             ? pearsonCorrelation(v1, v2)
@@ -283,7 +345,7 @@ const CorrelationTests = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [analysisMode, xColumn, yColumn, pairwiseData, alpha, data, correlationType]);
+  }, [analysisMode, xColumn, yColumn, pairwiseData, alpha, data, correlationType, expertMode]);
 
   /**
    * Get correlation strength label
@@ -521,6 +583,24 @@ const CorrelationTests = ({ data }) => {
       )}
 
       {/* Pairwise Correlation Results */}
+      {/* The correlation is being computed on the server */}
+      {analysisMode === 'pairwise' && pairwiseLoading && (
+        <Paper elevation={2} sx={{ p: 4, mb: 3, textAlign: 'center' }}>
+          <CircularProgress />
+          <Typography variant="body2" sx={{ mt: 2 }}>Computing the correlation...</Typography>
+        </Paper>
+      )}
+
+      {/* ...and if it fails, that is what is shown. No browser-side stand-in. */}
+      {analysisMode === 'pairwise' && pairwiseError && !pairwiseLoading && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          <Typography variant="body2" fontWeight={600} gutterBottom>
+            The correlation could not be computed.
+          </Typography>
+          <Typography variant="body2">{pairwiseError}</Typography>
+        </Alert>
+      )}
+
       {analysisMode === 'pairwise' && pairwiseCorrelation && xColumn && yColumn && !isTestBlocked && (
         <>
           {/* Correlation Statistics */}
@@ -531,7 +611,7 @@ const CorrelationTests = ({ data }) => {
                   <Typography variant="caption" color="text.secondary">
                     {correlationType === 'pearson' ? 'Pearson r' : 'Spearman ρ'}
                   </Typography>
-                  <Typography variant="h6">{pairwiseCorrelation.coefficient.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(pairwiseCorrelation.coefficient, 4)}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     {getCorrelationDirection(pairwiseCorrelation.coefficient)} {getCorrelationStrength(pairwiseCorrelation.coefficient)}
                   </Typography>
@@ -542,9 +622,11 @@ const CorrelationTests = ({ data }) => {
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">p-value</Typography>
-                  <Typography variant="h6">{pairwiseCorrelation.pValue.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatPValue(pairwiseCorrelation.pValue)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {pairwiseCorrelation.significant ? 'Significant' : 'Not Significant'}
+                    {pairwiseCorrelation.significant === null
+                      ? 'Undefined'
+                      : pairwiseCorrelation.significant ? 'Significant' : 'Not Significant'}
                   </Typography>
                 </CardContent>
               </Card>
@@ -561,9 +643,9 @@ const CorrelationTests = ({ data }) => {
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary">R² (Explained Variance)</Typography>
-                  <Typography variant="h6">{(pairwiseCorrelation.coefficient ** 2).toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(rSquared, 4)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {((pairwiseCorrelation.coefficient ** 2) * 100).toFixed(1)}%
+                    {rSquared === null ? '\u2014' : `${(rSquared * 100).toFixed(1)}%`}
                   </Typography>
                 </CardContent>
               </Card>
@@ -590,7 +672,7 @@ const CorrelationTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Correlation Coefficient ({correlationType === 'pearson' ? 'r' : 'ρ'})</TableCell>
-                    <TableCell align="right">{pairwiseCorrelation.coefficient.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatNumber(pairwiseCorrelation.coefficient, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Sample Size (n)</TableCell>
@@ -598,11 +680,11 @@ const CorrelationTests = ({ data }) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>p-value</TableCell>
-                    <TableCell align="right">{pairwiseCorrelation.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(pairwiseCorrelation.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Coefficient of Determination (R²)</TableCell>
-                    <TableCell align="right">{(pairwiseCorrelation.coefficient ** 2).toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatNumber(rSquared, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Result (α = {alpha})</strong></TableCell>
@@ -629,12 +711,12 @@ const CorrelationTests = ({ data }) => {
                     <>
                       There is a <strong>{getCorrelationStrength(pairwiseCorrelation.coefficient).toLowerCase()}</strong>{' '}
                       <strong>{getCorrelationDirection(pairwiseCorrelation.coefficient).toLowerCase()}</strong> correlation
-                      between {xColumn} and {yColumn} (r = {pairwiseCorrelation.coefficient.toFixed(3)}, p = {pairwiseCorrelation.pValue.toFixed(4)} {'<'} {alpha}).
-                      The correlation explains {((pairwiseCorrelation.coefficient ** 2) * 100).toFixed(1)}% of the variance (R²).
+                      between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, p = {formatPValue(pairwiseCorrelation.pValue)} {'<'} {alpha}).
+                      The correlation explains {rSquared === null ? '\u2014' : `${(rSquared * 100).toFixed(1)}%`} of the variance (R²).
                     </>
                   ) : (
                     <>
-                      There is no significant correlation between {xColumn} and {yColumn} (r = {pairwiseCorrelation.coefficient.toFixed(3)}, p = {pairwiseCorrelation.pValue.toFixed(4)} {'>='} {alpha}).
+                      There is no significant correlation between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, p = {formatPValue(pairwiseCorrelation.pValue)} {'>='} {alpha}).
                     </>
                   )}
                 </Typography>
@@ -648,7 +730,7 @@ const CorrelationTests = ({ data }) => {
               Scatter Plot: {xColumn} vs {yColumn}
             </Typography>
             <Typography variant="caption" color="text.secondary" paragraph>
-              r = {pairwiseCorrelation.coefficient.toFixed(3)}, R² = {(pairwiseCorrelation.coefficient ** 2).toFixed(3)}
+              r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, R² = {formatNumber(rSquared, 3)}
             </Typography>
             <Box sx={{ width: '100%', height: 400 }}>
               <ResponsiveContainer>
@@ -686,7 +768,7 @@ const CorrelationTests = ({ data }) => {
             results={{
               coefficient: pairwiseCorrelation.coefficient,
               pValue: pairwiseCorrelation.pValue,
-              rSquared: pairwiseCorrelation.coefficient ** 2,
+              rSquared,
               significant: pairwiseCorrelation.significant
             }}
             assumptions={guardianReport || {}}
@@ -710,8 +792,8 @@ const CorrelationTests = ({ data }) => {
               statistic: pairwiseCorrelation.coefficient,
               coefficient: pairwiseCorrelation.coefficient,
               pValue: pairwiseCorrelation.pValue,
-              rSquared: pairwiseCorrelation.coefficient ** 2,
-              effectSize: Math.abs(pairwiseCorrelation.coefficient),
+              rSquared,
+              effectSize: pairwiseCorrelation.coefficient === null ? null : Math.abs(pairwiseCorrelation.coefficient),
               significant: pairwiseCorrelation.significant
             }}
             assumptions={guardianReport || {}}
@@ -886,7 +968,7 @@ const CorrelationTests = ({ data }) => {
                               }}
                             />
                           </TableCell>
-                          <TableCell align="right">{corr.pValue.toFixed(4)}</TableCell>
+                          <TableCell align="right">{formatPValue(corr.pValue)}</TableCell>
                           <TableCell align="center">
                             {corr.significant ? (
                               <Chip icon={<CheckCircleOutlineIcon />} label="Yes" color="success" size="small" />

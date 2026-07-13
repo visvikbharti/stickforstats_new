@@ -26,8 +26,6 @@
  * the UI responsive while you pick columns.
  */
 
-import axios from 'axios';
-
 import { getApiUrl, endpoints } from '../../../config/apiConfig';
 
 const NORMALITY_URL = '/v1/stats/normality/';
@@ -35,11 +33,21 @@ const CORRELATION_URL = '/v1/stats/correlation/';
 const CHI_SQUARE_URL = '/v1/categorical/chi-square/independence/';
 
 const post = async (path, body) => {
-  const { data } = await axios.post(getApiUrl(path), body, {
+  const response = await fetch(getApiUrl(path), {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    timeout: 30000,
+    body: JSON.stringify(body),
   });
-  return data;
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error || payload?.detail || `The server returned ${response.status} ${response.statusText}.`
+    );
+  }
+
+  return payload;
 };
 
 /**

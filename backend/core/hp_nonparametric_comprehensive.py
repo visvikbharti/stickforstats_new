@@ -88,8 +88,14 @@ class NonParametricResult:
         """Convert result to JSON-serializable dictionary"""
         result = {
             "test_name": self.test_name,
-            "test_statistic": str(self.test_statistic) if self.test_statistic else None,
-            "p_value": str(self.p_value) if self.p_value else None,
+            # `if self.test_statistic` (truthiness) rather than `is not None`: Decimal("0") is
+            # FALSY, so a statistic of exactly zero was serialized as null. U = 0 is not a
+            # missing result -- it is the most extreme result Mann-Whitney can produce, complete
+            # separation of the two groups, the single most significant outcome the test has.
+            # Same for W = 0 in Wilcoxon. The most decisive answers the test can give were the
+            # ones that vanished from the response.
+            "test_statistic": str(self.test_statistic) if self.test_statistic is not None else None,
+            "p_value": str(self.p_value) if self.p_value is not None else None,
             "sample_sizes": self.sample_sizes,
             "ties_present": self.ties_present,
             "ties_correction_applied": self.ties_correction_applied,

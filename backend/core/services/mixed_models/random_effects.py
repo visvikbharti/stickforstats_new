@@ -56,8 +56,13 @@ class RandomEffectsResult:
             "blups": self.blups,
             "variance_components": {
                 "intercept": round(self.intercept_variance, 6),
-                "slope": round(self.slope_variance, 6) if self.slope_variance else None,
-                "correlation": round(self.correlation, 4) if self.correlation else None,
+                # `if self.slope_variance` (truthiness) rather than `is not None`: 0.0 is falsy,
+                # so a slope variance of exactly zero -- a SINGULAR FIT, the boundary result
+                # every mixed-model user needs to see, and what lme4 warns about -- was reported
+                # as "not estimated". A random-slope/intercept correlation of exactly 0 is
+                # likewise a real estimate, not a missing one.
+                "slope": round(self.slope_variance, 6) if self.slope_variance is not None else None,
+                "correlation": round(self.correlation, 4) if self.correlation is not None else None,
                 "residual": round(self.residual_variance, 6),
             },
             "shrinkage": self.shrinkage_factors,
