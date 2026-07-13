@@ -19,7 +19,7 @@ Date: April 2026
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy import stats
@@ -54,6 +54,16 @@ class GeneResult:
     violations: List[str] = field(default_factory=list)
     test_failed: bool = False
     test_failure_reason: str = ""
+    # The alpha this gene was judged at. It used to be hard-coded to 0.05 inside to_dict()
+    # while the summary counts and the volcano flags used the caller's alpha -- so a request
+    # with alpha = 0.01 got a response containing TWO different alphas, and the per-gene table
+    # (the one a user actually reads) used the wrong one.
+    alpha: float = 0.05
+    # The fold-change cutoff, if the caller set one. It was parsed, echoed back in
+    # "thresholds", drawn on the volcano plot as a pair of vertical lines -- and never used to
+    # decide anything. Significance was adjusted-p only, so points outside the lines the user
+    # drew were still coloured "significant".
+    log2fc_threshold: Optional[float] = None
 
     def to_dict(self) -> Dict[str, Any]:
         # When the test failed, raw_p_value is NaN. JSON does not
@@ -71,7 +81,9 @@ class GeneResult:
         else:
             raw_p_out = raw_p
             adj_p_out = adj_p
-            significant = adj_p < 0.05
+            significant = adj_p < self.alpha
+            if self.log2fc_threshold is not None:
+                significant = significant and abs(self.log2_fold_change) >= self.log2fc_threshold
 
         return {
             "gene_name": self.gene_name,
@@ -145,9 +157,31 @@ class DifferentialExpressionService:
     - Generates volcano plot data (log2FC vs -log10 adjusted p)
     """
 
-    def __init__(self, alpha: float = 0.05, normality_alpha: float = 0.05):
+    def __init__(
+        self,
+        alpha: float = 0.05,
+        normality_alpha: float = 0.05,
+        log2fc_threshold: Optional[float] = None,
+    ):
         self.alpha = alpha
         self.normality_alpha = normality_alpha
+        # None means "no fold-change filter". When set, a gene must clear BOTH the adjusted
+        # p-value and the fold-change cutoff to be called significant -- which is what the
+        # volcano plot's vertical lines have always implied, and never enforced.
+        self.log2fc_threshold = log2fc_threshold
+
+    def _is_significant(self, gene) -> bool:
+        """One definition of significance, used by the per-gene table, the summary counts and
+        the volcano flags alike. There used to be two: 0.05 hard-coded in GeneResult.to_dict(),
+        and self.alpha everywhere else."""
+        adjusted = gene.adjusted_p_value
+        if gene.test_failed or adjusted is None or (isinstance(adjusted, float) and np.isnan(adjusted)):
+            return False
+        if adjusted >= self.alpha:
+            return False
+        if self.log2fc_threshold is not None and abs(gene.log2_fold_change) < self.log2fc_threshold:
+            return False
+        return True
 
     def analyze(
         self,
@@ -220,7 +254,11 @@ class DifferentialExpressionService:
         for i, gene_r in enumerate(gene_results):
             gene_r.adjusted_p_value = adjusted_pvals[i]
 
-        n_significant = sum(1 for g in gene_results if g.adjusted_p_value < self.alpha)
+        for gene in gene_results:
+            gene.alpha = self.alpha
+            gene.log2fc_threshold = self.log2fc_threshold
+
+        n_significant = sum(1 for g in gene_results if self._is_significant(g))
 
         # Generate volcano plot data
         volcano_data = []
@@ -230,7 +268,7 @@ class DifferentialExpressionService:
                 "gene": g.gene_name,
                 "log2fc": round(g.log2_fold_change, 4),
                 "neg_log10_padj": round(neg_log10_p, 4),
-                "significant": g.adjusted_p_value < self.alpha,
+                "significant": self._is_significant(g),
                 "cascaded": g.cascaded,
             })
 

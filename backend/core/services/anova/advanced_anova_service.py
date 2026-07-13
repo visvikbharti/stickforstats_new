@@ -482,80 +482,136 @@ class AdvancedANOVAService:
                     "Homogeneity of slopes assumption violated (p < 0.05). " "ANCOVA results may not be valid."
                 )
 
-        # Perform ANCOVA
-        y = clean_data[dependent_var].values
-        x_cov = clean_data[covariate].values
+        # Perform ANCOVA by MODEL COMPARISON, which is what ANCOVA is.
+        #
+        # The previous implementation built its sums of squares by hand and got a different
+        # decomposition from every reference:
+        #
+        #     F(group)     = 36.62   vs statsmodels 38.99
+        #     F(covariate) =  3.25   vs statsmodels  0.47   (p = 0.083 vs 0.499)
+        #
+        # Two errors. The covariate's SS came from regressing y on x while IGNORING the groups
+        # (a sequential/Type I sum of squares with the covariate entered first), so it absorbed
+        # between-group variation that belongs to the factor. And the factor's SS came from the
+        # spread of the adjusted means, which is not the adjusted factor SS unless the design is
+        # balanced in the covariate as well as in n.
+        #
+        # Each effect's sum of squares is the increase in residual sum of squares when that
+        # effect is dropped from the full model -- the standard Type II/III decomposition, and
+        # the one statsmodels, R's `Anova()` and SPSS all report:
+        #
+        #     SS_factor    = RSS(covariate only) - RSS(full)
+        #     SS_covariate = RSS(groups only)    - RSS(full)
+        #     MS_error     = RSS(full) / (n - k - 1)
+        #
+        y = clean_data[dependent_var].values.astype(float)
+        x_cov = clean_data[covariate].values.astype(float)
         n_total = len(y)
 
-        # Center covariate
-        x_cov_centered = x_cov - np.mean(x_cov)
-
-        # Calculate sums of squares
-        grand_mean = np.mean(y)
-        ss_total = np.sum((y - grand_mean) ** 2)
+        grand_mean = float(np.mean(y))
+        ss_total = float(np.sum((y - grand_mean) ** 2))
         df_total = n_total - 1
 
-        # Regression of Y on covariate
-        cov_y_x = np.sum((x_cov_centered) * (y - grand_mean))
-        cov_x_x = np.sum(x_cov_centered**2)
-        b_pooled = cov_y_x / cov_x_x if cov_x_x > 0 else 0
+        x_cov_centered = x_cov - np.mean(x_cov)
+        cov_x_x = float(np.sum(x_cov_centered**2))
 
-        # Adjusted sums of squares
-        ss_regression = b_pooled**2 * cov_x_x
-        ss_total_adjusted = ss_total - ss_regression
+        # A constant covariate has zero variance, so the regression slope on it is 0/0 --
+        # undefined, not zero. With b = 0 the "adjusted" means silently equal the unadjusted
+        # ones and the endpoint returns an ANOVA while calling it an ANCOVA.
+        if cov_x_x <= 0:
+            raise ValueError(
+                f"The covariate '{covariate}' is constant, so it has no variance and the "
+                "regression slope on it is undefined. There is nothing to adjust for."
+            )
 
-        # Factor SS (adjusted for covariate)
+        # Dummy-coded design matrices (reference cell = the first level).
+        dummies = np.column_stack(
+            [(clean_data[factor].values == level).astype(float) for level in levels[1:]]
+        ) if n_levels > 1 else np.empty((n_total, 0))
+
+        intercept = np.ones((n_total, 1))
+        X_full = np.hstack([intercept, dummies, x_cov_centered.reshape(-1, 1)])
+        X_cov_only = np.hstack([intercept, x_cov_centered.reshape(-1, 1)])
+        X_groups_only = np.hstack([intercept, dummies])
+
+        def _rss(design):
+            beta, *_ = np.linalg.lstsq(design, y, rcond=None)
+            residuals = y - design @ beta
+            return float(np.sum(residuals**2)), beta
+
+        rss_full, beta_full = _rss(X_full)
+        rss_cov_only, _ = _rss(X_cov_only)
+        rss_groups_only, _ = _rss(X_groups_only)
+
+        df_factor = n_levels - 1
+        df_error = n_total - n_levels - 1  # k group parameters + 1 covariate + ... = k + 1
+        if df_error <= 0:
+            raise ValueError(
+                f"ANCOVA needs more observations than parameters (n = {n_total}, "
+                f"{n_levels} groups + 1 covariate). There are no error degrees of freedom."
+            )
+
+        ss_factor_adj = rss_cov_only - rss_full
+        ss_regression = rss_groups_only - rss_full  # the covariate's SS, adjusted for groups
+        ss_error_adj = rss_full
+
+        ms_factor_adj = ss_factor_adj / df_factor if df_factor > 0 else float("nan")
+        ms_error_adj = ss_error_adj / df_error
+
+        # With zero residual variance the F-ratio is a division by zero. F = 0 (and therefore
+        # p = 1) would say "the groups do not differ at all, and we are certain" -- a verdict
+        # drawn from 0/0.
+        if ms_error_adj <= 0:
+            raise ValueError(
+                "ANCOVA is undefined: the residual mean-square is zero, so the F-ratio is a "
+                "division by zero. The model fits the data exactly."
+            )
+
+        f_statistic = ms_factor_adj / ms_error_adj
+        p_value = float(stats.f.sf(f_statistic, df_factor, df_error))
+
+        f_covariate = (ss_regression / 1) / ms_error_adj
+        p_covariate = float(stats.f.sf(f_covariate, 1, df_error))
+
+        # The pooled within-group slope IS the covariate's coefficient in the full model.
+        b_pooled = float(beta_full[-1])
+
+        # Partial eta-squared for the factor: SS_factor / (SS_factor + SS_error).
+        eta_squared = ss_factor_adj / (ss_factor_adj + ss_error_adj)
+
+        # Adjusted means: group mean, corrected to the grand covariate mean using the pooled slope.
         group_means_adj = []
         group_sizes = []
-
         for level in levels:
             group_data = clean_data[clean_data[factor] == level]
             y_group = group_data[dependent_var].values
             x_group = group_data[covariate].values
+            group_means_adj.append(float(np.mean(y_group) - b_pooled * (np.mean(x_group) - np.mean(x_cov))))
+            group_sizes.append(int(len(y_group)))
 
-            # Adjusted mean = group_mean - b*(group_cov_mean - grand_cov_mean)
-            adj_mean = np.mean(y_group) - b_pooled * (np.mean(x_group) - np.mean(x_cov))
-            group_means_adj.append(adj_mean)
-            group_sizes.append(len(y_group))
-
-        grand_mean_adj = np.mean(y) - b_pooled * 0  # Since covariate is centered
-
-        ss_factor_adj = sum([n * (mean - grand_mean_adj) ** 2 for n, mean in zip(group_sizes, group_means_adj)])
-        df_factor = n_levels - 1
-
-        # Error SS (adjusted)
-        ss_error_adj = ss_total_adjusted - ss_factor_adj
-        df_error = n_total - n_levels - 1  # Subtract 1 for covariate
-
-        # Mean squares
-        ms_factor_adj = ss_factor_adj / df_factor
-        ms_error_adj = ss_error_adj / df_error
-
-        # F-statistic
-        f_statistic = ms_factor_adj / ms_error_adj if ms_error_adj > 0 else 0
-        p_value = stats.f.sf(f_statistic, df_factor, df_error)
-
-        # Effect size
-        eta_squared = ss_factor_adj / ss_total_adjusted
-
-        # Build ANCOVA table
         ancova_table = pd.DataFrame(
             {
                 "Source": [covariate, factor, "Error", "Total"],
                 "SS": [ss_regression, ss_factor_adj, ss_error_adj, ss_total],
                 "DF": [1, df_factor, df_error, df_total],
                 "MS": [ss_regression, ms_factor_adj, ms_error_adj, np.nan],
-                "F": [ss_regression / ms_error_adj, f_statistic, np.nan, np.nan],
-                "p-value": [stats.f.sf(ss_regression / ms_error_adj, 1, df_error), p_value, np.nan, np.nan],
-                "eta²": [ss_regression / ss_total, eta_squared, np.nan, np.nan],
+                "F": [f_covariate, f_statistic, np.nan, np.nan],
+                "p-value": [p_covariate, p_value, np.nan, np.nan],
+                "eta²": [
+                    ss_regression / (ss_regression + ss_error_adj),
+                    eta_squared,
+                    np.nan,
+                    np.nan,
+                ],
             }
         )
 
-        # Adjusted means
         adjusted_means = pd.DataFrame(
             {
                 "Level": levels,
-                "Unadjusted_Mean": [clean_data[clean_data[factor] == l][dependent_var].mean() for l in levels],
+                "Unadjusted_Mean": [
+                    float(clean_data[clean_data[factor] == level][dependent_var].mean()) for level in levels
+                ],
                 "Adjusted_Mean": group_means_adj,
                 "N": group_sizes,
             }

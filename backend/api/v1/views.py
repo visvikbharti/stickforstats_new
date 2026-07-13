@@ -163,7 +163,17 @@ class HighPrecisionTTestView(APIView):
             alternative = validated_data.get("alternative", "two-sided")
 
             if test_type == "one_sample":
-                mu = Decimal(str(parameters.get("mu", 0)))
+                # The serializer accepts a TOP-LEVEL `mu` (and `hypothesized_mean`, and
+                # canonicalizes one to the other) -- and this view read only the NESTED
+                # parameters.mu. So `{"test_type": "one_sample", "data1": [...], "mu": 100}`
+                # was validated, canonicalized, and then tested against mu = 0. The UI happens
+                # to nest it, so this hit SDK and direct-API callers.
+                mu_value = parameters.get("mu")
+                if mu_value is None:
+                    mu_value = validated_data.get("hypothesized_mean")
+                if mu_value is None:
+                    mu_value = validated_data.get("mu", 0)
+                mu = Decimal(str(mu_value))
                 hp_result = calculator.t_statistic_one_sample(data1, mu, alternative=alternative)
             elif test_type == "two_sample":
                 equal_var = parameters.get("equal_var", True)
@@ -201,7 +211,7 @@ class HighPrecisionTTestView(APIView):
                 # agreement check below would flag a discrepancy that does not exist.
                 if test_type == "one_sample":
                     t_stat, p_val = scipy_stats.ttest_1samp(
-                        data1, parameters.get("mu", 0), alternative=alternative
+                        data1, mu_value, alternative=alternative
                     )
                 elif test_type == "two_sample":
                     t_stat, p_val = scipy_stats.ttest_ind(
@@ -262,21 +272,31 @@ class HighPrecisionTTestView(APIView):
                 }
 
             # Step 5: Generate recommendations
+            #
+            # Every lookup here used to read a key that does not exist. The assumption dicts
+            # built above use "is_met"; this block asked for "is_normal", "equal_variance" and
+            # "has_outliers", each with a default that means "fine". So every check missed,
+            # every default won, and `recommendations` was ALWAYS an empty list -- including
+            # when the assumptions were violated. The Guardian did its work and the answer was
+            # thrown away.
+            assumptions = response_data.get("assumptions") or {}
             recommendations = []
-            if response_data["assumptions"]:
-                # Check normality
-                if not response_data["assumptions"].get("normality_data1", {}).get("is_normal", True):
-                    recommendations.append("Data may not be normally distributed. Consider Mann-Whitney U test.")
 
-                # Check equal variance
-                if test_type == "two_sample" and not response_data["assumptions"].get("equal_variance", {}).get(
-                    "equal_variance", True
-                ):
-                    recommendations.append("Variances appear unequal. Using Welch's t-test is recommended.")
+            def _met(key, default=True):
+                entry = assumptions.get(key)
+                if not isinstance(entry, dict):
+                    return default
+                return entry.get("is_met", default)
 
-                # Check outliers
-                if response_data["assumptions"].get("outliers_data1", {}).get("has_outliers", False):
-                    recommendations.append("Outliers detected. Consider robust alternatives or data transformation.")
+            if assumptions:
+                if not _met("normality_data1") or (test_type == "two_sample" and not _met("normality_data2")):
+                    recommendations.append("Data may not be normally distributed. Consider the Mann-Whitney U test.")
+
+                if test_type == "two_sample" and not _met("equal_variance"):
+                    recommendations.append("Variances appear unequal. Welch's t-test is recommended.")
+
+                if not _met("outliers_data1"):
+                    recommendations.append("Outliers detected. Consider robust alternatives or a transformation.")
 
             response_data["recommendations"] = recommendations
 
@@ -686,28 +706,28 @@ class HighPrecisionANOVAView(APIView):
                         "decimal_places_gained": len(str(hp_f).split(".")[-1]) - len(str(f_stat).split(".")[-1]),
                     }
 
-            # Step 7: Generate recommendations
+            # Step 7: Generate recommendations. Same dead-key bug as the t-test above: the
+            # assumption dicts use "is_met", and this block asked for "is_normal" /
+            # "equal_variance", so no ANOVA has ever emitted a recommendation.
+            assumptions = response_data.get("assumptions") or {}
             recommendations = []
-            if response_data["assumptions"]:
-                # Check normality
-                normality_violated = any(
-                    not response_data["assumptions"].get(f"normality_group_{i+1}", {}).get("is_normal", True)
-                    for i in range(len(groups))
-                )
-                if normality_violated:
-                    recommendations.append("Normality assumption violated. Consider Kruskal-Wallis test.")
 
-                # Check homogeneity
-                if not response_data["assumptions"].get("homogeneity", {}).get("equal_variance", True):
+            def _met(key, default=True):
+                entry = assumptions.get(key)
+                if not isinstance(entry, dict):
+                    return default
+                return entry.get("is_met", default)
+
+            if assumptions:
+                normality_violated = any(not _met(f"normality_group_{i + 1}") for i in range(len(groups)))
+                if normality_violated:
+                    recommendations.append("Normality assumption violated. Consider the Kruskal-Wallis test.")
+
+                if not _met("homogeneity"):
                     recommendations.append("Homogeneity of variances violated. Consider Welch's ANOVA.")
 
-                # Check outliers
-                has_outliers = any(
-                    response_data["assumptions"].get(f"outliers_group_{i+1}", {}).get("has_outliers", False)
-                    for i in range(len(groups))
-                )
-                if has_outliers:
-                    recommendations.append("Outliers detected. Consider robust alternatives or data transformation.")
+                if any(not _met(f"outliers_group_{i + 1}") for i in range(len(groups))):
+                    recommendations.append("Outliers detected. Consider robust alternatives or a transformation.")
 
             response_data["recommendations"] = recommendations
 

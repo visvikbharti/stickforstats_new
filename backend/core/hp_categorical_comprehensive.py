@@ -162,10 +162,17 @@ class HighPrecisionCategorical:
     All calculations performed with configurable decimal precision.
     """
 
-    def __init__(self, precision: int = 50):
-        """Initialize with specified decimal precision"""
+    def __init__(self, precision: int = 50, alpha: float = 0.05):
+        """Initialize with specified decimal precision and significance level.
+
+        `alpha` matters: every interpretation below used to hard-code 0.05 while the API
+        accepted an `alpha` from the caller and discarded it (`data.get("alpha", 0.05)`, result
+        thrown away). Set alpha = 0.01, get back a p-value of 0.03 described as "statistically
+        significant". The number and the sentence next to it disagreed.
+        """
         getcontext().prec = precision
         self.precision = precision
+        self.alpha = alpha
 
     def _to_decimal(self, value: Union[float, int, str]) -> Decimal:
         """Convert to high-precision Decimal"""
@@ -493,7 +500,12 @@ class HighPrecisionCategorical:
 
         return result
 
-    def mcnemar_test(self, observed: Union[List[List], np.ndarray], correction: bool = True) -> CategoricalResult:
+    def mcnemar_test(
+        self,
+        observed: Union[List[List], np.ndarray],
+        correction: bool = True,
+        exact: Optional[bool] = None,
+    ) -> CategoricalResult:
         """
         High-precision McNemar's test.
 
@@ -501,7 +513,13 @@ class HighPrecisionCategorical:
 
         Args:
             observed: 2x2 contingency table of paired data
-            correction: Apply continuity correction
+            correction: Apply the continuity correction (asymptotic test only)
+            exact: True forces the exact binomial test, False forces the asymptotic
+                chi-square, None (default) picks the exact test when there are fewer than 25
+                discordant pairs. The API used to accept `exact` from the caller and then
+                DISCARD it -- `data.get("exact", False)` with the result thrown away -- so a
+                request for the exact test silently ran the asymptotic one. The two differ
+                materially at small discordant counts, which is the case McNemar is for.
 
         Returns:
             CategoricalResult with test statistics
@@ -511,46 +529,59 @@ class HighPrecisionCategorical:
         if observed.shape != (2, 2):
             raise ValueError("McNemar's test requires a 2x2 table")
 
-        # Extract discordant pairs
-        b = observed[0, 1]  # Changed from 0 to 1
-        c = observed[1, 0]  # Changed from 1 to 0
+        # Discordant pairs -- the ONLY cells McNemar's test uses.
+        b = int(observed[0, 1])  # Changed from 0 to 1
+        c = int(observed[1, 0])  # Changed from 1 to 0
+        n_discordant = b + c
 
-        # Calculate test statistic
-        if b + c == 0:
-            # No discordant pairs
-            chi2_stat = self._to_decimal(0)
-            p_value = self._to_decimal(1)
+        if n_discordant == 0:
+            # Nobody changed in either direction. McNemar's statistic is (b - c)^2 / (b + c),
+            # which is 0/0 here: the test has no information about change at all. It used to
+            # report chi-square = 0, p = 1.0 -- "no significant change, confidently" -- from a
+            # table that says nothing whatsoever about change.
+            return CategoricalResult(
+                test_name="McNemar's Test",
+                test_statistic=None,
+                p_value=None,
+                degrees_of_freedom=1,
+                observed_frequencies=observed,
+                odds_ratio=None,
+                interpretation=(
+                    "McNemar's test is undefined: there are no discordant pairs (nobody changed "
+                    "in either direction), so the statistic is 0/0. The table contains no "
+                    "information about change."
+                ),
+            )
+
+        use_exact = (n_discordant < 25) if exact is None else bool(exact)
+
+        # The chi-square statistic is reported either way; it is what the asymptotic test uses.
+        if correction and n_discordant >= 10 and not use_exact:
+            chi2_stat = self._to_decimal((abs(b - c) - 1) ** 2) / self._to_decimal(n_discordant)
         else:
-            if correction and b + c >= 10:
-                # With continuity correction
-                chi2_stat = self._to_decimal((abs(b - c) - 1) ** 2) / self._to_decimal(b + c)
-            else:
-                # Without correction or for small samples
-                chi2_stat = self._to_decimal((b - c) ** 2) / self._to_decimal(b + c)
+            chi2_stat = self._to_decimal((b - c) ** 2) / self._to_decimal(n_discordant)
 
-            # Calculate p-value
+        if use_exact:
+            # scipy.stats.binom_test was removed in scipy 1.12; binomtest returns a result
+            # object whose .pvalue is the two-sided exact p.
+            p_value = self._to_decimal(
+                stats.binomtest(min(b, c), n_discordant, 0.5, alternative="two-sided").pvalue
+            )
+            method = "exact binomial"
+        else:
             p_value = self._to_decimal(stats.chi2.sf(float(chi2_stat), 1))
+            method = "asymptotic chi-square" + (" with continuity correction" if correction and n_discordant >= 10 else "")
 
-            # For small samples, use exact binomial test.
-            # scipy.stats.binom_test was removed in scipy 1.12; binomtest returns
-            # a result object whose .pvalue is the two-sided exact p. Without this
-            # the exact branch (b+c < 25 -- the primary McNemar use case) raised
-            # AttributeError and the endpoint 500'd.
-            if b + c < 25:
-                p_exact = self._to_decimal(
-                    stats.binomtest(min(b, c), b + c, 0.5, alternative="two-sided").pvalue
-                )
-                p_value = p_exact
-
-        # Calculate odds ratio for paired data
+        # Odds ratio for paired data = b / c. With c = 0 and b > 0 it is infinite; with both
+        # zero it is 0/0 -- and that case returned above. It used to return 1 ("no change")
+        # for b = c = 0.
         if c == 0:
-            odds_ratio = self._to_decimal("inf") if b > 0 else self._to_decimal(1)
+            odds_ratio = self._to_decimal("inf") if b > 0 else None
         else:
             odds_ratio = self._to_decimal(b) / self._to_decimal(c)
 
-        # Create result
         result = CategoricalResult(
-            test_name="McNemar's Test",
+            test_name=f"McNemar's Test ({method})",
             test_statistic=chi2_stat,
             p_value=p_value,
             degrees_of_freedom=1,
@@ -1223,7 +1254,7 @@ class HighPrecisionCategorical:
 
     def _interpret_chi_square(self, chi2: Decimal, p_value: Decimal, cramers_v: Decimal, df: int) -> str:
         """Generate interpretation for chi-square test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         # Effect size interpretation
         if cramers_v < self._to_decimal("0.1"):
@@ -1239,7 +1270,7 @@ class HighPrecisionCategorical:
 
     def _interpret_goodness_of_fit(self, chi2: Decimal, p_value: Decimal, cohen_w: Decimal, df: int) -> str:
         """Generate interpretation for goodness of fit test"""
-        sig = "reject" if p_value < self._to_decimal("0.05") else "fail to reject"
+        sig = "reject" if p_value < self._to_decimal(str(self.alpha)) else "fail to reject"
 
         # Effect size interpretation (Cohen's w)
         if cohen_w < self._to_decimal("0.1"):
@@ -1255,7 +1286,7 @@ class HighPrecisionCategorical:
 
     def _interpret_fisher(self, odds_ratio: Decimal, p_value: Decimal) -> str:
         """Generate interpretation for Fisher's exact test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         if odds_ratio == self._to_decimal("inf"):
             or_text = "infinite (perfect association)"
@@ -1268,19 +1299,19 @@ class HighPrecisionCategorical:
 
     def _interpret_mcnemar(self, chi2: Decimal, p_value: Decimal, b: int, c: int) -> str:
         """Generate interpretation for McNemar's test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         return f"McNemar's test shows {sig} change (χ² = {chi2:.2f}, p = {p_value:.4f}). Changes: {b} → positive, {c} → negative"
 
     def _interpret_cochrans_q(self, q: Decimal, p_value: Decimal, k: int) -> str:
         """Generate interpretation for Cochran's Q test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         return f"Cochran's Q test comparing {k} treatments is {sig} (Q = {q:.2f}, p = {p_value:.4f})"
 
     def _interpret_g_test(self, g: Decimal, p_value: Decimal, df: int) -> str:
         """Generate interpretation for G-test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         return f"The G-test is {sig} (G({df}) = {g:.2f}, p = {p_value:.4f})"
 
@@ -1288,13 +1319,13 @@ class HighPrecisionCategorical:
         """Generate interpretation for binomial test"""
         observed_prop = k / n
         sig = (
-            "significantly different from" if p_value < self._to_decimal("0.05") else "not significantly different from"
+            "significantly different from" if p_value < self._to_decimal(str(self.alpha)) else "not significantly different from"
         )
 
         return f"Observed proportion ({observed_prop:.3f}) is {sig} expected ({p:.3f}), p = {p_value:.4f}"
 
     def _interpret_cochran_armitage(self, z: Decimal, p_value: Decimal) -> str:
         """Generate interpretation for Cochran-Armitage trend test"""
-        sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
+        sig = "statistically significant" if p_value < self._to_decimal(str(self.alpha)) else "not statistically significant"
 
         return f"The test for trend is {sig} (Z = {z:.2f}, p = {p_value:.4f})"

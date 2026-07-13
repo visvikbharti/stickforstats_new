@@ -60,10 +60,16 @@ def differential_expression(request):
     try:
         data = request.data
         alpha = float(data.get("alpha", 0.05))
+        log2fc_threshold_raw = data.get("log2fc_threshold")
+        log2fc_threshold = float(log2fc_threshold_raw) if log2fc_threshold_raw is not None else None
         group1_name = data.get("group1_name", "control")
         group2_name = data.get("group2_name", "treatment")
 
-        service = DifferentialExpressionService(alpha=alpha)
+        # log2fc_threshold used to be parsed, echoed back under "thresholds", drawn on the
+        # volcano plot as two vertical lines -- and never passed to the service. Significance
+        # was decided on the adjusted p-value alone, so genes the user had explicitly excluded
+        # by fold change were still coloured and counted as significant.
+        service = DifferentialExpressionService(alpha=alpha, log2fc_threshold=log2fc_threshold)
 
         # Parse input: either matrix + metadata or CSV
         if "csv_data" in data:

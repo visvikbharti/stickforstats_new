@@ -92,11 +92,15 @@ def chi_square_independence_test(request):
             )
 
         contingency_table = np.array(data.get("contingency_table"))
-        data.get("alpha", 0.05)
+        # alpha was parsed and thrown away here, while the interpretation string hard-coded
+        # p < 0.05. A caller setting alpha = 0.01 got "statistically significant" printed next
+        # to a p-value of 0.03.
+        alpha = float(data.get("alpha", 0.05))
         yates_correction = data.get("yates_correction", False)
 
         # Perform calculation with 50 decimal precision
-        result = categorical_calculator.chi_square_independence(contingency_table, correction=yates_correction)
+        calculator = HighPrecisionCategorical(alpha=alpha)
+        result = calculator.chi_square_independence(contingency_table, correction=yates_correction)
 
         logger.info(f"Chi-square test completed for user {request.user.id}")
 
@@ -138,13 +142,13 @@ def chi_square_goodness_of_fit(request):
 
         observed = np.array(data.get("observed"))
         expected = data.get("expected", None)
-        data.get("alpha", 0.05)
+        alpha = float(data.get("alpha", 0.05))
 
         if expected is not None:
             expected = np.array(expected)
 
-        # Perform calculation
-        result = categorical_calculator.chi_square_goodness_of_fit(observed, expected=expected)
+        # Perform calculation. alpha was parsed and discarded here too.
+        result = HighPrecisionCategorical(alpha=alpha).chi_square_goodness_of_fit(observed, expected=expected)
 
         logger.info(f"Goodness of fit test completed for user {request.user.id}")
 
@@ -238,7 +242,11 @@ def mcnemar_test(request):
             return Response({"error": "Missing required parameter: table"}, status=status.HTTP_400_BAD_REQUEST)
 
         table = np.array(data.get("table"))
-        data.get("exact", False)
+        alpha = float(data.get("alpha", 0.05))
+        # `exact` was read and discarded, so a request for the exact binomial test silently ran
+        # the asymptotic chi-square. They differ materially at small discordant counts, which
+        # is exactly the case McNemar's test exists for.
+        exact = data.get("exact")
         correction = data.get("correction", True)
 
         # Validate table is 2x2
@@ -248,7 +256,8 @@ def mcnemar_test(request):
             )
 
         # Perform calculation
-        result = categorical_calculator.mcnemar_test(table, correction=correction)
+        calculator = HighPrecisionCategorical(alpha=alpha)
+        result = calculator.mcnemar_test(table, correction=correction, exact=exact)
 
         logger.info(f"McNemar test completed for user {request.user.id}")
 
@@ -326,7 +335,7 @@ def g_test(request):
         # williams_correction is applied automatically by g_test when n < 200
 
         # Perform calculation (g_test doesn't accept alpha/williams_correction params)
-        result = categorical_calculator.g_test(observed)
+        result = HighPrecisionCategorical(alpha=float(data.get("alpha", 0.05))).g_test(observed)
 
         logger.info(f"G-test completed for user {request.user.id}")
 

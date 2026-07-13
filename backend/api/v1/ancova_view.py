@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 from decimal import Decimal
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -221,26 +222,34 @@ class HighPrecisionANCOVAView(APIView):
                 check_homogeneity_slopes=check_homogeneity,
             )
 
-            # Format the ANCOVA results
-            response_data["ancova_result"] = self._format_ancova_result(result)
+            # Format the ANCOVA results.
+            #
+            # Everything below reads the keys the service ACTUALLY returns. It used to read a
+            # completely different set -- "f_statistic_group", "covariate_effect",
+            # "homogeneity_test" -- none of which exist, so every `.get(key, "N/A")` fell
+            # through to its default and the endpoint returned the literal STRING "N/A" for
+            # the F-statistic, the p-value, every sum of squares and every degree of freedom,
+            # while still reporting `"precision": 50` and appending the sentence "ANCOVA
+            # assumptions appear to be met. Results are reliable." This endpoint has never
+            # produced an F or a p-value.
+            response_data["ancova_result"] = self._format_ancova_result(result, primary_covariate)
 
-            # Step 3: Calculate adjusted means
-            if "adjusted_means" in result:
-                response_data["adjusted_means"] = {str(k): str(v) for k, v in result["adjusted_means"].items()}
-            else:
-                # Calculate adjusted means manually if not provided
-                adjusted_means = self._calculate_adjusted_means(df, primary_covariate)
-                response_data["adjusted_means"] = adjusted_means
+            # Step 3: Adjusted means. `result["adjusted_means"]` is a DataFrame; iterating it
+            # with .items() yields COLUMNS, so the old code stringified a pandas Series repr
+            # ("0    11.478397\n1    13.798941\nName: ...") into the response as a value.
+            response_data["adjusted_means"] = self._format_adjusted_means(result.get("adjusted_means"))
 
-            # Step 4: Report covariate effects
-            if "covariate_effect" in result:
-                response_data["covariate_effects"] = {
-                    primary_covariate: self._format_covariate_effect(result["covariate_effect"])
-                }
+            # Step 4: The covariate's effect is the pooled within-group regression slope.
+            response_data["covariate_effects"] = {
+                primary_covariate: self._format_covariate_effect(result, primary_covariate)
+            }
 
-            # Step 5: Homogeneity of slopes test
-            if check_homogeneity and "homogeneity_test" in result:
-                response_data["homogeneity_test"] = self._format_homogeneity_test(result["homogeneity_test"])
+            # Step 5: Homogeneity of slopes -- computed by the service, and previously thrown
+            # away because the view looked for it under the wrong key.
+            if check_homogeneity:
+                response_data["homogeneity_test"] = self._format_homogeneity_test(
+                    result.get("homogeneity_of_slopes")
+                )
 
             # Step 6: Calculate effect sizes
             if options.get("calculate_effect_sizes", True):
@@ -270,62 +279,143 @@ class HighPrecisionANCOVAView(APIView):
                 {"error": "Calculation error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def _format_ancova_result(self, result):
-        """Format ANCOVA result for response"""
+    @staticmethod
+    def _num(value):
+        """A quantity that does not exist serializes to null -- never to the string "N/A" or
+        "nan", both of which land in the JSON as text and read to a user like a value."""
+        if value is None:
+            return None
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return None
+        return str(value) if math.isfinite(value) else None
+
+    def _format_ancova_result(self, result, covariate_name):
+        """Read the service's actual ANCOVA table.
+
+        The service returns `ancova_table`, a DataFrame with one row per source
+        (covariate, factor, Error, Total) and columns SS / DF / MS / F / p-value / eta^2.
+        """
+        table = result.get("ancova_table")
+        if table is None:
+            return {"error": "The ANCOVA service returned no table."}
+
+        rows = {str(row["Source"]): row for _, row in table.iterrows()}
+        covariate_row = rows.get(str(covariate_name), {})
+        group_row = rows.get("group", {})
+        error_row = rows.get("Error", {})
+        total_row = rows.get("Total", {})
+
         return {
-            "f_statistic_group": str(result.get("f_statistic_group", "N/A")),
-            "p_value_group": str(result.get("p_value_group", "N/A")),
-            "f_statistic_covariate": str(result.get("f_statistic_covariate", "N/A")),
-            "p_value_covariate": str(result.get("p_value_covariate", "N/A")),
-            "df_group": result.get("df_group", "N/A"),
-            "df_covariate": result.get("df_covariate", 1),
-            "df_error": result.get("df_error", "N/A"),
-            "ss_group": str(result.get("ss_group", "N/A")),
-            "ss_covariate": str(result.get("ss_covariate", "N/A")),
-            "ss_error": str(result.get("ss_error", "N/A")),
-            "ms_group": str(result.get("ms_group", "N/A")),
-            "ms_covariate": str(result.get("ms_covariate", "N/A")),
-            "ms_error": str(result.get("ms_error", "N/A")),
+            "f_statistic_group": self._num(group_row.get("F")),
+            "p_value_group": self._num(group_row.get("p-value")),
+            "eta_squared_group": self._num(group_row.get("eta²")),
+            "f_statistic_covariate": self._num(covariate_row.get("F")),
+            "p_value_covariate": self._num(covariate_row.get("p-value")),
+            "eta_squared_covariate": self._num(covariate_row.get("eta²")),
+            "df_group": self._num(group_row.get("DF")),
+            "df_covariate": self._num(covariate_row.get("DF")),
+            "df_error": self._num(error_row.get("DF")),
+            "df_total": self._num(total_row.get("DF")),
+            "ss_group": self._num(group_row.get("SS")),
+            "ss_covariate": self._num(covariate_row.get("SS")),
+            "ss_error": self._num(error_row.get("SS")),
+            "ss_total": self._num(total_row.get("SS")),
+            "ms_group": self._num(group_row.get("MS")),
+            "ms_covariate": self._num(covariate_row.get("MS")),
+            "ms_error": self._num(error_row.get("MS")),
+            "significant": bool(result.get("significant")) if result.get("significant") is not None else None,
         }
 
-    def _calculate_adjusted_means(self, df, covariate):
-        """Calculate adjusted means for each group"""
-        adjusted_means = {}
-        grand_mean_covariate = df[covariate].mean()
+    def _format_adjusted_means(self, adjusted_means):
+        """Turn the service's adjusted-means DataFrame into one entry per group.
 
-        for group in df["group"].unique():
-            group_df = df[df["group"] == group]
-            group_mean = group_df["dependent_var"].mean()
-            group_cov_mean = group_df[covariate].mean()
+        The old code did `{str(k): str(v) for k, v in adjusted_means.items()}` on a DataFrame,
+        which iterates COLUMNS -- so the response carried the stringified repr of a pandas
+        Series where each group's adjusted mean should have been.
+        """
+        if adjusted_means is None:
+            return {}
 
-            # Simple adjustment formula
-            adjustment = group_cov_mean - grand_mean_covariate
-            adjusted_mean = group_mean - adjustment
-
-            adjusted_means[str(group)] = str(Decimal(str(adjusted_mean)))
-
-        return adjusted_means
-
-    def _format_covariate_effect(self, effect):
-        """Format covariate effect for response"""
         return {
-            "coefficient": str(effect.get("coefficient", "N/A")),
-            "std_error": str(effect.get("std_error", "N/A")),
-            "t_value": str(effect.get("t_value", "N/A")),
-            "p_value": str(effect.get("p_value", "N/A")),
+            str(row["Level"]): {
+                "unadjusted_mean": self._num(row.get("Unadjusted_Mean")),
+                "adjusted_mean": self._num(row.get("Adjusted_Mean")),
+                "n": int(row["N"]) if row.get("N") is not None else None,
+            }
+            for _, row in adjusted_means.iterrows()
+        }
+
+    # _calculate_adjusted_means() was removed. It computed
+    #
+    #     adjusted_mean = group_mean - (group_cov_mean - grand_cov_mean)
+    #
+    # which is the ANCOVA adjustment with the pooled within-group regression slope b HARD-CODED
+    # TO 1. The correct formula is group_mean - b * (group_cov_mean - grand_cov_mean), and the
+    # service computes b and applies it properly. The adjusted means now come from the service.
+
+    def _format_covariate_effect(self, result, covariate_name):
+        """The covariate's effect: the pooled within-group regression slope, and its own row
+        in the ANCOVA table (F and p for the covariate).
+
+        The old version looked for `result["covariate_effect"]`, which does not exist, so it
+        was never called at all -- the response carried `covariate_effects: null`.
+        """
+        table = result.get("ancova_table")
+        row = {}
+        if table is not None:
+            rows = {str(r["Source"]): r for _, r in table.iterrows()}
+            row = rows.get(str(covariate_name), {})
+
+        return {
+            "coefficient": self._num(result.get("regression_coefficient")),
+            "f_statistic": self._num(row.get("F")),
+            "p_value": self._num(row.get("p-value")),
+            "df": self._num(row.get("DF")),
+            "note": (
+                "The coefficient is the pooled within-group regression slope of the dependent "
+                "variable on the covariate -- the slope ANCOVA assumes is common to all groups."
+            ),
         }
 
     def _format_homogeneity_test(self, test):
-        """Format homogeneity test result"""
+        """Homogeneity of slopes -- the assumption ANCOVA rests on.
+
+        The service computes it. The view used to look for it under the key "homogeneity_test"
+        (it is "homogeneity_of_slopes"), so the result was computed and thrown away, and the
+        response reported `homogeneity_test: null` while the recommendations still said
+        "ANCOVA assumptions appear to be met."
+        """
+        if not test:
+            return None
+
+        p_value = test.get("p_value")
         return {
-            "f_statistic": str(test.get("f_statistic", "N/A")),
-            "p_value": str(test.get("p_value", "N/A")),
-            "slopes_homogeneous": test.get("slopes_homogeneous", False),
+            "f_statistic": self._num(test.get("f_statistic")),
+            "p_value": self._num(p_value),
+            "slopes_homogeneous": (bool(p_value >= 0.05) if p_value is not None else None),
+            "note": (
+                "ANCOVA assumes the covariate's slope is the same in every group. A small "
+                "p-value here means it is not, and the ANCOVA below may be invalid."
+            ),
         }
 
     def _calculate_effect_sizes(self, result, df):
-        """Calculate effect sizes for ANCOVA"""
+        """Calculate effect sizes for ANCOVA.
+
+        `result` has no "ss_group"/"ss_error" keys -- they live in the ancova_table -- so this
+        method used to fall straight through and return {}.
+        """
         effect_sizes = {}
+
+        table = result.get("ancova_table")
+        if table is not None:
+            rows = {str(r["Source"]): r for _, r in table.iterrows()}
+            group_ss = rows.get("group", {}).get("SS")
+            error_ss = rows.get("Error", {}).get("SS")
+            if group_ss is not None and error_ss is not None:
+                result = dict(result, ss_group=group_ss, ss_error=error_ss)
 
         # Calculate partial eta squared if possible
         if "ss_group" in result and "ss_error" in result:
@@ -358,21 +448,45 @@ class HighPrecisionANCOVAView(APIView):
             return "Large effect"
 
     def _perform_post_hoc(self, df, adjusted_means, test_type):
-        """Perform post-hoc comparisons on adjusted means"""
+        """Pairwise differences between the adjusted means.
+
+        NO SIGNIFICANCE IS CLAIMED. The old version reported
+
+            "significant": abs(float(mean_diff)) > 0
+
+        which is TRUE for every pair of groups whose adjusted means are not bit-for-bit
+        identical -- i.e. always. It ran no test, computed no standard error and produced no
+        p-value, and then labelled every comparison significant. That is not a simplification
+        of a post-hoc test; it is the appearance of one.
+
+        A correct post-hoc on adjusted means needs the pooled error mean-square and the
+        covariate-adjusted standard error of each contrast (Tukey/Bonferroni on the adjusted
+        means). Until that is implemented, the differences are reported as differences.
+        """
         import itertools
 
         post_hoc_results = {}
 
-        for (group1, mean1), (group2, mean2) in itertools.combinations(adjusted_means.items(), 2):
+        for (group1, stats1), (group2, stats2) in itertools.combinations(adjusted_means.items(), 2):
+            mean1 = stats1.get("adjusted_mean") if isinstance(stats1, dict) else stats1
+            mean2 = stats2.get("adjusted_mean") if isinstance(stats2, dict) else stats2
+            if mean1 is None or mean2 is None:
+                continue
+
             comparison_key = f"{group1}_vs_{group2}"
-            mean_diff = Decimal(mean1) - Decimal(mean2)
+            mean_diff = Decimal(str(mean1)) - Decimal(str(mean2))
 
             post_hoc_results[comparison_key] = {
                 "mean_difference": str(mean_diff),
-                "adjusted_mean_1": mean1,
-                "adjusted_mean_2": mean2,
+                "adjusted_mean_1": str(mean1),
+                "adjusted_mean_2": str(mean2),
                 "test": test_type,
-                "significant": abs(float(mean_diff)) > 0,  # Simplified
+                "p_value": None,
+                "significant": None,
+                "note": (
+                    "Difference between the covariate-adjusted means. No significance test is "
+                    "performed on these contrasts yet, so no p-value is reported."
+                ),
             }
 
         return post_hoc_results
@@ -441,6 +555,20 @@ class HighPrecisionANCOVAView(APIView):
                     pass
 
         if not recommendations:
-            recommendations.append("ANCOVA assumptions appear to be met. Results are reliable.")
+            # "Results are reliable" was emitted whenever nothing else had been appended --
+            # including when the assumption checks had not been run at all, and (until this
+            # commit) alongside an ANCOVA table in which every statistic was the string "N/A".
+            # An empty list of concerns is not the same as a clean bill of health.
+            checked = bool(response_data.get("assumptions")) and bool(response_data.get("homogeneity_test"))
+            if checked:
+                recommendations.append(
+                    "No assumption violations were detected in the checks that were run "
+                    "(normality, homogeneity of variances, homogeneity of slopes)."
+                )
+            else:
+                recommendations.append(
+                    "No assumption violations to report -- but the assumption checks were not all "
+                    "run for this request, so this is not a clean bill of health."
+                )
 
         return recommendations

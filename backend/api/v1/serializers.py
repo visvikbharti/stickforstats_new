@@ -142,15 +142,28 @@ class TTestRequestSerializer(serializers.Serializer):
         else:
             data["test_type"] = test_type
 
-        # Normalize alternative
-        if "alternative" in data:
-            alt = data["alternative"].lower()
+        # Normalize alternative.
+        #
+        # An UNRECOGNIZED value used to be silently replaced with "two-sided". A typo --
+        # "greatr", or "greater " with a trailing space -- therefore ran a two-tailed test on
+        # a caller who had explicitly asked for a one-tailed one, reported it as the test they
+        # asked for, and gave a p-value that is off by a factor of two or points at the wrong
+        # tail entirely. Guessing is worse than refusing: refuse.
+        if "alternative" in data and data["alternative"] is not None:
+            alt = str(data["alternative"]).strip().lower()
             if alt in self.ALTERNATIVE_ALIASES:
                 data["alternative"] = self.ALTERNATIVE_ALIASES[alt]
-            elif alt not in self.ALTERNATIVES:
-                data["alternative"] = "two-sided"  # Default
-            else:
+            elif alt in self.ALTERNATIVES:
                 data["alternative"] = alt
+            else:
+                raise serializers.ValidationError(
+                    {
+                        "alternative": (
+                            f"Unrecognized alternative {data['alternative']!r}. "
+                            f"Use one of: {', '.join(sorted(self.ALTERNATIVES))}."
+                        )
+                    }
+                )
 
         # Handle mu/hypothesized_mean aliases
         if "mu" in data and "hypothesized_mean" not in data:

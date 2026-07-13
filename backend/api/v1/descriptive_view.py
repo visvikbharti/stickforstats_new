@@ -124,8 +124,12 @@ class DescriptiveStatisticsView(APIView):
         mean = sum(values) / mpf(n)
         std_dev = mpf(self.calculate_std_dev(data, ddof=0))
 
+        # Skewness is the third moment divided by sigma^3. With sigma = 0 both are zero:
+        # 0/0, undefined. It used to return 0, and the interpretation below then described the
+        # data as "approximately symmetric" -- a shape verdict on a constant, which has no
+        # shape.
         if std_dev == 0:
-            return str(mpf(0))
+            return None
 
         # Calculate third moment
         third_moment = sum([(v - mean) ** 3 for v in values]) / mpf(n)
@@ -142,8 +146,11 @@ class DescriptiveStatisticsView(APIView):
         mean = sum(values) / mpf(n)
         std_dev = mpf(self.calculate_std_dev(data, ddof=0))
 
+        # Same 0/0 as skewness: a constant has no kurtosis. Returning 0 (excess kurtosis of a
+        # normal!) made the endpoint describe constant data as "approximately mesokurtic
+        # (normal-like)".
         if std_dev == 0:
-            return str(mpf(0))
+            return None
 
         # Calculate fourth moment
         fourth_moment = sum([(v - mean) ** 4 for v in values]) / mpf(n)
