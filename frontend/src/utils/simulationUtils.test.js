@@ -136,10 +136,37 @@ describe('calculateMeanTInterval', () => {
     expect(result.lower).toBeCloseTo(result.mean - expectedMargin, 5);
   });
 
-  // Monte Carlo test: Verify 95% CI achieves ~95% coverage
-  test('should achieve approximately 95% coverage (Monte Carlo)', () => {
-    const numSimulations = 100; // Reduced for test speed
-    const sampleSize = 30;
+  /**
+   * A 95% interval must cover the truth 95% of the time. This is the property the whole
+   * confidence_intervals module exists to demonstrate, so it is worth testing properly.
+   *
+   * The previous version of this test asserted `expect(coverage).toBeLessThan(1.0)` over 100
+   * simulations -- i.e. it demanded that at least one interval MISS. But 100/100 coverage is a
+   * perfectly legitimate random outcome; it happens with probability 0.95^100. The test was
+   * asserting that a random event must occur, and it duly failed in CI at random -- which, because
+   * `docker-build` needs `frontend-test`, BLOCKED THE PRODUCTION IMAGE PUSH.
+   *
+   * It also could not have detected the real bug underneath it. `tCritical` returned the NORMAL
+   * quantile for df > 30, so a nominal 95% interval covered only 94.3% at n = 41 -- and this test
+   * only ever ran n = 30, on the one side of the cliff where the error happened to be conservative.
+   *
+   * So: sample sizes on BOTH sides of df = 30, and a band derived from the binomial standard error
+   * rather than guessed. With N = 4000, se = sqrt(0.95 * 0.05 / 4000) = 0.0034, so +/- 0.02 is
+   * about 6 se -- noise cannot trip it.
+   *
+   * BUT BE HONEST ABOUT WHAT THIS TEST CANNOT DO. A 0.93-0.97 band does NOT catch the bug above:
+   * the broken coverage was 0.9426, which sits comfortably inside it. I wrote "it cannot pass with
+   * the old coverage" in this very comment, and that was FALSE -- a mutation (putting the normal
+   * approximation back) left all 47 tests green. Separating 0.95 from 0.9426 by Monte Carlo alone
+   * would need ~64,000 replicates per sample size.
+   *
+   * So the precision guard is NOT this test. It is the deterministic one below, which pins the
+   * critical value itself against the exact inverse-t. This one is a coverage smoke test: it proves
+   * the intervals are broadly calibrated, and it would catch a gross error. It is kept for that,
+   * and for the property it demonstrates -- not relied on for the thing it cannot see.
+   */
+  test.each([10, 30, 41, 61])('a 95%% t-interval covers ~95%% of the time at n = %i (Monte Carlo)', (sampleSize) => {
+    const numSimulations = 4000;
     const trueMean = 10;
     const trueStd = 2;
     let coverageCount = 0;
@@ -154,9 +181,61 @@ describe('calculateMeanTInterval', () => {
     }
 
     const coverage = coverageCount / numSimulations;
-    // Should be close to 0.95, allow ±10% due to sampling variation
-    expect(coverage).toBeGreaterThan(0.85);
-    expect(coverage).toBeLessThan(1.0);
+
+    // ~6 binomial standard errors either side: noise cannot trip it. (It also cannot see a 0.9426
+    // -- see the note above. The deterministic test below is what guards that.)
+    expect(coverage).toBeGreaterThan(0.93);
+    expect(coverage).toBeLessThan(0.97);
+  });
+
+  /**
+   * THE ACTUAL GUARD. Deterministic, exact, and it dies the moment the approximation comes back.
+   *
+   * `tCritical` returned the NORMAL quantile (1.959964) for every df > 30, so a "95%" interval at
+   * n = 41 was built from 1.96 where Student's t is 2.021075 -- 3.0% too narrow, covering 94.3%.
+   * Too narrow is the dangerous direction: it overstates precision.
+   *
+   * tCritical is module-private, so recover it through the public API. The margin is
+   * t * s / sqrt(n), hence t = margin * sqrt(n) / s. A fixed arithmetic sample makes this exact and
+   * free of any randomness.
+   *
+   * The expected values are scipy's stats.t.ppf(0.975, df), executed -- not transcribed from
+   * memory, and not read off a table.
+   */
+  describe('the critical value is the exact inverse-t, on both sides of df = 30', () => {
+    const impliedTCritical = (n) => {
+      const data = Array.from({ length: n }, (_, i) => i + 1); // fixed, non-degenerate
+      const ci = calculateMeanTInterval(data, 0.95);
+      return (ci.margin * Math.sqrt(ci.n)) / ci.std;
+    };
+
+    const NORMAL_QUANTILE_975 = 1.959964; // what the broken code returned for every df > 30
+
+    it.each([
+      [10, 2.26215716], // df 9
+      [30, 2.04522964], // df 29  -- the old series was 1.5% too WIDE here
+      [41, 2.02107539], // df 40  -- the old code returned 1.96 here: 3.0% too NARROW
+      [61, 2.00029782], // df 60
+    ])('at n = %i the critical value is %f', (n, exact) => {
+      expect(impliedTCritical(n)).toBeCloseTo(exact, 6);
+    });
+
+    it('never substitutes the normal quantile for t above df = 30', () => {
+      // The exact regression. Both of these sit on the far side of the old `if (df > 30)` cliff.
+      for (const n of [41, 61]) {
+        expect(impliedTCritical(n)).not.toBeCloseTo(NORMAL_QUANTILE_975, 3);
+        expect(impliedTCritical(n)).toBeGreaterThan(NORMAL_QUANTILE_975);
+      }
+    });
+
+    it('is monotonically decreasing in n, approaching the normal quantile from above', () => {
+      // Student's t is always wider than the normal, and converges to it. A critical value that
+      // jumped DOWN to 1.96 at df = 31 was not a t distribution at all.
+      const values = [10, 30, 41, 61, 121].map(impliedTCritical);
+
+      expect(values).toEqual([...values].sort((a, b) => b - a)); // strictly decreasing
+      expect(values[values.length - 1]).toBeGreaterThan(NORMAL_QUANTILE_975);
+    });
   });
 });
 

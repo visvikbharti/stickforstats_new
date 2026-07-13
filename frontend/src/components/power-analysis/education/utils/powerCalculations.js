@@ -164,21 +164,73 @@ export function cohensH(p1, p2) {
  * @param {string} type - Effect size type
  * @returns {string} Interpretation
  */
+/**
+ * Cohen's benchmarks, by the SCALE the number is on. Every scale has its own thresholds and they
+ * are nowhere near each other: 0.14 is a LARGE eta-squared and a NEGLIGIBLE Cohen's d.
+ */
+const EFFECT_SIZE_BENCHMARKS = {
+  cohens_d: { small: 0.2, medium: 0.5, large: 0.8 },
+  cohens_f: { small: 0.1, medium: 0.25, large: 0.4 },
+  cohens_f2: { small: 0.02, medium: 0.15, large: 0.35 },
+  cohens_w: { small: 0.1, medium: 0.3, large: 0.5 },
+  correlation: { small: 0.1, medium: 0.3, large: 0.5 },
+  eta_squared: { small: 0.01, medium: 0.06, large: 0.14 },
+  partial_eta_squared: { small: 0.01, medium: 0.06, large: 0.14 },
+  omega_squared: { small: 0.01, medium: 0.06, large: 0.14 },
+  // Cramer's V equals Cohen's w for a 2x2 table; for larger tables Cohen scales the thresholds by
+  // sqrt(min(rows, cols) - 1), so these are the df = 1 thresholds and are CONSERVATIVE beyond that.
+  cramers_v: { small: 0.1, medium: 0.3, large: 0.5 },
+};
+
+// The names the call sites actually use. They were never keys above, which is the whole bug.
+const EFFECT_SIZE_ALIASES = {
+  d: 'cohens_d',
+  f: 'cohens_f',
+  f2: 'cohens_f2',
+  w: 'cohens_w',
+  r: 'correlation',
+  rho: 'correlation',
+  eta2: 'eta_squared',
+  omega2: 'omega_squared',
+};
+
+/**
+ * Label an effect as negligible / small / medium / large -- ON ITS OWN SCALE.
+ *
+ * This used to end with `benchmarks[type] || benchmarks.cohens_d`: a silent default. And the live
+ * callers pass names that were NEVER keys in that table -- 'd', 'r', 'eta_squared', 'cramers_v' --
+ * so every one of them fell through to Cohen's d thresholds and was labelled on the wrong scale:
+ *
+ *     eta^2 = 0.14  ->  said "negligible"   (it is a LARGE effect)
+ *     eta^2 = 0.06  ->  said "negligible"   (it is MEDIUM)
+ *     r     = 0.50  ->  said "medium"       (it is LARGE)
+ *     r     = 0.30  ->  said "small"        (it is MEDIUM)
+ *
+ * Because eta-squared is almost never above 0.2, that meant EVERY ANOVA effect size on the
+ * Effect Size & Power tab was reported as "negligible" -- telling a researcher that a real effect
+ * was nothing. This is the same silent-default class as the bare `else` in the power API: a scale we
+ * do not recognise must not be guessed at.
+ *
+ * Returns null for an unknown scale or a missing value. The caller renders that as "-", because
+ * saying nothing is the only honest thing to do when we do not know what scale the number is on.
+ */
 export function interpretEffectSize(value, type) {
-  const benchmarks = {
-    cohens_d: { small: 0.2, medium: 0.5, large: 0.8 },
-    cohens_f: { small: 0.1, medium: 0.25, large: 0.4 },
-    cohens_f2: { small: 0.02, medium: 0.15, large: 0.35 },
-    cohens_w: { small: 0.1, medium: 0.3, large: 0.5 },
-    correlation: { small: 0.1, medium: 0.3, large: 0.5 }
-  };
+  const key = EFFECT_SIZE_BENCHMARKS[type] ? type : EFFECT_SIZE_ALIASES[type];
+  const bench = EFFECT_SIZE_BENCHMARKS[key];
 
-  const bench = benchmarks[type] || benchmarks.cohens_d;
-  const absValue = Math.abs(value);
+  if (!bench) return null;
 
-  if (absValue < bench.small) return 'negligible';
-  if (absValue < bench.medium) return 'small';
-  if (absValue < bench.large) return 'medium';
+  // `Number(null)` is 0 and `Number('')` is 0, so a MISSING effect size would coerce to zero and be
+  // labelled "negligible" -- an absent result reported as a real finding of nothing. Guard the
+  // empties explicitly; Number() cannot be trusted to do it.
+  if (value === null || value === undefined || value === '') return null;
+
+  const magnitude = Math.abs(Number(value));
+  if (!Number.isFinite(magnitude)) return null;
+
+  if (magnitude < bench.small) return 'negligible';
+  if (magnitude < bench.medium) return 'small';
+  if (magnitude < bench.large) return 'medium';
   return 'large';
 }
 

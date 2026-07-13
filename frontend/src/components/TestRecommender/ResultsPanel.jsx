@@ -174,8 +174,12 @@ const ResultsPanel = ({ viewMode = 'guided' }) => {
     if (!enhancedResults) return '';
     
     const sig = getSignificanceLevel(enhancedResults.pValue);
+    // The scale must be named. `interpretEffectSize` used to default silently to Cohen's d when the
+    // type was missing -- which happened to be right here, and was wrong everywhere else it was
+    // relied on. It no longer guesses, so the value says what scale it is on.
     const effectMagnitude = interpretEffectSize(
-      enhancedResults.effect_sizes?.cohen_d?.value || 0
+      enhancedResults.effect_sizes?.cohen_d?.value || 0,
+      'cohens_d'
     );
     
     let interpretation = '';

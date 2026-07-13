@@ -124,6 +124,7 @@ const TEST_TYPES = {
     name: 'Independent Samples t-test',
     description: 'Compare means of two independent groups',
     effectSizeLabel: "Cohen's d",
+    effectSizeScale: 'cohens_d',
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
     formula: 'Power = P(|t| > t_crit | λ = d × √(n₁n₂/(n₁+n₂)))',
     reference: 'Cohen (1988), Chapter 2'
@@ -132,6 +133,7 @@ const TEST_TYPES = {
     name: 'One-Sample t-test',
     description: 'Compare sample mean to a known value',
     effectSizeLabel: "Cohen's d",
+    effectSizeScale: 'cohens_d',
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
     formula: 'Power = P(|t| > t_crit | λ = d × √n)',
     reference: 'Cohen (1988), Chapter 2'
@@ -140,6 +142,7 @@ const TEST_TYPES = {
     name: 'Paired Samples t-test',
     description: 'Compare means of matched pairs',
     effectSizeLabel: "Cohen's d (paired)",
+    effectSizeScale: 'cohens_d',
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
     formula: 'Power = P(|t| > t_crit | λ = d × √n)',
     reference: 'Cohen (1988), Chapter 2'
@@ -148,6 +151,7 @@ const TEST_TYPES = {
     name: 'One-Way ANOVA',
     description: 'Compare means across multiple groups',
     effectSizeLabel: "Cohen's f",
+    effectSizeScale: 'cohens_f',
     effectSizeBenchmarks: { small: 0.10, medium: 0.25, large: 0.40 },
     formula: 'Power = P(F > F_crit | λ = n × k × f²)',
     reference: 'Cohen (1988), Chapter 8'
@@ -156,6 +160,7 @@ const TEST_TYPES = {
     name: 'Correlation (Pearson r)',
     description: 'Test significance of correlation coefficient',
     effectSizeLabel: 'Correlation r',
+    effectSizeScale: 'correlation',
     effectSizeBenchmarks: { small: 0.10, medium: 0.30, large: 0.50 },
     formula: "Power based on Fisher's z transformation",
     reference: 'Cohen (1988), Chapter 3'
@@ -164,6 +169,7 @@ const TEST_TYPES = {
     name: 'Chi-Square Test',
     description: 'Test of independence or goodness of fit',
     effectSizeLabel: "Cohen's w",
+    effectSizeScale: 'cohens_w',
     effectSizeBenchmarks: { small: 0.10, medium: 0.30, large: 0.50 },
     formula: 'Power = P(χ² > χ²_crit | λ = n × w²)',
     reference: 'Cohen (1988), Chapter 7'
@@ -172,6 +178,7 @@ const TEST_TYPES = {
     name: 'Mann-Whitney U Test',
     description: 'Non-parametric alternative to independent t-test',
     effectSizeLabel: "Cohen's d equivalent",
+    effectSizeScale: 'cohens_d',
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
     formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
@@ -180,6 +187,7 @@ const TEST_TYPES = {
     name: 'Wilcoxon Signed-Rank Test',
     description: 'Non-parametric alternative to paired t-test',
     effectSizeLabel: "Cohen's d equivalent",
+    effectSizeScale: 'cohens_d',
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
     formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
@@ -188,6 +196,7 @@ const TEST_TYPES = {
     name: 'Kruskal-Wallis Test',
     description: 'Non-parametric alternative to one-way ANOVA',
     effectSizeLabel: "Cohen's f equivalent",
+    effectSizeScale: 'cohens_f',
     effectSizeBenchmarks: { small: 0.10, medium: 0.25, large: 0.40 },
     formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
@@ -462,7 +471,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           interpretation:
             backend.effect === null
               ? null
-              : interpretEffectSize(backend.effect, usesCohensF ? 'cohens_f' : 'cohens_d'),
+              : interpretEffectSize(backend.effect, currentTest.effectSizeScale),
           sampleSize,
           power: backend.achievedPower,
         };
@@ -494,8 +503,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       if (requestId === requestRef.current) setIsCalculating(false);
     }
   }, [calculationMode, testType, alpha, power, effectSize, sampleSize, secondArm,
-      numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves,
-      usesCohensF]);
+      numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves]);
 
   /**
    * Reset all inputs to defaults
@@ -765,7 +773,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                 <Typography variant="body2" gutterBottom>
                   Effect Size ({currentTest.effectSizeLabel}): <strong>{effectSize}</strong>
                   <Chip
-                    label={interpretEffectSize(effectSize, currentTest.effectSizeLabel.includes('f') ? 'cohens_f' : 'cohens_d')}
+                    label={interpretEffectSize(effectSize, currentTest.effectSizeScale) ?? '—'}
                     size="small"
                     sx={{ ml: 1 }}
                     color={effectSize >= currentTest.effectSizeBenchmarks.large ? 'success' :
@@ -1177,7 +1185,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                 {calculationMode === 'sampleSize' && (
                   <Alert severity="info">
                     <AlertTitle>Sample Size Recommendation</AlertTitle>
-                    To detect an effect size of {effectSize} ({interpretEffectSize(effectSize, 'cohens_d')})
+                    To detect an effect size of {effectSize} ({interpretEffectSize(effectSize, currentTest.effectSizeScale) ?? 'an unlabelled magnitude'})
                     with {(power * 100).toFixed(0)}% power at α={alpha}, you need{' '}
                     <strong>{results.totalN ?? results.n ?? '—'}</strong> total participants.
                   </Alert>

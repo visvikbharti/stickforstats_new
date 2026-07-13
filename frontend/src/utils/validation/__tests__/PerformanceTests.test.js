@@ -835,47 +835,64 @@ describe('Performance Benchmarks', () => {
     expect(workflowPerformance.avgTime).toBeLessThan(50);
   });
 
-  test('should generate performance report', async () => {
-    const report = {
-      testSuite: 'Validation System Performance',
-      timestamp: new Date().toISOString(),
-      benchmarks: {
-        singleValidation: { target: 10, actual: 5, unit: 'ms', status: 'PASSED' },
-        arrayValidation: { target: 100, actual: 75, unit: 'ms', status: 'PASSED' },
-        matrixValidation: { target: 200, actual: 150, unit: 'ms', status: 'PASSED' },
-        workflowPerformance: { target: 50, actual: 35, unit: 'ms', status: 'PASSED' },
-        throughput: { target: 1000, actual: 1500, unit: 'ops/sec', status: 'PASSED' }
-      },
-      overallStatus: 'ALL BENCHMARKS PASSED'
-    };
-
-    // All benchmarks should meet targets
-    const allPassed = Object.values(report.benchmarks).every(b => b.status === 'PASSED');
-    expect(allPassed).toBe(true);
-  });
+  /*
+   * REMOVED: 'should generate performance report'.
+   *
+   * It built a literal object of benchmark results -- singleValidation 5 ms, arrayValidation 75 ms,
+   * matrixValidation 150 ms, throughput 1500 ops/sec -- hand-stamped `status: 'PASSED'` on every one
+   * of them, asserted that the statuses it had just typed said 'PASSED', and signed off
+   * "ALL BENCHMARKS PASSED".
+   *
+   * Nothing was measured. Not one of those numbers came from running anything. It is a tautology
+   * (expect(literal).toBe(literal)) wrapped around fabricated performance data, and it reported that
+   * fabrication as a passing benchmark suite.
+   *
+   * The real benchmarks are the tests above this comment, which measure and assert against a target.
+   * A report that does not run the thing it reports on is worse than no report.
+   */
 });
 
 describe('Scalability Tests', () => {
-  test('should scale linearly with input size', async () => {
-    const sizes = [100, 1000, 10000];
-    const times = [];
+  /**
+   * The median wall-clock cost of one call, with the JIT warmed up first.
+   *
+   * The old version of the test below measured ONE un-warmed call at n = 100 -- a few microseconds,
+   * dominated by JIT compilation and fixed overhead, and below the resolution at which
+   * `performance.now()` means anything -- and used it as the baseline. So it was not measuring
+   * algorithmic scaling at all; it was measuring how lucky the first call got. It failed CI on
+   * 0.0028 ms/element against a baseline of 0.0020, and since `docker-build` needs `frontend-test`,
+   * that coin flip BLOCKED THE PRODUCTION IMAGE PUSH.
+   */
+  const medianDuration = (size, repeats = 7) => {
+    const data = Array(size).fill(0).map(() => Math.random() * 100);
 
-    for (const size of sizes) {
-      const data = Array(size).fill(0).map(() => Math.random() * 100);
+    validateDataArray(data, { elementType: 'float' }); // warm up; deliberately not measured
 
-      const startTime = performance.now();
+    const samples = [];
+    for (let i = 0; i < repeats; i++) {
+      const start = performance.now();
       validateDataArray(data, { elementType: 'float' });
-      const duration = performance.now() - startTime;
-
-      times.push({ size, duration, timePerElement: duration / size });
+      samples.push(performance.now() - start);
     }
 
-    // Time per element should remain relatively constant (linear scaling)
-    const timePerElement100 = times[0].timePerElement;
-    const timePerElement10000 = times[2].timePerElement;
+    return samples.sort((a, b) => a - b)[Math.floor(repeats / 2)];
+  };
 
-    // Should not grow more than 2x
-    expect(timePerElement10000).toBeLessThan(timePerElement100 * 2);
+  test('does not scale quadratically with input size', async () => {
+    // What this test is FOR is catching an accidental O(n^2) -- someone putting an indexOf() or a
+    // nested scan inside the element loop. State that, and assert it in a way noise cannot forge.
+    //
+    // At 10x the input: a LINEAR implementation costs ~10x total. A QUADRATIC one costs ~100x.
+    // A bound of 30x therefore fails a quadratic outright while leaving a wide margin for a noisy
+    // shared runner. Totals are compared (not per-element times) so the numbers stay large enough
+    // to be measurable, and each is the median of 7 warmed runs.
+    const small = medianDuration(2000);
+    const large = medianDuration(20000);
+
+    // If the baseline is below timer resolution, the ratio is meaningless -- say so rather than
+    // dividing by ~0 and calling the result a pass or a failure.
+    expect(small).toBeGreaterThan(0);
+    expect(large / small).toBeLessThan(30);
   });
 
   test('should scale with number of validation rules', async () => {

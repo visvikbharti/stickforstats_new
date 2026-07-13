@@ -3,6 +3,11 @@
  * These functions run simulations in the browser without requiring backend WebSocket connections
  */
 
+// The exact inverse-t, verified against scipy to ~1e-9 across every df
+// (see distributionFunctions.validation.test.js). This file used to approximate it by hand, and
+// got it wrong in both directions -- see `tCritical` below.
+import { tQuantile } from '../components/power-analysis/education/utils/distributionFunctions';
+
 // Statistical distributions and calculations
 
 /**
@@ -177,18 +182,31 @@ export function calculateStats(data) {
 /**
  * Calculate t critical value (approximation)
  */
+/**
+ * The two-sided critical value of Student's t. EXACT -- it is the inverse-t, not an approximation.
+ *
+ * What was here before was wrong in BOTH directions, and it fed every confidence interval this
+ * module draws (the whole confidence_intervals simulation suite: coverage, sample size, bootstrap,
+ * non-normality, transformation).
+ *
+ *     if (df > 30) return z;     // <- the NORMAL quantile, standing in for t
+ *
+ * Above df = 30 it simply returned 1.959964 for a 95% interval, where t(40) = 2.021075. That is
+ * 3.0% TOO NARROW, and too narrow is the dangerous direction: it overstates precision. Measured
+ * empirically over 20,000 simulations, a nominal 95% interval actually covered:
+ *
+ *     n = 41 (df 40) -> 0.9426        n = 61 (df 60) -> 0.9466
+ *
+ * A "95% CI" that covers 94.3% of the time. And below df = 30 the hand-rolled series was wrong the
+ * other way -- it used (z^3 + 3z) where the Cornish-Fisher expansion has (z^3 + z) -- making
+ * intervals 1.5% too WIDE at df = 29 and 3.5% too wide at df = 5 (coverage 0.9529 and 0.9560).
+ *
+ * This is the same defect class as the power-analysis arc: a browser-side approximation quietly
+ * substituted for the real distribution. The cure is the same -- use the real distribution. The
+ * exact inverse-t already existed in this repo, pinned against scipy; it just was not being used.
+ */
 function tCritical(df, alpha) {
-  // Using Wilson-Hilferty approximation for t-distribution
-  const z = normalQuantile(1 - alpha / 2);
-
-  if (df > 30) {
-    return z;
-  }
-
-  // Better approximation for small df
-  const g1 = 1 / (4 * df);
-  const g2 = 1 / (96 * df * df);
-  return z * (1 + g1 * (z * z + 3) + g2 * (z * z * z * z + 5 * z * z + 3));
+  return tQuantile(1 - alpha / 2, df);
 }
 
 /**
