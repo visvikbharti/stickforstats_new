@@ -431,43 +431,14 @@ const SampleBasedCalculator = ({ project, projectData, onSaveResult }) => {
     } finally {
       setCalculating(false);
     }
-    return;
-    
-    try {
-      const requestData = {
-        interval_type: intervalType,
-        project_id: project.id,
-        confidence_level: confidenceLevel
-      };
-      
-      // Add data source
-      if (dataSource === 'SAVED') {
-        requestData.data_id = selectedDataId;
-      } else {
-        requestData.numeric_data = parsedData;
-      }
-      
-      // Add special parameters for specific interval types
-      if (intervalType === 'MEAN_Z') {
-        requestData.population_std = Number(populationStd);
-      }
-      
-      const response = await axios.post('/api/confidence-intervals/calculate/calculate/', requestData);
-      
-      setResult(response.data);
-      setSavedResult(null);
-      
-      enqueueSnackbar('Calculation completed successfully', { variant: 'success' });
-    } catch (error) {
-      console.error('Error calculating confidence interval:', error);
-      enqueueSnackbar(
-        'Error calculating confidence interval: ' + 
-        (error.response?.data?.error || error.message), 
-        { variant: 'error' }
-      );
-    } finally {
-      setCalculating(false);
-    }
+    // An unreachable `return;` used to sit here, followed by ~36 lines of a backend call
+    // to /api/confidence-intervals/calculate/calculate/ that could never execute. Every
+    // interval this calculator has ever displayed was computed in the browser, not on the
+    // server. The dead block is removed rather than left to imply otherwise.
+    //
+    // The local computation above is sound: it inverts t and z QUANTILES, and quantiles do
+    // not suffer the catastrophic `1 - cdf` cancellation that was corrupting p-values
+    // elsewhere in this app. If this is ever moved to the backend, delete this note.
   };
 
   // Save the calculation result

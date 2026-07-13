@@ -13,6 +13,7 @@ from .views import (
 )
 from .ancova_view import HighPrecisionANCOVAView
 from .descriptive_view import DescriptiveStatisticsView
+from .normality_view import NormalityTestView
 from .correlation_views import HighPrecisionCorrelationView, AutomaticTestSelectorView
 from .power_views import (
     calculate_power_t_test,
@@ -234,6 +235,8 @@ urlpatterns = [
         "stats/regression/", HighPrecisionRegressionView.as_view(), name="hp-regression-stats"
     ),
     path("stats/descriptive/", DescriptiveStatisticsView.as_view(), name="hp-descriptive"),
+    # Normality. The frontend used to compute this itself, with an invented Shapiro-Wilk.
+    path("stats/normality/", NormalityTestView.as_view(), name="normality-tests"),
     path("stats/comparison/", ComparisonView.as_view(), name="comparison"),
     # Automatic test selection
     path("stats/recommend/", AutomaticTestSelectorView.as_view(), name="test-recommendation"),

@@ -30,6 +30,7 @@ import {
   Card,
   CardContent,
   Alert,
+  AlertTitle,
   Chip,
   Table,
   TableBody,
@@ -232,12 +233,17 @@ const RepeatedMeasuresANOVA = ({ data }) => {
       }
 
       const result = await response.json();
-      setResults(result);
+      setResults({ ...result, computedBy: 'backend' });
 
     } catch (err) {
-      console.error('API call failed, using client-side calculation:', err);
-      // Fallback: Calculate client-side
-      setResults(calculateClientSide());
+      // The client-side fallback still runs -- a browser F-test is better than a blank
+      // screen -- but it is now LABELLED. It used to be substituted silently and rendered
+      // identically to the backend's, so the user had no way to know which engine produced
+      // their F and p. That failure mode is at its worst exactly when it fires: the backend
+      // is down, nobody is watching, and the numbers look completely normal.
+      console.error('Backend call failed; falling back to the in-browser calculation:', err);
+      const fallback = calculateClientSide();
+      setResults(fallback ? { ...fallback, computedBy: 'browser', backendError: err.message } : null);
     } finally {
       setLoading(false);
     }
@@ -747,6 +753,21 @@ const RepeatedMeasuresANOVA = ({ data }) => {
       {/* Results Section */}
       {results && !isTestBlocked && (
         <>
+          {/* The in-browser fallback is LABELLED. It used to be substituted silently on any
+              backend failure and rendered identically to the real thing, so the user had no
+              way to tell which engine produced their F and p -- and that failure mode is at
+              its worst exactly when it fires: the server is down, nobody is watching, and the
+              numbers look completely normal. */}
+          {results.computedBy === 'browser' && (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              <AlertTitle>Computed in your browser, not on the server</AlertTitle>
+              The server call failed{results.backendError ? ` (${results.backendError})` : ''}, so
+              these numbers come from the in-browser calculation. It uses the same formulas but not
+              the high-precision engine, and its sphericity correction is simplified. Re-run when
+              the server is reachable before relying on them.
+            </Alert>
+          )}
+
           {/* Summary Cards */}
           <Grid container spacing={3} sx={{ mb: 3 }}>
             {/* Main Result */}

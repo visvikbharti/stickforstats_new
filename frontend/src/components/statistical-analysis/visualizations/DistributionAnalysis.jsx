@@ -12,7 +12,7 @@
  * Ported from: app/utils/visualization.py (lines 339-581)
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -46,7 +46,8 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
-import { calculateDescriptiveStats, createHistogramBins, shapiroWilkTest } from '../utils/statisticalUtils';
+import { calculateDescriptiveStats, createHistogramBins } from '../utils/statisticalUtils';
+import { runNormalityTests } from '../utils/hubTestService';
 import jStat from 'jstat';
 
 /**
@@ -85,11 +86,45 @@ const DistributionAnalysis = ({ data }) => {
   }, [columnData]);
 
   /**
-   * Perform normality test
+   * Normality test -- run on the backend (scipy's Shapiro-Wilk), not in the browser.
+   *
+   * The browser version this replaces used W coefficients that are not Royston's and floored
+   * its p-value at 0.001, so no sample could ever be reported as decisively non-normal. It
+   * also silently returned null above n = 5000 instead of switching to a test that IS valid
+   * there, so large datasets simply showed no normality result at all.
    */
-  const normalityTest = useMemo(() => {
-    if (columnData.length < 3 || columnData.length > 5000) return null;
-    return shapiroWilkTest(columnData);
+  const [normalityTest, setNormalityTest] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (columnData.length < 3) {
+      setNormalityTest(null);
+      return undefined;
+    }
+
+    runNormalityTests(columnData)
+      .then((response) => {
+        if (cancelled) return;
+        const primary = response.tests.find((t) => t.name === response.primaryTest);
+        setNormalityTest(
+          primary
+            ? {
+                name: primary.name,
+                statistic: primary.statistic,
+                pValue: primary.pValue,
+                isNormal: primary.normal,
+              }
+            : null
+        );
+      })
+      .catch(() => {
+        // No result rather than a browser-computed stand-in the user could not tell apart.
+        if (!cancelled) setNormalityTest(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [columnData]);
 
   /**
@@ -749,9 +784,13 @@ const DistributionAnalysis = ({ data }) => {
                 <Typography variant="body2">
                   <strong>Shapiro-Wilk Normality Test:</strong>
                   <br />
-                  Test Statistic: {normalityTest.statistic?.toFixed(4)}
+                  {normalityTest.name} statistic: {Number.isFinite(normalityTest.statistic) ? normalityTest.statistic.toFixed(4) : '\u2014'}
                   <br />
-                  P-value: {normalityTest.pValue?.toFixed(4)}
+                  P-value: {!Number.isFinite(normalityTest.pValue)
+                    ? '\u2014'
+                    : normalityTest.pValue < 0.0001
+                      ? normalityTest.pValue.toExponential(2)
+                      : normalityTest.pValue.toFixed(4)}
                   <br />
                   <br />
                   {normalityTest.isNormal ? (

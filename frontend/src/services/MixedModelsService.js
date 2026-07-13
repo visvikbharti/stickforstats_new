@@ -15,6 +15,38 @@
 import axios from 'axios';
 import jStat from 'jstat';
 
+/**
+ * `value.se || 0` turns a MISSING standard error into 0, and a standard error of 0 makes the
+ * confidence interval below collapse to [estimate, estimate] -- zero width. The caterpillar
+ * plot then draws that random effect as a dot with no whiskers, which reads as a parameter
+ * estimated with perfect precision. It is the opposite: it is a parameter whose precision we
+ * do not know.
+ *
+ * `value.estimate || value` has the same shape of bug: a legitimate estimate of exactly 0 is
+ * falsy, so the whole object was substituted for it.
+ */
+const numberOrNull = (value) => {
+  if (value === null || value === undefined) return null;
+  const parsed = typeof value === 'number' ? value : parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const firstNumber = (...candidates) => {
+  for (const candidate of candidates) {
+    const parsed = numberOrNull(candidate);
+    if (parsed !== null) return parsed;
+  }
+  return null;
+};
+
+/** A confidence interval needs a standard error. Without one there is no interval. */
+const normalInterval = (estimate, se) => {
+  if (estimate === null || se === null) return [null, null];
+  const z = jStat.normal.inv(0.975, 0, 1);
+  return [estimate - z * se, estimate + z * se];
+};
+
+
 class MixedModelsService {
   constructor() {
     // The mixed-models routes live under /api/v1/core/mixed/... . REACT_APP_API_URL
@@ -291,13 +323,16 @@ class MixedModelsService {
     // Handle intercept random effects
     if (effects.intercept) {
       Object.entries(effects.intercept).forEach(([group, value]) => {
+        const estimate = firstNumber(value?.estimate, value);
+        const se = firstNumber(value?.se, value?.std_error);
+        const [lower, upper] = normalInterval(estimate, se);
         processed.push({
           group,
           effect: 'Intercept',
-          estimate: value.estimate || value,
-          se: value.se || value.std_error || 0,
-          ciLower: value.ci_lower || (value.estimate - jStat.normal.inv(0.975, 0, 1) * (value.se || 0)),
-          ciUpper: value.ci_upper || (value.estimate + jStat.normal.inv(0.975, 0, 1) * (value.se || 0))
+          estimate,
+          se,
+          ciLower: firstNumber(value?.ci_lower, lower),
+          ciUpper: firstNumber(value?.ci_upper, upper),
         });
       });
     }
@@ -306,13 +341,16 @@ class MixedModelsService {
     if (effects.slopes) {
       Object.entries(effects.slopes).forEach(([variable, groupEffects]) => {
         Object.entries(groupEffects).forEach(([group, value]) => {
+          const estimate = firstNumber(value?.estimate, value);
+          const se = firstNumber(value?.se, value?.std_error);
+          const [lower, upper] = normalInterval(estimate, se);
           processed.push({
             group,
             effect: variable,
-            estimate: value.estimate || value,
-            se: value.se || value.std_error || 0,
-            ciLower: value.ci_lower || (value.estimate - jStat.normal.inv(0.975, 0, 1) * (value.se || 0)),
-            ciUpper: value.ci_upper || (value.estimate + jStat.normal.inv(0.975, 0, 1) * (value.se || 0))
+            estimate,
+            se,
+            ciLower: firstNumber(value?.ci_lower, lower),
+            ciUpper: firstNumber(value?.ci_upper, upper),
           });
         });
       });

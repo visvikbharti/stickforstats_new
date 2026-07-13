@@ -8,7 +8,7 @@
  * - One-way ANOVA (compare three or more groups)
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -54,12 +54,9 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
 import {
-  oneSampleTTest,
-  independentTTest,
-  pairedTTest,
-  oneWayANOVA,
   calculateDescriptiveStats
 } from '../utils/statisticalUtils';
+import { runTTest, runOneWayAnova } from '../utils/hubTestService';
 import { formatPValue } from '../../../utils/formatStats';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
@@ -74,6 +71,15 @@ import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
 import { useSettings } from '../../../context/SettingsContext';
+
+
+/**
+ * A statistic the backend reports as null does not EXIST -- for example t = 0/0 when both
+ * groups are constant. Rendering it as a number would be a lie, and calling .toFixed() on it
+ * throws and blanks the whole page. Em dash.
+ */
+const fmt = (value, digits = 4) =>
+  Number.isFinite(value) ? value.toFixed(digits) : '\u2014';
 
 /**
  * Main Parametric Tests Component
@@ -167,46 +173,144 @@ const ParametricTests = ({ data }) => {
   }, [data, selectedColumn, groupColumn]);
 
   /**
-   * Perform one-sample t-test
+   * Every test on this tab now runs on the BACKEND.
+   *
+   * The browser versions computed their p-values as `1 - jStat.X.cdf(...)`, which cancels in
+   * floating point: `2 * (1 - jStat.studentt.cdf(40, 20))` is exactly 0, and
+   * `1 - jStat.centralF.cdf(200, 2, 30)` is exactly 0. The screen then printed
+   * "p = 0.0000 < 0.05 -> significantly different" -- a p-value of zero, which does not
+   * exist. The backend returns the real tail (1.4e-21 for that t) and it is rendered.
    */
+  const [testResult, setTestResult] = useState(null);
+  const [testError, setTestError] = useState(null);
+  const [testLoading, setTestLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const groups = Object.values(groupedData);
+
+    const ready =
+      (testType === 'one-sample' && columnData.length >= 2) ||
+      (testType === 'independent' &&
+        groups.length === 2 &&
+        groups[0].length >= 2 &&
+        groups[1].length >= 2) ||
+      (testType === 'paired' &&
+        columnData.length >= 2 &&
+        columnData.length === columnData2.length) ||
+      (testType === 'anova' && groups.length >= 2 && groups.every((g) => g.length >= 2));
+
+    if (!ready) {
+      setTestResult(null);
+      setTestError(null);
+      return undefined;
+    }
+
+    const request =
+      testType === 'anova'
+        ? runOneWayAnova(groups)
+        : runTTest({
+            testType,
+            data1: testType === 'independent' ? groups[0] : columnData,
+            data2: testType === 'independent' ? groups[1] : columnData2,
+            populationMean,
+          });
+
+    setTestLoading(true);
+    setTestError(null);
+
+    request
+      .then((response) => {
+        if (!cancelled) setTestResult({ testType, response });
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setTestResult(null);
+          setTestError(err.response?.data?.error || err.message || 'The test could not be run.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setTestLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [testType, columnData, columnData2, groupedData, populationMean]);
+
+  /**
+   * `significant` is null -- not false -- when there is no p-value. A test whose statistic is
+   * undefined (both groups constant, so t = 0/0) has not "failed to reject"; it has not run.
+   */
+  const isSignificant = (pValue) =>
+    Number.isFinite(pValue) ? pValue < alpha : null;
+
+  const forType = (wanted) =>
+    testResult && testResult.testType === wanted ? testResult.response : null;
+
   const oneSampleResult = useMemo(() => {
-    if (testType !== 'one-sample' || columnData.length < 2) return null;
-    return oneSampleTTest(columnData, populationMean);
-  }, [testType, columnData, populationMean]);
+    const r = forType('one-sample');
+    if (!r) return null;
+    return {
+      sampleMean: r.mean1,
+      standardError: r.standardError,
+      statistic: r.statistic,
+      df: r.df,
+      pValue: r.pValue,
+      significant: isSignificant(r.pValue),
+      interpretation: r.interpretation,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testResult, alpha]);
 
-  /**
-   * Perform independent t-test
-   */
   const independentResult = useMemo(() => {
-    if (testType !== 'independent' || Object.keys(groupedData).length !== 2) return null;
+    const r = forType('independent');
+    if (!r) return null;
+    return {
+      meanDifference: r.meanDifference,
+      standardError: r.standardError,
+      statistic: r.statistic,
+      df: r.df,
+      pValue: r.pValue,
+      significant: isSignificant(r.pValue),
+      interpretation: r.interpretation,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testResult, alpha]);
 
-    const groups = Object.values(groupedData);
-    if (groups[0].length < 2 || groups[1].length < 2) return null;
-
-    return independentTTest(groups[0], groups[1]);
-  }, [testType, groupedData]);
-
-  /**
-   * Perform paired t-test
-   */
   const pairedResult = useMemo(() => {
-    if (testType !== 'paired' || columnData.length < 2 || columnData2.length < 2) return null;
-    if (columnData.length !== columnData2.length) return null;
+    const r = forType('paired');
+    if (!r) return null;
+    return {
+      sampleMean: r.meanDifference,
+      standardError: r.standardError,
+      statistic: r.statistic,
+      df: r.df,
+      pValue: r.pValue,
+      significant: isSignificant(r.pValue),
+      interpretation: r.interpretation,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testResult, alpha]);
 
-    return pairedTTest(columnData, columnData2);
-  }, [testType, columnData, columnData2]);
-
-  /**
-   * Perform one-way ANOVA
-   */
   const anovaResult = useMemo(() => {
-    if (testType !== 'anova' || Object.keys(groupedData).length < 2) return null;
-
-    const groups = Object.values(groupedData);
-    if (groups.some(g => g.length < 2)) return null;
-
-    return oneWayANOVA(groups);
-  }, [testType, groupedData]);
+    const r = forType('anova');
+    if (!r) return null;
+    return {
+      fStatistic: r.fStatistic,
+      pValue: r.pValue,
+      dfb: r.dfBetween,
+      dfw: r.dfWithin,
+      ssb: r.ssBetween,
+      ssw: r.ssWithin,
+      msb: r.msBetween,
+      msw: r.msWithin,
+      etaSquared: r.etaSquared,
+      significant: isSignificant(r.pValue),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testResult, alpha]);
 
   /**
    * Prepare visualization data
@@ -718,6 +822,24 @@ const ParametricTests = ({ data }) => {
 
       {/* Test Results */}
       {/* One-Sample t-test Results */}
+      {/* The test runs on the server. If it is in flight, say so; if it failed, say so.
+          Silently showing nothing -- or worse, falling back to a browser approximation the
+          user cannot distinguish from the real thing -- is what this page used to do. */}
+      {testLoading && !isTestBlocked && (
+        <Paper elevation={2} sx={{ p: 3, mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <CircularProgress size={20} />
+          <Typography variant="body2" color="text.secondary">
+            Running the test on the server…
+          </Typography>
+        </Paper>
+      )}
+
+      {testError && !isTestBlocked && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {testError} No result is shown rather than an approximate one.
+        </Alert>
+      )}
+
       {oneSampleResult && !isTestBlocked && (
         <>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -739,15 +861,15 @@ const ParametricTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Sample Mean</TableCell>
-                    <TableCell align="right">{oneSampleResult.sampleMean.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(oneSampleResult.sampleMean, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Standard Error</TableCell>
-                    <TableCell align="right">{oneSampleResult.standardError.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(oneSampleResult.standardError, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>t-statistic</TableCell>
-                    <TableCell align="right">{oneSampleResult.statistic.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(oneSampleResult.statistic, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Degrees of Freedom</TableCell>
@@ -771,13 +893,29 @@ const ParametricTests = ({ data }) => {
               </Table>
             </TableContainer>
 
+            {/* significant === null means there is NO p-value: the statistic is undefined for
+                this input (e.g. every observation identical, so t = 0/0). Falling through to
+                the "not significant" branch would report a confident null result on data that
+                cannot support one. */}
+            {oneSampleResult.significant === null && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>The one-sample t-test is undefined for these data.</strong>{' '}
+                  {oneSampleResult.interpretation ||
+                    'The test statistic could not be computed, so there is no p-value and no conclusion to draw.'}
+                </Typography>
+              </Alert>
+            )}
+
+            {oneSampleResult.significant !== null && (
             <Alert severity={oneSampleResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {oneSampleResult.significant
-                  ? `The sample mean (${oneSampleResult.sampleMean.toFixed(2)}) is significantly different from ${populationMean} (p = ${oneSampleResult.pValue.toFixed(4)} < ${alpha}).`
-                  : `The sample mean (${oneSampleResult.sampleMean.toFixed(2)}) is not significantly different from ${populationMean} (p = ${oneSampleResult.pValue.toFixed(4)} >= ${alpha}).`}
+                  ? `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is significantly different from ${populationMean} (p = ${formatPValue(oneSampleResult.pValue)} < ${alpha}).`
+                  : `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is not significantly different from ${populationMean} (p = ${formatPValue(oneSampleResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
+          )}
           </Paper>
 
           {/* Visualization */}
@@ -874,15 +1012,15 @@ const ParametricTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Mean Difference</TableCell>
-                    <TableCell align="right">{independentResult.meanDifference.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(independentResult.meanDifference, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Standard Error</TableCell>
-                    <TableCell align="right">{independentResult.standardError.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(independentResult.standardError, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>t-statistic</TableCell>
-                    <TableCell align="right">{independentResult.statistic.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(independentResult.statistic, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Degrees of Freedom</TableCell>
@@ -906,13 +1044,29 @@ const ParametricTests = ({ data }) => {
               </Table>
             </TableContainer>
 
+            {/* significant === null means there is NO p-value: the statistic is undefined for
+                this input (e.g. every observation identical, so t = 0/0). Falling through to
+                the "not significant" branch would report a confident null result on data that
+                cannot support one. */}
+            {independentResult.significant === null && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>The independent-samples t-test is undefined for these data.</strong>{' '}
+                  {independentResult.interpretation ||
+                    'The test statistic could not be computed, so there is no p-value and no conclusion to draw.'}
+                </Typography>
+              </Alert>
+            )}
+
+            {independentResult.significant !== null && (
             <Alert severity={independentResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {independentResult.significant
-                  ? `The two groups have significantly different means (p = ${independentResult.pValue.toFixed(4)} < ${alpha}).`
-                  : `The two groups do not have significantly different means (p = ${independentResult.pValue.toFixed(4)} >= ${alpha}).`}
+                  ? `The two groups have significantly different means (p = ${formatPValue(independentResult.pValue)} < ${alpha}).`
+                  : `The two groups do not have significantly different means (p = ${formatPValue(independentResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
+          )}
           </Paper>
 
           {/* Visualization */}
@@ -1006,15 +1160,15 @@ const ParametricTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Mean Difference</TableCell>
-                    <TableCell align="right">{pairedResult.sampleMean.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(pairedResult.sampleMean, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Standard Error</TableCell>
-                    <TableCell align="right">{pairedResult.standardError.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(pairedResult.standardError, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>t-statistic</TableCell>
-                    <TableCell align="right">{pairedResult.statistic.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(pairedResult.statistic, 4)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Degrees of Freedom</TableCell>
@@ -1038,13 +1192,29 @@ const ParametricTests = ({ data }) => {
               </Table>
             </TableContainer>
 
+            {/* significant === null means there is NO p-value: the statistic is undefined for
+                this input (e.g. every observation identical, so t = 0/0). Falling through to
+                the "not significant" branch would report a confident null result on data that
+                cannot support one. */}
+            {pairedResult.significant === null && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>The paired t-test is undefined for these data.</strong>{' '}
+                  {pairedResult.interpretation ||
+                    'The test statistic could not be computed, so there is no p-value and no conclusion to draw.'}
+                </Typography>
+              </Alert>
+            )}
+
+            {pairedResult.significant !== null && (
             <Alert severity={pairedResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {pairedResult.significant
-                  ? `There is a significant difference between the paired measurements (p = ${pairedResult.pValue.toFixed(4)} < ${alpha}).`
-                  : `There is no significant difference between the paired measurements (p = ${pairedResult.pValue.toFixed(4)} >= ${alpha}).`}
+                  ? `There is a significant difference between the paired measurements (p = ${formatPValue(pairedResult.pValue)} < ${alpha}).`
+                  : `There is no significant difference between the paired measurements (p = ${formatPValue(pairedResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
+          )}
           </Paper>
 
           {/* Visualization */}
@@ -1146,24 +1316,24 @@ const ParametricTests = ({ data }) => {
                 <TableBody>
                   <TableRow>
                     <TableCell>Between Groups</TableCell>
-                    <TableCell align="right">{anovaResult.ssb.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(anovaResult.ssb, 4)}</TableCell>
                     <TableCell align="right">{anovaResult.dfb}</TableCell>
-                    <TableCell align="right">{anovaResult.msb.toFixed(4)}</TableCell>
-                    <TableCell align="right">{anovaResult.fStatistic.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(anovaResult.msb, 4)}</TableCell>
+                    <TableCell align="right">{fmt(anovaResult.fStatistic, 4)}</TableCell>
                     <TableCell align="right">{formatPValue(anovaResult.pValue)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Within Groups</TableCell>
-                    <TableCell align="right">{anovaResult.ssw.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(anovaResult.ssw, 4)}</TableCell>
                     <TableCell align="right">{anovaResult.dfw}</TableCell>
-                    <TableCell align="right">{anovaResult.msw.toFixed(4)}</TableCell>
+                    <TableCell align="right">{fmt(anovaResult.msw, 4)}</TableCell>
                     <TableCell align="right">-</TableCell>
                     <TableCell align="right">-</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell><strong>Total</strong></TableCell>
-                    <TableCell align="right"><strong>{(anovaResult.ssb + anovaResult.ssw).toFixed(4)}</strong></TableCell>
-                    <TableCell align="right"><strong>{anovaResult.dfb + anovaResult.dfw}</strong></TableCell>
+                    <TableCell align="right"><strong>{fmt(anovaResult.ssb + anovaResult.ssw, 4)}</strong></TableCell>
+                    <TableCell align="right"><strong>{Number.isFinite(anovaResult.dfb + anovaResult.dfw) ? anovaResult.dfb + anovaResult.dfw : '\u2014'}</strong></TableCell>
                     <TableCell align="right">-</TableCell>
                     <TableCell align="right">-</TableCell>
                     <TableCell align="right">-</TableCell>
@@ -1180,19 +1350,35 @@ const ParametricTests = ({ data }) => {
                 sx={{ mr: 1 }}
               />
               <Chip
-                label={`η² = ${anovaResult.etaSquared.toFixed(4)}`}
+                label={`η² = ${fmt(anovaResult.etaSquared, 4)}`}
                 color="primary"
                 variant="outlined"
               />
             </Box>
 
+            {/* significant === null means there is NO p-value: the statistic is undefined for
+                this input (e.g. every observation identical, so t = 0/0). Falling through to
+                the "not significant" branch would report a confident null result on data that
+                cannot support one. */}
+            {anovaResult.significant === null && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>The one-way ANOVA is undefined for these data.</strong>{' '}
+                  {anovaResult.interpretation ||
+                    'The test statistic could not be computed, so there is no p-value and no conclusion to draw.'}
+                </Typography>
+              </Alert>
+            )}
+
+            {anovaResult.significant !== null && (
             <Alert severity={anovaResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {anovaResult.significant
-                  ? `At least one group mean differs significantly from the others (p = ${anovaResult.pValue.toFixed(4)} < ${alpha}). Effect size η² = ${anovaResult.etaSquared.toFixed(4)}.`
-                  : `All group means appear to be equal (p = ${anovaResult.pValue.toFixed(4)} >= ${alpha}).`}
+                  ? `At least one group mean differs significantly from the others (p = ${formatPValue(anovaResult.pValue)} < ${alpha}). Effect size η² = ${fmt(anovaResult.etaSquared, 4)}.`
+                  : `All group means appear to be equal (p = ${formatPValue(anovaResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
+          )}
           </Paper>
 
           {/* Visualization */}

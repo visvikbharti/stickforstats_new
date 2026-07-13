@@ -124,9 +124,17 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
       if (result && result.high_precision_result) {
         // Extract actual p-value and power from real calculation
         const pValue = parseFloat(result.high_precision_result.p_value);
-        const observedPower = result.high_precision_result.power || (1 - beta);
+        // `power || (1 - beta)` silently substituted the DESIGN power (the 0.80 you asked for)
+        // when the backend did not return an OBSERVED power. Those are different quantities:
+        // one is what you planned for, the other is what the data delivered, and showing the
+        // first under the second's label makes an underpowered study look adequately powered.
+        const reportedPower = result.high_precision_result.power;
+        const observedPower =
+          reportedPower === null || reportedPower === undefined
+            ? null
+            : parseFloat(reportedPower);
 
-        setPower(observedPower);
+        setPower(Number.isFinite(observedPower) ? observedPower : null);
         setBackendPrecision(result.precision || 50);
         setTestResult(result); // Store for Guardian display
 
@@ -259,13 +267,30 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
                 {loading ? (
                   <CircularProgress size={24} />
                 ) : (
-                  <AnimatedProgress variant="determinate" value={power * 100} />
+                  <AnimatedProgress
+                    variant="determinate"
+                    value={Number.isFinite(power) ? power * 100 : 0}
+                  />
                 )}
               </Box>
               <Typography variant="h6" color="primary">
-                {loading ? 'Calculating...' : `${(power * 100).toFixed(1)}%`}
+                {/* Observed power is null until the backend reports one. It used to fall back to
+                    the DESIGN power (1 - beta), i.e. the number you asked for, displayed as the
+                    number you got. */}
+                {loading
+                  ? 'Calculating…'
+                  : Number.isFinite(power)
+                    ? `${(power * 100).toFixed(1)}%`
+                    : '—'}
               </Typography>
             </Box>
+
+            {!loading && !Number.isFinite(power) && (
+              <Typography variant="caption" color="text.secondary">
+                Observed power is shown once a test has been run. It is not the same quantity as
+                the design power (1 − β) you set below.
+              </Typography>
+            )}
 
             {error && (
               <Alert severity="warning" sx={{ mt: 2 }}>
@@ -291,8 +316,12 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
               <ListItem>
                 <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
                 <ListItemText
-                  primary="Statistical Power"
-                  secondary={`1 - β = ${(power * 100).toFixed(1)}%`}
+                  primary="Statistical Power (observed)"
+                  secondary={
+                    Number.isFinite(power)
+                      ? `${(power * 100).toFixed(1)}%`
+                      : 'Not available until a test has been run'
+                  }
                 />
               </ListItem>
             </List>

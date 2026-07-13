@@ -46,6 +46,29 @@ import ForestPlot from './ForestPlot';
 import FunnelPlot from './FunnelPlot';
 import HeterogeneityPanel from './HeterogeneityPanel';
 import SensitivityAnalysis from './SensitivityAnalysis';
+import { formatPValue, formatNumber } from '../../utils/formatStats';
+
+/**
+ * `null < 0.05` is true in JavaScript. Every significance test in this file used to be a bare
+ * numeric comparison, so a null p-value came out "significant" and green. A quantity that
+ * does not exist is not significant, and it is not non-significant either -- it is missing.
+ */
+const isSignificant = (p) => Number.isFinite(p) && p < 0.05;
+
+const heterogeneityColor = (i2) => {
+  if (!Number.isFinite(i2)) return 'text.secondary';
+  if (i2 > 75) return 'error.main';
+  if (i2 > 50) return 'warning.main';
+  return 'success.main';
+};
+
+const heterogeneityLabel = (i2) => {
+  if (!Number.isFinite(i2)) return 'Not available';
+  if (i2 < 25) return 'Low';
+  if (i2 < 50) return 'Moderate';
+  if (i2 < 75) return 'Substantial';
+  return 'Considerable';
+};
 
 const steps = ['Enter Study Data', 'Configure Analysis', 'View Results'];
 
@@ -445,19 +468,30 @@ const MetaAnalysisHub = () => {
             <Grid item xs={12} md={4}>
               <Typography variant="body2" color="text.secondary">Pooled Effect Size</Typography>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                {results.pooled_effect.toFixed(3)}
+                {formatNumber(results.pooled_effect, 3)}
               </Typography>
               <Typography variant="body2">
-                95% CI: [{results.pooled_ci[0].toFixed(3)}, {results.pooled_ci[1].toFixed(3)}]
+                95% CI: [{formatNumber(results.pooled_ci?.[0], 3)}, {formatNumber(results.pooled_ci?.[1], 3)}]
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body2" color="text.secondary">p-value</Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: results.pooled_p < 0.05 ? 'success.main' : 'text.secondary' }}>
-                {results.pooled_p < 0.001 ? '< 0.001' : results.pooled_p.toFixed(4)}
+              {/* `results.pooled_p < 0.001` is TRUE when pooled_p is null, because JS coerces
+                  null to 0 in a numeric comparison. So a p-value the backend honestly reported
+                  as "not available" was rendered as "< 0.001", in green, as the most
+                  significant result the page can display. Same for `< 0.05` driving the colour.
+                  Every comparison here now checks for an actual number first. */}
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: isSignificant(results.pooled_p) ? 'success.main' : 'text.secondary',
+                }}
+              >
+                {formatPValue(results.pooled_p)}
               </Typography>
               <Typography variant="body2">
-                z = {results.pooled_z.toFixed(3)}
+                z = {formatNumber(results.pooled_z, 3)}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
@@ -466,16 +500,14 @@ const MetaAnalysisHub = () => {
                 variant="h4"
                 sx={{
                   fontWeight: 700,
-                  color: results.heterogeneity.i_squared > 75 ? 'error.main' :
-                         results.heterogeneity.i_squared > 50 ? 'warning.main' : 'success.main'
+                  color: heterogeneityColor(results.heterogeneity?.i_squared),
                 }}
               >
-                {results.heterogeneity.i_squared.toFixed(1)}%
+                {formatNumber(results.heterogeneity?.i_squared, 1)}
+                {Number.isFinite(results.heterogeneity?.i_squared) ? '%' : ''}
               </Typography>
               <Typography variant="body2">
-                {results.heterogeneity.i_squared < 25 ? 'Low' :
-                 results.heterogeneity.i_squared < 50 ? 'Moderate' :
-                 results.heterogeneity.i_squared < 75 ? 'Substantial' : 'Considerable'}
+                {heterogeneityLabel(results.heterogeneity?.i_squared)}
               </Typography>
             </Grid>
           </Grid>

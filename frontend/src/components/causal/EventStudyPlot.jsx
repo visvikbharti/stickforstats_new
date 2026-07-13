@@ -170,15 +170,27 @@ const EventStudyPlot = ({
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    return data.map(d => ({
-      period: d.period ?? d.event_time ?? d.time,
-      estimate: d.estimate ?? d.coefficient ?? d.effect,
-      se: d.se ?? d.std_error ?? d.stderr,
-      ciLower: d.ciLower ?? d.ci_lower ?? (d.estimate - 1.96 * (d.se || 0)),
-      ciUpper: d.ciUpper ?? d.ci_upper ?? (d.estimate + 1.96 * (d.se || 0)),
-      pValue: d.pValue ?? d.p_value ?? d.p,
-      significant: (d.pValue ?? d.p_value ?? d.p) < 0.05
-    })).sort((a, b) => a.period - b.period);
+    return data.map(d => {
+      const estimate = d.estimate ?? d.coefficient ?? d.effect ?? null;
+      const se = d.se ?? d.std_error ?? d.stderr ?? null;
+      const pValue = d.pValue ?? d.p_value ?? d.p ?? null;
+
+      // `d.se || 0` turned a MISSING standard error into 0, collapsing the interval to
+      // [estimate, estimate] -- a point with no whiskers, which the plot renders as an
+      // estimate of perfect precision. Without a standard error there is no interval.
+      const hasInterval = Number.isFinite(estimate) && Number.isFinite(se);
+
+      return {
+        period: d.period ?? d.event_time ?? d.time,
+        estimate,
+        se,
+        ciLower: d.ciLower ?? d.ci_lower ?? (hasInterval ? estimate - 1.96 * se : null),
+        ciUpper: d.ciUpper ?? d.ci_upper ?? (hasInterval ? estimate + 1.96 * se : null),
+        pValue,
+        // `null < 0.05` is true in JavaScript. A missing p-value was being marked significant.
+        significant: Number.isFinite(pValue) && pValue < 0.05,
+      };
+    }).sort((a, b) => a.period - b.period);
   }, [data]);
 
   // Separate pre and post treatment periods

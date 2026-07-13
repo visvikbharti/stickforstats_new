@@ -24,6 +24,7 @@ import {
   levenbergMarquardt,
   MODELS
 } from './nonLinearRegression';
+import { fSf } from '../../components/statistical-analysis/utils/tails';
 
 // ============================================================================
 // CONSTANTS
@@ -183,7 +184,19 @@ export function compareBindingModels(oneSiteFit, twoSiteFit, n) {
   const df2 = n - 4; // two-site has 4 parameters
 
   const Fstat = ((RSS1 - RSS2) / (df1 - df2)) / (RSS2 / df2);
-  const pValue = 1 - fDistributionCDF(Fstat, df1 - df2, df2);
+  // The F-test p-value is the UPPER tail, computed as an upper tail.
+  //
+  // This was `1 - fDistributionCDF(...)`, where fDistributionCDF called a hand-rolled
+  // `incompleteBeta` that was the Numerical Recipes continued fraction WITH THE SYMMETRY
+  // SWAP REMOVED. NR only evaluates that fraction for x < (a+1)/(a+b+2) and otherwise uses
+  // 1 - I(1-x, b, a); applied unconditionally it diverges. The result was a p-value that
+  // could come out NEGATIVE:
+  //
+  //     F = 100, df = (2, 20)  ->  rendered "p = -6.62e-7"   (truth: 3.86e-11)
+  //
+  // and that negative number then drove the model-selection decision below, and was printed
+  // to the user as "Two-site model significantly better (F-test p = -6.62e-7)".
+  const pValue = fSf(Fstat, df1 - df2, df2);
 
   // Determine preferred model
   let preferredModel = 'one-site';
@@ -836,101 +849,22 @@ export function formatKd(Kd) {
 // HELPER FUNCTIONS
 // ============================================================================
 
-/**
- * Approximate F-distribution CDF
- * Uses Wilson-Hilferty approximation
+/*
+ * fDistributionCDF() and incompleteBeta() used to live here. They are gone.
+ *
+ * incompleteBeta() was Numerical Recipes' `betacf` continued fraction applied unconditionally,
+ * without the symmetry swap NR requires for x > (a+1)/(a+b+2). Outside its region of
+ * convergence it returns garbage, including negative "probabilities". Measured:
+ *
+ *     F = 50,  df = (2, 20)  ->  1.753e-8   (truth: 1.654e-8)   -- 6% off
+ *     F = 100, df = (2, 20)  ->  -6.620e-7  (truth: 3.855e-11)  -- negative
+ *
+ * The F upper tail now comes from ../..//components/statistical-analysis/utils/tails, which
+ * expresses it as a regularized incomplete beta with its arguments swapped -- the same
+ * identity NR uses -- and is tested against scipy.
  */
-function fDistributionCDF(F, df1, df2) {
-  if (F <= 0) return 0;
-  if (df1 <= 0 || df2 <= 0) return NaN;
 
-  // Convert to beta distribution
-  const x = df1 * F / (df1 * F + df2);
 
-  // Incomplete beta function approximation
-  return incompleteBeta(x, df1 / 2, df2 / 2);
-}
-
-/**
- * Incomplete beta function approximation
- */
-function incompleteBeta(x, a, b) {
-  if (x === 0) return 0;
-  if (x === 1) return 1;
-
-  // Use continued fraction expansion
-  const maxIterations = 100;
-  const epsilon = 1e-10;
-
-  const qab = a + b;
-  const qap = a + 1;
-  const qam = a - 1;
-
-  let c = 1;
-  let d = 1 - qab * x / qap;
-  if (Math.abs(d) < 1e-30) d = 1e-30;
-  d = 1 / d;
-  let h = d;
-
-  for (let m = 1; m <= maxIterations; m++) {
-    const m2 = 2 * m;
-
-    let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
-    d = 1 + aa * d;
-    if (Math.abs(d) < 1e-30) d = 1e-30;
-    c = 1 + aa / c;
-    if (Math.abs(c) < 1e-30) c = 1e-30;
-    d = 1 / d;
-    h *= d * c;
-
-    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
-    d = 1 + aa * d;
-    if (Math.abs(d) < 1e-30) d = 1e-30;
-    c = 1 + aa / c;
-    if (Math.abs(c) < 1e-30) c = 1e-30;
-    d = 1 / d;
-    const del = d * c;
-    h *= del;
-
-    if (Math.abs(del - 1) < epsilon) break;
-  }
-
-  const bt = Math.exp(
-    lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x)
-  );
-
-  return bt * h / a;
-}
-
-/**
- * Log gamma function approximation (Lanczos)
- */
-function lgamma(x) {
-  const g = 7;
-  const c = [
-    0.99999999999980993,
-    676.5203681218851,
-    -1259.1392167224028,
-    771.32342877765313,
-    -176.61502916214059,
-    12.507343278686905,
-    -0.13857109526572012,
-    9.9843695780195716e-6,
-    1.5056327351493116e-7
-  ];
-
-  if (x < 0.5) {
-    return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x);
-  }
-
-  x -= 1;
-  let a = c[0];
-  for (let i = 1; i < g + 2; i++) {
-    a += c[i] / (x + i);
-  }
-  const t = x + g + 0.5;
-  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
-}
 
 // ============================================================================
 // EXPORT

@@ -48,11 +48,31 @@ import {
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
-import { shapiroWilkTest, andersonDarlingTest, calculateDescriptiveStats } from '../utils/statisticalUtils';
+import { calculateDescriptiveStats } from '../utils/statisticalUtils';
+import { runNormalityTests } from '../utils/hubTestService';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+
+/**
+ * A statistic the backend reports as null does not exist -- the test was not applicable to
+ * this sample. It renders as an em dash. It must never become 0, and `x.toFixed()` on it
+ * would throw and blank the page.
+ */
+const fmtStat = (value) => (Number.isFinite(value) ? value.toFixed(4) : '\u2014');
+
+/**
+ * Very small p-values are real and are shown in scientific notation. The browser engine this
+ * replaced printed them as "0.0000".
+ */
+const fmtP = (value) => {
+  if (!Number.isFinite(value)) return '\u2014';
+  if (value === 0) return '< 1e-300';
+  if (value < 0.0001) return value.toExponential(2);
+  return value.toFixed(4);
+};
+
 
 /**
  * Utility functions for statistical calculations
@@ -165,47 +185,74 @@ const NormalityTests = ({ data }) => {
   }, [columnData]);
 
   /**
-   * Perform Shapiro-Wilk test
+   * Normality tests. These run on the BACKEND (scipy), not in the browser.
+   *
+   * The browser versions they replace were not usable:
+   *   * shapiroWilkTest() used W coefficients that are not Royston's, a normalizing
+   *     transform that ignored n entirely, and a hard floor -- Math.max(0.001, ...) -- so no
+   *     sample, however non-normal, could ever report p < 0.001. It was not an approximate
+   *     Shapiro-Wilk; it was not a Shapiro-Wilk.
+   *   * D'Agostino's p came from `1 - chiSquareCDF(k2, 2)`, which cancels to exactly 0 for
+   *     any decisively non-normal sample, printing "p = 0.0000".
+   *   * All three then disagreed with the Guardian's real Shapiro-Wilk, running on the same
+   *     data, on the same screen.
    */
-  const shapiroResult = useMemo(() => {
-    if (columnData.length < 3) return null;
-    return shapiroWilkTest(columnData);
-  }, [columnData]);
+  const [normality, setNormality] = useState(null);
+  const [normalityError, setNormalityError] = useState(null);
+  const [normalityLoading, setNormalityLoading] = useState(false);
 
-  /**
-   * Perform Anderson-Darling test
-   */
-  const andersonResult = useMemo(() => {
-    if (columnData.length < 7) return null;
-    return andersonDarlingTest(columnData);
-  }, [columnData]);
+  useEffect(() => {
+    let cancelled = false;
 
-  /**
-   * D'Agostino K² Test (combines skewness and kurtosis)
-   */
-  const dAgostinoResult = useMemo(() => {
-    if (!stats || columnData.length < 20) return null;
+    if (columnData.length < 3) {
+      setNormality(null);
+      setNormalityError(null);
+      return undefined;
+    }
 
-    // Test for skewness (should be near 0 for normal distribution)
-    const skewnessZ = Math.abs(stats.skewness) / Math.sqrt(6 / columnData.length);
-    const skewnessPValue = 2 * (1 - normalCDF(Math.abs(skewnessZ)));
+    setNormalityLoading(true);
+    setNormalityError(null);
 
-    // Test for kurtosis (should be near 0 for normal distribution, excess kurtosis)
-    const kurtosisZ = Math.abs(stats.kurtosis) / Math.sqrt(24 / columnData.length);
-    const kurtosisPValue = 2 * (1 - normalCDF(Math.abs(kurtosisZ)));
+    runNormalityTests(columnData, alpha)
+      .then((response) => {
+        if (!cancelled) setNormality(response);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setNormality(null);
+          setNormalityError(
+            err.response?.data?.error || err.message || 'Could not run the normality tests.'
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setNormalityLoading(false);
+      });
 
-    // Combine using K² statistic
-    const k2 = skewnessZ ** 2 + kurtosisZ ** 2;
-    const pValue = 1 - chiSquareCDF(k2, 2);
-
-    return {
-      statistic: k2,
-      pValue: pValue,
-      skewness: stats.skewness,
-      kurtosis: stats.kurtosis,
-      isNormal: pValue > alpha
+    return () => {
+      cancelled = true;
     };
-  }, [stats, columnData, alpha]);
+  }, [columnData, alpha]);
+
+  // Adapt the backend's list of tests to the shape this component renders. A test the
+  // backend declined to run (Shapiro-Wilk above n = 5000, D'Agostino below n = 20) comes
+  // back with null statistic and null p-value, and renders as "not run" rather than as a
+  // number someone made up.
+  const byName = (name) => {
+    const test = normality?.tests?.find((t) => t.name === name);
+    if (!test) return null;
+    return {
+      statistic: test.statistic,
+      pValue: test.pValue,
+      isNormal: test.normal,
+      note: test.note,
+      ran: test.pValue !== null,
+    };
+  };
+
+  const shapiroResult = byName('Shapiro-Wilk');
+  const andersonResult = byName('Anderson-Darling');
+  const dAgostinoResult = byName("D'Agostino-Pearson");
 
   /**
    * Prepare Q-Q Plot data
@@ -493,6 +540,25 @@ const NormalityTests = ({ data }) => {
             <Typography variant="h6" gutterBottom>
               Normality Test Results (α = {alpha})
             </Typography>
+
+            {normalityLoading && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <CircularProgress size={18} />
+                <Typography variant="body2" color="text.secondary">
+                  Running the tests on the server…
+                </Typography>
+              </Box>
+            )}
+
+            {/* If the backend call fails, say so. Falling back to a browser approximation --
+                which is what this page used to do, permanently -- would put a number on the
+                screen that the user has no way to distinguish from a real one. */}
+            {normalityError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {normalityError} No result is shown rather than an approximate one.
+              </Alert>
+            )}
+
             <TableContainer>
               <Table>
                 <TableHead>
@@ -509,8 +575,8 @@ const NormalityTests = ({ data }) => {
                   {shapiroResult && (
                     <TableRow>
                       <TableCell>Shapiro-Wilk</TableCell>
-                      <TableCell align="right">{shapiroResult.statistic.toFixed(4)}</TableCell>
-                      <TableCell align="right">{shapiroResult.pValue.toFixed(4)}</TableCell>
+                      <TableCell align="right">{fmtStat(shapiroResult.statistic)}</TableCell>
+                      <TableCell align="right">{fmtP(shapiroResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {shapiroResult.isNormal ? (
                           <Chip
@@ -540,8 +606,8 @@ const NormalityTests = ({ data }) => {
                   {andersonResult && (
                     <TableRow>
                       <TableCell>Anderson-Darling</TableCell>
-                      <TableCell align="right">{andersonResult.statistic.toFixed(4)}</TableCell>
-                      <TableCell align="right">{andersonResult.pValue.toFixed(4)}</TableCell>
+                      <TableCell align="right">{fmtStat(andersonResult.statistic)}</TableCell>
+                      <TableCell align="right">{fmtP(andersonResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {andersonResult.isNormal ? (
                           <Chip
@@ -571,8 +637,8 @@ const NormalityTests = ({ data }) => {
                   {dAgostinoResult && (
                     <TableRow>
                       <TableCell>D'Agostino K²</TableCell>
-                      <TableCell align="right">{dAgostinoResult.statistic.toFixed(4)}</TableCell>
-                      <TableCell align="right">{dAgostinoResult.pValue.toFixed(4)}</TableCell>
+                      <TableCell align="right">{fmtStat(dAgostinoResult.statistic)}</TableCell>
+                      <TableCell align="right">{fmtP(dAgostinoResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {dAgostinoResult.isNormal ? (
                           <Chip
@@ -602,22 +668,33 @@ const NormalityTests = ({ data }) => {
             <Box sx={{ mt: 2 }}>
               <Divider sx={{ mb: 2 }} />
               <Typography variant="subtitle2" gutterBottom>
-                Consensus Interpretation:
+                Interpretation
+                {normality?.primaryTest && (
+                  <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    (based on {normality.primaryTest}, the appropriate test at n = {normality.n})
+                  </Typography>
+                )}
               </Typography>
-              {shapiroResult && andersonResult && dAgostinoResult && (
+              {/* The verdict comes from the test that is APPROPRIATE for this sample size --
+                  Shapiro-Wilk up to n = 5000, Anderson-Darling above it -- and the backend
+                  says which one that was. It used to be a 2-of-3 majority vote across three
+                  tests of different power and different validity ranges, which is not a
+                  decision rule that exists in statistics: it let a weak test outvote the
+                  right one. */}
+              {normality && (
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {[shapiroResult, andersonResult, dAgostinoResult].filter(r => r.isNormal).length >= 2 ? (
+                  {normality.isNormal ? (
                     <Alert severity="success" sx={{ width: '100%' }}>
                       <Typography variant="body2">
-                        <strong>Majority of tests indicate normality.</strong> The data appears to follow a normal distribution.
-                        You can proceed with parametric tests (t-tests, ANOVA).
+                        <strong>Consistent with a normal distribution.</strong> {normality.summary} You can
+                        proceed with parametric tests (t-tests, ANOVA).
                       </Typography>
                     </Alert>
                   ) : (
                     <Alert severity="warning" sx={{ width: '100%' }}>
                       <Typography variant="body2">
-                        <strong>Data shows deviation from normality.</strong> Consider using non-parametric tests
-                        (Mann-Whitney U, Kruskal-Wallis) or data transformations.
+                        <strong>Not consistent with a normal distribution.</strong> {normality.summary} Consider
+                        non-parametric tests (Mann-Whitney U, Kruskal-Wallis) or a transformation.
                       </Typography>
                     </Alert>
                   )}

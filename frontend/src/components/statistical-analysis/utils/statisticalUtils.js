@@ -1,6 +1,6 @@
 // Statistical utility functions for client-side data analysis
 import * as ss from 'simple-statistics';
-import jStat from 'jstat';
+import { tSfTwoSided, normalSfTwoSided, fSf, chiSquareSf } from './tails';
 
 /**
  * Calculate descriptive statistics for a numeric array
@@ -52,109 +52,21 @@ export const calculateDescriptiveStats = (data) => {
   };
 };
 
-/**
- * Perform Shapiro-Wilk normality test approximation
- * Note: This is a simplified version. For large samples, use normal approximation.
+/*
+ * shapiroWilkTest() and andersonDarlingTest() used to live here. They are gone.
+ *
+ * The Shapiro-Wilk was not an approximate Shapiro-Wilk -- it was not a Shapiro-Wilk at all.
+ * Its coefficients were `sqrt(n - i) - sqrt(i + 1)`, which are not Royston's; W was clamped
+ * into [0.001, 0.9999]; the normalizing transform `z = (log(1 - W) + 2.273) / 0.459` used
+ * constants that do not depend on n, when Royston's mu and sigma both do; and the p-value
+ * was floored at 0.001, so no sample, however non-normal, could ever be reported as
+ * decisively non-normal. Its own comment said "for production, consider server-side
+ * calculation".
+ *
+ * Normality now runs on the backend: POST /api/v1/stats/normality/ (scipy's Shapiro-Wilk,
+ * Anderson-Darling with a real continuous p-value, D'Agostino-Pearson and Jarque-Bera),
+ * via `hubTestService.runNormalityTests`. Use that.
  */
-export const shapiroWilkTest = (data) => {
-  if (!data || data.length < 3 || data.length > 5000) {
-    return { statistic: null, pValue: null, isNormal: null };
-  }
-
-  // Sort data
-  const sorted = [...data].sort((a, b) => a - b);
-  const n = sorted.length;
-  const mean = ss.mean(sorted);
-
-  // Calculate sum of squares
-  const ss_total = sorted.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
-
-  // Simplified W statistic calculation for small samples
-  // This is an approximation - for production, consider server-side calculation
-  const b = sorted.reduce((sum, x, i) => {
-    const a_i = (i < n/2) ?
-      Math.sqrt(n - i) - Math.sqrt(i + 1) :
-      Math.sqrt(i + 1) - Math.sqrt(n - i);
-    return sum + a_i * x;
-  }, 0);
-
-  let W = Math.pow(b, 2) / ss_total;
-
-  // Clamp W to valid range (0, 1) to handle numerical precision issues
-  // W should be close to 1 for normal data
-  W = Math.max(0.001, Math.min(0.9999, W));
-
-  // Approximate p-value using normal distribution
-  const logW = Math.log(1 - W);
-  const z = (logW - (-2.273)) / 0.459; // Approximate transformation
-  let pValue = 1 - jStat.normal.cdf(Math.abs(z), 0, 1);
-  pValue = Math.max(0.001, Math.min(1, pValue * 2)); // Two-tailed, minimum 0.001
-
-  return {
-    statistic: W,
-    pValue: pValue,
-    isNormal: pValue > 0.05
-  };
-};
-
-/**
- * Anderson-Darling normality test
- */
-export const andersonDarlingTest = (data) => {
-  if (!data || data.length < 3) {
-    return { statistic: null, criticalValues: null };
-  }
-
-  const sorted = [...data].sort((a, b) => a - b);
-  const n = sorted.length;
-  const mean = ss.mean(sorted);
-  const std = ss.standardDeviation(sorted);
-
-  // Standardize data
-  const standardized = sorted.map(x => (x - mean) / std);
-
-  // Calculate Anderson-Darling statistic
-  let A2 = 0;
-  for (let i = 0; i < n; i++) {
-    const Fi = jStat.normal.cdf(standardized[i], 0, 1);
-    const F_complement = jStat.normal.cdf(standardized[n - 1 - i], 0, 1);
-    A2 += (2 * (i + 1) - 1) * (Math.log(Fi) + Math.log(1 - F_complement));
-  }
-  A2 = -n - A2 / n;
-
-  // D'Agostino & Stephens (1986) p-value with sample-size correction
-  // A* = A2 * (1 + 0.75/n + 2.25/n²)
-  const Astar = A2 * (1 + 0.75 / n + 2.25 / (n * n));
-
-  let pValue;
-  if (Astar >= 0.6) {
-    pValue = Math.exp(1.2937 - 5.709 * Astar + 0.0186 * Astar * Astar);
-  } else if (Astar >= 0.34) {
-    pValue = Math.exp(0.9177 - 4.279 * Astar - 1.38 * Astar * Astar);
-  } else if (Astar >= 0.2) {
-    pValue = 1 - Math.exp(-8.318 + 42.796 * Astar - 59.938 * Astar * Astar);
-  } else {
-    pValue = 1 - Math.exp(-13.436 + 101.14 * Astar - 223.73 * Astar * Astar);
-  }
-  pValue = Math.max(0.0001, Math.min(1, pValue));
-
-  // Critical values kept for reference display
-  const criticalValues = {
-    '15%': 1.610,
-    '10%': 1.933,
-    '5%': 2.492,
-    '2.5%': 3.070,
-    '1%': 3.857
-  };
-
-  return {
-    statistic: A2,
-    pValue,
-    criticalValues,
-    significanceLevel: Object.entries(criticalValues).find(([_, val]) => A2 < val)?.[0] || '>1%',
-    isNormal: pValue > 0.05
-  };
-};
 
 /**
  * One-sample t-test
@@ -173,7 +85,9 @@ export const oneSampleTTest = (data, populationMean = 0) => {
   const df = n - 1;
 
   // Two-tailed p-value
-  const pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(tStatistic), df));
+  // `1 - cdf(|t|)` underflows to exactly 0 for |t| beyond ~9, printing "p = 0.0000"
+  // on every decisively significant test. ./tails computes the tail directly.
+  const pValue = tSfTwoSided(tStatistic, df);
 
   return {
     statistic: tStatistic,
@@ -210,7 +124,9 @@ export const independentTTest = (group1, group2) => {
   const df = n1 + n2 - 2;
 
   // Two-tailed p-value
-  const pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(tStatistic), df));
+  // `1 - cdf(|t|)` underflows to exactly 0 for |t| beyond ~9, printing "p = 0.0000"
+  // on every decisively significant test. ./tails computes the tail directly.
+  const pValue = tSfTwoSided(tStatistic, df);
 
   return {
     statistic: tStatistic,
@@ -280,7 +196,9 @@ export const oneWayANOVA = (groups) => {
   const fStatistic = msBetween / msWithin;
 
   // P-value
-  const pValue = 1 - jStat.centralF.cdf(fStatistic, dfBetween, dfWithin);
+  // `1 - cdf` gave exactly 0 for any decisively significant F. ./tails uses the
+  // incomplete beta's upper tail, where there is nothing to cancel.
+  const pValue = fSf(fStatistic, dfBetween, dfWithin);
 
   // Effect size (eta-squared)
   const etaSquared = ssBetween / (ssBetween + ssWithin);
@@ -310,23 +228,51 @@ export const oneWayANOVA = (groups) => {
  * Pearson correlation coefficient
  */
 export const pearsonCorrelation = (x, y) => {
-  if (!x || !y || x.length !== y.length || x.length < 2) return null;
+  if (!x || !y || x.length !== y.length || x.length < 3) return null;
 
-  const r = ss.sampleCorrelation(x, y);
   const n = x.length;
 
-  // T-statistic for significance test
-  const tStatistic = r * Math.sqrt((n - 2) / (1 - r * r));
+  // A constant variable has no correlation with anything: r = 0/0. Returning 0 here would
+  // report "no relationship", a confident verdict on data that cannot support one.
+  const varX = ss.variance(x);
+  const varY = ss.variance(y);
+  if (varX === 0 || varY === 0) {
+    return {
+      coefficient: null,
+      pValue: null,
+      n,
+      significant: null,
+      undefinedReason: 'At least one variable is constant, so r is undefined (0/0).',
+    };
+  }
+
+  const r = ss.sampleCorrelation(x, y);
   const df = n - 2;
 
-  // Two-tailed p-value
-  const pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(tStatistic), df));
+  if (Math.abs(r) >= 1) {
+    // Exactly collinear: t diverges. Under H0 the two-sided p is 0 in the limit (scipy
+    // returns 0.0 here too), and there is no finite t to report.
+    return { coefficient: r, pValue: 0, n, significant: true, tStatistic: null };
+  }
+
+  const tStatistic = r * Math.sqrt(df / (1 - r * r));
+
+  // p = 2 * P(T > |t|), computed from the LOWER tail at -|t|.
+  //
+  // This used to be `2 * (1 - jStat.studentt.cdf(|t|, df))`. Once cdf(|t|) rounds to 1.0 in
+  // float64 -- which happens for any p below ~2e-16, i.e. for every decisively significant
+  // correlation -- the subtraction gives exactly 0, and the screen printed "p = 0.0000".
+  // The Student t distribution is symmetric, so cdf(-|t|) IS the upper tail, and evaluating
+  // it directly involves no cancellation at all.
+  const pValue = tSfTwoSided(tStatistic, df);
 
   return {
     coefficient: r,
+    tStatistic,
+    df,
     pValue,
     n,
-    significant: pValue < 0.05
+    significant: pValue < 0.05,
   };
 };
 
@@ -451,7 +397,7 @@ export const mannWhitneyUTest = (group1, group2) => {
   const z = (U - meanU) / stdU;
 
   // Two-tailed p-value
-  const pValue = 2 * (1 - jStat.normal.cdf(Math.abs(z), 0, 1));
+  const pValue = normalSfTwoSided(z);
 
   return {
     statistic: U,
@@ -497,7 +443,7 @@ export const chiSquareTest = (observed) => {
   const df = (rows - 1) * (cols - 1);
 
   // P-value
-  const pValue = 1 - jStat.chisquare.cdf(chiSquare, df);
+  const pValue = chiSquareSf(chiSquare, df);
 
   // Cramer's V effect size
   const minDim = Math.min(rows - 1, cols - 1);
@@ -576,7 +522,7 @@ export const kruskalWallisTest = (groups) => {
   const df = k - 1;
 
   // P-value from chi-square distribution
-  const pValue = 1 - jStat.chisquare.cdf(H, df);
+  const pValue = chiSquareSf(H, df);
 
   // Effect size: Epsilon-squared (η²H)
   const etaSquared = (H - k + 1) / (N - k);
@@ -667,7 +613,8 @@ export const wilcoxonSignedRankTest = (sample1, sample2) => {
   const z = (W - meanW) / stdW;
 
   // Two-tailed p-value
-  const pValue = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+  // NOT jStat.normal.cdf: its erfc cancels to exactly 0 past |z| ~ 8. See ./tails.
+  const pValue = normalSfTwoSided(z);
 
   // Effect size: r = z / sqrt(n)
   const effectSize = Math.abs(z) / Math.sqrt(nNonZero);
@@ -756,7 +703,7 @@ export const friedmanTest = (measurements, conditionNames = null) => {
   const df = k - 1;
 
   // P-value from chi-square distribution
-  const pValue = 1 - jStat.chisquare.cdf(chiSquare, df);
+  const pValue = chiSquareSf(chiSquare, df);
 
   // Effect size: Kendall's W (coefficient of concordance)
   const kendallW = chiSquare / (n * (k - 1));

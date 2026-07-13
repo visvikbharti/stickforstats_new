@@ -25,6 +25,14 @@ import {
   TableRow,
   Alert,
 } from '@mui/material';
+import { formatPValue, formatNumber } from '../../utils/formatStats';
+
+/**
+ * `null < 0.05` is true in JavaScript -- null coerces to 0. So a subgroup whose p-value the
+ * backend reported as null was rendered as "< 0.001" in green: the most significant thing on
+ * the page, from a number that does not exist.
+ */
+const isSignificant = (p) => Number.isFinite(p) && p < 0.05;
 
 const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
   // Get I² interpretation
@@ -66,7 +74,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                  {heterogeneity.i_squared.toFixed(1)}%
+                  {formatNumber(heterogeneity.i_squared, 1)}%
                 </Typography>
                 <Chip
                   label={i2Interp.label}
@@ -116,15 +124,15 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">Q Statistic</Typography>
-                  <Typography variant="h6">{heterogeneity.q.toFixed(2)}</Typography>
+                  <Typography variant="h6">{formatNumber(heterogeneity.q, 2)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    df = {heterogeneity.q_df}, p = {heterogeneity.q_p.toFixed(4)}
+                    df = {heterogeneity.q_df}, p = {formatPValue(heterogeneity.q_p)}
                   </Typography>
                 </Grid>
 
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">τ² (Tau-squared)</Typography>
-                  <Typography variant="h6">{heterogeneity.tau_squared.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(heterogeneity.tau_squared, 4)}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     Between-study variance
                   </Typography>
@@ -132,7 +140,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
 
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">τ (Tau)</Typography>
-                  <Typography variant="h6">{heterogeneity.tau.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(heterogeneity.tau, 4)}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     Standard deviation
                   </Typography>
@@ -140,7 +148,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
 
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">H² (H-squared)</Typography>
-                  <Typography variant="h6">{heterogeneity.h_squared.toFixed(2)}</Typography>
+                  <Typography variant="h6">{formatNumber(heterogeneity.h_squared, 2)}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     Relative excess variability
                   </Typography>
@@ -153,12 +161,12 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
         {/* Q-test Interpretation */}
         <Grid item xs={12}>
           <Alert
-            severity={heterogeneity.q_p < 0.05 ? 'warning' : 'success'}
+            severity={isSignificant(heterogeneity.q_p) ? 'warning' : 'success'}
             sx={{ mb: 2 }}
           >
             <Typography variant="body2">
               <strong>Cochran's Q Test:</strong>{' '}
-              {heterogeneity.q_p < 0.05
+              {isSignificant(heterogeneity.q_p)
                 ? 'Significant heterogeneity detected (p < 0.05). Studies may not share a common effect size.'
                 : 'No significant heterogeneity detected (p ≥ 0.05). However, Q test has low power with few studies.'}
             </Typography>
@@ -192,22 +200,22 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                           <TableCell>{name}</TableCell>
                           <TableCell align="right">{data.k}</TableCell>
                           <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                            {data.pooled_effect.toFixed(3)}
+                            {formatNumber(data.pooled_effect, 3)}
                           </TableCell>
                           <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                            [{data.ci_lower.toFixed(3)}, {data.ci_upper.toFixed(3)}]
+                            [{formatNumber(data.ci_lower, 3)}, {formatNumber(data.ci_upper, 3)}]
                           </TableCell>
                           <TableCell
                             align="right"
                             sx={{
                               fontFamily: 'monospace',
-                              color: data.p_value < 0.05 ? 'success.main' : 'text.secondary'
+                              color: isSignificant(data.p_value) ? 'success.main' : 'text.secondary'
                             }}
                           >
-                            {data.p_value < 0.001 ? '< 0.001' : data.p_value.toFixed(4)}
+                            {formatPValue(data.p_value)}
                           </TableCell>
                           <TableCell align="right">
-                            {data.i_squared.toFixed(1)}%
+                            {formatNumber(data.i_squared, 1)}%
                           </TableCell>
                         </TableRow>
                       ))}
@@ -223,8 +231,8 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                       Between-group heterogeneity (Q<sub>between</sub>)
                     </Typography>
                     <Typography variant="body1">
-                      Q = {subgroupAnalysis.q_between.toFixed(2)}, df = {subgroupAnalysis.df_between},
-                      p = {subgroupAnalysis.p_between.toFixed(4)}
+                      Q = {formatNumber(subgroupAnalysis.q_between, 2)}, df = {subgroupAnalysis.df_between},
+                      p = {formatPValue(subgroupAnalysis.p_between)}
                     </Typography>
                   </Box>
                   <Chip
