@@ -15,7 +15,6 @@ CRITICAL: This is the foundation for all statistical calculations.
 from decimal import Decimal, getcontext, ROUND_HALF_UP
 import numpy as np
 from typing import List, Union, Dict
-from scipy import stats
 import mpmath
 
 from core.hp_nonparametric_comprehensive import canonical_alternative
@@ -26,6 +25,18 @@ getcontext().rounding = ROUND_HALF_UP
 
 # Set mpmath precision for special functions
 mpmath.mp.dps = 50  # 50 decimal places
+
+
+def hp_sqrt(value: Union[Decimal, float, int, str]) -> Decimal:
+    """Square root at the configured precision.
+
+    The idiom this replaces -- hp_sqrt(x) -- casts a 50-digit
+    Decimal down to a float64 BEFORE taking the root, so the result carries ~17 real digits
+    and the rest of the 50 printed digits are round-off. A tool whose headline claim is
+    "50-decimal precision" must not print digits its arithmetic never computed.
+    """
+    return Decimal(mpmath.nstr(mpmath.sqrt(mpmath.mpf(str(value))), mpmath.mp.dps, strip_zeros=False))
+
 
 
 class HighPrecisionCalculator:
@@ -133,7 +144,7 @@ class HighPrecisionCalculator:
         var = self.variance(data, ddof)
 
         # Use mpmath for high-precision square root
-        return Decimal(str(mpmath.sqrt(float(var))))
+        return hp_sqrt(var)
 
     @staticmethod
     def t_p_value(t_stat: float, df: float, alternative: str = "two-sided") -> Decimal:
@@ -156,19 +167,29 @@ class HighPrecisionCalculator:
         """
         alternative = canonical_alternative(alternative)
 
-        x_beta = df / (df + t_stat**2)
-        two_sided = mpmath.betainc(df / 2, 0.5, 0, x_beta, regularized=True)
+        # mpmath end to end, never float64. Routing t through float() overflows for
+        # |t| > 1e308, and routing the answer back through float() underflows any p below
+        # ~1e-308 to an exact 0.0 -- a tool that advertises 50 decimal places must not hand
+        # back "p = 0" for a p-value that is merely very small.
+        t = mpmath.mpf(str(t_stat))
+        d = mpmath.mpf(str(df))
+
+        if d <= 0:
+            raise ValueError("t-distribution requires df > 0")
+
+        x_beta = d / (d + t * t)
+        two_sided = mpmath.betainc(d / 2, mpmath.mpf("0.5"), 0, x_beta, regularized=True)
 
         if alternative == "two-sided":
             p = two_sided
         else:
             upper_tail = two_sided / 2  # P(T > |t|)
             if alternative == "greater":
-                p = upper_tail if t_stat >= 0 else 1 - upper_tail
+                p = upper_tail if t >= 0 else 1 - upper_tail
             else:  # less
-                p = 1 - upper_tail if t_stat >= 0 else upper_tail
+                p = 1 - upper_tail if t >= 0 else upper_tail
 
-        return Decimal(str(float(p)))
+        return Decimal(mpmath.nstr(p, mpmath.mp.dps, strip_zeros=False))
 
     def t_statistic_one_sample(
         self,
@@ -203,12 +224,14 @@ class HighPrecisionCalculator:
             raise ValueError("Standard deviation is zero")
 
         # Calculate t-statistic
-        se = sample_std / Decimal(str(mpmath.sqrt(n)))
+        se = sample_std / hp_sqrt(n)
         t_stat = (sample_mean - mu_decimal) / se
 
-        # Calculate p-value using mpmath for high precision
+        # Calculate p-value using mpmath for high precision. Pass the Decimal t through
+        # unconverted: float(t_stat) would cap the precision of the very statistic the
+        # 50-digit pipeline just computed.
         df = n - 1
-        p_value = self.t_p_value(float(t_stat), float(df), alternative)
+        p_value = self.t_p_value(t_stat, df, alternative)
 
         return {
             "t_statistic": t_stat,
@@ -266,10 +289,10 @@ class HighPrecisionCalculator:
 
             # Pooled variance
             pooled_var = ((n1_dec - 1) * var1 + (n2_dec - 1) * var2) / (n1_dec + n2_dec - 2)
-            pooled_std = Decimal(str(mpmath.sqrt(float(pooled_var))))
+            pooled_std = hp_sqrt(pooled_var)
 
             # Standard error
-            se = pooled_std * Decimal(str(mpmath.sqrt(float(Decimal("1") / n1_dec + Decimal("1") / n2_dec))))
+            se = pooled_std * hp_sqrt(Decimal("1") / n1_dec + Decimal("1") / n2_dec)
 
             # Degrees of freedom
             df = n1 + n2 - 2
@@ -280,7 +303,7 @@ class HighPrecisionCalculator:
             n2_dec = Decimal(str(n2))
 
             # Standard error
-            se = Decimal(str(mpmath.sqrt(float(var1 / n1_dec + var2 / n2_dec))))
+            se = hp_sqrt(var1 / n1_dec + var2 / n2_dec)
 
             # Welch-Satterthwaite degrees of freedom
             df_num = (var1 / n1_dec + var2 / n2_dec) ** 2
@@ -295,11 +318,25 @@ class HighPrecisionCalculator:
             extreme_precision_flag = True
             # Check if means are actually different
             if abs(mean_diff) < Decimal("1e-45"):
-                # Both SE and mean diff are effectively zero - groups are identical
-                t_stat = Decimal("0")
-                # At t = 0 the one-sided p-values are 0.5, not 1.0.
-                p_value = Decimal("1.0") if alternative == "two-sided" else Decimal("0.5")
-                interpretation = "No detectable difference at 50 decimal precision"
+                # Both SE and mean_diff are ~zero, so t = mean_diff / se is 0/0: UNDEFINED,
+                # not zero. This branch used to report t = 0 and p = 1.0 -- numbers that were
+                # never computed from anything. scipy returns nan/nan for exactly this input,
+                # and it is right to: with no within-group variance there is no sampling
+                # distribution to place the difference in, so there is no test statistic and
+                # no p-value. Two groups of [5, 5, 5, 5] do not "fail to reject H0"; the test
+                # is simply not defined for them.
+                #
+                # The sibling branch below (zero variance, DIFFERENT means) already reported
+                # this honestly as undefined -- the 2026-05-31 ST-2 audit killed a fabricated
+                # t = +/-999.999, p = 1e-50 there. It fixed one half of the degenerate case
+                # and left this half fabricating.
+                t_stat = None
+                p_value = None
+                interpretation = (
+                    "t-statistic undefined: every observation in both groups is identical, so "
+                    "the within-group variance and the mean difference are both zero (t = 0/0). "
+                    "There is no sampling distribution to test against."
+                )
             else:
                 # The mean difference is real but the within-group variance (and
                 # thus the standard error) is effectively zero, so the
@@ -327,23 +364,11 @@ class HighPrecisionCalculator:
                 extreme_precision_flag = True
                 interpretation = "Extreme but genuine t-statistic (magnitude beyond float64 range)."
 
-            # Calculate p-value using mpmath, for the requested alternative.
-            try:
-                t_float = float(t_stat)
-                df_float = float(df)
-                p_value = self.t_p_value(t_float, df_float, alternative)
-            except (OverflowError, ValueError):
-                # The p-value is below what float64 / the beta routine can represent. For
-                # such an extreme t the tail in the DIRECTION OF the statistic is
-                # effectively zero and the opposite tail is effectively one -- reporting 0
-                # for both would invert a one-sided test.
-                if alternative == "two-sided":
-                    p_value = Decimal("0")
-                elif (alternative == "greater") == (t_stat > 0):
-                    p_value = Decimal("0")
-                else:
-                    p_value = Decimal("1")
-                interpretation = "P-value is beyond computational limits (effectively 0 or 1)."
+            # Calculate p-value using mpmath, for the requested alternative. t_stat stays a
+            # Decimal: mpmath's exponent range is effectively unbounded, so even a t of 1e400
+            # (which float64 cannot hold at all) yields a real, tiny, non-zero p rather than
+            # an invented one. There is no "beyond computational limits" case left to fake.
+            p_value = self.t_p_value(t_stat, df, alternative)
 
         result = {
             "t_statistic": t_stat,
@@ -501,47 +526,68 @@ class HighPrecisionCalculator:
         if sum_x2 == 0 or sum_y2 == 0:
             raise ValueError("One variable has zero variance")
 
-        # Correlation coefficient
-        r = sum_xy / Decimal(str(mpmath.sqrt(float(sum_x2 * sum_y2))))
+        # Correlation coefficient. Every step below stays in mpmath at the configured dps;
+        # the old code round-tripped r, t, p and the Fisher CI through float(), so a module
+        # badged "50-decimal precision" was in fact handing back 17 significant digits.
+        mp_sum_xy = mpmath.mpf(str(sum_xy))
+        mp_sum_x2 = mpmath.mpf(str(sum_x2))
+        mp_sum_y2 = mpmath.mpf(str(sum_y2))
 
-        # Ensure r is in [-1, 1] due to rounding
-        if r > 1:
-            r = Decimal("1")
-        elif r < -1:
-            r = Decimal("-1")
+        mp_r = mp_sum_xy / mpmath.sqrt(mp_sum_x2 * mp_sum_y2)
 
-        # Calculate t-statistic for significance test
-        if abs(r) == 1:
+        # Clamp only for rounding overshoot; |r| > 1 is not attainable in exact arithmetic.
+        if mp_r > 1:
+            mp_r = mpmath.mpf(1)
+        elif mp_r < -1:
+            mp_r = mpmath.mpf(-1)
+
+        r = Decimal(mpmath.nstr(mp_r, mpmath.mp.dps, strip_zeros=False))
+        df = n - 2
+
+        # Significance test.
+        if abs(mp_r) == 1:
+            # The data lie exactly on a line. Under H0 (rho = 0) with continuous data,
+            # P(|R| >= 1) = 0, so the two-sided p-value is exactly 0 -- this is the limit,
+            # not a sentinel. (scipy.stats.pearsonr returns 0.0 here too.)
             p_value = Decimal("0")
+            t_stat = None
         else:
-            df = n - 2
-            t_stat = r * Decimal(str(mpmath.sqrt(float(Decimal(str(df)) / (Decimal("1") - r * r)))))
+            mp_t = mp_r * mpmath.sqrt(mpmath.mpf(df) / (1 - mp_r * mp_r))
+            t_stat = Decimal(mpmath.nstr(mp_t, mpmath.mp.dps, strip_zeros=False))
+            p_value = self.t_p_value(t_stat, df, "two-sided")
 
-            # Two-tailed p-value
-            t_float = float(t_stat)
-            df_float = float(df)
-
-            # Two-tailed p-value via regularized incomplete beta
-            x_beta = df_float / (df_float + t_float**2)
-            p_value = Decimal(str(float(mpmath.betainc(df_float / 2, 0.5, 0, x_beta, regularized=True))))
-
-        # Fisher's z transformation for confidence interval
-        if abs(r) < 1:
-            z = Decimal(str(mpmath.atanh(float(r))))
-            se_z = Decimal("1") / Decimal(str(mpmath.sqrt(n - 3)))
-
-            z_critical = Decimal(str(stats.norm.ppf(1 - (1 - confidence_level) / 2)))
-            z_lower = z - z_critical * se_z
-            z_upper = z + z_critical * se_z
-
-            # Transform back to r scale
-            ci_lower = Decimal(str(mpmath.tanh(float(z_lower))))
-            ci_upper = Decimal(str(mpmath.tanh(float(z_upper))))
+        # Fisher's z confidence interval. se_z = 1/sqrt(n - 3) is undefined at n = 3 -- the
+        # old code divided by zero there and 500'd the endpoint for every 3-point
+        # correlation. There is no interval to report at n = 3, and none at |r| = 1 (atanh
+        # diverges); say so instead of inventing one.
+        if abs(mp_r) < 1 and n > 3:
+            z = mpmath.atanh(mp_r)
+            se_z = 1 / mpmath.sqrt(mpmath.mpf(n - 3))
+            # sqrt(2) * erfinv(2q - 1) is the normal quantile, evaluated at full dps rather
+            # than borrowed from scipy's float64 ppf.
+            q = mpmath.mpf(str(1 - (1 - confidence_level) / 2))
+            z_critical = mpmath.sqrt(2) * mpmath.erfinv(2 * q - 1)
+            ci_lower = Decimal(mpmath.nstr(mpmath.tanh(z - z_critical * se_z), mpmath.mp.dps, strip_zeros=False))
+            ci_upper = Decimal(mpmath.nstr(mpmath.tanh(z + z_critical * se_z), mpmath.mp.dps, strip_zeros=False))
+            ci_note = None
         else:
-            ci_lower = r
-            ci_upper = r
+            ci_lower = None
+            ci_upper = None
+            ci_note = (
+                "Confidence interval undefined: Fisher's z transformation needs n > 3 and |r| < 1 "
+                f"(here n = {n}, r = {r})."
+            )
 
-        return {"correlation": r, "p_value": p_value, "ci_lower": ci_lower, "ci_upper": ci_upper, "n": Decimal(str(n))}
+        return {
+            "correlation": r,
+            "t_statistic": t_stat,
+            "df": Decimal(str(df)),
+            "p_value": p_value,
+            "ci_lower": ci_lower,
+            "ci_upper": ci_upper,
+            "ci_note": ci_note,
+            "n": Decimal(str(n)),
+        }
 
 
 def validate_precision():

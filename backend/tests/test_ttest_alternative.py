@@ -235,14 +235,35 @@ class NoRegressionInTheDefault(TestCase):
         self.assertAlmostEqual(default, explicit, places=12)
         self.assertAlmostEqual(default, float(expected), places=10)
 
-    def test_identical_groups_give_a_half_not_a_one_on_a_one_sided_test(self):
+    def test_identical_constant_groups_have_NO_t_statistic_and_NO_p_value(self):
+        """
+        Zero within-group variance and zero mean difference means t = 0/0 -- undefined, not
+        zero. scipy returns nan/nan for this input and is right to: with no within-group
+        variance there is no sampling distribution to place the difference in.
+
+        This branch used to report t = 0 and p = 1.0, numbers computed from nothing. Two
+        groups of [5, 5, 5, 5] do not "fail to reject H0" -- the test is not defined for them.
+        Report undefined, honestly, as the sibling zero-variance branch already did.
+        """
         calc = HighPrecisionCalculator(precision=50)
         identical = [5.0, 5.0, 5.0, 5.0]
-        result = calc.t_statistic_two_sample(identical, identical, alternative="greater")
-        self.assertAlmostEqual(float(result["p_value"]), 0.5, places=10)
-        self.assertAlmostEqual(
-            float(calc.t_statistic_two_sample(identical, identical)["p_value"]), 1.0, places=10
-        )
+
+        for alternative in ALTERNATIVES:
+            with self.subTest(alternative=alternative):
+                result = calc.t_statistic_two_sample(identical, identical, alternative=alternative)
+                self.assertIsNone(result["t_statistic"])
+                self.assertIsNone(result["p_value"])
+                self.assertIn("undefined", result["interpretation"].lower())
+
+        # scipy agrees: nan, not 0/1.
+        self.assertTrue(np.isnan(stats.ttest_ind(identical, identical).pvalue))
+
+    def test_zero_variance_with_different_means_is_also_undefined(self):
+        """The sibling branch, which has been honest since the 2026-05-31 audit."""
+        calc = HighPrecisionCalculator(precision=50)
+        result = calc.t_statistic_two_sample([5.0] * 4, [7.0] * 4)
+        self.assertIsNone(result["t_statistic"])
+        self.assertIsNone(result["p_value"])
 
 
 class ScipyGridAgreement(TestCase):

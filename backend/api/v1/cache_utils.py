@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # request that supplied one); Jonckheere's statistic and variance were corrected,
 # and Page's trend variance was corrected. Every one of those changes the answer
 # for a request body that has not changed.
-CACHE_SCHEMA_VERSION = 3
+CACHE_SCHEMA_VERSION = 4
 
 
 def generate_cache_key(prefix, data_dict, version=CACHE_SCHEMA_VERSION):

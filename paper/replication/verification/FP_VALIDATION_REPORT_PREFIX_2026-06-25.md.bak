@@ -1,0 +1,75 @@
+# False-positive validation of the census inconsistency flags
+
+_Generated 2026-06-25 by `adjudicate_inconsistencies.py` over the 5,053-paper census._
+
+Flagged inconsistent claims (raw): **219**  (decision-changing: 74)
+
+## Breakdown (transparent rules)
+
+| category | n | of which decision-changing |
+|---|---|---|
+| TRUE_LIKELY | 102 | 16 |
+| REVIEW_P_BOUND | 9 | 3 |
+| FP_ONE_TAILED | 28 | 6 |
+| FP_MISEXTRACTION | 80 | 49 |
+
+## Corrected reading
+- **clear false positives: 108/219 = 49%** (80 mis-extraction + 28 one-tailed)
+- ambiguous (p reported as a bound), needs review: 9
+- **likely-true internal inconsistencies: 102/219 = 47%**
+
+So the raw ~15% claim-inconsistency rate OVERSTATES real errors: a large share are extractor p-mis-pairing (the claim's own text has no p) or one-sided p-values. The defensible **true** rate is the TRUE_LIKELY fraction (a LOWER bound; REVIEW_P_BOUND may add some). **Biggest actionable bug: the extractor attaches a p-value from a neighbouring claim when the statistic's own text has none → fix the p-attachment proximity/scope before the formal census.**
+
+## Examples per category
+
+**TRUE_LIKELY:**
+- `F (3,48) = 2.68, p = 0.0057` — reported pequals0.0057 vs recomputed 0.05732
+- `t (30) = 0.749, p = 0.473` — reported pequals0.473 vs recomputed 0.4597
+- `F (1,18) = 9.904, p = 0.019` — reported pequals0.019 vs recomputed 0.005574
+- `F (1,12) = 15.12, p = 0.008` — reported pequals0.008 vs recomputed 0.002155
+
+**FP_MISEXTRACTION:**
+- `F (1,31) = 5.484` — reported pequals0.217 vs recomputed 0.02579
+- `F (1,26) = 5.779` — reported pequals0.015 vs recomputed 0.02364
+- `z = 1.1` — reported pless_than0.0001 vs recomputed 0.2713
+- `z = 0.8` — reported pless_than0.0001 vs recomputed 0.4237
+
+**FP_ONE_TAILED:**
+- `Z = 2.6, P = 0.004` — reported pequals0.004 vs recomputed 0.009322
+- `Z = 1.6, p = 0.055` — reported pequals0.055 vs recomputed 0.1096
+- `t (26) = 2.24, p = 0.02` — reported pequals0.02 vs recomputed 0.03386
+- `t (18) = 1.15, p = 0.13` — reported pequals0.13 vs recomputed 0.2652
+
+**REVIEW_P_BOUND:**
+- `r = .54, p < .001` — reported pless_than0.001 vs recomputed 0.01398
+- `F (1,2) = 44.529, p < 0.001` — reported pless_than0.001 vs recomputed 0.02173
+- `F (1,2) = 20.682, p < 0.001` — reported pless_than0.001 vs recomputed 0.04511
+- `F (1, 2) = 41.329, p < 0.001` — reported pless_than0.001 vs recomputed 0.02335
+---
+
+## LLM cross-check (independent adjudication of a 30-item stratified sample)
+
+A 30-claim stratified sample (8 TRUE_LIKELY, 8 FP_MISEXTRACTION, 5 FP_ONE_TAILED, 9 REVIEW_P_BOUND)
+was independently adjudicated by 30 LLM agents (blind to the rule label), then compared to the rules
+(`fp-adjudication-crosscheck` workflow). This is a preview of the human double-coding planned for the
+OSF-pre-registered study.
+
+- **Agreement with the rules: 22/30.**
+- **The two dominant false-positive categories are 100% confirmed:** all 8 `FP_MISEXTRACTION` and all 5
+  `FP_ONE_TAILED` in the sample were independently judged false positives (13/13). → the rule's 80
+  mis-extraction + 28 one-tailed = **108 confirmed false positives** are solid.
+- **Refinements (the 8 disagreements):**
+  - ~25% of `TRUE_LIKELY` are actually **rounding** (ids 4,5: e.g. `F(2,12)=0.42, p=.670` vs recomputed
+    .666 — agreement within the reported precision), so the rule slightly OVER-counts true.
+  - ~67% of `REVIEW_P_BOUND` are **genuine** inconsistencies (ids 22–26,29: e.g. `F(1,2)=44.5, p<.001`
+    recomputes to .022 — a real ~20× bound violation), so the rule UNDER-counted those; the rest
+    (r without n) are `FP_UNCHECKABLE`.
+
+**Validated true inconsistency rate (corrected):** combining the confirmed FPs with the refinements,
+the genuine internal-inconsistency rate is **≈6–7% of checkable claims** (vs the raw 15.3%) — the raw
+figure is inflated **~2–2.5×**, dominated by the extractor p-mis-pairing bug. The precise validated rate
+will come from full (not sampled) double-coding in the pre-registered study.
+
+**TOP ACTIONABLE FIX before the formal census:** the extractor attaches a p-value from a neighbouring
+claim when the statistic's own text has none (`claim_extractor.py` p-attachment proximity/scope). This
+inflates BOTH the inconsistency rate here AND the verifier paper's recall/coverage — fix it first.

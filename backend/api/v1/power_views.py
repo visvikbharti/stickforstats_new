@@ -34,6 +34,15 @@ logger = logging.getLogger(__name__)
 power_calculator = HighPrecisionPowerAnalysis()
 
 
+class InvalidPowerParameter(ValueError):
+    """A power request carried a parameter we cannot interpret.
+
+    Raised rather than defaulted: guessing a value the caller did not send (e.g. quietly
+    assuming a two-tailed test when `tails` is unparseable) returns a number that answers
+    a different question than the one asked, and the caller has no way to tell.
+    """
+
+
 def adapt_power_params(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Adapt various parameter formats to expected format.
@@ -66,6 +75,29 @@ def adapt_power_params(data: Dict[str, Any]) -> Dict[str, Any]:
         adapted["alpha"] = adapted["sig_level"]
     if "significance" in adapted and "alpha" not in adapted:
         adapted["alpha"] = adapted["significance"]
+
+    # Map `tails` -> `alternative`.
+    #
+    # The power UI speaks in tails (1 or 2); the t-test and correlation endpoints below read
+    # `alternative` (the F and chi-square endpoints are inherently upper-tailed and ignore it).
+    # Nothing bridged the two, so `tails` was silently discarded and EVERY one-tailed power
+    # calculation -- t-test, ANOVA, correlation, in all three modes (power, sample size,
+    # effect size) -- was computed two-tailed. A one-tailed design needs a smaller n than a
+    # two-tailed one for the same power, so the tool was systematically over-prescribing
+    # sample sizes and under-reporting power for anyone who selected one tail.
+    #
+    # A one-sided power calculation is conventionally computed in the hypothesised direction,
+    # which is "greater". An explicit `alternative` always wins over `tails`.
+    if "alternative" not in adapted and "tails" in adapted:
+        try:
+            tails = int(adapted["tails"])
+        except (TypeError, ValueError):
+            raise InvalidPowerParameter(
+                f"`tails` must be 1 or 2, got {adapted['tails']!r}."
+            )
+        if tails not in (1, 2):
+            raise InvalidPowerParameter(f"`tails` must be 1 or 2, got {tails}.")
+        adapted["alternative"] = "greater" if tails == 1 else "two-sided"
 
     return adapted
 
@@ -110,6 +142,9 @@ def calculate_power_t_test(request):
         return Response(
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
+
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in t-test power calculation: {str(e)}")
@@ -156,6 +191,9 @@ def calculate_sample_size_t_test(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error in sample size calculation: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -201,6 +239,9 @@ def calculate_effect_size_t_test(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error in effect size calculation: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -243,6 +284,9 @@ def calculate_power_anova(request):
         return Response(
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
+
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in ANOVA power calculation: {str(e)}")
@@ -287,6 +331,9 @@ def calculate_power_correlation(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error in correlation power calculation: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -329,6 +376,9 @@ def calculate_power_chi_square(request):
         return Response(
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
+
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in chi-square power calculation: {str(e)}")
@@ -382,6 +432,9 @@ def create_power_curves(request):
             status=status.HTTP_200_OK,
         )
 
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error generating power curves: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -424,6 +477,9 @@ def optimal_allocation(request):
         return Response(
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
+
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in optimal allocation: {str(e)}")
@@ -487,6 +543,9 @@ def sensitivity_analysis(request):
             status=status.HTTP_200_OK,
         )
 
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error in sensitivity analysis: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -528,6 +587,9 @@ def comprehensive_power_report(request):
         return Response(
             {"success": True, "report": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
+
+    except InvalidPowerParameter as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error generating comprehensive report: {str(e)}")

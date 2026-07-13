@@ -468,6 +468,10 @@ const RegressionTab = ({ table }) => {
         bic: parseFloat(metrics.bic),
         fStatistic: parseFloat(regression?.statistics?.f_statistic),
         fPValue: parseFloat(regression?.statistics?.f_p_value),
+        // The backend flags degenerate fits (an exactly-fitting model, no residual degrees of
+        // freedom, a constant response). Those warnings explain why a cell reads "—" instead
+        // of a number, so they have to reach the screen.
+        warnings: Array.isArray(regression?.warnings) ? regression.warnings : [],
       });
     } catch (err) {
       setError(
@@ -595,6 +599,12 @@ const RegressionTab = ({ table }) => {
 
         {result && !loading && (
           <>
+            {result.warnings.map((warning) => (
+              <Alert severity="warning" sx={{ mb: 2 }} key={warning}>
+                {warning}
+              </Alert>
+            ))}
+
             <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 {MODEL_TYPES.find((m) => m.value === result.type)?.label}

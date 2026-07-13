@@ -47,6 +47,8 @@ import mpmath
 import scipy.stats as stats
 import logging
 
+from core.high_precision_calculator import hp_sqrt
+
 # Set high precision
 getcontext().prec = 50
 mpmath.mp.dps = 50
@@ -277,7 +279,7 @@ class HighPrecisionANOVA:
         omega_squared = (ss_between - Decimal(str(df_between)) * ms_within) / (ss_total + ms_within)
 
         # Cohen's f
-        cohen_f = Decimal(str(mpmath.sqrt(float(eta_squared / (Decimal("1") - eta_squared)))))
+        cohen_f = hp_sqrt(eta_squared / (Decimal("1") - eta_squared))
 
         # Check assumptions
         levene_stat, levene_p = self._levene_test(*decimal_groups)
@@ -714,7 +716,7 @@ class HighPrecisionANOVA:
                 n_j = len(groups[j])
 
                 # Standard error
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j) / 2))))
+                se = hp_sqrt(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j) / 2)
 
                 # Calculate q-statistic
                 q_stat = mean_diff / se
@@ -750,7 +752,7 @@ class HighPrecisionANOVA:
                 n_j = len(groups[j])
 
                 # Pooled standard error
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j)))))
+                se = hp_sqrt(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j))
 
                 # t-statistic
                 t_stat = mean_diff / se
@@ -779,7 +781,7 @@ class HighPrecisionANOVA:
 
         # Critical value
         f_critical = self._get_f_critical(Decimal("0.05"), df_between, df_within)
-        scheffe_critical = Decimal(str(mpmath.sqrt(float((k - 1) * f_critical))))
+        scheffe_critical = hp_sqrt((k - 1) * f_critical)
 
         for i in range(k):
             for j in range(i + 1, k):
@@ -789,7 +791,7 @@ class HighPrecisionANOVA:
                 n_j = len(groups[j])
 
                 # Standard error for contrast
-                se = Decimal(str(mpmath.sqrt(float(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j)))))
+                se = hp_sqrt(ms_within * (Decimal("1") / n_i + Decimal("1") / n_j))
 
                 # Test statistic
                 test_stat = mean_diff / se
@@ -823,7 +825,7 @@ class HighPrecisionANOVA:
                 mean_diff = abs(mean_i - mean_j)
 
                 # Standard error (unequal variances)
-                se = Decimal(str(mpmath.sqrt(float(var_i / n_i + var_j / n_j))))
+                se = hp_sqrt(var_i / n_i + var_j / n_j)
 
                 # Welch's degrees of freedom
                 df = (var_i / n_i + var_j / n_j) ** 2 / (
@@ -916,7 +918,7 @@ class HighPrecisionANOVA:
     def _calculate_std(self, data: List[Decimal]) -> Decimal:
         """Calculate standard deviation with high precision"""
         var = self._calculate_variance(data)
-        return Decimal(str(mpmath.sqrt(float(var))))
+        return hp_sqrt(var)
 
     def _levene_test(self, *groups) -> Tuple[Decimal, Decimal]:
         """Perform Levene's test for equal variances"""

@@ -160,7 +160,8 @@ const PowerAnalysisReal = () => {
     p1: 0.5,
     p2: 0.6,
     allocation: 1,
-    correlation: 0.3
+    correlation: 0.3,
+    df: 1
   });
 
   const [results, setResults] = useState(null);
@@ -243,7 +244,18 @@ const PowerAnalysisReal = () => {
         requestData.p2 = parameters.p2;
         requestData.allocation_ratio = parameters.allocation;
       } else if (testType === 'correlation') {
+        // For a correlation power calculation the effect size IS r. The slider above writes
+        // the user's r into `parameters.correlation`, but the request was built with
+        // `effect_size: parameters.effectSize` -- the OTHER field, still holding the Cohen's-d
+        // default. So the backend computed the power of a correlation the user never entered,
+        // and the r they did enter was sent under a key (`correlation`) the endpoint ignores.
+        // A silently wrong number, not a dead control.
+        requestData.effect_size = parameters.correlation;
         requestData.correlation = parameters.correlation;
+      } else if (testType === 'chi_square') {
+        // The chi-square power endpoint REQUIRES df, and nothing ever sent it -- so Calculate
+        // was enabled (chi_square is listed in POWER_CAPABILITIES) and every click failed.
+        requestData.df = parameters.df;
       }
 
       // Make API call
@@ -421,21 +433,25 @@ const PowerAnalysisReal = () => {
             </Grid>
           )}
 
-          {/* Tails */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Test Type</InputLabel>
-              <Select
-                value={parameters.tails}
-                onChange={(e) => setParameters({ ...parameters, tails: e.target.value })}
-                label="Test Type"
-                disabled={loading}
-              >
-                <MenuItem value={1}>One-tailed</MenuItem>
-                <MenuItem value={2}>Two-tailed</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+          {/* Tails. Only offered where the choice exists: the F-test behind ANOVA and the
+              chi-square test are inherently upper-tailed, so a "one- vs two-tailed" control
+              there would be a knob that changes nothing. */}
+          {(testType === 't_test' || testType === 'correlation' || testType === 'proportion') && (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Test Type</InputLabel>
+                <Select
+                  value={parameters.tails}
+                  onChange={(e) => setParameters({ ...parameters, tails: e.target.value })}
+                  label="Test Type"
+                  disabled={loading}
+                >
+                  <MenuItem value={1}>One-tailed</MenuItem>
+                  <MenuItem value={2}>Two-tailed</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
 
           {/* Groups (for ANOVA) */}
           {testType === 'anova' && (
@@ -447,6 +463,22 @@ const PowerAnalysisReal = () => {
                 value={parameters.groups}
                 onChange={(e) => setParameters({ ...parameters, groups: parseInt(e.target.value) })}
                 inputProps={{ min: 2, max: 10, step: 1 }}
+                disabled={loading}
+              />
+            </Grid>
+          )}
+
+          {/* Degrees of freedom (for chi-square) */}
+          {testType === 'chi_square' && (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Degrees of Freedom"
+                value={parameters.df}
+                onChange={(e) => setParameters({ ...parameters, df: parseInt(e.target.value, 10) })}
+                inputProps={{ min: 1, max: 100, step: 1 }}
+                helperText="(rows - 1) x (columns - 1) for a contingency table; 1 for a 2x2"
                 disabled={loading}
               />
             </Grid>

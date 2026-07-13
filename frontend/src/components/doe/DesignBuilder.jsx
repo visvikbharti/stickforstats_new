@@ -1301,7 +1301,12 @@ function DesignBuilder() {
                           <Grid item xs={6} sm={3}>
                             <Typography variant="caption">P-value</Typography>
                             <Typography variant="body1" fontWeight="bold">
-                              {(analysisResults.results.model_statistics[response].p_value || 0).toFixed(4)}
+                              {/* `p_value || 0` turned a MISSING p-value into 0.0000 -- i.e. it
+                                  rendered "no result" as the most significant result possible.
+                                  An absent p-value is an em dash, not zero. */}
+                              {Number.isFinite(analysisResults.results.model_statistics[response].p_value)
+                                ? analysisResults.results.model_statistics[response].p_value.toFixed(4)
+                                : '—'}
                             </Typography>
                           </Grid>
                         </Grid>

@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.core.cache import cache
+import math
+
 import numpy as np
 from decimal import Decimal
 import json
@@ -218,41 +220,55 @@ class HighPrecisionRegressionView(APIView):
                 return Response({"error": f"Unknown regression method: {method}"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Prepare response
+            # str() on a None or a NaN emits the literal strings "None" / "NaN", which land in
+            # the JSON as text and read to the user like values. A quantity that does not exist
+            # must serialize to null.
+            def _s(value):
+                if value is None:
+                    return None
+                try:
+                    if not math.isfinite(float(value)):
+                        return None
+                except (TypeError, ValueError):
+                    return None
+                return str(value)
+
             response_data = {
                 "method": method,
-                "coefficients": {k: str(v) for k, v in result.coefficients.items()},
-                "intercept": str(result.intercept),
+                "coefficients": {k: _s(v) for k, v in result.coefficients.items()},
+                "intercept": _s(result.intercept),
                 "metrics": {
-                    "r_squared": str(result.r_squared),
-                    "adjusted_r_squared": str(result.adjusted_r_squared),
-                    "mse": str(result.mse),
-                    "rmse": str(result.rmse),
-                    "mae": str(result.mae),
-                    "mape": str(result.mape),
-                    "aic": str(result.aic),
-                    "bic": str(result.bic),
+                    "r_squared": _s(result.r_squared),
+                    "adjusted_r_squared": _s(result.adjusted_r_squared),
+                    "mse": _s(result.mse),
+                    "rmse": _s(result.rmse),
+                    "mae": _s(result.mae),
+                    "mape": _s(result.mape),
+                    "aic": _s(result.aic),
+                    "bic": _s(result.bic),
                 },
-                "statistics": {"f_statistic": str(result.f_statistic), "f_p_value": str(result.f_p_value)},
+                # None, not "0"/"1": a robust, penalized or logistic fit has no overall F-test.
+                "statistics": {"f_statistic": _s(result.f_statistic), "f_p_value": _s(result.f_p_value)},
                 "missing_data_info": missing_info,
             }
 
             # Add method-specific results
             if hasattr(result, "standard_errors") and result.standard_errors:
-                response_data["standard_errors"] = {k: str(v) for k, v in result.standard_errors.items()}
+                response_data["standard_errors"] = {k: _s(v) for k, v in result.standard_errors.items()}
 
             if hasattr(result, "p_values") and result.p_values:
-                response_data["p_values"] = {k: str(v) for k, v in result.p_values.items()}
+                response_data["p_values"] = {k: _s(v) for k, v in result.p_values.items()}
 
             if hasattr(result, "confidence_intervals") and result.confidence_intervals:
                 response_data["confidence_intervals"] = {
-                    k: [str(v[0]), str(v[1])] for k, v in result.confidence_intervals.items()
+                    k: [_s(v[0]), _s(v[1])] for k, v in result.confidence_intervals.items()
                 }
 
             if hasattr(result, "selected_features") and result.selected_features:
                 response_data["selected_features"] = result.selected_features
 
             if hasattr(result, "feature_importance") and result.feature_importance:
-                response_data["feature_importance"] = {k: str(v) for k, v in result.feature_importance.items()}
+                response_data["feature_importance"] = {k: _s(v) for k, v in result.feature_importance.items()}
 
             # Add diagnostics if requested
             if options.get("include_diagnostics", True):

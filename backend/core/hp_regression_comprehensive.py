@@ -20,6 +20,8 @@ Features:
 """
 
 from decimal import Decimal, getcontext
+import math
+
 import mpmath as mp
 import numpy as np
 from scipy import stats
@@ -87,12 +89,22 @@ class RegressionResult:
     t_statistics: Dict[str, Decimal]
     p_values: Dict[str, Decimal]
     confidence_intervals: Dict[str, Tuple[Decimal, Decimal]]
-    r_squared: Decimal
-    adjusted_r_squared: Decimal
-    f_statistic: Decimal
-    f_p_value: Decimal
-    aic: Decimal
-    bic: Decimal
+    # None where the quantity does not exist: R^2 is 0/0 for a constant response, and the
+    # Gaussian AIC/BIC diverge on an exactly-fitting model. See f_statistic below.
+    r_squared: Optional[Decimal]
+    adjusted_r_squared: Optional[Decimal]
+    # None means "this fit has no overall F-test", NOT "F = 0".
+    #
+    # The robust, logistic, ridge, lasso and polynomial fits all used to report
+    # f_statistic = 0 and f_p_value = 1, which the API serializes verbatim -- so a user read
+    # F = 0, p = 1 for a model that never had an F-test computed at all. An F-test assumes
+    # the ordinary-least-squares normal likelihood; a robust or penalized fit declines to
+    # assume it, and a logistic fit has a different likelihood entirely. There is no F to
+    # report, and "0" is not a way of saying so. It is a number, and users read numbers.
+    f_statistic: Optional[Decimal]
+    f_p_value: Optional[Decimal]
+    aic: Optional[Decimal]
+    bic: Optional[Decimal]
     mse: Decimal
     rmse: Decimal
     mae: Decimal
@@ -388,8 +400,9 @@ class HighPrecisionRegression:
             },
             r_squared=Decimal(str(pseudo_r_squared)),
             adjusted_r_squared=Decimal(str(pseudo_r_squared)),  # Use same for logistic
-            f_statistic=Decimal("0"),  # Not applicable for logistic
-            f_p_value=Decimal("1"),
+            # No F-test for a logistic fit: it has a different likelihood entirely.
+            f_statistic=None,
+            f_p_value=None,
             aic=Decimal(str(aic)),
             bic=Decimal(str(bic)),
             mse=Decimal("0"),  # Not meaningful for logistic
@@ -474,8 +487,9 @@ class HighPrecisionRegression:
             confidence_intervals={},  # Not meaningful for ridge
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal("0"),
-            f_p_value=Decimal("1"),
+            # No F-test: this fit does not assume the OLS normal likelihood the F-test needs.
+            f_statistic=None,
+            f_p_value=None,
             aic=self._calculate_aic(residuals, effective_df),
             bic=self._calculate_bic(residuals, effective_df, n),
             mse=self._calculate_mse(residuals),
@@ -553,8 +567,9 @@ class HighPrecisionRegression:
             confidence_intervals={},
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal("0"),
-            f_p_value=Decimal("1"),
+            # No F-test: this fit does not assume the OLS normal likelihood the F-test needs.
+            f_statistic=None,
+            f_p_value=None,
             aic=self._calculate_aic(residuals, num_selected + 1),
             bic=self._calculate_bic(residuals, num_selected + 1, n),
             mse=self._calculate_mse(residuals),
@@ -747,8 +762,9 @@ class HighPrecisionRegression:
             confidence_intervals={},
             r_squared=Decimal(str(pseudo_r_squared)),
             adjusted_r_squared=Decimal(str(pseudo_r_squared)),
-            f_statistic=Decimal("0"),
-            f_p_value=Decimal("1"),
+            # No F-test: this fit does not assume the OLS normal likelihood the F-test needs.
+            f_statistic=None,
+            f_p_value=None,
             aic=Decimal("0"),  # Not standard for quantile regression
             bic=Decimal("0"),
             mse=self._calculate_mse(residuals),
@@ -1807,10 +1823,14 @@ class HighPrecisionRegression:
         mad = float(np.median(np.abs(residuals - np.median(residuals))))
         scale = mad * 1.4826
         if scale <= 0:
-            # A perfect (or near-perfect) fit: fall back to the RMS so the weighted
-            # covariance below stays finite instead of dividing by zero.
+            # More than half the residuals are identical, so the MAD is 0. The RMS is still a
+            # real dispersion measure of the same residuals, so use it -- but if THAT is zero
+            # too the fit is exact and the residual scale genuinely IS zero. Return the zero:
+            # this value is reported to the user as `robust_scale_mad`, and the previous
+            # `else 1.0` printed a residual spread of 1.0 for a model whose residuals were
+            # all exactly 0. Callers below handle a zero scale explicitly.
             scale = float(np.sqrt(np.mean(residuals**2)))
-        return scale if scale > 0 else 1.0
+        return max(scale, 0.0)
 
     def _build_robust_result(
         self,
@@ -1847,17 +1867,41 @@ class HighPrecisionRegression:
             weights = np.ones(n)
         W = np.diag(weights)
 
+        # An exact fit (every residual 0) has zero residual scale. Nothing is downweighted and
+        # the sandwich sigma^2 (X'WX)^-1 is the zero matrix, so the standard errors below come
+        # out as 0 -> NaN -> null: there is no sampling variability to report, and saying so is
+        # the honest answer. The coefficients themselves are still real and still returned.
+
+        # Standard errors from the weighted sandwich. If the design is singular they do not
+        # EXIST, and there is no honest number to put in their place.
+        #
+        # The old code set them to np.ones(p + 1) on LinAlgError -- so t = coefficient / 1 =
+        # coefficient, and a p-value was duly computed from a standard error that had been
+        # invented. My first pass at this rewrite kept that, and added a
+        # `np.where(std_errors > 0, std_errors, 1e-12)` floor of my own, which is worse: a
+        # zero standard error floored to 1e-12 gives |t| ~ 1e12 and a p-value of ~0, so a
+        # degenerate fit came out overwhelmingly significant. Both are the same mistake --
+        # manufacturing a number where the mathematics does not supply one.
+        #
+        # NaN propagates through t, p and the confidence interval and serializes to null, so
+        # the coefficient is still reported and its uncertainty is honestly reported as
+        # unknown.
         try:
             xtwx_inv = np.linalg.inv(design.T @ W @ design)
             std_errors = np.sqrt(np.abs(np.diag(scale**2 * xtwx_inv)))
         except np.linalg.LinAlgError:
-            std_errors = np.ones(p + 1)
+            std_errors = np.full(p + 1, np.nan)
 
-        std_errors = np.where(std_errors > 0, std_errors, 1e-12)
+        std_errors = np.where(std_errors > 0, std_errors, np.nan)
 
-        df_residual = df_override if df_override is not None else max(n - (p + 1), 1)
-        t_stats = params / std_errors
-        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
+        # No max(..., 1) clamp: with n <= p + 1 there are no residual degrees of freedom, and
+        # pretending there is one manufactures a t-distribution to test against. df_residual
+        # of 0 makes scipy return NaN for the p-values and the interval, which serialize to
+        # null -- undefined, reported as undefined.
+        df_residual = df_override if df_override is not None else n - (p + 1)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            t_stats = params / std_errors
+            p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
 
         confidence_level = kwargs.get("confidence_level", 0.95)
         t_crit = stats.t.ppf(1 - (1 - confidence_level) / 2, df_residual)
@@ -1867,31 +1911,71 @@ class HighPrecisionRegression:
         # Goodness of fit against the mean model.
         ss_res = float(np.sum(residuals**2))
         ss_tot = float(np.sum((y - np.mean(y)) ** 2))
-        r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0.0
+        # R^2 = 1 - SS_res/SS_tot is 0/0 when y is constant: there is no variance to explain,
+        # so the proportion explained does not exist. 0.0 would read as "explains nothing",
+        # which is a verdict the data cannot support.
+        r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else float("nan")
         adj_r_squared = (
-            1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else r_squared
+            1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else float("nan")
         )
 
+        # AIC/BIC come from the Gaussian log-likelihood, which needs log(mse). On an exact fit
+        # (mse = 0) that likelihood diverges: AIC and BIC are -inf, and there is no finite
+        # value to report. My first pass floored mse at 1e-300 to keep the arithmetic going,
+        # which turns "undefined" into a large finite number that looks like a real
+        # information criterion. Report them as undefined instead.
         mse = ss_res / n if n else 0.0
-        safe_mse = mse if mse > 0 else 1e-300
-        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(safe_mse) + 1)
-        k = p + 1
-        aic = 2 * k - 2 * log_likelihood
-        bic = np.log(n) * k - 2 * log_likelihood if n > 1 else 2 * k - 2 * log_likelihood
+        if mse > 0:
+            log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(mse) + 1)
+            k = p + 1
+            aic = 2 * k - 2 * log_likelihood
+            bic = np.log(n) * k - 2 * log_likelihood if n > 1 else 2 * k - 2 * log_likelihood
+        else:
+            aic = float("nan")
+            bic = float("nan")
 
         # Name the intercept row so it does not collide with a predictor called X1.
         names = ["Intercept"] + list(feature_names)
 
+        def _maybe(value):
+            """None for a quantity that does not exist -- never Decimal('NaN'), which
+            serializes to the STRING "NaN" and reads like a value."""
+            value = float(value)
+            return Decimal(str(value)) if math.isfinite(value) else None
+
         def _dec(values):
-            return {name: Decimal(str(value)) for name, value in zip(names, values)}
+            return {name: _maybe(value) for name, value in zip(names, values)}
 
         # Coefficients exclude the intercept -- it has its own field.
-        coefficients_dict = {name: Decimal(str(v)) for name, v in zip(feature_names, params[1:])}
+        coefficients_dict = {name: _maybe(v) for name, v in zip(feature_names, params[1:])}
 
         y_hp = self._to_high_precision_vector(y)
         pred_hp = self._to_high_precision_vector(predictions)
         design_hp = self._to_high_precision_matrix(design)
         residuals_hp = self._to_high_precision_vector(residuals)
+
+        result_warnings: List[str] = []
+        y_scale = float(np.sqrt(np.mean(y**2))) if n else 0.0
+        if y_scale > 0 and scale < 1e-10 * y_scale:
+            # The residuals have collapsed to round-off. The standard errors, t-statistics and
+            # p-values below are then computed FROM round-off, so they will look
+            # overwhelmingly significant for a reason that has nothing to do with the data.
+            # Report them (they are what the arithmetic gives) but say plainly what they are.
+            result_warnings.append(
+                "The fit is numerically exact: residuals are at the level of floating-point "
+                "round-off, so the standard errors, t-statistics and p-values below reflect "
+                "round-off rather than sampling variability and should not be interpreted."
+            )
+        if df_residual <= 0:
+            result_warnings.append(
+                f"No residual degrees of freedom (n = {n}, {p + 1} parameters): standard errors, "
+                "p-values and confidence intervals are undefined and reported as null."
+            )
+        if ss_tot == 0:
+            result_warnings.append(
+                "The response is constant, so R-squared is undefined (there is no variance to "
+                "explain) and is reported as null."
+            )
 
         return RegressionResult(
             regression_type=regression_type,
@@ -1901,18 +1985,17 @@ class HighPrecisionRegression:
             t_statistics=_dec(t_stats),
             p_values=_dec(p_values),
             confidence_intervals={
-                name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
-                for i, name in enumerate(names)
+                name: (_maybe(ci_lower[i]), _maybe(ci_upper[i])) for i, name in enumerate(names)
             },
-            r_squared=Decimal(str(r_squared)),
-            adjusted_r_squared=Decimal(str(adj_r_squared)),
-            # An F-test assumes the OLS/normal likelihood, which is exactly what a robust
-            # fit declines to assume. Reporting a made-up F here would be worse than
-            # reporting none, so these stay at their neutral values.
-            f_statistic=Decimal("0"),
-            f_p_value=Decimal("1"),
-            aic=Decimal(str(aic)),
-            bic=Decimal(str(bic)),
+            r_squared=_maybe(r_squared),
+            adjusted_r_squared=_maybe(adj_r_squared),
+            # An F-test assumes the ordinary-least-squares normal likelihood, which is exactly
+            # what a robust fit declines to assume. There is no F to report -- and 0 is not a
+            # way of saying that, it is a number, and users read numbers as numbers.
+            f_statistic=None,
+            f_p_value=None,
+            aic=_maybe(aic),
+            bic=_maybe(bic),
             mse=Decimal(str(mse)),
             rmse=Decimal(str(np.sqrt(mse))),
             mae=Decimal(str(np.mean(np.abs(residuals)))),
@@ -1924,6 +2007,7 @@ class HighPrecisionRegression:
             ),
             sample_size=n,
             interpretation={key: str(value) for key, value in (additional or {}).items()},
+            warnings=result_warnings,
         )
 
     def _fit_multinomial_logistic(

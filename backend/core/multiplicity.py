@@ -402,7 +402,9 @@ class MultiplicityCorrector:
             error_rate_type=ErrorRateType.FWER,
             n_tests=n,
             n_rejected=int(np.sum(rejected)),
-            threshold=float(np.max(p_values[rejected])) if np.any(rejected) else 0.0,
+            # None, not 0.0: when nothing is rejected there IS no threshold. A printed
+            # "Adjusted threshold: 0.000000" reads like a computed cutoff.
+            threshold=float(np.max(p_values[rejected])) if np.any(rejected) else None,
         )
 
     def _sidak(self, p_values: np.ndarray, alpha: float) -> CorrectionResult:
@@ -517,7 +519,9 @@ class MultiplicityCorrector:
                 threshold = sorted_p[i]
                 break
         else:
-            threshold = 0.0
+            # No p-value met the step-up criterion, so the rejection region is empty and
+            # there is no cutoff to report. 0.0 would print as a real threshold.
+            threshold = None
 
         # Calculate q-values (optional)
         q_values = adjusted_p.copy()

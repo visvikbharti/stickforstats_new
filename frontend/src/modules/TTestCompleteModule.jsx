@@ -331,8 +331,8 @@ const TTestCompleteModule = () => {
 
   // Generate comprehensive interpretation
   const generateInterpretation = (results) => {
-    const pValue = parseFloat(results.high_precision_result?.p_value || results.p_value || 0);
-    const tStat = parseFloat(results.high_precision_result?.t_statistic || results.t_statistic || 0);
+    const rawP = results.high_precision_result?.p_value ?? results.p_value;
+    const rawT = results.high_precision_result?.t_statistic ?? results.t_statistic;
     const alpha = 1 - confidenceLevel / 100;
 
     const interp = {
@@ -342,6 +342,29 @@ const TTestCompleteModule = () => {
       recommendations: [],
       visualization: ''
     };
+
+    // The backend returns p_value: null when the t-statistic is genuinely UNDEFINED -- zero
+    // within-group variance, so t = mean_diff / 0. That is an honest "there is no test here".
+    //
+    // This function used to launder it into the opposite claim:
+    //     parseFloat(hp?.p_value || results.p_value || 0)
+    // `||` treats null as falsy, so a null p-value fell through to 0, and `0 < alpha` made the
+    // app announce "Significant difference detected (p = 0.0000). We reject the null
+    // hypothesis." An undefined test was reported as the most significant result possible.
+    // Use ?? and handle the undefined case as undefined.
+    if (rawP === null || rawP === undefined || !Number.isFinite(parseFloat(rawP))) {
+      interp.summary = 'No test statistic could be computed';
+      interp.statistical =
+        results.high_precision_result?.interpretation ||
+        'The t-statistic is undefined for this data (the within-group variance is zero, so the standard error is zero and t = mean difference / 0). There is no p-value to report.';
+      interp.practical =
+        'Every observation within a group is identical. A t-test needs within-group variation to place the difference between groups on a sampling distribution.';
+      interp.recommendations.push('Check the data — a group with no variation is usually a data-entry or export error.');
+      return interp;
+    }
+
+    const pValue = parseFloat(rawP);
+    const tStat = Number.isFinite(parseFloat(rawT)) ? parseFloat(rawT) : 0;
 
     // Statistical interpretation
     if (pValue < alpha) {
@@ -871,7 +894,18 @@ const TTestCompleteModule = () => {
                 Results
               </Typography>
 
-              {results.high_precision_result && (
+              {/* A null t-statistic means the test is genuinely undefined (zero within-group
+                  variance). Say so, loudly, instead of rendering an empty cell beside a
+                  confident-looking table. */}
+              {results.high_precision_result && results.high_precision_result.t_statistic == null && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <strong>No test statistic could be computed.</strong>{' '}
+                  {results.high_precision_result.interpretation ||
+                    'The within-group variance is zero, so the t-statistic is a division by zero and is undefined.'}
+                </Alert>
+              )}
+
+              {results.high_precision_result && results.high_precision_result.t_statistic != null && (
                 <TableContainer component={Paper}>
                   <Table>
                     <TableBody>
@@ -884,8 +918,9 @@ const TTestCompleteModule = () => {
                       <TableRow>
                         <TableCell>P-Value</TableCell>
                         <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                          {results.high_precision_result.p_value}
-                          {parseFloat(results.high_precision_result.p_value) < 0.05 && (
+                          {results.high_precision_result.p_value ?? '—'}
+                          {Number.isFinite(parseFloat(results.high_precision_result.p_value)) &&
+                            parseFloat(results.high_precision_result.p_value) < 0.05 && (
                             <Chip label="Significant" color="error" size="small" sx={{ ml: 1 }} />
                           )}
                         </TableCell>

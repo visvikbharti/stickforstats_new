@@ -40,6 +40,7 @@ import axios from 'axios';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 import guardianService from '../services/GuardianService';
 import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
+import { GuardianReportDisplay } from '../components/Guardian';
 import {
   adaptAnovaResponse,
   adaptTwoWayResponse,
@@ -53,7 +54,6 @@ import {
 import {
   DataInput,
   FactorialDataInput,
-  AssumptionChecker,
   ResultDisplay,
   InterpretationPanel,
   DistributionPlot,
@@ -274,7 +274,6 @@ const ANOVACompleteModule = () => {
   const [anovaResults, setAnovaResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [assumptionResults, setAssumptionResults] = useState(null);
   const [guardianReport, setGuardianReport] = useState(null);
   const [factorNames, setFactorNames] = useState(null);
 
@@ -291,7 +290,6 @@ const ANOVACompleteModule = () => {
     setAnovaData(null);
     setAnovaResults(null);
     setGuardianReport(null);
-    setAssumptionResults(null);
     setError(null);
   };
 
@@ -417,10 +415,6 @@ const ANOVACompleteModule = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAssumptionValidation = (results) => {
-    setAssumptionResults(results);
   };
 
   const TheoryTab = () => (
@@ -633,74 +627,21 @@ MS = Mean Square`}
         </Grid>
       )}
 
-      {anovaData && design !== 'two_way' && (
+      {/* Assumptions come from the backend Guardian -- the same Shapiro-Wilk / Levene /
+          design-aware checks the rest of the app runs -- not from a second opinion computed
+          here. This module used to render its own AssumptionChecker whose "normality" test
+          was |skewness| < 2 and whose "equal variances" test was a max/min variance ratio
+          < 3. Neither is a statistical test, both were invented thresholds, and they could
+          (and did) contradict the Guardian card directly below them on the same screen. */}
+      {guardianReport && (
         <Grid item xs={12}>
-          <AssumptionChecker
-            testType="parametric"
-            data={anovaData}
-            assumptions={[
-              {
-                id: 'normality',
-                name: 'Normality',
-                description: 'Each group should be approximately normally distributed',
-                test: (data) => {
-                  // Check normality for each group
-                  const results = [];
-                  data.forEach((group, index) => {
-                    const mean = group.reduce((a, b) => a + b, 0) / group.length;
-                    const skewness = calculateSkewness(group, mean);
-                    const isNormal = Math.abs(skewness) < 2;
-                    results.push({
-                      group: `Group ${index + 1}`,
-                      normal: isNormal,
-                      skewness
-                    });
-                  });
-
-                  const allNormal = results.every(r => r.normal);
-                  return {
-                    passed: allNormal,
-                    message: allNormal
-                      ? 'All groups appear normally distributed'
-                      : 'Some groups may not be normally distributed',
-                    // AssumptionChecker renders `details` directly as a React text node, so
-                    // handing it an array of objects threw "Objects are not valid as a React
-                    // child" and took the whole screen down on EVERY real analysis. It has to
-                    // be a string.
-                    details: results
-                      .map(r => `${r.group}: skewness ${r.skewness.toFixed(3)}${r.normal ? '' : ' (non-normal)'}`)
-                      .join(' · ')
-                  };
-                },
-                severity: 'moderate'
-              },
-              {
-                id: 'homogeneity',
-                name: 'Homogeneity of Variances',
-                description: 'All groups should have similar variances',
-                test: (data) => {
-                  const variances = data.map(group => {
-                    const mean = group.reduce((a, b) => a + b, 0) / group.length;
-                    return group.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (group.length - 1);
-                  });
-
-                  const maxVar = Math.max(...variances);
-                  const minVar = Math.min(...variances);
-                  const ratio = maxVar / minVar;
-
-                  return {
-                    passed: ratio < 3,
-                    message: ratio < 3
-                      ? 'Variances are approximately equal'
-                      : 'Variances may be unequal (consider Welch\'s ANOVA)',
-                    details: `Variance ratio: ${ratio.toFixed(2)}`
-                  };
-                },
-                severity: 'moderate',
-                alternatives: ['Use Welch\'s ANOVA', 'Transform data', 'Use Kruskal-Wallis test']
-              }
-            ]}
-            onValidation={handleAssumptionValidation}
+          <GuardianReportDisplay
+            guardianReport={guardianReport}
+            assumptionsChecked={guardianReport.assumptions_checked || []}
+            violations={guardianReport.violations || []}
+            confidenceScore={guardianReport.confidence_score ?? 0}
+            canProceed={guardianReport.can_proceed ?? true}
+            alternativeTests={guardianReport.alternative_tests || []}
           />
         </Grid>
       )}
@@ -961,14 +902,6 @@ MS = Mean Square`}
       </Grid>
     </Grid>
   );
-
-  const calculateSkewness = (data, mean) => {
-    const n = data.length;
-    const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
-    const stdDev = Math.sqrt(variance);
-    const skewness = data.reduce((acc, val) => acc + Math.pow((val - mean) / stdDev, 3), 0) / n;
-    return skewness;
-  };
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
