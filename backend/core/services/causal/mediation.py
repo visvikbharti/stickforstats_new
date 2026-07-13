@@ -654,7 +654,10 @@ def mediation_sensitivity_analysis(
     return {
         "original_acme": float(acme_original),
         "sensitivity_results": results,
-        "rho_critical": float(rho_crit) if rho_crit else None,
+        # rho_crit == 0.0 means the mediation effect reverses under ZERO confounding: maximally
+        # fragile, and the single most important thing to tell the user. Truthiness reported it as
+        # None -- "no critical value found" -- which is the opposite claim.
+        "rho_critical": float(rho_crit) if rho_crit is not None else None,
         "interpretation": _interpret_sensitivity(rho_crit),
         "sigma_m": float(sigma_m),
         "sigma_y": float(sigma_y),

@@ -404,7 +404,9 @@ class HighPrecisionANOVA:
             dfe = float(table.loc[row_label, "df"])
             F = float(table.loc[row_label, "F"])
             p = float(table.loc[row_label, "PR(>F)"])
-            partial_eta2 = ss / (ss + ss_resid) if (ss + ss_resid) > 0 else 0.0
+            # 0/0 when there is no variance at all to partition -- not an effect size of zero,
+            # which is a measured finding of "this factor explains none of the variation".
+            partial_eta2 = ss / (ss + ss_resid) if (ss + ss_resid) > 0 else None
             effects.append({
                 "name": name,
                 "factor": {"factor1": "factor1", "factor2": "factor2", "interaction": "factor1:factor2"}[name],

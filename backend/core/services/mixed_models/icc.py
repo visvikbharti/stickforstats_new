@@ -511,8 +511,19 @@ def icc_for_multilevel_decision(data: np.ndarray, grouping: np.ndarray = None) -
     var_between = (ms_between - ms_within) / n_harmonic
     var_between = max(0, var_between)
 
-    # ICC
-    icc = var_between / (var_between + var_within) if (var_between + var_within) > 0 else 0
+    # ICC. With zero total variance -- every observation identical -- this is 0/0. It used to
+    # be reported as 0, which is the specific claim "there is no clustering whatsoever", i.e.
+    # that observations within a group are no more alike than observations across groups. From
+    # data in which every observation is the same number, and which therefore says nothing about
+    # clustering either way.
+    total_variance = var_between + var_within
+    if total_variance <= 0:
+        raise ValueError(
+            "The intraclass correlation is undefined here: the total variance is zero (every "
+            "observation is identical), so ICC = 0/0."
+        )
+
+    icc = var_between / total_variance
 
     # Decision guidance
     if icc < 0.05:

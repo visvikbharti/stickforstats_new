@@ -48,10 +48,12 @@ class DiDResult:
     # Main estimate
     did_estimate: float
     std_error: float
-    t_statistic: float
-    p_value: float
-    ci_lower: float
-    ci_upper: float
+    # None when the standard error could not be estimated: there is then no t, no p and no
+    # interval, rather than t = 0 / p = 1.0 / a zero-width interval.
+    t_statistic: Optional[float]
+    p_value: Optional[float]
+    ci_lower: Optional[float]
+    ci_upper: Optional[float]
 
     # Components
     treat_pre_mean: float
@@ -247,20 +249,38 @@ def difference_in_differences(
         se = _robust_se(X, residuals)[3]
         clustered = False
 
-    # Inference
-    t_stat = did_estimate / se
+    # Inference. `did_estimate / se` had no guard at all: a degenerate standard error divides by
+    # zero, t becomes inf, and 2 * sf(inf) is exactly 0 -- a p-value of zero, which does not
+    # exist. There is no inference to report when the standard error could not be estimated.
     df = n - X.shape[1]
-    p_value = 2 * (stats.t.sf(abs(t_stat), df))
     z_crit = stats.norm.ppf(0.975)
-    ci_lower = did_estimate - z_crit * se
-    ci_upper = did_estimate + z_crit * se
+
+    if se > 0 and np.isfinite(se):
+        t_stat = did_estimate / se
+        p_value = float(2 * stats.t.sf(abs(t_stat), df))
+        ci_lower = float(did_estimate - z_crit * se)
+        ci_upper = float(did_estimate + z_crit * se)
+    else:
+        t_stat = None
+        p_value = None
+        ci_lower = None
+        ci_upper = None
 
     # Parallel trends test (if applicable)
     parallel_test = None
     if test_parallel_trends:
         try:
             parallel_test = test_parallel_trends_simple(data, outcome, treatment_group, post_period)
-            if parallel_test.get("p_value", 1) < 0.05:
+            # `.get("p_value", 1)` returns None when the key is PRESENT and null -- which it now
+            # is whenever the pre-test could not be computed -- and `None < 0.05` raises. Treat an
+            # uncomputable pre-test as what it is: no evidence either way, not a pass.
+            parallel_p = parallel_test.get("p_value")
+            if parallel_p is None:
+                warnings.append(
+                    "Parallel trends could not be tested; the design's central assumption is "
+                    "unverified here."
+                )
+            elif parallel_p < 0.05:
                 warnings.append("Parallel trends assumption may be violated (p < 0.05)")
         except Exception:
             parallel_test = {"error": "Could not perform parallel trends test"}
@@ -277,10 +297,10 @@ def difference_in_differences(
     return DiDResult(
         did_estimate=float(did_estimate),
         std_error=float(se),
-        t_statistic=float(t_stat),
-        p_value=float(p_value),
-        ci_lower=float(ci_lower),
-        ci_upper=float(ci_upper),
+        t_statistic=None if t_stat is None else float(t_stat),
+        p_value=None if p_value is None else float(p_value),
+        ci_lower=None if ci_lower is None else float(ci_lower),
+        ci_upper=None if ci_upper is None else float(ci_upper),
         treat_pre_mean=float(treat_pre_mean),
         treat_post_mean=float(treat_post_mean),
         control_pre_mean=float(control_pre_mean),
@@ -413,8 +433,15 @@ def event_study(
     for p, col_idx in period_cols.items():
         coefficients[p] = float(model.coef_[col_idx])
         std_errors[p] = float(se_all[col_idx])
-        t = coefficients[p] / std_errors[p] if std_errors[p] > 0 else 0
-        p_values[p] = float(2 * (stats.norm.sf(abs(t))))
+        # se = 0 means this period's standard error could not be estimated, not that its
+        # coefficient is certainly zero. `else 0` made t = 0, and sf(0) = 0.5, so p came out as
+        # exactly 1.0 -- an emphatic "no effect in this period" manufactured from a missing
+        # number, and plotted on the event-study chart as a point with no error bar.
+        if std_errors[p] > 0 and np.isfinite(std_errors[p]):
+            t = coefficients[p] / std_errors[p]
+            p_values[p] = float(2 * stats.norm.sf(abs(t)))
+        else:
+            p_values[p] = None
 
     # Confidence intervals
     z_crit = stats.norm.ppf(0.975)
@@ -506,15 +533,22 @@ def test_parallel_trends_simple(
         residuals = Y - model.predict(X)
         se = _robust_se(X, residuals)[3]
 
-        t_stat = interaction_coef / se if se > 0 else 0
-        p_value = 2 * (stats.t.sf(abs(t_stat), len(Y) - 4))
+        if se > 0 and np.isfinite(se):
+            t_stat = interaction_coef / se
+            p_value = float(2 * stats.t.sf(abs(t_stat), len(Y) - 4))
+        else:
+            # The parallel-trends PRE-TEST is the assumption on which the whole design rests.
+            # A degenerate standard error used to yield p = 1.0 here, i.e. "parallel trends
+            # confirmed" -- the most consequential fabricated pass in this module.
+            t_stat = None
+            p_value = None
 
         return {
             "test": "differential_trends",
             "interaction_coefficient": float(interaction_coef),
             "std_error": float(se),
-            "t_statistic": float(t_stat),
-            "p_value": float(p_value),
+            "t_statistic": None if t_stat is None else float(t_stat),
+            "p_value": None if p_value is None else float(p_value),
             "parallel_trends_supported": p_value >= 0.05,
             "interpretation": (
                 "No significant differential pre-trends"
@@ -533,8 +567,8 @@ def test_parallel_trends_simple(
             "test": "pre_treatment_levels",
             "treatment_mean": float(np.mean(treat_pre)),
             "control_mean": float(np.mean(control_pre)),
-            "t_statistic": float(t_stat),
-            "p_value": float(p_value),
+            "t_statistic": None if t_stat is None else float(t_stat),
+            "p_value": None if p_value is None else float(p_value),
             "similar_levels": p_value >= 0.05,
             "interpretation": (
                 "Pre-treatment levels are similar"
@@ -669,8 +703,12 @@ def staggered_did(
     # SE via delta method (simplified)
     overall_se = np.sqrt(sum((e["std_error"] * e["n_treated"] / total_weight) ** 2 for e in group_time_effects))
 
-    t_stat = overall_att / overall_se if overall_se > 0 else 0
-    p_value = 2 * (stats.norm.sf(abs(t_stat)))
+    if overall_se > 0 and np.isfinite(overall_se):
+        t_stat = overall_att / overall_se
+        p_value = float(2 * stats.norm.sf(abs(t_stat)))
+    else:
+        t_stat = None
+        p_value = None
 
     # Aggregate by event time
     event_time_effects = {}
@@ -693,8 +731,8 @@ def staggered_did(
         "overall_att": {
             "estimate": float(overall_att),
             "std_error": float(overall_se),
-            "t_statistic": float(t_stat),
-            "p_value": float(p_value),
+            "t_statistic": None if t_stat is None else float(t_stat),
+            "p_value": None if p_value is None else float(p_value),
             "ci_lower": float(overall_att - stats.norm.ppf(0.975) * overall_se),
             "ci_upper": float(overall_att + stats.norm.ppf(0.975) * overall_se),
         },
@@ -749,9 +787,21 @@ def _clustered_se(X: np.ndarray, residuals: np.ndarray, clusters: np.ndarray) ->
     return np.sqrt(np.diag(sandwich))
 
 
-def _interpret_did(did: float, p_value: float, treat_change: float, control_change: float) -> str:
+def _interpret_did(
+    did: float, p_value: Optional[float], treat_change: float, control_change: float
+) -> str:
     """Interpret DiD results."""
     parts = []
+
+    if p_value is None:
+        # `None < 0.05` raises in Python 3, and before that this branch would have called the
+        # result "not significant" -- a verdict from a test that produced no p-value.
+        parts.append(
+            "The treatment effect could not be tested: its standard error could not be estimated"
+        )
+        parts.append(f"Treatment group changed by {treat_change:+.3f}")
+        parts.append(f"Control group changed by {control_change:+.3f}")
+        return ". ".join(parts) + "."
 
     if p_value < 0.05:
         direction = "increased" if did > 0 else "decreased"

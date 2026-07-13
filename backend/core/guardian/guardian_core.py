@@ -1735,13 +1735,24 @@ class HomoscedasticityValidator:
             first_half = residuals[sorted_indices[: n // 2]]
             second_half = residuals[sorted_indices[n // 2 :]]
 
-            var_ratio = np.var(second_half, ddof=1) / (np.var(first_half, ddof=1) + 1e-10)
+            # The `+ 1e-10` here was not a rounding guard, it was a verdict generator: when the
+            # first half has zero variance the ratio becomes ~1e10, which sails past the > 4.0
+            # threshold below and is reported as CRITICAL heteroscedasticity. The severity was
+            # manufactured by the epsilon rather than measured from the data.
+            var_first = np.var(first_half, ddof=1)
+            var_second = np.var(second_half, ddof=1)
+            var_ratio = var_second / var_first if var_first > 0 else None
 
             # Determine severity using evidence-based thresholds
             # Variance ratio > 4 or < 0.25 indicates severe heteroscedasticity
             # Variance ratio > 2 or < 0.5 indicates moderate heteroscedasticity
             # Reference: Consistent with Box (1954) and standard regression diagnostics
-            if var_ratio > 4.0 or var_ratio < 0.25:
+            if var_ratio is None:
+                # One half of the fitted range has no residual variance at all. The Breusch-Pagan
+                # test above already rejected homoscedasticity, so the violation is real -- but
+                # the ratio that grades its SEVERITY cannot be computed, so it is not graded.
+                severity = "warning"
+            elif var_ratio > 4.0 or var_ratio < 0.25:
                 severity = "critical"
             elif var_ratio > 2.0 or var_ratio < 0.5:
                 severity = "warning"
@@ -1759,7 +1770,7 @@ class HomoscedasticityValidator:
                 "visual_data": {
                     "fitted_values": y_pred.tolist(),
                     "residuals": residuals.tolist(),
-                    "variance_ratio": float(var_ratio),
+                    "variance_ratio": None if var_ratio is None else float(var_ratio),
                 },
             }
 

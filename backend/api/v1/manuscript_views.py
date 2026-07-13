@@ -421,12 +421,15 @@ class SubmissionReportView(APIView):
                 "title": submission.title,
                 "status": submission.status,
                 "file_name": submission.file_name,
-                "sqs_score": float(submission.sqs_score) if submission.sqs_score else None,
+                # A statistical-quality score of 0 is a real score, and a damning one. Not a missing one.
+                "sqs_score": float(submission.sqs_score) if submission.sqs_score is not None else None,
                 "sqs_grade": submission.sqs_grade,
                 "claims_found": submission.claims_found,
                 "claims_consistent": submission.claims_consistent,
                 "claims_inconsistent": submission.claims_inconsistent,
-                "consistency_rate": float(submission.consistency_rate) if submission.consistency_rate else None,
+                # A consistency rate of 0.0000 means NOTHING in the manuscript checked out -- exactly the
+                # finding a user needs -- and it vanished under Decimal truthiness.
+                "consistency_rate": float(submission.consistency_rate) if submission.consistency_rate is not None else None,
                 "decision_errors": submission.decision_errors,
                 "gross_errors": submission.gross_errors,
                 "claim_data": submission.claim_data,

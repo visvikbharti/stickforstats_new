@@ -30,7 +30,7 @@ Created: December 26, 2025
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -46,7 +46,8 @@ class PropensityScoreResult:
     treatment: np.ndarray
     model_coefficients: Dict[str, float]
     model_intercept: float
-    auc: float
+    # None when a treatment arm is empty: the ROC-AUC does not exist there, and 0.5 is a claim.
+    auc: Optional[float]
     overlap: Dict[str, Any]
     balance_before: Dict[str, Any]
     warnings: List[str]
@@ -160,7 +161,14 @@ def estimate_propensity_scores(
     # Calculate AUC
     auc = _calculate_auc(T, scores)
 
-    if auc > 0.9:
+    if auc is None:
+        # `None > 0.9` raises in Python 3, and 0.5 (what this used to be) would have printed a
+        # confident "Low AUC (0.500)" diagnostic about a model that could not be scored at all.
+        warnings.append(
+            "The propensity model could not be scored (one of the treatment arms is empty), so "
+            "its discrimination is unknown."
+        )
+    elif auc > 0.9:
         warnings.append(f"High AUC ({auc:.3f}) may indicate separation - check for overlap")
     elif auc < 0.6:
         warnings.append(f"Low AUC ({auc:.3f}) - covariates may not predict treatment well")
@@ -186,18 +194,33 @@ def estimate_propensity_scores(
     )
 
 
-def _calculate_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
-    """Calculate Area Under the ROC Curve."""
+def _calculate_auc(y_true: np.ndarray, y_score: np.ndarray) -> Optional[float]:
+    """
+    Area under the ROC curve, or None when it does not exist.
+
+    With no treated units (or no controls) there are no pairs to rank against each other and the
+    AUC is undefined. sklearn does not raise there -- it emits an UndefinedMetricWarning and
+    returns nan -- so the `except` below never fired and the nan travelled all the way out: into
+    the JSON response (where NaN is not valid JSON), and past the `auc > 0.9` / `auc < 0.6`
+    diagnostics, both of which are False for nan, so not even a warning was raised about it.
+    """
     try:
         from sklearn.metrics import roc_auc_score
 
-        return float(roc_auc_score(y_true, y_score))
+        auc = float(roc_auc_score(y_true, y_score))
+        return None if not np.isfinite(auc) else auc
     except Exception:
         # Fallback: simple AUC calculation
         n1 = np.sum(y_true == 1)
         n0 = np.sum(y_true == 0)
         if n1 == 0 or n0 == 0:
-            return 0.5
+            # With no treated units, or no controls, there are no pairs to rank against each
+            # other and the ROC-AUC does not exist. Returning 0.5 is not a neutral default: it is
+            # the specific, meaningful claim that the propensity model discriminates exactly as
+            # well as a coin flip. It then fed the `auc < 0.6` check downstream, which duly
+            # emitted "Low AUC (0.500) -- covariates may not predict treatment well" -- a
+            # diagnostic finding about a model that was never scored.
+            return None
 
         sum_ranks = np.sum(np.argsort(np.argsort(y_score))[y_true == 1])
         return (sum_ranks - n1 * (n1 + 1) / 2) / (n1 * n0)

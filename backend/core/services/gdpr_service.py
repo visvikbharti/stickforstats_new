@@ -162,7 +162,8 @@ class GDPRService:
                 {
                     "test_type": audit.test_type,
                     "created_at": audit.timestamp.isoformat(),
-                    "guardian_score": float(audit.guardian_score) if audit.guardian_score else None,
+                    # Decimal("0.00") is falsy: the worst Guardian score was reported as "not computed".
+                    "guardian_score": float(audit.guardian_score) if audit.guardian_score is not None else None,
                 }
             )
 

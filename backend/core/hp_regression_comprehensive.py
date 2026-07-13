@@ -22,6 +22,8 @@ Features:
 from decimal import Decimal, getcontext
 import math
 
+import logging
+
 import mpmath as mp
 import numpy as np
 from scipy import stats
@@ -29,6 +31,8 @@ from sklearn.preprocessing import PolynomialFeatures
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 # Set precision for high-precision calculations
 getcontext().prec = 50
@@ -66,9 +70,11 @@ class RegressionDiagnostics:
     dffits: np.ndarray
     leverage: np.ndarray
     vif: Dict[str, Decimal]  # Variance Inflation Factors
-    durbin_watson: Decimal
-    breusch_pagan: Dict[str, Decimal]  # Heteroscedasticity test
-    jarque_bera: Dict[str, Decimal]  # Normality test
+    # None when the residuals are all zero (a perfect fit): DW is 0/0 there, not 0.
+    durbin_watson: Optional[Decimal]
+    # {"statistic": None, "p_value": None} when the auxiliary regression is degenerate.
+    breusch_pagan: Dict[str, Optional[Decimal]]  # Heteroscedasticity test
+    jarque_bera: Dict[str, Optional[Decimal]]  # Normality test
     condition_number: Decimal
     outliers: List[int]
     influential_points: List[int]
@@ -954,24 +960,61 @@ class HighPrecisionRegression:
         p_values = []
         for t in t_stats:
             if df == np.inf:
-                # Use normal distribution
+                # Upper tail directly. This was `2 * (1 - norm.cdf(|t|))`: once norm.cdf(|t|)
+                # rounds to 1.0 in float64 -- at |t| ~ 8.3 -- the subtraction returns exactly 0.
                 from scipy import stats as sp_stats
 
-                p = 2 * (1 - sp_stats.norm.cdf(float(abs(t))))
+                p = mp.mpf(str(2 * sp_stats.norm.sf(float(abs(t)))))
             else:
-                # Use t-distribution
-                p = 2 * (1 - self._t_cdf(abs(t), df))
+                p = self._t_sf_two_sided(abs(t), df)
             p_values.append(p)
         return np.array(p_values)
 
-    def _t_cdf(self, t: mp.mpf, df: float) -> mp.mpf:
-        """Calculate CDF of t-distribution."""
-        # Use relationship with incomplete beta function
-        from scipy import special
+    def _t_sf_two_sided(self, t: mp.mpf, df: float) -> mp.mpf:
+        """
+        Two-sided p-value for a coefficient: 2 * P(T > |t|), computed on the UPPER tail.
 
-        t_float = float(t)
-        x = df / (df + t_float**2)
-        return mp.mpf(str(1 - 0.5 * special.betainc(df / 2, 0.5, x)))
+        This replaces `2 * (1 - self._t_cdf(|t|, df))`, which was wrong twice over:
+
+          - `_t_cdf` computed `1 - 0.5 * scipy.special.betainc(df/2, 0.5, x)` in FLOAT64 and
+            then wrapped the float in `mp.mpf(str(...))`. Wrapping a float64 in an mpf does not
+            create precision; it only prints 50 digits of a number that has 16. The whole
+            "50-decimal" claim on the regression coefficients came out of this line.
+          - And it was `1 - cdf` twice: once inside `_t_cdf` and once at the caller. As soon as
+            the inner betainc underflows -- which happens for any tail below about 1e-16, i.e.
+            for every strongly significant coefficient -- `_t_cdf` returns exactly 1.0 and the
+            reported p-value is exactly 0.0.
+
+        A p-value of zero says the coefficient is impossible under the null. No finite sample
+        establishes that. The regularized incomplete beta below is evaluated by mpmath at the
+        working precision and is the upper tail directly, so there is nothing to cancel.
+        """
+        t_abs = mp.fabs(mp.mpf(str(t)))
+        if t_abs == 0:
+            return mp.mpf(1)
+
+        df_mp = mp.mpf(str(df))
+        x = df_mp / (df_mp + t_abs**2)
+
+        # P(T > |t|) = 0.5 * I_x(df/2, 1/2), with x = df / (df + t^2).
+        return mp.betainc(df_mp / 2, mp.mpf(0.5), 0, x, regularized=True)
+
+    def _t_cdf(self, t: mp.mpf, df: float) -> mp.mpf:
+        """
+        CDF of the t-distribution, evaluated by mpmath at the working precision.
+
+        Used only by `_t_quantile` (Newton-Raphson for confidence-interval bounds), where the
+        argument is a moderate quantile and the CDF is nowhere near 0 or 1, so there is nothing
+        to cancel. P-VALUES DO NOT COME THROUGH HERE -- they use `_t_sf_two_sided` above, which
+        computes the upper tail directly. The previous version of this function cast through
+        float64 and was used for both.
+        """
+        t_mp = mp.mpf(str(t))
+        df_mp = mp.mpf(str(df))
+        x = df_mp / (df_mp + t_mp**2)
+        half_tail = mp.betainc(df_mp / 2, mp.mpf(0.5), 0, x, regularized=True) / 2
+
+        return 1 - half_tail if t_mp >= 0 else half_tail
 
     def _calculate_confidence_intervals(
         self, coefficients: np.ndarray, std_errors: np.ndarray, df: float, confidence_level: float
@@ -1161,32 +1204,57 @@ class HighPrecisionRegression:
         # Durbin-Watson statistic for autocorrelation
         dw_numerator = sum([(residuals[i] - residuals[i - 1]) ** 2 for i in range(1, n)])
         dw_denominator = sum([r**2 for r in residuals])
-        durbin_watson = Decimal(str(dw_numerator / dw_denominator)) if dw_denominator > 0 else Decimal("0")
+        # A perfect fit has all-zero residuals, so DW is 0/0. It used to be reported as 0 --
+        # which on the Durbin-Watson scale (0 to 4, with 2 meaning no autocorrelation) is the
+        # MAXIMUM possible positive autocorrelation, the most alarming value there is. The
+        # verdict was not merely wrong, it was inverted.
+        durbin_watson = Decimal(str(dw_numerator / dw_denominator)) if dw_denominator > 0 else None
 
-        # Breusch-Pagan test for heteroscedasticity (simplified)
-        residuals_squared = np.array([float(r**2) for r in residuals])
-        # Regress squared residuals on X (simplified version)
+        # Breusch-Pagan test for heteroscedasticity.
+        #
+        # This used to read:
+        #
+        #     slope, intercept, r_value, p_value, std_err = (
+        #         sp_stats.linregress(X_np[:, 0], residuals_squared) if X_np.shape[1] == 1
+        #         else (0, 0, 0, 1, 0)
+        #     )
+        #
+        # For ANY regression with more than one predictor it did not run the test at all: it
+        # substituted the literal tuple (0, 0, 0, 1, 0). So r_value = 0, the statistic came out
+        # as n * 0**2 = 0, and the p-value as 1 - chi2.cdf(0, df) = exactly 1.0. Every multiple
+        # regression in this platform reported "homoscedasticity satisfied, BP = 0, p = 1.0" --
+        # a fabricated pass on an assumption the software never tested, and the exact assumption
+        # whose violation invalidates the standard errors printed next to it.
+        #
+        # Also, it only ever used the FIRST predictor even in the single-predictor branch, and
+        # squared a Pearson r from a simple regression rather than the auxiliary regression's
+        # R-squared. Breusch-Pagan regresses the squared residuals on ALL the regressors:
+        # LM = n * R^2_aux, distributed chi-square with (number of regressors) degrees of
+        # freedom under homoscedasticity. That is what statsmodels computes, and now so do we.
         from scipy import stats as sp_stats
+        import statsmodels.stats.api as sms
 
-        X_np = np.array([[float(X[i, j]) for j in range(1, p)] for i in range(n)])
-        if X_np.shape[1] > 0:
-            slope, intercept, r_value, p_value, std_err = (
-                sp_stats.linregress(X_np[:, 0], residuals_squared) if X_np.shape[1] == 1 else (0, 0, 0, 1, 0)
-            )
-            bp_stat = Decimal(str(n * r_value**2))
-            bp_p_value = Decimal(str(1 - sp_stats.chi2.cdf(float(bp_stat), p - 1)))
-        else:
-            bp_stat = Decimal("0")
-            bp_p_value = Decimal("1")
+        residuals_float = np.array([float(r) for r in residuals])
+        X_float = np.array([[float(X[i, j]) for j in range(p)] for i in range(n)])
+
+        try:
+            bp_lm, bp_lm_p, _, _ = sms.het_breuschpagan(residuals_float, X_float)
+            bp_stat = Decimal(str(bp_lm))
+            bp_p_value = Decimal(str(bp_lm_p))
+        except Exception as exc:  # the auxiliary regression is singular / degenerate
+            logger.warning("Breusch-Pagan test could not be computed: %s", exc)
+            bp_stat = None
+            bp_p_value = None
 
         # Jarque-Bera test for normality
         mean_res = sum(residuals) / n
         skewness = sum([(r - mean_res) ** 3 for r in residuals]) / (n * sigma**3)
         kurtosis = sum([(r - mean_res) ** 4 for r in residuals]) / (n * sigma**4)
         jb_stat = n * (skewness**2 / 6 + (kurtosis - 3) ** 2 / 24)
-        from scipy import stats as sp_stats
 
-        jb_p_value = 1 - sp_stats.chi2.cdf(float(jb_stat), 2)
+        # sf, not 1 - cdf: a strongly non-normal residual distribution has a JB p-value below
+        # 1e-16, and `1 - cdf` returns exactly 0 there.
+        jb_p_value = sp_stats.chi2.sf(float(jb_stat), 2)
 
         # Identify outliers and influential points
         outliers = [i for i, r in enumerate(abs(studentized_residuals)) if r > 3]
@@ -1195,8 +1263,14 @@ class HighPrecisionRegression:
 
         # Check for problems
         multicollinearity_detected = any(v > Decimal("10") for v in vif.values()) if vif else False
-        heteroscedasticity_detected = bp_p_value < Decimal("0.05")
-        autocorrelation_detected = durbin_watson < Decimal("1.5") or durbin_watson > Decimal("2.5")
+        # An undetected violation is not the same as an absent one. When the test could not be
+        # computed we do not claim the assumption holds -- but we also cannot claim it fails, so
+        # the flag stays False and the null p-value in the payload is what tells the caller the
+        # test did not run.
+        heteroscedasticity_detected = bp_p_value is not None and bp_p_value < Decimal("0.05")
+        autocorrelation_detected = durbin_watson is not None and (
+            durbin_watson < Decimal("1.5") or durbin_watson > Decimal("2.5")
+        )
         normality_violated = jb_p_value < Decimal("0.05")
 
         return RegressionDiagnostics(

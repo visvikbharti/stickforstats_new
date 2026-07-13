@@ -19,6 +19,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _sig(p_value, alpha=0.05):
+    """
+    Is this p-value significant at alpha?
+
+    None -> None. NOT False, and never a silent True.
+
+    In Python 3 `None < 0.05` raises TypeError, so every one of these comparisons would have
+    crashed the moment a p-value became honestly null. The answer to "is a test that could not be
+    computed significant?" is neither yes nor no -- it is that there is no test.
+    """
+    if p_value is None:
+        return None
+    return bool(p_value < alpha)
+
+
 class AdvancedANOVAService:
     """
     Advanced ANOVA analysis service providing:
@@ -142,29 +157,52 @@ class AdvancedANOVAService:
             df_residual = df_total - df_factor1 - df_factor2
 
         # Mean squares
-        ms_factor1 = ss_factor1 / df_factor1 if df_factor1 > 0 else 0
-        ms_factor2 = ss_factor2 / df_factor2 if df_factor2 > 0 else 0
-        ms_interaction = ss_interaction / df_interaction if df_interaction > 0 else 0
-        ms_residual = ss_residual / df_residual if df_residual > 0 else 0
+        ms_factor1 = ss_factor1 / df_factor1 if df_factor1 > 0 else None
+        ms_factor2 = ss_factor2 / df_factor2 if df_factor2 > 0 else None
+        ms_interaction = ss_interaction / df_interaction if df_interaction > 0 else None
+        ms_residual = ss_residual / df_residual if df_residual > 0 else None
 
-        # F-statistics
-        f_factor1 = ms_factor1 / ms_residual if ms_residual > 0 else 0
-        f_factor2 = ms_factor2 / ms_residual if ms_residual > 0 else 0
-        f_interaction = ms_interaction / ms_residual if ms_residual > 0 and interaction else 0
+        # F-statistics.
+        #
+        # F = MS_effect / MS_residual. With no residual degrees of freedom, or no residual
+        # variance (a saturated design, one observation per cell), MS_residual is 0 and F is
+        # x/0 -- undefined, and infinite in the limit.
+        #
+        # These used to be `... if ms_residual > 0 else 0`. An F of 0 is not "undefined"; it is
+        # the strongest evidence of NO effect the statistic can express, and it was then handed
+        # to `stats.f.sf(0, ...)`, which returns exactly 1.0. So the degenerate case -- the case
+        # where the design cannot support the test at all -- came out as "F = 0.00, p = 1.000,
+        # no effect", the most confident null result the software can print.
+        def _f_ratio(ms_effect):
+            if ms_effect is None or ms_residual is None or ms_residual <= 0:
+                return None
+            return ms_effect / ms_residual
+
+        f_factor1 = _f_ratio(ms_factor1)
+        f_factor2 = _f_ratio(ms_factor2)
+        f_interaction = _f_ratio(ms_interaction) if interaction else None
 
         # P-values
-        p_factor1 = stats.f.sf(f_factor1, df_factor1, df_residual) if df_residual > 0 else 1
-        p_factor2 = stats.f.sf(f_factor2, df_factor2, df_residual) if df_residual > 0 else 1
-        p_interaction = (
-            stats.f.sf(f_interaction, df_interaction, df_residual) if df_residual > 0 and interaction else 1
-        )
+        def _f_p(f_stat, df_effect):
+            if f_stat is None or df_residual <= 0 or df_effect <= 0:
+                return None
+            return float(stats.f.sf(f_stat, df_effect, df_residual))
 
-        # Effect sizes (partial eta squared)
-        eta2_factor1 = ss_factor1 / (ss_factor1 + ss_residual) if (ss_factor1 + ss_residual) > 0 else 0
-        eta2_factor2 = ss_factor2 / (ss_factor2 + ss_residual) if (ss_factor2 + ss_residual) > 0 else 0
-        eta2_interaction = (
-            ss_interaction / (ss_interaction + ss_residual) if interaction and (ss_interaction + ss_residual) > 0 else 0
-        )
+        p_factor1 = _f_p(f_factor1, df_factor1)
+        p_factor2 = _f_p(f_factor2, df_factor2)
+        p_interaction = _f_p(f_interaction, df_interaction) if interaction else None
+
+        # Effect sizes (partial eta squared). SS_effect / (SS_effect + SS_residual) is 0/0 when
+        # both are zero -- no variance at all -- not an effect size of zero.
+        def _partial_eta2(ss_effect):
+            denominator = ss_effect + ss_residual
+            if denominator <= 0:
+                return None
+            return ss_effect / denominator
+
+        eta2_factor1 = _partial_eta2(ss_factor1)
+        eta2_factor2 = _partial_eta2(ss_factor2)
+        eta2_interaction = _partial_eta2(ss_interaction) if interaction else None
 
         # Build ANOVA table
         anova_table = pd.DataFrame()
@@ -272,13 +310,13 @@ class AdvancedANOVAService:
                     "F": f_factor1,
                     "p_value": p_factor1,
                     "eta_squared": eta2_factor1,
-                    "significant": p_factor1 < 0.05,
+                    "significant": _sig(p_factor1),
                 },
                 factor2: {
                     "F": f_factor2,
                     "p_value": p_factor2,
                     "eta_squared": eta2_factor2,
-                    "significant": p_factor2 < 0.05,
+                    "significant": _sig(p_factor2),
                 },
             },
         }
@@ -288,7 +326,7 @@ class AdvancedANOVAService:
                 "F": f_interaction,
                 "p_value": p_interaction,
                 "eta_squared": eta2_interaction,
-                "significant": p_interaction < 0.05,
+                "significant": _sig(p_interaction),
             }
 
         # Post-hoc tests if requested
@@ -296,18 +334,18 @@ class AdvancedANOVAService:
             results["post_hoc"] = {}
 
             # Main effects post-hoc
-            if p_factor1 < 0.05 and n_levels1 > 2:
+            if _sig(p_factor1) and n_levels1 > 2:
                 results["post_hoc"][factor1] = self._tukey_hsd(
                     clean_data, dependent_var, factor1, ms_residual, df_residual
                 )
 
-            if p_factor2 < 0.05 and n_levels2 > 2:
+            if _sig(p_factor2) and n_levels2 > 2:
                 results["post_hoc"][factor2] = self._tukey_hsd(
                     clean_data, dependent_var, factor2, ms_residual, df_residual
                 )
 
             # Simple effects if interaction is significant
-            if interaction and p_interaction < 0.05:
+            if interaction and _sig(p_interaction):
                 results["simple_effects"] = self._simple_effects_analysis(
                     clean_data, dependent_var, factor1, factor2, ms_residual, df_residual
                 )
@@ -422,7 +460,7 @@ class AdvancedANOVAService:
 
         # Post-hoc tests if significant
         post_hoc = None
-        if p_value < 0.05 and n_conditions > 2:
+        if _sig(p_value) and n_conditions > 2:
             post_hoc = self._repeated_measures_post_hoc(wide_data, ms_error, df_error)
 
         results = {
@@ -438,7 +476,7 @@ class AdvancedANOVAService:
             "n_subjects": n_subjects,
             "n_conditions": n_conditions,
             "post_hoc": post_hoc,
-            "significant": p_value < 0.05,
+            "significant": _sig(p_value),
             "interpretation": self._interpret_repeated_measures(p_value, eta_squared, n_conditions),
         }
 
@@ -477,7 +515,7 @@ class AdvancedANOVAService:
         if check_homogeneity_slopes:
             homogeneity_test = self._test_homogeneity_slopes(clean_data, dependent_var, factor, covariate)
 
-            if homogeneity_test["p_value"] < 0.05:
+            if _sig(homogeneity_test["p_value"]):
                 warnings.warn(
                     "Homogeneity of slopes assumption violated (p < 0.05). " "ANCOVA results may not be valid."
                 )
@@ -623,12 +661,12 @@ class AdvancedANOVAService:
             "adjusted_means": adjusted_means,
             "regression_coefficient": b_pooled,
             "homogeneity_of_slopes": homogeneity_test,
-            "significant": p_value < 0.05,
+            "significant": _sig(p_value),
             "interpretation": self._interpret_ancova(p_value, eta_squared, b_pooled),
         }
 
         # Post-hoc if significant
-        if p_value < 0.05 and n_levels > 2:
+        if _sig(p_value) and n_levels > 2:
             results["post_hoc"] = self._ancova_post_hoc(adjusted_means, ms_error_adj, df_error, n_total)
 
         return results
@@ -706,14 +744,18 @@ class AdvancedANOVAService:
                     # Standard error
                     se = np.sqrt(ms_error * (1 / n1 + 1 / n2) / 2)
 
-                    # Q statistic
-                    q = abs(mean1 - mean2) / se if se > 0 else 0
-
-                    # Critical value (approximate)
-                    _ = 3.5  # Approximate for alpha=0.05
-
-                    # P-value (approximate)
-                    p_value = 1 - studentized_range.cdf(q, n_levels, df_error) if df_error > 0 else 1
+                    # Q statistic. A zero standard error (no within-group variance) makes the
+                    # studentized range undefined; it used to become q = 0, whose p-value is
+                    # exactly 1 -- "these two groups are certainly not different", from a
+                    # comparison that could not be made.
+                    if se > 0 and df_error > 0:
+                        q = abs(mean1 - mean2) / se
+                        # sf, not 1 - cdf: a large q has a tail below 1e-16, where the
+                        # subtraction returns exactly 0.
+                        p_value = float(studentized_range.sf(q, n_levels, df_error))
+                    else:
+                        q = None
+                        p_value = None
 
                     comparisons.append(
                         {
@@ -723,7 +765,7 @@ class AdvancedANOVAService:
                             "se": se,
                             "q_statistic": q,
                             "p_value": p_value,
-                            "significant": p_value < 0.05,
+                            "significant": _sig(p_value),
                         }
                     )
 
@@ -745,7 +787,7 @@ class AdvancedANOVAService:
                 simple_effects[f"{factor1}_at_{factor2}={level2}"] = {
                     "F": f_stat,
                     "p_value": p_value,
-                    "significant": p_value < 0.05,
+                    "significant": _sig(p_value),
                 }
 
         # Simple effect of factor2 at each level of factor1
@@ -758,7 +800,7 @@ class AdvancedANOVAService:
                 simple_effects[f"{factor2}_at_{factor1}={level1}"] = {
                     "F": f_stat,
                     "p_value": p_value,
-                    "significant": p_value < 0.05,
+                    "significant": _sig(p_value),
                 }
 
         return simple_effects
@@ -837,7 +879,7 @@ class AdvancedANOVAService:
                             "t_statistic": t_stat,
                             "p_value": p_value,
                             "p_adjusted": p_adjusted,
-                            "significant": p_adjusted < 0.05,
+                            "significant": _sig(p_adjusted),
                         }
                     )
 
@@ -908,7 +950,7 @@ class AdvancedANOVAService:
                         "se": se,
                         "t_statistic": t_stat,
                         "p_value": p_value,
-                        "significant": p_value < 0.05,
+                        "significant": _sig(p_value),
                     }
                 )
 
@@ -916,8 +958,13 @@ class AdvancedANOVAService:
 
     # Interpretation methods
 
-    def _interpret_repeated_measures(self, p_value: float, eta_squared: float, n_conditions: int) -> str:
+    def _interpret_repeated_measures(self, p_value, eta_squared, n_conditions: int) -> str:
         """Interpret repeated measures ANOVA results."""
+        if p_value is None:
+            return (
+                f"The repeated-measures F-test could not be computed across the {n_conditions} "
+                f"conditions (no residual variance), so there is no result to interpret."
+            )
         if p_value < 0.05:
             effect = self._interpret_eta_squared(eta_squared)
             return (
@@ -930,8 +977,10 @@ class AdvancedANOVAService:
                 f"(p={p_value:.4f})."
             )
 
-    def _interpret_ancova(self, p_value: float, eta_squared: float, regression_coef: float) -> str:
+    def _interpret_ancova(self, p_value, eta_squared, regression_coef: float) -> str:
         """Interpret ANCOVA results."""
+        if p_value is None:
+            return "The ANCOVA F-test could not be computed, so there is no result to interpret."
         if p_value < 0.05:
             effect = self._interpret_eta_squared(eta_squared)
             return (

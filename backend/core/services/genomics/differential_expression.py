@@ -45,7 +45,8 @@ class GeneResult:
     statistic: float
     raw_p_value: float
     adjusted_p_value: float = 1.0  # Set after FDR correction
-    log2_fold_change: float = 0.0
+    # None when either group mean is 0: log2(0/x) and log2(x/0) do not exist.
+    log2_fold_change: Optional[float] = 0.0
     mean_group1: float = 0.0
     mean_group2: float = 0.0
     guardian_confidence: float = 1.0
@@ -83,7 +84,11 @@ class GeneResult:
             adj_p_out = adj_p
             significant = adj_p < self.alpha
             if self.log2fc_threshold is not None:
-                significant = significant and abs(self.log2_fold_change) >= self.log2fc_threshold
+                # A gene with no defined fold change cannot clear a fold-change threshold.
+                significant = significant and (
+                    self.log2_fold_change is not None
+                    and abs(self.log2_fold_change) >= self.log2fc_threshold
+                )
 
         return {
             "gene_name": self.gene_name,
@@ -91,7 +96,9 @@ class GeneResult:
             "statistic": round(self.statistic, 6) if not np.isnan(self.statistic) else None,
             "raw_p_value": raw_p_out,
             "adjusted_p_value": adj_p_out,
-            "log2_fold_change": round(self.log2_fold_change, 4),
+            "log2_fold_change": (
+                round(self.log2_fold_change, 4) if self.log2_fold_change is not None else None
+            ),
             "mean_group1": round(self.mean_group1, 4),
             "mean_group2": round(self.mean_group2, 4),
             "guardian_confidence": round(self.guardian_confidence, 4),
@@ -179,8 +186,9 @@ class DifferentialExpressionService:
             return False
         if adjusted >= self.alpha:
             return False
-        if self.log2fc_threshold is not None and abs(gene.log2_fold_change) < self.log2fc_threshold:
-            return False
+        if self.log2fc_threshold is not None:
+            if gene.log2_fold_change is None or abs(gene.log2_fold_change) < self.log2fc_threshold:
+                return False
         return True
 
     def analyze(
@@ -239,8 +247,19 @@ class DifferentialExpressionService:
                 mean2 = np.mean(row[g2_idx])
                 result.mean_group1 = mean1
                 result.mean_group2 = mean2
-                if mean1 > 0:
-                    result.log2_fold_change = np.log2(max(mean2, 1e-10) / max(mean1, 1e-10))
+                # log2(mean2 / mean1) is undefined when either group's mean is 0: the ratio is
+                # 0/x = 0 (log2 -> -inf) or x/0 (log2 -> +inf).
+                #
+                # This used to clamp both means at 1e-10, which does not make the quantity
+                # defined -- it invents one. The magnitude then comes from the EPSILON rather
+                # than the data: with mean1 = 1 and mean2 = 0 the clamp yields a log2 fold change
+                # of -33.2, an enormous, entirely fabricated effect, which then sits at the far
+                # edge of the volcano plot looking like the most compelling gene in the
+                # experiment. Change the epsilon to 1e-20 and the "effect" doubles.
+                if mean1 > 0 and mean2 > 0:
+                    result.log2_fold_change = float(np.log2(mean2 / mean1))
+                else:
+                    result.log2_fold_change = None
 
             if result.cascaded:
                 n_cascaded += 1
@@ -263,6 +282,10 @@ class DifferentialExpressionService:
         # Generate volcano plot data
         volcano_data = []
         for g in gene_results:
+            # A gene with no fold change has no x-coordinate on a volcano plot, so it is not
+            # plotted -- rather than plotted at the fabricated -33.2 the epsilon used to give it.
+            if g.log2_fold_change is None:
+                continue
             neg_log10_p = -np.log10(max(g.adjusted_p_value, 1e-300))
             volcano_data.append({
                 "gene": g.gene_name,

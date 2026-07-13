@@ -180,7 +180,10 @@ class AuditSummaryView(APIView):
                         "test_type": audit.test_type,
                         "field": audit.field,
                         "status": audit.status,
-                        "methodology_score": float(audit.methodology_score) if audit.methodology_score else None,
+                        # Decimal("0.00") is falsy, so a methodology score of 0 -- the worst score there is,
+                        # and the one that most needs reporting -- serialized as null, indistinguishable from
+                        # "never computed".
+                        "methodology_score": float(audit.methodology_score) if audit.methodology_score is not None else None,
                         "violations": audit.violations_detected,
                         "recommendations": len(audit.recommendations) if audit.recommendations else 0,
                     }

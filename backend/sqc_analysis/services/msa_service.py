@@ -13,6 +13,12 @@ from typing import Dict, List, Optional, Union, Any
 import math
 
 
+def _num(value):
+    """float(), but None stays None. A statistic that could not be computed must not become 0.0
+    on the way out."""
+    return None if value is None else float(value)
+
+
 class MSAService:
     """
     Service for Measurement System Analysis (MSA).
@@ -111,14 +117,22 @@ class MSAService:
         MS_interaction = SS_interaction / df_interaction if df_interaction > 0 else 0
         MS_error = SS_error / df_error if df_error > 0 else 0
 
-        # Calculate F-statistics and p-values
-        F_parts = MS_parts / MS_interaction if MS_interaction > 0 else 0
-        F_operators = MS_operators / MS_interaction if MS_interaction > 0 else 0
-        F_interaction = MS_interaction / MS_error if MS_error > 0 else 0
+        # F-statistics and p-values.
+        #
+        # A zero interaction (or error) mean square -- common in a Gage study with few trials --
+        # makes F = x/0, which is undefined. It used to become F = 0, whose p-value was then
+        # hard-set to the literal 1: "no part-to-part variation, no operator effect, definitively",
+        # from a design that could not test for either. The `1 - f.cdf` form also returns exactly
+        # 0 for any strongly significant F.
+        def _f_and_p(ms_effect, ms_denominator, df_effect, df_denominator):
+            if ms_denominator is None or ms_denominator <= 0 or df_effect <= 0 or df_denominator <= 0:
+                return None, None
+            f_stat = ms_effect / ms_denominator
+            return float(f_stat), float(stats.f.sf(f_stat, df_effect, df_denominator))
 
-        p_parts = 1 - stats.f.cdf(F_parts, df_parts, df_interaction) if F_parts > 0 else 1
-        p_operators = 1 - stats.f.cdf(F_operators, df_operators, df_interaction) if F_operators > 0 else 1
-        p_interaction = 1 - stats.f.cdf(F_interaction, df_interaction, df_error) if F_interaction > 0 else 1
+        F_parts, p_parts = _f_and_p(MS_parts, MS_interaction, df_parts, df_interaction)
+        F_operators, p_operators = _f_and_p(MS_operators, MS_interaction, df_operators, df_interaction)
+        F_interaction, p_interaction = _f_and_p(MS_interaction, MS_error, df_interaction, df_error)
 
         # Calculate variance components
         # Repeatability (Equipment Variation)
@@ -180,8 +194,8 @@ class MSAService:
             "DoF": [df_parts, df_operators, df_interaction, df_error, df_total],
             "SS": [float(SS_parts), float(SS_operators), float(SS_interaction), float(SS_error), float(SS_total)],
             "MS": [float(MS_parts), float(MS_operators), float(MS_interaction), float(MS_error), None],
-            "F": [float(F_parts), float(F_operators), float(F_interaction), None, None],
-            "P": [float(p_parts), float(p_operators), float(p_interaction), None, None],
+            "F": [_num(F_parts), _num(F_operators), _num(F_interaction), None, None],
+            "P": [_num(p_parts), _num(p_operators), _num(p_interaction), None, None],
         }
 
         # Create variance components table

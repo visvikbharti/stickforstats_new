@@ -31,6 +31,46 @@ from scipy import stats
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
 
+def _f(value):
+    """float(), except None stays None. `float(None)` raises; and a None here means the
+    quantity does not exist, which is exactly what must reach the caller."""
+    return None if value is None else float(value)
+
+
+def normal_inference(estimate, se, confidence_level=0.95):
+    """
+    Wald inference from an estimate and its standard error.
+
+    Returns (t_stat, p_value, ci_lower, ci_upper), each None when the standard error is not a
+    positive finite number.
+
+    Every call site here used to read:
+
+        t_stat = ate / se if se > 0 else 0
+        p_value = 2 * (stats.norm.sf(abs(t_stat)))
+        ci_lower = ate - z_crit * se
+        ci_upper = ate + z_crit * se
+
+    A standard error of 0 means the uncertainty of the estimate could not be estimated -- the
+    bootstrap replicates came out identical, or a stratum had a single unit. It does NOT mean the
+    estimate is certain. But `else 0` set t = 0, and `sf(0)` is exactly 0.5, so p came out as
+    exactly 1.0: "no evidence of any effect", stated with total confidence, from a computation
+    that failed. The confidence interval simultaneously collapsed to `estimate +/- 0` -- a point
+    estimate with no uncertainty at all, the strongest possible claim, sitting right beside the
+    p-value that said there was nothing there.
+
+    Both statements come from the same missing number, and neither is true.
+    """
+    if se is None or not np.isfinite(se) or se <= 0:
+        return None, None, None, None
+
+    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+    t_stat = estimate / se
+    p_value = 2 * stats.norm.sf(abs(t_stat))
+
+    return float(t_stat), float(p_value), float(estimate - z_crit * se), float(estimate + z_crit * se)
+
+
 @dataclass
 class TreatmentEffectResult:
     """Result of treatment effect estimation."""
@@ -39,9 +79,12 @@ class TreatmentEffectResult:
     method: str
     estimate: float
     std_error: float
-    ci_lower: float
-    ci_upper: float
-    p_value: float
+    # None when the standard error could not be estimated. There is then no interval and no
+    # p-value -- as opposed to a zero-width interval and p = 1.0, which is what a missing
+    # standard error used to produce.
+    ci_lower: Optional[float]
+    ci_upper: Optional[float]
+    p_value: Optional[float]
     n_treated: int
     n_control: int
     diagnostics: Dict[str, Any]
@@ -210,20 +253,16 @@ def estimate_ate(
         raise ValueError(f"Unknown method: {method}")
 
     # Inference
-    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-    t_stat = ate / se if se > 0 else 0
-    p_value = 2 * (stats.norm.sf(abs(t_stat)))
-    ci_lower = ate - z_crit * se
-    ci_upper = ate + z_crit * se
+    t_stat, p_value, ci_lower, ci_upper = normal_inference(ate, se, confidence_level)
 
     return TreatmentEffectResult(
         estimand="ate",
         method=method,
         estimate=float(ate),
         std_error=float(se),
-        ci_lower=float(ci_lower),
-        ci_upper=float(ci_upper),
-        p_value=float(p_value),
+        ci_lower=_f(ci_lower),
+        ci_upper=_f(ci_upper),
+        p_value=_f(p_value),
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,
@@ -378,20 +417,16 @@ def estimate_att(
         raise ValueError(f"Unknown method: {method}")
 
     # Inference
-    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-    t_stat = att / se if se > 0 else 0
-    p_value = 2 * (stats.norm.sf(abs(t_stat)))
-    ci_lower = att - z_crit * se
-    ci_upper = att + z_crit * se
+    t_stat, p_value, ci_lower, ci_upper = normal_inference(att, se, confidence_level)
 
     return TreatmentEffectResult(
         estimand="att",
         method=method,
         estimate=float(att),
         std_error=float(se),
-        ci_lower=float(ci_lower),
-        ci_upper=float(ci_upper),
-        p_value=float(p_value),
+        ci_lower=_f(ci_lower),
+        ci_upper=_f(ci_upper),
+        p_value=_f(p_value),
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,
@@ -453,18 +488,16 @@ def estimate_effects_ipw(
     # Simple SE estimate
     se = np.sqrt(np.var(Y[T == 1], ddof=1) / n_treated + np.var(Y[T == 0], ddof=1) / n_control)
 
-    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-    t_stat = effect / se if se > 0 else 0
-    p_value = 2 * (stats.norm.sf(abs(t_stat)))
+    t_stat, p_value, ci_lower, ci_upper = normal_inference(effect, se, confidence_level)
 
     return TreatmentEffectResult(
         estimand=estimand,
         method="ipw_precomputed",
         estimate=float(effect),
         std_error=float(se),
-        ci_lower=float(effect - z_crit * se),
-        ci_upper=float(effect + z_crit * se),
-        p_value=float(p_value),
+        ci_lower=_f(ci_lower),
+        ci_upper=_f(ci_upper),
+        p_value=_f(p_value),
         n_treated=n_treated,
         n_control=n_control,
         diagnostics={"propensity_score_range": [float(np.min(ps)), float(np.max(ps))]},
@@ -561,9 +594,7 @@ def doubly_robust_estimator(
         se = np.sqrt(np.var(Y[T == 1], ddof=1) / n_treated + np.var(mu0_hat[T == 1], ddof=1) / n_treated)
 
     # Inference
-    z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-    t_stat = effect / se if se > 0 else 0
-    p_value = 2 * (stats.norm.sf(abs(t_stat)))
+    t_stat, p_value, ci_lower, ci_upper = normal_inference(effect, se, confidence_level)
 
     diagnostics = {
         "method": "AIPW (Doubly Robust)",
@@ -585,9 +616,9 @@ def doubly_robust_estimator(
         method="doubly_robust",
         estimate=float(effect),
         std_error=float(se),
-        ci_lower=float(effect - z_crit * se),
-        ci_upper=float(effect + z_crit * se),
-        p_value=float(p_value),
+        ci_lower=_f(ci_lower),
+        ci_upper=_f(ci_upper),
+        p_value=_f(p_value),
         n_treated=n_treated,
         n_control=n_control,
         diagnostics=diagnostics,

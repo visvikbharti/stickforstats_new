@@ -434,13 +434,24 @@ class ConfidenceIntervalCalculator:
             ci_lower = mean_diff - margin_of_error
             ci_upper = mean_diff + margin_of_error
 
-            # Calculate t-statistic and p-value
-            t_statistic = mean_diff / se_diff if se_diff > 0 else 0
-            p_value = 2 * (1 - stats.t.cdf(abs(t_statistic), df))
+            # t-statistic and p-value.
+            #
+            # `se_diff > 0 else 0` set t = 0 when the standard error could not be estimated, and
+            # `2 * (1 - t.cdf(0, df))` is exactly 1.0 -- a confident "no difference" from a
+            # comparison that has no scale to measure a difference against. And the p-value used
+            # `1 - cdf`, which returns exactly 0 for any |t| whose tail is below ~1e-16, i.e. for
+            # every decisively significant difference. Both ends of the scale were broken.
+            if se_diff > 0 and np.isfinite(se_diff):
+                t_statistic = mean_diff / se_diff
+                p_value = float(2 * stats.t.sf(abs(t_statistic), df))
+            else:
+                t_statistic = None
+                p_value = None
 
-            # Calculate Cohen's d effect size
+            # Cohen's d: mean difference in pooled-SD units. With a pooled SD of zero there is no
+            # unit to express it in.
             pooled_sd = np.sqrt(((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2))
-            cohens_d = mean_diff / pooled_sd if pooled_sd > 0 else 0
+            cohens_d = mean_diff / pooled_sd if pooled_sd > 0 else None
 
             result = {
                 "mean_difference": mean_diff,
