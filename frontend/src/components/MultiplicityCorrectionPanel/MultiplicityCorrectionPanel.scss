@@ -148,6 +148,30 @@
   }
   
   // Error rate summary cards
+  .correction-status {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    background: rgba(33, 150, 243, 0.08);
+    color: #1565c0;
+    font-size: 0.9rem;
+  }
+
+  .correction-error {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #d32f2f;
+    background: rgba(211, 47, 47, 0.08);
+    color: #b71c1c;
+    font-size: 0.9rem;
+
+    div {
+      margin-top: 0.35rem;
+      opacity: 0.9;
+    }
+  }
+
   .error-rate-summary {
     display: flex;
     gap: 12px;

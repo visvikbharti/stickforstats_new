@@ -2,7 +2,7 @@
 // Enterprise-grade multiple hypothesis correction interface
 // Tracks all tests in session, applies corrections, prevents p-hacking
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectHypotheses,
@@ -16,7 +16,24 @@ import {
   applyCorrection,
   exportRegistry
 } from '../../store/slices/multiplicityCorrectionSlice';
+import { getApiUrl } from '../../config/apiConfig';
 import './MultiplicityCorrectionPanel.scss';
+
+// This panel's method ids -> the backend's CorrectionMethod values.
+const BACKEND_METHOD = {
+  bonferroni: 'bonferroni',
+  holm: 'holm',
+  hochberg: 'hochberg',
+  hommel: 'hommel',
+  sidak: 'sidak',
+  benjamini_hochberg: 'fdr_bh',
+  benjamini_yekutieli: 'fdr_by',
+  storey: 'qvalue'
+};
+
+// Which procedures bound the false discovery rate rather than the familywise error rate.
+// The two guarantees are not interchangeable and the panel must not conflate them.
+const FDR_METHODS = new Set(['benjamini_hochberg', 'benjamini_yekutieli', 'storey']);
 
 // Correction method details with references
 const CorrectionMethods = {
@@ -31,7 +48,7 @@ const CorrectionMethods = {
   holm: {
     name: 'Holm-Bonferroni',
     description: 'Sequentially rejective Bonferroni, less conservative',
-    formula: 'p_adj[i] = min(p[i] * (m-i+1), 1)',
+    formula: 'p_adj[i] = min(max_{j<=i} p[j] * (m-j+1), 1)  — the running maximum is what makes it step-down',
     conservative: true,
     reference: 'Holm, S. (1979). Scandinavian Journal of Statistics',
     whenToUse: 'Moderate tests, balance power and FWER'
@@ -55,7 +72,7 @@ const CorrectionMethods = {
   benjamini_hochberg: {
     name: 'Benjamini-Hochberg',
     description: 'Controls FDR, allows more discoveries',
-    formula: 'p_adj[i] = min(p[i] * m/i, 1)',
+    formula: 'p_adj[i] = min(min_{j>=i} p[j] * m/j, 1)  — the running minimum is what makes it step-up',
     conservative: false,
     reference: 'Benjamini & Hochberg (1995). JRSS-B, 57(1), 289-300',
     whenToUse: 'Many tests (>20), exploratory analysis'
@@ -63,7 +80,7 @@ const CorrectionMethods = {
   benjamini_yekutieli: {
     name: 'Benjamini-Yekutieli',
     description: 'FDR control for dependent tests',
-    formula: 'p_adj[i] = min(p[i] * m * c(m)/i, 1)',
+    formula: 'p_adj[i] = BH_adj[i] * c(m),  c(m) = 1 + 1/2 + … + 1/m',
     conservative: true,
     reference: 'Benjamini & Yekutieli (2001). Ann. Stat., 29(4)',
     whenToUse: 'Dependent/correlated tests'
@@ -120,167 +137,116 @@ const MultiplicityCorrectionPanel = () => {
     effectSize: ''
   });
 
-  // Calculate corrected p-values
-  const correctedResults = useMemo(() => {
-    if (!hypotheses.length) return [];
-    
-    // Sort hypotheses by p-value for step procedures
-    const sorted = [...hypotheses].sort((a, b) => a.pValue - b.pValue);
-    const m = sorted.length;
-    
-    switch (correctionMethod) {
-      case 'bonferroni':
-        return sorted.map(h => ({
-          ...h,
-          adjustedP: Math.min(h.pValue * m, 1),
-          significant: h.pValue * m < alphaLevel
-        }));
-        
-      case 'holm':
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: Math.min(h.pValue * (m - i), 1),
-          significant: h.pValue * (m - i) < alphaLevel
-        }));
-        
-      case 'benjamini_hochberg':
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: Math.min(h.pValue * m / (i + 1), 1),
-          significant: h.pValue * m / (i + 1) < alphaLevel
-        }));
+  // Corrected p-values come from the backend, NOT from JavaScript.
+  //
+  // This block used to reimplement every correction procedure in the browser, and got the
+  // two most-used ones wrong:
+  //
+  //   * Holm computed p_(i) * (m - i) ELEMENTWISE, with no step-down stopping rule and no
+  //     running maximum. On p = [0.030, 0.031] at alpha = 0.05 it reported the first as NOT
+  //     significant (adj 0.060) and the second as SIGNIFICANT (adj 0.031) -- rejecting a
+  //     hypothesis with a LARGER raw p-value than one it had just spared. That is a direct
+  //     familywise-error-rate violation, i.e. a false positive the method exists to prevent.
+  //
+  //   * Benjamini-Hochberg computed p_(i) * m / i elementwise with no step-up running
+  //     minimum, so on the same input it MISSED a discovery the method would have made
+  //     (correct BH adjusts both to 0.031; the JS gave 0.060 and 0.031).
+  //
+  //   * Hommel derived its adjusted p-values from alphaLevel. A Hommel adjusted p-value is
+  //     alpha-free by construction; only the rejection depends on alpha.
+  //
+  // The backend has a tested MultiplicityCorrector that agrees with statsmodels on all seven
+  // procedures. There is now exactly one correction engine and it is the tested one.
+  //
+  // Deliberately NO local fallback: if the correction cannot be computed, the panel says so.
+  // Silently substituting a wrong answer for an unavailable one is how this started.
+  const [correctedResults, setCorrectedResults] = useState([]);
+  const [correcting, setCorrecting] = useState(false);
+  const [correctionError, setCorrectionError] = useState(null);
 
-      case 'hochberg': {
-        // Step-up procedure (reverse of Holm)
-        // Work from largest p-value to smallest
-        const hochbergAdj = new Array(m);
-        // Start with the largest p-value (last in sorted ascending array)
-        hochbergAdj[m - 1] = Math.min(sorted[m - 1].pValue, 1);
-        // Step backward: adjusted_p[i] = min(adjusted_p[i+1], (m - i) * p[i])
-        for (let i = m - 2; i >= 0; i--) {
-          hochbergAdj[i] = Math.min(hochbergAdj[i + 1], (m - i) * sorted[i].pValue, 1);
-        }
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: hochbergAdj[i],
-          significant: hochbergAdj[i] < alphaLevel
-        }));
-      }
-
-      case 'hommel': {
-        // Hommel's procedure using Simes-based approach
-        // Start with Bonferroni-adjusted p-values as initial upper bounds
-        const hommelAdj = sorted.map(h => Math.min(h.pValue * m, 1));
-
-        // For each j from m down to 2, test the Simes condition
-        for (let j = m; j >= 2; j--) {
-          // Simes critical values for this j
-          const simesThresholds = [];
-          let simesHolds = true;
-
-          for (let i = 0; i < j; i++) {
-            const threshold = (alphaLevel * (i + 1)) / j;
-            if (sorted[i].pValue <= threshold) {
-              simesHolds = false;
-            }
-            simesThresholds.push(threshold);
-          }
-
-          if (!simesHolds) {
-            // Simes test rejects for this j: refine adjusted p-values
-            const cj = Math.min(...sorted.slice(0, j).map((h, i) => (j * h.pValue) / (i + 1)));
-            for (let i = 0; i < m; i++) {
-              if (i < j) {
-                // For hypotheses within the Simes set
-                hommelAdj[i] = Math.min(hommelAdj[i], Math.max(cj, sorted[i].pValue * j / (i + 1)), 1);
-              } else {
-                hommelAdj[i] = Math.min(hommelAdj[i], Math.max(cj, sorted[i].pValue), 1);
-              }
-            }
-          }
-        }
-
-        // Ensure monotonicity (non-decreasing in the sorted order)
-        for (let i = 1; i < m; i++) {
-          hommelAdj[i] = Math.max(hommelAdj[i], hommelAdj[i - 1]);
-        }
-
-        // Cap at 1
-        for (let i = 0; i < m; i++) {
-          hommelAdj[i] = Math.min(hommelAdj[i], 1);
-        }
-
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: hommelAdj[i],
-          significant: hommelAdj[i] < alphaLevel
-        }));
-      }
-
-      case 'benjamini_yekutieli': {
-        // BH with additional correction factor c(m) = sum(1/i for i=1..m)
-        let cm = 0;
-        for (let i = 1; i <= m; i++) {
-          cm += 1 / i;
-        }
-        // Compute adjusted p-values: p_adj[i] = p[i] * m * c(m) / rank
-        const byAdj = sorted.map((h, i) =>
-          Math.min(h.pValue * m * cm / (i + 1), 1)
-        );
-        // Enforce monotonicity: working from second-largest to smallest
-        for (let i = m - 2; i >= 0; i--) {
-          byAdj[i] = Math.min(byAdj[i], byAdj[i + 1]);
-        }
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: byAdj[i],
-          significant: byAdj[i] < alphaLevel
-        }));
-      }
-
-      case 'storey': {
-        // Storey's q-value method
-        const lambda = 0.5;
-        const countAboveLambda = sorted.filter(h => h.pValue > lambda).length;
-        let pi0Hat = countAboveLambda / (m * (1 - lambda));
-        pi0Hat = Math.min(Math.max(pi0Hat, 1 / m), 1); // Bound between 1/m and 1
-
-        // Compute q-values: q[i] = pi0 * m * p[i] / rank[i]
-        const qValues = sorted.map((h, i) =>
-          Math.min(pi0Hat * m * h.pValue / (i + 1), 1)
-        );
-
-        // Enforce monotonicity: working from second-largest to smallest,
-        // q[i] = min(q[i], q[i+1])
-        for (let i = m - 2; i >= 0; i--) {
-          qValues[i] = Math.min(qValues[i], qValues[i + 1]);
-        }
-
-        return sorted.map((h, i) => ({
-          ...h,
-          adjustedP: qValues[i],
-          significant: qValues[i] < alphaLevel
-        }));
-      }
-
-      default:
-        return sorted;
+  useEffect(() => {
+    if (!hypotheses.length) {
+      setCorrectedResults([]);
+      setCorrectionError(null);
+      return undefined;
     }
+
+    // Step procedures operate on the ordered p-values, and the table reads best sorted.
+    const sorted = [...hypotheses].sort((a, b) => a.pValue - b.pValue);
+    let cancelled = false;
+
+    setCorrecting(true);
+    setCorrectionError(null);
+
+    fetch(getApiUrl('/multiplicity/correct/'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_values: sorted.map((h) => h.pValue),
+        method: BACKEND_METHOD[correctionMethod] || correctionMethod,
+        alpha: alphaLevel
+      })
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.error || `Correction failed (HTTP ${response.status})`);
+        }
+        return response.json();
+      })
+      .then((body) => {
+        if (cancelled) return;
+        const adjusted = body.p_values_adjusted || body.adjusted_p_values || [];
+        const rejected = body.rejected || [];
+        setCorrectedResults(
+          sorted.map((h, i) => ({
+            ...h,
+            adjustedP: adjusted[i],
+            significant: Boolean(rejected[i])
+          }))
+        );
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setCorrectedResults([]);
+        setCorrectionError(err.message || 'Could not apply the multiplicity correction.');
+      })
+      .finally(() => {
+        if (!cancelled) setCorrecting(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [hypotheses, correctionMethod, alphaLevel]);
   
-  // Calculate FDR and FWER
+  // What the correction actually buys you.
+  //
+  // The three cards here used to show invented numbers:
+  //   * "FWER" was 1 - (1 - alpha)^m -- the familywise error rate you would have WITHOUT any
+  //     correction. Displaying that as the FWER, right beside a method whose entire job is to
+  //     hold the FWER at alpha, told the user their corrected analysis had a 40% false-positive
+  //     rate when in fact it had at most 5%. Exactly backwards.
+  //   * "FDR" was alpha * m / R, which is not the false discovery rate or any other quantity.
+  //   * "Power" was R / m -- the proportion of hypotheses rejected. Power cannot be computed
+  //     from p-values alone; it needs effect sizes and sample sizes, neither of which this
+  //     panel has. So that card is gone rather than guessed.
   const errorRates = useMemo(() => {
     const rejected = correctedResults.filter(r => r.significant).length;
     const total = correctedResults.length;
-    
+    const controlsFdr = FDR_METHODS.has(correctionMethod);
+
     return {
-      fdr: rejected > 0 ? (alphaLevel * total) / rejected : 0,
-      fwer: 1 - Math.pow(1 - alphaLevel, total),
+      // The guarantee the chosen procedure gives, and the name of the rate it bounds.
+      controlledRate: controlsFdr ? 'FDR' : 'FWER',
+      controlledAt: alphaLevel,
+      // The familywise error rate you WOULD face if you ran these m tests uncorrected --
+      // the thing the correction is protecting you from. Labelled as such.
+      uncorrectedFwer: total ? 1 - Math.pow(1 - alphaLevel, total) : 0,
       rejectedCount: rejected,
-      totalCount: total,
-      power: rejected / total // Simplified power estimate
+      totalCount: total
     };
-  }, [correctedResults, alphaLevel]);
+  }, [correctedResults, alphaLevel, correctionMethod]);
   
   // Add new hypothesis
   const handleAddHypothesis = useCallback((hypothesis) => {
@@ -384,19 +350,29 @@ const MultiplicityCorrectionPanel = () => {
         </div>
       )}
       
+      {correcting && (
+        <div className="correction-status">Applying the {CorrectionMethods[correctionMethod].name} correction…</div>
+      )}
+
+      {correctionError && (
+        <div className="correction-error" role="alert">
+          <strong>Could not apply the correction:</strong> {correctionError}
+          <div>
+            No adjusted p-values are shown. The raw p-values below are <em>uncorrected</em> and must not be
+            read as significant.
+          </div>
+        </div>
+      )}
+
       {/* Error rate summary */}
       <div className="error-rate-summary">
         <div className="rate-card">
-          <label>FWER</label>
-          <span className="rate-value">{(errorRates.fwer * 100).toFixed(2)}%</span>
+          <label>{errorRates.controlledRate} controlled at</label>
+          <span className="rate-value">{(errorRates.controlledAt * 100).toFixed(0)}%</span>
         </div>
         <div className="rate-card">
-          <label>FDR</label>
-          <span className="rate-value">{(errorRates.fdr * 100).toFixed(2)}%</span>
-        </div>
-        <div className="rate-card">
-          <label>Power</label>
-          <span className="rate-value">{(errorRates.power * 100).toFixed(1)}%</span>
+          <label>FWER without correction</label>
+          <span className="rate-value">{(errorRates.uncorrectedFwer * 100).toFixed(1)}%</span>
         </div>
         <div className="rate-card">
           <label>Discoveries</label>
@@ -819,8 +795,14 @@ const MultiplicityCorrectionPanel = () => {
             <div className="report-section">
               <h5>Statistical Safeguards</h5>
               <ul>
-                <li>Family-Wise Error Rate: {(errorRates.fwer * 100).toFixed(2)}%</li>
-                <li>False Discovery Rate: {(errorRates.fdr * 100).toFixed(2)}%</li>
+                <li>
+                  {errorRates.controlledRate} controlled at α = {alphaLevel} by the{' '}
+                  {CorrectionMethods[correctionMethod].name} procedure
+                </li>
+                <li>
+                  Uncorrected, {hypotheses.length} independent tests at α = {alphaLevel} would carry a{' '}
+                  {(errorRates.uncorrectedFwer * 100).toFixed(1)}% chance of at least one false positive
+                </li>
                 <li>Number of tests conducted: {hypotheses.length}</li>
                 <li>Correction method: {CorrectionMethods[correctionMethod].name}</li>
                 <li>Reference: {CorrectionMethods[correctionMethod].reference}</li>

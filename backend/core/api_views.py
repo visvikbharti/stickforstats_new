@@ -6,13 +6,17 @@ Handles HTTP requests and responses for frontend-backend communication
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.cache import cache
+import logging
 import pandas as pd
 import numpy as np
 import uuid
 import io
 from typing import Dict, List, Any
+
+logger = logging.getLogger(__name__)
 
 # Import our core modules
 from .test_recommender import TestRecommendationEngine as TestRecommender
@@ -467,6 +471,13 @@ class TestExecutionView(APIView):
 class MultiplicityCorrectionView(APIView):
     """Apply multiplicity correction to p-values"""
 
+    # Every statistics endpoint under api/v1/ is explicitly AllowAny; this module sets no
+    # permission_classes at all and so inherits the project default of IsAuthenticated, which
+    # 401s the (unauthenticated) multiplicity panel. This view is a pure function over
+    # p-values the user typed in: no data access, no side effects, no stored state -- the same
+    # risk profile as /api/v1/stats/ttest/, which is already AllowAny. Scoped to this view
+    # deliberately; the rest of this module keeps the authenticated default.
+    permission_classes = [AllowAny]
     parser_classes = (JSONParser,)
 
     def post(self, request):
@@ -482,7 +493,7 @@ class MultiplicityCorrectionView(APIView):
             p_values = serializer.validated_data["p_values"]
             method = serializer.validated_data["method"]
             alpha = serializer.validated_data.get("alpha", 0.05)
-            serializer.validated_data.get("hypothesis_names", None)
+            hypothesis_names = serializer.validated_data.get("hypothesis_names", None)
 
             # Initialize corrector
             corrector = MultiplicityCorrector()
@@ -490,24 +501,44 @@ class MultiplicityCorrectionView(APIView):
             # Apply correction
             result = corrector.correct(p_values=p_values, method=method, alpha=alpha)
 
-            # Format result
+            # `correct()` returns a CorrectionResult DATACLASS. This used to call
+            # result.get("adjusted_p_values", p_values) on it -- a dataclass has no .get(),
+            # so every single request raised AttributeError and came back as a 500. The
+            # endpoint had never once worked, which is presumably why the frontend grew its
+            # own JavaScript reimplementation of the corrections (and got Holm and
+            # Benjamini-Hochberg wrong).
+            rejected = [bool(flag) for flag in result.rejected]
+            adjusted = [float(value) for value in result.adjusted_pvalues]
+
             formatted_result = {
                 "method": method,
                 "alpha_original": alpha,
-                "alpha_adjusted": result.get("alpha_adjusted", alpha),
-                "p_values_original": p_values,
-                "p_values_adjusted": result.get("adjusted_p_values", p_values),
-                "rejected": result.get("rejected", []),
-                "n_significant": sum(result.get("rejected", [])),
-                "n_tests": len(p_values),
-                "family_wise_error_rate": result.get("fwer", alpha),
-                "false_discovery_rate": result.get("fdr", None),
-                "summary": result.get("summary", ""),
+                "alpha": alpha,
+                "p_values_original": list(p_values),
+                "p_values_adjusted": adjusted,
+                "adjusted_p_values": adjusted,  # both spellings; callers use each
+                "rejected": rejected,
+                "n_significant": int(sum(rejected)),
+                "n_tests": int(result.n_tests),
+                "error_rate_type": result.error_rate_type.value,
+                "threshold": float(result.threshold) if result.threshold is not None else None,
+                "estimated_fdr": (
+                    float(result.estimated_fdr) if result.estimated_fdr is not None else None
+                ),
+                "warnings": list(result.warnings),
+                "summary": result.summary(),
             }
+            if hypothesis_names:
+                formatted_result["hypothesis_names"] = list(hypothesis_names)
 
             return Response(formatted_result, status=status.HTTP_200_OK)
 
+        except ValueError as e:
+            return Response(
+                {"error": f"Multiplicity correction failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
+            logger.exception("Multiplicity correction failed")
             return Response(
                 {"error": f"Multiplicity correction failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

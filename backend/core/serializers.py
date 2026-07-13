@@ -137,19 +137,24 @@ class MultiplicityCorrectionRequestSerializer(serializers.Serializer):
     """Serializer for multiplicity correction requests"""
 
     p_values = serializers.ListField(child=serializers.FloatField(min_value=0, max_value=1), min_length=2)
+    # These are exactly the values of CorrectionMethod. The list used to advertise
+    # "fdr_tsbh", "fdr_tsbky" and "simes-hochberg", none of which exist in the enum, so
+    # requesting one raised ValueError inside correct() and came back as a 500. Keep this in
+    # step with the enum -- an endpoint that offers a method it cannot run is worse than one
+    # that does not offer it.
     method = serializers.ChoiceField(
         choices=[
             "bonferroni",
             "holm",
             "hochberg",
             "hommel",
-            "fdr_bh",
-            "fdr_by",
-            "fdr_tsbh",
-            "fdr_tsbky",
             "sidak",
             "holm-sidak",
-            "simes-hochberg",
+            "fdr_bh",
+            "fdr_by",
+            "fdr_tst",
+            "qvalue",
+            "none",
         ],
         default="holm",
     )

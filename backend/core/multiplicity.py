@@ -49,6 +49,7 @@ class CorrectionMethod(Enum):
     BONFERRONI = "bonferroni"
     HOLM = "holm"
     HOCHBERG = "hochberg"
+    HOMMEL = "hommel"
     SIDAK = "sidak"
     HOLM_SIDAK = "holm-sidak"
 
@@ -213,6 +214,8 @@ class MultiplicityCorrector:
             result = self._holm(valid_p_values, alpha)
         elif method == CorrectionMethod.HOCHBERG:
             result = self._hochberg(valid_p_values, alpha)
+        elif method == CorrectionMethod.HOMMEL:
+            result = self._hommel(valid_p_values, alpha)
         elif method == CorrectionMethod.SIDAK:
             result = self._sidak(valid_p_values, alpha)
         elif method == CorrectionMethod.HOLM_SIDAK:
@@ -372,6 +375,36 @@ class MultiplicityCorrector:
             warnings=["Hochberg method assumes independence or positive dependence"],
         )
 
+    def _hommel(self, p_values: np.ndarray, alpha: float) -> CorrectionResult:
+        """
+        Hommel's procedure (1988): uniformly more powerful than Hochberg, still FWER-controlling.
+
+        Delegated to statsmodels rather than hand-rolled. The closed-testing recursion is
+        genuinely fiddly, and the frontend's attempt at it made the classic mistake of
+        deriving the adjusted p-values from alpha -- a Hommel adjusted p-value is alpha-free
+        by definition; only the REJECTION depends on alpha. Adding a third hand-written copy
+        of a procedure whose reference implementation is already a dependency would be how
+        this codebase got into trouble in the first place.
+        """
+        from statsmodels.stats.multitest import multipletests
+
+        rejected, adjusted, _, _ = multipletests(p_values, alpha=alpha, method="hommel")
+        n = len(p_values)
+        rejected = np.asarray(rejected, dtype=bool)
+        adjusted = np.asarray(adjusted, dtype=float)
+
+        return CorrectionResult(
+            method=CorrectionMethod.HOMMEL,
+            original_pvalues=p_values,
+            adjusted_pvalues=adjusted,
+            rejected=rejected,
+            alpha=alpha,
+            error_rate_type=ErrorRateType.FWER,
+            n_tests=n,
+            n_rejected=int(np.sum(rejected)),
+            threshold=float(np.max(p_values[rejected])) if np.any(rejected) else 0.0,
+        )
+
     def _sidak(self, p_values: np.ndarray, alpha: float) -> CorrectionResult:
         """
         Šidák correction
@@ -529,13 +562,34 @@ class MultiplicityCorrector:
         """
         n = len(p_values)
 
-        # Calculate harmonic sum correction factor
+        # Harmonic sum correction factor c(n) = sum(1/i for i in 1..n)
         c_n = np.sum(1.0 / np.arange(1, n + 1))
 
-        # Apply BH with adjusted alpha
+        # Run BH against the deflated alpha. That gives the right REJECTIONS -- comparing a
+        # BH-adjusted p against alpha/c(n) is equivalent to comparing a BY-adjusted p against
+        # alpha -- but it does NOT give the right adjusted p-values.
         result = self._benjamini_hochberg(p_values, alpha / c_n)
 
-        # Update method and add warning
+        # ...which is exactly what this used to return. The adjusted p-values were left as
+        # BH's, so the module reported BH q-values under a Benjamini-Yekutieli label: they
+        # matched statsmodels' fdr_bh and were up to c(n)x too small against its fdr_by.
+        # Anyone reading the numbers off the screen -- or any caller that thresholds
+        # adjusted_pvalues itself, as the frontend does -- silently got BH's weaker
+        # guarantee while believing they had BY's dependence-proof one.
+        #
+        # A BY-adjusted p-value is the BH one scaled by c(n), re-capped, and re-monotonised.
+        adjusted = np.minimum(result.adjusted_pvalues * c_n, 1.0)
+        order = np.argsort(p_values)
+        sorted_adjusted = adjusted[order]
+        for i in range(n - 2, -1, -1):
+            sorted_adjusted[i] = min(sorted_adjusted[i], sorted_adjusted[i + 1])
+        adjusted[order] = sorted_adjusted
+
+        result.adjusted_pvalues = adjusted
+        result.q_values = adjusted.copy()
+        # Report the alpha the user actually asked for; the deflation is an implementation
+        # detail of getting to the rejections, not the level being controlled.
+        result.alpha = alpha
         result.method = CorrectionMethod.FDR_BY
         result.warnings.append(f"BY correction applied with factor c(n)={c_n:.3f} for arbitrary dependence")
 
