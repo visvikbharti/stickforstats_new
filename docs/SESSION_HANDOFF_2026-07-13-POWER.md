@@ -58,17 +58,28 @@ Friedman) now **says so** rather than silently returning a t-test answer under i
 - **The bug was never precision.** scipy's float64 non-central F/t agrees with the 50-digit engine to
   **4.4e-16**. The browser was using a *different distribution* (a normal approximation), which is off
   by up to **0.21** on a 0–1 scale. Curves are served from float64; headline numbers from mpmath.
-- **Every fix commit in this arc shipped at least one new defect, and an adversarial reviewer caught
-  each one.** This is the single most important thing to carry forward. Round 1's fix pinned
-  `/power/curve/`'s t-variant to `"independent"`, so a **paired** curve silently returned the
-  independent one (n = 40, d = 0.5: 0.869 vs 0.598). Round 2's fix (`180d215`) then *reintroduced the
-  same class of bug one function to the left*: `_t_power_float` got an explicit `less` branch and
-  `_correlation_power_float` did not, so a left-tailed correlation curve climbed to 92% while the
-  headline directly above it — from the exact engine, which does honour `less` — read 0.0%. Six orders
-  of magnitude, one screen. Guarding one caller of a shared idea and not the other is how this
-  survives a fix aimed squarely at it.
-  **So: review every honesty fix adversarially, including the third one. The fix is exactly as capable
-  of lying as the thing it replaced, and having written it carefully does not make it true.**
+- **FIVE consecutive fix commits each shipped at least one new defect. Four adversarial passes were
+  needed to converge.** This is the single most important thing to carry forward, and the pattern
+  never varied: *the new defect was always the same bug class as the one being fixed, reintroduced
+  one function or one call site to the left of where it was fixed.*
+
+  | fixed | reintroduced |
+  |---|---|
+  | `test_type`'s bare `else` | the identical bare `else` on `alternative` |
+  | `_t_power_float`'s missing `less` branch | `_correlation_power_float` left unsigned — a left-tailed correlation curve read **92%** under a headline reading **0.0%** |
+  | `/power/curve/`'s pinned t-variant | — (this one was the *first* fix's own bug: a paired curve returned the independent one, 0.869 vs 0.598) |
+  | "exported total N is wrong" | still wrong for Mann-Whitney, **same numeral (90)** |
+  | stale `sampleSize2` in two consumers | missed the third — the R/Python **code generator** |
+  | a commit message condemning fabrication | **interpolated a number into the table inside it** (`uniform → 65`; the engine says **64**) |
+
+  That last one is worth sitting with. It did not feel like inventing data. It felt like filling in
+  an obvious gap — four rows had been executed, ARE = 1.0 sits between 0.955 and 1.097, so the n
+  "obviously" sits between 68 and 59. **That is what this failure mode looks like from the inside.**
+
+  **So: review every fix adversarially — with a subagent that must EXECUTE, not read. Mutation-check
+  every regression test (put the bug back; if the test still passes, it tests nothing — the total-N
+  test passed with the bug live, because it only exercised the input that does not trigger it). And
+  never type a number you have not run.**
 - **Three parameters in the power API dispatch on a bare `else`** (`test_type`, `t_test_type`,
   `alternative`). All three are now canonicalized and reject unknown values with a 400
   (`canonical_test_type` / `canonical_t_test_type` / `canonical_alternative` in `power_views.py`).
@@ -99,14 +110,34 @@ to `hubTestService` instead.
 
 ## Green
 
-- Backend: **1293 tests OK**, flake8 clean.
-- Frontend: **883/883 jest**, 53 suites, `eslint src/ --max-warnings 0` passes, production build compiles.
+- Backend: **1295 tests OK**, flake8 clean.
+- Frontend: **921/921 jest**, 55 suites, `eslint src/ --max-warnings 0` passes, production build compiles.
   (Build needs `NODE_OPTIONS="--max-old-space-size=4096"` locally, as CI already sets — the default
   heap OOMs.)
+- Two suites are load-sensitive and fail only under parallel-worker contention, never in isolation
+  or in a quiet full run: `BundleVerifier` / `PerformanceTests` (timing thresholds) and
+  `simulationUtils` (a Monte-Carlo coverage assertion). Not regressions — don't chase them.
 
-## Deploy
+## Deploy — NOT DONE. Blocked on the user, deliberately.
 
-22 commits ship over live `7a8dced`. Rollback point captured before deploying:
+25 commits ship over live `7a8dced`. Everything is staged on the VPS and the deploy is one command:
+
+    ssh -i ~/.ssh/id_ed25519 root@91.98.93.98
+    cd /opt/stickforstats_new && docker compose up -d --no-build && docker compose restart nginx
+
+**The compose project lives at `/opt/stickforstats_new`, NOT `/opt/stickforstats`.**
+
+Images for `b252163` are already pulled and the `stickforstats/{backend,frontend}:1.0.0` tags
+ALREADY POINT AT THEM. Running containers hold their image by ID, so live is unaffected — but the
+host is *armed*: the next `docker compose up -d` for any reason picks up the new build. (Re-pull and
+re-tag for whatever the final SHA is before deploying.)
+
+Rollback point, tagged on the host as `stickforstats/{backend,frontend}:rollback-prev`:
 
     backend  sha256:d4ad5640ffdccbf16aad008d5dbfb73c19549a960ed4db7ee06f3313f3fdf45c
     frontend sha256:d34a01ea5bcdda6f40a6ed313e9d4e671bcc9accbb7b39d4c337652041eef29b
+
+## Still open
+
+- **Beta Basic-Auth password has NOT been rotated** off the old one.
+- The 13 dead education files (see above) still hold wrong browser-side power math.
