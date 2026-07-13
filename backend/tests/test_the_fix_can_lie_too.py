@@ -429,3 +429,164 @@ class TheTableInTheExportedScriptIsNotInvented(TestCase):
         sizes = [n for _, _, n in self.EXPORTED_TABLE]
         self.assertEqual(sizes, sorted(sizes, reverse=True))
         self.assertLess(sizes[-1], sizes[0] / 2)  # exponential is less than half of normal
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TheMinimumDetectableEffectHonoursBothArms(TestCase):
+    """
+    The FOURTH consumer of the group-2 box, found by the fourth review.
+
+    Three earlier rounds gated this value for the power request, the total N and the code generator,
+    each commit claiming the set was now complete. It never was. The "Sample Size (Group 2)" box
+    renders in EFFECT-SIZE mode too, and `runMinimumDetectableEffect` had no `sampleSize2` at all --
+    neither did this engine method, nor the view.
+
+    So a user who entered 30 and 60 and asked "what is the smallest effect I can detect?" was
+    answered for a BALANCED 30/30 design:
+
+        reported: d = 0.7356   <- the balanced answer
+        truth   : d = 0.6334   <- for the design they actually described
+        overstates the smallest detectable effect by 16%, and the d it quotes has 90.2% power in
+        their design, not the 80% they asked for.
+
+    This is the bug the comment above the input box declares dead -- "a field that does nothing is
+    worse than no field, because the user believes they have told us something" -- still true, one
+    calculation mode to the left.
+    """
+
+    URL = "/api/v1/power/mde/"
+
+    def _mde(self, **body):
+        response = self.client.post(self.URL, data=json.dumps(body), content_type="application/json")
+        return response
+
+    def test_an_unbalanced_design_gets_its_own_answer_not_the_balanced_one(self):
+        from statsmodels.stats.power import TTestIndPower
+
+        for n1, n2, ratio in ((30, 30, 1.0), (30, 60, 2.0), (30, 120, 4.0), (60, 30, 0.5)):
+            with self.subTest(n1=n1, n2=n2):
+                results = self._mde(
+                    test_type="t-test", sample_size=n1, sample_size2=n2, power=0.8, alpha=0.05
+                ).json()["results"]
+
+                expected = float(TTestIndPower().solve_power(nobs1=n1, power=0.8, alpha=0.05, ratio=ratio))
+                self.assertAlmostEqual(results["minimum_detectable_effect_float"], expected, places=5)
+
+                # And it echoes the design it answered for, so the caller can tell.
+                self.assertEqual(results["sample_size2"], n2)
+
+    def test_the_specific_number_the_screen_used_to_report(self):
+        # The literals below are EXECUTED values, not transcribed ones. I first typed 0.633437 here,
+        # having read "0.6334" in a report and invented the last two digits -- the third time in one
+        # session that I put a number I had not run into the tree, and in the test whose entire
+        # purpose is to catch that. Every literal in this file is now a value printed by the engine.
+        unbalanced = self._mde(
+            test_type="t-test", sample_size=30, sample_size2=60, power=0.8, alpha=0.05
+        ).json()["results"]["minimum_detectable_effect_float"]
+        balanced = self._mde(
+            test_type="t-test", sample_size=30, power=0.8, alpha=0.05
+        ).json()["results"]["minimum_detectable_effect_float"]
+
+        self.assertAlmostEqual(balanced, 0.7356210695976682, places=9)  # what 30/60 used to be told
+        self.assertAlmostEqual(unbalanced, 0.6333934505648391, places=9)  # what it should have been
+        self.assertGreater(balanced, unbalanced)  # the old answer OVERSTATED the detectable effect
+
+        # 16% overstated -- and the d it quoted has 90.2% power in that design, not the 80% asked for.
+        self.assertAlmostEqual((balanced - unbalanced) / unbalanced, 0.1614, places=3)
+
+    def test_omitting_the_second_arm_still_means_balanced(self):
+        # Nothing that worked before may change.
+        results = self._mde(test_type="t-test", sample_size=64, power=0.8, alpha=0.05).json()["results"]
+        self.assertAlmostEqual(results["minimum_detectable_effect_float"], 0.499069, places=5)
+        self.assertIsNone(results["sample_size2"])
+
+    def test_the_one_sample_designs_have_no_second_arm_and_ignore_it(self):
+        # A paired or one-sample t has ONE sample. Sending an n2 must not change the answer -- and
+        # must not be echoed back as though it had been used.
+        for t_test_type in ("paired", "one-sample"):
+            with self.subTest(t_test_type=t_test_type):
+                with_arm = self._mde(
+                    test_type="t-test", t_test_type=t_test_type, sample_size=30, sample_size2=60, power=0.8
+                ).json()["results"]
+                without = self._mde(
+                    test_type="t-test", t_test_type=t_test_type, sample_size=30, power=0.8
+                ).json()["results"]
+
+                self.assertAlmostEqual(
+                    with_arm["minimum_detectable_effect_float"],
+                    without["minimum_detectable_effect_float"],
+                    places=12,
+                )
+                self.assertIsNone(with_arm["sample_size2"])
+
+    def test_a_second_arm_too_small_to_support_the_test_is_a_400(self):
+        response = self._mde(test_type="t-test", sample_size=30, sample_size2=1, power=0.8)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("second group", response.json()["error"])
+
+
+class TheExportedTableIsPerTestNotPerMannWhitney(TestCase):
+    """
+    The table I pinned in 24c963f is printed in the Wilcoxon and Kruskal-Wallis scripts too, and it
+    is a MANN-WHITNEY table.
+
+    One generator function serves all three rank tests, so a researcher exporting a Wilcoxon script
+    is told a normal-parent design needs 68 PER GROUP. It needs 36 PAIRS -- 89% too large, and "per
+    group" is meaningless for a one-sample test. Kruskal-Wallis is told 68 where the answer is 15,
+    off by 4.5x.
+
+    Same class as the fabricated 65 I had just apologised for -- a number in the exported artifact
+    that was not computed for the design it is printed under -- one test branch to the left.
+
+    And my own test missed it for the third time in a row, the same way each time: every table
+    assertion generated the MANN-WHITNEY script. The table was pinned exactly where it is correct
+    and nowhere it is wrong.
+
+    Keep in sync with SAMPLE_SIZE_TABLE in frontend/src/utils/codeExport/powerAnalysisCodeGenerator.js.
+    """
+
+    # test -> [(parent, ARE, n)] at d = 0.5, power = 0.80, alpha = 0.05, k = 3 for kruskal-wallis.
+    TABLES = {
+        "mann-whitney": [
+            ("normal", 0.955, 68), ("uniform", 1.000, 64), ("logistic", 1.097, 59),
+            ("laplace", 1.500, 43), ("exponential", 3.000, 22),
+        ],
+        "wilcoxon": [
+            ("normal", 0.955, 36), ("uniform", 1.000, 34), ("logistic", 1.097, 32),
+            ("laplace", 1.500, 23), ("exponential", 3.000, 12),
+        ],
+        "kruskal-wallis": [
+            ("normal", 0.955, 15), ("uniform", 1.000, 14), ("logistic", 1.097, 13),
+            ("laplace", 1.500, 10), ("exponential", 3.000, 5),
+        ],
+    }
+
+    def test_every_row_of_every_table_is_what_the_engine_returns(self):
+        engine = HighPrecisionPowerAnalysis()
+
+        for test, rows in self.TABLES.items():
+            for parent, are, n in rows:
+                with self.subTest(test=test, parent=parent):
+                    result = engine.calculate_sample_size_nonparametric(
+                        test=test,
+                        effect_size="0.5",
+                        power="0.8",
+                        alpha="0.05",
+                        groups="3",
+                        parent_distribution=parent,
+                    )
+                    self.assertAlmostEqual(result["are"], are, places=3)
+                    self.assertEqual(result["required_sample_size"], n)
+
+    def test_the_three_tables_are_genuinely_different(self):
+        # If any two were equal, one of them would be the other's answer wearing its name -- which
+        # is exactly the bug: the Mann-Whitney table was printed under all three headings.
+        columns = {test: tuple(n for _, _, n in rows) for test, rows in self.TABLES.items()}
+        self.assertEqual(len(set(columns.values())), 3, columns)
+
+    def test_every_table_still_makes_its_point(self):
+        # Heavier tails need FEWER subjects -- the whole reason the table is in the script.
+        for test, rows in self.TABLES.items():
+            with self.subTest(test=test):
+                sizes = [n for _, _, n in rows]
+                self.assertEqual(sizes, sorted(sizes, reverse=True))

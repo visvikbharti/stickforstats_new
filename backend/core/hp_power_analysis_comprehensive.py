@@ -739,6 +739,7 @@ class HighPrecisionPowerAnalysis:
         groups: Union[int, str] = 2,
         alternative: str = "two-sided",
         t_test_type: str = "independent",
+        sample_size2: Union[int, str, None] = None,
     ) -> Dict[str, Any]:
         """
         The smallest effect this design can detect at `power` -- the honest answer to "how much
@@ -753,6 +754,13 @@ class HighPrecisionPowerAnalysis:
         rather than approximating it.
         """
         n = int(sample_size)
+        # The second arm of an independent t. The UI has always offered a "Sample Size (Group 2)"
+        # box in this mode, and it was never sent: a user who entered 30 and 60 was given the MDE
+        # of a BALANCED 30/30 design (d = 0.7356), overstating the smallest detectable effect by
+        # 16% -- and the d it quoted actually has 90.2% power in the design they described, not the
+        # 80% they asked for. A field that does nothing is worse than no field, because the user
+        # believes they have told us something.
+        n2 = None if sample_size2 is None else int(sample_size2)
         target = self._to_high_precision(power)
         alpha_hp = self._to_high_precision(alpha)
         k = int(groups)
@@ -770,6 +778,8 @@ class HighPrecisionPowerAnalysis:
                 f"{'per group' if test_type == 'anova' else ''}"
                 f" to be defined at all; got n = {n}.".replace("  ", " ")
             )
+        if n2 is not None and n2 < 2:
+            raise ValueError(f"The second group needs at least n = 2 to be defined at all; got n2 = {n2}.")
 
         # A power target at or below alpha is not a target. Under the null the test already rejects
         # at rate alpha, so ANY effect -- including no effect at all -- "achieves" it, and the
@@ -806,7 +816,9 @@ class HighPrecisionPowerAnalysis:
                 if value is None:
                     raise ValueError(f"Power is not defined for this correlation design (n = {n}).")
             else:
-                value = self._t_power_float(float(effect), n, float(alpha_hp), t_test_type, alternative)
+                value = self._t_power_float(
+                    float(effect), n, float(alpha_hp), t_test_type, alternative, n2=n2
+                )
                 if value is None:
                     raise ValueError(f"Power is not defined for this t-test design (n = {n}).")
             return mpf(value)
@@ -842,6 +854,8 @@ class HighPrecisionPowerAnalysis:
             "achieved_power": str(achieved),
             "achieved_power_float": float(achieved),
             "sample_size": n,
+            # Echoed so the caller can see WHICH design this answers for. None means balanced.
+            "sample_size2": n2 if test_type == "t-test" and t_test_type == "independent" else None,
             "target_power": float(target),
             "alpha": float(alpha_hp),
             "test_type": test_type,
@@ -873,7 +887,9 @@ class HighPrecisionPowerAnalysis:
     # goes NEGATIVE for small effects, so it takes the square root of a negative number, and the
     # resulting NaN was rendered to the user as a confident "Underpowered (< 80%)".
 
-    def _t_power_float(self, effect_size, n_per_group, alpha, test_type="independent", alternative="two-sided"):
+    def _t_power_float(
+        self, effect_size, n_per_group, alpha, test_type="independent", alternative="two-sided", n2=None
+    ):
         """
         Non-central t power in float64, with an exact fallback.
 
@@ -889,11 +905,17 @@ class HighPrecisionPowerAnalysis:
         So a non-finite result is never returned. It falls back to the module's own 50-digit
         non-central t (Algorithm AS 243), which has no such limit. The fallback is only reached in
         the region where scipy fails, so the common path stays fast.
+
+        `n2` is the second arm of an independent design. `calculate_power_t_test` has taken it for
+        some time, but this helper -- which drives the minimum detectable effect -- did not, so the
+        MDE silently answered for a BALANCED design however unequal the arms the user entered. It
+        is ignored for the paired and one-sample variants, which have only one sample.
         """
         if test_type == "independent":
-            df = 2 * n_per_group - 2
-            ncp = effect_size * np.sqrt(n_per_group / 2.0)
-        else:  # paired / one-sample
+            n_two = n_per_group if n2 is None else n2
+            df = n_per_group + n_two - 2
+            ncp = effect_size * np.sqrt((n_per_group * n_two) / (n_per_group + n_two))
+        else:  # paired / one-sample -- one sample, so there is no second arm to honour
             df = n_per_group - 1
             ncp = effect_size * np.sqrt(n_per_group)
         if df < 1:
@@ -912,13 +934,14 @@ class HighPrecisionPowerAnalysis:
         if np.isfinite(value):
             return value
 
-        return float(self._t_power_exact(effect_size, n_per_group, alpha, test_type, alternative))
+        return float(self._t_power_exact(effect_size, n_per_group, alpha, test_type, alternative, n2))
 
-    def _t_power_exact(self, effect_size, n_per_group, alpha, test_type, alternative):
+    def _t_power_exact(self, effect_size, n_per_group, alpha, test_type, alternative, n2=None):
         """50-digit non-central t power (AS 243). The fallback for scipy's NaN region."""
         result = self.calculate_power_t_test(
             effect_size=str(effect_size),
             sample_size=str(n_per_group),
+            sample_size2=None if n2 is None else str(n2),
             alpha=str(alpha),
             alternative=alternative,
             test_type=test_type,

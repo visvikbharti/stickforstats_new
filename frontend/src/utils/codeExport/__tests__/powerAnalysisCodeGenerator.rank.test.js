@@ -116,40 +116,62 @@ describe.each([
   });
 
   /**
-   * The comment table in the generated script, pinned.
+   * The comment table in the generated script, pinned — FOR EVERY RANK TEST.
    *
-   * I ran four of these five rows against the engine and INTERPOLATED the fifth: I wrote 65 for
-   * the uniform parent because ARE = 1.0 sits between the normal (0.955 -> 68) and the logistic
-   * (1.097 -> 59). The answer is 64. Being off by one subject is the least interesting part -- I
-   * typed a number I had not computed, into the artifact that outlives the session, in the middle
-   * of a body of work whose whole subject is that habit.
+   * Two defects lived here, and the second was invisible to the test written for the first.
    *
-   * Every row is now asserted against the real engine in
-   * backend/tests/test_the_fix_can_lie_too.py::TheTableInTheExportedScriptIsNotInvented, so the
-   * two cannot drift. This test asserts the SCRIPT still carries those same numbers.
+   * 1. I ran four of the five rows against the engine and INTERPOLATED the fifth: I wrote 65 for
+   *    the uniform parent because ARE = 1.0 sits between the normal (0.955 -> 68) and the logistic
+   *    (1.097 -> 59). The answer is 64.
+   *
+   * 2. One generator function serves all three rank tests, and the table was a MANN-WHITNEY table
+   *    printed under all three headings. A Wilcoxon script said a normal-parent design needs "68
+   *    per group": it needs 36 PAIRS — 89% too large, and "per group" is meaningless for a
+   *    one-sample test. Kruskal-Wallis was told 68 where the answer is 15, off by 4.5x.
+   *
+   * MY TEST FOR (1) COULD NOT SEE (2), for the third time in a row and by the same mechanism: every
+   * assertion generated the Mann-Whitney script. The table was pinned exactly where it was correct
+   * and nowhere it was wrong. So this now generates ALL THREE, and asserts each carries ITS OWN
+   * numbers and its own unit.
+   *
+   * All 15 values are asserted against the real engine in
+   * backend/tests/test_the_fix_can_lie_too.py::TheExportedTableIsPerTestNotPerMannWhitney.
    */
-  it.each([
-    ['normal', 68],
-    ['uniform', 64], // was 65 -- a number I interpolated instead of running
-    ['logistic', 59],
-    ['Laplace', 43], // the table spells it "Laplace (heavy tails)"
-    ['exponential', 22],
-  ])('the %s row of the exported table says n = %i, which is what the engine returns', (parent, n) => {
-    const code = generate(paramsFor('normal'));
-    const row = code.split('\n').find((line) => line.includes(parent) && /\s\d+\s*$/.test(line));
+  const EXPECTED = {
+    'mann-whitney': { unit: 'n per group', sizes: [68, 64, 59, 43, 22] },
+    wilcoxon: { unit: 'n pairs', sizes: [36, 34, 32, 23, 12] },
+    'kruskal-wallis': { unit: 'n per group, k = 3', sizes: [15, 14, 13, 10, 5] },
+  };
 
-    expect(row).toBeDefined();
-    expect(row).toMatch(new RegExp(`\\s${n}\\s*$`));
-  });
-
-  it('the table shows heavier tails needing FEWER subjects, which is its entire point', () => {
-    const code = generate(paramsFor('normal'));
-    const sizes = ['normal', 'uniform', 'logistic', 'Laplace', 'exponential'].map((parent) => {
+  const tableSizes = (code) =>
+    ['normal', 'uniform', 'logistic', 'Laplace', 'exponential'].map((parent) => {
       const row = code.split('\n').find((line) => line.includes(parent) && /\s\d+\s*$/.test(line));
       return Number(row.trim().split(/\s+/).pop());
     });
 
-    expect(sizes).toEqual([68, 64, 59, 43, 22]);
-    expect(sizes).toEqual([...sizes].sort((a, b) => b - a)); // strictly decreasing
+  it.each(Object.keys(EXPECTED))('the %s script carries the table for the %s design', (testType) => {
+    const code = generate(paramsFor('normal', testType));
+
+    expect(tableSizes(code)).toEqual(EXPECTED[testType].sizes);
+    expect(code).toContain(EXPECTED[testType].unit);
+  });
+
+  it('a Wilcoxon script is not handed the Mann-Whitney table', () => {
+    // The exact defect: 68 per group, where the answer is 36 pairs.
+    const wilcoxon = generate(paramsFor('normal', 'wilcoxon'));
+
+    expect(tableSizes(wilcoxon)).not.toEqual(EXPECTED['mann-whitney'].sizes);
+    expect(wilcoxon).not.toContain('n per group'); // meaningless for a one-sample test
+    expect(wilcoxon).toContain('n pairs');
+  });
+
+  it('the three tables are genuinely different from one another', () => {
+    const columns = Object.keys(EXPECTED).map((t) => tableSizes(generate(paramsFor('normal', t))).join(','));
+    expect(new Set(columns).size).toBe(3);
+  });
+
+  it.each(Object.keys(EXPECTED))('the %s table shows heavier tails needing FEWER subjects', (testType) => {
+    const sizes = tableSizes(generate(paramsFor('normal', testType)));
+    expect(sizes).toEqual([...sizes].sort((a, b) => b - a)); // strictly decreasing — its whole point
   });
 });

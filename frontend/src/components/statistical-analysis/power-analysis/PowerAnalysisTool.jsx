@@ -368,19 +368,26 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       parentDistribution,
     };
 
+    // The second arm, resolved ONCE for EVERY mode, by the gateway that knows which designs have
+    // one. It has taken four rounds to stop this value lying, because each fix gated one more
+    // consumer and left the next:
+    //
+    //   - the power request dropped it (the box did nothing at all);
+    //   - the total N kept a STALE one after the test changed, so a Mann-Whitney at n = 30 exported
+    //     90 subjects for a power computed at 30/30;
+    //   - the code generator put an n2 into the script that the power had ignored;
+    //   - and the minimum-detectable-effect request dropped it too -- the box renders in that mode
+    //     as well, so a 30/60 design was answered as a balanced 30/30 one, quoting d = 0.7356 where
+    //     the truth is 0.6334. That overstates the smallest detectable effect by 16%, and the d it
+    //     quotes actually has 90.2% power in the design described, not the 80% asked for.
+    //
+    // One value, computed once, read by all of them. They cannot disagree about the design again.
+    const secondArm = acceptsSecondArm(testType) ? sampleSize2 : null;
+
     try {
       let result;
 
       if (calculationMode === 'power') {
-        // The second arm, resolved ONCE, by the gateway that knows which designs have one.
-        //
-        // The "Sample Size (Group 2)" box only renders for the two-sample t, and its value is never
-        // cleared when the test changes -- so after "t-test (n1=30, n2=60) -> normality fails ->
-        // switch to Mann-Whitney", `sampleSize2` is still 60 and is now invisible. The power request
-        // dropped it in that case; the total N did not, and reported 90 subjects for a design whose
-        // power it had just computed at 30/30 (total 60). That is the SAME defect this file fixed
-        // one commit ago, reintroduced one call site to the left of where it was fixed.
-        const secondArm = acceptsSecondArm(testType) ? sampleSize2 : null;
 
         const backend = await runPowerCalculation({ ...common, sampleSize, sampleSize2: secondArm });
         result = {
@@ -421,7 +428,12 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           parametricSampleSize: backend.parametricSampleSize ?? null,
         };
       } else {
-        const backend = await runMinimumDetectableEffect({ ...common, sampleSize, power });
+        const backend = await runMinimumDetectableEffect({
+          ...common,
+          sampleSize,
+          sampleSize2: secondArm,
+          power,
+        });
         result = {
           mode: 'effectSize',
           effectSize: backend.effect,

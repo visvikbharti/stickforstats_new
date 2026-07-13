@@ -562,6 +562,10 @@ def minimum_detectable_effect(request):
         result = power_calculator.calculate_minimum_detectable_effect(
             test_type=canonical_test_type(data.get("test_type")),
             sample_size=data["sample_size"],
+            # The "Sample Size (Group 2)" box renders in this mode too, and was never sent -- so a
+            # 30/60 design was answered as a balanced 30/30 one, overstating the smallest
+            # detectable effect by 16%.
+            sample_size2=data.get("sample_size2"),
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),

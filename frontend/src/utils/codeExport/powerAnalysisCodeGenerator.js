@@ -49,6 +49,48 @@ const PARENT_LABEL = {
 };
 
 /**
+ * The sample size each rank test needs, per parent distribution — PER TEST.
+ *
+ * One generator function serves all three rank tests, and the table I first put in it was a
+ * MANN-WHITNEY table printed under all three headings. A researcher exporting a Wilcoxon script was
+ * told a normal-parent design needs "68 per group": it needs 36 PAIRS — 89% too large, and "per
+ * group" is meaningless for a one-sample test. Kruskal-Wallis was told 68 where the answer is 15,
+ * off by 4.5x. A number in the exported artifact that was not computed for the design it is printed
+ * under is the same defect as the fabricated 65 in the row above it, one test branch to the left.
+ *
+ * EVERY VALUE HERE IS EXECUTED, NOT TRANSCRIBED. All 15 are asserted against the real engine in
+ * backend/tests/test_the_fix_can_lie_too.py::TheExportedTableIsPerTestNotPerMannWhitney, so they
+ * cannot drift and cannot be guessed. d = 0.5, power = 0.80, alpha = 0.05, k = 3 for Kruskal-Wallis.
+ */
+const SAMPLE_SIZE_TABLE = {
+  'mann-whitney': {
+    unit: 'n per group',
+    rows: [['normal', 68], ['uniform', 64], ['logistic', 59], ['Laplace (heavy tails)', 43], ['exponential (skewed)', 22]],
+  },
+  wilcoxon: {
+    unit: 'n pairs',
+    rows: [['normal', 36], ['uniform', 34], ['logistic', 32], ['Laplace (heavy tails)', 23], ['exponential (skewed)', 12]],
+  },
+  'kruskal-wallis': {
+    unit: 'n per group, k = 3',
+    rows: [['normal', 15], ['uniform', 14], ['logistic', 13], ['Laplace (heavy tails)', 10], ['exponential (skewed)', 5]],
+  },
+};
+
+const ARE_COLUMN = { normal: '0.955', uniform: '1.000', logistic: '1.097', 'Laplace (heavy tails)': '1.500', 'exponential (skewed)': '3.000' };
+
+/** The comment table for the rank test actually being generated. */
+const sampleSizeTable = (testType) => {
+  const table = SAMPLE_SIZE_TABLE[testType] || SAMPLE_SIZE_TABLE['mann-whitney'];
+  const header = `#     parent distribution      ARE     ${table.unit} (d = 0.5, 80% power)`;
+  const rule = '#     ---------------------  ------    --------------------------------';
+  const rows = table.rows.map(
+    ([parent, n]) => `#     ${parent.padEnd(21)}  ${ARE_COLUMN[parent]}     ${String(n).padStart(12)}`
+  );
+  return [header, rule, ...rows].join('\n');
+};
+
+/**
  * The ARE the displayed answer was actually computed with.
  *
  * Prefer the value the BACKEND returned: that is the one the number on screen came from, so the
@@ -724,13 +766,7 @@ function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, 
 #
 # THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-#     parent distribution      ARE     n per group (d = 0.5, 80% power)
-#     ---------------------  ------    --------------------------------
-#     normal                  0.955                  68
-#     uniform                 1.000                  64
-#     logistic                1.097                  59
-#     Laplace (heavy tails)   1.500                  43
-#     exponential (skewed)    3.000                  22
+${sampleSizeTable(testType)}
 #
 # This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
 #
@@ -1277,13 +1313,7 @@ function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, 
 #
 # THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-#     parent distribution      ARE     n per group (d = 0.5, 80% power)
-#     ---------------------  ------    --------------------------------
-#     normal                  0.955                  68
-#     uniform                 1.000                  64
-#     logistic                1.097                  59
-#     Laplace (heavy tails)   1.500                  43
-#     exponential (skewed)    3.000                  22
+${sampleSizeTable(testType)}
 #
 # This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
 #

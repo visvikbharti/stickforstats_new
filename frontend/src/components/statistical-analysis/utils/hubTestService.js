@@ -559,6 +559,7 @@ const CURVE_FAMILY = { t: 't-test', anova: 'anova', correlation: 'correlation' }
 export const runMinimumDetectableEffect = async ({
   testType,
   sampleSize,
+  sampleSize2 = null,
   power = 0.8,
   alpha = 0.05,
   groups = 2,
@@ -574,12 +575,22 @@ export const runMinimumDetectableEffect = async ({
   if (spec.family === 'anova') body.groups = groups;
   if (spec.family === 't') body.t_test_type = spec.variant;
 
+  // The FOURTH consumer of the group-2 box, and the one that was still dropping it. The box renders
+  // in this mode too, so a user who entered 30 and 60 was shown the minimum detectable effect of a
+  // BALANCED 30/30 design: d = 0.7356 where the true answer for their design is 0.6334. That
+  // overstates the smallest effect they can detect by 16%, and the d it quotes actually has 90.2%
+  // power in the design they described -- not the 80% they asked for.
+  //
+  // `acceptsSecondArm` is the single rule for who has a second arm; every consumer reads it.
+  if (acceptsSecondArm(testType) && sampleSize2) body.sample_size2 = sampleSize2;
+
   const results = (await post('/v1/power/mde/', body)).results || {};
 
   return {
     effect: num(results.minimum_detectable_effect_float),
     achievedPower: num(results.achieved_power_float),
     sampleSize: num(results.sample_size),
+    sampleSize2: num(results.sample_size2),
     alpha: num(results.alpha),
     interpretation: results.note || null,
     note: results.note || null,
