@@ -843,6 +843,7 @@ class HighPrecisionPowerAnalysis:
         n_min=5,
         n_max=200,
         step=5,
+        t_test_type="independent",
     ):
         """
         Power as a function of sample size, for plotting.
@@ -863,7 +864,12 @@ class HighPrecisionPowerAnalysis:
             elif test_type == "correlation":
                 power = self._correlation_power_float(effect_size, n, alpha, alternative)
             else:
-                power = self._t_power_float(effect_size, n, alpha, "independent", alternative)
+                # `t_test_type` was hardcoded to "independent" here, so a curve requested for a
+                # PAIRED or one-sample design came back as the independent one -- a different
+                # curve, plotted under the label of the design the user actually chose. The
+                # paired t needs n = d*sqrt(n) and df = n - 1, not d*sqrt(n/2) and df = 2n - 2,
+                # and it reaches a given power at roughly half the sample size.
+                power = self._t_power_float(effect_size, n, alpha, t_test_type, alternative)
 
             if power is not None and np.isfinite(power):
                 points.append({"n": n, "power": float(power)})
@@ -875,6 +881,7 @@ class HighPrecisionPowerAnalysis:
             "alpha": alpha,
             "groups": groups if test_type == "anova" else None,
             "alternative": alternative,
+            "t_test_type": t_test_type if test_type not in ("anova", "correlation") else None,
         }
 
     def calculate_sample_size_anova(

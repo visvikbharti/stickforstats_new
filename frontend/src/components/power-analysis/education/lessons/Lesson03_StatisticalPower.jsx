@@ -50,7 +50,8 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { alpha as muiAlpha } from '@mui/material/styles';
-import jStat from 'jstat';
+
+import { runPowerCalculation } from '../../../statistical-analysis/utils/hubTestService';
 
 // Step titles for the lesson
 const steps = [
@@ -60,6 +61,15 @@ const steps = [
   'Factors Affecting Power',
   'Choosing Your Target Power',
 ];
+
+// `(null * 100).toFixed(1)` is "0.0", because null coerces to 0 -- so a power that could not be
+// computed would headline as "0.0%", which reads as "this design cannot detect anything" rather
+// than "we do not know". A power we do not have prints as an em dash.
+const formatPercent = (value, digits = 1) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : `${(value * 100).toFixed(digits)}%`;
+
+const formatProportion = (value, digits = 3) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : value.toFixed(digits);
 
 const Lesson03_StatisticalPower = ({ onComplete }) => {
   const theme = useTheme();
@@ -71,51 +81,65 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
   const [effectSize, setEffectSize] = useState(0.5);
   const [sampleSize, setSampleSize] = useState(30);
   const [alpha, setAlpha] = useState(0.05);
-  const [calculatedPower, setCalculatedPower] = useState(0.478);
-  const [calculatedBeta, setCalculatedBeta] = useState(0.522);
+  // null until the first answer arrives, and null again if the calculation fails. A power we do
+  // not have is not a power of zero, and it is not the number the slider happened to leave behind.
+  const [calculatedPower, setCalculatedPower] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(true);
+  const [powerError, setPowerError] = useState(null);
+
+  // β does not exist when power does not: `1 - null` is 1, which is why this is derived rather
+  // than stored.
+  const calculatedBeta = calculatedPower === null ? null : 1 - calculatedPower;
 
   // Animation state
   const [animationPhase, setAnimationPhase] = useState(0);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
-  // Calculate power based on parameters (simplified formula for two-sample t-test)
-  const calculatePower = useCallback(() => {
-    // Simplified power calculation using normal approximation
-    // λ (noncentrality) = d * sqrt(n/2) for two-sample t-test
-    const noncentrality = effectSize * Math.sqrt(sampleSize / 2);
-
-    // Critical value for two-tailed test
-    const zAlpha = jStat.normal.inv(1 - alpha / 2, 0, 1);
-
-    // Power approximation using standard normal CDF
-    // Φ(λ - z_{α/2}) + Φ(-λ - z_{α/2})
-    const z1 = noncentrality - zAlpha;
-    const z2 = -noncentrality - zAlpha;
-
-    // Standard normal CDF approximation
-    const normalCDF = (x) => {
-      const a1 = 0.254829592;
-      const a2 = -0.284496736;
-      const a3 = 1.421413741;
-      const a4 = -1.453152027;
-      const a5 = 1.061405429;
-      const p = 0.3275911;
-      const sign = x < 0 ? -1 : 1;
-      x = Math.abs(x) / Math.sqrt(2);
-      const t = 1.0 / (1.0 + p * x);
-      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-      return 0.5 * (1.0 + sign * y);
-    };
-
-    const power = normalCDF(z1) + normalCDF(z2);
-    setCalculatedPower(Math.min(0.999, Math.max(0.001, power)));
-    setCalculatedBeta(1 - Math.min(0.999, Math.max(0.001, power)));
-  }, [effectSize, sampleSize, alpha]);
-
+  /**
+   * Power for the independent two-sample t-test, from the backend's exact non-central t.
+   *
+   * The lesson used to compute this in the browser: a NORMAL approximation to the non-central t
+   * (which overstates power by up to ~4 points), and then
+   *
+   *     setCalculatedPower(Math.min(0.999, Math.max(0.001, power)));
+   *
+   * The clamp is not a rounding convention, it is a claim: a design with 99.99% power was taught
+   * as 99.9%, and a hopeless one as 0.1% -- so no arrangement of the sliders could ever show a
+   * student a power of 0, which is the whole point of the "low power" half of the lesson.
+   */
   useEffect(() => {
-    calculatePower();
-  }, [calculatePower]);
+    let cancelled = false;
+    setIsCalculating(true);
+
+    // The sliders fire on every pixel of travel; only the value the user settles on is worth a
+    // round trip.
+    const timer = setTimeout(async () => {
+      try {
+        const result = await runPowerCalculation({
+          testType: 't-test',
+          effectSize,
+          sampleSize,
+          alpha,
+        });
+        if (cancelled) return;
+        // May be null. It stays null.
+        setCalculatedPower(result.power);
+        setPowerError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setCalculatedPower(null);
+        setPowerError(err.message);
+      } finally {
+        if (!cancelled) setIsCalculating(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [effectSize, sampleSize, alpha]);
 
   // Draw the power visualization
   const drawPowerVisualization = useCallback(() => {
@@ -304,10 +328,10 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
     ctx.fillText(`α = ${alpha}`, width - 50, 50);
 
     ctx.fillStyle = '#ff9800';
-    ctx.fillText(`β = ${calculatedBeta.toFixed(3)}`, critX - 60, 70);
+    ctx.fillText(`β = ${formatProportion(calculatedBeta)}`, critX - 60, 70);
 
     ctx.fillStyle = '#2196f3';
-    ctx.fillText(`Power = ${calculatedPower.toFixed(3)}`, critX + 70, 50);
+    ctx.fillText(`Power = ${formatProportion(calculatedPower)}`, critX + 70, 50);
 
     // Critical value label
     ctx.fillStyle = '#d32f2f';
@@ -569,15 +593,19 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', height: 30 }}>
+                {/* `null >= 0.8` is false and `null > 0.5` is false, so an unknown power would
+                    quietly paint itself red and label itself "Underpowered". Every branch below
+                    tests for null first. */}
                 <LinearProgress
-                  variant="determinate"
-                  value={calculatedPower * 100}
+                  variant={isCalculating ? 'indeterminate' : 'determinate'}
+                  value={calculatedPower === null ? 0 : calculatedPower * 100}
                   sx={{
                     height: 30,
                     borderRadius: 2,
                     bgcolor: theme.palette.divider,
                     '& .MuiLinearProgress-bar': {
-                      bgcolor: calculatedPower >= 0.8 ? theme.palette.success.main :
+                      bgcolor: calculatedPower === null ? theme.palette.grey[500] :
+                               calculatedPower >= 0.8 ? theme.palette.success.main :
                                calculatedPower >= 0.6 ? theme.palette.warning.main : theme.palette.error.main,
                     },
                   }}
@@ -589,20 +617,36 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     fontWeight: 600,
-                    color: calculatedPower > 0.5 ? 'white' : 'black',
+                    color: calculatedPower !== null && calculatedPower > 0.5 ? 'white' : 'black',
                   }}
                 >
-                  {(calculatedPower * 100).toFixed(1)}%
+                  {formatPercent(calculatedPower)}
                 </Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={3}>
               <Chip
-                label={calculatedPower >= 0.8 ? 'Adequate' : calculatedPower >= 0.6 ? 'Marginal' : 'Underpowered'}
-                color={calculatedPower >= 0.8 ? 'success' : calculatedPower >= 0.6 ? 'warning' : 'error'}
+                label={
+                  calculatedPower === null
+                    ? (isCalculating ? 'Calculating…' : 'Not available')
+                    : calculatedPower >= 0.8 ? 'Adequate'
+                    : calculatedPower >= 0.6 ? 'Marginal' : 'Underpowered'
+                }
+                color={
+                  calculatedPower === null
+                    ? 'default'
+                    : calculatedPower >= 0.8 ? 'success'
+                    : calculatedPower >= 0.6 ? 'warning' : 'error'
+                }
               />
             </Grid>
           </Grid>
+
+          {powerError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              Power could not be calculated: {powerError}
+            </Alert>
+          )}
         </Paper>
       </Paper>
 
@@ -637,8 +681,11 @@ const Lesson03_StatisticalPower = ({ onComplete }) => {
 
             <Alert severity="info">
               <Typography variant="body2">
-                The exact calculation uses the non-central t-distribution, but the normal
-                approximation works well for larger samples (n {'>'} 30 per group).
+                The formula above is the normal approximation, shown because it is the one you can
+                read. The power reported by the meter is <strong>not</strong> computed with it: it
+                comes from the exact non-central t-distribution, which is what this platform's
+                power calculators use. The approximation overstates power by up to ~4 points at
+                the sample sizes on this slider.
               </Typography>
             </Alert>
           </Paper>

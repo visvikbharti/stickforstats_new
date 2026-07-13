@@ -57,6 +57,20 @@ const formatChips = {
 };
 
 /**
+ * An in-page preview of the report's contents is not available: the API returns the report's
+ * metadata, and the report itself as a downloadable file, but not a structured breakdown of what
+ * is inside it. Saying so is the whole point -- this panel replaces a hard-coded t-test
+ * (p = 0.032, t = 2.87) that was previously shown for every report on the platform.
+ */
+const ContentsNotPreviewable = () => (
+  <Alert severity="info">
+    A preview of this report&apos;s contents is not available in the browser. Download the report
+    to see it — the file contains the analyses, tables and figures that were generated from your
+    data.
+  </Alert>
+);
+
+/**
  * Component for viewing report details
  */
 const ReportViewer = () => {
@@ -79,8 +93,9 @@ const ReportViewer = () => {
     title: ''
   });
   
-  // Mock state for report contents (in a real app, this would come from the API)
-  const [reportData, setReportData] = useState({
+  // The API supplies the report's metadata, not a structured breakdown of its contents. These
+  // stay empty until it does; they are never filled with a stand-in.
+  const [reportData] = useState({
     analyses: [],
     tables: [],
     visualizations: []
@@ -98,77 +113,21 @@ const ReportViewer = () => {
     
     fetchReportDetails();
     
-    // Mock data for the report content
-    setReportData({
-      analyses: [
-        {
-          id: '1',
-          title: 'Statistical Test Results - Dataset A',
-          type: 'statistical_test',
-          summary: 'Two-sample t-test comparing control vs. treatment groups',
-          results: {
-            p_value: 0.032,
-            t_statistic: 2.87,
-            degrees_of_freedom: 28,
-            significant: true
-          }
-        },
-        {
-          id: '2',
-          title: 'Descriptive Statistics Summary',
-          type: 'descriptive_statistics',
-          summary: 'Summary statistics for all variables in the dataset',
-          results: {
-            variables: [
-              { name: 'Variable A', mean: 15.7, median: 15.1, std: 3.2 },
-              { name: 'Variable B', mean: 42.3, median: 40.5, std: 8.5 },
-              { name: 'Variable C', mean: 7.8, median: 7.0, std: 1.9 }
-            ]
-          }
-        }
-      ],
-      tables: [
-        {
-          id: 't1',
-          title: 'T-Test Results Table',
-          columns: ['Group', 'Mean', 'Std Dev', 'Sample Size'],
-          data: [
-            ['Control', 23.4, 3.7, 15],
-            ['Treatment', 27.8, 4.2, 15]
-          ]
-        },
-        {
-          id: 't2',
-          title: 'Correlation Matrix',
-          columns: ['Variable', 'Var A', 'Var B', 'Var C'],
-          data: [
-            ['Var A', 1.0, 0.72, 0.35],
-            ['Var B', 0.72, 1.0, 0.51],
-            ['Var C', 0.35, 0.51, 1.0]
-          ]
-        }
-      ],
-      visualizations: [
-        {
-          id: 'v1',
-          title: 'Distribution Comparison',
-          type: 'histogram',
-          description: 'Histogram visualization will be generated from your analysis data'
-        },
-        {
-          id: 'v2',
-          title: 'Box Plot Comparison',
-          type: 'boxplot',
-          description: 'Box plot visualization will be generated from your analysis data'
-        },
-        {
-          id: 'v3',
-          title: 'Regression Plot',
-          type: 'scatter',
-          description: 'Scatter plot visualization will be generated from your analysis data'
-        }
-      ]
-    });
+    // There used to be a `setReportData({...})` here with a hard-coded report in it: a
+    // two-sample t-test at p = 0.032, t = 2.87, df = 28, "significant: true", a descriptive
+    // table, and a correlation matrix. It ran unconditionally, right after the real report was
+    // fetched -- so `getReportDetails` was awaited, its result thrown away, and EVERY report a
+    // user opened rendered those same invented numbers regardless of which report it was or
+    // what data went into it.
+    //
+    // A report is the artifact you put in a paper. It is the last place in this application
+    // where a plausible-looking number may be invented, and it was the only place where one was
+    // invented wholesale.
+    //
+    // The API returns the report's metadata (title, format, size, created_at) but not a
+    // structured breakdown of its contents -- there is no serializer for that. So there is
+    // nothing to preview, and the honest thing to render is that there is nothing to preview.
+    // The report itself is real and downloadable; the button for it is already on this page.
   }, [getReportDetails, reportId]);
   
   // Handle tab change
@@ -382,6 +341,7 @@ const ReportViewer = () => {
             </Box>
             
             <Box role="tabpanel" hidden={tabValue !== 0} id="tabpanel-0" sx={{ py: 2 }}>
+              {reportData.analyses.length === 0 && <ContentsNotPreviewable />}
               {reportData.analyses.map((analysis) => (
                 <Accordion key={analysis.id} defaultExpanded={true}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -456,6 +416,7 @@ const ReportViewer = () => {
             </Box>
             
             <Box role="tabpanel" hidden={tabValue !== 1} id="tabpanel-1" sx={{ py: 2 }}>
+              {reportData.visualizations.length === 0 && <ContentsNotPreviewable />}
               <Grid container spacing={3}>
                 {reportData.visualizations.map((viz) => (
                   <Grid item xs={12} md={6} key={viz.id}>
@@ -517,6 +478,7 @@ const ReportViewer = () => {
             </Box>
             
             <Box role="tabpanel" hidden={tabValue !== 2} id="tabpanel-2" sx={{ py: 2 }}>
+              {reportData.tables.length === 0 && <ContentsNotPreviewable />}
               {reportData.tables.map((table) => (
                 <Box key={table.id} sx={{ mb: 4 }}>
                   <Typography variant="subtitle1" gutterBottom>

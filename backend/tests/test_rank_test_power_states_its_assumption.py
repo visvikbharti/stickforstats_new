@@ -180,6 +180,38 @@ class TheEndpoints(TestCase):
         self.assertTrue(all(point["n"] > 3 for point in points))
         self.assertTrue(all(point["power"] is not None for point in points))
 
+    def test_the_curve_honours_the_t_test_variant(self):
+        # power_curve() hardcoded `"independent"`, so a curve requested for a PAIRED design came
+        # back as the independent one -- a different curve, drawn under the label of the design
+        # the user actually chose. A paired t uses ncp = d*sqrt(n) and df = n - 1 rather than
+        # d*sqrt(n/2) and df = 2n - 2, so it reaches a given power at roughly half the n: at
+        # n = 40, d = 0.5 it has 0.869 power where the independent design has 0.598.
+        def points(variant):
+            response = self._post(
+                "/api/v1/power/curve/",
+                {
+                    "test_type": "t-test",
+                    "effect_size": 0.5,
+                    "alpha": 0.05,
+                    "n_min": 10,
+                    "n_max": 70,
+                    "step": 10,
+                    "t_test_type": variant,
+                },
+            )
+            self.assertEqual(response.status_code, 200)
+            return {p["n"]: p["power"] for p in response.json()["results"]["points"]}
+
+        independent = points("independent")
+        paired = points("paired")
+
+        self.assertNotEqual(independent, paired)
+        for n in independent:
+            self.assertGreater(paired[n], independent[n])
+
+        self.assertAlmostEqual(paired[40], 0.8694, places=3)
+        self.assertAlmostEqual(independent[40], 0.5981, places=3)
+
     def test_a_bad_parent_distribution_is_a_400(self):
         response = self._post(
             "/api/v1/power/sample-size/nonparametric/",

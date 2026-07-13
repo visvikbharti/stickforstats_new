@@ -28,6 +28,7 @@ import * as d3 from 'd3';
 import { motion, AnimatePresence } from 'framer-motion';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import jStat from 'jstat';
 
 // Utility function to render LaTeX formula
 const renderLatex = (formula) => {
@@ -38,6 +39,42 @@ const renderLatex = (formula) => {
   });
   return container.innerHTML;
 };
+
+/**
+ * Power of the two-sample z-test for proportions -- ONE definition, used by both the headline
+ * number and the power curve, which each carried their own copy of it.
+ *
+ * Both copies hardcoded `criticalZ = 1.96`, so moving the significance slider changed which
+ * simulated trials counted as significant but never changed the power that was reported for them:
+ * at α = 0.01 the screen showed the α = 0.05 power. Both also used ONE standard error for the null
+ * and the alternative, which is not this test -- the null SE pools the two proportions (under H₀
+ * they are the same proportion), the alternative SE does not.
+ *
+ * This is a normal-approximation power, and that is the right calculation here: the z-test for
+ * proportions IS an asymptotic test, so its power is exactly a normal-tail probability. (That is
+ * the opposite of the t-test case, where a normal approximation stands in for a non-central t and
+ * is simply wrong; those calculations now run on the backend.)
+ *
+ * Returns null when the power is undefined -- with no variance under H₁ there is nothing to
+ * detect, and 0/0 is not a power of zero.
+ */
+const twoProportionPower = (p1, p2, n, significanceLevel) => {
+  if (!(n > 0)) return null;
+
+  const pBar = (p1 + p2) / 2;
+  const seNull = Math.sqrt((2 * pBar * (1 - pBar)) / n);
+  const seAlt = Math.sqrt((p1 * (1 - p1) + p2 * (1 - p2)) / n);
+
+  if (!(seAlt > 0)) return null;
+
+  const zCrit = jStat.normal.inv(1 - significanceLevel / 2, 0, 1);
+  return jStat.normal.cdf((Math.abs(p2 - p1) - zCrit * seNull) / seAlt, 0, 1);
+};
+
+// `(null * 100).toFixed(1)` is "0.0": a power we could not compute must not print as a design with
+// no chance of detecting anything.
+const formatPercent = (value, digits = 1) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : `${(value * 100).toFixed(digits)}%`;
 
 /**
  * Enhanced Clinical Trial simulation using D3.js
@@ -166,41 +203,18 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
   
   /**
    * Calculate normal CDF (Cumulative Distribution Function)
+   *
+   * Was a hand-rolled Abramowitz-Stegun 7.1.26 erf. jStat's is accurate to machine precision, and
+   * -- more to the point -- it is now the ONLY normal CDF in this file, so the p-value the test
+   * reports and the power the chart reports can no longer come from two different engines.
+   *
    * @param {number} x - Value
    * @param {number} mean - Mean
    * @param {number} stdDev - Standard deviation
    * @returns {number} Cumulative probability
    */
-  const normalCDF = (x, mean, stdDev) => {
-    const z = (x - mean) / (stdDev * Math.sqrt(2));
-    return 0.5 * (1 + erf(z));
-  };
-  
-  /**
-   * Error function approximation for normal CDF calculation
-   * @param {number} x - Input value
-   * @returns {number} Error function result
-   */
-  const erf = (x) => {
-    // Constants
-    const a1 = 0.254829592;
-    const a2 = -0.284496736;
-    const a3 = 1.421413741;
-    const a4 = -1.453152027;
-    const a5 = 1.061405429;
-    const p = 0.3275911;
-    
-    // Save the sign
-    const sign = x < 0 ? -1 : 1;
-    x = Math.abs(x);
-    
-    // Approximation formula
-    const t = 1.0 / (1.0 + p * x);
-    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-    
-    return sign * y;
-  };
-  
+  const normalCDF = (x, mean, stdDev) => jStat.normal.cdf(x, mean, stdDev);
+
   /**
    * Run two-sample proportion test (z-test for proportions)
    * Null hypothesis: p1 = p2
@@ -314,29 +328,11 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
   };
   
   /**
-   * Calculate theoretical power for given parameters
-   * @returns {number} Power (probability of detecting an effect if it exists)
+   * Calculate theoretical power for the trial as it is currently configured.
+   * @returns {number|null} Power, or null where it is undefined
    */
-  const calculateTheoreticalPower = () => {
-    // Null hypothesis: p1 = p2
-    // Alternative hypothesis: p1 ≠ p2
-    const p1 = controlSuccess;
-    const p2 = treatmentSuccess;
-    
-    // Calculate standard error under alternative hypothesis
-    const se = Math.sqrt(p1 * (1 - p1) / sampleSize + p2 * (1 - p2) / sampleSize);
-    
-    // Calculate critical value for two-sided test
-    const criticalZ = 1.96; // For alpha = 0.05
-    
-    // Calculate non-centrality parameter
-    const ncparam = (p2 - p1) / se;
-    
-    // Calculate power
-    const power = 1 - normalCDF(criticalZ - ncparam, 0, 1) + normalCDF(-criticalZ - ncparam, 0, 1);
-    
-    return power;
-  };
+  const calculateTheoreticalPower = () =>
+    twoProportionPower(controlSuccess, treatmentSuccess, sampleSize, alpha);
   
   /**
    * Generate simulation data
@@ -824,21 +820,14 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
     const sampleSizes = [];
     const powers = [];
     
-    // Generate power curve for different sample sizes
+    // Generate power curve for different sample sizes. Same helper as the headline number: this
+    // loop used to carry its own copy of the calculation, so the curve and the reported power
+    // could not be kept in step.
     for (let n = 10; n <= 200; n += 10) {
+      const power = twoProportionPower(controlSuccess, treatmentSuccess, n, alpha);
+      if (power === null) continue; // a gap in the line, not a point plotted at zero
+
       sampleSizes.push(n);
-      
-      // Calculate SE for this sample size
-      const se = Math.sqrt(
-        controlSuccess * (1 - controlSuccess) / n + 
-        treatmentSuccess * (1 - treatmentSuccess) / n
-      );
-      
-      // Calculate power
-      const criticalZ = 1.96; // For alpha = 0.05
-      const ncparam = (treatmentSuccess - controlSuccess) / se;
-      const power = 1 - normalCDF(criticalZ - ncparam, 0, 1) + normalCDF(-criticalZ - ncparam, 0, 1);
-      
       powers.push(power);
     }
     
@@ -981,24 +970,28 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
     
     // Find power for current sample size
     const currentPowerIndex = sampleSizes.findIndex(n => n >= sampleSize);
-    const currentPower = currentPowerIndex >= 0 ? powers[currentPowerIndex] : 
+    const currentPower = currentPowerIndex >= 0 ? powers[currentPowerIndex] :
                           result.theoreticalPower;
-    
-    svg.append("circle")
-      .attr("cx", xScale(sampleSize))
-      .attr("cy", yScale(currentPower))
-      .attr("r", 6)
-      .attr("fill", theme.palette.warning.main)
-      .attr("stroke", "white")
-      .attr("stroke-width", 2);
-    
-    svg.append("text")
-      .attr("x", xScale(sampleSize))
-      .attr("y", yScale(currentPower) - 10)
-      .attr("text-anchor", "middle")
-      .attr("fill", theme.palette.warning.main)
-      .text(`Current: ${(currentPower * 100).toFixed(1)}%`);
-    
+
+    // `yScale(null)` is yScale(0), so an undefined power would plant the marker on the floor of
+    // the chart and label it "Current: 0.0%". No marker is the honest picture.
+    if (currentPower !== null && currentPower !== undefined) {
+      svg.append("circle")
+        .attr("cx", xScale(sampleSize))
+        .attr("cy", yScale(currentPower))
+        .attr("r", 6)
+        .attr("fill", theme.palette.warning.main)
+        .attr("stroke", "white")
+        .attr("stroke-width", 2);
+
+      svg.append("text")
+        .attr("x", xScale(sampleSize))
+        .attr("y", yScale(currentPower) - 10)
+        .attr("text-anchor", "middle")
+        .attr("fill", theme.palette.warning.main)
+        .text(`Current: ${formatPercent(currentPower)}`);
+    }
+
     // Add legend if enabled
     if (showLegend) {
       const legend = svg.append("g")
@@ -1628,14 +1621,17 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
                   </Paper>
                 )}
                 
-                {/* Power analysis results */}
-                <Paper variant="outlined" sx={{ p: 2, mb: 2, borderLeft: '4px solid', 
-                                            borderColor: result.theoreticalPower >= 0.8 ? 'success.main' : 'warning.main' }}>
+                {/* Power analysis results. `null >= 0.8` is false and `null < 0.8` is TRUE, so an
+                    undefined power used to paint the border amber and then warn that the study was
+                    "below the recommended 80%" -- a verdict on a number nobody had. */}
+                <Paper variant="outlined" sx={{ p: 2, mb: 2, borderLeft: '4px solid',
+                                            borderColor: result.theoreticalPower === null ? 'grey.500'
+                                              : result.theoreticalPower >= 0.8 ? 'success.main' : 'warning.main' }}>
                   <Typography variant="body2" fontWeight="medium">
                     Statistical Power Analysis:
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Theoretical Power:</strong> {(result.theoreticalPower * 100).toFixed(1)}%
+                    <strong>Theoretical Power:</strong> {formatPercent(result.theoreticalPower)}
                   </Typography>
                   <Typography variant="body2">
                     <strong>Simulated Power:</strong> {(result.powerAnalysis.power * 100).toFixed(1)}% 
@@ -1669,16 +1665,16 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
                   </Paper>
                 )}
                 
-                {result.theoreticalPower < 0.8 && (
+                {result.theoreticalPower !== null && result.theoreticalPower < 0.8 && (
                   <Alert severity="warning" sx={{ mb: 2 }}>
-                    Statistical power ({(result.theoreticalPower * 100).toFixed(1)}%) is below the recommended 80%. 
+                    Statistical power ({formatPercent(result.theoreticalPower)}) is below the recommended 80%.
                     Consider increasing sample size to detect the specified effect.
                   </Alert>
                 )}
-                
-                {trials === 1 && !result.trialResults[0].testResults.significant && result.theoreticalPower >= 0.5 && (
+
+                {trials === 1 && !result.trialResults[0].testResults.significant && result.theoreticalPower !== null && result.theoreticalPower >= 0.5 && (
                   <Alert severity="info" sx={{ mb: 2 }}>
-                    This trial did not show a significant effect, but your study design has {(result.theoreticalPower * 100).toFixed(0)}% power. 
+                    This trial did not show a significant effect, but your study design has {formatPercent(result.theoreticalPower, 0)} power.
                     Try running the simulation again - effect may be detected in future trials.
                   </Alert>
                 )}

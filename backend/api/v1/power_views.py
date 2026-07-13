@@ -493,6 +493,7 @@ def power_curve(request):
             n_min=data.get("n_min", 5),
             n_max=data.get("n_max", 200),
             step=data.get("step", 5),
+            t_test_type=canonical_t_test_type(data.get("t_test_type")),
         )
 
         return Response({"success": True, "results": result}, status=status.HTTP_200_OK)

@@ -54,6 +54,13 @@ import {
 } from '@mui/icons-material';
 import { alpha as alphaFn } from '@mui/material/styles';
 
+import {
+  runPowerCalculation,
+  runSampleSizeCalculation,
+  runMinimumDetectableEffect,
+  runPowerCurve,
+} from '../../../statistical-analysis/utils/hubTestService';
+
 // Step titles for the lesson
 const steps = [
   'The Four Pillars Overview',
@@ -62,6 +69,34 @@ const steps = [
   'Significance Level (α)',
   'Power Interactive Calculator',
 ];
+
+// This lesson's labels -> the calculator's test names. Every value the toggle can hold is mapped
+// explicitly: a t-test variant that falls through to a default is not a rounding error, it is a
+// different test (a one-sample power at the same d and n is far larger than a two-sample one).
+const BACKEND_TEST_TYPE = {
+  'two-sample': 't-test',
+  'one-sample': 'one-sample-t',
+  paired: 'paired-t',
+};
+
+const ALTERNATIVE = { two: 'two-sided', one: 'greater' };
+
+// The benchmark curves are drawn at α = 0.05, as the chart title says. Your α moves the red dot.
+const CURVE_ALPHA = 0.05;
+
+const CURVE_EFFECT_SIZES = [
+  { d: 0.2, color: '#ff9800', label: 'd = 0.2 (Small)' },
+  { d: 0.5, color: '#2196f3', label: 'd = 0.5 (Medium)' },
+  { d: 0.8, color: '#4caf50', label: 'd = 0.8 (Large)' },
+];
+
+// `(null * 100).toFixed(1)` is "0.0" and `null.toFixed(3)` is a TypeError that unmounts the page.
+// A quantity the calculator reports as undefined prints as an em dash, not as zero.
+const formatPercent = (value, digits = 1) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : `${(value * 100).toFixed(digits)}%`;
+
+const formatNumber = (value, digits = 3) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : value.toFixed(digits);
 
 const Lesson04_FourPillars = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
@@ -76,174 +111,147 @@ const Lesson04_FourPillars = ({ onComplete }) => {
   const [testType, setTestType] = useState('two-sample');
   const [tails, setTails] = useState('two');
 
-  // Calculated result
+  // Calculated result. `value` may be null -- see the em-dash formatters above.
   const [calculatedValue, setCalculatedValue] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(true);
+  const [calcError, setCalcError] = useState(null);
+
+  // Power at the settings the sliders are showing, for the marker on the curve.
+  const [currentPower, setCurrentPower] = useState(null);
+
+  // The three benchmark curves, from the backend. null while loading or on failure.
+  const [curves, setCurves] = useState(null);
+  const [curvesError, setCurvesError] = useState(null);
 
   // Power curve canvas
   const powerCurveRef = useRef(null);
 
-  // Standard normal CDF approximation
-  const normalCDF = useCallback((x) => {
-    const a1 = 0.254829592;
-    const a2 = -0.284496736;
-    const a3 = 1.421413741;
-    const a4 = -1.453152027;
-    const a5 = 1.061405429;
-    const p = 0.3275911;
-    const sign = x < 0 ? -1 : 1;
-    const absX = Math.abs(x) / Math.sqrt(2);
-    const t = 1.0 / (1.0 + p * absX);
-    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
-    return 0.5 * (1.0 + sign * y);
-  }, []);
-
-  // Inverse normal CDF (quantile function) approximation
-  const normalQuantile = useCallback((p) => {
-    if (p <= 0) return -Infinity;
-    if (p >= 1) return Infinity;
-    if (p === 0.5) return 0;
-
-    // Rational approximation for lower region
-    const a = [
-      -3.969683028665376e+01, 2.209460984245205e+02,
-      -2.759285104469687e+02, 1.383577518672690e+02,
-      -3.066479806614716e+01, 2.506628277459239e+00
-    ];
-    const b = [
-      -5.447609879822406e+01, 1.615858368580409e+02,
-      -1.556989798598866e+02, 6.680131188771972e+01,
-      -1.328068155288572e+01
-    ];
-    const c = [
-      -7.784894002430293e-03, -3.223964580411365e-01,
-      -2.400758277161838e+00, -2.549732539343734e+00,
-      4.374664141464968e+00, 2.938163982698783e+00
-    ];
-    const d = [
-      7.784695709041462e-03, 3.224671290700398e-01,
-      2.445134137142996e+00, 3.754408661907416e+00
-    ];
-
-    const pLow = 0.02425;
-    const pHigh = 1 - pLow;
-
-    let q, r;
-
-    if (p < pLow) {
-      q = Math.sqrt(-2 * Math.log(p));
-      return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-             ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
-    } else if (p <= pHigh) {
-      q = p - 0.5;
-      r = q * q;
-      return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
-             (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
-    } else {
-      q = Math.sqrt(-2 * Math.log(1 - p));
-      return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-              ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
-    }
-  }, []);
-
-  // Calculate power from other parameters
-  const calculatePower = useCallback((n, d, a, type = 'two-sample', tailType = 'two') => {
-    let noncentrality;
-    if (type === 'two-sample') {
-      noncentrality = d * Math.sqrt(n / 2);
-    } else if (type === 'one-sample' || type === 'paired') {
-      noncentrality = d * Math.sqrt(n);
-    } else {
-      noncentrality = d * Math.sqrt(n / 2);
-    }
-
-    let zAlpha;
-    if (tailType === 'two') {
-      zAlpha = normalQuantile(1 - a / 2);
-    } else {
-      zAlpha = normalQuantile(1 - a);
-    }
-
-    let pwr;
-    if (tailType === 'two') {
-      pwr = normalCDF(noncentrality - zAlpha) + normalCDF(-noncentrality - zAlpha);
-    } else {
-      pwr = normalCDF(noncentrality - zAlpha);
-    }
-
-    return Math.min(0.9999, Math.max(0.0001, pwr));
-  }, [normalCDF, normalQuantile]);
-
-  // Calculate sample size from other parameters
-  const calculateSampleSize = useCallback((d, a, pwr, type = 'two-sample', tailType = 'two') => {
-    let zAlpha;
-    if (tailType === 'two') {
-      zAlpha = normalQuantile(1 - a / 2);
-    } else {
-      zAlpha = normalQuantile(1 - a);
-    }
-    const zBeta = normalQuantile(pwr);
-
-    let multiplier;
-    if (type === 'two-sample') {
-      multiplier = 2;
-    } else {
-      multiplier = 1;
-    }
-
-    const n = multiplier * Math.pow((zAlpha + zBeta) / d, 2);
-    return Math.ceil(n);
-  }, [normalQuantile]);
-
-  // Calculate effect size from other parameters
-  const calculateEffectSize = useCallback((n, a, pwr, type = 'two-sample', tailType = 'two') => {
-    let zAlpha;
-    if (tailType === 'two') {
-      zAlpha = normalQuantile(1 - a / 2);
-    } else {
-      zAlpha = normalQuantile(1 - a);
-    }
-    const zBeta = normalQuantile(pwr);
-
-    let divisor;
-    if (type === 'two-sample') {
-      divisor = Math.sqrt(n / 2);
-    } else {
-      divisor = Math.sqrt(n);
-    }
-
-    const d = (zAlpha + zBeta) / divisor;
-    return Math.max(0.01, d);
-  }, [normalQuantile]);
-
-  // Perform calculation based on solve target
-  const performCalculation = useCallback(() => {
-    let result;
-    switch (solveFor) {
-      case 'n':
-        result = calculateSampleSize(effectSize, alpha, power, testType, tails);
-        setCalculatedValue({ type: 'n', value: result, label: 'Sample Size (per group)' });
-        break;
-      case 'power':
-        result = calculatePower(sampleSize, effectSize, alpha, testType, tails);
-        setCalculatedValue({ type: 'power', value: result, label: 'Statistical Power' });
-        break;
-      case 'd':
-        result = calculateEffectSize(sampleSize, alpha, power, testType, tails);
-        setCalculatedValue({ type: 'd', value: result, label: 'Minimum Detectable Effect Size' });
-        break;
-      case 'alpha':
-        // This is less common, but we can solve for it iteratively
-        // For simplicity, we'll show that this calculation is rarely needed
-        setCalculatedValue({ type: 'alpha', value: null, label: 'Note: α is typically fixed at 0.05' });
-        break;
-      default:
-        break;
-    }
-  }, [solveFor, sampleSize, effectSize, alpha, power, testType, tails, calculateSampleSize, calculatePower, calculateEffectSize]);
-
+  /**
+   * All three modes now run on the backend, against the exact non-central t.
+   *
+   * What this lesson used to teach:
+   *
+   *   * `calculatePower` was a normal approximation to the non-central t, clamped into
+   *     [0.0001, 0.9999]. The clamp is an invented claim at both ends.
+   *
+   *   * `calculateSampleSize` was the closed form n = 2·((z_α + z_β)/d)², which drops the fact
+   *     that t's critical value itself depends on n. For d = 0.5, α = 0.05, power = 0.80 -- the
+   *     single most common power analysis in the literature -- it returns 63 per group. The answer
+   *     is 64: at 63 the design has 0.795 power, not the 0.80 the student is being taught to
+   *     expect. The worked example in step 2 of this very lesson says 64.
+   *
+   *   * `calculateEffectSize` inverted the same closed form, and floored the result at 0.01, so a
+   *     design that can detect nothing useful still reported a detectable effect. It is now the
+   *     minimum detectable effect, solved against the exact power.
+   */
   useEffect(() => {
-    performCalculation();
-  }, [performCalculation]);
+    let cancelled = false;
+    setIsCalculating(true);
+
+    // The sliders fire on every pixel of travel; only the value the user settles on is worth a
+    // round trip.
+    const timer = setTimeout(async () => {
+      const common = {
+        testType: BACKEND_TEST_TYPE[testType],
+        alpha,
+        alternative: ALTERNATIVE[tails],
+      };
+
+      try {
+        let result;
+
+        if (solveFor === 'n') {
+          const backend = await runSampleSizeCalculation({ ...common, effectSize, power });
+          result = {
+            type: 'n',
+            value: backend.requiredN,
+            totalN: backend.totalN,
+            // The power the design will ACTUALLY have at that integer n -- at or just above the
+            // target, never below.
+            actualPower: backend.actualPower,
+            label: testType === 'two-sample' ? 'Sample Size (per group)' : 'Sample Size',
+          };
+        } else if (solveFor === 'power') {
+          const backend = await runPowerCalculation({ ...common, effectSize, sampleSize });
+          result = { type: 'power', value: backend.power, label: 'Statistical Power' };
+        } else if (solveFor === 'd') {
+          const backend = await runMinimumDetectableEffect({ ...common, sampleSize, power });
+          result = { type: 'd', value: backend.effect, label: 'Minimum Detectable Effect Size' };
+        } else {
+          result = { type: 'alpha', value: null, label: 'Note: α is typically fixed at 0.05' };
+        }
+
+        // The marker on the curve is the power of the settings on the sliders, which is the
+        // answer we already have when the user is solving for power.
+        const markerPower =
+          result.type === 'power'
+            ? result.value
+            : (await runPowerCalculation({ ...common, effectSize, sampleSize })).power;
+
+        if (cancelled) return;
+        setCalculatedValue(result);
+        setCurrentPower(markerPower);
+        setCalcError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setCalculatedValue(null);
+        setCurrentPower(null);
+        setCalcError(err.message);
+      } finally {
+        if (!cancelled) setIsCalculating(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [solveFor, sampleSize, effectSize, alpha, power, testType, tails]);
+
+  /**
+   * The benchmark curves, from the backend's exact power curve -- one request per effect size.
+   *
+   * They are drawn for the INDEPENDENT two-sample t whatever the toggle says, because that is the
+   * only variant the curve service computes: it takes no t-variant parameter and always uses
+   * λ = d·√(n/2), df = 2n-2. Drawing that under a "paired" heading would be the same class of bug
+   * this lesson is being fixed for, so the curves are labelled for what they are and the marker --
+   * which IS variant-specific -- is only drawn on the curves it belongs to.
+   *
+   * They depend on nothing but the tails: α is fixed at 0.05 here, as the chart title says.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const series = await Promise.all(
+          CURVE_EFFECT_SIZES.map((benchmark) =>
+            runPowerCurve({
+              testType: 't-test',
+              effectSize: benchmark.d,
+              alpha: CURVE_ALPHA,
+              alternative: ALTERNATIVE[tails],
+              nMin: 5,
+              nMax: 200,
+              step: 5,
+            }).then((points) => ({ ...benchmark, points }))
+          )
+        );
+        if (cancelled) return;
+        setCurves(series);
+        setCurvesError(null);
+      } catch (err) {
+        if (cancelled) return;
+        // A curve we could not fetch is a chart we do not draw. The result above is unaffected.
+        setCurves(null);
+        setCurvesError(err.message);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tails]);
 
   // Draw power curve
   const drawPowerCurve = useCallback(() => {
@@ -301,35 +309,31 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw power curves for different effect sizes
-    const effectSizes = [
-      { d: 0.2, color: '#ff9800', label: 'd = 0.2 (Small)' },
-      { d: 0.5, color: '#2196f3', label: 'd = 0.5 (Medium)' },
-      { d: 0.8, color: '#4caf50', label: 'd = 0.8 (Large)' },
-    ];
-
-    effectSizes.forEach(({ d, color }) => {
+    // Draw the benchmark curves. A point the backend could not compute is absent from the series
+    // rather than plotted at zero, so the line has a gap where the power does not exist.
+    (curves || []).forEach(({ color, points }) => {
       ctx.strokeStyle = color;
       ctx.lineWidth = 3;
       ctx.beginPath();
 
-      for (let n = xMin; n <= xMax; n += 2) {
-        const pwr = calculatePower(n, d, 0.05, testType, tails);
-        const x = xScale(n);
-        const y = yScale(pwr);
-
-        if (n === xMin) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      }
+      points.forEach((point, index) => {
+        const x = xScale(point.n);
+        const y = yScale(point.power);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
       ctx.stroke();
     });
 
-    // Mark current sample size if in range
-    if (sampleSize >= xMin && sampleSize <= xMax) {
-      const currentPower = calculatePower(sampleSize, effectSize, alpha, testType, tails);
+    // Mark the current settings. Only on the curves it belongs to: these are two-sample curves,
+    // and a paired power at the same d and n sits well above them, so the marker would read as a
+    // point on a line it is not on.
+    if (
+      testType === 'two-sample' &&
+      currentPower !== null &&
+      sampleSize >= xMin &&
+      sampleSize <= xMax
+    ) {
       ctx.fillStyle = '#d32f2f';
       ctx.beginPath();
       ctx.arc(xScale(sampleSize), yScale(currentPower), 8, 0, 2 * Math.PI);
@@ -381,12 +385,12 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
     // Title
     ctx.font = 'bold 16px Arial';
-    ctx.fillText('Power Curves by Effect Size (α = 0.05)', width / 2, 20);
+    ctx.fillText('Power Curves: two-sample t-test (α = 0.05)', width / 2, 20);
 
     // Legend
     ctx.font = '12px Arial';
     ctx.textAlign = 'left';
-    effectSizes.forEach(({ d, color, label }, i) => {
+    CURVE_EFFECT_SIZES.forEach(({ color, label }, i) => {
       const legendY = margin.top + 20 + i * 20;
       ctx.fillStyle = color;
       ctx.fillRect(width - margin.right - 130, legendY - 8, 20, 12);
@@ -398,13 +402,25 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     ctx.fillStyle = '#4caf50';
     ctx.fillText('80% Power', margin.left + 10, yScale(0.8) - 5);
 
-  }, [sampleSize, effectSize, alpha, testType, tails, calculatePower]);
+    // An empty plot says so. It does not draw three flat lines at zero.
+    if (!curves) {
+      ctx.fillStyle = '#757575';
+      ctx.font = '13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        curvesError ? 'Power curves are unavailable right now.' : 'Calculating exact power curves…',
+        width / 2,
+        margin.top + plotHeight / 2
+      );
+    }
+
+  }, [sampleSize, testType, curves, curvesError, currentPower]);
 
   useEffect(() => {
     if (activeStep === 0 || activeStep === 4) {
       drawPowerCurve();
     }
-  }, [activeStep, drawPowerCurve, sampleSize, effectSize, alpha, testType, tails]);
+  }, [activeStep, drawPowerCurve]);
 
   // Handle step navigation
   const handleNext = () => {
@@ -671,13 +687,19 @@ const Lesson04_FourPillars = ({ onComplete }) => {
               n = 2 × (2.80 / 0.5)²<br/>
               n = 2 × 5.6²<br/>
               n = 2 × 31.36<br/>
-              n = 62.72<br/>
-              <strong>n ≈ 64 per group (128 total)</strong>
+              n = 62.72 → 63<br/>
+              <strong>Exact answer: n = 64 per group (128 total)</strong>
             </Typography>
 
             <Alert severity="info">
               <Typography variant="body2">
-                Always round up to ensure you meet your power target.
+                Round up, and the formula still lands one subject short. The closed form uses the
+                NORMAL critical value z<sub>α/2</sub> = 1.96, but the test you will actually run is
+                a t-test, whose critical value depends on n and is always larger. Solved against
+                the non-central t — which is what the calculator in step 5 does — the answer is 64
+                per group. At 63 the design has 79.5% power, not the 80% the formula promises. The
+                approximation is fine for teaching the shape of the relationship and not for
+                deciding how many people to recruit.
               </Typography>
             </Alert>
           </Paper>
@@ -1212,30 +1234,48 @@ const Lesson04_FourPillars = ({ onComplete }) => {
               Result
             </Typography>
 
-            {calculatedValue && calculatedValue.value !== null && (
+            {calcError && (
+              <Alert severity="error">
+                <Typography variant="body2">This could not be calculated: {calcError}</Typography>
+              </Alert>
+            )}
+
+            {!calcError && isCalculating && !calculatedValue && (
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="body2" color="text.secondary">Calculating…</Typography>
+              </Box>
+            )}
+
+            {!calcError && calculatedValue && calculatedValue.value !== null && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="body1" color="text.secondary" gutterBottom>
                   {calculatedValue.label}
                 </Typography>
                 <Typography variant="h2" sx={{ fontWeight: 700, color: '#2e7d32' }}>
                   {calculatedValue.type === 'power'
-                    ? `${(calculatedValue.value * 100).toFixed(1)}%`
+                    ? formatPercent(calculatedValue.value)
                     : calculatedValue.type === 'd'
-                    ? calculatedValue.value.toFixed(3)
+                    ? formatNumber(calculatedValue.value)
                     : calculatedValue.value}
                 </Typography>
                 {calculatedValue.type === 'n' && (
                   <Typography variant="body2" color="text.secondary">
-                    Total N = {calculatedValue.value * 2} (for two-sample test)
+                    {/* The old line printed n × 2 whatever the test was, so a paired design was
+                        told to recruit twice the people it needs. The total comes from the
+                        calculator, which knows how many samples the test has. */}
+                    Total N = {calculatedValue.totalN ?? '—'} · power delivered at this n:{' '}
+                    {formatPercent(calculatedValue.actualPower)}
                   </Typography>
                 )}
               </Box>
             )}
 
-            {calculatedValue && calculatedValue.value === null && (
+            {!calcError && calculatedValue && calculatedValue.value === null && (
               <Alert severity="info">
                 <Typography variant="body2">
-                  {calculatedValue.label}
+                  {calculatedValue.type === 'alpha'
+                    ? calculatedValue.label
+                    : `${calculatedValue.label} is not defined for these inputs.`}
                 </Typography>
               </Alert>
             )}
@@ -1255,7 +1295,11 @@ const Lesson04_FourPillars = ({ onComplete }) => {
               />
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-              Red dot shows your current settings (n = {sampleSize}, d = {effectSize})
+              {testType === 'two-sample'
+                ? `Red dot shows your current settings (n = ${sampleSize}, d = ${effectSize}, α = ${alpha})`
+                : 'The curves are drawn for the independent two-sample t-test — the variant the exact ' +
+                  'curve service covers. Your result above is for the test you selected, so there is ' +
+                  'no marker to place on these curves.'}
             </Typography>
           </Paper>
         </Grid>

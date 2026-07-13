@@ -541,22 +541,28 @@ export const runPowerCurve = async ({
   // The curve is drawn for the parametric families. A rank test has no closed-form curve, and a
   // chi-square curve would need its df; rather than draw an approximation of an approximation,
   // those simply get no curve -- the headline number still comes back from the exact endpoint.
-  const curveTest = CURVE_FAMILY[specFor(testType).family];
+  const spec = specFor(testType);
+  const curveTest = CURVE_FAMILY[spec.family];
   if (!curveTest) return [];
 
-  const results =
-    (
-      await post('/v1/power/curve/', {
-        test_type: curveTest,
-        effect_size: effectSize,
-        alpha,
-        groups,
-        alternative,
-        n_min: nMin,
-        n_max: nMax,
-        step,
-      })
-    ).results || {};
+  const body = {
+    test_type: curveTest,
+    effect_size: effectSize,
+    alpha,
+    groups,
+    alternative,
+    n_min: nMin,
+    n_max: nMax,
+    step,
+  };
+
+  // The curve endpoint used to pin the t-test variant to "independent", so a curve requested for
+  // a PAIRED or one-sample design came back as the independent one and was drawn under the label
+  // of the design the user actually chose. A paired t reaches a given power at roughly half the
+  // sample size, so the two curves are nowhere near each other.
+  if (spec.family === 't') body.t_test_type = spec.variant;
+
+  const results = (await post('/v1/power/curve/', body)).results || {};
 
   return (results.points || [])
     .map((point) => ({ n: num(point.n), power: num(point.power), target80: 0.8 }))
