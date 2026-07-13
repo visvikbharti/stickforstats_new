@@ -1,11 +1,31 @@
 /**
  * Statistical Distribution Functions
  *
- * Proper CDF and p-value computations using jStat.
- * Replaces crude lookup tables that returned only 3-5 discrete p-values.
+ * The three p-value functions here were each computed as `1 - jStat.X.cdf(...)`.
+ *
+ * That is catastrophic cancellation. Once the CDF rounds to 1.0 in float64 -- which happens for
+ * any tail probability below about 2e-16, i.e. for EVERY decisively significant result -- the
+ * subtraction returns exactly 0, and the screen prints:
+ *
+ *     p = 0.0000 < 0.05  ->  significant
+ *
+ * A p-value of zero does not exist; it asserts the outcome is impossible under the null, which
+ * no finite sample can establish. Measured on inputs these very screens produce:
+ *
+ *     1 - jStat.centralF.cdf(200, 2, 30)        ->  0        (truth: 2.06e-18)
+ *     2 * (1 - jStat.studentt.cdf(40, 20))      ->  0        (truth: 1.46e-20)
+ *     1 - jStat.chisquare.cdf(100, 10)          ->  0        (truth: 5.45e-17)
+ *
+ * These now delegate to `utils/tails`, which computes each upper tail DIRECTLY -- there is
+ * nothing to cancel -- and is checked against scipy's survival functions in tails.test.js.
+ *
+ * This file is live: TwoWayANOVA, MANOVA, PostHocTests and RepeatedMeasuresANOVA all import it,
+ * and all four are reachable from /statistical-analysis-tools -> Advanced Statistics.
  */
 
 import jStat from 'jstat';
+
+import { tSfTwoSided, fSf, chiSquareSf } from './tails';
 
 /**
  * F-distribution p-value (upper tail).
@@ -13,7 +33,7 @@ import jStat from 'jstat';
  */
 export const fTestPValue = (f, df1, df2) => {
   if (f <= 0 || df1 <= 0 || df2 <= 0) return 1;
-  return 1 - jStat.centralF.cdf(f, df1, df2);
+  return fSf(f, df1, df2);
 };
 
 /**
@@ -22,7 +42,7 @@ export const fTestPValue = (f, df1, df2) => {
  */
 export const tTestPValue = (t, df) => {
   if (df <= 0) return 1;
-  return 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
+  return tSfTwoSided(t, df);
 };
 
 /**
@@ -49,14 +69,37 @@ export const fCriticalValue = (df1, df2, alpha) => {
  */
 export const chiSquarePValue = (x, df) => {
   if (x <= 0 || df <= 0) return 1;
-  return 1 - jStat.chisquare.cdf(x, df);
+  return chiSquareSf(x, df);
+};
+
+/**
+ * The smallest Tukey p-value this quadrature can actually resolve.
+ *
+ * `tukeyPValue` evaluates the studentized-range CDF by 16-point Gauss-Legendre quadrature and
+ * subtracts it from 1. The quadrature itself is only good to roughly 1e-8 relative, so any
+ * "p-value" it reports below that is numerical noise -- and once the CDF rounds to 1.0, the
+ * subtraction gives exactly 0, which it then clamped and printed as "p = 0.0000".
+ *
+ * Below this floor the function returns null, and the caller says "p < 1e-8" -- which is a true
+ * statement about a bound, rather than a false statement about a value.
+ */
+export const TUKEY_RESOLUTION = 1e-8;
+
+/**
+ * Clamp a quadrature tail to what the quadrature can actually see. Below the resolution the
+ * answer is not zero -- it is unknown, and smaller than the floor.
+ */
+const resolveTail = (tail) => {
+  if (!Number.isFinite(tail)) return null;
+  if (tail < TUKEY_RESOLUTION) return null;
+  return Math.min(1, tail);
 };
 
 /**
  * Tukey HSD p-value using numerical integration.
  *
  * Computes 1 - CDF of the Studentized Range distribution Q(q, k, df)
- * using Gauss-Legendre quadrature.
+ * using Gauss-Legendre quadrature. Returns null below TUKEY_RESOLUTION.
  *
  * Reference: Algorithm AS 190 (Lund & Lund, 1983)
  */
@@ -98,7 +141,7 @@ export const tukeyPValue = (q, k, df) => {
   // For very large df, use the asymptotic (infinite df) formula
   if (df > 5000) {
     const cdf = k * innerIntegral(q);
-    return Math.max(0, Math.min(1, 1 - cdf));
+    return resolveTail(1 - cdf);
   }
 
   // Outer integral over s: ∫ f_S(s) * innerIntegral(q*s) ds
@@ -123,7 +166,7 @@ export const tukeyPValue = (q, k, df) => {
   }
 
   const cdf = k * outerSum * (hi - lo) / 2;
-  return Math.max(0, Math.min(1, 1 - cdf));
+  return resolveTail(1 - cdf);
 };
 
 /**

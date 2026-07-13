@@ -1,6 +1,6 @@
 // Statistical utility functions for client-side data analysis
 import * as ss from 'simple-statistics';
-import { tSfTwoSided, normalSfTwoSided, fSf, chiSquareSf } from './tails';
+import { tSfTwoSided, normalSfTwoSided, fSf, chiSquareSf } from '../../../utils/tails';
 
 /**
  * Calculate descriptive statistics for a numeric array

@@ -41,6 +41,7 @@ import {
   ZAxis
 } from 'recharts';
 import { pearsonCorrelation, linearRegression } from '../utils/statisticalUtils';
+import { formatPValue, formatNumber } from '../../../utils/formatStats';
 
 /**
  * Relationship Analysis Component
@@ -573,7 +574,7 @@ const RelationshipAnalysis = ({ data }) => {
               <Card variant="outlined">
                 <CardContent sx={{ py: 1.5 }}>
                   <Typography variant="caption" color="text.secondary">Correlation (r)</Typography>
-                  <Typography variant="h6">{correlation.coefficient.toFixed(4)}</Typography>
+                  <Typography variant="h6">{formatNumber(correlation.coefficient, 4)}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -582,7 +583,7 @@ const RelationshipAnalysis = ({ data }) => {
               <Card variant="outlined">
                 <CardContent sx={{ py: 1.5 }}>
                   <Typography variant="caption" color="text.secondary">P-value</Typography>
-                  <Typography variant="h6">{correlation.pValue.toFixed(6)}</Typography>
+                  <Typography variant="h6">{formatPValue(correlation.pValue)}</Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -592,7 +593,7 @@ const RelationshipAnalysis = ({ data }) => {
                 <CardContent sx={{ py: 1.5 }}>
                   <Typography variant="caption" color="text.secondary">Significance</Typography>
                   <Typography variant="h6">
-                    {correlation.significant ? 'Yes' : 'No'}
+                    {correlation.significant === null ? '\u2014' : correlation.significant ? 'Yes' : 'No'}
                   </Typography>
                 </CardContent>
               </Card>
@@ -620,26 +621,38 @@ const RelationshipAnalysis = ({ data }) => {
             {correlation.coefficient < 0 && (
               <Chip label="Negative Correlation" color="error" size="small" />
             )}
-            {correlation.significant && (
+            {/* Three states, not two. `!correlation.significant` is TRUE when significant is
+                null, so a correlation that does not exist used to be labelled "Not Significant
+                (p >= 0.05)" -- a claim about a p-value there is none of. */}
+            {correlation.significant === null && (
+              <Chip label="Undefined (a column is constant)" color="default" size="small" variant="outlined" />
+            )}
+            {correlation.significant === true && (
               <Chip label="Statistically Significant (p < 0.05)" color="primary" size="small" />
             )}
-            {!correlation.significant && (
+            {correlation.significant === false && (
               <Chip label="Not Significant (p ≥ 0.05)" color="default" size="small" />
             )}
           </Box>
 
           <Alert severity={correlation.significant ? "success" : "info"} sx={{ mt: 2 }}>
             <Typography variant="body2">
-              {correlation.significant ? (
+              {correlation.coefficient === null ? (
+                <>
+                  A correlation cannot be computed here: one of the two columns is constant, so
+                  its variance is zero and r is 0/0. This is not a correlation of zero &mdash; it
+                  is the absence of a correlation to speak of.
+                </>
+              ) : correlation.significant ? (
                 <>
                   There is a <strong>{Math.abs(correlation.coefficient) > 0.7 ? 'strong' : Math.abs(correlation.coefficient) > 0.5 ? 'moderate' : 'weak'}</strong>{' '}
                   <strong>{correlation.coefficient > 0 ? 'positive' : 'negative'}</strong> correlation
-                  between {xColumn} and {yColumn} (r = {correlation.coefficient.toFixed(3)}, p = {correlation.pValue.toFixed(4)}).
+                  between {xColumn} and {yColumn} (r = {formatNumber(correlation.coefficient, 3)}, p = {formatPValue(correlation.pValue)}).
                 </>
               ) : (
                 <>
                   No statistically significant correlation detected between {xColumn} and {yColumn}
-                  (r = {correlation.coefficient.toFixed(3)}, p = {correlation.pValue.toFixed(4)}).
+                  (r = {formatNumber(correlation.coefficient, 3)}, p = {formatPValue(correlation.pValue)}).
                 </>
               )}
             </Typography>

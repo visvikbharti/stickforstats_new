@@ -29,6 +29,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+import { isSignificant } from '../../utils/formatStats';
 
 const FunnelPlot = ({ data, publicationBias }) => {
   // Prepare scatter data for studies
@@ -257,7 +258,7 @@ const FunnelPlot = ({ data, publicationBias }) => {
                       variant="body2"
                       sx={{
                         fontFamily: 'monospace',
-                        color: publicationBias.eggers_test.p_value < 0.05 ? 'error.main' : 'inherit'
+                        color: isSignificant(publicationBias.eggers_test.p_value) ? 'error.main' : 'inherit'
                       }}
                     >
                       {publicationBias.eggers_test.p_value?.toFixed(4)}
@@ -300,7 +301,7 @@ const FunnelPlot = ({ data, publicationBias }) => {
                       variant="body2"
                       sx={{
                         fontFamily: 'monospace',
-                        color: publicationBias.beggs_test.p_value < 0.05 ? 'error.main' : 'inherit'
+                        color: isSignificant(publicationBias.beggs_test.p_value) ? 'error.main' : 'inherit'
                       }}
                     >
                       {publicationBias.beggs_test.p_value?.toFixed(4)}

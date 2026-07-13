@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import axios from 'axios';
+import { formatNumber } from '../../../utils/formatStats';
 
 /**
  * Difference Calculator Component
@@ -521,7 +522,7 @@ const DifferenceCalculator = ({ project, onSaveResult }) => {
                 Confidence Interval: [{result.result.lower.toFixed(4)}, {result.result.upper.toFixed(4)}]
               </Typography>
               <Typography variant="body2">
-                Standard Error: {result.result.std_error.toFixed(4)}
+                Standard Error: {formatNumber(result.result.std_error, 4)}
               </Typography>
               {formData.difference_type === 'DIFFERENCE_MEANS' && !formData.equal_variances && (
                 <Typography variant="body2">

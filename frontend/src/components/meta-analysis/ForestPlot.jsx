@@ -20,6 +20,7 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
+import { formatNumber } from '../../utils/formatStats';
 
 const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
   // Filter studies with valid CI data for calculations
@@ -200,7 +201,7 @@ const ForestPlot = ({ studies, pooledEffect, pooledCI, model }) => {
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                    {study.effect_size.toFixed(3)}
+                    {formatNumber(study.effect_size, 3)}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import './SessionTracker.scss';
+import { formatNumber, isSignificant } from '../../utils/formatStats';
 
 const SessionTracker = ({ 
   onTestDetected, 
@@ -101,7 +102,7 @@ const SessionTracker = ({
     });
 
     // Selective reporting detection
-    const significantCount = sessionTests.filter(t => t.pValue < 0.05).length;
+    const significantCount = sessionTests.filter(t => isSignificant(t.pValue, 0.05)).length;
     const totalCount = sessionTests.length;
     if (totalCount > 5) {
       const ratio = significantCount / totalCount;
@@ -208,7 +209,7 @@ const SessionTracker = ({
     return sessionTests.filter(test => {
       if (filters.testType !== 'all' && test.type !== filters.testType) return false;
       if (filters.significance === 'significant' && test.pValue >= 0.05) return false;
-      if (filters.significance === 'not_significant' && test.pValue < 0.05) return false;
+      if (filters.significance === 'not_significant' && isSignificant(test.pValue, 0.05)) return false;
       if (filters.flagged && !test.flagged) return false;
       
       if (filters.timeRange !== 'all') {
@@ -229,7 +230,7 @@ const SessionTracker = ({
   const sessionStats = useMemo(() => {
     const stats = {
       total: sessionTests.length,
-      significant: sessionTests.filter(t => t.pValue < 0.05).length,
+      significant: sessionTests.filter(t => isSignificant(t.pValue, 0.05)).length,
       corrected: sessionTests.filter(t => t.corrected).length,
       flagged: sessionTests.filter(t => t.flagged).length,
       uniqueTests: new Set(sessionTests.map(t => t.type)).size,
@@ -392,7 +393,7 @@ const SessionTracker = ({
           
           {filteredTests.map((test, index) => {
             const position = getTestPosition(test, index);
-            const isSignificant = test.pValue < 0.05;
+            const isSignificant = isSignificant(test.pValue, 0.05);
             
             return (
               <div
@@ -400,7 +401,7 @@ const SessionTracker = ({
                 className={`timeline-point ${isSignificant ? 'significant' : ''} ${test.flagged ? 'flagged' : ''}`}
                 style={position}
                 onClick={() => setSelectedTest(test)}
-                title={`${test.type}: p=${test.pValue.toFixed(4)}`}
+                title={`${test.type}: p=${formatNumber(test.pValue, 4)}`}
               >
                 <div className="point-marker" />
                 <div className="point-label">
@@ -447,15 +448,15 @@ const SessionTracker = ({
           {filteredTests.map((test, index) => (
             <tr 
               key={test.id}
-              className={`${test.pValue < 0.05 ? 'significant' : ''} ${test.flagged ? 'flagged' : ''}`}
+              className={`${isSignificant(test.pValue, 0.05) ? 'significant' : ''} ${test.flagged ? 'flagged' : ''}`}
               onClick={() => setSelectedTest(test)}
             >
               <td>{index + 1}</td>
               <td>{new Date(test.timestamp).toLocaleTimeString()}</td>
               <td>{test.type}</td>
               <td>{test.variables?.join(' vs ') || '-'}</td>
-              <td className={test.pValue < 0.05 ? 'p-significant' : ''}>
-                {test.pValue.toFixed(4)}
+              <td className={isSignificant(test.pValue, 0.05) ? 'p-significant' : ''}>
+                {formatNumber(test.pValue, 4)}
               </td>
               <td>
                 {test.corrected ? (
@@ -467,7 +468,7 @@ const SessionTracker = ({
               <td>{test.effectSize?.toFixed(3) || '-'}</td>
               <td>
                 {test.flagged && <span className="flag-badge">⚠ Flagged</span>}
-                {test.pValue < 0.05 && <span className="sig-badge">Sig.</span>}
+                {isSignificant(test.pValue, 0.05) && <span className="sig-badge">Sig.</span>}
               </td>
               <td>
                 <button 
@@ -613,8 +614,8 @@ const SessionTracker = ({
               </div>
               <div className="detail-item">
                 <label>p-value:</label>
-                <span className={selectedTest.pValue < 0.05 ? 'significant' : ''}>
-                  {selectedTest.pValue.toFixed(6)}
+                <span className={isSignificant(selectedTest.pValue, 0.05) ? 'significant' : ''}>
+                  {formatNumber(selectedTest.pValue, 6)}
                 </span>
               </div>
               <div className="detail-item">

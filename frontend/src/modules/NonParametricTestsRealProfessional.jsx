@@ -76,6 +76,7 @@ import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 // Interactive "why non-parametric routing matters" lecture demo, backend-anchored
 // to the real Guardian engine (reproduces the Fig 8 cascade calibration benchmark).
 import { GuardianCascadeSimulator } from '../components/statistical/educational';
+import { isSignificant } from '../utils/formatStats';
 
 const NonParametricTestsRealProfessional = () => {
   // State management
@@ -627,7 +628,7 @@ const NonParametricTestsRealProfessional = () => {
                         p-value: <strong>{formatNumber(results.p_value, 8)}</strong>
                       </Typography>
                       <Alert
-                        severity={results.p_value < 0.05 ? 'success' : 'info'}
+                        severity={isSignificant(results.p_value) ? 'success' : 'info'}
                         sx={{ mt: 2 }}
                       >
                         {results.p_value < 0.05

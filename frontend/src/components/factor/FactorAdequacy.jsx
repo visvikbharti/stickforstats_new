@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper, Button, Grid, Chip, Alert } from '@mui/material';
 import { CheckCircle, Warning, Error } from '@mui/icons-material';
+import { isSignificant } from '../../utils/formatStats';
 
 function FactorAdequacy({ adequacyResults, onContinue, onBack }) {
   if (!adequacyResults) {
@@ -64,7 +65,7 @@ function FactorAdequacy({ adequacyResults, onContinue, onBack }) {
               <strong>p-value:</strong> {adequacyResults.bartlett_test?.p_value?.toFixed(6) || 'N/A'}
             </Typography>
             <Chip
-              label={adequacyResults.bartlett_test?.p_value < 0.05 ? 'Significant (Good)' : 'Not Significant (Poor)'}
+              label={isSignificant(adequacyResults.bartlett_test?.p_value) ? 'Significant (Good)' : 'Not Significant (Poor)'}
               color={adequacyResults.bartlett_test?.p_value < 0.05 ? 'success' : 'error'}
               sx={{ mt: 2 }}
             />

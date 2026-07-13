@@ -514,7 +514,10 @@ const ANOVARealBackend = () => {
             <Alert severity="success" sx={{ mt: 3 }}>
               <Typography variant="body2">
                 ✅ This calculation used the REAL backend API with 50 decimal precision.
-                No Math.random() or simulations. F-statistic has {String(results.f_statistic).split('.')[1]?.length || 0} decimal places!
+                Computed by the backend. The F-statistic came back with{' '}
+                {results.f_statistic == null
+                  ? 'no value (the test is undefined on these data)'
+                  : `${String(results.f_statistic).split('.')[1]?.length || 0} decimal places`}.
               </Typography>
             </Alert>
           </Grow>

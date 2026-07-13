@@ -44,6 +44,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
 import { generateDesign, uploadExperimentData, runModelAnalysis, optimizeResponse } from '../../services/doeService';
+import { formatNumber } from '../../utils/formatStats';
 
 /**
  * DesignBuilder - Interactive tool for creating and analyzing experimental designs
@@ -1283,19 +1284,19 @@ function DesignBuilder() {
                           <Grid item xs={6} sm={3}>
                             <Typography variant="caption">R²</Typography>
                             <Typography variant="body1" fontWeight="bold">
-                              {(analysisResults.results.model_statistics[response].r_squared || 0).toFixed(4)}
+                              {formatNumber(analysisResults.results.model_statistics[response].r_squared, 4)}
                             </Typography>
                           </Grid>
                           <Grid item xs={6} sm={3}>
                             <Typography variant="caption">Adjusted R²</Typography>
                             <Typography variant="body1" fontWeight="bold">
-                              {(analysisResults.results.model_statistics[response].adj_r_squared || 0).toFixed(4)}
+                              {formatNumber(analysisResults.results.model_statistics[response].adj_r_squared, 4)}
                             </Typography>
                           </Grid>
                           <Grid item xs={6} sm={3}>
                             <Typography variant="caption">RMSE</Typography>
                             <Typography variant="body1" fontWeight="bold">
-                              {(analysisResults.results.model_statistics[response].rmse || 0).toFixed(4)}
+                              {formatNumber(analysisResults.results.model_statistics[response].rmse, 4)}
                             </Typography>
                           </Grid>
                           <Grid item xs={6} sm={3}>

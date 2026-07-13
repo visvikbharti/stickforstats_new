@@ -16,6 +16,7 @@ import {
   exportRegistry
 } from '../../store/slices/multiplicityCorrectionSlice';
 import './HypothesisRegistry.scss';
+import { formatNumber, isSignificant } from '../../utils/formatStats';
 
 // Hypothesis status types
 const HypothesisStatus = {
@@ -86,7 +87,7 @@ const HypothesisRegistry = () => {
   const registryStats = useMemo(() => {
     const total = allHypotheses.length;
     const tested = allHypotheses.filter(h => h.status === 'TESTED').length;
-    const significant = allHypotheses.filter(h => h.pValue && h.pValue < 0.05).length;
+    const significant = allHypotheses.filter(h => h.pValue && isSignificant(h.pValue, 0.05)).length;
     const locked = allHypotheses.filter(h => h.status === 'LOCKED').length;
     const flagged = allHypotheses.filter(h => h.status === 'FLAGGED').length;
     
@@ -486,11 +487,11 @@ const HypothesisRegistry = () => {
                   <td className="test-type-col">{hypothesis.testType || '—'}</td>
                   <td className="p-value-col">
                     {hypothesis.pValue ? (
-                      <span className={`p-value ${hypothesis.pValue < 0.05 ? 'significant' : ''}`}>
-                        {hypothesis.pValue.toFixed(4)}
-                        {hypothesis.pValue < 0.001 && ' ***'}
-                        {hypothesis.pValue < 0.01 && hypothesis.pValue >= 0.001 && ' **'}
-                        {hypothesis.pValue < 0.05 && hypothesis.pValue >= 0.01 && ' *'}
+                      <span className={`p-value ${isSignificant(hypothesis.pValue, 0.05) ? 'significant' : ''}`}>
+                        {formatNumber(hypothesis.pValue, 4)}
+                        {isSignificant(hypothesis.pValue, 0.001) && ' ***'}
+                        {isSignificant(hypothesis.pValue, 0.01) && hypothesis.pValue >= 0.001 && ' **'}
+                        {isSignificant(hypothesis.pValue, 0.05) && hypothesis.pValue >= 0.01 && ' *'}
                       </span>
                     ) : '—'}
                   </td>
@@ -575,8 +576,8 @@ const HypothesisRegistry = () => {
                   {hypothesis.pValue && (
                     <div className="card-result">
                       <label>p-value:</label>
-                      <span className={hypothesis.pValue < 0.05 ? 'significant' : ''}>
-                        {hypothesis.pValue.toFixed(4)}
+                      <span className={isSignificant(hypothesis.pValue, 0.05) ? 'significant' : ''}>
+                        {formatNumber(hypothesis.pValue, 4)}
                       </span>
                     </div>
                   )}
@@ -626,8 +627,8 @@ const HypothesisRegistry = () => {
                       </span>
                       {hypothesis.testType && <span className="test-type">{hypothesis.testType}</span>}
                       {hypothesis.pValue && (
-                        <span className={`p-value ${hypothesis.pValue < 0.05 ? 'significant' : ''}`}>
-                          p = {hypothesis.pValue.toFixed(4)}
+                        <span className={`p-value ${isSignificant(hypothesis.pValue, 0.05) ? 'significant' : ''}`}>
+                          p = {formatNumber(hypothesis.pValue, 4)}
                         </span>
                       )}
                     </div>

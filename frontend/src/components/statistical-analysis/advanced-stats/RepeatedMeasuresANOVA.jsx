@@ -68,6 +68,7 @@ import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
+import { fSf, tSfTwoSided } from '../../../utils/tails';
 
 const RepeatedMeasuresANOVA = ({ data }) => {
   const theme = useTheme();
@@ -339,7 +340,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
     }
 
     // P-value (using F distribution)
-    const pValue = 1 - fCDF(fStatistic, correctedDfConditions, correctedDfError);
+    const pValue = fSf(fStatistic, correctedDfConditions, correctedDfError);
 
     // Effect size (partial eta squared)
     const etaSquared = ssConditions / (ssConditions + ssError);
@@ -355,7 +356,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
         const meanDiff = differences.reduce((a, b) => a + b, 0) / n;
         const seDiff = Math.sqrt(differences.reduce((sum, d) => sum + Math.pow(d - meanDiff, 2), 0) / (n * (n - 1)));
         const tStat = meanDiff / seDiff;
-        const pPaired = 2 * (1 - tCDF(Math.abs(tStat), n - 1));
+        const pPaired = tSfTwoSided(tStat, n - 1);
         const pAdjusted = Math.min(1, pPaired * nComparisons);
 
         postHoc.push({
@@ -469,48 +470,21 @@ const RepeatedMeasuresANOVA = ({ data }) => {
   };
 
   /**
-   * Helper: F distribution CDF approximation
+   * The F, t and error functions used to be approximated right here, in the component:
+   *
+   *   - fCDF was the Wilson-Hilferty NORMAL approximation to the F distribution, not the F CDF.
+   *   - tCDF used the normal outright for df > 30, and a crude transform below it.
+   *   - erf was the Abramowitz-Stegun 7.1.26 polynomial, good to about 1.5e-7.
+   *
+   * Three approximations stacked on each other, and the number that came out the end was
+   * presented as the p-value of a repeated-measures ANOVA. They also went through `1 - CDF`,
+   * which returns exactly 0 for any tail below ~1e-16 -- so the fallback was simultaneously
+   * imprecise in the middle of the distribution and catastrophically wrong in the tail, which
+   * is the part a p-value is for.
+   *
+   * They are gone. `fSf` / `tSfTwoSided` in utils/tails compute the upper tails directly and are
+   * checked against scipy.
    */
-  const fCDF = (x, df1, df2) => {
-    if (x <= 0) return 0;
-    // Simplified approximation using normal
-    const z = Math.pow(x, 1/3) * (1 - 2/(9*df2)) - (1 - 2/(9*df1));
-    const se = Math.sqrt(2/(9*df1) + 2/(9*df2) * Math.pow(x, 2/3));
-    return 0.5 * (1 + erf(z / (se * Math.sqrt(2))));
-  };
-
-  /**
-   * Helper: t distribution CDF approximation
-   */
-  const tCDF = (x, df) => {
-    // Approximate using normal for large df
-    if (df > 30) {
-      return 0.5 * (1 + erf(x / Math.sqrt(2)));
-    }
-    // Simple approximation
-    const z = x / Math.sqrt(1 + x*x/(2*df));
-    return 0.5 * (1 + erf(z / Math.sqrt(2)));
-  };
-
-  /**
-   * Helper: Error function approximation
-   */
-  const erf = (x) => {
-    const a1 =  0.254829592;
-    const a2 = -0.284496736;
-    const a3 =  1.421413741;
-    const a4 = -1.453152027;
-    const a5 =  1.061405429;
-    const p  =  0.3275911;
-
-    const sign = x < 0 ? -1 : 1;
-    x = Math.abs(x);
-
-    const t = 1.0 / (1.0 + p * x);
-    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-
-    return sign * y;
-  };
 
   /**
    * Interpret eta squared

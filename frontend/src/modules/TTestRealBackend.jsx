@@ -25,6 +25,27 @@ import { getApiUrl, endpoints } from '../config/apiConfig';
 // "No statistical result may exist without an explicit, traceable assumption context."
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+import { isSignificant } from '../utils/formatStats';
+
+/**
+ * "N decimal places" for a 50-digit decimal STRING from the backend -- and an em dash when there
+ * is no statistic. This used to be `results.t_statistic.split('.')[1]?.length || 0`, which throws
+ * on null: a white screen the moment the backend honestly reported that t did not exist.
+ */
+const decimalPlacesLabel = (value) => {
+  if (value === null || value === undefined) return 'no statistic';
+  const decimals = String(value).split('.')[1]?.length || 0;
+  return `${decimals} decimal places`;
+};
+
+/**
+ * `null < 0.05` is TRUE in JavaScript, so a missing p-value used to render as "Significant".
+ */
+const significanceLabel = (pValue) => {
+  const verdict = isSignificant(Number(pValue));
+  if (pValue === null || pValue === undefined || verdict === null) return 'No p-value';
+  return verdict ? 'Significant' : 'Not Significant';
+};
 
 const TTestRealBackend = () => {
   // Data state
@@ -170,10 +191,13 @@ const TTestRealBackend = () => {
                     color: 'primary.main',
                     fontWeight: 700
                   }}>
-                    {results.t_statistic}
+                    {results.t_statistic ?? '\u2014'}
                   </Typography>
+                  {/* `results.t_statistic.split(...)` threw a TypeError -- a white screen -- the
+                      moment the backend honestly reported a null statistic (identical constant
+                      groups: t = 0/0). */}
                   <Chip
-                    label={`${results.t_statistic.split('.')[1]?.length || 0} decimal places`}
+                    label={decimalPlacesLabel(results.t_statistic)}
                     color="success"
                     size="small"
                     sx={{ mt: 1 }}
@@ -189,11 +213,17 @@ const TTestRealBackend = () => {
                     P-Value
                   </Typography>
                   <Typography variant="h6" sx={{ fontFamily: 'monospace' }}>
-                    {results.p_value}
+                    {results.p_value ?? '\u2014'}
                   </Typography>
                   <Chip
-                    label={results.p_value < 0.05 ? "Significant" : "Not Significant"}
-                    color={results.p_value < 0.05 ? "success" : "warning"}
+                    label={significanceLabel(results.p_value)}
+                    color={
+                      isSignificant(Number(results.p_value)) === null
+                        ? 'default'
+                        : isSignificant(Number(results.p_value))
+                          ? 'success'
+                          : 'warning'
+                    }
                     size="small"
                     sx={{ mt: 1 }}
                   />

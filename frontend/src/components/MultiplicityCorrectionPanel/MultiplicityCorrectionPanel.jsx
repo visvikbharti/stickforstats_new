@@ -18,6 +18,7 @@ import {
 } from '../../store/slices/multiplicityCorrectionSlice';
 import { getApiUrl } from '../../config/apiConfig';
 import './MultiplicityCorrectionPanel.scss';
+import { formatNumber, isSignificant } from '../../utils/formatStats';
 
 // This panel's method ids -> the backend's CorrectionMethod values.
 const BACKEND_METHOD = {
@@ -485,7 +486,7 @@ const MultiplicityCorrectionPanel = () => {
                       <td className="description-col">{hypothesis.description}</td>
                       <td className="test-col">{hypothesis.testName}</td>
                       <td className="numeric p-value-col">
-                        {hypothesis.pValue.toFixed(4)}
+                        {formatNumber(hypothesis.pValue, 4)}
                       </td>
                       <td className="numeric effect-col">
                         {hypothesis.effectSize?.toFixed(3) || '—'}
@@ -572,13 +573,13 @@ const MultiplicityCorrectionPanel = () => {
                       <div className="hypothesis-desc">{result.description}</div>
                     </td>
                     <td className="numeric original-p">
-                      {result.pValue.toFixed(4)}
+                      {formatNumber(result.pValue, 4)}
                     </td>
                     <td className="numeric adjusted-p">
-                      {result.adjustedP.toFixed(4)}
-                      {result.adjustedP < 0.001 && ' ***'}
-                      {result.adjustedP < 0.01 && result.adjustedP >= 0.001 && ' **'}
-                      {result.adjustedP < 0.05 && result.adjustedP >= 0.01 && ' *'}
+                      {formatNumber(result.adjustedP, 4)}
+                      {isSignificant(result.adjustedP, 0.001) && ' ***'}
+                      {isSignificant(result.adjustedP, 0.01) && result.adjustedP >= 0.001 && ' **'}
+                      {isSignificant(result.adjustedP, 0.05) && result.adjustedP >= 0.01 && ' *'}
                     </td>
                     <td className="numeric threshold">
                       {(alphaLevel / (correctedResults.length - index)).toFixed(4)}
@@ -717,8 +718,8 @@ const MultiplicityCorrectionPanel = () => {
                   <div className="timeline-content">
                     <div className="test-name">{test.testName}</div>
                     <div className="test-result">
-                      p = {test.pValue.toFixed(4)}
-                      {test.pValue < 0.05 && ' (significant)'}
+                      p = {formatNumber(test.pValue, 4)}
+                      {isSignificant(test.pValue, 0.05) && ' (significant)'}
                     </div>
                   </div>
                 </div>
@@ -732,10 +733,10 @@ const MultiplicityCorrectionPanel = () => {
                   Consider applying correction for {sessionTests.length} tests to control Type I error.
                 </div>
               )}
-              {sessionTests.filter(t => t.pValue < 0.05).length / sessionTests.length > 0.5 && (
+              {sessionTests.filter(t => isSignificant(t.pValue, 0.05)).length / sessionTests.length > 0.5 && (
                 <div className="warning-message">
                   <strong>Unusual Pattern:</strong> High proportion of significant results 
-                  ({(sessionTests.filter(t => t.pValue < 0.05).length / sessionTests.length * 100).toFixed(0)}%). 
+                  ({(sessionTests.filter(t => isSignificant(t.pValue, 0.05)).length / sessionTests.length * 100).toFixed(0)}%). 
                   Review methodology for potential bias.
                 </div>
               )}
@@ -784,8 +785,8 @@ const MultiplicityCorrectionPanel = () => {
                     <li key={result.id}>
                       <strong>{result.id}:</strong> {result.description}
                       <br />
-                      Original p = {result.pValue.toFixed(4)}, 
-                      Adjusted p = {result.adjustedP.toFixed(4)}
+                      Original p = {formatNumber(result.pValue, 4)}, 
+                      Adjusted p = {formatNumber(result.adjustedP, 4)}
                       {result.effectSize && `, Effect size = ${result.effectSize.toFixed(3)}`}
                     </li>
                   ))}

@@ -19,6 +19,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 
 // Import settings context for Expert Mode
 import { useSettings } from '../../context/SettingsContext';
+import { significanceStars } from '../../utils/formatStats';
 import {
   Box,
   Card,
@@ -1119,13 +1120,10 @@ const RegressionCalculator = () => {
                       <TableCell align="right">{formatNumber(coef.p_value)}</TableCell>
                       <TableCell align="right">{formatNumber(coef.confidence_interval[0])}</TableCell>
                       <TableCell align="right">{formatNumber(coef.confidence_interval[1])}</TableCell>
-                      <TableCell align="center">
-                        {coef.p_value < 0.001 && '***'}
-                        {coef.p_value >= 0.001 && coef.p_value < 0.01 && '**'}
-                        {coef.p_value >= 0.01 && coef.p_value < 0.05 && '*'}
-                        {coef.p_value >= 0.05 && coef.p_value < 0.1 && '.'}
-                        {coef.p_value >= 0.1 && 'ns'}
-                      </TableCell>
+                      {/* `null < 0.001` is TRUE in JavaScript, so a coefficient with NO p-value
+                          was starred `***`: the row read "N/A  ***" -- the most significant
+                          result possible, printed next to an admission that there is no result. */}
+                      <TableCell align="center">{significanceStars(coef.p_value)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

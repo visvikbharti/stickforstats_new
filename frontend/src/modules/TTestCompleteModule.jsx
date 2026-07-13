@@ -1161,7 +1161,7 @@ const TTestCompleteModule = () => {
             Comprehensive statistical analysis with educational resources
           </Typography>
           <Box sx={{ mt: 2 }}>
-            <Chip icon={<ScienceIcon />} label="50-Decimal Precision" color="primary" sx={{ mr: 1 }} />
+            <Chip icon={<ScienceIcon />} label="High-precision backend" color="primary" sx={{ mr: 1 }} />
             <Chip icon={<SchoolIcon />} label="Interactive Learning" color="secondary" sx={{ mr: 1 }} />
             <Chip icon={<TimelineIcon />} label="Power Analysis" color="success" />
           </Box>

@@ -834,7 +834,7 @@ const EnhancedStatisticalAnalysis = () => {
                 Professional statistical analysis with comprehensive educational resources
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-                <Chip icon={<ScienceIcon />} label="50-Decimal Precision" color="primary" />
+                <Chip icon={<ScienceIcon />} label="High-precision backend" color="primary" />
                 <Chip icon={<SchoolIcon />} label="Educational Content" color="secondary" />
                 <Chip icon={<TimelineIcon />} label="Interactive Simulations" color="success" />
               </Box>

@@ -30,6 +30,7 @@ import {
   Psychology as PsychologyIcon,
   BookmarkBorder as BookmarkIcon
 } from '@mui/icons-material';
+import { isSignificant, formatPValue, formatNumber } from '../../../utils/formatStats';
 
 const InterpretationPanel = ({
   results = null,
@@ -88,30 +89,53 @@ const InterpretationPanel = ({
   };
 
   const getStatisticalInterpretation = () => {
-    const isSignificant = results.p_value < 0.05;
+    // Three states, not two.
+    //
+    // `results.p_value < 0.05` is TRUE when p_value is null (null coerces to 0), so a test that
+    // produced no p-value was interpreted as significant -- and then `results.p_value.toFixed(4)`
+    // threw on the very next line, taking the page down with it. The interpretation panel could
+    // not decide whether the result was maximally significant or a crash.
+    const verdict = isSignificant(results.p_value);
     const contextInterpretation = getContextualInterpretation();
 
+    if (verdict === null) {
+      return {
+        primary:
+          'This test did not produce a p-value, so there is nothing to interpret. That is not ' +
+          'the same as a non-significant result: it means the statistic is undefined on these ' +
+          'data (for example, groups with no variance at all).',
+        pValue: 'p = —',
+        effectSize: null,
+        confidence: null
+      };
+    }
+
     return {
-      primary: isSignificant
+      primary: verdict
         ? contextInterpretation.significant
         : contextInterpretation.nonSignificant,
-      pValue: `p = ${results.p_value.toFixed(4)} ${
-        isSignificant ? '< 0.05' : '≥ 0.05'
-      }`,
-      effectSize: results.effect_size
-        ? `Effect size: ${results.effect_size.toFixed(3)} - ${contextInterpretation.effectSize}`
-        : null,
-      confidence: results.confidence_interval
-        ? `95% CI: [${results.confidence_interval[0].toFixed(3)}, ${results.confidence_interval[1].toFixed(3)}]`
-        : null
+      pValue: `p = ${formatPValue(results.p_value)} ${verdict ? '< 0.05' : '≥ 0.05'}`,
+      // `results.effect_size ?` is a TRUTHINESS check: an effect size of exactly 0 -- a real,
+      // measured finding of no effect -- is falsy, and was silently dropped from the report.
+      effectSize:
+        results.effect_size !== null && results.effect_size !== undefined
+          ? `Effect size: ${formatNumber(results.effect_size, 3)} - ${contextInterpretation.effectSize}`
+          : null,
+      confidence:
+        Array.isArray(results.confidence_interval) &&
+        Number.isFinite(results.confidence_interval[0]) &&
+        Number.isFinite(results.confidence_interval[1])
+          ? `95% CI: [${formatNumber(results.confidence_interval[0], 3)}, ` +
+            `${formatNumber(results.confidence_interval[1], 3)}]`
+          : null
     };
   };
 
   const getRecommendations = () => {
     const recommendations = [];
-    const isSignificant = results.p_value < 0.05;
+    const significant = isSignificant(results.p_value) === true;
 
-    if (isSignificant) {
+    if (significant) {
       recommendations.push({
         type: 'action',
         text: 'Consider practical significance alongside statistical significance',
@@ -178,9 +202,9 @@ const InterpretationPanel = ({
 
   const getNextSteps = () => {
     const steps = [];
-    const isSignificant = results.p_value < 0.05;
+    const significant = isSignificant(results.p_value) === true;
 
-    if (isSignificant) {
+    if (significant) {
       steps.push('Conduct follow-up analyses to explore the finding further');
       steps.push('Consider replication with independent samples');
       steps.push('Investigate potential moderators or mediators');
@@ -231,8 +255,8 @@ const InterpretationPanel = ({
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12}>
           <Alert
-            severity={results.p_value < 0.05 ? 'success' : 'info'}
-            icon={results.p_value < 0.05 ? <CheckCircleIcon /> : <InfoIcon />}
+            severity={isSignificant(results.p_value) ? 'success' : 'info'}
+            icon={isSignificant(results.p_value) ? <CheckCircleIcon /> : <InfoIcon />}
           >
             <AlertTitle>Primary Interpretation</AlertTitle>
             <Typography variant="body2" paragraph>
@@ -270,9 +294,9 @@ const InterpretationPanel = ({
                     What does p-value mean?
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    The p-value ({results.p_value.toFixed(4)}) represents the probability of observing
+                    The p-value ({formatPValue(results.p_value)}) represents the probability of observing
                     results at least as extreme as what was found, assuming the null hypothesis is true.
-                    {results.p_value < 0.05
+                    {isSignificant(results.p_value)
                       ? ' Since p < 0.05, we have evidence against the null hypothesis.'
                       : ' Since p ≥ 0.05, we do not have sufficient evidence against the null hypothesis.'}
                   </Typography>

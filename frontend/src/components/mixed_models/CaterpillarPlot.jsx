@@ -105,6 +105,17 @@ const CustomTooltip = ({ active, payload }) => {
   );
 };
 
+/**
+ * A normal-approximation interval bound, or null when there is no standard error to build one
+ * from. Never `estimate +/- 1.96 * 0`.
+ */
+const ciFrom = (datum, direction) => {
+  const estimate = datum.estimate ?? datum.value ?? datum.effect_value;
+  const se = datum.se ?? datum.std_error ?? datum.stderr;
+  if (!Number.isFinite(estimate) || !Number.isFinite(se)) return null;
+  return estimate + direction * 1.96 * se;
+};
+
 const CaterpillarPlot = ({
   data = [],
   title = 'Random Effects (Caterpillar Plot)',
@@ -140,9 +151,13 @@ const CaterpillarPlot = ({
       ...d,
       group: d.group || d.id || d.name,
       estimate: d.estimate ?? d.value ?? d.effect_value,
-      se: d.se ?? d.std_error ?? d.stderr ?? 0,
-      ciLower: d.ciLower ?? d.ci_lower ?? (d.estimate - 1.96 * (d.se || 0)),
-      ciUpper: d.ciUpper ?? d.ci_upper ?? (d.estimate + 1.96 * (d.se || 0)),
+      // `?? 0` and `|| 0` on a standard error turn a MISSING uncertainty into ZERO uncertainty:
+      // the caterpillar plot then draws an interval of zero width, i.e. an estimate of infinite
+      // precision -- the strongest possible claim, manufactured from the absence of a number.
+      // A null se stays null, and the interval is simply not drawn.
+      se: d.se ?? d.std_error ?? d.stderr ?? null,
+      ciLower: d.ciLower ?? d.ci_lower ?? ciFrom(d, -1),
+      ciUpper: d.ciUpper ?? d.ci_upper ?? ciFrom(d, +1),
       effect: d.effect || 'Intercept',
       shrinkage: d.shrinkage,
       nObs: d.n_obs ?? d.nObs ?? d.n

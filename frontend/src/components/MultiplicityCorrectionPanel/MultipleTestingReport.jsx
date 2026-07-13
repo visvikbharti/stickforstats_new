@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import './MultipleTestingReport.scss';
+import { formatNumber, isSignificant } from '../../utils/formatStats';
 
 const MultipleTestingReport = ({ 
   hypotheses = [],
@@ -48,7 +49,7 @@ const MultipleTestingReport = ({
     const stats = {
       totalHypotheses: hypotheses.length,
       totalTests: sessionTests.length,
-      significantBefore: sessionTests.filter(t => t.pValue < alpha).length,
+      significantBefore: sessionTests.filter(t => isSignificant(t.pValue, alpha)).length,
       significantAfter: 0,
       correctionApplied: correctionMethod !== 'none',
       falseDiscoveryRate: 0,
@@ -148,7 +149,7 @@ const MultipleTestingReport = ({
 
   const generateResults = () => {
     const significantTests = sessionTests
-      .filter(t => t.adjustedPValue && t.adjustedPValue < alpha)
+      .filter(t => t.adjustedPValue && isSignificant(t.adjustedPValue, alpha))
       .sort((a, b) => a.adjustedPValue - b.adjustedPValue);
 
     return {
@@ -162,8 +163,8 @@ const MultipleTestingReport = ({
           heading: 'Significant Results After Correction',
           table: significantTests.map(test => ({
             hypothesis: test.hypothesis || `Test ${test.id}`,
-            original_p: test.pValue.toFixed(4),
-            adjusted_p: test.adjustedPValue.toFixed(4),
+            original_p: formatNumber(test.pValue, 4),
+            adjusted_p: formatNumber(test.adjustedPValue, 4),
             effect_size: test.effectSize?.toFixed(3) || 'N/A'
           }))
         },
@@ -181,8 +182,8 @@ const MultipleTestingReport = ({
 
   const generateDecisionAudit = () => {
     const decisions = sessionTests.map((test, index) => {
-      const wasSignificant = test.pValue < alpha;
-      const isSignificant = test.adjustedPValue ? test.adjustedPValue < alpha : false;
+      const wasSignificant = isSignificant(test.pValue, alpha);
+      const isSignificant = test.adjustedPValue ? isSignificant(test.adjustedPValue, alpha) : false;
       const changed = wasSignificant !== isSignificant;
       
       return {

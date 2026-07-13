@@ -33,7 +33,7 @@ import {
 import { recordValidation, recordError } from '../monitoring';
 import { syncAuditLog, getSyncStatus, forceSync } from '../BackendSync';
 import { useValidation, useFormValidation } from '../../../components/validation/useValidation';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 
 // Mock dependencies
 jest.mock('../monitoring');
@@ -1031,15 +1031,17 @@ describe('End-to-End Workflow Tests', () => {
         result.current.handleChange('sampleSize', -10);
       });
 
-      // Wait for debounced validation
-      await new Promise(resolve => setTimeout(resolve, 400));
-
       // Mark as touched to show error
       act(() => {
         result.current.handleBlur('sampleSize');
       });
 
-      expect(result.current.hasErrors).toBe(true);
+      // Wait for the DEBOUNCE to actually flush, rather than for 400ms to elapse. Under parallel
+      // load the debounce can miss a fixed deadline, which made this test fail roughly one run in
+      // two -- a red CI with nothing wrong in the code under test.
+      await waitFor(() => {
+        expect(result.current.hasErrors).toBe(true);
+      });
     });
 
     test('should handle form submission workflow', async () => {

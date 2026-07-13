@@ -63,6 +63,7 @@ import causalInferenceService from '../services/CausalInferenceService';
 // Guardian Design Contract compliance
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+import { isSignificant } from '../utils/formatStats';
 
 // Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -735,7 +736,7 @@ const CausalInferenceModule = () => {
                     <StatBox>
                       <Typography
                         variant="h4"
-                        color={treatmentEffects.p_value < 0.05 ? 'success.main' : 'text.primary'}
+                        color={isSignificant(treatmentEffects.p_value) ? 'success.main' : 'text.primary'}
                       >
                         {treatmentEffects.p_value?.toFixed(4)}
                       </Typography>
@@ -1038,7 +1039,7 @@ const CausalInferenceModule = () => {
                     <StatBox>
                       <Typography
                         variant="h4"
-                        color={didResults.p_value < 0.05 ? 'success.main' : 'text.primary'}
+                        color={isSignificant(didResults.p_value) ? 'success.main' : 'text.primary'}
                       >
                         {didResults.p_value?.toFixed(4)}
                       </Typography>

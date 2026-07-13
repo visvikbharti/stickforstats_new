@@ -34,6 +34,7 @@ import {
 } from 'recharts';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import { runNonNormalitySimulation } from '../../../utils/simulationUtils';
+import { formatPValue } from '../../../utils/formatStats';
 
 /**
  * Non-normality Impact Simulation component
@@ -424,7 +425,7 @@ const NonNormalitySimulation = ({ projectId }) => {
               <Grid item xs={12} sm={8}>
                 <Typography variant="body2">
                   <strong>Normality Test:</strong> {result.normality_test?.passed ? 'Passed' : 'Failed'} 
-                  (p-value: {result.normality_test?.p_value.toFixed(4) || 'N/A'})
+                  (p-value: {formatPValue(result.normality_test?.p_value)})
                 </Typography>
               </Grid>
             </Grid>

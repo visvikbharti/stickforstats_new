@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import './PValueAdjustmentTable.scss';
+import { formatNumber, isSignificant } from '../../utils/formatStats';
 
 const PValueAdjustmentTable = ({ 
   pValues = [],
@@ -74,7 +75,7 @@ const PValueAdjustmentTable = ({
         }
       }
 
-      const wasSignificant = item.pValue < alpha;
+      const wasSignificant = isSignificant(item.pValue, alpha);
       const isSignificant = adjusted < alpha;
       const decisionChanged = wasSignificant !== isSignificant;
 
@@ -178,8 +179,8 @@ const PValueAdjustmentTable = ({
         content += [
           row.originalIndex,
           `"${row.hypothesis || ''}"`,
-          row.pValue.toFixed(6),
-          row.adjustedPValue.toFixed(6),
+          formatNumber(row.pValue, 6),
+          formatNumber(row.adjustedPValue, 6),
           row.difference.toFixed(6),
           row.wasSignificant ? 'Significant' : 'Not Significant',
           row.isSignificant ? 'Significant' : 'Not Significant',
@@ -192,8 +193,8 @@ const PValueAdjustmentTable = ({
         content += [
           row.originalIndex,
           row.hypothesis || '',
-          row.pValue.toFixed(6),
-          row.adjustedPValue.toFixed(6),
+          formatNumber(row.pValue, 6),
+          formatNumber(row.adjustedPValue, 6),
           row.difference.toFixed(6),
           row.wasSignificant ? 'Significant' : 'Not Significant',
           row.isSignificant ? 'Significant' : 'Not Significant',
@@ -207,8 +208,8 @@ const PValueAdjustmentTable = ({
         content += [
           row.originalIndex,
           row.hypothesis || '',
-          row.pValue.toFixed(4),
-          row.adjustedPValue.toFixed(4),
+          formatNumber(row.pValue, 4),
+          formatNumber(row.adjustedPValue, 4),
           row.difference.toFixed(4),
           row.decisionChanged ? '\\textbf{Changed}' : 'No Change'
         ].join(' & ') + ' \\\\\n';

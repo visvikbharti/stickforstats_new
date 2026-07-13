@@ -372,7 +372,8 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
             alternative,
             k: numGroups
           });
-          point[`d_${es}`] = data[0]?.power || 0;
+          // `|| 0` turned a power computation that FAILED into a plotted power of zero.
+        point[`d_${es}`] = Number.isFinite(data[0]?.power) ? data[0].power : null;
         }
         curveData.push(point);
       }

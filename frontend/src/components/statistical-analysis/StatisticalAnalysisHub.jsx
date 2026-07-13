@@ -308,7 +308,9 @@ const StatisticalAnalysisHub = () => {
             <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
               <li><strong>10 Comprehensive Modules:</strong> From basic profiling to power analysis, machine learning, biophysics, and study design</li>
               <li><strong>Guardian Protection System:</strong> Real-time assumption validation with 77.3% coverage</li>
-              <li><strong>50-Decimal Precision:</strong> High-precision calculations for regression analysis</li>
+              <li><strong>Server-side statistics:</strong> Every test on this page is computed by the
+                backend, which carries the core test statistics at 50 significant digits &mdash; so a
+                p-value of 1e-300 is reported as 1e-300, not rounded to zero.</li>
               <li><strong>Client-Side Processing:</strong> All computations in-browser, zero backend dependencies</li>
               <li><strong>Interactive Visualizations:</strong> Real-time charts, distributions, and diagnostic plots</li>
               <li><strong>CSV Import/Export:</strong> Easy data upload and preprocessed data download</li>

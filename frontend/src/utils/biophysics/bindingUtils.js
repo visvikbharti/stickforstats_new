@@ -24,7 +24,7 @@ import {
   levenbergMarquardt,
   MODELS
 } from './nonLinearRegression';
-import { fSf } from '../../components/statistical-analysis/utils/tails';
+import { fSf } from '../tails';
 
 // ============================================================================
 // CONSTANTS
@@ -859,7 +859,7 @@ export function formatKd(Kd) {
  *     F = 50,  df = (2, 20)  ->  1.753e-8   (truth: 1.654e-8)   -- 6% off
  *     F = 100, df = (2, 20)  ->  -6.620e-7  (truth: 3.855e-11)  -- negative
  *
- * The F upper tail now comes from ../..//components/statistical-analysis/utils/tails, which
+ * The F upper tail now comes from utils/tails, which
  * expresses it as a regularized incomplete beta with its arguments swapped -- the same
  * identity NR uses -- and is tested against scipy.
  */
