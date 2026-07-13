@@ -350,6 +350,42 @@ export const isPowerTestSupported = (testType) => Boolean(POWER_TESTS[testType])
 export const supportedPowerTests = () => Object.keys(POWER_TESTS);
 
 /**
+ * How many subjects the design actually needs in total.
+ *
+ * `n` means "per group" for the two-group and k-group tests and "the sample" for the rest, and
+ * only the caller knows which arm sizes were entered. PowerAnalysisTool computed this itself as
+ *
+ *     totalN: backend.groups ? sampleSize * backend.groups : sampleSize
+ *
+ * where `groups` is the component's numGroups -- which DEFAULTS TO 3 and has no UI control unless
+ * the test is an ANOVA or Kruskal-Wallis. So a two-sample t at n = 30 came out as a total N of 90
+ * (the truth is 60), and the group-2 box was ignored even after it started working. That total is
+ * not on screen in power mode, but it is written verbatim into the exported JSON.
+ *
+ * The shape of each test is POWER_TESTS' business, not the component's, so it is answered here.
+ */
+export const totalSampleSize = (testType, sampleSize, sampleSize2 = null, numGroups = 2) => {
+  const spec = POWER_TESTS[testType];
+  const n = num(sampleSize);
+  if (!spec || n == null) return null;
+
+  // A k-group design: n is per group, and k is a real, user-supplied number.
+  if (spec.family === 'anova' || spec.variant === 'kruskal-wallis') {
+    const k = num(numGroups);
+    return k == null ? null : n * k;
+  }
+
+  // A two-group design: exactly two arms, which may be unequal.
+  if (spec.grouped) {
+    const n2 = num(sampleSize2);
+    return n + (n2 ?? n);
+  }
+
+  // One sample: paired, one-sample t, correlation, chi-square, Wilcoxon signed-rank.
+  return n;
+};
+
+/**
  * The rank tests carry an assumption the browser never mentioned.
  *
  * The power of a rank test has no distribution-free closed form -- it depends on the shape of

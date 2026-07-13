@@ -19,6 +19,7 @@ import {
   runPowerCurve,
   runMinimumDetectableEffect,
   isPowerTestSupported,
+  totalSampleSize,
 } from '../hubTestService';
 
 const mockJson = (body, ok = true, statusText = 'OK') => {
@@ -272,5 +273,44 @@ describe('a test we cannot compute says so', () => {
     const curve = await runPowerCurve({ testType: 'mann-whitney', effectSize: 0.5 });
     expect(curve).toEqual([]);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The total N that goes into the exported JSON.
+ *
+ * PowerAnalysisTool computed it as `sampleSize * numGroups` whenever the test was "grouped" --
+ * and numGroups DEFAULTS TO 3 with no UI control unless the test is an ANOVA or Kruskal-Wallis.
+ * So a two-sample t-test at n = 30 per arm came out as a total N of 90. It is not rendered in
+ * power mode, which is how it survived, but handleExport writes the whole results object into the
+ * downloaded file -- so the wrong total went into the artifact the researcher keeps.
+ */
+describe('totalSampleSize', () => {
+  it('does not multiply a two-group design by a phantom third group', () => {
+    expect(totalSampleSize('two-sample-t', 30)).toBe(60); // was 30 * 3 = 90
+    expect(totalSampleSize('t-test', 30)).toBe(60);
+    expect(totalSampleSize('mann-whitney', 30)).toBe(60); // was 90
+  });
+
+  it('honours unequal arms, now that the group-2 box is actually sent', () => {
+    expect(totalSampleSize('two-sample-t', 30, 60)).toBe(90);
+    expect(totalSampleSize('two-sample-t', 30, null)).toBe(60); // omitted means balanced
+  });
+
+  it('counts k groups only for the tests that HAVE k groups', () => {
+    expect(totalSampleSize('anova', 20, null, 4)).toBe(80);
+    expect(totalSampleSize('kruskal-wallis', 20, null, 4)).toBe(80);
+  });
+
+  it('leaves a one-sample design alone', () => {
+    for (const test of ['paired-t', 'one-sample-t', 'correlation', 'chi-square', 'wilcoxon']) {
+      expect(totalSampleSize(test, 40)).toBe(40);
+    }
+  });
+
+  it('is null when there is no answer, rather than a plausible-looking number', () => {
+    expect(totalSampleSize('two-sample-t', null)).toBeNull();
+    expect(totalSampleSize('banana', 30)).toBeNull();
+    expect(totalSampleSize('anova', 20, null, null)).toBeNull();
   });
 });

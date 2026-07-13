@@ -699,11 +699,27 @@ class HighPrecisionPowerAnalysis:
         n_required = int(mp.ceil(mpf(n_parametric) / are))
         groups_int = int(groups) if parametric == "anova" else (2 if t_type == "independent" else 1)
 
+        # Every other sample-size function reports the power the design will ACTUALLY have at the
+        # integer n it prescribes -- which is never exactly the target, because n is discrete. This
+        # one did not, so the "Power at that N" card showed an em dash for all three rank tests
+        # while the engine had the number the whole time.
+        achieved = self.calculate_power_nonparametric(
+            test=test,
+            effect_size=effect_size,
+            sample_size=n_required,
+            alpha=alpha,
+            groups=groups,
+            parent_distribution=parent_distribution,
+            alternative=alternative,
+        )
+
         return {
             "required_sample_size": n_required,
             "sample_size_per_group": n_required if parametric == "anova" or t_type == "independent" else None,
             "total_sample_size": n_required * groups_int,
             "parametric_sample_size": n_parametric,
+            "actual_power": achieved["power"],
+            "actual_power_float": achieved["power_float"],
             "test": test,
             "effect_size": str(effect_size),
             "target_power": float(power),
@@ -911,13 +927,30 @@ class HighPrecisionPowerAnalysis:
 
     @staticmethod
     def _correlation_power_float(effect_size, n, alpha, alternative="two-sided"):
-        """Fisher-z correlation power, float64 -- the same transform the exact engine uses."""
+        """Fisher-z correlation power, float64 -- the same transform the exact engine uses.
+
+        The sign of the effect matters, and only for the one-sided tails. An earlier version of
+        this helper took `abs(effect_size)` and had no `less` branch, so a left-tailed test was
+        handed the RIGHT-tailed answer: r = 0.3, n = 100, `less` returned 0.9198 where the truth
+        is 1.34e-06. The headline (which goes through the exact engine, and does honour `less`)
+        said 0.0% while the curve drawn directly beneath it climbed to 92%.
+
+        That was the same class of bug as `_t_power_float`'s missing `less` branch -- fixed there,
+        and left here. Guarding one caller of a shared idea and not the other is how these survive.
+        """
         if n <= 3 or abs(effect_size) >= 1:
             return None  # the Fisher transform does not exist here; there is no number to plot
 
-        z = np.arctanh(abs(effect_size)) * np.sqrt(n - 3)
-        crit = stats.norm.ppf(1 - alpha / 2) if alternative == "two-sided" else stats.norm.ppf(1 - alpha)
-        return float(stats.norm.cdf(z - crit))
+        z = np.arctanh(effect_size) * np.sqrt(n - 3)  # signed: a left tail needs to know the sign
+
+        if alternative == "two-sided":
+            crit = stats.norm.ppf(1 - alpha / 2)
+            return float(stats.norm.sf(crit - z) + stats.norm.cdf(-crit - z))
+        if alternative == "less":
+            crit = stats.norm.ppf(alpha)
+            return float(stats.norm.cdf(crit - z))
+        crit = stats.norm.ppf(1 - alpha)  # greater
+        return float(stats.norm.sf(crit - z))
 
     def power_curve(
         self,

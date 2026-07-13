@@ -88,6 +88,7 @@ import {
   runPowerCurve,
   runMinimumDetectableEffect,
   isPowerTestSupported,
+  totalSampleSize,
 } from '../utils/hubTestService';
 import { interpretEffectSize } from '../../power-analysis/education/utils/powerCalculations';
 
@@ -350,7 +351,13 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           ncp: backend.nonCentrality,
           criticalValue: backend.criticalValue,
           interpretation: backend.interpretation,
-          totalN: backend.groups ? sampleSize * backend.groups : sampleSize,
+          // `backend.groups` is numGroups, which DEFAULTS TO 3 and has no UI control for the
+          // two-group tests -- the "Number of Groups" field only renders for anova and
+          // kruskal-wallis. So `sampleSize * backend.groups` made a two-sample t at n = 30 into a
+          // total N of 90, and it ignored the group-2 box besides. It is not rendered in power
+          // mode, which is why it survived, but handleExport writes the whole results object into
+          // the downloaded JSON -- so the wrong total went into the artifact the researcher keeps.
+          totalN: totalSampleSize(testType, sampleSize, sampleSize2, numGroups),
           are: backend.are ?? null,
           parentDistribution: backend.parentDistribution ?? null,
           assumptionNote: backend.note ?? null,
@@ -1054,7 +1061,19 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
 
                 {calculationMode === 'power' && (
                   <Box>
-                    {results.power >= 0.80 ? (
+                    {/* Three states, not two. `null >= 0.80` is false, so an undefined power fell
+                        into the `else` and was announced as an "Underpowered Study" with "only
+                        —% power" -- while the chip above it, which IS tri-state, simultaneously
+                        read "Not computed". A design we could not evaluate is not a design we
+                        evaluated and found wanting. */}
+                    {results.power == null ? (
+                      <Alert severity="info" sx={{ mb: 1 }}>
+                        <AlertTitle>Power not computed</AlertTitle>
+                        The power of this design is not defined, so there is nothing to interpret.
+                        This is not a finding about the study; it means the calculation could not be
+                        carried out for the values entered.
+                      </Alert>
+                    ) : results.power >= 0.80 ? (
                       <Alert severity="success" sx={{ mb: 1 }}>
                         <AlertTitle>Adequate Power</AlertTitle>
                         Your study has {pct(results.power, 0)} power to detect an effect of {effectSize}

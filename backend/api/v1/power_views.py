@@ -191,6 +191,59 @@ def canonical_alternative(value):
     return canonical
 
 
+# The FAMILY of test, for the two endpoints that dispatch on it (/power/mde/ and /power/curve/).
+# Distinct from T_TEST_TYPES above, which names the t-test's own variant.
+TEST_TYPES = {
+    "t_test": "t-test",
+    "t": "t-test",
+    "ttest": "t-test",
+    "student": "t-test",
+    "anova": "anova",
+    "one_way_anova": "anova",
+    "oneway_anova": "anova",
+    "f_test": "anova",
+    "correlation": "correlation",
+    "pearson": "correlation",
+    "r": "correlation",
+}
+
+
+def canonical_test_type(value):
+    """
+    Canonicalize the test family, and REJECT anything unrecognized.
+
+    This is the third and last parameter with a bare `else`. The engine branches
+
+        if test_type == "anova":          ...
+        elif test_type == "correlation":  ...
+        else:                             <-- a t-test, whatever was actually asked for
+
+    in BOTH calculate_minimum_detectable_effect and power_curve, and both views passed the raw
+    string straight through. So the API answered
+
+        POST /power/mde/  {"test_type": "chi-square", "sample_size": 30}
+          -> 0.7356210695976682, labelled "test_type": "chi-square"
+
+    which is the t-test answer to three decimal places, because it IS the t-test answer. Same for
+    "banana". The React UI happens to guard this on its side, so it was never a lie on screen --
+    but /power/mde/ and /power/curve/ are AllowAny, the SDK talks to them directly, and a
+    researcher scripting a chi-square design got a t-test stamped with the name of the test they
+    asked for. That is the exact failure this module's other two canonicalizers exist to prevent;
+    it survived on the one parameter neither of them covered.
+    """
+    if value is None:
+        return "t-test"
+
+    canonical = TEST_TYPES.get(str(value).strip().lower().replace("-", "_").replace(" ", "_"))
+    if canonical is None:
+        raise InvalidPowerParameter(
+            f"Unrecognized test_type {value!r}. This endpoint supports 't-test', 'anova' and "
+            f"'correlation'. An unrecognized value used to be silently computed as a t-test and "
+            f"returned under the name you asked for."
+        )
+    return canonical
+
+
 def canonical_t_test_type(value):
     """
     Canonicalize the t-test variant, and REJECT anything unrecognized.
@@ -507,7 +560,7 @@ def minimum_detectable_effect(request):
             return Response({"error": "Missing required parameter: sample_size"}, status=status.HTTP_400_BAD_REQUEST)
 
         result = power_calculator.calculate_minimum_detectable_effect(
-            test_type=data.get("test_type", "t-test"),
+            test_type=canonical_test_type(data.get("test_type")),
             sample_size=data["sample_size"],
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
@@ -556,7 +609,7 @@ def power_curve(request):
             return Response({"error": "Missing required parameter: effect_size"}, status=status.HTTP_400_BAD_REQUEST)
 
         result = power_calculator.power_curve(
-            test_type=data.get("test_type", "t-test"),
+            test_type=canonical_test_type(data.get("test_type")),
             effect_size=data["effect_size"],
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),

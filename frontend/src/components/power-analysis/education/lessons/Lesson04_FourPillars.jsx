@@ -81,6 +81,13 @@ const BACKEND_TEST_TYPE = {
 
 const ALTERNATIVE = { two: 'two-sided', one: 'greater' };
 
+// The chart title names the variant it is actually drawing, which is the one the toggle selects.
+const CURVE_TITLE = {
+  'two-sample': 'two-sample t-test',
+  'one-sample': 'one-sample t-test',
+  paired: 'paired t-test',
+};
+
 // The benchmark curves are drawn at α = 0.05, as the chart title says. Your α moves the red dot.
 const CURVE_ALPHA = 0.05;
 
@@ -211,13 +218,17 @@ const Lesson04_FourPillars = ({ onComplete }) => {
   /**
    * The benchmark curves, from the backend's exact power curve -- one request per effect size.
    *
-   * They are drawn for the INDEPENDENT two-sample t whatever the toggle says, because that is the
-   * only variant the curve service computes: it takes no t-variant parameter and always uses
-   * λ = d·√(n/2), df = 2n-2. Drawing that under a "paired" heading would be the same class of bug
-   * this lesson is being fixed for, so the curves are labelled for what they are and the marker --
-   * which IS variant-specific -- is only drawn on the curves it belongs to.
+   * These used to be drawn for the independent two-sample t whatever the toggle said, because the
+   * curve service pinned its t-variant to "independent" and there was no way to ask it for another
+   * one. The curves were therefore labelled as two-sample and the marker -- which IS
+   * variant-specific -- was withheld unless the toggle happened to agree.
    *
-   * They depend on nothing but the tails: α is fixed at 0.05 here, as the chart title says.
+   * The curve service now takes the variant, so the honest thing is no longer to caveat the wrong
+   * curve; it is to draw the right one. A paired t reaches a given power at far fewer subjects
+   * than an independent t at the same d, and that difference is the entire point of the "different
+   * designs" pillar this lesson teaches.
+   *
+   * α is fixed at 0.05 here, as the chart title says.
    */
   useEffect(() => {
     let cancelled = false;
@@ -227,7 +238,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
         const series = await Promise.all(
           CURVE_EFFECT_SIZES.map((benchmark) =>
             runPowerCurve({
-              testType: 't-test',
+              testType: BACKEND_TEST_TYPE[testType],
               effectSize: benchmark.d,
               alpha: CURVE_ALPHA,
               alternative: ALTERNATIVE[tails],
@@ -251,7 +262,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     return () => {
       cancelled = true;
     };
-  }, [tails]);
+  }, [tails, testType]);
 
   // Draw power curve
   const drawPowerCurve = useCallback(() => {
@@ -325,15 +336,11 @@ const Lesson04_FourPillars = ({ onComplete }) => {
       ctx.stroke();
     });
 
-    // Mark the current settings. Only on the curves it belongs to: these are two-sample curves,
-    // and a paired power at the same d and n sits well above them, so the marker would read as a
-    // point on a line it is not on.
-    if (
-      testType === 'two-sample' &&
-      currentPower !== null &&
-      sampleSize >= xMin &&
-      sampleSize <= xMax
-    ) {
+    // Mark the current settings. The curves are now drawn for the SELECTED variant, so the marker
+    // is a point on a line it actually belongs to and can always be drawn. (It could not be, while
+    // these were pinned to two-sample: a paired power at the same d and n sits well above the
+    // independent curve, and the dot would have read as a point on a line it was not on.)
+    if (currentPower !== null && sampleSize >= xMin && sampleSize <= xMax) {
       ctx.fillStyle = '#d32f2f';
       ctx.beginPath();
       ctx.arc(xScale(sampleSize), yScale(currentPower), 8, 0, 2 * Math.PI);
@@ -385,7 +392,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
     // Title
     ctx.font = 'bold 16px Arial';
-    ctx.fillText('Power Curves: two-sample t-test (α = 0.05)', width / 2, 20);
+    ctx.fillText(`Power Curves: ${CURVE_TITLE[testType]} (α = 0.05)`, width / 2, 20);
 
     // Legend
     ctx.font = '12px Arial';
@@ -1295,11 +1302,8 @@ const Lesson04_FourPillars = ({ onComplete }) => {
               />
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-              {testType === 'two-sample'
-                ? `Red dot shows your current settings (n = ${sampleSize}, d = ${effectSize}, α = ${alpha})`
-                : 'The curves are drawn for the independent two-sample t-test — the variant the exact ' +
-                  'curve service covers. Your result above is for the test you selected, so there is ' +
-                  'no marker to place on these curves.'}
+              {`Curves are for the ${CURVE_TITLE[testType]} — the variant selected above. ` +
+                `Red dot shows your current settings (n = ${sampleSize}, d = ${effectSize}, α = ${alpha}).`}
             </Typography>
           </Paper>
         </Grid>

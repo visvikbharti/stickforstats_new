@@ -402,6 +402,24 @@ const AdvancedStatisticalTests = () => {
     }
   }, [powerSettings]);
 
+  /**
+   * The headline power is computed on a button click. The curve and the required-N cards beneath
+   * it refresh on every keystroke. So they drifted apart: change the effect size from 0.5 to 0.8
+   * without re-clicking Calculate and the curve and "Required sample size" both moved to d = 0.8
+   * while "Statistical Power: 47.8%" went on showing the d = 0.5 answer, under the new inputs.
+   *
+   * A stale number is not a smaller version of a wrong number -- it is a wrong number, and this
+   * one was wrong in the direction of whatever the user had just typed. An answer that no longer
+   * corresponds to the inputs on screen is withdrawn, not left standing.
+   *
+   * Deps are the INPUTS only. `power` is not among them, so the click that sets it does not
+   * immediately clear it.
+   */
+  useEffect(() => {
+    setPowerSettings((previous) => (previous.power == null ? previous : { ...previous, power: null }));
+    setPowerError(null);
+  }, [powerSettings.effectSize, powerSettings.sampleSize, powerSettings.alpha]);
+
   // These used to be called straight from the render -- `{calculateSampleSize(0.8)} per group` --
   // which was fine while the answer came from a synchronous closed form and is not now. They are
   // fetched once per parameter change instead.

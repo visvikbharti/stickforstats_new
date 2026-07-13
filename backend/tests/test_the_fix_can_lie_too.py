@@ -209,3 +209,171 @@ class UnequalGroupsAreNotSilentlyBalanced(TestCase):
 
         # And omitting group 2 still means "balanced", so nothing that worked before changed.
         self.assertAlmostEqual(power(64), 0.8014595579, places=8)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TheCurveAgreesWithTheHeadline(TestCase):
+    """
+    A second adversarial pass found the SAME bug one function to the left.
+
+    `_t_power_float` got its explicit `less` branch. `_correlation_power_float` -- the float64
+    helper that draws the curve and drives the MDE bisection -- did not, and took `abs()` of the
+    effect besides. So a left-tailed correlation was handed the RIGHT-tailed answer, and the two
+    numbers on the screen came from different code paths:
+
+        headline (exact engine, honours `less`):  0.0000013444
+        curve underneath it (this helper):        0.9197751836
+
+    Six orders of magnitude apart, same design, same screen. Guarding one caller of a shared idea
+    and not the other is how this class of bug survives a fix aimed directly at it.
+    """
+
+    def setUp(self):
+        self.engine = HighPrecisionPowerAnalysis()
+
+    def test_the_fast_helper_and_the_exact_engine_give_the_same_answer_on_every_tail(self):
+        for alternative in ("two-sided", "greater", "less"):
+            for r in (0.3, -0.3, 0.5):
+                with self.subTest(alternative=alternative, r=r):
+                    exact = self.engine.calculate_power_correlation(
+                        effect_size=str(r), sample_size="100", alpha="0.05", alternative=alternative
+                    )["power_float"]
+                    fast = self.engine._correlation_power_float(r, 100, 0.05, alternative)
+                    self.assertAlmostEqual(exact, fast, places=9)
+
+    def test_the_sign_of_the_effect_decides_which_tail_has_the_power(self):
+        # abs() threw the sign away, and the sign is the whole content of a one-sided test.
+        left_tail = self.engine._correlation_power_float(-0.3, 100, 0.05, "less")
+        right_tail = self.engine._correlation_power_float(0.3, 100, 0.05, "less")
+
+        self.assertGreater(left_tail, 0.9)  # a NEGATIVE r is what a left-tailed test detects
+        self.assertLess(right_tail, 1e-05)  # a positive one is not
+
+    def test_a_left_tailed_correlation_mde_refuses_rather_than_inventing_a_positive_r(self):
+        # This one was a REGRESSION. The MDE used to call the exact engine; routing it through the
+        # unsigned helper made it return r = +0.2472 as the minimum detectable effect of a
+        # LEFT-tailed test. The t-test path, which was already signed, correctly 400s here -- so
+        # the two paths disagreed about whether the question even had an answer.
+        response = self.client.post(
+            "/api/v1/power/mde/",
+            data=json.dumps(
+                {"test_type": "correlation", "sample_size": 100, "power": 0.8, "alternative": "less"}
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("No effect size reaches", response.json()["error"])
+
+    def test_the_ordinary_correlation_mde_still_answers(self):
+        response = self.client.post(
+            "/api/v1/power/mde/",
+            data=json.dumps({"test_type": "correlation", "sample_size": 85, "power": 0.8}),
+            content_type="application/json",
+        )
+        self.assertAlmostEqual(
+            response.json()["results"]["minimum_detectable_effect_float"], 0.299876, places=5
+        )
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TestTypeWasTheLastUnguardedElse(TestCase):
+    """
+    Three parameters dispatch on a bare `else`. Two were fixed. This is the third.
+
+    `/power/mde/` and `/power/curve/` passed `test_type` straight through to an engine that
+    branches `if anova / elif correlation / else: t-test`, so ANY unrecognised value was computed
+    as a t-test and returned stamped with the name of the test the caller asked for:
+
+        POST /power/mde/  {"test_type": "chi-square", "sample_size": 30}
+          -> 0.7356210695976682, "test_type": "chi-square"      <- this is the t-test answer
+
+    The React UI guards it, so it was never a lie on screen. Both endpoints are AllowAny and the
+    SDK talks to them directly, so it was a lie to anyone scripting against the API.
+    """
+
+    def _mde(self, test_type):
+        return self.client.post(
+            "/api/v1/power/mde/",
+            data=json.dumps({"test_type": test_type, "sample_size": 30, "power": 0.8}),
+            content_type="application/json",
+        )
+
+    def _curve(self, test_type):
+        return self.client.post(
+            "/api/v1/power/curve/",
+            data=json.dumps({"test_type": test_type, "effect_size": 0.5, "n_min": 10, "n_max": 30, "step": 10}),
+            content_type="application/json",
+        )
+
+    def test_a_test_we_do_not_compute_is_a_400_not_a_t_test_wearing_its_name(self):
+        for test_type in ("chi-square", "banana", "logistic-regression", "friedman"):
+            for name, response in (("mde", self._mde(test_type)), ("curve", self._curve(test_type))):
+                with self.subTest(endpoint=name, test_type=test_type):
+                    self.assertEqual(response.status_code, 400)
+                    self.assertIn("test_type", json.dumps(response.json()))
+
+    def test_the_three_supported_families_still_work_and_differ_from_each_other(self):
+        answers = {}
+        for test_type in ("t-test", "anova", "correlation"):
+            response = self._mde(test_type)
+            self.assertEqual(response.status_code, 200)
+            answers[test_type] = response.json()["results"]["minimum_detectable_effect_float"]
+
+        # If any two are equal, one of them silently computed the other.
+        self.assertEqual(len(set(round(v, 9) for v in answers.values())), 3, answers)
+
+    def test_aliases_are_accepted_and_case_does_not_matter(self):
+        for alias in ("ANOVA", "one_way_anova", "Pearson", "t_test"):
+            with self.subTest(alias=alias):
+                self.assertEqual(self._mde(alias).status_code, 200)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TheRankTestsReportThePowerTheyActuallyAchieve(TestCase):
+    """
+    Every sample-size function returns the power the design will ACTUALLY have at the integer n it
+    prescribes -- which is never exactly the target, because n is discrete. Except this one, which
+    returned no `actual_power` at all, so the "Power at that N" card rendered an em dash for all
+    three rank tests while the engine had the number the whole time.
+
+    Rendering honestly as "—" is not the same as being right. A number we have and do not show is
+    a number the user has to take on faith.
+    """
+
+    def test_the_number_is_supplied_and_it_meets_the_target(self):
+        for test in ("mann-whitney", "wilcoxon", "kruskal-wallis"):
+            with self.subTest(test=test):
+                response = self.client.post(
+                    "/api/v1/power/sample-size/nonparametric/",
+                    data=json.dumps(
+                        {"test": test, "effect_size": 0.5, "power": 0.8, "alpha": 0.05, "groups": 3}
+                    ),
+                    content_type="application/json",
+                )
+                self.assertEqual(response.status_code, 200)
+
+                results = response.json()["results"]
+                self.assertIn("actual_power_float", results)
+                self.assertIsNotNone(results["actual_power_float"])
+
+                # It is the power AT the prescribed n, so it must actually meet the target.
+                self.assertGreaterEqual(results["actual_power_float"], 0.8)
+
+                # And it must be the power of the RANK test at that n, not the parametric one.
+                direct = self.client.post(
+                    "/api/v1/power/nonparametric/",
+                    data=json.dumps(
+                        {
+                            "test": test,
+                            "effect_size": 0.5,
+                            "sample_size": results["required_sample_size"],
+                            "alpha": 0.05,
+                            "groups": 3,
+                        }
+                    ),
+                    content_type="application/json",
+                )
+                self.assertAlmostEqual(
+                    results["actual_power_float"], direct.json()["results"]["power_float"], places=10
+                )
