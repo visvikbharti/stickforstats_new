@@ -503,6 +503,289 @@ class HighPrecisionPowerAnalysis:
         lambda_nc = n_per_group * groups * effect_size * effect_size
         return float(stats.ncf.sf(stats.f.ppf(1 - alpha, df1, df2), df1, df2, lambda_nc))
 
+    def calculate_sample_size_chi_square(
+        self,
+        effect_size: Union[float, str],
+        df: Union[int, str],
+        power: Union[float, str] = 0.8,
+        alpha: Union[float, str] = 0.05,
+    ) -> Dict[str, Any]:
+        """Required total N for a chi-square test, solved against the exact non-central chi2."""
+        w = self._to_high_precision(effect_size)
+        power_hp = self._to_high_precision(power)
+        alpha_hp = self._to_high_precision(alpha)
+        df_int = int(df)
+
+        if w <= 0:
+            raise ValueError("Cohen's w must be positive; with no effect no sample size suffices.")
+        if df_int < 1:
+            raise ValueError("A chi-square test needs at least 1 degree of freedom.")
+
+        def exact_power_at(n_int):
+            return mpf(
+                self.calculate_power_chi_square(
+                    effect_size=str(w), df=str(df_int), sample_size=str(n_int), alpha=str(alpha_hp)
+                )["power"]
+            )
+
+        n_final = self._smallest_n_meeting_power(exact_power_at, power_hp, n_start=df_int + 1)
+        final = self.calculate_power_chi_square(
+            effect_size=str(w), df=str(df_int), sample_size=str(n_final), alpha=str(alpha_hp)
+        )
+
+        return {
+            "required_sample_size": n_final,
+            "total_sample_size": n_final,
+            "actual_power": final["power"],
+            "actual_power_float": final["power_float"],
+            "effect_size": str(w),
+            "df": df_int,
+            "target_power": float(power_hp),
+            "alpha": float(alpha_hp),
+            "test_type": "chi-square",
+        }
+
+    # -------------------------------------------------------------- non-parametric power
+    #
+    # There is no distribution-free closed form for the power of a rank test: it depends on the
+    # shape of the distribution the data actually came from. The standard approach -- the one
+    # G*Power takes -- is Pitman's asymptotic relative efficiency (ARE) against the corresponding
+    # parametric test, FOR A STATED PARENT DISTRIBUTION:
+    #
+    #     power_rank(n) ~= power_parametric(n * ARE)      n_rank ~= n_parametric / ARE
+    #
+    # The browser used exactly this, with ARE = 3/pi, and never said so. That silence is the
+    # problem: 3/pi is the ARE for a NORMAL parent -- an assumption that is absurd for a test you
+    # reached for precisely BECAUSE normality failed. And it points the wrong way. Under
+    # normality the rank test is slightly less efficient (ARE 0.955, so you need ~5% more
+    # subjects), but under the heavy-tailed distributions that make you abandon the t-test in the
+    # first place it is substantially MORE efficient -- ARE 1.5 for a Laplace parent, 3.0 for an
+    # exponential one. Quoting the normal-parent number to a user with skewed data does not just
+    # add error, it inverts the conclusion.
+    #
+    # So the parent distribution is now an explicit input, the ARE used is returned alongside the
+    # answer, and the assumption is stated in the response rather than buried in a constant.
+
+    ARE_VS_PARAMETRIC = {
+        "normal": mpf(3) / mp.pi,  # 0.9549 -- the rank test needs ~5% MORE subjects
+        "uniform": mpf(1),
+        "logistic": mp.pi**2 / mpf(9),  # 1.0966
+        "laplace": mpf("1.5"),  # heavy tails: the rank test WINS
+        "exponential": mpf(3),
+    }
+
+    NONPARAMETRIC_PARAMETRIC_PAIR = {
+        "mann-whitney": ("t-test", "independent"),
+        "wilcoxon": ("t-test", "paired"),
+        "kruskal-wallis": ("anova", None),
+    }
+
+    def _are(self, parent_distribution):
+        try:
+            return self.ARE_VS_PARAMETRIC[parent_distribution]
+        except KeyError:
+            raise ValueError(
+                f"Unknown parent distribution '{parent_distribution}'. "
+                f"Use one of: {', '.join(sorted(self.ARE_VS_PARAMETRIC))}."
+            )
+
+    def _nonparametric_note(self, test, parent_distribution, are):
+        return (
+            f"Approximate. The power of a rank test has no distribution-free closed form, so this "
+            f"uses Pitman's asymptotic relative efficiency of the {test} against its parametric "
+            f"counterpart, assuming the data come from a {parent_distribution} distribution "
+            f"(ARE = {float(are):.4f}). Under a different parent distribution the answer changes: "
+            f"for heavy-tailed data the rank test is MORE efficient than the parametric one, not "
+            f"less."
+        )
+
+    def calculate_power_nonparametric(
+        self,
+        test: str,
+        effect_size: Union[float, str],
+        sample_size: Union[int, str],
+        alpha: Union[float, str] = 0.05,
+        groups: Union[int, str] = 2,
+        parent_distribution: str = "normal",
+        alternative: str = "two-sided",
+    ) -> Dict[str, Any]:
+        """Power of a rank test, via Pitman ARE against its parametric counterpart."""
+        if test not in self.NONPARAMETRIC_PARAMETRIC_PAIR:
+            raise ValueError(
+                f"Unknown non-parametric test '{test}'. "
+                f"Use one of: {', '.join(sorted(self.NONPARAMETRIC_PARAMETRIC_PAIR))}."
+            )
+
+        are = self._are(parent_distribution)
+        parametric, t_type = self.NONPARAMETRIC_PARAMETRIC_PAIR[test]
+
+        # The rank test at n behaves like the parametric test at n * ARE.
+        effective_n = mpf(str(sample_size)) * are
+        if effective_n < 2:
+            raise ValueError("The sample is too small to support this test.")
+
+        if parametric == "anova":
+            base = self.calculate_power_anova(
+                effect_size=effect_size, groups=groups, n_per_group=int(effective_n), alpha=alpha
+            )
+        else:
+            base = self.calculate_power_t_test(
+                effect_size=effect_size,
+                sample_size=int(effective_n),
+                alpha=alpha,
+                alternative=alternative,
+                test_type=t_type,
+            )
+
+        return {
+            "power": base["power"],
+            "power_float": base["power_float"],
+            "test": test,
+            "effect_size": str(effect_size),
+            "sample_size": int(sample_size),
+            "effective_parametric_n": int(effective_n),
+            "alpha": float(alpha),
+            "are": float(are),
+            "parent_distribution": parent_distribution,
+            "method": "Pitman asymptotic relative efficiency",
+            "note": self._nonparametric_note(test, parent_distribution, are),
+        }
+
+    def calculate_sample_size_nonparametric(
+        self,
+        test: str,
+        effect_size: Union[float, str],
+        power: Union[float, str] = 0.8,
+        alpha: Union[float, str] = 0.05,
+        groups: Union[int, str] = 2,
+        parent_distribution: str = "normal",
+        alternative: str = "two-sided",
+    ) -> Dict[str, Any]:
+        """Required n for a rank test, via Pitman ARE against its parametric counterpart."""
+        if test not in self.NONPARAMETRIC_PARAMETRIC_PAIR:
+            raise ValueError(
+                f"Unknown non-parametric test '{test}'. "
+                f"Use one of: {', '.join(sorted(self.NONPARAMETRIC_PARAMETRIC_PAIR))}."
+            )
+
+        are = self._are(parent_distribution)
+        parametric, t_type = self.NONPARAMETRIC_PARAMETRIC_PAIR[test]
+
+        if parametric == "anova":
+            base = self.calculate_sample_size_anova(
+                effect_size=effect_size, groups=groups, power=power, alpha=alpha
+            )
+        else:
+            base = self.calculate_sample_size_t_test(
+                effect_size=effect_size, power=power, alpha=alpha, alternative=alternative, test_type=t_type
+            )
+
+        n_parametric = int(base["required_sample_size"])
+        n_required = int(mp.ceil(mpf(n_parametric) / are))
+        groups_int = int(groups) if parametric == "anova" else (2 if t_type == "independent" else 1)
+
+        return {
+            "required_sample_size": n_required,
+            "sample_size_per_group": n_required if parametric == "anova" or t_type == "independent" else None,
+            "total_sample_size": n_required * groups_int,
+            "parametric_sample_size": n_parametric,
+            "test": test,
+            "effect_size": str(effect_size),
+            "target_power": float(power),
+            "alpha": float(alpha),
+            "are": float(are),
+            "parent_distribution": parent_distribution,
+            "method": "Pitman asymptotic relative efficiency",
+            "note": self._nonparametric_note(test, parent_distribution, are),
+        }
+
+    def calculate_minimum_detectable_effect(
+        self,
+        test_type: str = "t-test",
+        sample_size: Union[int, str] = 30,
+        power: Union[float, str] = 0.8,
+        alpha: Union[float, str] = 0.05,
+        groups: Union[int, str] = 2,
+        alternative: str = "two-sided",
+        t_test_type: str = "independent",
+    ) -> Dict[str, Any]:
+        """
+        The smallest effect this design can detect at `power` -- the honest answer to "how much
+        power does my finished study have?".
+
+        Post-hoc / observed power (feeding the OBSERVED effect back into the power formula) is a
+        monotone transform of the p-value and tells you nothing the p-value did not already say
+        (Hoenig & Heisey 2001). This is what to report instead: given n and alpha, what is the
+        smallest true effect you had an 80% chance of catching?
+
+        Power is monotone increasing in the effect size, so this bisects for the exact boundary
+        rather than approximating it.
+        """
+        n = int(sample_size)
+        target = self._to_high_precision(power)
+        alpha_hp = self._to_high_precision(alpha)
+        k = int(groups)
+
+        if not mpf("0") < target < mpf("1"):
+            raise ValueError("Power must lie strictly between 0 and 1.")
+
+        def power_at(effect):
+            if test_type == "anova":
+                result = self.calculate_power_anova(
+                    effect_size=str(effect), groups=str(k), n_per_group=str(n), alpha=str(alpha_hp)
+                )
+            elif test_type == "correlation":
+                result = self.calculate_power_correlation(
+                    effect_size=str(effect), sample_size=str(n), alpha=str(alpha_hp), alternative=alternative
+                )
+            else:
+                result = self.calculate_power_t_test(
+                    effect_size=str(effect),
+                    sample_size=str(n),
+                    alpha=str(alpha_hp),
+                    alternative=alternative,
+                    test_type=t_test_type,
+                )
+            return mpf(result["power"])
+
+        # A correlation cannot exceed 1; the standardized effect sizes are unbounded in principle
+        # but 10 is far past any real design.
+        hi = mpf("0.999999") if test_type == "correlation" else mpf("10")
+        lo = mpf("0")
+
+        if power_at(hi) < target:
+            raise ValueError(
+                f"No effect size reaches a power of {float(target)} at n = {n}. "
+                "The sample is too small to detect any effect at this power."
+            )
+
+        # 60 bisections resolves the effect to ~1e-17 -- far finer than any effect size is
+        # meaningfully reported.
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if power_at(mid) >= target:
+                hi = mid
+            else:
+                lo = mid
+
+        achieved = power_at(hi)
+        return {
+            "minimum_detectable_effect": str(hi),
+            "minimum_detectable_effect_float": float(hi),
+            "achieved_power": str(achieved),
+            "achieved_power_float": float(achieved),
+            "sample_size": n,
+            "target_power": float(target),
+            "alpha": float(alpha_hp),
+            "test_type": test_type,
+            "groups": k if test_type == "anova" else None,
+            "note": (
+                "This is the smallest true effect the design could detect at the stated power. "
+                "It is reported instead of observed (post-hoc) power, which is a monotone "
+                "function of the p-value and adds nothing to it."
+            ),
+        }
+
     # ------------------------------------------------------------------ power curves
     #
     # A curve is 40+ points. One 50-digit non-central F evaluation costs ~1.5s, so a 50-digit

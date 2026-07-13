@@ -51,6 +51,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { useSettings } from '../../../context/SettingsContext';
+import { formatPValue } from '../../../utils/formatStats';
 
 /**
  * Main Post-hoc Tests Component
@@ -548,7 +549,7 @@ const PostHocTests = ({ data }) => {
                       <TableCell align="right">{comp.meanDiff.toFixed(3)}</TableCell>
                       <TableCell align="right">{comp.seDiff.toFixed(3)}</TableCell>
                       <TableCell align="right">{comp.tStat.toFixed(3)}</TableCell>
-                      <TableCell align="right">{comp.pValue.toFixed(4)}</TableCell>
+                      <TableCell align="right">{formatPValue(comp.pValue)}</TableCell>
                       <TableCell align="center">
                         {comp.significant ? (
                           <Chip icon={<CancelOutlinedIcon />} label="Yes" color="error" size="small" />

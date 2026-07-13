@@ -69,6 +69,7 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
 import { fSf, tSfTwoSided } from '../../../utils/tails';
+import { isSignificant } from '../../../utils/formatStats';
 
 const RepeatedMeasuresANOVA = ({ data }) => {
   const theme = useTheme();
@@ -413,8 +414,8 @@ const RepeatedMeasuresANOVA = ({ data }) => {
       p_value: pValue,
       effect_size: etaSquared,
       effect_interpretation: interpretEtaSquared(etaSquared),
-      post_hoc: showPostHoc && pValue < alpha ? postHoc : null,
-      significant: pValue < alpha
+      post_hoc: showPostHoc && isSignificant(pValue, alpha) ? postHoc : null,
+      significant: isSignificant(pValue, alpha)
     };
   };
 

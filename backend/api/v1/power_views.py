@@ -308,6 +308,158 @@ def calculate_effect_size_t_test(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+def calculate_sample_size_chi_square(request):
+    """
+    Required total N for a chi-square test, solved against the exact non-central chi-square.
+
+    Expected JSON payload: {"effect_size": 0.3, "df": 2, "power": 0.8, "alpha": 0.05}
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        for param in ("effect_size", "df"):
+            if param not in data:
+                return Response({"error": f"Missing required parameter: {param}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_sample_size_chi_square(
+            effect_size=data["effect_size"],
+            df=data["df"],
+            power=data.get("power", 0.8),
+            alpha=data.get("alpha", 0.05),
+        )
+        return Response(
+            {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
+        )
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in chi-square sample size calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def calculate_power_nonparametric(request):
+    """
+    Power of a rank test (Mann-Whitney, Wilcoxon, Kruskal-Wallis).
+
+    There is no distribution-free closed form, so this uses Pitman's asymptotic relative
+    efficiency against the parametric counterpart FOR A STATED PARENT DISTRIBUTION. The response
+    carries the ARE used, the parent distribution assumed, and a note saying so -- because the
+    answer is meaningless without them, and the browser used to omit all three.
+
+    Expected JSON payload:
+    {
+        "test": "mann-whitney" | "wilcoxon" | "kruskal-wallis",
+        "effect_size": 0.5, "sample_size": 64, "alpha": 0.05,
+        "groups": 3,                              // kruskal-wallis only
+        "parent_distribution": "normal" | "uniform" | "logistic" | "laplace" | "exponential"
+    }
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        for param in ("test", "effect_size", "sample_size"):
+            if param not in data:
+                return Response({"error": f"Missing required parameter: {param}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_power_nonparametric(
+            test=data["test"],
+            effect_size=data["effect_size"],
+            sample_size=data["sample_size"],
+            alpha=data.get("alpha", 0.05),
+            groups=data.get("groups", 2),
+            parent_distribution=data.get("parent_distribution", "normal"),
+            alternative=data.get("alternative", "two-sided"),
+        )
+        return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in non-parametric power calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def calculate_sample_size_nonparametric(request):
+    """
+    Required n for a rank test. Same ARE method, same stated assumption, as the power endpoint.
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        for param in ("test", "effect_size"):
+            if param not in data:
+                return Response({"error": f"Missing required parameter: {param}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_sample_size_nonparametric(
+            test=data["test"],
+            effect_size=data["effect_size"],
+            power=data.get("power", 0.8),
+            alpha=data.get("alpha", 0.05),
+            groups=data.get("groups", 2),
+            parent_distribution=data.get("parent_distribution", "normal"),
+            alternative=data.get("alternative", "two-sided"),
+        )
+        return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in non-parametric sample size calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def minimum_detectable_effect(request):
+    """
+    The smallest effect a design can detect at a given power -- what to report instead of
+    observed (post-hoc) power, which is just a re-expression of the p-value.
+
+    Expected JSON payload:
+    {
+        "test_type": "t-test" | "anova" | "correlation",
+        "sample_size": 30, "power": 0.8, "alpha": 0.05,
+        "groups": 3,                                    // anova only
+        "t_test_type": "independent" | "paired" | "one-sample"
+    }
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        if "sample_size" not in data:
+            return Response({"error": "Missing required parameter: sample_size"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_minimum_detectable_effect(
+            test_type=data.get("test_type", "t-test"),
+            sample_size=data["sample_size"],
+            power=data.get("power", 0.8),
+            alpha=data.get("alpha", 0.05),
+            groups=data.get("groups", 2),
+            alternative=data.get("alternative", "two-sided"),
+            t_test_type=canonical_t_test_type(data.get("t_test_type")),
+        )
+        return Response(
+            {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
+        )
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in minimum detectable effect calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def power_curve(request):
     """
     Power as a function of sample size, as a plain series the client can plot.

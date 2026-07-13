@@ -19,6 +19,7 @@ import { BarChart as RechartsBarChart, Bar, AreaChart, Area, XAxis, YAxis, Carte
 } from 'recharts';
 import { useAppTheme } from '../context/AppThemeContext';
 import jStat from 'jstat';
+import { runPowerCalculation } from '../components/statistical-analysis/utils/hubTestService';
 
 // Guardian Design Contract compliance
 // "No statistical result may exist without an explicit, traceable assumption context."
@@ -97,7 +98,25 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
       }
 
       setSimulationData(data);
-      setPower(1 - beta);
+
+      // `setPower(1 - beta)` echoed the user's own beta SLIDER back into the "Statistical Power"
+      // gauge, as though it were a result. It is not: 1 - beta is the power you ASKED FOR, and
+      // the gauge is supposed to show the power this design actually HAS. The two are only equal
+      // by coincidence. Worse, this ran on every slider move and so overwrote the real,
+      // backend-computed power below whenever the visualization regenerated -- so the honest
+      // number was replaced by the design target moments after it arrived.
+      try {
+        const design = await runPowerCalculation({
+          testType: 't-test',
+          effectSize,
+          sampleSize,
+          alpha,
+        });
+        setPower(design.power); // null if it could not be computed -- never a fabricated number
+      } catch {
+        setPower(null);
+      }
+
       setBackendPrecision(50); // Our backend provides 50 decimal precision
 
     } catch (err) {
@@ -106,7 +125,9 @@ const TypeITypeIIErrorSimulation = ({ darkMode }) => {
     } finally {
       setLoading(false);
     }
-  }, [alpha, beta, effectSize, sampleSize]);
+    // `beta` is deliberately NOT a dependency: the power shown here is computed from the design
+    // (effect size, n, alpha), not read off the beta slider.
+  }, [alpha, effectSize, sampleSize]);
 
   // Run real t-test with example data
   const runRealTest = async () => {

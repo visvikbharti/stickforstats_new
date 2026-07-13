@@ -65,6 +65,7 @@ import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
+import { isSignificant } from '../../../utils/formatStats';
 
 // Colors for different groups
 const GROUP_COLORS = [
@@ -334,7 +335,7 @@ const MANOVA = ({ data }) => {
         df_within: dfWithin,
         p_value: univariatePValue,
         eta_squared: etaSq,
-        significant: univariatePValue < 0.05
+        significant: isSignificant(univariatePValue, 0.05)
       });
     });
 
@@ -355,7 +356,7 @@ const MANOVA = ({ data }) => {
       },
       univariate_results: univariateResults,
       group_means: groupMeans,
-      significant: pValue < alpha
+      significant: isSignificant(pValue, alpha)
     };
   };
 

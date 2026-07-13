@@ -281,20 +281,100 @@ export const runWilcoxon = async (x, y, alternative = 'two-sided') => {
 //
 // All six now run on the backend, against the exact non-central distributions.
 
+/**
+ * One spec per test the app offers. The `family` decides which endpoint answers, and `variant`
+ * disambiguates within a family -- because the backend's t-test endpoint branches on `test_type`
+ * and its `else` used to swallow every value it did not recognise, quietly computing a ONE-SAMPLE
+ * power for a two-sample request. Nothing here may reach that `else`.
+ */
+const POWER_TESTS = {
+  // t-tests
+  't-test': { family: 't', variant: 'independent', grouped: true },
+  'two-sample-t': { family: 't', variant: 'independent', grouped: true },
+  'independent-t': { family: 't', variant: 'independent', grouped: true },
+  'paired-t': { family: 't', variant: 'paired', grouped: false },
+  'one-sample-t': { family: 't', variant: 'one-sample', grouped: false },
+
+  // F / chi-square
+  anova: { family: 'anova', grouped: true },
+  'one-way-anova': { family: 'anova', grouped: true },
+  'chi-square': { family: 'chi-square', grouped: false },
+
+  // correlation -- ONE sample, no groups
+  correlation: { family: 'correlation', grouped: false },
+  pearson: { family: 'correlation', grouped: false },
+
+  // rank tests: no distribution-free closed form (see below)
+  'mann-whitney': { family: 'nonparametric', variant: 'mann-whitney', grouped: true },
+  wilcoxon: { family: 'nonparametric', variant: 'wilcoxon', grouped: false },
+  'kruskal-wallis': { family: 'nonparametric', variant: 'kruskal-wallis', grouped: true },
+};
+
 const POWER_URLS = {
-  't-test': '/v1/power/t-test/',
+  t: '/v1/power/t-test/',
   anova: '/v1/power/anova/',
   correlation: '/v1/power/correlation/',
+  'chi-square': '/v1/power/chi-square/',
+  nonparametric: '/v1/power/nonparametric/',
 };
 
 const SAMPLE_SIZE_URLS = {
-  't-test': '/v1/power/sample-size/t-test/',
+  t: '/v1/power/sample-size/t-test/',
   anova: '/v1/power/sample-size/anova/',
   correlation: '/v1/power/sample-size/correlation/',
+  'chi-square': '/v1/power/sample-size/chi-square/',
+  nonparametric: '/v1/power/sample-size/nonparametric/',
+};
+
+const specFor = (testType) => {
+  const spec = POWER_TESTS[testType];
+  if (!spec) throw new Error(`No power calculation is available for "${testType}".`);
+  return spec;
 };
 
 /**
- * Power for a given effect size and n. `n` is per-group for the t-test and ANOVA.
+ * Can we actually compute power for this test?
+ *
+ * This has to be askable, because the Study Design Wizard's calculator lookup ended in
+ *
+ *     return calculators[testType]?.[mode] || calculators['independent-t'][mode];
+ *
+ * so a user who selected logistic regression, a factorial ANOVA or a Friedman test was silently
+ * handed a two-sample t-test sample size, labelled as the answer for the test they picked. A
+ * design that we cannot compute must SAY we cannot compute it. Repeated-measures and factorial
+ * ANOVA have different degrees of freedom from a one-way ANOVA and are genuinely not covered;
+ * regression power needs an F-test on f-squared that the backend does not yet expose.
+ */
+export const isPowerTestSupported = (testType) => Boolean(POWER_TESTS[testType]);
+
+export const supportedPowerTests = () => Object.keys(POWER_TESTS);
+
+/**
+ * The rank tests carry an assumption the browser never mentioned.
+ *
+ * The power of a rank test has no distribution-free closed form -- it depends on the shape of
+ * the distribution the data actually came from. The old code used Pitman's asymptotic relative
+ * efficiency with ARE = 3/pi and said nothing about it. But 3/pi is the ARE for a NORMAL parent,
+ * which is an absurd assumption for a test you reached for precisely BECAUSE normality failed --
+ * and it points the wrong way. Under normality the rank test needs about 5% MORE subjects; under
+ * the heavy tails that made you abandon the t-test it needs far FEWER (43 per group for a
+ * Laplace parent, 22 for an exponential one, against 68 for a normal one). Quoting the
+ * normal-parent number to a user with skewed data does not merely add error, it inverts the
+ * conclusion.
+ *
+ * The backend now returns the ARE it used, the parent distribution it assumed, and a note saying
+ * so. All three are carried through to the caller, and the UI must show them.
+ */
+const nonparametricMeta = (results) => ({
+  method: results.method || null,
+  are: num(results.are),
+  parentDistribution: results.parent_distribution || null,
+  note: results.note || null,
+  parametricSampleSize: num(results.parametric_sample_size),
+});
+
+/**
+ * Power for a given effect size and n. `n` is per-group where the test has groups.
  */
 export const runPowerCalculation = async ({
   testType,
@@ -302,22 +382,32 @@ export const runPowerCalculation = async ({
   sampleSize,
   alpha = 0.05,
   groups = 2,
+  df = 1,
   alternative = 'two-sided',
+  parentDistribution = 'normal',
 }) => {
-  const url = POWER_URLS[testType];
-  if (!url) throw new Error(`No power calculation is available for "${testType}".`);
-
+  const spec = specFor(testType);
   const body = { effect_size: effectSize, alpha };
-  if (testType === 'anova') {
+
+  if (spec.family === 'anova') {
     body.groups = groups;
     body.n_per_group = sampleSize;
+  } else if (spec.family === 'nonparametric') {
+    body.test = spec.variant;
+    body.sample_size = sampleSize;
+    body.groups = groups;
+    body.parent_distribution = parentDistribution;
+    body.alternative = alternative;
+  } else if (spec.family === 'chi-square') {
+    body.sample_size = sampleSize;
+    body.df = df;
   } else {
     body.sample_size = sampleSize;
     body.alternative = alternative;
-    if (testType === 't-test') body.test_type = 'independent';
+    if (spec.family === 't') body.test_type = spec.variant;
   }
 
-  const results = (await post(url, body)).results || {};
+  const results = (await post(POWER_URLS[spec.family], body)).results || {};
   const power = num(results.power_float ?? results.power);
 
   return {
@@ -326,20 +416,20 @@ export const runPowerCalculation = async ({
     effectSize,
     sampleSize,
     alpha,
-    groups: testType === 'anova' ? groups : null,
+    groups: spec.grouped ? groups : null,
     power,
     // 1 - null is NaN, and NaN renders as an em dash. beta does not exist when power does not.
     beta: power === null ? null : 1 - power,
-    criticalValue: num(results.critical_t ?? results.critical_f ?? results.critical_z),
+    criticalValue: num(results.critical_t ?? results.critical_f ?? results.critical_chi2 ?? results.critical_z),
     nonCentrality: num(results.non_centrality),
     interpretation: results.interpretation || null,
+    ...(spec.family === 'nonparametric' ? nonparametricMeta(results) : {}),
     raw: results,
   };
 };
 
 /**
- * Required sample size for a target power. Per-group for the t-test and ANOVA; total for the
- * correlation, which has only one sample.
+ * Required sample size for a target power. Per-group where the test has groups; total otherwise.
  */
 export const runSampleSizeCalculation = async ({
   testType,
@@ -347,17 +437,28 @@ export const runSampleSizeCalculation = async ({
   power = 0.8,
   alpha = 0.05,
   groups = 2,
+  df = 1,
   alternative = 'two-sided',
+  parentDistribution = 'normal',
 }) => {
-  const url = SAMPLE_SIZE_URLS[testType];
-  if (!url) throw new Error(`No sample-size calculation is available for "${testType}".`);
-
+  const spec = specFor(testType);
   const body = { effect_size: effectSize, power, alpha };
-  if (testType === 'anova') body.groups = groups;
-  else body.alternative = alternative;
-  if (testType === 't-test') body.test_type = 'independent';
 
-  const results = (await post(url, body)).results || {};
+  if (spec.family === 'anova') {
+    body.groups = groups;
+  } else if (spec.family === 'nonparametric') {
+    body.test = spec.variant;
+    body.groups = groups;
+    body.parent_distribution = parentDistribution;
+    body.alternative = alternative;
+  } else if (spec.family === 'chi-square') {
+    body.df = df;
+  } else {
+    body.alternative = alternative;
+    if (spec.family === 't') body.test_type = spec.variant;
+  }
+
+  const results = (await post(SAMPLE_SIZE_URLS[spec.family], body)).results || {};
   const requiredN = num(results.required_sample_size);
 
   return {
@@ -365,16 +466,17 @@ export const runSampleSizeCalculation = async ({
     testType,
     effectSize,
     alpha,
-    groups: testType === 'anova' ? groups : null,
+    groups: spec.grouped ? groups : null,
     desiredPower: power,
     requiredN,
-    // The correlation is a single sample, so "per group" is meaningless for it and its total is
-    // its n -- not n x 2, which is what the old code printed.
-    perGroup: testType === 'correlation' ? null : requiredN,
+    // A correlation, a one-sample t and a chi-square each have ONE sample, so "per group" is
+    // meaningless for them and the total is n -- not n x 2, which is what the old code printed.
+    perGroup: spec.grouped ? requiredN : null,
     totalN: num(results.total_sample_size),
     // The power actually delivered at that integer n, which is what the study will have. It is
     // at or just above the target, never below -- that is the whole point of solving exactly.
     actualPower: num(results.actual_power_float ?? results.actual_power),
+    ...(spec.family === 'nonparametric' ? nonparametricMeta(results) : {}),
     raw: results,
   };
 };
@@ -382,6 +484,50 @@ export const runSampleSizeCalculation = async ({
 /**
  * Power as a function of n, for the chart.
  */
+const CURVE_FAMILY = { t: 't-test', anova: 'anova', correlation: 'correlation' };
+
+/**
+ * The smallest effect a design can detect at a given power.
+ *
+ * This is what to report instead of observed (post-hoc) power. Feeding the OBSERVED effect back
+ * into the power formula produces a number that is a monotone function of the p-value (Hoenig &
+ * Heisey 2001) -- a non-significant result ALWAYS comes back "underpowered", by construction, so
+ * the calculation cannot tell you anything the p-value did not already say. The minimum
+ * detectable effect answers the question people actually mean: given the n I had, how big would
+ * the effect have to have been for me to have caught it?
+ */
+export const runMinimumDetectableEffect = async ({
+  testType,
+  sampleSize,
+  power = 0.8,
+  alpha = 0.05,
+  groups = 2,
+  alternative = 'two-sided',
+}) => {
+  const spec = specFor(testType);
+  const family = CURVE_FAMILY[spec.family];
+  if (!family) {
+    throw new Error(`A minimum detectable effect is not available for "${testType}".`);
+  }
+
+  const body = { test_type: family, sample_size: sampleSize, power, alpha, alternative };
+  if (spec.family === 'anova') body.groups = groups;
+  if (spec.family === 't') body.t_test_type = spec.variant;
+
+  const results = (await post('/v1/power/mde/', body)).results || {};
+
+  return {
+    effect: num(results.minimum_detectable_effect_float),
+    achievedPower: num(results.achieved_power_float),
+    sampleSize: num(results.sample_size),
+    alpha: num(results.alpha),
+    interpretation: results.note || null,
+    note: results.note || null,
+    raw: results,
+  };
+};
+
+
 export const runPowerCurve = async ({
   testType,
   effectSize,
@@ -392,10 +538,16 @@ export const runPowerCurve = async ({
   nMax = 200,
   step = 5,
 }) => {
+  // The curve is drawn for the parametric families. A rank test has no closed-form curve, and a
+  // chi-square curve would need its df; rather than draw an approximation of an approximation,
+  // those simply get no curve -- the headline number still comes back from the exact endpoint.
+  const curveTest = CURVE_FAMILY[specFor(testType).family];
+  if (!curveTest) return [];
+
   const results =
     (
       await post('/v1/power/curve/', {
-        test_type: testType,
+        test_type: curveTest,
         effect_size: effectSize,
         alpha,
         groups,
@@ -423,6 +575,9 @@ const hubTestService = {
   runPowerCalculation,
   runSampleSizeCalculation,
   runPowerCurve,
+  runMinimumDetectableEffect,
+  isPowerTestSupported,
+  supportedPowerTests,
 };
 
 export default hubTestService;

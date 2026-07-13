@@ -66,9 +66,29 @@ const Lesson09_APrioriVsPostHoc = ({ onComplete }) => {
     return 0.5 * (1.0 + sign * y);
   }, []);
 
+  /**
+   * Observed (post-hoc) power, as a function of the p-value alone.
+   *
+   * This lesson exists to make one point: observed power is a monotone transform of the p-value,
+   * so it tells you nothing the p-value did not (Hoenig & Heisey 2001). The demonstration of that
+   * point was itself wrong -- by four orders of magnitude.
+   *
+   * It computed  Phi(-|z| - 1.96), which is only the WRONG-TAIL term. The observed power is
+   *
+   *     Phi(|z| - z_crit)  +  Phi(-|z| - z_crit)
+   *      \_____________/       \______________/
+   *       the real term          the negligible one it kept
+   *
+   * At p = 0.05 -- the single value a reader of this lesson is most likely to try -- the correct
+   * answer is 50.0%, which IS the punchline: a p-value sitting exactly on the threshold always
+   * gives you almost exactly 50% observed power, no matter what your data were. The lesson
+   * displayed 0.004% instead, which not only is false but hides the very regularity it is trying
+   * to teach.
+   */
   const observedPower = useCallback(() => {
-    const z = -Math.abs(normalQuantile(pValue / 2));
-    return normalCDF(z - 1.96);
+    const zCrit = normalQuantile(1 - 0.05 / 2); // 1.96
+    const zObserved = Math.abs(normalQuantile(pValue / 2)); // |z| for the observed p
+    return normalCDF(zObserved - zCrit) + normalCDF(-zObserved - zCrit);
   }, [pValue]);
 
   const normalQuantile = (p) => {

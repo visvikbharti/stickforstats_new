@@ -25,6 +25,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  FormHelperText,
   InputLabel,
   Button,
   Alert,
@@ -76,23 +77,13 @@ import {
 
 // Import validated power calculation utilities
 import {
-  powerTwoSampleTTest,
-  powerOneSampleTTest,
-  powerPairedTTest,
-  powerOneWayANOVA,
-  powerCorrelation,
-  powerChiSquare,
-  powerMannWhitneyU,
-  powerWilcoxonSignedRank,
-  powerKruskalWallis,
-  sampleSizeTwoSampleTTest,
-  sampleSizeOneWayANOVA,
-  sampleSizeCorrelation,
-  generatePowerCurve,
-  findSampleSizeForPower,
-  minimumDetectableEffectSize,
-  interpretEffectSize
-} from '../../power-analysis/education/utils/powerCalculations';
+  runPowerCalculation,
+  runSampleSizeCalculation,
+  runPowerCurve,
+  runMinimumDetectableEffect,
+  isPowerTestSupported,
+} from '../utils/hubTestService';
+import { interpretEffectSize } from '../../power-analysis/education/utils/powerCalculations';
 
 // Import code generators for R and Python
 import {
@@ -101,6 +92,22 @@ import {
   downloadCode,
   copyToClipboard
 } from '../../../utils/codeExport/powerAnalysisCodeGenerator';
+
+// `(null * 100).toFixed(1)` is "0.0", because null coerces to 0. A power that could not be
+// computed therefore used to headline as "0.0%" -- which does not say "we could not work this
+// out", it says "this design has no chance whatsoever of detecting the effect". And
+// `null.toFixed(3)` is a TypeError that unmounts the page. Both go through these.
+const pct = (value, digits = 1) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : `${(value * 100).toFixed(digits)}%`;
+
+const fx = (value, digits = 3) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : value.toFixed(digits);
+
+// Small / medium / large, per Cohen. The curve is drawn at these three effect sizes.
+const CURVE_BENCHMARKS = {
+  d: [0.2, 0.5, 0.8],
+  f: [0.1, 0.25, 0.4],
+};
 
 // Test type configurations with scientific metadata
 const TEST_TYPES = {
@@ -212,6 +219,10 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const [results, setResults] = useState(null);
   const [powerCurveData, setPowerCurveData] = useState(null);
   const [error, setError] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  // The rank tests' power depends on the shape of the parent distribution, and the old code
+  // silently assumed 'normal'. It is now the user's choice, and it is shown in the result.
+  const [parentDistribution, setParentDistribution] = useState('normal');
 
   // Code export state
   const [codeDialogOpen, setCodeDialogOpen] = useState(false);
@@ -223,120 +234,86 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const currentTest = TEST_TYPES[testType];
 
   /**
-   * Perform power calculation based on mode and test type
+   * All three modes now run on the backend, against the exact non-central distributions.
+   *
+   * This component called the browser-side engine with the CORRECT argument order (unlike the
+   * Study Design Wizard, which did not), so it was only ever as wrong as the engine underneath
+   * it -- but that engine sat on `distributionFunctions.js`, whose own header concedes: "These
+   * are approximations suitable for interactive demonstrations." It was what the production
+   * Power Analysis Tool ran on.
+   *
+   * Two things it did that were not approximation but invention:
+   *
+   *   - The non-parametric sample sizes were the parametric answer divided by 0.955:
+   *     `Math.ceil(parametricResult.n1 / 0.955)`. That IS the standard Pitman-ARE method, but
+   *     0.955 = 3/pi is the ARE for a NORMAL parent -- an absurd assumption for a rank test you
+   *     reached for BECAUSE normality failed, and it points the wrong way. Under the heavy tails
+   *     that drive you off the t-test, the rank test needs FEWER subjects, not 5% more: 43 per
+   *     group for a Laplace parent, 22 for an exponential one, against 68 for a normal one. The
+   *     parent distribution is now an explicit input and the ARE used is shown.
+   *
+   *   - `minimumDetectableEffectSize` binary-searched the approximate power. It is now solved
+   *     against the exact power on the backend.
    */
-  const calculatePower = useCallback(() => {
+  const calculatePower = useCallback(async () => {
     setError(null);
+    setIsCalculating(true);
+
+    const common = {
+      testType,
+      effectSize,
+      alpha,
+      groups: numGroups,
+      df: degreesOfFreedom,
+      alternative,
+      parentDistribution,
+    };
 
     try {
-      let result = {};
+      let result;
 
       if (calculationMode === 'power') {
-        // Calculate power given sample size and effect size
-        switch (testType) {
-          case 'two-sample-t':
-            result = powerTwoSampleTTest(sampleSize, sampleSize2, effectSize, alpha, alternative);
-            result.totalN = sampleSize + sampleSize2;
-            break;
-          case 'one-sample-t':
-            result = powerOneSampleTTest(sampleSize, effectSize, alpha, alternative);
-            result.totalN = sampleSize;
-            break;
-          case 'paired-t':
-            result = powerPairedTTest(sampleSize, effectSize, alpha, alternative);
-            result.totalN = sampleSize;
-            break;
-          case 'anova':
-            result = powerOneWayANOVA(sampleSize, numGroups, effectSize, alpha);
-            break;
-          case 'correlation':
-            result = powerCorrelation(sampleSize, effectSize, alpha, alternative);
-            result.totalN = sampleSize;
-            break;
-          case 'chi-square':
-            result = powerChiSquare(sampleSize, effectSize, degreesOfFreedom, alpha);
-            result.totalN = sampleSize;
-            break;
-          case 'mann-whitney':
-            result = powerMannWhitneyU(sampleSize, sampleSize2, effectSize, alpha, alternative);
-            result.totalN = sampleSize + sampleSize2;
-            break;
-          case 'wilcoxon':
-            result = powerWilcoxonSignedRank(sampleSize, effectSize, alpha, alternative);
-            result.totalN = sampleSize;
-            break;
-          case 'kruskal-wallis':
-            result = powerKruskalWallis(sampleSize, numGroups, effectSize, alpha);
-            break;
-          default:
-            throw new Error('Unknown test type');
-        }
-        result.mode = 'power';
-
-      } else if (calculationMode === 'sampleSize') {
-        // Calculate sample size given power and effect size
-        switch (testType) {
-          case 'two-sample-t':
-            result = sampleSizeTwoSampleTTest(effectSize, power, alpha, alternative, allocationRatio);
-            break;
-          case 'one-sample-t':
-          case 'paired-t':
-            result = findSampleSizeForPower('one-sample-t', effectSize, power, alpha, { alternative });
-            result.totalN = result.n;
-            break;
-          case 'anova':
-            result = sampleSizeOneWayANOVA(effectSize, numGroups, power, alpha);
-            break;
-          case 'correlation':
-            result = sampleSizeCorrelation(effectSize, power, alpha, alternative);
-            result.totalN = result.n;
-            break;
-          case 'chi-square':
-            result = findSampleSizeForPower('chi-square', effectSize, power, alpha, { df: degreesOfFreedom });
-            result.totalN = result.n;
-            break;
-          case 'mann-whitney':
-            // Need ~5% more than parametric due to ARE
-            const parametricResult = sampleSizeTwoSampleTTest(effectSize, power, alpha, alternative, allocationRatio);
-            result = {
-              n1: Math.ceil(parametricResult.n1 / 0.955),
-              n2: Math.ceil(parametricResult.n2 / 0.955),
-              achievedPower: parametricResult.achievedPower
-            };
-            result.totalN = result.n1 + result.n2;
-            break;
-          case 'wilcoxon':
-            const pairedResult = findSampleSizeForPower('paired-t', effectSize, power, alpha, { alternative });
-            result = { n: Math.ceil(pairedResult.n / 0.955), achievedPower: pairedResult.achievedPower };
-            result.totalN = result.n;
-            break;
-          case 'kruskal-wallis':
-            const anovaResult = sampleSizeOneWayANOVA(effectSize, numGroups, power, alpha);
-            result = {
-              nPerGroup: Math.ceil(anovaResult.nPerGroup / 0.955),
-              achievedPower: anovaResult.achievedPower
-            };
-            result.totalN = result.nPerGroup * numGroups;
-            break;
-          default:
-            throw new Error('Unknown test type');
-        }
-        result.mode = 'sampleSize';
-
-      } else if (calculationMode === 'effectSize') {
-        // Calculate minimum detectable effect size
-        const mdes = minimumDetectableEffectSize(sampleSize, power, alpha, testType);
+        const backend = await runPowerCalculation({ ...common, sampleSize });
         result = {
-          effectSize: mdes,
-          interpretation: interpretEffectSize(mdes, currentTest.effectSizeLabel.includes('f') ? 'cohens_f' : 'cohens_d'),
-          sampleSize: sampleSize,
-          power: power,
-          alpha: alpha
+          mode: 'power',
+          power: backend.power,
+          beta: backend.beta,
+          ncp: backend.nonCentrality,
+          totalN: backend.groups ? sampleSize * backend.groups : sampleSize,
+          are: backend.are ?? null,
+          parentDistribution: backend.parentDistribution ?? null,
+          assumptionNote: backend.note ?? null,
         };
-        result.mode = 'effectSize';
+      } else if (calculationMode === 'sampleSize') {
+        const backend = await runSampleSizeCalculation({ ...common, power });
+        const perGroup = backend.perGroup;
+        result = {
+          mode: 'sampleSize',
+          n: backend.requiredN,
+          nPerGroup: perGroup,
+          n1: perGroup,
+          n2: perGroup,
+          totalN: backend.totalN,
+          // The power the design will ACTUALLY have at that integer n -- at or just above the
+          // target, never below.
+          achievedPower: backend.actualPower,
+          power: backend.actualPower,
+          are: backend.are ?? null,
+          parentDistribution: backend.parentDistribution ?? null,
+          assumptionNote: backend.note ?? null,
+          parametricSampleSize: backend.parametricSampleSize ?? null,
+        };
+      } else {
+        const backend = await runMinimumDetectableEffect({ ...common, sampleSize, power });
+        result = {
+          mode: 'effectSize',
+          effectSize: backend.effect,
+          interpretation: backend.interpretation,
+          sampleSize,
+          power: backend.achievedPower,
+        };
       }
 
-      // Add common metadata
       result.testType = testType;
       result.testName = currentTest.name;
       result.alpha = alpha;
@@ -345,44 +322,61 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
 
       setResults(result);
 
-      // Generate power curve
-      generatePowerCurveData();
-
+      // A missing curve is a missing chart, not a wrong number: the headline result stands even
+      // if the curve request fails.
+      try {
+        setPowerCurveData(await buildPowerCurves());
+      } catch {
+        setPowerCurveData(null);
+      }
     } catch (err) {
       setError(err.message);
       setResults(null);
+      setPowerCurveData(null);
+    } finally {
+      setIsCalculating(false);
     }
-  }, [calculationMode, testType, alpha, power, effectSize, sampleSize, sampleSize2,
-      numGroups, degreesOfFreedom, allocationRatio, alternative, currentTest]);
+  }, [calculationMode, testType, alpha, power, effectSize, sampleSize,
+      numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves]);
 
   /**
-   * Generate power curve data for visualization
+   * Three exact power curves -- small, medium and large effect -- from the backend.
+   *
+   * The old version called the browser engine per point and wrote `|| 0` into any point whose
+   * power failed to compute, plotting a FAILED calculation as a power of zero.
    */
-  const generatePowerCurveData = useCallback(() => {
-    try {
-      const sampleSizes = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500];
-      const effectSizes = [0.2, 0.5, 0.8]; // Small, medium, large
+  const buildPowerCurves = useCallback(async () => {
+    if (!isPowerTestSupported(testType)) return null;
 
-      const curveData = [];
+    const benchmarks = CURVE_BENCHMARKS[currentTest.effectSizeLabel.includes('f') ? 'f' : 'd'];
 
-      for (const n of sampleSizes) {
-        const point = { n };
-        for (const es of effectSizes) {
-          const data = generatePowerCurve(testType, [n], [es], alpha, {
-            alternative,
-            k: numGroups
-          });
-          // `|| 0` turned a power computation that FAILED into a plotted power of zero.
-        point[`d_${es}`] = Number.isFinite(data[0]?.power) ? data[0].power : null;
-        }
-        curveData.push(point);
+    const series = await Promise.all(
+      benchmarks.map((es) =>
+        runPowerCurve({
+          testType,
+          effectSize: es,
+          alpha,
+          groups: numGroups,
+          alternative,
+          nMin: 10,
+          nMax: 500,
+          step: 10,
+        }).then((points) => ({ es, points }))
+      )
+    );
+
+    // Merge the three series on n. A point missing from a series stays missing -- it is not
+    // plotted at zero.
+    const byN = new Map();
+    for (const { es, points } of series) {
+      for (const point of points) {
+        if (!byN.has(point.n)) byN.set(point.n, { n: point.n });
+        byN.get(point.n)[`d_${es}`] = point.power;
       }
-
-      setPowerCurveData(curveData);
-    } catch (err) {
-      console.error('Power curve generation error:', err);
     }
-  }, [testType, alpha, alternative, numGroups]);
+
+    return [...byN.values()].sort((a, b) => a.n - b.n);
+  }, [testType, alpha, alternative, numGroups, currentTest]);
 
   /**
    * Reset all inputs to defaults
@@ -713,6 +707,36 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
               />
             )}
 
+            {/*
+              The power of a rank test has no distribution-free closed form -- it depends on the
+              shape of the distribution the data came from. The old code silently assumed a NORMAL
+              parent (ARE = 3/pi), which is an absurd assumption for a test you reached for
+              BECAUSE normality failed, and it points the wrong way: under heavy tails the rank
+              test needs FEWER subjects than the t-test, not 5% more. So it is a choice now, and
+              the ARE that follows from it is shown in the results.
+            */}
+            {['mann-whitney', 'wilcoxon', 'kruskal-wallis'].includes(testType) && (
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Parent Distribution</InputLabel>
+                <Select
+                  value={parentDistribution}
+                  onChange={(e) => setParentDistribution(e.target.value)}
+                  label="Parent Distribution"
+                >
+                  <MenuItem value="normal">Normal (ARE 0.955 — rank test needs ~5% more)</MenuItem>
+                  <MenuItem value="uniform">Uniform (ARE 1.000)</MenuItem>
+                  <MenuItem value="logistic">Logistic (ARE 1.097)</MenuItem>
+                  <MenuItem value="laplace">Laplace / heavy-tailed (ARE 1.500)</MenuItem>
+                  <MenuItem value="exponential">Exponential / skewed (ARE 3.000)</MenuItem>
+                </Select>
+                <FormHelperText>
+                  A rank test's power depends on the shape of the data. This choice changes the
+                  answer substantially — for d = 0.5 at 80% power it moves the requirement from 68
+                  per group (normal) to 22 (exponential).
+                </FormHelperText>
+              </FormControl>
+            )}
+
             {/* Alternative hypothesis */}
             {!['anova', 'chi-square', 'kruskal-wallis'].includes(testType) && (
               <FormControl fullWidth sx={{ mb: 3 }}>
@@ -736,6 +760,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                 color="primary"
                 size="large"
                 onClick={calculatePower}
+                disabled={isCalculating}
                 startIcon={<CalculateIcon />}
                 fullWidth
               >
@@ -789,7 +814,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     {calculationMode === 'power' && (
                       <>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-                          {(results.power * 100).toFixed(1)}%
+                          {pct(results.power, 1)}
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
                           Statistical Power
@@ -809,7 +834,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     {calculationMode === 'sampleSize' && (
                       <>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-                          {results.totalN || results.n || results.nPerGroup * numGroups}
+                          {results.totalN ?? results.n ?? '—'}
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
                           Required Total Sample Size
@@ -830,7 +855,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     {calculationMode === 'effectSize' && (
                       <>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-                          {results.effectSize.toFixed(3)}
+                          {fx(results.effectSize, 3)}
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
                           Minimum Detectable {currentTest.effectSizeLabel}
@@ -861,7 +886,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                       {calculationMode === 'power' ? (
                         <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>Power (1-β)</TableCell>
-                          <TableCell>{(results.power * 100).toFixed(2)}%</TableCell>
+                          <TableCell>{pct(results.power, 2)}</TableCell>
                         </TableRow>
                       ) : (
                         <TableRow>
@@ -872,7 +897,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                       <TableRow>
                         <TableCell sx={{ fontWeight: 500 }}>Effect Size ({currentTest.effectSizeLabel})</TableCell>
                         <TableCell>
-                          {calculationMode === 'effectSize' ? results.effectSize.toFixed(3) : effectSize}
+                          {calculationMode === 'effectSize' ? fx(results.effectSize, 3) : effectSize}
                         </TableCell>
                       </TableRow>
                       {results.ncp !== undefined && (
@@ -887,16 +912,19 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                           <TableCell>{results.df}</TableCell>
                         </TableRow>
                       )}
-                      {results.criticalValue !== undefined && (
+                      {results.criticalValue != null && (
                         <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>Critical Value</TableCell>
                           <TableCell>{results.criticalValue.toFixed(4)}</TableCell>
                         </TableRow>
                       )}
-                      {results.are !== undefined && (
+                      {results.are != null && (
                         <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>Asymptotic Relative Efficiency</TableCell>
-                          <TableCell>{results.are.toFixed(4)} (vs parametric)</TableCell>
+                          <TableCell>
+                            {results.are.toFixed(4)} vs the parametric test, assuming a{' '}
+                            <strong>{results.parentDistribution}</strong> parent distribution
+                          </TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -978,17 +1006,24 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     {results.power >= 0.80 ? (
                       <Alert severity="success" sx={{ mb: 1 }}>
                         <AlertTitle>Adequate Power</AlertTitle>
-                        Your study has {(results.power * 100).toFixed(0)}% power to detect an effect of {effectSize}
+                        Your study has {pct(results.power, 0)} power to detect an effect of {effectSize}
                         ({currentTest.effectSizeLabel}). This meets the conventional 80% threshold.
                       </Alert>
                     ) : (
                       <Alert severity="warning" sx={{ mb: 1 }}>
                         <AlertTitle>Underpowered Study</AlertTitle>
-                        Your study has only {(results.power * 100).toFixed(0)}% power. Consider increasing sample size
-                        or accepting a larger effect size of interest.
+                        Your study has only {pct(results.power, 0)} power.
+                        Consider increasing sample size or accepting a larger effect size of interest.
                       </Alert>
                     )}
                   </Box>
+                )}
+
+                {results.assumptionNote && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    <AlertTitle>Approximate — this rests on an assumption about your data</AlertTitle>
+                    {results.assumptionNote}
+                  </Alert>
                 )}
 
                 {calculationMode === 'sampleSize' && (
@@ -996,7 +1031,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     <AlertTitle>Sample Size Recommendation</AlertTitle>
                     To detect an effect size of {effectSize} ({interpretEffectSize(effectSize, 'cohens_d')})
                     with {(power * 100).toFixed(0)}% power at α={alpha}, you need{' '}
-                    <strong>{results.totalN || results.n || results.nPerGroup * numGroups}</strong> total participants.
+                    <strong>{results.totalN ?? results.n ?? '—'}</strong> total participants.
                   </Alert>
                 )}
 
@@ -1004,8 +1039,17 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                   <Alert severity="info">
                     <AlertTitle>Sensitivity Analysis</AlertTitle>
                     With n={sampleSize} and {(power * 100).toFixed(0)}% power at α={alpha},
-                    your study can reliably detect effects of {results.effectSize.toFixed(2)} ({results.interpretation}) or larger.
+                    your study can reliably detect effects of{' '}
+                    {fx(results.effectSize, 2)}
+                    {results.effectSize != null && ` (${interpretEffectSize(results.effectSize, 'cohens_d').level ?? ''})`} or larger.
                     Smaller effects may go undetected.
+                    <br />
+                    <br />
+                    This is reported <em>instead of</em> observed (post-hoc) power. Feeding the
+                    effect you observed back into the power formula yields a number that is a
+                    monotone function of your p-value, so a non-significant result always comes
+                    back &ldquo;underpowered&rdquo; by construction — it cannot tell you anything
+                    the p-value did not already say (Hoenig &amp; Heisey, 2001).
                   </Alert>
                 )}
 

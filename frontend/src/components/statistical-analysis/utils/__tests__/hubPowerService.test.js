@@ -13,7 +13,13 @@
  *   2. When a computation failed it produced NaN, and NaN rendered as a confident verdict.
  */
 
-import { runPowerCalculation, runSampleSizeCalculation, runPowerCurve } from '../hubTestService';
+import {
+  runPowerCalculation,
+  runSampleSizeCalculation,
+  runPowerCurve,
+  runMinimumDetectableEffect,
+  isPowerTestSupported,
+} from '../hubTestService';
 
 const mockJson = (body, ok = true, statusText = 'OK') => {
   global.fetch = jest.fn().mockResolvedValue({
@@ -184,5 +190,87 @@ describe('the power curve', () => {
 
     expect(urlOf()).toContain('/v1/power/curve/');
     expect(bodyOf()).toMatchObject({ test_type: 'anova', effect_size: 0.25, groups: 4 });
+  });
+});
+
+describe('a rank test carries an assumption, and the assumption travels with the number', () => {
+  test('the parent distribution is sent, and the ARE comes back with the answer', async () => {
+    // The browser divided the parametric sample size by 0.955 and said nothing. 0.955 = 3/pi is
+    // the ARE for a NORMAL parent -- an absurd assumption for a test you reached for BECAUSE
+    // normality failed -- and it points the wrong way: under heavy tails the rank test needs
+    // FEWER subjects, not 5% more.
+    mockJson({
+      results: {
+        required_sample_size: 43,
+        total_sample_size: 86,
+        parametric_sample_size: 64,
+        are: 1.5,
+        parent_distribution: 'laplace',
+        method: 'Pitman asymptotic relative efficiency',
+        note: 'Approximate. ... assuming the data come from a laplace distribution ...',
+      },
+    });
+
+    const result = await runSampleSizeCalculation({
+      testType: 'mann-whitney',
+      effectSize: 0.5,
+      power: 0.8,
+      parentDistribution: 'laplace',
+    });
+
+    expect(urlOf()).toContain('/v1/power/sample-size/nonparametric/');
+    expect(bodyOf()).toMatchObject({ test: 'mann-whitney', parent_distribution: 'laplace' });
+
+    expect(result.requiredN).toBe(43);
+    expect(result.are).toBe(1.5);
+    expect(result.parentDistribution).toBe('laplace');
+    expect(result.note).toMatch(/laplace/);
+
+    // The heavy-tailed answer is SMALLER than the parametric one -- the direction the old code
+    // could not express, because it only ever divided by 0.955.
+    expect(result.requiredN).toBeLessThan(result.parametricSampleSize);
+  });
+});
+
+describe('minimum detectable effect, in place of observed power', () => {
+  test('it asks the exact endpoint', async () => {
+    mockJson({
+      results: {
+        minimum_detectable_effect_float: 0.4990691780,
+        achieved_power_float: 0.8,
+        sample_size: 64,
+        note: 'This is the smallest true effect the design could detect...',
+      },
+    });
+
+    const result = await runMinimumDetectableEffect({ testType: 't-test', sampleSize: 64, power: 0.8 });
+
+    expect(urlOf()).toContain('/v1/power/mde/');
+    expect(bodyOf()).toMatchObject({ test_type: 't-test', sample_size: 64, t_test_type: 'independent' });
+    expect(result.effect).toBeCloseTo(0.49907, 5);
+  });
+});
+
+describe('a test we cannot compute says so', () => {
+  test('supported tests are recognised, unsupported ones are not', () => {
+    // The Study Design Wizard's lookup ended in `|| calculators['independent-t'][mode]`, so a
+    // user who picked a logistic regression, a factorial ANOVA or a Friedman test was handed a
+    // two-sample t-test sample size under the name of the test they actually chose.
+    expect(isPowerTestSupported('independent-t')).toBe(true);
+    expect(isPowerTestSupported('one-way-anova')).toBe(true);
+    expect(isPowerTestSupported('pearson')).toBe(true);
+    expect(isPowerTestSupported('mann-whitney')).toBe(true);
+
+    expect(isPowerTestSupported('logistic-regression')).toBe(false);
+    expect(isPowerTestSupported('factorial-anova')).toBe(false);
+    expect(isPowerTestSupported('friedman')).toBe(false);
+  });
+
+  test('a rank test gets no power curve rather than a made-up one', async () => {
+    // There is no closed-form power curve for a rank test. An empty series draws no line; it
+    // does not draw a wrong one.
+    const curve = await runPowerCurve({ testType: 'mann-whitney', effectSize: 0.5 });
+    expect(curve).toEqual([]);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

@@ -53,6 +53,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { useSettings } from '../../../context/SettingsContext';
+import { formatPValue, isSignificant } from '../../../utils/formatStats';
 
 /**
  * Main Two-way ANOVA Component
@@ -255,7 +256,7 @@ const TwoWayANOVA = ({ data }) => {
           MS: MSA,
           F: FA,
           pValue: pValueA,
-          significant: pValueA < alpha,
+          significant: isSignificant(pValueA, alpha),
           etaSquared: etaSquaredA
         },
         factorB: {
@@ -264,7 +265,7 @@ const TwoWayANOVA = ({ data }) => {
           MS: MSB,
           F: FB,
           pValue: pValueB,
-          significant: pValueB < alpha,
+          significant: isSignificant(pValueB, alpha),
           etaSquared: etaSquaredB
         },
         interaction: {
@@ -273,7 +274,7 @@ const TwoWayANOVA = ({ data }) => {
           MS: MSInteraction,
           F: FInteraction,
           pValue: pValueInteraction,
-          significant: pValueInteraction < alpha,
+          significant: isSignificant(pValueInteraction, alpha),
           etaSquared: etaSquaredInteraction
         },
         error: {
@@ -588,7 +589,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.factorA.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {anovaResults.anova.factorA.pValue.toFixed(4)}
+                    p = {formatPValue(anovaResults.anova.factorA.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.factorA.significant ? (
@@ -611,7 +612,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.factorB.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {anovaResults.anova.factorB.pValue.toFixed(4)}
+                    p = {formatPValue(anovaResults.anova.factorB.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.factorB.significant ? (
@@ -634,7 +635,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.interaction.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {anovaResults.anova.interaction.pValue.toFixed(4)}
+                    p = {formatPValue(anovaResults.anova.interaction.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.interaction.significant ? (
@@ -673,7 +674,7 @@ const TwoWayANOVA = ({ data }) => {
                     <TableCell align="right">{anovaResults.anova.factorA.df}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorA.MS.toFixed(2)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorA.F.toFixed(3)}</TableCell>
-                    <TableCell align="right">{anovaResults.anova.factorA.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(anovaResults.anova.factorA.pValue)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorA.etaSquared.toFixed(3)}</TableCell>
                   </TableRow>
                   <TableRow>
@@ -682,7 +683,7 @@ const TwoWayANOVA = ({ data }) => {
                     <TableCell align="right">{anovaResults.anova.factorB.df}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorB.MS.toFixed(2)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorB.F.toFixed(3)}</TableCell>
-                    <TableCell align="right">{anovaResults.anova.factorB.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(anovaResults.anova.factorB.pValue)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.factorB.etaSquared.toFixed(3)}</TableCell>
                   </TableRow>
                   <TableRow>
@@ -691,7 +692,7 @@ const TwoWayANOVA = ({ data }) => {
                     <TableCell align="right">{anovaResults.anova.interaction.df}</TableCell>
                     <TableCell align="right">{anovaResults.anova.interaction.MS.toFixed(2)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.interaction.F.toFixed(3)}</TableCell>
-                    <TableCell align="right">{anovaResults.anova.interaction.pValue.toFixed(4)}</TableCell>
+                    <TableCell align="right">{formatPValue(anovaResults.anova.interaction.pValue)}</TableCell>
                     <TableCell align="right">{anovaResults.anova.interaction.etaSquared.toFixed(3)}</TableCell>
                   </TableRow>
                   <TableRow>
@@ -725,19 +726,19 @@ const TwoWayANOVA = ({ data }) => {
                 <Typography variant="body2">
                   <strong>Main Effect of {factorA}:</strong> {anovaResults.anova.factorA.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.factorA.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.factorA.F.toFixed(2)},
-                  p = {anovaResults.anova.factorA.pValue.toFixed(4)}).
+                  p = {formatPValue(anovaResults.anova.factorA.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.factorA.etaSquared)} (η² = {anovaResults.anova.factorA.etaSquared.toFixed(3)}).
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <strong>Main Effect of {factorB}:</strong> {anovaResults.anova.factorB.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.factorB.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.factorB.F.toFixed(2)},
-                  p = {anovaResults.anova.factorB.pValue.toFixed(4)}).
+                  p = {formatPValue(anovaResults.anova.factorB.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.factorB.etaSquared)} (η² = {anovaResults.anova.factorB.etaSquared.toFixed(3)}).
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <strong>Interaction Effect ({factorA} × {factorB}):</strong> {anovaResults.anova.interaction.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.interaction.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.interaction.F.toFixed(2)},
-                  p = {anovaResults.anova.interaction.pValue.toFixed(4)}).
+                  p = {formatPValue(anovaResults.anova.interaction.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.interaction.etaSquared)} (η² = {anovaResults.anova.interaction.etaSquared.toFixed(3)}).
                 </Typography>
                 {anovaResults.anova.interaction.significant && (

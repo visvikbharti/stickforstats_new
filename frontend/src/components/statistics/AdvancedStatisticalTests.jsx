@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -39,6 +39,11 @@ import {
 } from 'recharts';
 import { multipleTestingAdjustments } from '../../utils/advancedStatistics';
 import jStat from 'jstat';
+import {
+  runPowerCalculation,
+  runSampleSizeCalculation,
+  runPowerCurve,
+} from '../statistical-analysis/utils/hubTestService';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AssessmentIcon from '@mui/icons-material/Assessment';
@@ -74,6 +79,9 @@ const AdvancedStatisticalTests = () => {
   const [adjustedResults, setAdjustedResults] = useState(null);
 
   // Power analysis state
+  const [powerCurve, setPowerCurve] = useState([]);
+  const [powerError, setPowerError] = useState(null);
+  const [requiredN, setRequiredN] = useState({ p80: null, p90: null });
   const [powerSettings, setPowerSettings] = useState({
     effectSize: 0.5,
     sampleSize: 30,
@@ -359,32 +367,89 @@ const AdvancedStatisticalTests = () => {
     setAdjustedResults(results);
   };
 
-  // Calculate statistical power
-  const calculatePower = () => {
+  /**
+   * Power, and the sample size to reach it. Both on the backend, against the exact non-central t.
+   *
+   * What was here mixed two distributions in a single expression:
+   *
+   *     criticalValue = jStat.studentt.inv(1 - alpha/2, 2n - 2)   <- a t critical value
+   *     power = 1 - jStat.normal.cdf(criticalValue - ncp) + ...   <- fed into a NORMAL CDF
+   *
+   * A t critical value evaluated against the standard normal is not an approximation of the
+   * non-central t; it is a different quantity. Its own comment said "(simplified)", and the
+   * number it produced was written straight into `powerSettings.power` and displayed as the
+   * study's power.
+   *
+   * The sample size used ceil(2 * ((za + zb) / d)^2), the normal closed form, which returns 63
+   * for d = 0.5 at 80% power. The answer is 64; at 63 the true power is 0.795.
+   */
+  const calculatePower = useCallback(async () => {
     const { effectSize, sampleSize, alpha: powerAlpha } = powerSettings;
-    
-    // For two-sample t-test
-    const ncp = effectSize * Math.sqrt(sampleSize / 2); // Non-centrality parameter
-    const criticalValue = jStat.studentt.inv(1 - powerAlpha / 2, 2 * sampleSize - 2);
-    
-    // Power calculation (simplified)
-    const power = 1 - jStat.normal.cdf(criticalValue - ncp, 0, 1) + 
-                  jStat.normal.cdf(-criticalValue - ncp, 0, 1);
-    
-    setPowerSettings({ ...powerSettings, power });
-  };
+    setPowerError(null);
 
-  // Sample size calculation
-  const calculateSampleSize = (targetPower = 0.8) => {
+    try {
+      const result = await runPowerCalculation({
+        testType: 't-test',
+        effectSize,
+        sampleSize,
+        alpha: powerAlpha,
+      });
+      // null when the design cannot support the test -- it stays null, and renders as an em dash.
+      setPowerSettings((previous) => ({ ...previous, power: result.power }));
+    } catch (err) {
+      setPowerError(err.message);
+      setPowerSettings((previous) => ({ ...previous, power: null }));
+    }
+  }, [powerSettings]);
+
+  // These used to be called straight from the render -- `{calculateSampleSize(0.8)} per group` --
+  // which was fine while the answer came from a synchronous closed form and is not now. They are
+  // fetched once per parameter change instead.
+  useEffect(() => {
+    let cancelled = false;
     const { effectSize, alpha: powerAlpha } = powerSettings;
-    
-    const za = jStat.normal.inv(1 - powerAlpha / 2, 0, 1);
-    const zb = jStat.normal.inv(targetPower, 0, 1);
-    
-    const n = 2 * Math.pow((za + zb) / effectSize, 2);
-    
-    return Math.ceil(n);
-  };
+
+    Promise.all(
+      [0.8, 0.9].map((target) =>
+        runSampleSizeCalculation({ testType: 't-test', effectSize, power: target, alpha: powerAlpha })
+          .then((result) => result.requiredN)
+          .catch(() => null)
+      )
+    ).then(([p80, p90]) => {
+      if (!cancelled) setRequiredN({ p80, p90 });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [powerSettings.effectSize, powerSettings.alpha]);
+
+  // The power curve, from the same exact endpoint rather than recomputed inline with the hybrid
+  // formula above.
+  useEffect(() => {
+    let cancelled = false;
+
+    runPowerCurve({
+      testType: 't-test',
+      effectSize: powerSettings.effectSize,
+      alpha: powerSettings.alpha,
+      nMin: 4,
+      nMax: 200,
+      step: 4,
+    })
+      .then((points) => {
+        if (!cancelled) {
+          setPowerCurve(points.map((point) => ({ sampleSize: point.n, power: point.power * 100 })));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPowerCurve([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [powerSettings.effectSize, powerSettings.alpha]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -802,7 +867,14 @@ const AdvancedStatisticalTests = () => {
                   Calculate Power
                 </Button>
 
-                {powerSettings.power && (
+                {powerError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {powerError}
+                  </Alert>
+                )}
+
+                {/* `power && ...` also hides a power of exactly 0, which is a real answer. */}
+                {powerSettings.power != null && (
                   <Alert severity="info">
                     Statistical Power: {(powerSettings.power * 100).toFixed(1)}%
                   </Alert>
@@ -815,10 +887,10 @@ const AdvancedStatisticalTests = () => {
                 </Typography>
 
                 <Typography variant="body2" sx={{ mb: 2 }}>
-                  Required sample size for 80% power: {calculateSampleSize(0.8)} per group
+                  Required sample size for 80% power: {requiredN.p80 ?? '—'} per group
                 </Typography>
                 <Typography variant="body2">
-                  Required sample size for 90% power: {calculateSampleSize(0.9)} per group
+                  Required sample size for 90% power: {requiredN.p90 ?? '—'} per group
                 </Typography>
               </CardContent>
             </Card>
@@ -832,16 +904,7 @@ const AdvancedStatisticalTests = () => {
                 </Typography>
 
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart
-                    data={Array.from({ length: 50 }, (_, i) => {
-                      const n = (i + 1) * 4;
-                      const ncp = powerSettings.effectSize * Math.sqrt(n / 2);
-                      const criticalValue = jStat.studentt.inv(1 - powerSettings.alpha / 2, 2 * n - 2);
-                      const power = 1 - jStat.normal.cdf(criticalValue - ncp, 0, 1) + 
-                                   jStat.normal.cdf(-criticalValue - ncp, 0, 1);
-                      return { sampleSize: n, power: power * 100 };
-                    })}
-                  >
+                  <LineChart data={powerCurve}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="sampleSize" label={{ value: 'Sample Size', position: 'insideBottom', offset: -5 }} />
                     <YAxis label={{ value: 'Power (%)', angle: -90, position: 'insideLeft' }} />
