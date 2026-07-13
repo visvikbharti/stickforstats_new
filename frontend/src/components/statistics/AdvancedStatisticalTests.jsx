@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -88,6 +88,8 @@ const AdvancedStatisticalTests = () => {
     alpha: 0.05,
     power: null
   });
+  // Monotonic id: only the newest power request may write its answer. See calculatePower.
+  const powerRequestRef = useRef(0);
 
   // Parse data string to array
   const parseData = (dataString) => {
@@ -387,6 +389,13 @@ const AdvancedStatisticalTests = () => {
     const { effectSize, sampleSize, alpha: powerAlpha } = powerSettings;
     setPowerError(null);
 
+    // Only the newest request may write the answer. Clearing the power when the inputs change (see
+    // the effect below) is not enough on its own: it no-ops while a request is already in flight,
+    // so clicking Calculate at d = 0.5, then typing 0.8 before the response lands, wrote the
+    // d = 0.5 power under the d = 0.8 inputs. Two quick clicks with different inputs raced the
+    // same way -- nothing sequenced the responses.
+    const requestId = ++powerRequestRef.current;
+
     try {
       const result = await runPowerCalculation({
         testType: 't-test',
@@ -394,9 +403,11 @@ const AdvancedStatisticalTests = () => {
         sampleSize,
         alpha: powerAlpha,
       });
+      if (requestId !== powerRequestRef.current) return; // a newer request has superseded this one
       // null when the design cannot support the test -- it stays null, and renders as an em dash.
       setPowerSettings((previous) => ({ ...previous, power: result.power }));
     } catch (err) {
+      if (requestId !== powerRequestRef.current) return;
       setPowerError(err.message);
       setPowerSettings((previous) => ({ ...previous, power: null }));
     }
@@ -416,6 +427,9 @@ const AdvancedStatisticalTests = () => {
    * immediately clear it.
    */
   useEffect(() => {
+    // Invalidate anything in flight as well as anything already on screen: a request launched under
+    // the OLD inputs must not be allowed to answer under the new ones.
+    powerRequestRef.current += 1;
     setPowerSettings((previous) => (previous.power == null ? previous : { ...previous, power: null }));
     setPowerError(null);
   }, [powerSettings.effectSize, powerSettings.sampleSize, powerSettings.alpha]);

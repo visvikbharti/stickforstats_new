@@ -89,6 +89,7 @@ import {
   runMinimumDetectableEffect,
   isPowerTestSupported,
   totalSampleSize,
+  acceptsSecondArm,
 } from '../utils/hubTestService';
 import { interpretEffectSize } from '../../power-analysis/education/utils/powerCalculations';
 
@@ -338,12 +339,17 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       let result;
 
       if (calculationMode === 'power') {
-        const backend = await runPowerCalculation({
-          ...common,
-          sampleSize,
-          // The "Sample Size (Group 2)" box was collected and then dropped on the floor.
-          sampleSize2: testType === 'two-sample-t' ? sampleSize2 : null,
-        });
+        // The second arm, resolved ONCE, by the gateway that knows which designs have one.
+        //
+        // The "Sample Size (Group 2)" box only renders for the two-sample t, and its value is never
+        // cleared when the test changes -- so after "t-test (n1=30, n2=60) -> normality fails ->
+        // switch to Mann-Whitney", `sampleSize2` is still 60 and is now invisible. The power request
+        // dropped it in that case; the total N did not, and reported 90 subjects for a design whose
+        // power it had just computed at 30/30 (total 60). That is the SAME defect this file fixed
+        // one commit ago, reintroduced one call site to the left of where it was fixed.
+        const secondArm = acceptsSecondArm(testType) ? sampleSize2 : null;
+
+        const backend = await runPowerCalculation({ ...common, sampleSize, sampleSize2: secondArm });
         result = {
           mode: 'power',
           power: backend.power,
@@ -354,10 +360,10 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           // `backend.groups` is numGroups, which DEFAULTS TO 3 and has no UI control for the
           // two-group tests -- the "Number of Groups" field only renders for anova and
           // kruskal-wallis. So `sampleSize * backend.groups` made a two-sample t at n = 30 into a
-          // total N of 90, and it ignored the group-2 box besides. It is not rendered in power
-          // mode, which is why it survived, but handleExport writes the whole results object into
-          // the downloaded JSON -- so the wrong total went into the artifact the researcher keeps.
-          totalN: totalSampleSize(testType, sampleSize, sampleSize2, numGroups),
+          // total N of 90. It is not rendered in power mode, which is why it survived, but
+          // handleExport writes the whole results object into the downloaded JSON -- so the wrong
+          // total went into the artifact the researcher keeps.
+          totalN: totalSampleSize(testType, sampleSize, secondArm, numGroups),
           are: backend.are ?? null,
           parentDistribution: backend.parentDistribution ?? null,
           assumptionNote: backend.note ?? null,
@@ -730,7 +736,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                   power for 30/30. A field that does nothing is worse than no field, because the
                   user believes they have told us something.
                 */}
-                {testType === 'two-sample-t' && (
+                {acceptsSecondArm(testType) && (
                   <TextField
                     fullWidth
                     label="Sample Size (Group 2)"

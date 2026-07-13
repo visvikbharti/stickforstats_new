@@ -88,6 +88,21 @@ const CURVE_TITLE = {
   paired: 'paired t-test',
 };
 
+/**
+ * What `n` COUNTS, which is not the same thing in all three designs.
+ *
+ * The backend uses df = 2n-2, λ = d·√(n/2) for the independent t -- n is per group -- and
+ * df = n-1, λ = d·√n for the paired and one-sample t, where n is the number of PAIRS (or the whole
+ * sample). Labelling every axis "n per group" was true while the curves were pinned to the
+ * independent t. Now that they follow the toggle it silently doubles a paired design in the
+ * reader's head -- and this lesson's whole thesis is that a paired design needs FEWER subjects.
+ */
+const SAMPLE_SIZE_UNIT = {
+  'two-sample': 'n per group',
+  'one-sample': 'n total',
+  paired: 'n pairs',
+};
+
 // The benchmark curves are drawn at α = 0.05, as the chart title says. Your α moves the red dot.
 const CURVE_ALPHA = 0.05;
 
@@ -401,7 +416,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     // Axis titles
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Sample Size (n per group)', width / 2, height - 10);
+    ctx.fillText(`Sample Size (${SAMPLE_SIZE_UNIT[testType]})`, width / 2, height - 10);
 
     ctx.save();
     ctx.translate(15, height / 2);
@@ -1147,7 +1162,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
             {solveFor !== 'n' && (
               <Box sx={{ mb: 3 }}>
                 <Typography gutterBottom>
-                  Sample Size (n per group): <strong>{sampleSize}</strong>
+                  Sample Size ({SAMPLE_SIZE_UNIT[testType]}): <strong>{sampleSize}</strong>
                 </Typography>
                 <Slider
                   value={sampleSize}

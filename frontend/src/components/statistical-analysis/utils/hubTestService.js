@@ -350,6 +350,23 @@ export const isPowerTestSupported = (testType) => Boolean(POWER_TESTS[testType])
 export const supportedPowerTests = () => Object.keys(POWER_TESTS);
 
 /**
+ * Does this design have a second arm the caller can size independently?
+ *
+ * Only the independent t-test does: it is the one power endpoint that accepts `sample_size2`. The
+ * rank tests are two-arm designs too, but their power goes through the ARE route, which has no
+ * unequal-arm form -- so a second arm entered for one of them is a number we cannot use.
+ *
+ * This lives here, next to POWER_TESTS, because the alternative is every caller deciding for
+ * itself -- and when PowerAnalysisTool did that, its power request and its total-N disagreed:
+ * the request correctly dropped a stale group-2 value on a Mann-Whitney while the total N kept it,
+ * so the exported file claimed 90 subjects for a power computed at 30/30. One rule, one place.
+ */
+export const acceptsSecondArm = (testType) => {
+  const spec = POWER_TESTS[testType];
+  return Boolean(spec && spec.family === 't' && spec.variant === 'independent');
+};
+
+/**
  * How many subjects the design actually needs in total.
  *
  * `n` means "per group" for the two-group and k-group tests and "the sample" for the rest, and

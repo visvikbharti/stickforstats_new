@@ -20,6 +20,7 @@ import {
   runMinimumDetectableEffect,
   isPowerTestSupported,
   totalSampleSize,
+  acceptsSecondArm,
 } from '../hubTestService';
 
 const mockJson = (body, ok = true, statusText = 'OK') => {
@@ -312,5 +313,65 @@ describe('totalSampleSize', () => {
     expect(totalSampleSize('two-sample-t', null)).toBeNull();
     expect(totalSampleSize('banana', 30)).toBeNull();
     expect(totalSampleSize('anova', 20, null, null)).toBeNull();
+  });
+});
+
+/**
+ * Which designs have a second arm at all.
+ *
+ * The previous test for `totalSampleSize` passed with a live bug in the tree, because it only ever
+ * called the rank tests with a null second arm:
+ *
+ *     expect(totalSampleSize('mann-whitney', 30)).toBe(60);   // never passes an n2
+ *
+ * and a null n2 is precisely the input that does NOT trigger the defect. A user who sized a
+ * two-sample t at 30/60, was told by Guardian that normality failed, and switched to Mann-Whitney
+ * left `sampleSize2 = 60` behind in a box that had unmounted. The power request correctly dropped
+ * it; the exported total N did not, and claimed 90 subjects for a power computed at 30/30.
+ *
+ * The helper was never wrong -- a genuine 30/60 Mann-Whitney really does total 90. The CALLER was
+ * wrong, so the rule about who has a second arm now lives in one place and both consumers read it.
+ */
+describe('acceptsSecondArm', () => {
+  it('is true only for the design whose endpoint actually takes a second arm', () => {
+    for (const test of ['two-sample-t', 't-test', 'independent-t']) {
+      expect(acceptsSecondArm(test)).toBe(true);
+    }
+  });
+
+  it('is false for the rank tests, which are two-arm but have no unequal-arm power form', () => {
+    // This is the case that shipped the bug. Mann-Whitney is a TWO-GROUP design, so a naive
+    // "is it grouped?" check says yes and hands its stale n2 straight through.
+    for (const test of ['mann-whitney', 'kruskal-wallis', 'wilcoxon']) {
+      expect(acceptsSecondArm(test)).toBe(false);
+    }
+  });
+
+  it('is false for the one-sample designs and for an unknown test', () => {
+    for (const test of ['paired-t', 'one-sample-t', 'correlation', 'chi-square', 'anova', 'banana']) {
+      expect(acceptsSecondArm(test)).toBe(false);
+    }
+  });
+
+  it('gates the total N so it cannot disagree with the power that was computed', () => {
+    // Reproduces the flow exactly: n1 = 30, n2 = 60 entered under the t-test, then the test is
+    // switched to Mann-Whitney and the group-2 box unmounts with 60 still in it.
+    const staleSecondArm = 60;
+
+    const armForRequest = (testType) => (acceptsSecondArm(testType) ? staleSecondArm : null);
+
+    // Under the t-test both agree on the unbalanced design.
+    expect(totalSampleSize('two-sample-t', 30, armForRequest('two-sample-t'))).toBe(90);
+
+    // After the switch, the total must describe the design whose power was actually computed --
+    // the balanced 30/30 one. It said 90.
+    expect(totalSampleSize('mann-whitney', 30, armForRequest('mann-whitney'))).toBe(60);
+    expect(totalSampleSize('mann-whitney', 30, armForRequest('mann-whitney'))).not.toBe(90);
+  });
+
+  it('still honours a second arm the helper is genuinely given', () => {
+    // The helper is not the thing that was broken, and it must not be "fixed" into ignoring n2:
+    // a real 30/60 Mann-Whitney does total 90. Only the caller may decide there is no second arm.
+    expect(totalSampleSize('mann-whitney', 30, 60)).toBe(90);
   });
 });
