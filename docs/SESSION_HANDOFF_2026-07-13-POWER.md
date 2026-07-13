@@ -58,10 +58,22 @@ Friedman) now **says so** rather than silently returning a t-test answer under i
 - **The bug was never precision.** scipy's float64 non-central F/t agrees with the 50-digit engine to
   **4.4e-16**. The browser was using a *different distribution* (a normal approximation), which is off
   by up to **0.21** on a 0–1 scale. Curves are served from float64; headline numbers from mpmath.
-- **I introduced a bug in this very diff and an adversarial reviewer caught it**: `/power/curve/`
-  pinned the t-variant to `"independent"`, so a **paired** curve silently returned the independent
-  one (at n = 40, d = 0.5: 0.869 vs 0.598). Always re-review honesty fixes adversarially — the fix is
-  as capable of lying as the bug was.
+- **Every fix commit in this arc shipped at least one new defect, and an adversarial reviewer caught
+  each one.** This is the single most important thing to carry forward. Round 1's fix pinned
+  `/power/curve/`'s t-variant to `"independent"`, so a **paired** curve silently returned the
+  independent one (n = 40, d = 0.5: 0.869 vs 0.598). Round 2's fix (`180d215`) then *reintroduced the
+  same class of bug one function to the left*: `_t_power_float` got an explicit `less` branch and
+  `_correlation_power_float` did not, so a left-tailed correlation curve climbed to 92% while the
+  headline directly above it — from the exact engine, which does honour `less` — read 0.0%. Six orders
+  of magnitude, one screen. Guarding one caller of a shared idea and not the other is how this
+  survives a fix aimed squarely at it.
+  **So: review every honesty fix adversarially, including the third one. The fix is exactly as capable
+  of lying as the thing it replaced, and having written it carefully does not make it true.**
+- **Three parameters in the power API dispatch on a bare `else`** (`test_type`, `t_test_type`,
+  `alternative`). All three are now canonicalized and reject unknown values with a 400
+  (`canonical_test_type` / `canonical_t_test_type` / `canonical_alternative` in `power_views.py`).
+  Before that, `POST /power/mde/ {"test_type": "chi-square"}` returned the **t-test** answer, stamped
+  `"test_type": "chi-square"`. If you add a fourth dispatching parameter, canonicalize it too.
 - Deleted `frontend/src/components/PowerAnalysis/` — 13 files, **9,669 lines**, zero importers.
 - **`BundleVerifier` and `PerformanceTests` jest suites fail under machine load** (they are the two
   slowest, 53 s and 22 s, and time out when a build runs concurrently). They pass in isolation and in
@@ -70,14 +82,31 @@ Friedman) now **says so** rather than silently returning a t-test answer under i
   cache, and `cache_page` does not cache POSTs. Live is at 2 and `main` is at 4, so the *earlier*
   batch's keys do rotate on this deploy anyway.
 
+## Still dead, deliberately left alone
+
+`frontend/src/components/power-analysis/education/` contains **13 unreachable files** — the whole of
+`simulations/` and `visualizations/`, plus the two barrel `index.js` files and `bayesianCalculations.js`.
+The education hub imports **only the 11 lessons**, never these. They are the last consumers of the
+wrong browser-side power math in `utils/powerCalculations.js` (whose *effect-size* algebra — `cohensD`,
+`interpretEffectSize`, … — is fine and genuinely live; only the power/sample-size functions below
+line 254 are wrong, and `powerChiSquare` was already fixed against scipy in an earlier session).
+
+No live code path reaches any of it — verified by transitive reachability from `src/index.js` and
+`src/App.jsx`, not by grep. It is dead, not lying to anyone. It is left for a follow-up because
+deleting it is pure cleanup with no user-visible benefit, and the live site needed the fixes more
+than it needed a tidy tree. **If you wire any of it back up, you are re-arming wrong math** — route
+to `hubTestService` instead.
+
 ## Green
 
-- Backend: **1272 tests OK**, flake8 clean.
-- Frontend: **878/878 jest**, 53/53 suites, `eslint src/ --max-warnings 0` passes, production build compiles.
+- Backend: **1293 tests OK**, flake8 clean.
+- Frontend: **883/883 jest**, 53 suites, `eslint src/ --max-warnings 0` passes, production build compiles.
+  (Build needs `NODE_OPTIONS="--max-old-space-size=4096"` locally, as CI already sets — the default
+  heap OOMs.)
 
 ## Deploy
 
-19 commits ship over live `7a8dced`. Rollback point captured before deploying:
+22 commits ship over live `7a8dced`. Rollback point captured before deploying:
 
     backend  sha256:d4ad5640ffdccbf16aad008d5dbfb73c19549a960ed4db7ee06f3313f3fdf45c
     frontend sha256:d34a01ea5bcdda6f40a6ed313e9d4e671bcc9accbb7b39d4c337652041eef29b
