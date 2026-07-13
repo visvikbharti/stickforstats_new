@@ -377,3 +377,55 @@ class TheRankTestsReportThePowerTheyActuallyAchieve(TestCase):
                 self.assertAlmostEqual(
                     results["actual_power_float"], direct.json()["results"]["power_float"], places=10
                 )
+
+
+class TheTableInTheExportedScriptIsNotInvented(TestCase):
+    """
+    I put a fabricated number into the artifact researchers keep.
+
+    The generated R/Python for a rank test carries a comment table of the sample size each parent
+    distribution requires, so the reader can see that the ARE assumption is load-bearing rather
+    than a footnote. I ran four of the five rows and INTERPOLATED the fifth: I wrote 65 for the
+    uniform parent because ARE = 1.0 sits between the normal (0.955 -> 68) and the logistic
+    (1.097 -> 59). The answer is 64. It is off by one subject, which is the least interesting thing
+    about it -- what matters is that I typed a number I had not computed, into the one output that
+    outlives the session, in the middle of a body of work whose entire subject is that habit.
+
+    This test is the reason it cannot happen again: the table lives in the generated script, and
+    the script's numbers are pinned HERE, against the real engine. If the engine ever moves, this
+    fails, and the comment gets updated instead of quietly becoming false.
+
+    Keep in sync with ARE_BY_PARENT in frontend/src/utils/codeExport/powerAnalysisCodeGenerator.js.
+    """
+
+    # (parent, ARE, n per group) for mann-whitney at d = 0.5, power = 0.80, alpha = 0.05.
+    EXPORTED_TABLE = [
+        ("normal", 0.955, 68),
+        ("uniform", 1.000, 64),
+        ("logistic", 1.097, 59),
+        ("laplace", 1.500, 43),
+        ("exponential", 3.000, 22),
+    ]
+
+    def test_every_row_of_the_table_is_what_the_engine_actually_returns(self):
+        engine = HighPrecisionPowerAnalysis()
+
+        for parent, are, n in self.EXPORTED_TABLE:
+            with self.subTest(parent=parent):
+                result = engine.calculate_sample_size_nonparametric(
+                    test="mann-whitney",
+                    effect_size="0.5",
+                    power="0.8",
+                    alpha="0.05",
+                    parent_distribution=parent,
+                )
+                self.assertAlmostEqual(result["are"], are, places=3)
+                self.assertEqual(result["required_sample_size"], n)
+
+    def test_the_table_makes_the_point_it_claims_to_make(self):
+        # The table exists to show that a heavier tail needs FEWER subjects, not the ~5% MORE that
+        # the 3/pi figure is usually quoted for. If that ordering ever inverted, the surrounding
+        # prose would be wrong even with every number in it correct.
+        sizes = [n for _, _, n in self.EXPORTED_TABLE]
+        self.assertEqual(sizes, sorted(sizes, reverse=True))
+        self.assertLess(sizes[-1], sizes[0] / 2)  # exponential is less than half of normal

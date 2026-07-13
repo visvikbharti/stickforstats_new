@@ -709,7 +709,7 @@ function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, 
 #     parent distribution      ARE     n per group (d = 0.5, 80% power)
 #     ---------------------  ------    --------------------------------
 #     normal                  0.955                  68
-#     uniform                 1.000                  65
+#     uniform                 1.000                  64
 #     logistic                1.097                  59
 #     Laplace (heavy tails)   1.500                  43
 #     exponential (skewed)    3.000                  22
@@ -1262,7 +1262,7 @@ function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, 
 #     parent distribution      ARE     n per group (d = 0.5, 80% power)
 #     ---------------------  ------    --------------------------------
 #     normal                  0.955                  68
-#     uniform                 1.000                  65
+#     uniform                 1.000                  64
 #     logistic                1.097                  59
 #     Laplace (heavy tails)   1.500                  43
 #     exponential (skewed)    3.000                  22

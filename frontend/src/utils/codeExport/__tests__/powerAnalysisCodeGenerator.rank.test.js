@@ -99,4 +99,42 @@ describe.each([
       expect(areInCode(code)).toBeCloseTo(1.5, 6);
     }
   });
+
+  /**
+   * The comment table in the generated script, pinned.
+   *
+   * I ran four of these five rows against the engine and INTERPOLATED the fifth: I wrote 65 for
+   * the uniform parent because ARE = 1.0 sits between the normal (0.955 -> 68) and the logistic
+   * (1.097 -> 59). The answer is 64. Being off by one subject is the least interesting part -- I
+   * typed a number I had not computed, into the artifact that outlives the session, in the middle
+   * of a body of work whose whole subject is that habit.
+   *
+   * Every row is now asserted against the real engine in
+   * backend/tests/test_the_fix_can_lie_too.py::TheTableInTheExportedScriptIsNotInvented, so the
+   * two cannot drift. This test asserts the SCRIPT still carries those same numbers.
+   */
+  it.each([
+    ['normal', 68],
+    ['uniform', 64], // was 65 -- a number I interpolated instead of running
+    ['logistic', 59],
+    ['Laplace', 43], // the table spells it "Laplace (heavy tails)"
+    ['exponential', 22],
+  ])('the %s row of the exported table says n = %i, which is what the engine returns', (parent, n) => {
+    const code = generate(paramsFor('normal'));
+    const row = code.split('\n').find((line) => line.includes(parent) && /\s\d+\s*$/.test(line));
+
+    expect(row).toBeDefined();
+    expect(row).toMatch(new RegExp(`\\s${n}\\s*$`));
+  });
+
+  it('the table shows heavier tails needing FEWER subjects, which is its entire point', () => {
+    const code = generate(paramsFor('normal'));
+    const sizes = ['normal', 'uniform', 'logistic', 'Laplace', 'exponential'].map((parent) => {
+      const row = code.split('\n').find((line) => line.includes(parent) && /\s\d+\s*$/.test(line));
+      return Number(row.trim().split(/\s+/).pop());
+    });
+
+    expect(sizes).toEqual([68, 64, 59, 43, 22]);
+    expect(sizes).toEqual([...sizes].sort((a, b) => b - a)); // strictly decreasing
+  });
 });
