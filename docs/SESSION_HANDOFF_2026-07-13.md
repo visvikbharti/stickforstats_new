@@ -14,10 +14,22 @@ Both open to-dos from 2026-07-11 are closed.
 2. **Beta Basic-Auth password — ROTATED** off `qwerty121`, verified through the public edge.
 
 And the click-through **earned its keep**: it found a **P0 that the whole 747b848 audit missed** —
-three components crash at render time. **The chi-square screen is broken on production right now.**
+three components crashed at render time, including the chi-square screen. Fixing that then exposed a
+**second P0 underneath it**: the Guardian's chi-square assumption check was returning HTTP 500 on
+every categorical test, so the Guardian had never once validated a chi-square.
 
-- Fix branch: **`fix/jsx-tdz-render-crashes` = `8c286e4`** — **NOT merged, NOT deployed.**
-- `main` is unchanged at `747b848`.
+**Both are fixed, merged, DEPLOYED and verified live.**
+
+| | |
+|---|---|
+| `main` | **`7a8dced`** (was `747b848`) |
+| Live frontend image | `sha256:d34a01ea` (bundle `main.4f0a2d45.js`) |
+| Live backend image | `sha256:d4ad5640` |
+| **rollback-prev** | frontend `sha256:47c26844`, backend `sha256:86abfd21` (the TDZ-fix build) |
+| Rollback to *pre-session* | frontend `sha256:82c5b61e`, backend `sha256:d4aa340d` (= the `747b848` build) |
+| Migrations | none (no model changes) |
+
+Post-deploy verification on production: **Guardian 17/17, Power 6/6, chi-square 6/6, ML trains.**
 
 ---
 
@@ -121,15 +133,56 @@ matcher silently picks the *placeholder*, leaving the select empty, and the scre
 
 ---
 
+## 4b. The second P0: the Guardian never validated a chi-square (`2a07213` + `7a8dced`)
+
+Only visible once the chi-square screen could render at all. Every categorical Guardian check
+returned **HTTP 500**, so the UI showed "Guardian validation unavailable" and ran the test unguarded.
+
+`CategoricalTests` sends a contingency **table** plus string labels
+(`{observed: [[a,b],[c,d]], categories1: [...], categories2: [...]}`), but `check()` pushed that
+through the numeric pipeline: `_prepare_data` produced one 2-D array and two *string* arrays, and
+`_summarize_data` then did `float(stats.skew(arr))` on them →
+`TypeError: only 0-dimensional arrays can be converted to Python scalars`.
+
+Worse: the requirements map declared `chi_square -> ["expected_frequencies", "independence"]` but
+**no validator implemented `expected_frequencies`** — an unknown requirement silently resolves to
+"skipped". So even without the 500, the one assumption that actually governs a chi-square was never
+checked.
+
+Fixes:
+- New `_check_contingency()` applying **Cochran's rule** — critical if any expected count < 1 (or any
+  cell < 5 in a 2×2), warning if >20% of cells fall below 5 — recommending **Fisher's exact** when
+  violated. Expected counts verified against `scipy.chi2_contingency`.
+- `independence` is reported **not_applicable** (it cannot be recovered from a collapsed table)
+  rather than certifying an untested assumption as satisfied.
+- `_summarize_data` hardened so a non-numeric / multi-dimensional array can never 500 a check again.
+
+**A trap worth remembering:** the first cut of `_extract_contingency` also accepted a *bare list of
+arrays* — but `np.asarray([a, b])` on two raw 1-D sample vectors is a perfectly valid 2-D array, and
+the cascade engine passes exactly that for `chi_square_independence`. It silently misread 2×100 raw
+observations as a 2×100 contingency table and broke
+`core.tests.test_autonomous_services.TestCascadeEngine.test_execute_chi_square`. **A table must be
+DECLARED under an explicit key, never inferred from shape.** Regression test added.
+
+> **Local test gotcha:** `manage.py test tests` runs only 193 tests; **CI runs the whole suite (1100+)**.
+> The cascade breakage was invisible locally until CI caught it. Run bare `manage.py test` before pushing.
+> Separately, 8 `core.tests.test_verify_api` failures are **pre-existing locally** (they pass in CI) —
+> confirmed on a clean tree, so don't chase them.
+
+Live proof: healthy 2×2 → passes, min expected 24.5, green "All assumptions satisfied" panel.
+Sparse 2×2 `[[10,2],[3,1]]` → **blocks**, critical `expected_frequencies`, min expected 0.75,
+alternative `fisher_exact`.
+
+---
+
 ## 5. Next steps
 
-1. **Merge + deploy `fix/jsx-tdz-render-crashes` (`8c286e4`).** Production is currently crashing on
-   the chi-square screen and on ML "Train Model". Deploy procedure and rollback tags: §1 of
-   `docs/SESSION_HANDOFF_2026-07-11.md`. Frontend-only change; no migrations. No
-   `CACHE_SCHEMA_VERSION` bump needed (no cached backend response changes).
-2. After deploying, re-run the chi-square proof against production to close the one proof that is
-   currently local-only: `BASE_URL=https://stickforstats.com BETA_PW=<new> node chisquare.js`.
-3. Consider a narrow CI check for render-time use-before-define (the blanket eslint rule is too noisy
-   at 440 hits). Also worth finally making CI lint `.jsx` at all.
-4. No regression test yet for `LinearRegressionML` (needs TF.js mocks) — covered only by browser E2E.
-5. Publication track untouched (BMC Bioinformatics submission still ready — see 2026-07-11 handoff).
+1. Consider a narrow CI check for **render-time** use-before-define (the blanket eslint rule is too
+   noisy at 440 hits, nearly all benign). Also worth finally making CI lint `.jsx` at all — today it
+   lints only `.js`, which is how three render crashes shipped.
+2. No regression test yet for `LinearRegressionML` (needs TF.js mocks) — covered only by browser E2E.
+3. `CategoricalTests.handleSelectAlternative` is still a `window.alert()`. It was unreachable while
+   the Guardian 500'd; now that sparse tables can genuinely violate, clicking the offered
+   "Fisher Exact" alternative pops an alert instead of routing anywhere. Worth wiring up (there is no
+   Fisher's exact runner on that screen).
+4. Publication track untouched (BMC Bioinformatics submission still ready — see 2026-07-11 handoff).
