@@ -665,3 +665,78 @@ class TheCurvePassesThroughTheHeadline(TestCase):
             with self.subTest(ratio=ratio):
                 with self.assertRaises(ValueError):
                     self.engine.power_curve(test_type="t-test", effect_size=0.5, allocation_ratio=ratio)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class TheVariantIsReadUnderEitherNameItIsGivenBy(TestCase):
+    """
+    The bare-`else` class one final time, at the transport layer instead of in the engine.
+
+    This module names the same concept two ways, because `test_type` means different things on
+    different endpoints:
+
+        /power/t-test/              variant as `test_type`     ("independent" / "paired" / ...)
+        /power/mde/, /power/curve/  variant as `t_test_type`   (`test_type` there names the TEST)
+
+    So a caller who sent `t_test_type: "paired"` to /power/t-test/ -- the name the other two
+    endpoints use, and the obvious guess -- had it SILENTLY DROPPED and got the INDEPENDENT answer:
+
+        shown:  0.4779   (independent)
+        truth:  0.7540   (paired)
+
+    27 percentage points, under the name of the test they asked for. I found this by falling into it
+    myself while writing a probe to verify the screen-facing numbers -- which is the best evidence
+    available that a real caller would too.
+    """
+
+    def _power(self, url="/api/v1/power/t-test/", **body):
+        return self.client.post(url, data=json.dumps(body), content_type="application/json")
+
+    def test_both_spellings_of_the_variant_are_honoured(self):
+        for key in ("test_type", "t_test_type"):
+            for variant, expected in (
+                ("independent", 0.4778965207601648),
+                ("paired", 0.7539647157436925),
+                ("one-sample", 0.7539647157436925),
+            ):
+                with self.subTest(key=key, variant=variant):
+                    response = self._power(**{"effect_size": 0.5, "sample_size": 30, "alpha": 0.05, key: variant})
+                    self.assertEqual(response.status_code, 200)
+                    self.assertAlmostEqual(response.json()["results"]["power_float"], expected, places=12)
+
+    def test_a_paired_request_is_never_answered_with_the_independent_number(self):
+        paired = self._power(effect_size=0.5, sample_size=30, alpha=0.05, t_test_type="paired")
+        independent = self._power(effect_size=0.5, sample_size=30, alpha=0.05, test_type="independent")
+
+        self.assertNotAlmostEqual(
+            paired.json()["results"]["power_float"],
+            independent.json()["results"]["power_float"],
+            places=3,
+        )
+
+    def test_asking_for_two_different_variants_at_once_is_a_400(self):
+        # Silently picking one of them is how this class of bug lives. Refuse instead.
+        response = self._power(
+            effect_size=0.5, sample_size=30, test_type="independent", t_test_type="paired"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("different t-test variants", response.json()["error"])
+
+    def test_agreeing_spellings_are_fine(self):
+        response = self._power(
+            effect_size=0.5, sample_size=30, test_type="paired", t_test_type="dependent"  # both -> paired
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertAlmostEqual(response.json()["results"]["power_float"], 0.7539647157436925, places=12)
+
+    def test_the_sample_size_endpoint_reads_it_the_same_way(self):
+        for key in ("test_type", "t_test_type"):
+            with self.subTest(key=key):
+                response = self.client.post(
+                    "/api/v1/power/sample-size/t-test/",
+                    data=json.dumps({"effect_size": 0.5, "power": 0.8, "alpha": 0.05, key: "paired"}),
+                    content_type="application/json",
+                )
+                self.assertEqual(response.status_code, 200)
+                # A paired design needs far fewer subjects than the independent 64.
+                self.assertEqual(response.json()["results"]["required_sample_size"], 34)

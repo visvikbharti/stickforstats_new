@@ -244,6 +244,39 @@ def canonical_test_type(value):
     return canonical
 
 
+def t_variant_from(data):
+    """
+    The t-test VARIANT, read from either name the API uses for it.
+
+    This module names the same concept two different ways, and it is a trap I fell into myself while
+    writing a verification probe:
+
+        /power/t-test/            takes it as `test_type`      ("independent" / "paired" / ...)
+        /power/mde/, /power/curve/ take it as `t_test_type`    (because `test_type` there names the
+                                                                TEST -- t-test / anova / correlation)
+
+    So an SDK caller who sends `t_test_type: "paired"` to /power/t-test/ -- the name the other two
+    endpoints use, and the obvious guess -- had it SILENTLY IGNORED and was given the INDEPENDENT
+    answer: power 0.4779 where the paired answer is 0.7540. Twenty-seven percentage points, under
+    the name of the test they asked for.
+
+    That is the bare-`else` class one more time, at the transport layer rather than in the engine: a
+    parameter we do not understand is not a parameter we may ignore. Both spellings are now accepted
+    here, and asking for two different variants at once is a 400 rather than a silent pick.
+    """
+    primary = data.get("test_type")
+    alias = data.get("t_test_type")
+
+    if primary is not None and alias is not None:
+        if canonical_t_test_type(primary) != canonical_t_test_type(alias):
+            raise InvalidPowerParameter(
+                f"test_type ({primary!r}) and t_test_type ({alias!r}) name different t-test "
+                f"variants. Send one of them."
+            )
+
+    return canonical_t_test_type(primary if primary is not None else alias)
+
+
 def canonical_t_test_type(value):
     """
     Canonicalize the t-test variant, and REJECT anything unrecognized.
@@ -314,7 +347,7 @@ def calculate_power_t_test(request):
             sample_size2=data.get("sample_size2"),
             alpha=data.get("alpha", 0.05),
             alternative=canonical_alternative(data.get("alternative")),
-            test_type=canonical_t_test_type(data.get("test_type")),
+            test_type=t_variant_from(data),
         )
 
         # Log the analysis
@@ -363,7 +396,7 @@ def calculate_sample_size_t_test(request):
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             alternative=canonical_alternative(data.get("alternative")),
-            test_type=canonical_t_test_type(data.get("test_type")),
+            test_type=t_variant_from(data),
         )
 
         logger.info(f"Sample size calculation completed for user {request.user.id}")
@@ -411,7 +444,7 @@ def calculate_effect_size_t_test(request):
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             alternative=canonical_alternative(data.get("alternative")),
-            test_type=canonical_t_test_type(data.get("test_type")),
+            test_type=t_variant_from(data),
         )
 
         logger.info(f"Effect size calculation completed for user {request.user.id}")
