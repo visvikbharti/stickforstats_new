@@ -100,17 +100,19 @@ class HighPrecisionRegressionView(APIView):
             X_data = serializer.validated_data["X"]
             y = np.array(serializer.validated_data["y"])
 
-            # Handle simple linear/polynomial (1D) vs multiple (2D) X
+            # Every downstream regressor wants a 2-D design matrix. A single predictor may
+            # arrive as a flat list for ANY type (not just simple_linear/polynomial), so
+            # normalize on shape rather than on the type name.
             regression_type = serializer.validated_data.get("type", "simple_linear")
-            if regression_type in ["simple_linear", "polynomial"]:
-                # Convert 1D X to 2D for consistency
-                X = np.array(X_data).reshape(-1, 1)
-            else:
-                X = np.array(X_data)
+            X = np.array(X_data, dtype=float)
+            if X.ndim == 1:
+                X = X.reshape(-1, 1)
 
             feature_names = None  # Not in the current serializer
 
-            # Map serializer type to method
+            # Map serializer type to method. robust/quantile/stepwise are implemented below
+            # and in HighPrecisionRegression, but used to be unreachable because the
+            # serializer's ChoiceField did not list them.
             type_to_method = {
                 "simple_linear": "linear",
                 "multiple_linear": "multiple",
@@ -118,6 +120,9 @@ class HighPrecisionRegressionView(APIView):
                 "logistic": "logistic",
                 "ridge": "ridge",
                 "lasso": "lasso",
+                "robust": "robust",
+                "quantile": "quantile",
+                "stepwise": "stepwise",
             }
             method = type_to_method.get(regression_type, "linear")
             params = serializer.validated_data.get("parameters", {})

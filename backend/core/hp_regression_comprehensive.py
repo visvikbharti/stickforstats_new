@@ -106,6 +106,11 @@ class RegressionResult:
     polynomial_degree: Optional[int] = None
     quantile: Optional[float] = None
     selected_features: Optional[List[str]] = None
+    # The robust fits (_huber_regression, _ransac_regression, _theil_sen_regression) all
+    # pass sample_size=n, but the field did not exist -- so every one of them raised
+    # TypeError on construction. They were never reachable from the API (the serializer's
+    # ChoiceField omitted "robust"), so nothing ever ran them and nothing ever noticed.
+    sample_size: Optional[int] = None
     interpretation: Dict[str, str] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
     assumptions_met: Dict[str, bool] = field(default_factory=dict)
@@ -696,9 +701,18 @@ class HighPrecisionRegression:
         residuals = y_hp - predictions
 
         # Calculate pseudo R-squared for quantile regression
-        # Using the R1 measure from Koenker and Machado (1999)
-        rho = lambda u, q: u * (q - (u < 0))
-        total_loss = sum([rho(y_i - mp.median(y_hp), quantile) for y_i in y_hp])
+        # Using the R1 measure from Koenker and Machado (1999).
+        #
+        # The null model for R1 is the INTERCEPT-ONLY quantile regression, whose fitted
+        # value is the empirical q-th quantile of y -- not the median. The old line called
+        # mp.median(), which (a) does not exist in mpmath, so this whole method raised
+        # AttributeError on every call, and (b) would have been the wrong reference point
+        # for any q != 0.5 even if it had.
+        def rho(u, q):
+            return u * (q - (u < 0))
+
+        y_null = self._empirical_quantile(y_hp, quantile)
+        total_loss = sum([rho(y_i - y_null, quantile) for y_i in y_hp])
         residual_loss = sum([rho(r, quantile) for r in residuals])
         pseudo_r_squared = 1 - residual_loss / total_loss if total_loss > 0 else 0
 
@@ -776,6 +790,27 @@ class HighPrecisionRegression:
     def _to_high_precision_vector(self, y: np.ndarray) -> np.ndarray:
         """Convert numpy vector to high precision."""
         return np.array([mp.mpf(str(y_i)) for y_i in y])
+
+    def _empirical_quantile(self, values, q) -> mp.mpf:
+        """
+        The q-th empirical quantile of `values`, in high precision.
+
+        Linear interpolation between order statistics (numpy's default 'linear' method),
+        so it agrees with np.quantile to within the working precision. mpmath ships no
+        median/quantile of its own.
+        """
+        ordered = sorted(values)
+        n = len(ordered)
+        if n == 0:
+            raise ValueError("Cannot take a quantile of an empty vector")
+        if n == 1:
+            return ordered[0]
+
+        position = mp.mpf(str(q)) * (n - 1)
+        lower = int(mp.floor(position))
+        upper = min(lower + 1, n - 1)
+        fraction = position - lower
+        return ordered[lower] + (ordered[upper] - ordered[lower]) * fraction
 
     def _add_intercept(self, X: np.ndarray) -> np.ndarray:
         """Add intercept column to design matrix."""
@@ -1577,132 +1612,75 @@ class HighPrecisionRegression:
 
         return importance
 
+    # ------------------------------------------------------------------ robust regression
+    #
+    # All three robust estimators below were dead code AND wrong. They were unreachable
+    # from the API (RegressionRequestSerializer's ChoiceField never listed "robust"), so
+    # nothing ever executed them and nothing ever noticed that:
+    #
+    #   * they passed `sample_size`, `num_predictors`, `fitted_values` and `feature_names`
+    #     to RegressionResult, none of which are fields on it -> TypeError on construction;
+    #   * they omitted `mape` and `predictions`, which ARE required fields;
+    #   * they passed `diagnostics=None`, which regression_views dereferences by default;
+    #   * they fitted sklearn with `fit_intercept=False` under a comment claiming "we
+    #     include intercept in X" -- but no caller ever added an intercept column, so the
+    #     model was forced through the origin;
+    #   * and they then reported `intercept = coefficients[0]`, i.e. the slope of the first
+    #     predictor was returned as the intercept AND as that predictor's coefficient.
+    #
+    # They now fit an intercept properly, name only the real predictors, and share one
+    # result builder so the three cannot drift apart again.
+
     def _huber_regression(
         self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
     ) -> RegressionResult:
         """
         Huber robust regression using iteratively reweighted least squares.
 
-        Huber regression is less sensitive to outliers than OLS by using
-        a loss function that is quadratic for small residuals and linear
-        for large residuals.
+        Huber regression is less sensitive to outliers than OLS by using a loss function
+        that is quadratic for small residuals and linear for large ones.
 
         Args:
-            X: Design matrix (n × p)
-            y: Response vector (n × 1)
-            feature_names: Optional names for features
-            **kwargs: Additional parameters (epsilon, max_iter, tol)
-
-        Returns:
-            RegressionResult with robust parameter estimates
+            X: Design matrix (n x p), WITHOUT an intercept column
+            y: Response vector
+            feature_names: Optional names for the p predictors
+            **kwargs: epsilon, max_iter, tol, alpha, confidence_level
         """
         from sklearn.linear_model import HuberRegressor
 
-        n, p = X.shape
+        X_arr, y_arr = self._as_design(X, y)
+        epsilon = kwargs.get("epsilon", 1.35)
 
-        # Get parameters
-        epsilon = kwargs.get("epsilon", 1.35)  # Tuning constant
-        max_iter = kwargs.get("max_iter", 100)
-        tol = kwargs.get("tol", 1e-5)
-        alpha = kwargs.get("alpha", 0.0001)  # Ridge regularization
-
-        # Fit Huber regression using sklearn
-        huber = HuberRegressor(
-            epsilon=epsilon, max_iter=max_iter, alpha=alpha, tol=tol, fit_intercept=False  # We include intercept in X
+        model = HuberRegressor(
+            epsilon=epsilon,
+            max_iter=kwargs.get("max_iter", 100),
+            alpha=kwargs.get("alpha", 0.0001),
+            tol=kwargs.get("tol", 1e-5),
+            fit_intercept=True,
         )
+        model.fit(X_arr, y_arr)
 
-        huber.fit(X, y.flatten())
+        predictions = model.predict(X_arr)
+        residuals = y_arr - predictions
 
-        # Extract coefficients
-        coefficients = huber.coef_
+        # Robust scale estimate (MAD -> sigma), and the Huber weights implied by it.
+        scale = self._robust_scale(residuals)
+        weights = self._huber_weights(residuals / scale, epsilon)
 
-        # Calculate fitted values and residuals
-        y_pred = huber.predict(X)
-        residuals = y.flatten() - y_pred
-
-        # Calculate robust scale estimate (MAD)
-        mad = np.median(np.abs(residuals - np.median(residuals)))
-        robust_scale = mad * 1.4826  # Convert to std estimate
-
-        # Calculate robust R-squared
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
-        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
-
-        # Degrees of freedom
-        df_residual = n - p
-
-        # Adjusted R-squared
-        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
-
-        # Calculate robust standard errors using MAD-based scale
-        # For Huber regression, use weighted covariance matrix
-        weights = self._huber_weights(residuals / robust_scale, epsilon)
-        W = np.diag(weights)
-
-        XtWX = X.T @ W @ X
-        try:
-            XtWX_inv = np.linalg.inv(XtWX)
-            robust_var = robust_scale**2 * XtWX_inv
-            std_errors = np.sqrt(np.diag(robust_var))
-        except:
-            std_errors = np.ones(p)
-
-        # T-statistics and p-values
-        t_stats = coefficients / std_errors
-        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
-
-        # Confidence intervals
-        _confidence_level = kwargs.get("confidence_level", 0.95)
-        t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
-        ci_lower = coefficients - t_crit * std_errors
-        ci_upper = coefficients + t_crit * std_errors
-
-        # Prepare feature names
-        if feature_names is None:
-            feature_names = [f"X{i+1}" for i in range(p)]
-
-        # Calculate AIC and BIC
-        mse = ss_res / n
-        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(mse) + 1)
-        aic = 2 * p - 2 * log_likelihood
-        bic = np.log(n) * p - 2 * log_likelihood
-
-        # Build result
-        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {
-            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
-        }
-
-        result = RegressionResult(
-            regression_type=RegressionType.ROBUST_HUBER,
-            coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
-            standard_errors=std_errors_dict,
-            t_statistics=t_statistics_dict,
-            p_values=p_values_dict,
-            confidence_intervals=confidence_intervals_dict,
-            r_squared=Decimal(str(r_squared)),
-            adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal("0"),  # Not standard for robust regression
-            f_p_value=Decimal("1"),
-            aic=Decimal(str(aic)),
-            bic=Decimal(str(bic)),
-            mse=Decimal(str(mse)),
-            rmse=Decimal(str(np.sqrt(mse))),
-            mae=Decimal(str(np.mean(np.abs(residuals)))),
-            sample_size=n,
-            num_predictors=p,
-            residuals=residuals.tolist(),
-            fitted_values=y_pred.tolist(),
-            diagnostics=None,
-            feature_names=feature_names,
+        return self._build_robust_result(
+            RegressionType.ROBUST_HUBER,
+            X_arr,
+            y_arr,
+            predictions,
+            residuals,
+            model.coef_,
+            float(model.intercept_),
+            feature_names,
+            kwargs,
+            weights=weights,
+            scale=scale,
+            additional={"robust_scale_mad": float(scale), "epsilon": float(epsilon)},
         )
-
-        return result
 
     def _huber_weights(self, z: np.ndarray, c: float) -> np.ndarray:
         """Calculate Huber weights for weighted least squares"""
@@ -1717,117 +1695,220 @@ class HighPrecisionRegression:
         """
         RANSAC (Random Sample Consensus) robust regression.
 
-        RANSAC is very robust to outliers by iteratively fitting models
-        to random subsets of the data and selecting the model with the
-        most inliers.
+        Iteratively fits models to random subsets and keeps the one with the most inliers,
+        which makes it very resistant to gross outliers. Standard errors are computed from
+        the inliers only.
 
         Args:
-            X: Design matrix (n × p)
-            y: Response vector (n × 1)
-            feature_names: Optional names for features
-            **kwargs: Additional parameters (min_samples, residual_threshold, max_trials)
-
-        Returns:
-            RegressionResult with robust parameter estimates from inliers only
+            X: Design matrix (n x p), WITHOUT an intercept column
+            y: Response vector
+            feature_names: Optional names for the p predictors
+            **kwargs: min_samples, residual_threshold, max_trials, random_state
         """
         from sklearn.linear_model import RANSACRegressor, LinearRegression
 
-        n, p = X.shape
+        X_arr, y_arr = self._as_design(X, y)
+        n, p = X_arr.shape
 
-        # Get parameters
-        min_samples = kwargs.get("min_samples", min(p + 1, n // 2))
-        residual_threshold = kwargs.get("residual_threshold", None)  # Auto if None
-        max_trials = kwargs.get("max_trials", 100)
-        random_state = kwargs.get("random_state", 42)
+        model = RANSACRegressor(
+            estimator=LinearRegression(fit_intercept=True),
+            min_samples=kwargs.get("min_samples", min(p + 1, max(2, n // 2))),
+            residual_threshold=kwargs.get("residual_threshold", None),
+            max_trials=kwargs.get("max_trials", 100),
+            random_state=kwargs.get("random_state", 42),
+        )
+        model.fit(X_arr, y_arr)
 
-        # Fit RANSAC regression using sklearn
-        ransac = RANSACRegressor(
-            estimator=LinearRegression(fit_intercept=False),
-            min_samples=min_samples,
-            residual_threshold=residual_threshold,
-            max_trials=max_trials,
-            random_state=random_state,
+        predictions = model.predict(X_arr)
+        residuals = y_arr - predictions
+
+        # Only the inliers inform the uncertainty -- that is the point of RANSAC.
+        inliers = model.inlier_mask_
+        weights = inliers.astype(float)
+
+        n_inliers = int(np.sum(inliers))
+        df_inliers = max(n_inliers - (p + 1), 1)
+        scale = float(np.sqrt(np.sum(residuals[inliers] ** 2) / df_inliers))
+
+        return self._build_robust_result(
+            RegressionType.ROBUST_RANSAC,
+            X_arr,
+            y_arr,
+            predictions,
+            residuals,
+            model.estimator_.coef_,
+            float(model.estimator_.intercept_),
+            feature_names,
+            kwargs,
+            weights=weights,
+            scale=scale,
+            df_override=df_inliers,
+            additional={"n_inliers": n_inliers, "n_outliers": int(n - n_inliers)},
         )
 
-        ransac.fit(X, y.flatten())
+    def _theil_sen_regression(
+        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
+    ) -> RegressionResult:
+        """
+        Theil-Sen robust regression (median of pairwise slopes).
 
-        # Extract coefficients
-        coefficients = ransac.estimator_.coef_
+        A non-parametric estimator with a 29.3% breakdown point.
 
-        # Get inlier mask
-        inlier_mask = ransac.inlier_mask_
-        n_inliers = np.sum(inlier_mask)
+        Args:
+            X: Design matrix (n x p), WITHOUT an intercept column
+            y: Response vector
+            feature_names: Optional names for the p predictors
+            **kwargs: max_subpopulation, max_iter, tol, random_state
+        """
+        from sklearn.linear_model import TheilSenRegressor
 
-        # Calculate fitted values and residuals
-        y_pred = ransac.predict(X)
-        residuals = y.flatten() - y_pred
+        X_arr, y_arr = self._as_design(X, y)
 
-        # Calculate R-squared
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
-        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+        model = TheilSenRegressor(
+            max_subpopulation=kwargs.get("max_subpopulation", 10000),
+            max_iter=kwargs.get("max_iter", 300),
+            tol=kwargs.get("tol", 1e-3),
+            random_state=kwargs.get("random_state", 42),
+            fit_intercept=True,
+        )
+        model.fit(X_arr, y_arr)
 
-        # Degrees of freedom based on inliers
-        df_residual = n_inliers - p
+        predictions = model.predict(X_arr)
+        residuals = y_arr - predictions
+        scale = self._robust_scale(residuals)
 
-        # Adjusted R-squared
-        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
+        return self._build_robust_result(
+            RegressionType.ROBUST_THEIL_SEN,
+            X_arr,
+            y_arr,
+            predictions,
+            residuals,
+            model.coef_,
+            float(model.intercept_),
+            feature_names,
+            kwargs,
+            scale=scale,
+            additional={"breakdown_point": 0.293, "robust_scale_mad": float(scale)},
+        )
 
-        # Calculate standard errors using inliers only
-        X_inliers = X[inlier_mask]
-        residuals_inliers = residuals[inlier_mask]
+    # ---------------------------------------------------------------- robust helpers
 
-        mse = np.sum(residuals_inliers**2) / df_residual if df_residual > 0 else 1.0
+    @staticmethod
+    def _as_design(X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Coerce to a float (n, p) design matrix and a flat float response."""
+        X_arr = np.asarray(X, dtype=float)
+        if X_arr.ndim == 1:
+            X_arr = X_arr.reshape(-1, 1)
+        return X_arr, np.asarray(y, dtype=float).ravel()
+
+    @staticmethod
+    def _robust_scale(residuals: np.ndarray) -> float:
+        """MAD-based scale estimate, consistent for the normal (x 1.4826)."""
+        mad = float(np.median(np.abs(residuals - np.median(residuals))))
+        scale = mad * 1.4826
+        if scale <= 0:
+            # A perfect (or near-perfect) fit: fall back to the RMS so the weighted
+            # covariance below stays finite instead of dividing by zero.
+            scale = float(np.sqrt(np.mean(residuals**2)))
+        return scale if scale > 0 else 1.0
+
+    def _build_robust_result(
+        self,
+        regression_type: RegressionType,
+        X: np.ndarray,
+        y: np.ndarray,
+        predictions: np.ndarray,
+        residuals: np.ndarray,
+        coefficients: np.ndarray,
+        intercept: float,
+        feature_names: Optional[List[str]],
+        kwargs: Dict,
+        weights: Optional[np.ndarray] = None,
+        scale: float = 1.0,
+        df_override: Optional[int] = None,
+        additional: Optional[Dict] = None,
+    ) -> RegressionResult:
+        """
+        Assemble a RegressionResult from a fitted robust model.
+
+        Standard errors come from the weighted sandwich sigma^2 (X'WX)^-1 evaluated on the
+        intercept-augmented design, so the intercept gets its own standard error and the
+        predictors keep theirs -- rather than the old code's habit of reporting the first
+        slope as the intercept.
+        """
+        n, p = X.shape
+        if feature_names is None:
+            feature_names = [f"X{i + 1}" for i in range(p)]
+
+        design = np.hstack([np.ones((n, 1)), X])
+        params = np.concatenate([[intercept], np.asarray(coefficients, dtype=float).ravel()])
+
+        if weights is None:
+            weights = np.ones(n)
+        W = np.diag(weights)
 
         try:
-            XtX_inv = np.linalg.inv(X_inliers.T @ X_inliers)
-            var_coef = mse * XtX_inv
-            std_errors = np.sqrt(np.diag(var_coef))
-        except:
-            std_errors = np.ones(p)
+            xtwx_inv = np.linalg.inv(design.T @ W @ design)
+            std_errors = np.sqrt(np.abs(np.diag(scale**2 * xtwx_inv)))
+        except np.linalg.LinAlgError:
+            std_errors = np.ones(p + 1)
 
-        # T-statistics and p-values
-        t_stats = coefficients / std_errors
-        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
+        std_errors = np.where(std_errors > 0, std_errors, 1e-12)
 
-        # Confidence intervals
-        _confidence_level = kwargs.get("confidence_level", 0.95)
-        if df_residual > 0:
-            t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
-            ci_lower = coefficients - t_crit * std_errors
-            ci_upper = coefficients + t_crit * std_errors
-        else:
-            ci_lower = coefficients - 2 * std_errors
-            ci_upper = coefficients + 2 * std_errors
+        df_residual = df_override if df_override is not None else max(n - (p + 1), 1)
+        t_stats = params / std_errors
+        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual))
 
-        # Prepare feature names
-        if feature_names is None:
-            feature_names = [f"X{i+1}" for i in range(p)]
+        confidence_level = kwargs.get("confidence_level", 0.95)
+        t_crit = stats.t.ppf(1 - (1 - confidence_level) / 2, df_residual)
+        ci_lower = params - t_crit * std_errors
+        ci_upper = params + t_crit * std_errors
 
-        # Calculate AIC and BIC
-        log_likelihood = -n_inliers / 2 * (np.log(2 * np.pi) + np.log(mse) + 1)
-        aic = 2 * p - 2 * log_likelihood
-        bic = np.log(n_inliers) * p - 2 * log_likelihood
+        # Goodness of fit against the mean model.
+        ss_res = float(np.sum(residuals**2))
+        ss_tot = float(np.sum((y - np.mean(y)) ** 2))
+        r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0.0
+        adj_r_squared = (
+            1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else r_squared
+        )
 
-        # Build result
-        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {
-            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
-        }
+        mse = ss_res / n if n else 0.0
+        safe_mse = mse if mse > 0 else 1e-300
+        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(safe_mse) + 1)
+        k = p + 1
+        aic = 2 * k - 2 * log_likelihood
+        bic = np.log(n) * k - 2 * log_likelihood if n > 1 else 2 * k - 2 * log_likelihood
 
-        result = RegressionResult(
-            regression_type=RegressionType.ROBUST_RANSAC,
+        # Name the intercept row so it does not collide with a predictor called X1.
+        names = ["Intercept"] + list(feature_names)
+
+        def _dec(values):
+            return {name: Decimal(str(value)) for name, value in zip(names, values)}
+
+        # Coefficients exclude the intercept -- it has its own field.
+        coefficients_dict = {name: Decimal(str(v)) for name, v in zip(feature_names, params[1:])}
+
+        y_hp = self._to_high_precision_vector(y)
+        pred_hp = self._to_high_precision_vector(predictions)
+        design_hp = self._to_high_precision_matrix(design)
+        residuals_hp = self._to_high_precision_vector(residuals)
+
+        return RegressionResult(
+            regression_type=regression_type,
             coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
-            standard_errors=std_errors_dict,
-            t_statistics=t_statistics_dict,
-            p_values=p_values_dict,
-            confidence_intervals=confidence_intervals_dict,
+            intercept=Decimal(str(params[0])),
+            standard_errors=_dec(std_errors),
+            t_statistics=_dec(t_stats),
+            p_values=_dec(p_values),
+            confidence_intervals={
+                name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i])))
+                for i, name in enumerate(names)
+            },
             r_squared=Decimal(str(r_squared)),
             adjusted_r_squared=Decimal(str(adj_r_squared)),
+            # An F-test assumes the OLS/normal likelihood, which is exactly what a robust
+            # fit declines to assume. Reporting a made-up F here would be worse than
+            # reporting none, so these stay at their neutral values.
             f_statistic=Decimal("0"),
             f_p_value=Decimal("1"),
             aic=Decimal(str(aic)),
@@ -1835,154 +1916,15 @@ class HighPrecisionRegression:
             mse=Decimal(str(mse)),
             rmse=Decimal(str(np.sqrt(mse))),
             mae=Decimal(str(np.mean(np.abs(residuals)))),
+            mape=Decimal(str(self._calculate_mape(y_hp, pred_hp))),
+            predictions=predictions,
+            residuals=residuals,
+            diagnostics=self._calculate_diagnostics(
+                design_hp, y_hp, pred_hp, residuals_hp, feature_names
+            ),
             sample_size=n,
-            num_predictors=p,
-            residuals=residuals.tolist(),
-            fitted_values=y_pred.tolist(),
-            diagnostics=None,
-            feature_names=feature_names,
-            additional_info={"n_inliers": n_inliers, "n_outliers": n - n_inliers, "inlier_ratio": n_inliers / n},
+            interpretation={key: str(value) for key, value in (additional or {}).items()},
         )
-
-        return result
-
-    def _theil_sen_regression(
-        self, X: np.ndarray, y: np.ndarray, feature_names: Optional[List[str]], **kwargs
-    ) -> RegressionResult:
-        """
-        Theil-Sen robust regression using median of slopes.
-
-        Theil-Sen estimator is a non-parametric robust method that
-        calculates the median of slopes for all pairs of points.
-        It has a breakdown point of 29.3% (very robust to outliers).
-
-        Args:
-            X: Design matrix (n × p)
-            y: Response vector (n × 1)
-            feature_names: Optional names for features
-            **kwargs: Additional parameters (max_subpopulation, max_iter)
-
-        Returns:
-            RegressionResult with robust parameter estimates
-        """
-        from sklearn.linear_model import TheilSenRegressor
-
-        n, p = X.shape
-
-        # Get parameters
-        max_subpopulation = kwargs.get("max_subpopulation", 10000)
-        max_iter = kwargs.get("max_iter", 300)
-        tol = kwargs.get("tol", 1e-3)
-        random_state = kwargs.get("random_state", 42)
-
-        # Fit Theil-Sen regression using sklearn
-        theilsen = TheilSenRegressor(
-            max_subpopulation=max_subpopulation,
-            max_iter=max_iter,
-            tol=tol,
-            random_state=random_state,
-            fit_intercept=False,  # We include intercept in X
-        )
-
-        theilsen.fit(X, y.flatten())
-
-        # Extract coefficients
-        coefficients = theilsen.coef_
-
-        # Calculate fitted values and residuals
-        y_pred = theilsen.predict(X)
-        residuals = y.flatten() - y_pred
-
-        # Calculate robust R-squared
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((y.flatten() - np.mean(y)) ** 2)
-        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
-
-        # Degrees of freedom
-        df_residual = n - p
-
-        # Adjusted R-squared
-        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / df_residual if df_residual > 0 else 0
-
-        # Calculate robust standard errors using MAD
-        mad = np.median(np.abs(residuals - np.median(residuals)))
-        robust_scale = mad * 1.4826  # Convert MAD to std estimate
-
-        # Bootstrap-based standard errors (simplified)
-        # For Theil-Sen, standard errors are typically estimated via bootstrap
-        # Here we use a simplified MAD-based approach
-        try:
-            # Estimate covariance using residual variance
-            mse = robust_scale**2
-            XtX_inv = np.linalg.inv(X.T @ X)
-            var_coef = mse * XtX_inv
-            std_errors = np.sqrt(np.diag(var_coef))
-        except:
-            std_errors = np.ones(p) * robust_scale / np.sqrt(n)
-
-        # T-statistics and p-values
-        t_stats = coefficients / std_errors
-        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df_residual)) if df_residual > 0 else np.ones(p)
-
-        # Confidence intervals
-        _confidence_level = kwargs.get("confidence_level", 0.95)
-        if df_residual > 0:
-            t_crit = stats.t.ppf(1 - (1 - _confidence_level) / 2, df_residual)
-            ci_lower = coefficients - t_crit * std_errors
-            ci_upper = coefficients + t_crit * std_errors
-        else:
-            ci_lower = coefficients - 2 * std_errors
-            ci_upper = coefficients + 2 * std_errors
-
-        # Prepare feature names
-        if feature_names is None:
-            feature_names = [f"X{i+1}" for i in range(p)]
-
-        # Calculate AIC and BIC
-        mse_val = ss_res / n
-        log_likelihood = -n / 2 * (np.log(2 * np.pi) + np.log(mse_val) + 1)
-        aic = 2 * p - 2 * log_likelihood
-        bic = np.log(n) * p - 2 * log_likelihood
-
-        # Build result
-        coefficients_dict = {name: Decimal(str(coef)) for name, coef in zip(feature_names, coefficients)}
-        std_errors_dict = {name: Decimal(str(se)) for name, se in zip(feature_names, std_errors)}
-        t_statistics_dict = {name: Decimal(str(t)) for name, t in zip(feature_names, t_stats)}
-        p_values_dict = {name: Decimal(str(p)) for name, p in zip(feature_names, p_values)}
-        confidence_intervals_dict = {
-            name: (Decimal(str(ci_lower[i])), Decimal(str(ci_upper[i]))) for i, name in enumerate(feature_names)
-        }
-
-        result = RegressionResult(
-            regression_type=RegressionType.ROBUST_THEIL_SEN,
-            coefficients=coefficients_dict,
-            intercept=Decimal(str(coefficients[0])) if p > 0 else Decimal("0"),
-            standard_errors=std_errors_dict,
-            t_statistics=t_statistics_dict,
-            p_values=p_values_dict,
-            confidence_intervals=confidence_intervals_dict,
-            r_squared=Decimal(str(r_squared)),
-            adjusted_r_squared=Decimal(str(adj_r_squared)),
-            f_statistic=Decimal("0"),
-            f_p_value=Decimal("1"),
-            aic=Decimal(str(aic)),
-            bic=Decimal(str(bic)),
-            mse=Decimal(str(mse_val)),
-            rmse=Decimal(str(np.sqrt(mse_val))),
-            mae=Decimal(str(np.mean(np.abs(residuals)))),
-            sample_size=n,
-            num_predictors=p,
-            residuals=residuals.tolist(),
-            fitted_values=y_pred.tolist(),
-            diagnostics=None,
-            feature_names=feature_names,
-            additional_info={
-                "breakdown_point": 0.293,  # Theoretical breakdown point for Theil-Sen
-                "robust_scale_mad": robust_scale,
-            },
-        )
-
-        return result
 
     def _fit_multinomial_logistic(
         self, X: np.ndarray, y: np.ndarray, max_iter: int, tol: float, regularization: Optional[str], alpha: float

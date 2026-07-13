@@ -499,7 +499,25 @@ class CorrelationRequestSerializer(serializers.Serializer):
 class RegressionRequestSerializer(serializers.Serializer):
     """Serializer for regression requests"""
 
-    REGRESSION_TYPES = ["simple_linear", "multiple_linear", "polynomial", "logistic", "ridge", "lasso"]
+    # robust / quantile / stepwise were implemented in HighPrecisionRegression AND branched
+    # on in regression_views, but were missing from this ChoiceField -- so those branches
+    # were unreachable and the frontend's "Robust Regression" option quietly fitted an
+    # ordinary least-squares line and labelled it robust.
+    REGRESSION_TYPES = [
+        "simple_linear",
+        "multiple_linear",
+        "polynomial",
+        "logistic",
+        "ridge",
+        "lasso",
+        "robust",
+        "quantile",
+        "stepwise",
+    ]
+
+    # Types that inherently take a single predictor: X must be a flat list.
+    ONE_DIMENSIONAL_TYPES = ["simple_linear", "polynomial"]
+    # Everything else accepts either one predictor (flat list) or several (list of rows).
 
     type = serializers.ChoiceField(choices=REGRESSION_TYPES)
     X = serializers.ListField()  # Can be 1D or 2D
@@ -511,24 +529,34 @@ class RegressionRequestSerializer(serializers.Serializer):
         """Validate regression data"""
         X = data["X"]
         y = data["y"]
+        label = data["type"].replace("_", " ").title()
 
-        # Check dimensions
-        if data["type"] in ["simple_linear", "polynomial"]:
-            # X should be 1D for simple linear and polynomial
-            if not all(isinstance(x, (int, float)) for x in X):
-                raise serializers.ValidationError(
-                    f"{data['type'].replace('_', ' ').title()} regression requires 1D array for X"
-                )
-            if len(X) != len(y):
-                raise serializers.ValidationError("X and y must have the same length")
-        else:
-            # X should be 2D (list of lists) for multiple linear, ridge, lasso, logistic
-            if not all(isinstance(row, list) for row in X):
-                raise serializers.ValidationError(
-                    f"{data['type'].replace('_', ' ').title()} regression requires 2D array for X"
-                )
-            if len(X) != len(y):
-                raise serializers.ValidationError("Number of rows in X must match length of y")
+        if not X:
+            raise serializers.ValidationError("X must not be empty")
+
+        is_2d = all(isinstance(row, list) for row in X)
+        is_1d = all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in X)
+
+        if data["type"] in self.ONE_DIMENSIONAL_TYPES:
+            if not is_1d:
+                raise serializers.ValidationError(f"{label} regression requires a 1D array for X")
+        elif data["type"] == "multiple_linear":
+            if not is_2d:
+                raise serializers.ValidationError(f"{label} regression requires a 2D array for X")
+        elif not (is_1d or is_2d):
+            # ridge / lasso / logistic / robust / quantile / stepwise: one predictor or many.
+            raise serializers.ValidationError(
+                f"{label} regression requires X to be a list of numbers (one predictor) "
+                "or a list of rows (several predictors)"
+            )
+
+        if len(X) != len(y):
+            raise serializers.ValidationError("X and y must have the same number of observations")
+
+        if is_2d:
+            widths = {len(row) for row in X}
+            if len(widths) > 1:
+                raise serializers.ValidationError("Every row of X must have the same number of predictors")
 
         return data
 
