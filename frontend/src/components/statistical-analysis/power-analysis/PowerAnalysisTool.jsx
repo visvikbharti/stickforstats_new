@@ -261,13 +261,33 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const curveBenchmarks = CURVE_BENCHMARKS[usesCohensF ? 'f' : 'd'];
   const effectSizeSymbol = usesCohensF ? 'f' : 'd';
 
-  // The curve was always drawn for a BALANCED design, while the headline beside it honoured the
-  // group-2 box. So a 30/60 t-test showed a headline power of 0.6633 sitting directly above a
-  // curve that reads 0.4779 at n = 30 -- two numbers, one screen, one design, both claiming to be
-  // its power. Holding n2/n1 fixed as n1 varies is what G*Power does, and it is the only reading of
-  // "power vs n" that means anything for an unequal design.
-  const curveAllocationRatio =
-    acceptsSecondArm(testType) && sampleSize2 && sampleSize ? sampleSize2 / sampleSize : 1;
+  /**
+   * The second arm of the design being reported. ONE value, ONE rule, read by EVERY consumer.
+   *
+   * This has been fixed five times, and it came back every time, because the rule for "does this
+   * design have a second arm" was re-derived at each call site and the derivations drifted:
+   *
+   *   1. the power request dropped it entirely -- the box did nothing at all;
+   *   2. the total N kept a STALE one after the test changed, exporting 90 subjects for a
+   *      Mann-Whitney whose power was computed at 30/30;
+   *   3. the code generator put an n2 into the script that the power had ignored;
+   *   4. the minimum-detectable-effect request dropped it, answering a 30/60 design as a balanced
+   *      30/30 one -- overstating the smallest detectable effect by 16%;
+   *   5. and the curve's allocation ratio ignored the MODE. The group-2 box does not render in
+   *      sample-size mode, but `sampleSize2` survives in state, so after entering 30/60 in power
+   *      mode and switching to sample-size mode the curve was drawn at a 1:2 allocation while the
+   *      answer above it ("64 per group") is balanced: the curve claimed 90.1% power at the very n
+   *      the answer said gives 80.1%.
+   *
+   * Two conditions, and BOTH matter: the test must have a second arm, and the box must actually be
+   * on screen. A value the user cannot see is not a value they have told us.
+   */
+  const secondArm =
+    calculationMode !== 'sampleSize' && acceptsSecondArm(testType) ? sampleSize2 || null : null;
+
+  // n2/n1, held fixed as n1 moves along the curve, so the curve passes THROUGH the headline point
+  // rather than describing a balanced design the user did not ask for. G*Power does the same.
+  const curveAllocationRatio = secondArm && sampleSize ? secondArm / sampleSize : 1;
 
   const buildPowerCurves = useCallback(async () => {
     if (!isPowerTestSupported(testType)) return null;
@@ -378,22 +398,6 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       alternative,
       parentDistribution,
     };
-
-    // The second arm, resolved ONCE for EVERY mode, by the gateway that knows which designs have
-    // one. It has taken four rounds to stop this value lying, because each fix gated one more
-    // consumer and left the next:
-    //
-    //   - the power request dropped it (the box did nothing at all);
-    //   - the total N kept a STALE one after the test changed, so a Mann-Whitney at n = 30 exported
-    //     90 subjects for a power computed at 30/30;
-    //   - the code generator put an n2 into the script that the power had ignored;
-    //   - and the minimum-detectable-effect request dropped it too -- the box renders in that mode
-    //     as well, so a 30/60 design was answered as a balanced 30/30 one, quoting d = 0.7356 where
-    //     the truth is 0.6334. That overstates the smallest detectable effect by 16%, and the d it
-    //     quotes actually has 90.2% power in the design described, not the 80% asked for.
-    //
-    // One value, computed once, read by all of them. They cannot disagree about the design again.
-    const secondArm = acceptsSecondArm(testType) ? sampleSize2 : null;
 
     try {
       let result;
@@ -566,7 +570,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     // HAVE a second arm get one -- the group-2 box does not clear when the test changes, and a
     // stale value handed to a Mann-Whitney would put an n2 in the script that the power ignored.
     sampleSize,
-    sampleSize2: acceptsSecondArm(testType) ? sampleSize2 : null,
+    sampleSize2: secondArm,
     numGroups,
     degreesOfFreedom,
     allocationRatio,

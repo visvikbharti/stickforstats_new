@@ -375,3 +375,61 @@ describe('acceptsSecondArm', () => {
     expect(totalSampleSize('mann-whitney', 30, 60)).toBe(90);
   });
 });
+
+/**
+ * The second arm belongs to the design ONLY when the user can see the box.
+ *
+ * This value has now been fixed five times and come back five times, because the rule for "does
+ * this design have a second arm" was re-derived at each call site and the derivations drifted. The
+ * fifth instance was the one no previous test could see, because every previous test varied the
+ * TEST and never the MODE:
+ *
+ *   The group-2 box does not render in sample-size mode. But `sampleSize2` survives in state, so
+ *   after entering 30/60 in power mode and switching to sample-size mode, the curve was requested
+ *   at a 1:2 allocation while the answer above it ("64 per group") is balanced. The curve claimed
+ *   90.1% power at the very n whose reported power is 80.1%.
+ *
+ * The rule is now derived once in PowerAnalysisTool and read by all five consumers. What is pinned
+ * here is the rule itself: BOTH conditions matter, and a value the user cannot see is not a value
+ * they have told us.
+ */
+describe('the second arm is only part of the design when the box is on screen', () => {
+  // The single rule, as PowerAnalysisTool derives it.
+  const secondArmFor = (calculationMode, testType, sampleSize2) =>
+    calculationMode !== 'sampleSize' && acceptsSecondArm(testType) ? sampleSize2 || null : null;
+
+  const ratioFor = (secondArm, sampleSize) => (secondArm && sampleSize ? secondArm / sampleSize : 1);
+
+  it('is dropped in sample-size mode, where the box is not rendered', () => {
+    // The user typed 60 in power mode; the box is now hidden and the answer is balanced.
+    expect(secondArmFor('sampleSize', 'two-sample-t', 60)).toBeNull();
+    expect(ratioFor(secondArmFor('sampleSize', 'two-sample-t', 60), 30)).toBe(1);
+  });
+
+  it('is honoured in the two modes where the box IS rendered', () => {
+    expect(secondArmFor('power', 'two-sample-t', 60)).toBe(60);
+    expect(secondArmFor('effectSize', 'two-sample-t', 60)).toBe(60);
+    expect(ratioFor(secondArmFor('power', 'two-sample-t', 60), 30)).toBe(2);
+  });
+
+  it('is dropped for every test that has no second arm, in every mode', () => {
+    for (const mode of ['power', 'sampleSize', 'effectSize']) {
+      for (const test of ['mann-whitney', 'wilcoxon', 'kruskal-wallis', 'paired-t', 'anova', 'correlation']) {
+        expect(secondArmFor(mode, test, 60)).toBeNull();
+        expect(ratioFor(secondArmFor(mode, test, 60), 30)).toBe(1);
+      }
+    }
+  });
+
+  it('a balanced design asks for no allocation ratio at all', () => {
+    expect(ratioFor(secondArmFor('power', 'two-sample-t', 30), 30)).toBe(1);
+  });
+
+  it('the total N follows the same rule, so it cannot disagree with the curve', () => {
+    // Power mode, 30/60 -> the design really is 90 subjects.
+    expect(totalSampleSize('two-sample-t', 30, secondArmFor('power', 'two-sample-t', 60))).toBe(90);
+
+    // Sample-size mode -> the answer is balanced, so the total must be too.
+    expect(totalSampleSize('two-sample-t', 64, secondArmFor('sampleSize', 'two-sample-t', 60))).toBe(128);
+  });
+});
