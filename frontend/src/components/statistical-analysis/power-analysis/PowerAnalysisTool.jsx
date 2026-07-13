@@ -212,7 +212,6 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const [calculationMode, setCalculationMode] = useState('sampleSize');
   const [testType, setTestType] = useState('two-sample-t');
   const [alternative, setAlternative] = useState('two-sided');
-  const [activeTab, setActiveTab] = useState(0);
 
   // Input parameters
   const [alpha, setAlpha] = useState(0.05);
@@ -494,7 +493,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     } finally {
       if (requestId === requestRef.current) setIsCalculating(false);
     }
-  }, [calculationMode, testType, alpha, power, effectSize, sampleSize, sampleSize2,
+  }, [calculationMode, testType, alpha, power, effectSize, sampleSize, secondArm,
       numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves,
       usesCohensF]);
 
@@ -586,7 +585,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     // the script you copied computed 68.
     parentDistribution,
     results: results || {}
-  }), [testType, calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, numGroups, degreesOfFreedom, allocationRatio, alternative, parentDistribution, results]);
+  }), [testType, calculationMode, alpha, power, effectSize, sampleSize, secondArm, numGroups, degreesOfFreedom, allocationRatio, alternative, parentDistribution, results]);
 
   /**
    * Generate code for current analysis

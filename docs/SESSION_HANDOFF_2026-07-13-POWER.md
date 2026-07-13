@@ -141,3 +141,147 @@ Rollback point, tagged on the host as `stickforstats/{backend,frontend}:rollback
 
 - **Beta Basic-Auth password has NOT been rotated** off the old one.
 - The 13 dead education files (see above) still hold wrong browser-side power math.
+
+---
+
+## Round 7 (2026-07-14) — the sixth reviewer's findings, and the one it did not find
+
+The sixth adversarial pass found **no new P0/P1** — the first commit in the arc that did not ship a
+fresh screen-facing defect. It found two P2s and two P3s. All four are fixed. Chasing one of them
+turned up a fifth defect, in the engine, that no reviewer had looked at.
+
+**1. The rank-test exports ignored the calculation mode entirely (P2, live, pre-existing).**
+`generateRCodeNonParametric` / `generatePythonCodeNonParametric` took a `mode` and never read it —
+every other generator branches on it. So sample-size mode, where the sample-size box **is not
+rendered** and `sampleSize` therefore sits at its untouched default of 30, exported a script headed
+`# Calculation Mode: sampleSize` that computed the *power* of a 30-subject study and signed off with
+the achieved power of the 68-subject study the screen had recommended:
+
+    n <- 30                                    <- an n the user never saw or typed
+    effective_n <- n * ARE
+    result <- pwr.t.test(n = effective_n, ...) <- computes 0.4600 (executed)
+    # StickForStats Result: Power = 80.15%     <- claims 0.8015
+
+A 34-point contradiction inside a single artifact — and the artifact is the one that goes into the
+supplementary material. Both generators now branch on the mode and *solve* for n.
+
+**The solve has two steps and the ORDER is load-bearing.** The engine ceils the parametric n to a
+whole subject FIRST, then inflates by the ARE: `ceil(63.7656) = 64 → ceil(64 / 0.954930) = 68`.
+Dividing the *continuous* 63.7656 by the ARE first gives `ceil(66.77) = 67` — one subject short of
+the screen, which is this very defect wearing a different hat. The obvious way to write the script
+gets it wrong.
+
+The generated scripts are now **executed, not eyeballed** — R against `pwr`, Python against
+statsmodels — and land on the engine's own numbers: 64→68, 34→36, 14→15, and 0.4600 in power mode.
+
+**2. `secondArmFor` silently balanced a group-2 value of 1 (P2).** It returned `null` for n2 = 1 —
+the same `null` that means "no second arm", i.e. *balanced*. A user who typed 1 was shown the power
+of a 30/30 study with nothing on screen to say their input had been discarded. The backend correctly
+400s on n2 < 2; the frontend was routing around its own validation. **Absent** (null/undefined/''/0)
+still means balanced; anything the user actually **typed** is now sent as typed, and an impossible
+design comes back as the error it is.
+
+**3. A group-1 problem was blamed on group 2 (P3).** `n2` defaults to `n`, so the n2 guard fired for
+`sample_size=1` with no `sample_size2` at all: *"The second group needs at least n = 2 … got n2 = 1"*
+— naming a box the user never touched. Group 1 is now guarded before group 2 is derived from it.
+
+**4. The commit message's self-report was wrong again (P3).** Numbers below are executed.
+
+### The defect the reviewers did not find: the engine threw away the fractional subject
+
+Chasing (1) into the engine: `calculate_power_nonparametric` computed
+`base = calculate_power_t_test(sample_size=int(effective_n))`.
+
+`effective_n = n × ARE` is **not a headcount**. It is the fictitious size at which the parametric
+test has the same power — a point on a smooth curve. `int()` floored it, and it did damage twice:
+
+- it **understated the power of every rank test** — Mann-Whitney at n = 30 under a normal parent
+  was reported as **0.451351** when it is **0.460036**;
+- and because the normal ARE is **0.955 < 1**, the floor sometimes did not advance when n did:
+  `int(22 × 0.955) == int(23 × 0.955) == 21`. A user who recruited **one more subject per group**
+  was shown exactly the same power — told, in effect, that their subject bought them nothing.
+
+Fixed. Power is now **strictly** increasing in n across all five parents (executed, n = 5…59).
+`CACHE_SCHEMA_VERSION` bumped **4 → 5**: the rank endpoints return a different (and now correct)
+answer for an unchanged request body, so without the bump Redis re-serves the old one for an hour.
+
+### Gate (all executed, this round)
+
+- backend: see the round-8 gate below (the figure first written here was **typed, not executed** —
+  removed on sight, per [[feedback-never-type-an-unexecuted-number]]; it is the same reflex that
+  produced the five fabrications this arc exists to clean up)
+- frontend **999 passed / 56 suites** (was 965), flake8 clean on every touched file
+- **eslint 0 warnings** on all three touched files — including the `.jsx`, which **CI never lints**
+- `npm run build` (the way Docker builds it) compiles, exit 0. Note `CI=true npx react-scripts build`
+  fails, but only on *pre-existing* warnings in unrelated modules (`ManufacturingDefectsD3.jsx` and
+  friends); none of the touched files appear in the log. Docker does **not** set `CI`.
+- **Mutation-checked**: restoring `int(effective_n)` kills 6 tests; restoring the old `>= 2` rule in
+  `secondArmFor` kills 2; removing the group-1 guard kills 1. Tests that survive their own bug test
+  nothing, and that has caught me three times in this arc.
+
+---
+
+## Round 8 (2026-07-14) — the seventh defect: the *alternative*, not the second arm
+
+The seventh adversarial pass found a **P1 in my round-7 fix**. It is fixed; the numbers below are
+executed.
+
+**`generatePythonCodeNonParametric` hardcoded `alternative="two-sided"` in all four of its
+statsmodels calls — and it had been RECEIVING the user's choice all along.** Every other Python
+generator maps it (`altPy`). The R twin threaded it correctly. The Alternative dropdown **is**
+rendered for Mann-Whitney and Wilcoxon (`PowerAnalysisTool.jsx` excludes only anova / chi-square /
+kruskal-wallis) and the engine honours it — so a one-sided design exported **two scripts describing
+two different studies**:
+
+    Mann-Whitney, d = 0.5, 80% power, one-sided, normal parent
+      screen and exported R:   54 per group
+      exported PYTHON:         68 per group        <- 26% more subjects
+    Wilcoxon:  screen and R 29 pairs, exported Python 36 pairs
+    Power mode (pre-existing): screen 0.5887, exported Python computed 0.4600
+
+Both scripts were then **executed**: R and Python now both return **54 per group** and **29 pairs**.
+
+The trap: statsmodels spells it `larger`/`smaller`, `pwr` spells it `greater`/`less`. Interpolating
+the raw value would have produced a script that does not run at all. That is presumably why this
+branch was skipped in the first place.
+
+### The suite was blind to it — that is the real finding
+
+The reviewer mutated the **R** generator to hardcode the alternative too, i.e. broke it the same way
+Python was broken. **All 62 rank tests still passed.** Not one assertion looked at the alternative.
+It did the same to the Python Kruskal `/ k` division (deleting it makes the script demand 44 per
+group where the answer is 15, a 3x overstatement): **all 62 still passed**, because the only
+assertion on that line was a regex that matched either way.
+
+This is "the test pins a copy, not the rule" in a new costume — the fourth time in this arc. Both
+holes are now closed and **mutation-checked**: hardcoding the alternative kills **8** tests
+(was 0); deleting the `/ k` kills **1** (was 0).
+
+### Also fixed (P3s)
+
+- **The API response contradicted itself.** The computation stopped truncating the ARE-adjusted size
+  but the *report* of it had not: `/power/nonparametric/` returned a power computed at an effective
+  n of **28.6479** sitting beside `effective_parametric_n: 28`. The last `int()` standing.
+- **`secondArmForScript` and `secondArmFor` had DIVERGED** — I changed one and not the other, so the
+  service passed a too-small arm through while the script generator balanced it. Two rules for one
+  value is exactly the mechanism that made this value wrong five times. They agree again.
+- Grammar: "A independent t-test" -> "An".
+
+### What this says about convergence
+
+It is **not** a regression at a site already fixed, and it is **not** the second arm — that surface
+stayed closed, and every consumer still reads `secondArmFor`. It is the **alternative**: a different
+value with the same disease, where the new sample-size branch *inherited* the defect from the power
+branch beside it rather than inventing a new one. Blast radius is **exported artifact only, on the
+one-sided path**; every two-sided screen-facing number was correct throughout.
+
+The pattern that keeps holding: **new code written in this surface reproduces the surface's existing
+defect.** The defence is not more care. It is mutation-checking every new test, because a test that
+survives its own bug is not a test.
+
+### Round-8 gate (executed)
+
+- frontend **999 passed / 56 suites**, eslint **0 warnings** on all three touched files
+- backend: full `pytest tests/` — see commit message for the executed figure
+- both exported scripts **executed** (R via `pwr`, Python via statsmodels) and they agree with the
+  screen in every mode, two-sided and one-sided

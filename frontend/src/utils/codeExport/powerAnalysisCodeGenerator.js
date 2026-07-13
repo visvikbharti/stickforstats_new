@@ -111,6 +111,18 @@ const sampleSizeTable = (testType, numGroups) => {
 };
 
 /**
+ * What "n" MEANS for a rank test: subjects per group, or matched pairs.
+ *
+ * Printing "n per group" over a Wilcoxon answer is not a wording slip -- a one-sample test has no
+ * groups, so it tells the reader to recruit twice the study.
+ */
+const unitFor = (testType, numGroups) => {
+  if (testType === 'wilcoxon') return 'n pairs';
+  if (testType === 'kruskal-wallis') return `n per group, k = ${numGroups}`;
+  return 'n per group';
+};
+
+/**
  * The second arm, as the SCRIPT must express it.
  *
  * `sampleSize2` arrives as null whenever the design has no second arm — the test is one-sample, or
@@ -129,8 +141,17 @@ const sampleSizeTable = (testType, numGroups) => {
  * this value wrong five times in a row.
  */
 const secondArmForScript = (sampleSize2, sampleSize) => {
+  // This must mean the same thing as `secondArmFor` in hubTestService, and for a while it did not:
+  // that rule was changed to pass a TOO-SMALL arm through (so the backend can refuse it out loud
+  // instead of the screen quietly answering a balanced design), and this one was left balancing it.
+  // Two rules for one value is precisely how this value came to be wrong five times, so they agree
+  // again: ABSENT means balanced, and anything the user actually typed is used as typed.
+  //
+  // Its only caller hands it the already-derived `secondArm`, which is null-or-valid, so the typed
+  // case cannot reach a script today -- an impossible arm 400s and no script is generated at all.
+  // The rules agree anyway. Reachability is not a thing to depend on.
   const n2 = Number(sampleSize2);
-  return Number.isFinite(n2) && n2 >= 2 ? n2 : sampleSize; // absent / empty / nonsense => balanced
+  return Number.isFinite(n2) && n2 > 0 ? n2 : sampleSize; // absent / empty / nonsense => balanced
 };
 
 /**
@@ -800,6 +821,24 @@ cat("\\nMinimum Detectable Effect Size (Cohen's w):", round(result$w, 4), "\\n")
   }
 }
 
+/**
+ * The rank generators took a `mode` and NEVER READ IT. Every other generator branches on it.
+ *
+ * So sample-size mode -- where the sample-size box is not even rendered, leaving `sampleSize` at its
+ * untouched default of 30 -- exported a script headed "Calculation Mode: sampleSize" that computed
+ * the POWER of a 30-subject study (0.4600) and signed off with the achieved power of the 68-subject
+ * study the screen had actually recommended (0.8015). A 34-point contradiction inside one artifact,
+ * at an n the user never saw or typed.
+ *
+ * The solve has TWO steps and the order is load-bearing. The engine rounds the parametric n UP to an
+ * integer FIRST, then inflates by the ARE:
+ *
+ *     n_parametric = ceil(63.7656) = 64        then   n_rank = ceil(64 / 0.954930) = 68
+ *
+ * Dividing the CONTINUOUS 63.7656 by the ARE first gives ceil(66.77) = 67 -- one subject short of
+ * the number on the screen, which is this very defect wearing a different hat. Both steps ceil, in
+ * that order, in both languages.
+ */
 function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results, parentDistribution = 'normal') {
   const testName = getTestName(testType);
   const are = areFor(results, parentDistribution);
@@ -824,53 +863,78 @@ ${sampleSizeTable(testType, k)}
 
 # Parameters
 d <- ${d}        # Effect size (Cohen's d equivalent)
-n <- ${n}        # Sample size
 alpha <- ${alpha}  # Significance level
 ARE <- ${are.toFixed(6)}     # Pitman ARE, ${PARENT_LABEL[parentDistribution] || parentDistribution} parent
+${mode === 'sampleSize' ? `power <- ${power}       # Target power
 
-# Approach: Calculate power for parametric equivalent, then adjust
-# The effective sample size for non-parametric is n * ARE
+# Step 1: solve the PARAMETRIC design, and round UP to a whole subject.
+${testType === 'mann-whitney' ? `parametric <- pwr.t.test(
+  power = power,
+  d = d,
+  sig.level = alpha,
+  type = "two.sample",
+  alternative = "${alt}"
+)
+n_parametric <- ceiling(parametric$n)   # per group` : testType === 'wilcoxon' ? `parametric <- pwr.t.test(
+  power = power,
+  d = d,
+  sig.level = alpha,
+  type = "paired",
+  alternative = "${alt}"
+)
+n_parametric <- ceiling(parametric$n)   # pairs` : `parametric <- pwr.anova.test(
+  k = ${k},
+  f = d,             # Cohen's f for ANOVA
+  power = power,
+  sig.level = alpha
+)
+n_parametric <- ceiling(parametric$n)   # per group`}
 
+# Step 2: the rank test at n behaves like the parametric test at n * ARE, so it needs
+# n_parametric / ARE -- rounded up again, because subjects are whole people.
+n_rank <- ceiling(n_parametric / ARE)
+
+cat("Parametric equivalent:", n_parametric, "(${unitFor(testType, k)})\\n")
+cat("Rank test requires:  ", n_rank, "(${unitFor(testType, k)})\\n")
+
+# StickForStats Result: ${
+  results.n != null
+    ? `n = ${results.n} (${unitFor(testType, k)})` +
+      (typeof results.power === 'number' ? `, achieving power = ${(results.power * 100).toFixed(2)}%` : '')
+    : 'N/A'
+}` : `n <- ${n}        # Sample size (${unitFor(testType, k)})
+
+# The rank test at n behaves like the parametric test at n * ARE.
 effective_n <- n * ARE
 
-${testType === 'mann-whitney' ? `
-# Mann-Whitney U is equivalent to independent t-test
-# Use t-test power with effective sample size
+${testType === 'mann-whitney' ? `# Mann-Whitney U is equivalent to the independent t-test
 result <- pwr.t.test(
   n = effective_n,
   d = d,
   sig.level = alpha,
   type = "two.sample",
   alternative = "${alt}"
-)
-` : testType === 'wilcoxon' ? `
-# Wilcoxon Signed-Rank is equivalent to paired t-test
+)` : testType === 'wilcoxon' ? `# Wilcoxon Signed-Rank is equivalent to the paired t-test
 result <- pwr.t.test(
   n = effective_n,
   d = d,
   sig.level = alpha,
   type = "paired",
   alternative = "${alt}"
-)
-` : `
-# Kruskal-Wallis is equivalent to one-way ANOVA
+)` : `# Kruskal-Wallis is equivalent to one-way ANOVA
 result <- pwr.anova.test(
   k = ${k},
   n = effective_n,
-  f = d,  # Using Cohen's f for ANOVA
+  f = d,             # Cohen's f for ANOVA
   sig.level = alpha
-)
-`}
+)`}
 
 print(result)
 cat("\\n")
-cat("Note: Power adjusted for ARE =", ARE, "\\n")
+cat("Note: power adjusted for ARE =", ARE, "\\n")
 cat("Effective sample size:", round(effective_n, 1), "\\n")
 
-# For the EXACT required sample size for non-parametric test:
-# n_nonparametric = ceiling(n_parametric / ARE)
-
-# StickForStats Result: ${results.power ? 'Power = ' + (results.power * 100).toFixed(2) + '%' : 'N/A'}
+# StickForStats Result: ${typeof results.power === 'number' ? 'Power = ' + (results.power * 100).toFixed(2) + '%' : 'N/A'}`}
 `;
 }
 
@@ -1363,9 +1427,29 @@ print(f"Minimum Detectable Effect Size (Cohen's w): {w:.4f}")
   }
 }
 
+/**
+ * The Python twin -- and it RECEIVED the alternative all along and never used it.
+ *
+ * Every other Python generator maps it (`altPy`). This one hardcoded `alternative="two-sided"` in
+ * all four of its statsmodels calls, while the R twin beside it threaded the user's choice through
+ * correctly. The Alternative dropdown IS rendered for Mann-Whitney and Wilcoxon, and the engine
+ * honours it, so a one-sided design exported two scripts describing two different studies:
+ *
+ *     Mann-Whitney, d = 0.5, 80% power, one-sided ("greater"), normal parent
+ *       screen and exported R:  n = 54 per group
+ *       exported PYTHON:        n = 68 per group     <- 26% more subjects
+ *
+ *     Wilcoxon, same:  screen and R 29 pairs, Python 36 pairs
+ *     Power mode:      screen 0.5887, exported Python computes 0.4600
+ *
+ * statsmodels does not spell it the way pwr does: it wants `larger`/`smaller`, not `greater`/`less`.
+ * That is why the raw `alt` cannot simply be interpolated, and it is presumably why this branch was
+ * left alone in the first place.
+ */
 function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results, parentDistribution = 'normal') {
   const testName = getTestName(testType);
   const are = areFor(results, parentDistribution);
+  const altPy = alt === 'two-sided' ? 'two-sided' : alt === 'greater' ? 'larger' : 'smaller';
 
   return `# ${testName}: Power Analysis
 # ============================================================================
@@ -1385,59 +1469,97 @@ ${sampleSizeTable(testType, k)}
 # parent the ARE is ABOVE 1 and the rank test needs FEWER subjects, not more.
 # ============================================================================
 
+import math
+
 # Parameters
 d = ${d}        # Effect size (Cohen's d equivalent)
-n = ${n}        # Sample size
 alpha = ${alpha}  # Significance level
 ARE = ${are.toFixed(6)}     # Pitman ARE, ${PARENT_LABEL[parentDistribution] || parentDistribution} parent
+${mode === 'sampleSize' ? `power = ${power}       # Target power
 
-# Effective sample size for non-parametric is n * ARE
+# Step 1: solve the PARAMETRIC design, and round UP to a whole subject.
+${testType === 'mann-whitney' ? `analysis = TTestIndPower()
+n_parametric = math.ceil(analysis.solve_power(
+    effect_size=d,
+    power=power,
+    alpha=alpha,
+    ratio=1.0,
+    alternative="${altPy}"
+))                                      # per group` : testType === 'wilcoxon' ? `analysis = TTestPower()
+n_parametric = math.ceil(analysis.solve_power(
+    effect_size=d,
+    power=power,
+    alpha=alpha,
+    alternative="${altPy}"
+))                                      # pairs` : `k = ${k}
+analysis = FTestAnovaPower()
+# solve_power returns the TOTAL observations across all k groups, not the per-group count.
+total_parametric = analysis.solve_power(
+    effect_size=d,
+    power=power,
+    alpha=alpha,
+    k_groups=k
+)
+n_parametric = math.ceil(total_parametric / k)   # per group`}
+
+# Step 2: the rank test at n behaves like the parametric test at n * ARE, so it needs
+# n_parametric / ARE -- rounded up again, because subjects are whole people.
+n_rank = math.ceil(n_parametric / ARE)
+
+print(f"${testName}: required sample size")
+print("=" * 40)
+print(f"Effect size:           {d}")
+print(f"Target power:          {power}")
+print(f"ARE (${PARENT_LABEL[parentDistribution] || parentDistribution} parent): {ARE}")
+print("-" * 40)
+print(f"Parametric equivalent: {n_parametric}  (${unitFor(testType, k)})")
+print(f"Rank test requires:    {n_rank}  (${unitFor(testType, k)})")
+
+# StickForStats Result: ${
+  results.n != null
+    ? `n = ${results.n} (${unitFor(testType, k)})` +
+      (typeof results.power === 'number' ? `, achieving power = ${(results.power * 100).toFixed(2)}%` : '')
+    : 'N/A'
+}` : `n = ${n}        # Sample size (${unitFor(testType, k)})
+
+# The rank test at n behaves like the parametric test at n * ARE.
 effective_n = n * ARE
 
-${testType === 'mann-whitney' ? `
-# Mann-Whitney U is equivalent to independent t-test
+${testType === 'mann-whitney' ? `# Mann-Whitney U is equivalent to the independent t-test
 analysis = TTestIndPower()
 power_result = analysis.power(
     effect_size=d,
-    nobs1=int(effective_n),
+    nobs1=effective_n,
     ratio=1.0,
     alpha=alpha,
-    alternative="two-sided"
-)
-` : testType === 'wilcoxon' ? `
-# Wilcoxon Signed-Rank is equivalent to paired t-test
+    alternative="${altPy}"
+)` : testType === 'wilcoxon' ? `# Wilcoxon Signed-Rank is equivalent to the paired t-test
 analysis = TTestPower()
 power_result = analysis.power(
     effect_size=d,
-    nobs=int(effective_n),
+    nobs=effective_n,
     alpha=alpha,
-    alternative="two-sided"
-)
-` : `
-# Kruskal-Wallis is equivalent to one-way ANOVA
+    alternative="${altPy}"
+)` : `# Kruskal-Wallis is equivalent to one-way ANOVA
 k = ${k}
 analysis = FTestAnovaPower()
 power_result = analysis.power(
     effect_size=d,
-    nobs=int(effective_n * k),
+    nobs=effective_n * k,   # statsmodels wants TOTAL observations, and does not need a whole number
     alpha=alpha,
     k_groups=k
-)
-`}
+)`}
 
 print(f"${testName} Power Analysis")
-print(f"=" * 40)
+print("=" * 40)
 print(f"Effect Size: {d}")
-print(f"Original Sample Size: {n}")
+print(f"Sample Size: {n}  (${unitFor(testType, k)})")
 print(f"Effective Sample Size (ARE adjusted): {effective_n:.1f}")
 print(f"ARE: {ARE}")
-print(f"-" * 40)
+print("-" * 40)
 print(f"Approximate Power: {power_result:.4f} ({power_result*100:.2f}%)")
 
-# For exact sample size needed for non-parametric:
-# n_nonparametric = ceil(n_parametric / ARE)
-
-# StickForStats Result: ${results.power ? 'Power = ' + (results.power * 100).toFixed(2) + '%' : 'N/A'}
+# StickForStats Result: ${typeof results.power === 'number' ? 'Power = ' + (results.power * 100).toFixed(2) + '%' : 'N/A'}`}
 `;
 }
 

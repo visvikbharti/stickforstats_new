@@ -298,6 +298,18 @@ class HighPrecisionPowerAnalysis:
         n = self._to_high_precision(sample_size)
         alpha_hp = self._to_high_precision(alpha)
 
+        # Group 1 is guarded BEFORE group 2 is derived from it. When sample_size2 is absent, n2
+        # defaults to n -- so the n2 guard below was the one that fired for a group-ONE problem, and
+        # a user who entered a single subject in group 1 was told "the second group needs at least
+        # n = 2", naming a box they had never touched.
+        if n < mpf("2"):
+            unit = {"independent": "n = 2 per group", "paired": "n = 2 pairs"}.get(test_type, "n = 2")
+            article = "An" if test_type[0] in "aeiou" else "A"
+            raise ValueError(
+                f"{article} {test_type} t-test needs at least {unit} to be defined at all; "
+                f"got n = {int(n)}."
+            )
+
         # Calculate degrees of freedom
         if test_type == "independent":
             # Unequal group sizes are a real design, and the UI has always offered a "Sample Size
@@ -646,18 +658,27 @@ class HighPrecisionPowerAnalysis:
         parametric, t_type = self.NONPARAMETRIC_PARAMETRIC_PAIR[test]
 
         # The rank test at n behaves like the parametric test at n * ARE.
+        #
+        # effective_n is NOT a headcount. It is the fictitious size at which the parametric test has
+        # the same power, and power is a smooth function of it -- so it is used as it comes out, not
+        # truncated. `int(effective_n)` used to throw away the fractional subject, and it did real
+        # damage twice over: it understated the power of every rank test (n = 30 under a normal
+        # parent came out 0.4514 where it is 0.4600), and because the normal ARE is 0.955 < 1 the
+        # floor sometimes did not advance at all -- int(22 * 0.955) == int(23 * 0.955) == 21 -- so a
+        # user who recruited one more subject PER GROUP was shown exactly the same power and told,
+        # in effect, that their subject bought nothing.
         effective_n = mpf(str(sample_size)) * are
         if effective_n < 2:
             raise ValueError("The sample is too small to support this test.")
 
         if parametric == "anova":
             base = self.calculate_power_anova(
-                effect_size=effect_size, groups=groups, n_per_group=int(effective_n), alpha=alpha
+                effect_size=effect_size, groups=groups, n_per_group=effective_n, alpha=alpha
             )
         else:
             base = self.calculate_power_t_test(
                 effect_size=effect_size,
-                sample_size=int(effective_n),
+                sample_size=effective_n,
                 alpha=alpha,
                 alternative=alternative,
                 test_type=t_type,
@@ -669,7 +690,10 @@ class HighPrecisionPowerAnalysis:
             "test": test,
             "effect_size": str(effect_size),
             "sample_size": int(sample_size),
-            "effective_parametric_n": int(effective_n),
+            # The last int() standing. The computation stopped truncating; the REPORT of it had not,
+            # so the response carried a power computed at 28.6479 next to an effective n of 28 --
+            # contradicting itself in its own body. It is the effective size the power really used.
+            "effective_parametric_n": float(effective_n),
             "alpha": float(alpha),
             "are": float(are),
             "parent_distribution": parent_distribution,

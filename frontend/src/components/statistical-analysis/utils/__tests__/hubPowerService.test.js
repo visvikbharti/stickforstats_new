@@ -434,3 +434,86 @@ describe('the second arm is only part of the design when the box is on screen', 
     expect(totalSampleSize('two-sample-t', 64, secondArmFor('sampleSize', 'two-sample-t', 60))).toBe(128);
   });
 });
+
+/**
+ * ABSENT and TOO SMALL are different answers, and collapsing them was a sixth way to be wrong.
+ *
+ * `secondArmFor` returned null for a group-2 value of 1 -- the same null that means "no second arm",
+ * i.e. BALANCED. So a user who typed 1 into the box was shown the power of a 30/30 study (0.4779),
+ * with nothing on screen to say their input had been discarded. The box carries min = 2, but typing
+ * 1 still fires onChange.
+ *
+ * The backend correctly 400s on n2 < 2 (a group of one supports no within-group variance estimate).
+ * The frontend was routing around its own validation. A value the user TYPED is sent as typed, and
+ * an impossible design comes back as the error it is -- not as a different, possible design.
+ */
+describe('a group-2 value the user typed is never silently balanced away', () => {
+  it('does not turn a typed 1 into a balanced design', () => {
+    expect(secondArmFor('power', 'two-sample-t', 1)).toBe(1);
+    expect(secondArmFor('power', 'two-sample-t', '1')).toBe(1);
+  });
+
+  it('sends an impossible arm on to the backend, which rejects it', () => {
+    // Rather than quietly answering a question the user did not ask.
+    expect(secondArmFor('power', 'two-sample-t', -5)).toBe(-5);
+  });
+
+  it('still treats an ABSENT arm as balanced, exactly as the backend does', () => {
+    // The empty box renders as `parseInt('') || 0` -> 0. That is "not told", not "told zero".
+    for (const absent of [null, undefined, 0, '', NaN]) {
+      expect(secondArmFor('power', 'two-sample-t', absent)).toBeNull();
+    }
+  });
+
+  it('a real second arm is unaffected', () => {
+    expect(secondArmFor('power', 'two-sample-t', 60)).toBe(60);
+    expect(secondArmFor('power', 'two-sample-t', 2)).toBe(2); // the smallest legal one
+  });
+
+  it('the mode and the test still win over any value at all', () => {
+    expect(secondArmFor('sampleSize', 'two-sample-t', 1)).toBeNull(); // box is not on screen
+    expect(secondArmFor('power', 'mann-whitney', 1)).toBeNull();      // test has no second arm
+  });
+});
+
+/**
+ * The impossible design must arrive at the backend, and the refusal must come back as a refusal.
+ *
+ * This is the whole safety argument for sending a typed n2 = 1 through instead of quietly balancing
+ * it: the request 400s, `runPowerCalculation` THROWS, PowerAnalysisTool's catch sets the error and
+ * leaves `results` null -- so the curve (requested only after a successful result) is never drawn,
+ * and the code panel still says "Run a power analysis first". A value the user cannot act on is
+ * strictly better than a confident number for a study they did not describe.
+ */
+describe('an impossible second arm comes back as an error, not as a different design', () => {
+  it('sends the typed 1 rather than silently balancing it away', async () => {
+    mockJson({ error: 'The second group needs at least n = 2 to be defined at all; got n2 = 1.' }, false);
+
+    await expect(
+      runPowerCalculation({ testType: 'two-sample-t', effectSize: 0.5, sampleSize: 30, sampleSize2: 1 })
+    ).rejects.toThrow('The second group needs at least n = 2');
+
+    // It really was sent -- the frontend did not decide on the user's behalf.
+    expect(bodyOf().sample_size2).toBe(1);
+  });
+
+  it('surfaces the backend message verbatim, so the screen can say what is wrong', async () => {
+    mockJson({ error: 'The second group needs at least n = 2 to be defined at all; got n2 = 1.' }, false);
+
+    await expect(
+      runPowerCalculation({ testType: 'two-sample-t', effectSize: 0.5, sampleSize: 30, sampleSize2: 1 })
+    ).rejects.toThrow(/got n2 = 1/);
+  });
+
+  it('a rejected request never resolves to a power', async () => {
+    // The failure mode this guards: swallowing the 400 and returning a balanced answer anyway.
+    mockJson({ error: 'nope' }, false);
+
+    const result = await runPowerCalculation({
+      testType: 'two-sample-t', effectSize: 0.5, sampleSize: 30, sampleSize2: 1,
+    }).catch((err) => err);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result.power).toBeUndefined();
+  });
+});

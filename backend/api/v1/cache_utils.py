@@ -22,7 +22,12 @@ logger = logging.getLogger(__name__)
 # request that supplied one); Jonckheere's statistic and variance were corrected,
 # and Page's trend variance was corrected. Every one of those changes the answer
 # for a request body that has not changed.
-CACHE_SCHEMA_VERSION = 4
+# v5 (2026-07-14): the rank tests no longer truncate the ARE-adjusted sample size.
+# `int(n * ARE)` threw away the fractional subject, understating the power of every
+# non-parametric design (n = 30 under a normal parent returned 0.451351 where it is
+# 0.460036) and, because the normal ARE is 0.955 < 1, sometimes not advancing at all
+# when a subject was added. Same request body, different -- and now correct -- answer.
+CACHE_SCHEMA_VERSION = 5
 
 
 def generate_cache_key(prefix, data_dict, version=CACHE_SCHEMA_VERSION):

@@ -740,3 +740,159 @@ class TheVariantIsReadUnderEitherNameItIsGivenBy(TestCase):
                 self.assertEqual(response.status_code, 200)
                 # A paired design needs far fewer subjects than the independent 64.
                 self.assertEqual(response.json()["results"]["required_sample_size"], 34)
+
+
+class TheRankTestsDoNotThrowAwayTheFractionalSubject(TestCase):
+    """
+    `effective_n = int(n * ARE)` -- the floor was doing real damage, twice over.
+
+    The Pitman argument is that a rank test at n behaves like its parametric counterpart at n * ARE.
+    That effective size is a FICTION, not a headcount: it is the point on a smooth power curve where
+    the two tests meet. Truncating it to a whole number threw away the fractional subject for no
+    reason at all, and:
+
+      1. it understated the power of EVERY non-parametric design -- a Mann-Whitney at n = 30 under a
+         normal parent was reported as 0.451351 when it is 0.460036;
+
+      2. worse, the normal ARE is 0.955, which is LESS THAN ONE, so the floor sometimes did not
+         advance when n did: int(22 * 0.955) == int(23 * 0.955) == 21. A user who recruited one more
+         subject PER GROUP was shown exactly the same power to four decimal places, and told in
+         effect that their subject had bought them nothing.
+
+    Every value here was executed against the engine, not reasoned about.
+    """
+
+    def setUp(self):
+        self.engine = HighPrecisionPowerAnalysis()
+
+    def _power(self, test, n, parent="normal", groups=3):
+        return float(
+            self.engine.calculate_power_nonparametric(
+                test=test,
+                effect_size=0.5,
+                sample_size=n,
+                alpha=0.05,
+                groups=groups,
+                parent_distribution=parent,
+            )["power_float"]
+        )
+
+    def test_the_fractional_subject_is_kept(self):
+        # 30 * 0.954930 = 28.6479. The old code computed the power at 28.
+        self.assertAlmostEqual(self._power("mann-whitney", 30), 0.460036, places=6)
+        self.assertNotAlmostEqual(self._power("mann-whitney", 30), 0.451351, places=4)
+
+    def test_one_more_subject_always_buys_some_power(self):
+        # The exact flat spot: both of these floored to an effective n of 21.
+        self.assertLess(self._power("mann-whitney", 22, groups=2), self._power("mann-whitney", 23, groups=2))
+
+    def test_power_is_strictly_increasing_in_n_for_every_parent(self):
+        # A power curve that goes flat is a curve that tells a user to stop recruiting.
+        for parent in ("normal", "uniform", "logistic", "laplace", "exponential"):
+            with self.subTest(parent=parent):
+                powers = [self._power("mann-whitney", n, parent=parent, groups=2) for n in range(5, 60)]
+                self.assertEqual(powers, sorted(powers))
+                self.assertEqual(len(set(powers)), len(powers))  # strictly, not weakly
+
+    def test_the_sample_size_solver_reports_the_power_it_will_actually_have(self):
+        # Executed. These are the numbers the exported script must reproduce.
+        for test, n, achieved in (
+            ("mann-whitney", 68, 0.807193),
+            ("wilcoxon", 36, 0.812291),
+            ("kruskal-wallis", 15, 0.813660),
+        ):
+            with self.subTest(test=test):
+                result = self.engine.calculate_sample_size_nonparametric(
+                    test=test, effect_size=0.5, power=0.8, alpha=0.05, groups=3, parent_distribution="normal"
+                )
+                self.assertEqual(result["required_sample_size"], n)
+                self.assertAlmostEqual(float(result["actual_power_float"]), achieved, places=6)
+                # It must never promise LESS than the target it was asked for.
+                self.assertGreaterEqual(float(result["actual_power_float"]), 0.8)
+
+
+class TheSolveIsCeilTwiceAndTheOrderMatters(TestCase):
+    """
+    The exported rank script has to reproduce the screen, and there is exactly one way to get there.
+
+    The engine rounds the PARAMETRIC n up to a whole subject FIRST, then inflates by the ARE:
+
+        ceil(63.7656) = 64   ->   ceil(64 / 0.954930) = 68
+
+    Dividing the continuous 63.7656 by the ARE first gives ceil(66.77) = 67 -- one subject short of
+    the answer on the screen. Both steps ceil, in that order. This test exists because the obvious
+    way to write the generated script gets it wrong.
+    """
+
+    def test_the_parametric_n_is_a_whole_subject_before_it_is_inflated(self):
+        engine = HighPrecisionPowerAnalysis()
+        result = engine.calculate_sample_size_nonparametric(
+            test="mann-whitney", effect_size=0.5, power=0.8, alpha=0.05, groups=2, parent_distribution="normal"
+        )
+
+        self.assertEqual(result["parametric_sample_size"], 64)   # ceil(63.7656), not 63.7656
+        self.assertEqual(result["required_sample_size"], 68)     # ceil(64 / ARE), not ceil(63.7656 / ARE) = 67
+
+        # And the continuous route really would have differed -- the test is not vacuous.
+        import math
+
+        self.assertEqual(math.ceil(63.765610588911635 / (3 / math.pi)), 67)
+
+
+class AGroupOneProblemIsNotBlamedOnGroupTwo(TestCase):
+    """
+    n2 defaults to n when it is not supplied, so the n2 guard was the one that fired for a group-ONE
+    problem: `calculate_power_t_test(effect_size=0.5, sample_size=1, test_type='independent')` --
+    which names no second group at all -- raised "The second group needs at least n = 2 ... got
+    n2 = 1", pointing the user at a box they had never touched.
+    """
+
+    def test_a_single_subject_in_group_one_is_reported_against_group_one(self):
+        engine = HighPrecisionPowerAnalysis()
+
+        with self.assertRaises(ValueError) as caught:
+            engine.calculate_power_t_test(effect_size=0.5, sample_size=1, test_type="independent")
+
+        message = str(caught.exception)
+        self.assertNotIn("n2", message)
+        self.assertNotIn("second group", message)
+        self.assertIn("per group", message)
+
+    def test_a_real_group_two_problem_still_names_group_two(self):
+        engine = HighPrecisionPowerAnalysis()
+
+        with self.assertRaises(ValueError) as caught:
+            engine.calculate_power_t_test(
+                effect_size=0.5, sample_size=30, sample_size2=1, test_type="independent"
+            )
+
+        self.assertIn("second group", str(caught.exception))
+
+
+class TheResponseDoesNotContradictItself(TestCase):
+    """
+    The computation stopped truncating the ARE-adjusted size; the REPORT of it had not.
+
+    `/power/nonparametric/` returned a power computed at an effective n of 28.6479 sitting next to
+    `effective_parametric_n: 28` -- the response disagreeing with itself in its own body, and the
+    last `int()` left standing after the fractional-subject fix.
+    """
+
+    def test_the_effective_n_reported_is_the_one_the_power_was_computed_at(self):
+        engine = HighPrecisionPowerAnalysis()
+        result = engine.calculate_power_nonparametric(
+            test="mann-whitney", effect_size=0.5, sample_size=30, alpha=0.05,
+            groups=2, parent_distribution="normal",
+        )
+
+        # 30 * 0.954930 = 28.6479, not 28.
+        self.assertAlmostEqual(result["effective_parametric_n"], 28.647889756541162, places=6)
+        self.assertNotEqual(result["effective_parametric_n"], 28)
+
+    def test_a_one_subject_group_one_is_announced_with_the_right_article(self):
+        engine = HighPrecisionPowerAnalysis()
+
+        with self.assertRaises(ValueError) as caught:
+            engine.calculate_power_t_test(effect_size=0.5, sample_size=1, test_type="independent")
+
+        self.assertIn("An independent", str(caught.exception))

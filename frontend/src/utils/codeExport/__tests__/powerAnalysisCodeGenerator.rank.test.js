@@ -211,3 +211,226 @@ describe.each([
     }
   });
 });
+
+/**
+ * The rank generators TOOK a `mode` and never READ it. Every other generator branches on it.
+ *
+ * So sample-size mode -- where the sample-size box is not rendered at all, leaving `sampleSize` at
+ * its untouched default of 30 -- exported a script headed "Calculation Mode: sampleSize" which
+ * computed the POWER of a 30-subject study and then signed off with the achieved power of the
+ * 68-subject study the screen had recommended:
+ *
+ *     # Calculation Mode: sampleSize
+ *     n <- 30                                  <- an n the user never saw or typed
+ *     effective_n <- n * ARE                   <- 28.65
+ *     result <- pwr.t.test(n = effective_n, d = 0.5, type = "two.sample")
+ *     # StickForStats Result: Power = 80.15%   <- the script computes 0.4600
+ *
+ * A 34-point contradiction inside a single artifact -- and the artifact is the one that goes into
+ * the supplementary material. This is the same defect as 13070e3 ("the exported script disagreed
+ * with the answer on screen"), one test branch to the left.
+ *
+ * The generated scripts here are EXECUTED -- R with pwr, Python with statsmodels -- and land on the
+ * engine's own numbers: 64 -> 68, 34 -> 36, 14 -> 15.
+ */
+describe.each([
+  ['R', generateRCode],
+  ['Python', generatePythonCode],
+])('%s rank script honours the calculation mode', (label, generate) => {
+  const solveParams = (testType, results) => ({
+    testType,
+    calculationMode: 'sampleSize',
+    alpha: 0.05,
+    power: 0.8,
+    effectSize: 0.5,
+    sampleSize: 30, // the untouched default -- the box does not render in this mode
+    numGroups: 3,
+    alternative: 'two-sided',
+    parentDistribution: 'normal',
+    results,
+  });
+
+  // Executed against the engine (backend/tests/test_the_fix_can_lie_too.py).
+  const SOLVED = {
+    'mann-whitney': { n: 68, power: 0.807193, unit: 'n per group' },
+    wilcoxon: { n: 36, power: 0.812291, unit: 'n pairs' },
+    'kruskal-wallis': { n: 15, power: 0.813660, unit: 'n per group, k = 3' },
+  };
+
+  it.each(Object.keys(SOLVED))('a %s sample-size run solves for n instead of computing a power', (testType) => {
+    const { n, power, unit } = SOLVED[testType];
+    const code = generate(solveParams(testType, { n, power, are: 3 / Math.PI }));
+
+    // It must SOLVE. The target power is an input, not an output.
+    expect(code).toMatch(/n_rank/);
+    expect(code).toMatch(/n_parametric/);
+
+    // It must NOT quietly compute the power of the hidden default sample size.
+    expect(code).not.toMatch(/^n\s*(?:<-|=)\s*30\b/m);
+    expect(code).not.toMatch(/effective_n/);
+
+    // And the footer must state the answer the screen stated, in the right unit.
+    expect(code).toContain(`n = ${n} (${unit})`);
+    expect(code).toContain(`achieving power = ${(power * 100).toFixed(2)}%`);
+  });
+
+  it('rounds the parametric n up to a whole subject BEFORE inflating it by the ARE', () => {
+    // ceil(63.7656) = 64 -> ceil(64 / 0.954930) = 68, which is the screen's answer.
+    // Dividing the continuous 63.7656 first gives ceil(66.77) = 67 -- one subject short.
+    const code = generate(solveParams('mann-whitney', { n: 68, power: 0.807193, are: 3 / Math.PI }));
+
+    const ceilFn = label === 'R' ? 'ceiling' : 'math\\.ceil';
+    // the parametric solve is ceil'd where it is bound...
+    expect(code).toMatch(new RegExp(`n_parametric\\s*(?:<-|=)\\s*${ceilFn}\\(`));
+    // ...and the inflation is ceil'd again, of the ALREADY-INTEGER n_parametric.
+    expect(code).toMatch(new RegExp(`n_rank\\s*(?:<-|=)\\s*${ceilFn}\\(\\s*n_parametric\\s*/\\s*ARE\\s*\\)`));
+  });
+
+  it('still computes a power when the user asked for a power', () => {
+    const code = generate({
+      ...solveParams('mann-whitney', { power: 0.460036, are: 3 / Math.PI }),
+      calculationMode: 'power',
+    });
+
+    expect(code).toMatch(/effective_n/);       // power mode DOES use the ARE-adjusted n
+    expect(code).toMatch(/^n\s*(?:<-|=)\s*30\b/m); // and 30 is the n the user actually typed here
+    expect(code).not.toMatch(/n_rank/);
+    expect(code).toContain('Power = 46.00%');
+  });
+
+  it('does not truncate the ARE-adjusted sample size', () => {
+    // The engine stopped flooring `n * ARE` (it understated every rank power and made a whole extra
+    // subject sometimes buy nothing). The script must not re-introduce the floor.
+    const code = generate({
+      ...solveParams('mann-whitney', { power: 0.460036, are: 3 / Math.PI }),
+      calculationMode: 'power',
+    });
+
+    expect(code).not.toMatch(/int\(effective_n\)/);
+    expect(code).not.toMatch(/floor\(effective_n\)/);
+  });
+});
+
+/**
+ * The R script and the Python script in ONE export must describe ONE study.
+ *
+ * `generatePythonCodeNonParametric` RECEIVED the alternative all along and never used it: all four
+ * of its statsmodels calls hardcoded `alternative="two-sided"`, while the R twin threaded the user's
+ * choice through correctly. The Alternative dropdown IS rendered for Mann-Whitney and Wilcoxon, and
+ * the engine honours it, so a one-sided design exported two scripts for two different studies:
+ *
+ *     Mann-Whitney, d = 0.5, 80% power, one-sided, normal parent
+ *       screen and exported R:  54 per group
+ *       exported PYTHON:        68 per group    <- 26% more subjects
+ *     Wilcoxon:  screen and R 29 pairs, Python 36 pairs
+ *     Power mode: screen 0.5887, exported Python computes 0.4600
+ *
+ * A mutation proved this hole was total: hardcoding the alternative in the R generator TOO left all
+ * 62 rank tests passing. Not one of them looked at it. Same hole as "there was no test for the
+ * two-sample-t generator at all", which is how the last P1 walked in.
+ *
+ * statsmodels spells it `larger`/`smaller`; pwr spells it `greater`/`less`. The two scripts must
+ * therefore not be compared literally -- they must be compared through the mapping.
+ */
+describe('the R and Python rank scripts run the SAME alternative hypothesis', () => {
+  const params = (testType, calculationMode, alternative) => ({
+    testType,
+    calculationMode,
+    alternative,
+    alpha: 0.05,
+    power: 0.8,
+    effectSize: 0.5,
+    sampleSize: 30,
+    numGroups: 3,
+    parentDistribution: 'normal',
+    results: { n: 54, power: 0.809745, are: 3 / Math.PI },
+  });
+
+  // How each library spells the same hypothesis.
+  const SPELLING = {
+    'two-sided': { r: 'two.sided', py: 'two-sided' },
+    greater: { r: 'greater', py: 'larger' },
+    less: { r: 'less', py: 'smaller' },
+  };
+
+  const altInR = (code) => (code.match(/alternative\s*=\s*"([^"]+)"/) || [])[1];
+  const altInPy = (code) => (code.match(/alternative="([^"]+)"/) || [])[1];
+
+  describe.each(['mann-whitney', 'wilcoxon'])('%s', (testType) => {
+    it.each(['power', 'sampleSize'])('in %s mode, both scripts carry the user\'s alternative', (mode) => {
+      for (const alternative of ['two-sided', 'greater', 'less']) {
+        const r = generateRCode(params(testType, mode, alternative));
+        const py = generatePythonCode(params(testType, mode, alternative));
+
+        expect(altInR(r)).toBe(SPELLING[alternative].r);
+        expect(altInPy(py)).toBe(SPELLING[alternative].py);
+      }
+    });
+
+    it.each(['power', 'sampleSize'])('in %s mode, a one-sided design is never exported as two-sided', (mode) => {
+      // The exact regression: Python said two-sided while R and the screen said one-sided.
+      const py = generatePythonCode(params(testType, mode, 'greater'));
+
+      expect(py).not.toMatch(/alternative="two-sided"/);
+      expect(altInPy(py)).toBe('larger');
+    });
+
+    it('uses the statsmodels spelling, not pwr\'s -- the script has to run', () => {
+      // `alternative="greater"` is a ValueError in statsmodels. Interpolating the raw value would
+      // have produced a script that does not execute at all.
+      for (const alternative of ['greater', 'less']) {
+        const py = generatePythonCode(params(testType, 'sampleSize', alternative));
+        expect(py).not.toMatch(/alternative="(greater|less)"/);
+      }
+    });
+  });
+
+  it('Kruskal-Wallis has no alternative to carry, and does not invent one', () => {
+    // pwr.anova.test / FTestAnovaPower take no alternative. The dropdown is not rendered for it.
+    for (const generate of [generateRCode, generatePythonCode]) {
+      const code = generate(params('kruskal-wallis', 'sampleSize', 'two-sided'));
+      expect(code).not.toMatch(/alternative/);
+    }
+  });
+});
+
+/**
+ * statsmodels' FTestAnovaPower.solve_power returns the TOTAL observations across all k groups --
+ * 41.6856 for f = 0.5, k = 3, 80% power -- not the per-group count. The engine works per group.
+ *
+ * So the script must divide by k before it ceils: ceil(41.6856 / 3) = 14 -> ceil(14 / ARE) = 15,
+ * which is the screen's answer. Dropping the `/ k` yields ceil(42 / ARE) = 44 per group, a 3x
+ * overstatement -- and a mutation proved it: deleting the `/ k` left all 62 rank tests green,
+ * because the only assertion on that line was a regex that matched either way.
+ */
+describe('the Python Kruskal-Wallis script converts total observations to per-group', () => {
+  const kwParams = {
+    testType: 'kruskal-wallis',
+    calculationMode: 'sampleSize',
+    alpha: 0.05,
+    power: 0.8,
+    effectSize: 0.5,
+    sampleSize: 30,
+    numGroups: 3,
+    alternative: 'two-sided',
+    parentDistribution: 'normal',
+    results: { n: 15, power: 0.813660, are: 3 / Math.PI },
+  };
+
+  it('divides the total by k before rounding up', () => {
+    const py = generatePythonCode(kwParams);
+
+    expect(py).toMatch(/n_parametric\s*=\s*math\.ceil\(\s*total_parametric\s*\/\s*k\s*\)/);
+  });
+
+  it('names the trap, because the total looks like a per-group count', () => {
+    expect(generatePythonCode(kwParams)).toMatch(/TOTAL observations/i);
+  });
+
+  it('R needs no such division -- pwr.anova.test returns n per group directly', () => {
+    const r = generateRCode(kwParams);
+
+    expect(r).toMatch(/n_parametric\s*<-\s*ceiling\(parametric\$n\)/);
+    expect(r).not.toMatch(/\/\s*k/);
+  });
+});

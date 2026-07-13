@@ -392,7 +392,21 @@ export const acceptsSecondArm = (testType) => {
 export const secondArmFor = (calculationMode, testType, sampleSize2) => {
   if (calculationMode === 'sampleSize') return null;
   if (!acceptsSecondArm(testType)) return null;
-  return num(sampleSize2) && num(sampleSize2) >= 2 ? num(sampleSize2) : null;
+
+  // ABSENT and TOO SMALL are different answers, and collapsing them was a sixth way to be wrong.
+  //
+  // The `>= 2` test used to return null for a group-2 value of 1 -- the same null that means "no
+  // second arm", i.e. BALANCED. So a user who typed 1 into the box was shown the power of a 30/30
+  // study (0.4779), with nothing on screen to say their input had been thrown away. The backend
+  // rightly 400s on n2 < 2 (a group of one supports no within-group variance), and the frontend was
+  // routing around its own validation.
+  //
+  // Absent (null, undefined, empty, 0 -- the box renders `parseInt('') || 0`) still means balanced,
+  // which is what the backend does and what the screen shows. Anything the user actually TYPED is
+  // sent as typed, and an impossible design comes back as the error it is.
+  const n2 = num(sampleSize2);
+  if (!n2) return null;
+  return n2;
 };
 
 /**
