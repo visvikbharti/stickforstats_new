@@ -813,10 +813,24 @@ const HypothesisTestingModuleReal = () => {
             color="secondary"
             variant="outlined"
           />
+          {/* A failed probe used to render as "Checking...", so a backend that was DOWN looked
+              like one that had not answered yet, indefinitely. */}
           <Chip
             icon={<Assessment />}
-            label={backendStatus === 'connected' ? 'Backend Connected' : 'Checking...'}
-            color={backendStatus === 'connected' ? 'success' : 'warning'}
+            label={
+              backendStatus === 'connected'
+                ? 'Backend connected'
+                : backendStatus === 'error'
+                  ? 'Backend unreachable'
+                  : 'Checking...'
+            }
+            color={
+              backendStatus === 'connected'
+                ? 'success'
+                : backendStatus === 'error'
+                  ? 'error'
+                  : 'warning'
+            }
             variant="outlined"
           />
         </Box>

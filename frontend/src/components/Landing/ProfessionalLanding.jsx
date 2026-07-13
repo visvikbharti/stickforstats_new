@@ -129,8 +129,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="feature-item">
                 <div className="feature-icon precision-icon">🎯</div>
                 <div className="feature-content">
-                  <h3>50-Decimal Precision</h3>
-                  <p>Unmatched accuracy in every calculation</p>
+                  <h3>High-Precision Arithmetic</h3>
+                  <p>Core test statistics carried at 50 significant digits, so a p-value of 1e-300 is reported as 1e-300 rather than rounded to zero</p>
                 </div>
               </div>
               <div className="feature-item">
@@ -244,11 +244,13 @@ const ProfessionalLanding = ({ onEnter }) => {
             <h2 className="commitment-title">Our Commitment to Statistical Integrity</h2>
             <p className="commitment-text">
               In a world where p-hacking and false positives plague scientific literature,
-              StickForStats provides transparent, reproducible statistical validation with
-              50-decimal precision and comprehensive assumption checking.
+              StickForStats checks the assumptions of a test before it runs it, tells you when
+              they fail, and reroutes to a test whose assumptions hold.
             </p>
             <p className="commitment-subtext">
-              Every calculation is auditable. Every assumption is validated. Every result is reproducible.
+              Assumptions are checked before the test runs, the decision trail is recorded, and
+              where a quantity is mathematically undefined it is reported as undefined rather than
+              as a plausible-looking number.
             </p>
           </div>
         </div>
@@ -379,7 +381,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                   <li>Frontend: React 18 + Material-UI 5</li>
                   <li>Backend: Django REST Framework + Python 3.9</li>
                   <li>Statistical Computing: NumPy, SciPy, Statsmodels</li>
-                  <li>Precision: Python Decimal (50 decimal places)</li>
+                  <li>Precision: mpmath / Python Decimal, 50 significant digits on the core tests</li>
                   <li>Real-time: WebSocket support for long computations</li>
                 </ul>
                 <h4>Data Privacy</h4>
@@ -449,7 +451,7 @@ const ProfessionalLanding = ({ onEnter }) => {
           <div className="specs-grid">
             <div className="spec-item">
               <h4>Precision</h4>
-              <p>50-decimal floating-point arithmetic using Python's Decimal library</p>
+              <p>Arbitrary-precision arithmetic (mpmath and Python's Decimal) on the core test statistics and their tail probabilities, where 64-bit floats cancel to zero</p>
             </div>
             <div className="spec-item">
               <h4>Architecture</h4>

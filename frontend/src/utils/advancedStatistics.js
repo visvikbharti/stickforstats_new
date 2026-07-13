@@ -320,26 +320,44 @@ export const multipleTestingAdjustments = {
     };
   },
 
-  // Holm-Bonferroni method
+  /**
+   * Holm-Bonferroni step-down.
+   *
+   * The per-step multiplier (m - i) was right, but the MONOTONICITY step was missing. Holm's
+   * adjusted p-values are a running maximum down the sorted list -- without it they can come
+   * out DECREASING, which is the one thing an adjusted p-value may never do.
+   *
+   *   raw p        0.03   0.04   0.04
+   *   multiplier   x3     x2     x1
+   *   was          0.09   0.08   0.04     <- the LARGEST raw p got the SMALLEST adjusted p
+   *   R p.adjust   0.09   0.09   0.09
+   *
+   * The `rejected` flags were computed by the step-down chain and so were right; the NUMBERS
+   * were wrong. That matters, because the entire purpose of an adjusted p-value is that the
+   * reader may compare it to alpha directly -- and at alpha = 0.05 that third hypothesis read
+   * as 0.04, significant, when Holm does not reject it.
+   */
   holmBonferroni: (pValues, targetAlpha = 0.05) => {
     const m = pValues.length;
     const indexed = pValues.map((p, i) => ({ p, index: i }));
     indexed.sort((a, b) => a.p - b.p);
-    
+
     const adjustedPValues = new Array(m);
     const rejected = new Array(m);
-    
+
+    let runningMax = 0;
     for (let i = 0; i < m; i++) {
-      const adjustedP = Math.min(indexed[i].p * (m - i), 1);
-      adjustedPValues[indexed[i].index] = adjustedP;
-      
+      // Enforce monotonicity: never below anything already reported above it.
+      runningMax = Math.max(runningMax, Math.min(indexed[i].p * (m - i), 1));
+      adjustedPValues[indexed[i].index] = runningMax;
+
       if (i === 0 || rejected[indexed[i - 1].index]) {
-        rejected[indexed[i].index] = adjustedP < targetAlpha;
+        rejected[indexed[i].index] = runningMax < targetAlpha;
       } else {
         rejected[indexed[i].index] = false;
       }
     }
-    
+
     return {
       method: 'Holm-Bonferroni',
       adjustedPValues,
@@ -370,11 +388,17 @@ export const multipleTestingAdjustments = {
       rejected[indexed[i].index] = true;
     }
     
-    // Calculate adjusted p-values
-    for (let i = 0; i < m; i++) {
-      adjustedPValues[indexed[i].index] = Math.min(indexed[i].p * m / (i + 1), 1);
+    // Adjusted p-values, with the step-up monotonicity Benjamini-Hochberg requires: a running
+    // MINIMUM from the largest p downwards. Without it the sequence p*m/(i+1) is not monotone
+    // -- for raw p = [0.01, 0.03, 0.04] it gives 0.03, 0.045, 0.04, where the middle hypothesis
+    // is reported as LESS significant than the one with a larger raw p. R gives 0.03, 0.04,
+    // 0.04.
+    let runningMin = 1;
+    for (let i = m - 1; i >= 0; i--) {
+      runningMin = Math.min(runningMin, Math.min((indexed[i].p * m) / (i + 1), 1));
+      adjustedPValues[indexed[i].index] = runningMin;
     }
-    
+
     return {
       method: 'Benjamini-Hochberg',
       adjustedPValues,

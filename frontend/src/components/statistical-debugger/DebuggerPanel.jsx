@@ -37,7 +37,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import {
   BugReport as DebugIcon,
@@ -236,17 +237,20 @@ const DebuggerPanel = ({
               </Card>
             </Grid>
 
-            {/* Power Status */}
+            {/* Design sensitivity -- NOT observed power. See debuggerEngine.js: observed power is
+                a monotone function of the p-value and says nothing the p-value did not. */}
             <Grid item xs={12} sm={6} md={3}>
               <Card variant="outlined">
                 <CardContent sx={{ py: 1.5 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Observed Power
-                  </Typography>
+                  <Tooltip title="The smallest effect this design (your n and alpha) would detect 80% of the time. Unlike 'observed power', it does not depend on the result you got.">
+                    <Typography variant="caption" color="text.secondary">
+                      Smallest Detectable Effect
+                    </Typography>
+                  </Tooltip>
                   <Typography variant="h6">
-                    {debugReport.powerAnalysis?.observedPower
-                      ? `${(debugReport.powerAnalysis.observedPower * 100).toFixed(0)}%`
-                      : 'N/A'}
+                    {debugReport.powerAnalysis?.minimumDetectableEffect != null
+                      ? debugReport.powerAnalysis.minimumDetectableEffect.toFixed(3)
+                      : '\u2014'}
                   </Typography>
                   <Chip
                     size="small"
@@ -412,12 +416,12 @@ const DebuggerPanel = ({
                 <Grid container spacing={2}>
                   <Grid item xs={6} md={3}>
                     <Typography variant="caption" color="text.secondary">
-                      Observed Power
+                      Smallest Detectable Effect
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
-                      {debugReport.powerAnalysis.observedPower
-                        ? `${(debugReport.powerAnalysis.observedPower * 100).toFixed(1)}%`
-                        : 'N/A'}
+                      {debugReport.powerAnalysis.minimumDetectableEffect != null
+                        ? debugReport.powerAnalysis.minimumDetectableEffect.toFixed(3)
+                        : '\u2014'}
                     </Typography>
                   </Grid>
                   <Grid item xs={6} md={3}>
@@ -427,6 +431,15 @@ const DebuggerPanel = ({
                     <Typography variant="body1" fontWeight="medium">
                       {debugReport.powerAnalysis.observedEffectSize?.toFixed(3) || 'N/A'}
                     </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                      <Typography variant="caption">
+                        <strong>Observed power is not reported.</strong>{' '}
+                        {debugReport.powerAnalysis.observedPowerOmissionReason ||
+                          'It is a monotone function of the p-value and adds nothing to it.'}
+                      </Typography>
+                    </Alert>
                   </Grid>
                   <Grid item xs={6} md={3}>
                     <Typography variant="caption" color="text.secondary">

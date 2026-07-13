@@ -187,10 +187,40 @@ function analyzePValue(results, alpha = 0.05) {
 /**
  * Perform retrospective power analysis
  */
+/**
+ * Retrospective SENSITIVITY analysis -- not observed power.
+ *
+ * This function used to compute "observed power": it took the effect size measured in THIS
+ * sample, fed it back in as if it were the true effect, and reported the resulting power as
+ * though it told you something about the study. It does not. Observed power is a deterministic,
+ * monotone function of the p-value -- a large p always yields low observed power, a small p
+ * always yields high observed power -- so it carries no information the p-value did not already
+ * carry, and it cannot support the sentences that were built on it:
+ *
+ *   "With only 34% power, there is a 66% chance of missing a true effect of this size."
+ *
+ * That is false. The chance of missing a true effect depends on the TRUE effect size, which is
+ * unknown; substituting the observed one assumes precisely the thing under question. (Hoenig &
+ * Heisey, 2001, "The Abuse of Power: The Pervasive Fallacy of Power Calculations for Data
+ * Analysis", The American Statistician 55(1):19-24.) It is why a non-significant result was
+ * always accompanied here by a "you were underpowered" verdict -- which is not a finding, it is
+ * the same p-value said twice.
+ *
+ * The question that IS answerable after the fact is about the design, not the result: given the
+ * sample size and alpha you actually had, how large would an effect have needed to be for you to
+ * detect it reliably? That is the minimum detectable effect, and it does not depend on what was
+ * observed. It is what this reports now.
+ */
 function analyzeRetrospectivePower(testType, data, results, options) {
   const analysis = {
     observedEffectSize: null,
+    // Deliberately never populated. See above.
     observedPower: null,
+    observedPowerOmitted: true,
+    observedPowerOmissionReason:
+      'Observed (post-hoc) power is a monotone function of the p-value and adds no information ' +
+      'to it. Reported instead: the smallest effect this design could reliably have detected.',
+    minimumDetectableEffect: null,
     requiredSampleSize: null,
     actualSampleSize: null,
     powerStatus: 'unknown',
@@ -198,83 +228,96 @@ function analyzeRetrospectivePower(testType, data, results, options) {
     recommendations: []
   };
 
-  // Calculate observed effect size
   const effectSize = calculateObservedEffectSize(testType, data, results);
   analysis.observedEffectSize = effectSize;
 
-  // Get sample size
   const n = getSampleSize(data, testType);
   analysis.actualSampleSize = n;
 
-  if (effectSize === null || n === null) {
+  if (n === null || n < 3) {
     return analysis;
   }
 
-  // Calculate observed power
   const alpha = options.alpha || 0.05;
-  const power = calculatePower(testType, effectSize, n, alpha);
-  analysis.observedPower = power;
+  const targetPower = 0.8;
 
-  // Calculate required sample size for 80% power
-  const requiredN = calculateRequiredSampleSize(testType, effectSize, 0.80, alpha);
-  analysis.requiredSampleSize = requiredN;
+  // The minimum detectable effect: solve power(d) = 0.80 for d, at the n and alpha this study
+  // actually had. Bisection, because the power function is monotone in d.
+  const mde = solveMinimumDetectableEffect(testType, n, alpha, targetPower);
+  analysis.minimumDetectableEffect = mde;
 
-  // Determine power status
-  if (power >= 0.80) {
+  if (effectSize !== null) {
+    // A planning number for a FUTURE study, not a verdict on this one.
+    analysis.requiredSampleSize = calculateRequiredSampleSize(testType, effectSize, targetPower, alpha);
+  }
+
+  if (mde === null) {
+    return analysis;
+  }
+
+  const observed = effectSize === null ? null : Math.abs(effectSize);
+
+  if (observed !== null && observed >= mde) {
     analysis.powerStatus = 'adequate';
-  } else if (power >= 0.50) {
-    analysis.powerStatus = 'moderate';
-    analysis.issues.push({
-      type: 'moderate_power',
-      severity: 'warning',
-      message: `Study power is moderate (${(power * 100).toFixed(1)}%)`,
-      explanation: `With the observed effect size (${effectSize.toFixed(3)}), your study had only ${(power * 100).toFixed(1)}% power to detect this effect. The conventional threshold is 80%.`,
-      details: {
-        observedPower: power,
-        observedEffectSize: effectSize,
-        requiredN: requiredN,
-        actualN: n,
-        shortfall: requiredN - n
-      }
-    });
+    analysis.recommendations.push(
+      `This design could reliably detect effects of about ${mde.toFixed(3)} or larger ` +
+        `(80% power at alpha = ${alpha}, n = ${n}). The effect you observed (${observed.toFixed(3)}) ` +
+        'is within that range.'
+    );
   } else {
-    analysis.powerStatus = 'underpowered';
+    analysis.powerStatus = 'insensitive';
     analysis.issues.push({
-      type: 'underpowered',
-      severity: 'error',
-      message: `Study is significantly underpowered (${(power * 100).toFixed(1)}%)`,
-      explanation: `With only ${(power * 100).toFixed(1)}% power, there is a ${((1 - power) * 100).toFixed(1)}% chance of missing a true effect of this size. You would need approximately ${requiredN} participants for 80% power.`,
+      type: 'design_insensitive',
+      severity: observed !== null && observed < mde / 2 ? 'error' : 'warning',
+      message: `This design could only reliably detect effects of ${mde.toFixed(3)} or larger`,
+      explanation:
+        `At n = ${n} and alpha = ${alpha}, an effect must be at least about ${mde.toFixed(3)} for ` +
+        'this test to have an 80% chance of detecting it. ' +
+        (observed !== null
+          ? `The effect in this sample is ${observed.toFixed(3)}, below that threshold, so a ` +
+            'non-significant result here is uninformative about effects of that size -- it does ' +
+            'not mean there is no effect. '
+          : '') +
+        'This is a statement about the design, and it would have been just as true before the ' +
+        'data were collected.',
       details: {
-        observedPower: power,
+        minimumDetectableEffect: mde,
         observedEffectSize: effectSize,
-        requiredN: requiredN,
         actualN: n,
-        shortfall: requiredN - n,
-        typeIIErrorRate: 1 - power
+        alpha,
+        targetPower
       }
-    });
-  }
-
-  // Special case: significant result but low power
-  if (results.pValue < alpha && power < 0.50) {
-    analysis.issues.push({
-      type: 'winner_curse',
-      severity: 'warning',
-      message: 'Significant result with low power - potential "winner\'s curse"',
-      explanation: 'When a significant result is found in an underpowered study, the observed effect size is likely inflated. This is known as the "winner\'s curse" or Type M error. Replication studies often find smaller effects.'
-    });
-  }
-
-  // Non-significant result interpretation
-  if (results.pValue >= alpha && power < 0.80) {
-    analysis.recommendations.push({
-      type: 'inconclusive',
-      message: 'Non-significant result may be due to insufficient power',
-      action: `Consider this result inconclusive rather than evidence of no effect. A sample of ${requiredN} would be needed to adequately test this hypothesis.`
     });
   }
 
   return analysis;
+}
+
+/**
+ * The smallest effect size this design would detect with `targetPower`, by bisection on the
+ * power function. Monotone increasing in the effect size, so bisection is safe.
+ */
+function solveMinimumDetectableEffect(testType, n, alpha, targetPower) {
+  try {
+    let low = 1e-4;
+    let high = 5;
+
+    if (calculatePower(testType, high, n, alpha) < targetPower) return null;
+
+    for (let i = 0; i < 80; i += 1) {
+      const mid = (low + high) / 2;
+      if (calculatePower(testType, mid, n, alpha) < targetPower) {
+        low = mid;
+      } else {
+        high = mid;
+      }
+    }
+
+    const mde = (low + high) / 2;
+    return Number.isFinite(mde) ? mde : null;
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
