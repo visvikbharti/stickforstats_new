@@ -155,12 +155,21 @@ class HighPrecisionTTestView(APIView):
             # Step 2: Perform high-precision calculation
             logger.info("Performing high-precision t-test calculation")
 
+            # `alternative` reached this view already validated and canonicalized by the
+            # serializer -- and was then dropped on the floor. The calculator was never given
+            # it and hard-coded the two-sided p-value, so EVERY one-tailed t-test this app
+            # has ever run was silently two-tailed: a p-value off by a factor of two, or
+            # pointing at the wrong tail entirely, reported as the test the user selected.
+            alternative = validated_data.get("alternative", "two-sided")
+
             if test_type == "one_sample":
                 mu = Decimal(str(parameters.get("mu", 0)))
-                hp_result = calculator.t_statistic_one_sample(data1, mu)
+                hp_result = calculator.t_statistic_one_sample(data1, mu, alternative=alternative)
             elif test_type == "two_sample":
                 equal_var = parameters.get("equal_var", True)
-                hp_result = calculator.t_statistic_two_sample(data1, data2, equal_var)
+                hp_result = calculator.t_statistic_two_sample(
+                    data1, data2, equal_var, alternative=alternative
+                )
             elif test_type == "paired":
                 if not data2 or len(data1) != len(data2):
                     return Response(
@@ -168,7 +177,9 @@ class HighPrecisionTTestView(APIView):
                     )
                 # Calculate differences for paired test
                 differences = [Decimal(str(a)) - Decimal(str(b)) for a, b in zip(data1, data2)]
-                hp_result = calculator.t_statistic_one_sample(differences, Decimal("0"))
+                hp_result = calculator.t_statistic_one_sample(
+                    differences, Decimal("0"), alternative=alternative
+                )
             else:
                 return Response({"error": f"Unknown test type: {test_type}"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -185,12 +196,22 @@ class HighPrecisionTTestView(APIView):
                 logger.info("Comparing with standard precision")
                 from scipy import stats as scipy_stats
 
+                # The same alternative, or the "standard precision" p-value we print beside
+                # ours would be a two-sided p compared against a one-sided one -- and the
+                # agreement check below would flag a discrepancy that does not exist.
                 if test_type == "one_sample":
-                    t_stat, p_val = scipy_stats.ttest_1samp(data1, parameters.get("mu", 0))
+                    t_stat, p_val = scipy_stats.ttest_1samp(
+                        data1, parameters.get("mu", 0), alternative=alternative
+                    )
                 elif test_type == "two_sample":
-                    t_stat, p_val = scipy_stats.ttest_ind(data1, data2, equal_var=parameters.get("equal_var", True))
+                    t_stat, p_val = scipy_stats.ttest_ind(
+                        data1,
+                        data2,
+                        equal_var=parameters.get("equal_var", True),
+                        alternative=alternative,
+                    )
                 elif test_type == "paired":
-                    t_stat, p_val = scipy_stats.ttest_rel(data1, data2)
+                    t_stat, p_val = scipy_stats.ttest_rel(data1, data2, alternative=alternative)
 
                 response_data["standard_precision_result"] = {
                     "t_statistic": str(t_stat),

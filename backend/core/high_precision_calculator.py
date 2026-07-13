@@ -18,6 +18,8 @@ from typing import List, Union, Dict
 from scipy import stats
 import mpmath
 
+from core.hp_nonparametric_comprehensive import canonical_alternative
+
 # Set high precision globally
 getcontext().prec = 50  # 50 decimal digits precision
 getcontext().rounding = ROUND_HALF_UP
@@ -133,8 +135,46 @@ class HighPrecisionCalculator:
         # Use mpmath for high-precision square root
         return Decimal(str(mpmath.sqrt(float(var))))
 
+    @staticmethod
+    def t_p_value(t_stat: float, df: float, alternative: str = "two-sided") -> Decimal:
+        """
+        p-value of a t-statistic, for the requested alternative, in high precision.
+
+        The two-sided p-value is I_x(df/2, 1/2) with x = df / (df + t^2) -- the regularized
+        incomplete beta -- and equals 2 * P(T > |t|). Both tails follow from that:
+
+            P(T > |t|) = p_two / 2
+            greater:  t >= 0 -> p_two / 2        t < 0 -> 1 - p_two / 2
+            less:     t >= 0 -> 1 - p_two / 2    t < 0 -> p_two / 2
+
+        This exists because the t-test hard-coded the two-sided form and NOTHING ever passed
+        an alternative: the UI's "Alternative Hypothesis" selector, the serializer's
+        `alternative` field and the parameter adapter's normalization all fed a value that
+        the view then dropped on the floor. Every "one-tailed" t-test this app has ever run
+        was silently two-tailed -- a p-value off by a factor of two, or pointing at the wrong
+        tail entirely, reported as the test the user asked for.
+        """
+        alternative = canonical_alternative(alternative)
+
+        x_beta = df / (df + t_stat**2)
+        two_sided = mpmath.betainc(df / 2, 0.5, 0, x_beta, regularized=True)
+
+        if alternative == "two-sided":
+            p = two_sided
+        else:
+            upper_tail = two_sided / 2  # P(T > |t|)
+            if alternative == "greater":
+                p = upper_tail if t_stat >= 0 else 1 - upper_tail
+            else:  # less
+                p = 1 - upper_tail if t_stat >= 0 else upper_tail
+
+        return Decimal(str(float(p)))
+
     def t_statistic_one_sample(
-        self, data: Union[List, np.ndarray], mu: Union[float, Decimal] = 0
+        self,
+        data: Union[List, np.ndarray],
+        mu: Union[float, Decimal] = 0,
+        alternative: str = "two-sided",
     ) -> Dict[str, Decimal]:
         """
         Calculate one-sample t-statistic with high precision.
@@ -142,10 +182,12 @@ class HighPrecisionCalculator:
         Args:
             data: Sample data
             mu: Population mean to test against
+            alternative: 'two-sided' (default), 'less' or 'greater'
 
         Returns:
             Dictionary with t-statistic, p-value, and other statistics
         """
+        alternative = canonical_alternative(alternative)
         decimal_data = self._to_decimal_array(data)
         mu_decimal = self._to_decimal(mu)
         n = len(decimal_data)
@@ -166,11 +208,7 @@ class HighPrecisionCalculator:
 
         # Calculate p-value using mpmath for high precision
         df = n - 1
-
-        # t-distribution CDF via regularized incomplete beta (same approach as F-test)
-        t_float = float(t_stat)
-        x_beta = df / (df + t_float**2)
-        p_value = Decimal(str(float(mpmath.betainc(df / 2, 0.5, 0, x_beta, regularized=True))))
+        p_value = self.t_p_value(float(t_stat), float(df), alternative)
 
         return {
             "t_statistic": t_stat,
@@ -180,10 +218,15 @@ class HighPrecisionCalculator:
             "se": se,
             "df": Decimal(str(df)),
             "n": Decimal(str(n)),
+            "alternative": alternative,
         }
 
     def t_statistic_two_sample(
-        self, data1: Union[List, np.ndarray], data2: Union[List, np.ndarray], equal_var: bool = True
+        self,
+        data1: Union[List, np.ndarray],
+        data2: Union[List, np.ndarray],
+        equal_var: bool = True,
+        alternative: str = "two-sided",
     ) -> Dict[str, Decimal]:
         """
         Calculate two-sample t-statistic with high precision.
@@ -192,10 +235,13 @@ class HighPrecisionCalculator:
             data1: First sample
             data2: Second sample
             equal_var: Assume equal variances (True) or use Welch's t-test (False)
+            alternative: 'two-sided' (default), 'less' or 'greater'.
+                'greater' tests mean(data1) > mean(data2).
 
         Returns:
             Dictionary with t-statistic, p-value, and other statistics
         """
+        alternative = canonical_alternative(alternative)
         decimal_data1 = self._to_decimal_array(data1)
         decimal_data2 = self._to_decimal_array(data2)
 
@@ -251,7 +297,8 @@ class HighPrecisionCalculator:
             if abs(mean_diff) < Decimal("1e-45"):
                 # Both SE and mean diff are effectively zero - groups are identical
                 t_stat = Decimal("0")
-                p_value = Decimal("1.0")
+                # At t = 0 the one-sided p-values are 0.5, not 1.0.
+                p_value = Decimal("1.0") if alternative == "two-sided" else Decimal("0.5")
                 interpretation = "No detectable difference at 50 decimal precision"
             else:
                 # The mean difference is real but the within-group variance (and
@@ -280,20 +327,23 @@ class HighPrecisionCalculator:
                 extreme_precision_flag = True
                 interpretation = "Extreme but genuine t-statistic (magnitude beyond float64 range)."
 
-            # Calculate p-value using mpmath
+            # Calculate p-value using mpmath, for the requested alternative.
             try:
                 t_float = float(t_stat)
                 df_float = float(df)
-
-                # Two-tailed p-value via regularized incomplete beta
-                x_beta = df_float / (df_float + t_float**2)
-                p_value = Decimal(str(float(mpmath.betainc(df_float / 2, 0.5, 0, x_beta, regularized=True))))
+                p_value = self.t_p_value(t_float, df_float, alternative)
             except (OverflowError, ValueError):
-                # The p-value is below what float64 / the beta routine can
-                # represent; for such an extreme t the true two-tailed p-value is
-                # effectively zero. Report 0, not a fabricated 1e-50.
-                p_value = Decimal("0")
-                interpretation = "P-value is effectively zero (below computational limits)."
+                # The p-value is below what float64 / the beta routine can represent. For
+                # such an extreme t the tail in the DIRECTION OF the statistic is
+                # effectively zero and the opposite tail is effectively one -- reporting 0
+                # for both would invert a one-sided test.
+                if alternative == "two-sided":
+                    p_value = Decimal("0")
+                elif (alternative == "greater") == (t_stat > 0):
+                    p_value = Decimal("0")
+                else:
+                    p_value = Decimal("1")
+                interpretation = "P-value is beyond computational limits (effectively 0 or 1)."
 
         result = {
             "t_statistic": t_stat,
@@ -305,6 +355,7 @@ class HighPrecisionCalculator:
             "df": Decimal(str(df)),
             "n1": Decimal(str(n1)),
             "n2": Decimal(str(n2)),
+            "alternative": alternative,
         }
 
         # Add interpretation if we hit extreme precision cases

@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 # body. The key is derived from the request alone, so without this salt a fix
 # that changes what a request computes keeps serving the old, wrong answer from
 # Redis until the entry expires. v2: `equal_variance` now reaches the t-test.
-CACHE_SCHEMA_VERSION = 2
+# v3 (2026-07-13): `alternative` now reaches the t-test (one-tailed tests were
+# silently two-tailed) and the non-parametric tests (Mann-Whitney 500'd on any
+# request that supplied one); Jonckheere's statistic and variance were corrected,
+# and Page's trend variance was corrected. Every one of those changes the answer
+# for a request body that has not changed.
+CACHE_SCHEMA_VERSION = 3
 
 
 def generate_cache_key(prefix, data_dict, version=CACHE_SCHEMA_VERSION):

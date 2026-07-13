@@ -893,7 +893,17 @@ const TTestCompleteModule = () => {
                       <TableRow>
                         <TableCell>Degrees of Freedom</TableCell>
                         <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                          {results.high_precision_result.degrees_of_freedom}
+                          {/* The backend key is `df`. Reading `degrees_of_freedom` -- a key it
+                              has never returned -- left this row permanently blank. */}
+                          {results.high_precision_result.df ?? '—'}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Alternative Hypothesis</TableCell>
+                        <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
+                          {/* Echoed back from the backend, not from local state: a one-tailed
+                              p-value must never be readable under the wrong hypothesis. */}
+                          {results.high_precision_result.alternative ?? '—'}
                         </TableCell>
                       </TableRow>
                     </TableBody>
