@@ -36,6 +36,7 @@ class MissingPattern(Enum):
     MAR = "Missing At Random"
     MNAR = "Missing Not At Random"
     NO_MISSING = "No Missing Data"
+    UNDETERMINED = "Mechanism Could Not Be Assessed"
 
 
 def classify_missing_mechanism(corr: float) -> str:
@@ -96,7 +97,8 @@ class MissingDataAnalysis:
     missing_percentage: Decimal
     missing_by_column: Dict[str, Dict[str, Any]]
     missing_pattern: MissingPattern
-    pattern_confidence: Decimal
+    # None when the mechanism could not be assessed at all. It is not 0.5, and it is not 0.
+    pattern_confidence: Optional[Decimal]
     little_mcar_test: Optional[Dict[str, Decimal]] = None
     missing_correlations: Optional[pd.DataFrame] = None
     missing_heatmap_data: Optional[np.ndarray] = None
@@ -534,7 +536,17 @@ class MissingDataHandler:
                                 pass
 
         if not correlations:
-            return MissingPattern.MCAR, Decimal("0.5")
+            # Not one association could be computed -- a single column, or no other column with
+            # more than 10 complete cases to compare against.
+            #
+            # This used to return MCAR with a confidence of 0.5. MCAR is the strongest and most
+            # convenient of the three mechanisms: it is the one that licenses listwise deletion
+            # and mean imputation, and `_determine_strategy_for_test` below duly selects "mean"
+            # for regression and correlation when it sees MCAR. So an ABSENCE OF EVIDENCE -- in
+            # fact an absence of any computation at all -- was being converted into the
+            # assumption whose violation does the most damage. MCAR is not the null you get for
+            # free; it is a claim, and nothing here supports it.
+            return MissingPattern.UNDETERMINED, None
 
         # Calculate average correlation
         avg_corr = float(np.mean(correlations))
@@ -693,6 +705,13 @@ class MissingDataHandler:
             recommendations.append("MAR pattern detected: Use model-based imputation (MICE, regression)")
         elif pattern == MissingPattern.MNAR:
             recommendations.append("MNAR pattern suspected: Consider selection models or sensitivity analysis")
+        elif pattern == MissingPattern.UNDETERMINED:
+            recommendations.append(
+                "The missingness mechanism could not be assessed (there is no second variable "
+                "with enough complete cases to associate missingness against). Do NOT assume "
+                "MCAR: use a method that remains valid under MAR (MICE / model-based "
+                "imputation), and treat listwise deletion and mean imputation as unsafe here."
+            )
 
         # Column-specific recommendations
         for col, info in missing_by_col.items():
@@ -710,6 +729,12 @@ class MissingDataHandler:
 
         if pattern == MissingPattern.MNAR:
             warnings_list.append("Missing not at random pattern may introduce bias")
+
+        if pattern == MissingPattern.UNDETERMINED:
+            warnings_list.append(
+                "Missingness mechanism is undetermined -- results that rely on it being MCAR "
+                "(complete-case analysis, mean imputation) cannot be justified from these data."
+            )
 
         # Check for columns with all missing
         for col, info in missing_by_col.items():
@@ -910,7 +935,9 @@ class MissingDataHandler:
             "total_missing": analysis.total_missing,
             "missing_percentage": float(analysis.missing_percentage),
             "pattern": analysis.missing_pattern.value,
-            "pattern_confidence": float(analysis.pattern_confidence),
+            "pattern_confidence": (
+                float(analysis.pattern_confidence) if analysis.pattern_confidence is not None else None
+            ),
             "missing_by_column": {
                 col: {"count": info["count"], "percentage": float(info["percentage"])}
                 for col, info in analysis.missing_by_column.items()

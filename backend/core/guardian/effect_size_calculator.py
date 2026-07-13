@@ -223,8 +223,26 @@ class EffectSizeCalculator:
         # Total sum of squares (SST)
         sst = ssb + ssw
 
+        # Eta-squared is the fraction of the total variance the grouping explains. With SST = 0
+        # there is no variance to explain -- every observation in every group is the same number
+        # -- and SSB is 0 too, so eta^2 is 0/0. It used to be reported as 0, which reads as
+        # "Negligible effect (eta^2 = 0.000), 0.0% of variance explained by groups": a measured
+        # finding of no effect, from data that cannot exhibit an effect either way.
+        if sst <= 0:
+            return {
+                "value": None,
+                "interpretation": (
+                    "Eta-squared is undefined: every observation is identical, so there is no "
+                    "variance to partition between and within groups (0/0)."
+                ),
+                "magnitude": "undefined",
+                "ssb": float(ssb),
+                "ssw": float(ssw),
+                "sst": float(sst),
+            }
+
         # Eta-squared
-        eta_squared = ssb / sst if sst > 0 else 0
+        eta_squared = ssb / sst
 
         # Interpret magnitude
         if eta_squared < self.ETA_SQUARED_THRESHOLDS["small"]:

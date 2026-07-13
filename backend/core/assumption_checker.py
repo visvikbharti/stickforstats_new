@@ -77,7 +77,18 @@ class AssumptionResult:
     test_statistic: float
     p_value: Optional[float]
     is_met: bool
-    confidence: float  # 0-1, confidence in the result
+    # How much corroboration the verdict has, in [0, 1]. It is NOT a probability that the
+    # assumption holds, and it is not derived from the p-value.
+    #
+    #   - normality / homoscedasticity with method="combined": the fraction of the tests run
+    #     that reach the same verdict as the primary test.
+    #   - independence: how close the Durbin-Watson statistic is to its no-autocorrelation
+    #     value of 2.
+    #   - sample size: how far n clears the minimum for the test.
+    #   - a SINGLE test: None. One test cannot agree or disagree with anything, so there is no
+    #     corroboration to report. This case used to return a flat 0.8 (or 0.6, when the
+    #     p-value happened to be exactly 0.0, which is falsy) -- numbers with no derivation.
+    confidence: Optional[float]
     details: Dict[str, Any] = field(default_factory=dict)
     suggestions: List[TestSuggestion] = field(default_factory=list)
     warning_message: Optional[str] = None
@@ -92,7 +103,7 @@ class AssumptionResult:
             "test_statistic": float(self.test_statistic) if not np.isnan(self.test_statistic) else None,
             "p_value": float(self.p_value) if self.p_value is not None else None,
             "is_met": self.is_met,
-            "confidence": float(self.confidence),
+            "confidence": float(self.confidence) if self.confidence is not None else None,
             "details": self.details,
             "suggestions": [s.value if isinstance(s, TestSuggestion) else str(s) for s in self.suggestions],
             "warning_message": self.warning_message,
@@ -211,17 +222,38 @@ class AssumptionChecker:
 
         # Determine overall normality
         if method == "combined":
-            # Use majority vote for combined method
-            normal_votes = sum(1 for r in results.values() if r.get("is_normal", False))
-            is_normal = normal_votes >= len(results) / 2
-            confidence = normal_votes / len(results) if results else 0
+            if not results:
+                raise ValueError(
+                    "No normality test could be run on these data (every applicable test "
+                    "requires a larger sample than was supplied)."
+                )
 
-            # Get average p-value for tests that have it
-            p_values = [r["p_value"] for r in results.values() if "p_value" in r]
-            avg_p_value = np.mean(p_values) if p_values else None
+            # One test is the ANSWER; the others are corroboration.
+            #
+            # This used to take a majority vote across the tests and report the ARITHMETIC MEAN
+            # of their p-values as `p_value`. The mean of a Shapiro-Wilk p, a D'Agostino p and a
+            # Jarque-Bera p on the same sample is not a p-value: it is not the probability of
+            # anything under any hypothesis, it has no null distribution, and comparing it to
+            # 0.05 does not control any error rate. It was nevertheless serialized into the
+            # `p_value` field and shown to the user as the normality p-value.
+            #
+            # Shapiro-Wilk is the most powerful of these against general alternatives and is the
+            # standard choice up to its n = 5000 limit; past that D'Agostino-Pearson is the
+            # usual replacement. Whichever is primary reports its own statistic and its own
+            # p-value; the rest stay in `details` where they can be read as what they are.
+            primary_order = ["shapiro_wilk", "dagostino_pearson", "jarque_bera", "anderson_darling"]
+            primary = next((name for name in primary_order if name in results), None)
+            primary_result = results[primary]
 
-            test_name = "combined_normality"
-            test_statistic = np.nan
+            is_normal = primary_result["is_normal"]
+            avg_p_value = primary_result.get("p_value")
+            test_statistic = primary_result["statistic"]
+            test_name = f"{primary} (primary; {len(results)} tests run)"
+
+            # Confidence is now a defined quantity: how many of the tests run agree with the
+            # primary verdict.
+            agreeing = sum(1 for r in results.values() if r.get("is_normal", False) == is_normal)
+            confidence = agreeing / len(results)
         else:
             # Single test result
             if method == "shapiro" and "shapiro_wilk" in results:
@@ -245,12 +277,16 @@ class AssumptionChecker:
                 test_statistic = results["jarque_bera"]["statistic"]
                 test_name = "jarque_bera"
             else:
-                is_normal = False
-                avg_p_value = None
-                test_statistic = np.nan
-                test_name = "unknown"
+                raise ValueError(
+                    f"Unknown normality test method {method!r}, or the sample is too small for "
+                    f"it. Choose one of: shapiro, dagostino, anderson, jarque_bera, combined. "
+                    f"This branch used to return is_normal=False -- a verdict of NON-normality "
+                    f"from a test that was never run."
+                )
 
-            confidence = 0.8 if avg_p_value else 0.6
+            # A single test agrees with itself. There is no second opinion here, so there is no
+            # agreement to report.
+            confidence = None
 
         # Add suggestions if not normal
         if not is_normal:
@@ -335,14 +371,29 @@ class AssumptionChecker:
 
         # Determine overall result
         if method == "combined":
-            equal_var_votes = sum(1 for r in results.values() if r.get("equal_variance", False))
-            is_equal_var = equal_var_votes >= len(results) / 2
-            confidence = equal_var_votes / len(results) if results else 0
+            if not results:
+                raise ValueError("No homoscedasticity test could be run on these groups.")
 
-            p_values = [r["p_value"] for r in results.values() if "p_value" in r]
-            avg_p_value = np.mean(p_values) if p_values else None
-            test_name = "combined_homoscedasticity"
-            test_statistic = np.nan
+            # Same rule as normality: one test answers, the others corroborate. Averaging
+            # Levene's, Bartlett's and Fligner-Killeen's p-values produced a number that was
+            # not a p-value and was reported as one.
+            #
+            # Levene (median-centred, i.e. Brown-Forsythe) is primary: it is the one of the
+            # three that stays valid when the groups are not normal, which is exactly the
+            # situation in which anyone is checking.
+            primary_order = ["levene", "fligner", "bartlett"]
+            primary = next((name for name in primary_order if name in results), None)
+            primary_result = results[primary]
+
+            is_equal_var = primary_result["equal_variance"]
+            avg_p_value = primary_result.get("p_value")
+            test_statistic = primary_result["statistic"]
+            test_name = f"{primary} (primary; {len(results)} tests run)"
+
+            agreeing = sum(
+                1 for r in results.values() if r.get("equal_variance", False) == is_equal_var
+            )
+            confidence = agreeing / len(results)
         else:
             # Single test result
             if method == "levene" and "levene" in results:
@@ -361,12 +412,14 @@ class AssumptionChecker:
                 test_statistic = results["fligner"]["statistic"]
                 test_name = "fligner"
             else:
-                is_equal_var = False
-                avg_p_value = None
-                test_statistic = np.nan
-                test_name = "unknown"
+                raise ValueError(
+                    f"Unknown homoscedasticity test method {method!r}. Choose one of: levene, "
+                    f"bartlett, fligner, combined. This branch used to return "
+                    f"is_equal_var=False -- a verdict of UNEQUAL variances from a test that was "
+                    f"never run."
+                )
 
-            confidence = 0.8 if avg_p_value else 0.6
+            confidence = None
 
         # Add suggestions if variances are unequal
         if not is_equal_var:

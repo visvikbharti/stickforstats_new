@@ -287,8 +287,25 @@ class MetaAnalysisEngine:
         Returns:
             Dictionary with intercept, se, t-statistic, p-value
         """
-        effects = np.array([s.effect_size for s in studies])
-        se = np.array([s.standard_error for s in studies])
+        n = len(studies)
+
+        # The regression has two parameters, so it needs at least three studies before it has
+        # a single degree of freedom to estimate the residual variance from. With n = 2 the
+        # line passes exactly through both points and `mse` below is 0/0.
+        if n < 3:
+            return self._eggers_undefined(
+                f"Egger's test needs at least 3 studies to have a residual degree of "
+                f"freedom; {n} supplied."
+            )
+
+        effects = np.array([s.effect_size for s in studies], dtype=float)
+        se = np.array([s.standard_error for s in studies], dtype=float)
+
+        if np.any(~np.isfinite(se)) or np.any(se <= 0):
+            return self._eggers_undefined(
+                "Egger's test requires a positive standard error for every study; the "
+                "regression is on effect/SE against 1/SE, both undefined at SE = 0."
+            )
 
         # Standardized effect (effect / SE)
         z = effects / se
@@ -298,7 +315,6 @@ class MetaAnalysisEngine:
 
         # Weighted regression: z = intercept + slope * precision
         # Using OLS for simplicity
-        n = len(studies)
         x = precision
         y = z
 
@@ -316,20 +332,76 @@ class MetaAnalysisEngine:
         # Use pseudoinverse instead of inverse to handle near-singular matrices
         # This can occur when studies have very similar precision values
         var_beta = mse * np.linalg.pinv(X.T @ X)
-        se_intercept = np.sqrt(max(var_beta[0, 0], 1e-10))  # Ensure non-negative
+        var_intercept = var_beta[0, 0]
+
+        # This used to be `sqrt(max(var_intercept, 1e-10))` -- "ensure non-negative". It did
+        # far more than that: it FLOORED the standard error at 1e-5. When the regression fits
+        # exactly (three collinear points, or every study sharing a precision), the true
+        # standard error is 0 and t = intercept / 0 is undefined; the floor turned it into
+        # t = intercept * 100000, whose p-value is 0, and the test then announced "Strong
+        # evidence of publication bias (p < 0.01)" -- from a regression carrying no
+        # information about bias at all.
+        #
+        # "Exactly" has to be judged on a relative scale: a perfect fit in floating point
+        # leaves residuals of rounding noise, not zeros, so `mse > 0` is not the question.
+        # This is R's criterion from summary.lm -- residual variance negligible against the
+        # scale of the fitted values -- which is the same situation R declines to summarize
+        # with an "essentially perfect fit" warning.
+        fit_scale = float(np.mean(y_pred) ** 2 + np.var(y_pred))
+        essentially_perfect = mse < fit_scale * 1e-30 or (fit_scale == 0 and mse == 0)
+
+        if essentially_perfect or not np.isfinite(var_intercept) or var_intercept <= 0:
+            return self._eggers_undefined(
+                "The funnel-plot regression fits the studies essentially exactly, so the "
+                "intercept has no residual variance to estimate a standard error from. The "
+                "asymmetry t-statistic (intercept / SE) is undefined.",
+                intercept=float(intercept),
+                df=n - 2,
+            )
+
+        se_intercept = float(np.sqrt(var_intercept))
 
         # t-test for intercept
         t_stat = intercept / se_intercept
         p_value = 2 * (stats.t.sf(abs(t_stat), n - 2))
 
-        return {
+        result = {
             "intercept": float(intercept),
-            "se": float(se_intercept),
+            "se": se_intercept,
             "t_statistic": float(t_stat),
             "df": n - 2,
             "p_value": float(p_value),
-            "significant": p_value < 0.05,
+            "significant": bool(p_value < 0.05),
             "interpretation": self._interpret_eggers(p_value),
+        }
+
+        # Egger's own recommendation, and Cochrane's: below ~10 studies the test has so little
+        # power that a non-significant result says nothing. Say so rather than let the caller
+        # read "No significant evidence of publication bias" as evidence of no bias.
+        if n < 10:
+            result["underpowered"] = True
+            result["power_note"] = (
+                f"Only {n} studies. Egger's test has very low power below ~10 studies; a "
+                f"non-significant result here is not evidence that publication bias is absent."
+            )
+        else:
+            result["underpowered"] = False
+
+        return result
+
+    @staticmethod
+    def _eggers_undefined(reason: str, intercept: float = None, df: int = None) -> Dict:
+        """Egger's test cannot be computed. Say so; do not invent a p-value."""
+        return {
+            "intercept": intercept,
+            "se": None,
+            "t_statistic": None,
+            "df": df,
+            "p_value": None,
+            "significant": None,
+            "interpretation": f"Egger's test is undefined here. {reason}",
+            "undefined": True,
+            "reason": reason,
         }
 
     def _interpret_eggers(self, p_value: float) -> str:
@@ -353,27 +425,96 @@ class MetaAnalysisEngine:
         Returns:
             Dictionary with tau, z-statistic, p-value
         """
-        effects = np.array([s.effect_size for s in studies])
-        var = np.array([s.standard_error**2 for s in studies])
+        n = len(studies)
 
-        # Standardize effects
-        pooled = np.mean(effects)
-        np.mean(var)
-        std_effects = (effects - pooled) / np.sqrt(var)
+        # A rank correlation on two points is +/-1 by construction and carries no information.
+        # With n = 1 the z-approximation below divides by 9 * n * (n - 1) = 0.
+        if n < 3:
+            return self._beggs_undefined(
+                f"Begg's rank correlation needs at least 3 studies; {n} supplied."
+            )
+
+        effects = np.array([s.effect_size for s in studies], dtype=float)
+        se = np.array([s.standard_error for s in studies], dtype=float)
+
+        if np.any(~np.isfinite(se)) or np.any(se <= 0):
+            return self._beggs_undefined(
+                "Begg's test requires a positive standard error for every study."
+            )
+
+        var = se**2
+
+        # Begg & Mazumdar (1994) standardize each effect by the variance of the DIFFERENCE
+        # between it and the pooled estimate, and pool by inverse variance:
+        #
+        #     theta_pooled = sum(w_i theta_i) / sum(w_i),   w_i = 1 / v_i
+        #     v_pooled     = 1 / sum(w_i)
+        #     t_i          = (theta_i - theta_pooled) / sqrt(v_i - v_pooled)
+        #
+        # This code used to take an UNWEIGHTED mean of the effects and divide by sqrt(v_i)
+        # with no v_pooled correction -- so the quantity being rank-correlated was not the
+        # one Begg's test is defined on, and the tau it reported was not Begg's tau.
+        weights = 1.0 / var
+        theta_pooled = float(np.sum(weights * effects) / np.sum(weights))
+        v_pooled = float(1.0 / np.sum(weights))
+
+        denominator = var - v_pooled
+        if np.any(denominator <= 0):
+            # v_pooled is strictly below min(v_i) whenever the studies differ, so this only
+            # happens when every study has an identical variance and the pooled variance
+            # collapses onto it: the standardized effects are 0/0.
+            return self._beggs_undefined(
+                "The studies' variances are indistinguishable from the pooled variance, so "
+                "the standardized effects Begg's test ranks are 0/0."
+            )
+
+        std_effects = (effects - theta_pooled) / np.sqrt(denominator)
 
         # Kendall's tau correlation
         tau, p_value = stats.kendalltau(std_effects, var)
 
+        if not np.isfinite(tau) or not np.isfinite(p_value):
+            # kendalltau returns nan when one input is constant. `nan < 0.05` is False, so
+            # this used to fall straight through to "No significant evidence of publication
+            # bias" -- a verdict, from a statistic that does not exist.
+            return self._beggs_undefined(
+                "Kendall's tau is undefined here (the standardized effects or the variances "
+                "are constant, so there are no ranks to correlate)."
+            )
+
         # Z approximation
-        n = len(studies)
         z_stat = tau / np.sqrt(2 * (2 * n + 5) / (9 * n * (n - 1)))
 
-        return {
+        result = {
             "tau": float(tau),
             "z_statistic": float(z_stat),
             "p_value": float(p_value),
-            "significant": p_value < 0.05,
+            "significant": bool(p_value < 0.05),
             "interpretation": self._interpret_beggs(p_value),
+        }
+
+        if n < 10:
+            result["underpowered"] = True
+            result["power_note"] = (
+                f"Only {n} studies. Begg's test is even less powerful than Egger's at this "
+                f"size; a non-significant result is not evidence that bias is absent."
+            )
+        else:
+            result["underpowered"] = False
+
+        return result
+
+    @staticmethod
+    def _beggs_undefined(reason: str) -> Dict:
+        """Begg's test cannot be computed. Say so; do not invent a tau."""
+        return {
+            "tau": None,
+            "z_statistic": None,
+            "p_value": None,
+            "significant": None,
+            "interpretation": f"Begg's test is undefined here. {reason}",
+            "undefined": True,
+            "reason": reason,
         }
 
     def _interpret_beggs(self, p_value: float) -> str:

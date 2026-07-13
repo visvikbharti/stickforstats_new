@@ -1598,51 +1598,87 @@ class LinearityValidator:
 
     def _runs_test(self, residuals: np.ndarray) -> Dict:
         """
-        Runs test to detect non-random patterns in residuals
+        Wald-Wolfowitz runs test to detect non-random patterns in residuals.
 
-        The runs test checks if residuals above/below zero are randomly distributed.
-        Too few runs suggests a pattern (non-linearity).
+        Residuals are dichotomized about their median and the number of runs is compared
+        with the number expected if the signs were in random order. Too few runs means the
+        residuals cluster -- the signature of a systematic (e.g. curved) departure from the
+        fitted model.
+
+        Where the test is undefined it returns p_value = None. It used to return 0.0 and
+        1.0 in those two branches, and the caller reads `pattern_detected` to decide whether
+        to raise a CRITICAL linearity violation:
+
+          - `n1 == 0` (every residual on one side of the median) returned p = 0.0 and
+            pattern_detected = True. A perfectly CONSTANT response gives residuals that are
+            all exactly zero, so all of them equal the median, so n1 = 0 -- and Guardian
+            declared a flat line "critically non-linear" with a p-value of zero.
+          - `variance_runs == 0` returned p = 1.0 and pattern_detected = False: a clean bill
+            of health from a test that could not be computed.
+
+        Neither number was a probability of anything.
         """
-        # Get median
+        residuals = np.asarray(residuals, dtype=float)
         median = np.median(residuals)
 
-        # Convert to binary sequence (above/below median)
-        binary = (residuals > median).astype(int)
+        # Ties with the median carry no directional information. The standard median-based
+        # runs test discards them rather than silently lumping them in below (which is what
+        # `residuals > median` did, and why constant residuals came out as "all below").
+        signs = residuals[residuals != median]
+        binary = (signs > median).astype(int)
 
-        # Count runs
+        n1 = int(np.sum(binary == 1))
+        n2 = int(np.sum(binary == 0))
+        n = n1 + n2
+
+        undefined = {"pattern_detected": None, "p_value": None, "runs": None, "expected_runs": None}
+
+        if n1 == 0 or n2 == 0:
+            return {
+                **undefined,
+                "reason": (
+                    "Every residual lies on the same side of its own median (or all residuals "
+                    "are identical), so there is no sequence of signs to count runs in."
+                ),
+            }
+
+        # Count runs in the tie-free sequence
         runs = 1
         for i in range(1, len(binary)):
             if binary[i] != binary[i - 1]:
                 runs += 1
 
-        # Expected runs under null hypothesis (random)
-        n1 = np.sum(binary == 1)
-        n2 = np.sum(binary == 0)
-        n = len(binary)
-
-        if n1 == 0 or n2 == 0:
-            return {"pattern_detected": True, "p_value": 0.0}
-
+        # Expected runs and variance under the null hypothesis of random order
         expected_runs = (2 * n1 * n2) / n + 1
-        variance_runs = (2 * n1 * n2 * (2 * n1 * n2 - n)) / (n**2 * (n - 1))
+        variance_runs = (2 * n1 * n2 * (2 * n1 * n2 - n)) / (n**2 * (n - 1)) if n > 1 else 0.0
 
-        if variance_runs == 0:
-            return {"pattern_detected": False, "p_value": 1.0}
+        if variance_runs <= 0:
+            return {
+                **undefined,
+                "reason": (
+                    f"The null distribution of the number of runs has zero variance at "
+                    f"n1={n1}, n2={n2}: every ordering gives the same number of runs, so no "
+                    f"ordering is more surprising than any other."
+                ),
+            }
 
-        # Z-score
-        z_score = (runs - expected_runs) / np.sqrt(variance_runs)
+        # Z-score, with the usual continuity correction (runs is a discrete count).
+        deviation = runs - expected_runs
+        correction = -0.5 if deviation > 0 else 0.5
+        z_score = (deviation + correction) / np.sqrt(variance_runs) if abs(deviation) > 0.5 else 0.0
 
         # Two-tailed p-value
         p_value = 2 * (stats.norm.sf(abs(z_score)))
 
-        # Pattern detected if too few runs (p < 0.05)
-        pattern_detected = p_value < 0.05
+        # Pattern detected if the run count is surprising in either direction
+        pattern_detected = bool(p_value < 0.05)
 
         return {
             "pattern_detected": pattern_detected,
             "p_value": float(p_value),
             "runs": runs,
             "expected_runs": float(expected_runs),
+            "n_tied_with_median": int(len(residuals) - n),
         }
 
 
