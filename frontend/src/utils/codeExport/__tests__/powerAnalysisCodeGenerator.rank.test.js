@@ -175,3 +175,39 @@ describe.each([
     expect(sizes).toEqual([...sizes].sort((a, b) => b - a)); // strictly decreasing — its whole point
   });
 });
+
+/**
+ * The Kruskal-Wallis table is computed at k = 3. The user can pick any k, and the answer moves a
+ * long way: at d = 0.5, 80% power, normal parent it is 18 per group at k = 2, 15 at k = 3, and 6 at
+ * k = 20. A table printing 15 beside a user's own answer of 6 is a number that was not computed for
+ * their design -- which is the defect this table has already had twice (a fabricated row, then the
+ * Mann-Whitney column under every heading).
+ *
+ * The ARE column IS k-invariant, and is the point the table exists to make, so it stays.
+ */
+describe.each([
+  ['R', generateRCode],
+  ['Python', generatePythonCode],
+])('%s Kruskal-Wallis script is honest about the k its table assumes', (_label, generate) => {
+  const kwParams = (numGroups) => ({ ...paramsFor('normal', 'kruskal-wallis'), numGroups });
+
+  it('says nothing extra when the user IS running k = 3', () => {
+    expect(generate(kwParams(3))).not.toMatch(/NOTE: the n column/);
+  });
+
+  it.each([2, 5, 8, 20])('warns that the column does not describe a k = %i design', (k) => {
+    const code = generate(kwParams(k));
+
+    expect(code).toMatch(/NOTE: the n column above is for k = 3 groups/);
+    expect(code).toMatch(new RegExp(`Your design has k = ${k}`));
+    expect(code).not.toMatch(/k = undefined/); // the interpolation must actually resolve
+    expect(code).toMatch(/ARE column does not depend on k/);
+  });
+
+  it('never warns for the rank tests that have no k at all', () => {
+    for (const testType of ['mann-whitney', 'wilcoxon']) {
+      const code = generate({ ...paramsFor('normal', testType), numGroups: 5 });
+      expect(code).not.toMatch(/NOTE: the n column/);
+    }
+  });
+});
