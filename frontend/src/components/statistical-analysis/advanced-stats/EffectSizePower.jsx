@@ -14,7 +14,7 @@
  * Backend API: /api/v1/effect-sizes/, /api/v1/power/
  */
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import jStat from 'jstat';
 import { runPowerCalculation, runSampleSizeCalculation, runPowerCurve } from '../utils/hubTestService';
 import {
@@ -180,6 +180,31 @@ const EffectSizePower = ({ data }) => {
   const [powerCurveData, setPowerCurveData] = useState(null);
   // Monotonic request counter: only the newest request may write to state.
   const powerRequestRef = useRef(0);
+
+  /**
+   * An answer belongs to the inputs it was computed from.
+   *
+   * The power result was cleared only when a NEW calculation started. So every control here could
+   * be changed underneath a standing answer -- change the effect size, the alpha, even the TEST,
+   * and the card went on showing the power of the design you had previously asked about, labelled
+   * with the settings now on screen.
+   *
+   * This is the same defect as PowerAnalysisTool's, which was found first; it lives in this
+   * component too because they were written from the same template. Fixing one instance of a bug
+   * and not the class is how this whole arc kept regenerating itself.
+   *
+   * Bumping the request id also withdraws anything in flight: a response launched under the OLD
+   * inputs must not be allowed to answer under the new ones.
+   *
+   * Deps are the INPUTS only -- `powerResults` is what this effect writes, and putting it here
+   * would make every answer flash and vanish the moment it arrived.
+   */
+  useEffect(() => {
+    powerRequestRef.current += 1;
+    setPowerResults(null);
+    setPowerCurveData(null);
+    setPowerLoading(false);
+  }, [powerTestType, powerMode, powerEffectSize, powerAlpha, powerN, desiredPower, alternative, nGroups]);
 
   /**
    * Detect column types from data

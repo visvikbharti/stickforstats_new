@@ -15,7 +15,7 @@
  * - 50-decimal precision calculations
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Card,
@@ -165,6 +165,8 @@ const PowerAnalysisReal = () => {
   });
 
   const [results, setResults] = useState(null);
+  // Monotonic request counter: only the newest calculation may write its answer.
+  const requestRef = useRef(0);
   const [powerCurve, setPowerCurve] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -187,8 +189,35 @@ const PowerAnalysisReal = () => {
     loadScenario();
   }, [selectedScenario, loadScenario]);
 
+  /**
+   * An answer belongs to the inputs it was computed from.
+   *
+   * `results` was cleared only by the Reset button, so every parameter here could be changed
+   * underneath a standing answer: the card went on showing the power of the design the user had
+   * previously asked about, under the settings now on screen.
+   *
+   * Third instance of this defect, after PowerAnalysisTool and EffectSizePower -- they were all
+   * written from the same template, so they all carried it. Fixing an instance instead of the
+   * class is what made this arc keep regenerating.
+   *
+   * `parameters` is an object, so any edit to any field gives it a new identity and this fires.
+   * Bumping the request id also withdraws anything in flight. Deps are the INPUTS only: `results`
+   * is what this effect writes, and including it would make every answer flash and vanish.
+   */
+  useEffect(() => {
+    requestRef.current += 1;
+    setResults(null);
+    setPowerCurve(null);
+    setError(null);
+    setLoading(false);
+  }, [parameters, calculationMode, testType]);
+
   // Perform power calculation using backend
   const performCalculation = async () => {
+    // Two calculations with different parameters race; if the first is slower its answer lands
+    // last, against inputs the user has already changed. Only the newest may write.
+    const requestId = ++requestRef.current;
+
     try {
       setLoading(true);
       setError(null);
@@ -277,6 +306,7 @@ const PowerAnalysisReal = () => {
       result.testType = testType;
       result.scenario = POWER_SCENARIOS[selectedScenario];
 
+      if (requestId !== requestRef.current) return; // superseded by a newer request
       setResults(result);
 
       // Generate power curve if in power mode
@@ -285,11 +315,12 @@ const PowerAnalysisReal = () => {
       }
 
     } catch (err) {
+      if (requestId !== requestRef.current) return;
       console.error('Calculation error:', err);
       setError(err.response?.data?.error || err.message || 'Calculation failed');
       setResults(null);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   };
 
