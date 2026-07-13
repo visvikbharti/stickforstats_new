@@ -153,10 +153,10 @@ class AdvancedANOVAService:
         f_interaction = ms_interaction / ms_residual if ms_residual > 0 and interaction else 0
 
         # P-values
-        p_factor1 = 1 - stats.f.cdf(f_factor1, df_factor1, df_residual) if df_residual > 0 else 1
-        p_factor2 = 1 - stats.f.cdf(f_factor2, df_factor2, df_residual) if df_residual > 0 else 1
+        p_factor1 = stats.f.sf(f_factor1, df_factor1, df_residual) if df_residual > 0 else 1
+        p_factor2 = stats.f.sf(f_factor2, df_factor2, df_residual) if df_residual > 0 else 1
         p_interaction = (
-            1 - stats.f.cdf(f_interaction, df_interaction, df_residual) if df_residual > 0 and interaction else 1
+            stats.f.sf(f_interaction, df_interaction, df_residual) if df_residual > 0 and interaction else 1
         )
 
         # Effect sizes (partial eta squared)
@@ -398,11 +398,11 @@ class AdvancedANOVAService:
 
             df_conditions_corrected = df_conditions * epsilon
             df_error_corrected = df_error * epsilon
-            p_value = 1 - stats.f.cdf(f_statistic, df_conditions_corrected, df_error_corrected)
+            p_value = stats.f.sf(f_statistic, df_conditions_corrected, df_error_corrected)
         else:
             df_conditions_corrected = df_conditions
             df_error_corrected = df_error
-            p_value = 1 - stats.f.cdf(f_statistic, df_conditions, df_error)
+            p_value = stats.f.sf(f_statistic, df_conditions, df_error)
 
         # Effect size (partial eta squared)
         eta_squared = ss_conditions / (ss_conditions + ss_error)
@@ -533,7 +533,7 @@ class AdvancedANOVAService:
 
         # F-statistic
         f_statistic = ms_factor_adj / ms_error_adj if ms_error_adj > 0 else 0
-        p_value = 1 - stats.f.cdf(f_statistic, df_factor, df_error)
+        p_value = stats.f.sf(f_statistic, df_factor, df_error)
 
         # Effect size
         eta_squared = ss_factor_adj / ss_total_adjusted
@@ -546,7 +546,7 @@ class AdvancedANOVAService:
                 "DF": [1, df_factor, df_error, df_total],
                 "MS": [ss_regression, ms_factor_adj, ms_error_adj, np.nan],
                 "F": [ss_regression / ms_error_adj, f_statistic, np.nan, np.nan],
-                "p-value": [1 - stats.f.cdf(ss_regression / ms_error_adj, 1, df_error), p_value, np.nan, np.nan],
+                "p-value": [stats.f.sf(ss_regression / ms_error_adj, 1, df_error), p_value, np.nan, np.nan],
                 "eta²": [ss_regression / ss_total, eta_squared, np.nan, np.nan],
             }
         )
@@ -766,7 +766,7 @@ class AdvancedANOVAService:
                     se_diff = np.std(diff, ddof=1) / np.sqrt(n_subjects)
 
                     t_stat = mean_diff / se_diff if se_diff > 0 else 0
-                    p_value = 2 * (1 - stats.t.cdf(abs(t_stat), n_subjects - 1))
+                    p_value = 2 * (stats.t.sf(abs(t_stat), n_subjects - 1))
 
                     # Bonferroni correction
                     n_comparisons = len(conditions) * (len(conditions) - 1) / 2
@@ -819,7 +819,7 @@ class AdvancedANOVAService:
 
             # F-test for interaction
             f_stat = ((ss_error_reduced - ss_error_full) / (df_reduced - df_full)) / (ss_error_full / df_full)
-            p_value = 1 - stats.f.cdf(f_stat, df_reduced - df_full, df_full)
+            p_value = stats.f.sf(f_stat, df_reduced - df_full, df_full)
 
             return {"f_statistic": f_stat, "p_value": p_value, "homogeneous": p_value > 0.05}
         except np.linalg.LinAlgError:
@@ -842,7 +842,7 @@ class AdvancedANOVAService:
                 se = np.sqrt(ms_error * (1 / n1 + 1 / n2))
 
                 t_stat = mean_diff / se if se > 0 else 0
-                p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df_error))
+                p_value = 2 * (stats.t.sf(abs(t_stat), df_error))
 
                 comparisons.append(
                     {

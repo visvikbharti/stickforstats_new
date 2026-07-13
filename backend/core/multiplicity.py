@@ -837,7 +837,7 @@ class MultiplicityCorrector:
 
         elif spending_function == AlphaSpendingFunction.OBRIEN_FLEMING:
             # O'Brien-Fleming: Conservative early, aggressive late
-            alpha_spent = 2 * (1 - stats.norm.cdf(stats.norm.ppf(1 - alpha / 2) / np.sqrt(t)))
+            alpha_spent = 2 * (stats.norm.sf(stats.norm.ppf(1 - alpha / 2) / np.sqrt(t)))
 
         elif spending_function == AlphaSpendingFunction.LAN_DEMETS:
             # Lan-DeMets approximation to O'Brien-Fleming

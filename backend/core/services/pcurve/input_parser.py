@@ -81,7 +81,7 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
     if t_match:
         df = float(t_match.group(1))
         t_stat = float(t_match.group(2))
-        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))  # Two-tailed
+        p_value = 2 * (stats.t.sf(abs(t_stat), df))  # Two-tailed
         return PCurveInput(
             study_id=study_id, test_type="t", statistic=t_stat, df1=df, p_value=float(p_value), original_string=original
         )
@@ -93,7 +93,7 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
         df1 = float(f_match.group(1))
         df2 = float(f_match.group(2))
         f_stat = float(f_match.group(3))
-        p_value = 1 - stats.f.cdf(f_stat, df1, df2)
+        p_value = stats.f.sf(f_stat, df1, df2)
         return PCurveInput(
             study_id=study_id,
             test_type="F",
@@ -110,7 +110,7 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
     if chi2_match:
         df = float(chi2_match.group(1))
         chi2_stat = float(chi2_match.group(2))
-        p_value = 1 - stats.chi2.cdf(chi2_stat, df)
+        p_value = stats.chi2.sf(chi2_stat, df)
         return PCurveInput(
             study_id=study_id,
             test_type="chi2",
@@ -125,7 +125,7 @@ def parse_test_statistic(input_string: str, study_id: str = "") -> PCurveInput:
     z_match = re.search(z_pattern, input_string)
     if z_match:
         z_stat = float(z_match.group(1))
-        p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))  # Two-tailed
+        p_value = 2 * (stats.norm.sf(abs(z_stat)))  # Two-tailed
         return PCurveInput(
             study_id=study_id, test_type="z", statistic=z_stat, p_value=float(p_value), original_string=original
         )
@@ -218,9 +218,9 @@ def convert_to_pvalue(
         if df1 is None:
             raise ValueError("df1 required for t-test")
         if alternative == "two-sided":
-            p = 2 * (1 - stats.t.cdf(abs(statistic), df1))
+            p = 2 * (stats.t.sf(abs(statistic), df1))
         elif alternative == "greater":
-            p = 1 - stats.t.cdf(statistic, df1)
+            p = stats.t.sf(statistic, df1)
         else:
             p = stats.t.cdf(statistic, df1)
         return float(p)
@@ -228,18 +228,18 @@ def convert_to_pvalue(
     elif test_type.lower() == "f":
         if df1 is None or df2 is None:
             raise ValueError("df1 and df2 required for F-test")
-        return float(1 - stats.f.cdf(statistic, df1, df2))
+        return float(stats.f.sf(statistic, df1, df2))
 
     elif test_type.lower() in ["chi2", "x2"]:
         if df1 is None:
             raise ValueError("df required for chi-square test")
-        return float(1 - stats.chi2.cdf(statistic, df1))
+        return float(stats.chi2.sf(statistic, df1))
 
     elif test_type.lower() == "z":
         if alternative == "two-sided":
-            p = 2 * (1 - stats.norm.cdf(abs(statistic)))
+            p = 2 * (stats.norm.sf(abs(statistic)))
         elif alternative == "greater":
-            p = 1 - stats.norm.cdf(statistic)
+            p = stats.norm.sf(statistic)
         else:
             p = stats.norm.cdf(statistic)
         return float(p)
@@ -252,9 +252,9 @@ def convert_to_pvalue(
         if abs(statistic) < 1:
             t_stat = statistic * np.sqrt(df / (1 - statistic**2))
             if alternative == "two-sided":
-                p = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+                p = 2 * (stats.t.sf(abs(t_stat), df))
             elif alternative == "greater":
-                p = 1 - stats.t.cdf(t_stat, df)
+                p = stats.t.sf(t_stat, df)
             else:
                 p = stats.t.cdf(t_stat, df)
             return float(p)

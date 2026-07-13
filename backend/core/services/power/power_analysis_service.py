@@ -320,7 +320,7 @@ class PowerAnalysisService:
             f_crit = f.ppf(1 - alpha, df_between, df_within)
 
             # Power (using non-central F distribution)
-            power_calc = 1 - stats.ncf.cdf(f_crit, df_between, df_within, lambda_param)
+            power_calc = stats.ncf.sf(f_crit, df_between, df_within, lambda_param)
 
             result = {
                 "test_type": "One-Way ANOVA",
@@ -344,7 +344,7 @@ class PowerAnalysisService:
                 df_w = n_tot - n_groups
                 lambda_p = effect_size**2 * n_tot
                 f_cr = f.ppf(1 - alpha, df_b, df_w)
-                pow_calc = 1 - stats.ncf.cdf(f_cr, df_b, df_w, lambda_p)
+                pow_calc = stats.ncf.sf(f_cr, df_b, df_w, lambda_p)
                 return pow_calc - power
 
             n_per_group_calc = int(np.ceil(brentq(power_func, 2, 1000)))
@@ -367,7 +367,7 @@ class PowerAnalysisService:
                 df_w = n_tot - n_groups
                 lambda_p = f_try**2 * n_tot
                 f_cr = f.ppf(1 - alpha, df_b, df_w)
-                pow_calc = 1 - stats.ncf.cdf(f_cr, df_b, df_w, lambda_p)
+                pow_calc = stats.ncf.sf(f_cr, df_b, df_w, lambda_p)
                 return pow_calc - power
 
             effect_size_calc = brentq(power_func, 0.01, 2)
@@ -530,7 +530,7 @@ class PowerAnalysisService:
             lambda_param = f2 * (df_model + df_error + 1)
             f_crit = f.ppf(1 - alpha, df_model, df_error)
 
-            power_calc = 1 - stats.ncf.cdf(f_crit, df_model, df_error, lambda_param)
+            power_calc = stats.ncf.sf(f_crit, df_model, df_error, lambda_param)
 
             result = {
                 "test_type": "Multiple Regression",
@@ -556,7 +556,7 @@ class PowerAnalysisService:
                     return -1
                 lambda_p = f2 * (df_m + df_e + 1)
                 f_cr = f.ppf(1 - alpha, df_m, df_e)
-                pow_calc = 1 - stats.ncf.cdf(f_cr, df_m, df_e, lambda_p)
+                pow_calc = stats.ncf.sf(f_cr, df_m, df_e, lambda_p)
                 return pow_calc - power
 
             n_calc = int(np.ceil(brentq(power_func, n_predictors + 2, 10000)))
@@ -579,7 +579,7 @@ class PowerAnalysisService:
                 df_e = n - n_predictors - 1
                 lambda_p = f2 * (df_m + df_e + 1)
                 f_cr = f.ppf(1 - alpha, df_m, df_e)
-                pow_calc = 1 - stats.ncf.cdf(f_cr, df_m, df_e, lambda_p)
+                pow_calc = stats.ncf.sf(f_cr, df_m, df_e, lambda_p)
                 return pow_calc - power
 
             r_squared_calc = brentq(power_func, 0.01, 0.99)
@@ -630,7 +630,7 @@ class PowerAnalysisService:
             # Calculate power
             lambda_param = n * effect_size**2
             chi2_crit = chi2.ppf(1 - alpha, df)
-            power_calc = 1 - stats.ncx2.cdf(chi2_crit, df, lambda_param)
+            power_calc = stats.ncx2.sf(chi2_crit, df, lambda_param)
 
             result = {
                 "test_type": "Chi-Square",
@@ -648,7 +648,7 @@ class PowerAnalysisService:
             def power_func(n_try):
                 lambda_p = n_try * effect_size**2
                 chi2_cr = chi2.ppf(1 - alpha, df)
-                pow_calc = 1 - stats.ncx2.cdf(chi2_cr, df, lambda_p)
+                pow_calc = stats.ncx2.sf(chi2_cr, df, lambda_p)
                 return pow_calc - power
 
             n_calc = int(np.ceil(brentq(power_func, 1, 10000)))
@@ -667,7 +667,7 @@ class PowerAnalysisService:
             def power_func(w_try):
                 lambda_p = n * w_try**2
                 chi2_cr = chi2.ppf(1 - alpha, df)
-                pow_calc = 1 - stats.ncx2.cdf(chi2_cr, df, lambda_p)
+                pow_calc = stats.ncx2.sf(chi2_cr, df, lambda_p)
                 return pow_calc - power
 
             effect_size_calc = brentq(power_func, 0.01, 2)

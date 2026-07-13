@@ -398,7 +398,7 @@ class RegressionDiagnostics:
         # Z-statistic
         if variance > 0:
             z_stat = (runs - expected_runs) / np.sqrt(variance)
-            p_value = 2 * (1 - stats.norm.cdf(np.abs(z_stat)))
+            p_value = 2 * (stats.norm.sf(np.abs(z_stat)))
         else:
             z_stat = 0
             p_value = 1
@@ -439,6 +439,6 @@ class RegressionDiagnostics:
         df = n_group - 1
 
         # P-value
-        p_value = 1 - stats.f.cdf(f_stat, df, df)
+        p_value = stats.f.sf(f_stat, df, df)
 
         return {"f_statistic": f_stat, "p_value": p_value, "df": df, "homoscedastic": p_value > 0.05}

@@ -246,7 +246,7 @@ class MultivariateService:
         # Bartlett's chi-square approximation
         chi_square = -(n - 1 - (p + q + 1) / 2) * np.log(wilks_lambda)
         df = p * q
-        p_value = 1 - stats.chi2.cdf(chi_square, df)
+        p_value = stats.chi2.sf(chi_square, df)
 
         # Redundancy analysis
         X_var_explained = np.var(X_scores, axis=0, ddof=1) / np.sum(np.var(X_std, axis=0, ddof=1))
@@ -351,7 +351,7 @@ class MultivariateService:
                 df2 = (n - g - p + 1) * t - df1 / 2 + 1
 
                 F_stat = ((1 - wilks_lambda ** (1 / t)) / wilks_lambda ** (1 / t)) * (df2 / df1)
-                p_value = 1 - stats.f.cdf(F_stat, df1, df2)
+                p_value = stats.f.sf(F_stat, df1, df2)
             else:
                 F_stat = np.nan
                 p_value = np.nan
@@ -613,7 +613,7 @@ class MultivariateService:
                 p = n_features
                 g = n_clusters
                 F_stat = ((1 - wilks_lambda) / wilks_lambda) * ((n - g) / (g - 1))
-                p_value = 1 - stats.f.cdf(F_stat, p * (g - 1), p * (n - g))
+                p_value = stats.f.sf(F_stat, p * (g - 1), p * (n - g))
             except:
                 wilks_lambda = np.nan
                 p_value = np.nan
@@ -900,7 +900,7 @@ class MultivariateService:
             test_type = "one-sample"
 
         # P-value
-        p_value = 1 - stats.f.cdf(F, df1, df2)
+        p_value = stats.f.sf(F, df1, df2)
 
         # Effect size (Mahalanobis D)
         if X2 is not None:

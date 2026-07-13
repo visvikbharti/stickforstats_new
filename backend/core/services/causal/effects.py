@@ -212,7 +212,7 @@ def estimate_ate(
     # Inference
     z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = ate / se if se > 0 else 0
-    p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
+    p_value = 2 * (stats.norm.sf(abs(t_stat)))
     ci_lower = ate - z_crit * se
     ci_upper = ate + z_crit * se
 
@@ -380,7 +380,7 @@ def estimate_att(
     # Inference
     z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = att / se if se > 0 else 0
-    p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
+    p_value = 2 * (stats.norm.sf(abs(t_stat)))
     ci_lower = att - z_crit * se
     ci_upper = att + z_crit * se
 
@@ -455,7 +455,7 @@ def estimate_effects_ipw(
 
     z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = effect / se if se > 0 else 0
-    p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
+    p_value = 2 * (stats.norm.sf(abs(t_stat)))
 
     return TreatmentEffectResult(
         estimand=estimand,
@@ -563,7 +563,7 @@ def doubly_robust_estimator(
     # Inference
     z_crit = stats.norm.ppf(1 - (1 - confidence_level) / 2)
     t_stat = effect / se if se > 0 else 0
-    p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
+    p_value = 2 * (stats.norm.sf(abs(t_stat)))
 
     diagnostics = {
         "method": "AIPW (Doubly Robust)",

@@ -339,7 +339,7 @@ def sensitivity_analysis(
             critical_t = stats.t.ppf(1 - alpha / 2, df)
 
             # Power = P(reject H0 | H1 is true)
-            power = 1 - stats.nct.cdf(critical_t, df, ncp) + stats.nct.cdf(-critical_t, df, ncp)
+            power = stats.nct.sf(critical_t, df, ncp) + stats.nct.cdf(-critical_t, df, ncp)
 
             results.append({"n_per_group": n, "total_n": 2 * n, "power": round(power, 3)})
 

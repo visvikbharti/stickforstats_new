@@ -813,7 +813,7 @@ class RobustComparison:
             )
 
             # P-value
-            p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+            p_value = 2 * (stats.t.sf(abs(t_stat), df))
         else:
             t_stat = np.nan
             df = np.nan
@@ -874,7 +874,7 @@ class RobustComparison:
         # Test statistic
         if ssw > 0:
             f_stat = (ssb / (k - 1)) / (ssw / (sum(ns) - k))
-            p_value = 1 - stats.f.cdf(f_stat, k - 1, sum(ns) - k)
+            p_value = stats.f.sf(f_stat, k - 1, sum(ns) - k)
         else:
             f_stat = np.nan
             p_value = np.nan

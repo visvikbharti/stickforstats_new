@@ -336,12 +336,19 @@ class HighPrecisionNonParametric:
         r1 = self._to_decimal(np.sum(x_ranks))
         r2 = self._to_decimal(np.sum(y_ranks))
 
-        # Calculate U statistics
+        # Calculate U statistics. (U2 = n1*n2 - U1 exactly, so it is not carried separately.)
         u1 = r1 - self._to_decimal(n1 * (n1 + 1) / 2)
-        u2 = r2 - self._to_decimal(n2 * (n2 + 1) / 2)
 
-        # The test statistic is the smaller of U1 and U2
-        u_stat = min(u1, u2)
+        # The test statistic is U1 -- the U of the FIRST sample -- not min(U1, U2).
+        #
+        # min(U1, U2) is the convention for looking a two-sided p up in a printed table, and
+        # it throws away the direction of the difference. But the p-value below comes from
+        # scipy, which computes it from U1. So on a one-sided test the reported statistic and
+        # the reported z could point one way while the p-value pointed the other: with
+        # alternative="greater" a user could be shown z = -0.84 alongside p = 0.80, two
+        # numbers that cannot both describe the same test. The same U now drives the
+        # statistic, the z-score, the effect size and the p-value.
+        u_stat = u1
 
         # Calculate expected value and standard error
         n = self._to_decimal(n1 + n2)
@@ -398,8 +405,11 @@ class HighPrecisionNonParametric:
             )
         )
 
-        # Calculate effect size (rank-biserial correlation)
-        effect_size = 1 - (2 * u_stat) / self._to_decimal(n1 * n2)
+        # Rank-biserial correlation (Kerby 2014): r = 2*U1/(n1*n2) - 1, in [-1, +1].
+        # r > 0 means the first group tends to score HIGHER. Computed from min(U1, U2) as it
+        # was before, r could never be negative, so it could never express the direction it
+        # exists to express.
+        effect_size = (2 * u_stat) / self._to_decimal(n1 * n2) - 1
 
         # Create result
         result = NonParametricResult(
@@ -534,11 +544,11 @@ class HighPrecisionNonParametric:
         else:
             # Use normal approximation
             if alternative == "two-sided":
-                p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
+                p_value = self._to_decimal(2 * (stats.norm.sf(abs(float(z)))))
             elif alternative == "less":
                 p_value = self._to_decimal(stats.norm.cdf(float(z)))
             else:  # greater
-                p_value = self._to_decimal(1 - stats.norm.cdf(float(z)))
+                p_value = self._to_decimal(stats.norm.sf(float(z)))
 
         # Calculate effect size (matched-pairs rank-biserial correlation)
         effect_size = (w_plus - w_minus) / (w_plus + w_minus) if (w_plus + w_minus) > 0 else self._to_decimal(0)
@@ -622,7 +632,7 @@ class HighPrecisionNonParametric:
 
         # Calculate p-value using chi-squared distribution
         df = k - 1
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(h_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(h_stat), df))
 
         # Calculate effect size (epsilon-squared)
         epsilon_squared = h_stat / (n_dec - 1)
@@ -726,7 +736,7 @@ class HighPrecisionNonParametric:
         else:
             chi_f = chi_f_uncorrected / tie_correction
 
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi_f), k - 1))
+        p_value = self._to_decimal(stats.chi2.sf(float(chi_f), k - 1))
 
         # Kendall's W (coefficient of concordance) as effect size.
         w = chi_f / (n_dec * (k_dec - 1))
@@ -1146,7 +1156,7 @@ class HighPrecisionNonParametric:
                 z = mean_diff / se
 
                 # Two-tailed p-value
-                p = 2 * (1 - stats.norm.cdf(abs(z)))
+                p = 2 * (stats.norm.sf(abs(z)))
                 p_values.append(p)
 
                 comparison_name = f"Group_{i+1}_vs_Group_{j+1}"

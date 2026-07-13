@@ -284,7 +284,7 @@ def baron_kenny_mediation(
     # Sobel test for indirect effect
     sobel_se = np.sqrt(path_a**2 * se_b**2 + path_b**2 * se_a**2)
     sobel_z = indirect_effect / sobel_se
-    sobel_p = 2 * (1 - stats.norm.cdf(abs(sobel_z)))
+    sobel_p = 2 * (stats.norm.sf(abs(sobel_z)))
 
     sobel_test = {"z": float(sobel_z), "p_value": float(sobel_p), "se": float(sobel_se)}
 

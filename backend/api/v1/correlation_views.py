@@ -139,17 +139,27 @@ class HighPrecisionCorrelationView(APIView):
         if result is None:
             return None
 
+        # Two opposite mistakes were live here at once:
+        #   * str(None) emits the STRING "None" into the JSON, which the UI parses into
+        #     garbage or prints verbatim where a number belongs;
+        #   * `if result.r_squared else None` is a TRUTHINESS test, and Decimal("0") is
+        #     falsy -- so a genuine r_squared of exactly 0 (two perfectly uncorrelated
+        #     variables) was serialized as null, i.e. "we could not compute it".
+        # Both are answered by testing for None explicitly.
+        def _s(value):
+            return None if value is None else str(value)
+
         return {
-            "correlation_coefficient": str(result.correlation_coefficient),
-            "p_value": str(result.p_value),
-            "confidence_interval_lower": str(result.confidence_interval_lower),
-            "confidence_interval_upper": str(result.confidence_interval_upper),
-            "test_statistic": str(result.test_statistic),
+            "correlation_coefficient": _s(result.correlation_coefficient),
+            "p_value": _s(result.p_value),
+            "confidence_interval_lower": _s(result.confidence_interval_lower),
+            "confidence_interval_upper": _s(result.confidence_interval_upper),
+            "test_statistic": _s(result.test_statistic),
             "df": result.df,
             "sample_size": result.sample_size,
             "correlation_type": result.correlation_type,
-            "r_squared": str(result.r_squared) if result.r_squared else None,
-            "standard_error": str(result.standard_error) if result.standard_error else None,
+            "r_squared": _s(result.r_squared),
+            "standard_error": _s(result.standard_error),
             "interpretation": result.interpretation,
         }
 

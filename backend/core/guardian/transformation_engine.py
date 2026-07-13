@@ -10,6 +10,8 @@ Date: October 2025
 
 import numpy as np
 from scipy import stats
+
+from core.utils.anderson_darling import anderson_pvalue_continuous
 from typing import Dict, Any, Optional
 import warnings
 
@@ -77,15 +79,17 @@ class TransformationEngine:
         skewness = stats.skew(data_clean)
         kurtosis = stats.kurtosis(data_clean)
 
-        # Test current normality
+        # Test current normality. For n > 5000 Shapiro-Wilk is not applicable, so we fall
+        # back to Anderson-Darling -- but AD returns a statistic and a critical-value table,
+        # not a p-value. The old code invented one (exactly 0.001 or exactly 0.10) and used
+        # it to decide which transformation to recommend and whether to claim it worked.
+        # anderson_pvalue_continuous is the real thing (Stephens' fitted curves), and it is
+        # already what guardian_core uses.
         if len(data_clean) <= 5000:
-            shapiro_stat, shapiro_p = stats.shapiro(data_clean)
+            _, current_p = stats.shapiro(data_clean)
         else:
-            # Use Anderson-Darling for large samples
             anderson_result = stats.anderson(data_clean)
-            shapiro_p = 0.001 if anderson_result.statistic > anderson_result.critical_values[2] else 0.10
-
-        current_p = shapiro_p
+            current_p = anderson_pvalue_continuous(float(anderson_result.statistic), len(data_clean))
 
         # Check for negative values
         has_negative = np.any(data_clean < 0)
@@ -398,8 +402,8 @@ class TransformationEngine:
             - improvement: bool
             - improvement_score: float (0-100)
             - still_violated: bool (p < 0.05)
-            - shapiro_stat_before: float
-            - shapiro_stat_after: float
+            - normality_test_before / normality_test_after: str (which test was run)
+            - normality_stat_before / normality_stat_after: float
             - skewness_before: float
             - skewness_after: float
         """
@@ -410,21 +414,27 @@ class TransformationEngine:
         if len(orig_clean) < 3 or len(trans_clean) < 3:
             return {"improvement": False, "message": "Insufficient data for validation"}
 
-        # Test original data
+        # Both branches report a real p-value from the test that was actually run, and name
+        # the test. The old code additionally reported `anderson.statistic / 10` as if it
+        # were a Shapiro-Wilk W -- an Anderson-Darling A^2 divided by ten is not a statistic
+        # of any kind.
         if len(orig_clean) <= 5000:
+            orig_test = "Shapiro-Wilk"
             orig_stat, orig_p = stats.shapiro(orig_clean)
         else:
+            orig_test = "Anderson-Darling"
             anderson_orig = stats.anderson(orig_clean)
-            orig_p = 0.001 if anderson_orig.statistic > anderson_orig.critical_values[2] else 0.10
-            orig_stat = anderson_orig.statistic / 10  # Normalize
+            orig_stat = float(anderson_orig.statistic)
+            orig_p = anderson_pvalue_continuous(orig_stat, len(orig_clean))
 
-        # Test transformed data
         if len(trans_clean) <= 5000:
+            trans_test = "Shapiro-Wilk"
             trans_stat, trans_p = stats.shapiro(trans_clean)
         else:
+            trans_test = "Anderson-Darling"
             anderson_trans = stats.anderson(trans_clean)
-            trans_p = 0.001 if anderson_trans.statistic > anderson_trans.critical_values[2] else 0.10
-            trans_stat = anderson_trans.statistic / 10
+            trans_stat = float(anderson_trans.statistic)
+            trans_p = anderson_pvalue_continuous(trans_stat, len(trans_clean))
 
         # Calculate skewness
         orig_skew = stats.skew(orig_clean)
@@ -434,10 +444,12 @@ class TransformationEngine:
         improved = trans_p > orig_p and abs(trans_skew) < abs(orig_skew)
         still_violated = trans_p < 0.05
 
-        # Calculate improvement score
-        if orig_p == 0:
-            orig_p = 0.001
-        p_improvement = ((trans_p - orig_p) / (1.0 - orig_p)) * 100
+        # Calculate improvement score. The old code substituted 0.001 for an original
+        # p-value of exactly 0 and then divided by it -- so the reported "improvement %"
+        # was partly a function of a number that had been made up one line earlier. A p of
+        # exactly 0 means the original data were as far from normal as the test can
+        # measure; the improvement is then simply the transformed p, scaled.
+        p_improvement = ((trans_p - orig_p) / (1.0 - orig_p)) * 100 if orig_p < 1.0 else 0.0
         skew_improvement = ((abs(orig_skew) - abs(trans_skew)) / (abs(orig_skew) + 0.1)) * 100
 
         improvement_score = max(0, min(100, (p_improvement + skew_improvement) / 2))
@@ -448,8 +460,14 @@ class TransformationEngine:
             "improvement": improved,
             "improvement_score": round(improvement_score, 1),
             "still_violated": still_violated,
-            "shapiro_stat_before": round(float(orig_stat), 4),
-            "shapiro_stat_after": round(float(trans_stat), 4),
+            # Named for the test that was actually run. These used to be called
+            # "shapiro_stat_*" even when the value came from Anderson-Darling (divided by
+            # ten), so a reader comparing them against a Shapiro-Wilk W table would have
+            # been comparing against nothing at all.
+            "normality_test_before": orig_test,
+            "normality_test_after": trans_test,
+            "normality_stat_before": round(float(orig_stat), 4),
+            "normality_stat_after": round(float(trans_stat), 4),
             "skewness_before": round(orig_skew, 3),
             "skewness_after": round(trans_skew, 3),
             "kurtosis_before": round(stats.kurtosis(orig_clean), 3),

@@ -98,8 +98,12 @@ class CategoricalResult:
         """Convert result to JSON-serializable dictionary"""
         result = {
             "test_name": self.test_name,
-            "test_statistic": str(self.test_statistic) if self.test_statistic else None,
-            "p_value": str(self.p_value) if self.p_value else None,
+            # `if self.test_statistic` is a TRUTHINESS test and Decimal("0") is falsy. A
+            # contingency table showing no association at all has chi-square exactly 0 --
+            # a real, computed result -- and it was being serialized as null, i.e. "not
+            # available". Test for None, which is what "not available" actually means.
+            "test_statistic": str(self.test_statistic) if self.test_statistic is not None else None,
+            "p_value": str(self.p_value) if self.p_value is not None else None,
             "degrees_of_freedom": self.degrees_of_freedom,
             "yates_correction": self.yates_correction,
             "interpretation": self.interpretation,
@@ -229,7 +233,7 @@ class HighPrecisionCategorical:
         df = (rows - 1) * (cols - 1)
 
         # Calculate p-value
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(chi2_stat), df))
 
         # Calculate residuals
         residuals = observed - expected
@@ -359,7 +363,7 @@ class HighPrecisionCategorical:
         df = n_categories - 1 - ddof
 
         # Calculate p-value
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(chi2_stat), df))
 
         # Calculate residuals
         residuals = observed - expected
@@ -525,7 +529,7 @@ class HighPrecisionCategorical:
                 chi2_stat = self._to_decimal((b - c) ** 2) / self._to_decimal(b + c)
 
             # Calculate p-value
-            p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), 1))
+            p_value = self._to_decimal(stats.chi2.sf(float(chi2_stat), 1))
 
             # For small samples, use exact binomial test.
             # scipy.stats.binom_test was removed in scipy 1.12; binomtest returns
@@ -602,7 +606,7 @@ class HighPrecisionCategorical:
 
         # Calculate p-value (chi-square distribution with k-1 df)
         df = k_treatments - 1
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(q_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(q_stat), df))
 
         # Effect size (Kendall's W for binary data)
         w = q_stat / (self._to_decimal(n_subjects) * (k - 1))
@@ -672,7 +676,7 @@ class HighPrecisionCategorical:
             g_stat = g_stat / self._to_decimal(q)
 
         # Calculate p-value
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(g_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(g_stat), df))
 
         # Create result
         result = CategoricalResult(
@@ -798,7 +802,7 @@ class HighPrecisionCategorical:
 
         # Calculate p-value using chi-square distribution
         df = k - 1
-        p_value = self._to_decimal(1 - stats.chi2.cdf(float(chi2_stat), df))
+        p_value = self._to_decimal(stats.chi2.sf(float(chi2_stat), df))
 
         # Calculate effect size (Cramér's V for goodness of fit)
         cramers_v = (chi2_stat / self._to_decimal(n)) ** (self._to_decimal(1) / self._to_decimal(2))
@@ -883,7 +887,7 @@ class HighPrecisionCategorical:
             z_stat = self._to_decimal(0)
 
         # Calculate p-value (two-tailed)
-        p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z_stat)))))
+        p_value = self._to_decimal(2 * (stats.norm.sf(abs(float(z_stat)))))
 
         # Create result
         result = CategoricalResult(
@@ -1018,34 +1022,83 @@ class HighPrecisionCategorical:
 
         return result
 
+    @staticmethod
+    def _margin_is_empty(a, b, c, d) -> bool:
+        """True if an entire row or column of the 2x2 table is zero.
+
+        No exposed subjects, no unexposed subjects, no events at all, or no non-events at
+        all: the association measures are all 0/0 and no correction rescues them.
+        """
+        return (a + b) == 0 or (c + d) == 0 or (a + c) == 0 or (b + d) == 0
+
+    def _wilson_interval(self, k: int, n: int, z: Decimal) -> tuple:
+        """Wilson score interval for a binomial proportion.
+
+        Well-defined at k = 0 and k = n, where the Wald interval collapses to zero width.
+        """
+        k_d = self._to_decimal(int(k))
+        n_d = self._to_decimal(int(n))
+        z2 = z * z
+        denominator = n_d + z2
+        center = (k_d + z2 / 2) / denominator
+        half = z * (k_d * (n_d - k_d) / n_d + z2 / 4).sqrt() / denominator
+        return center - half, center + half
+
     def _calculate_odds_ratio(self, table: np.ndarray) -> Dict[str, Any]:
-        """Calculate odds ratio for 2x2 table"""
-        a, b = table[0, 0], table[0, 1]
-        c, d = table[1, 0], table[1, 1]
+        """Odds ratio for a 2x2 table, with the Haldane-Anscombe correction for zero cells.
 
-        # Add small constant to avoid division by zero
-        epsilon = self._to_decimal("1e-10")
+        The previous implementation added 1e-10 to every cell "to avoid division by zero".
+        That is not a correction, it is a fabrication with two consequences:
+          * a table with no events in either arm ([[0,50],[0,50]]) came out at OR = 1.0 --
+            "no association", stated confidently, from a table that contains no information
+            about association at all;
+          * the standard error of log(OR) became sqrt(4 / 1e-10) ~ 2e5, so the 95% interval
+            was [8.4e-120379, 1.2e+120378]. Those are printed to the user as an interval.
+        scipy refuses this table outright (zero expected frequency).
 
-        odds_ratio = (
-            (self._to_decimal(a) + epsilon)
-            * (self._to_decimal(d) + epsilon)
-            / ((self._to_decimal(b) + epsilon) * (self._to_decimal(c) + epsilon))
-        )
+        Haldane-Anscombe (add 0.5 to every cell) is the standard, citable treatment for a
+        single zero cell, and it is DISCLOSED in the result rather than applied silently.
+        """
+        a, b = int(table[0, 0]), int(table[0, 1])
+        c, d = int(table[1, 0]), int(table[1, 1])
 
-        # Log odds ratio for CI
+        if self._margin_is_empty(a, b, c, d):
+            return {
+                "odds_ratio": None,
+                "confidence_interval": None,
+                "log_odds_ratio": None,
+                "standard_error": None,
+                "note": (
+                    "Odds ratio undefined: an entire row or column of the table is zero, so the "
+                    "odds in at least one arm are 0/0. No zero-cell correction can recover an "
+                    "association from a table that contains none."
+                ),
+            }
+
+        correction_applied = 0 in (a, b, c, d)
+        if correction_applied:
+            a_d, b_d, c_d, d_d = (self._to_decimal(v) + self._to_decimal("0.5") for v in (a, b, c, d))
+        else:
+            a_d, b_d, c_d, d_d = (self._to_decimal(v) for v in (a, b, c, d))
+
+        odds_ratio = (a_d * d_d) / (b_d * c_d)
+
         log_or = odds_ratio.ln()
-        se_log_or = (
-            (1 / (self._to_decimal(a) + epsilon))
-            + (1 / (self._to_decimal(b) + epsilon))
-            + (1 / (self._to_decimal(c) + epsilon))
-            + (1 / (self._to_decimal(d) + epsilon))
-        ).sqrt()
+        se_log_or = ((1 / a_d) + (1 / b_d) + (1 / c_d) + (1 / d_d)).sqrt()
 
         z_alpha = self._to_decimal(stats.norm.ppf(0.975))
         ci_lower = (log_or - z_alpha * se_log_or).exp()
         ci_upper = (log_or + z_alpha * se_log_or).exp()
 
         return {
+            "haldane_anscombe_correction": correction_applied,
+            "note": (
+                "A zero cell was present; the Haldane-Anscombe correction (+0.5 to every cell) "
+                "was applied. The odds ratio and its interval are therefore estimates under that "
+                "correction, not the raw table's."
+                if correction_applied
+                else None
+            ),
             "odds_ratio": odds_ratio,
             "confidence_interval": (ci_lower, ci_upper),
             "log_odds_ratio": log_or,
@@ -1053,61 +1106,102 @@ class HighPrecisionCategorical:
         }
 
     def _calculate_relative_risk(self, table: np.ndarray) -> Dict[str, Any]:
-        """Calculate relative risk for 2x2 table"""
-        a, b = table[0, 0], table[0, 1]
-        c, d = table[1, 0], table[1, 1]
+        """Relative risk for a 2x2 table.
 
-        # Risk in exposed group
-        risk1 = self._to_decimal(a) / self._to_decimal(a + b) if a + b > 0 else self._to_decimal(0)
-        # Risk in unexposed group
-        risk2 = self._to_decimal(c) / self._to_decimal(c + d) if c + d > 0 else self._to_decimal(0)
+        The old code returned RR = 1 when the unexposed risk was zero AND the exposed risk
+        was zero -- i.e. it reported "no increase in risk" for a trial in which nobody in
+        either arm had an event. That is 0/0. It also floored the standard error's
+        denominators at 1e-10, producing the same astronomical intervals as the odds ratio.
+        """
+        a, b = int(table[0, 0]), int(table[0, 1])
+        c, d = int(table[1, 0]), int(table[1, 1])
 
-        # Relative risk
-        if risk2 > 0:
-            rr = risk1 / risk2
+        if self._margin_is_empty(a, b, c, d):
+            return {
+                "relative_risk": None,
+                "confidence_interval": None,
+                "note": (
+                    "Relative risk undefined: an entire row or column of the table is zero. With no "
+                    "events in either arm (or no subjects in an arm) the risk ratio is 0/0."
+                ),
+            }
+
+        correction_applied = 0 in (a, b, c, d)
+        if correction_applied:
+            a_d, b_d, c_d, d_d = (self._to_decimal(v) + self._to_decimal("0.5") for v in (a, b, c, d))
         else:
-            rr = self._to_decimal("inf") if risk1 > 0 else self._to_decimal(1)
+            a_d, b_d, c_d, d_d = (self._to_decimal(v) for v in (a, b, c, d))
 
-        # Confidence interval (log scale)
-        if rr > 0 and rr != self._to_decimal("inf"):
-            log_rr = rr.ln()
-            se_log_rr = (
-                (1 - risk1) / (self._to_decimal(a) + self._to_decimal("1e-10"))
-                + (1 - risk2) / (self._to_decimal(c) + self._to_decimal("1e-10"))
-            ).sqrt()
+        risk1 = a_d / (a_d + b_d)
+        risk2 = c_d / (c_d + d_d)
+        rr = risk1 / risk2
 
-            z_alpha = self._to_decimal(stats.norm.ppf(0.975))
-            ci_lower = (log_rr - z_alpha * se_log_rr).exp()
-            ci_upper = (log_rr + z_alpha * se_log_rr).exp()
-        else:
-            ci_lower = ci_upper = None
+        # SE(log RR) = sqrt(b/(a(a+b)) + d/(c(c+d))) -- Katz. Finite because the correction
+        # above guarantees a > 0 and c > 0.
+        log_rr = rr.ln()
+        se_log_rr = (b_d / (a_d * (a_d + b_d)) + d_d / (c_d * (c_d + d_d))).sqrt()
 
-        return {"relative_risk": rr, "confidence_interval": (ci_lower, ci_upper) if ci_lower else None}
+        z_alpha = self._to_decimal(stats.norm.ppf(0.975))
+        ci_lower = (log_rr - z_alpha * se_log_rr).exp()
+        ci_upper = (log_rr + z_alpha * se_log_rr).exp()
+
+        return {
+            "relative_risk": rr,
+            "confidence_interval": (ci_lower, ci_upper),
+            "standard_error_log_rr": se_log_rr,
+            "haldane_anscombe_correction": correction_applied,
+            "note": (
+                "A zero cell was present; the Haldane-Anscombe correction (+0.5 to every cell) "
+                "was applied before computing the risk ratio."
+                if correction_applied
+                else None
+            ),
+        }
 
     def _calculate_risk_difference(self, table: np.ndarray) -> Dict[str, Any]:
-        """Calculate risk difference for 2x2 table"""
-        a, b = table[0, 0], table[0, 1]
-        c, d = table[1, 0], table[1, 1]
+        """Risk difference for a 2x2 table, with a Newcombe hybrid-score interval.
 
-        # Risk in exposed group
-        risk1 = self._to_decimal(a) / self._to_decimal(a + b) if a + b > 0 else self._to_decimal(0)
-        # Risk in unexposed group
-        risk2 = self._to_decimal(c) / self._to_decimal(c + d) if c + d > 0 else self._to_decimal(0)
+        The Wald interval used here before -- rd +/- z * sqrt(p1(1-p1)/n1 + p2(1-p2)/n2) --
+        has a standard error of exactly ZERO when neither arm has an event, so it reported
+        "risk difference 0, 95% CI [0, 0]" for a trial with no events: a claim of perfect
+        certainty derived from no information. The Wald interval is known to fail exactly
+        there. Newcombe's method combines the two Wilson score intervals and stays sensible
+        at zero cells, which is why it is the recommended interval for this quantity.
+        """
+        a, b = int(table[0, 0]), int(table[0, 1])
+        c, d = int(table[1, 0]), int(table[1, 1])
 
-        # Risk difference
+        n1 = a + b
+        n2 = c + d
+        if n1 == 0 or n2 == 0:
+            return {
+                "risk_difference": None,
+                "confidence_interval": None,
+                "standard_error": None,
+                "note": "Risk difference undefined: one of the two groups has no subjects.",
+            }
+
+        risk1 = self._to_decimal(a) / self._to_decimal(n1)
+        risk2 = self._to_decimal(c) / self._to_decimal(n2)
         rd = risk1 - risk2
 
-        # Standard error
-        se_rd = (
-            (risk1 * (1 - risk1)) / self._to_decimal(a + b) + (risk2 * (1 - risk2)) / self._to_decimal(c + d)
-        ).sqrt()
-
-        # Confidence interval
         z_alpha = self._to_decimal(stats.norm.ppf(0.975))
-        ci_lower = rd - z_alpha * se_rd
-        ci_upper = rd + z_alpha * se_rd
+        l1, u1 = self._wilson_interval(a, n1, z_alpha)
+        l2, u2 = self._wilson_interval(c, n2, z_alpha)
 
-        return {"risk_difference": rd, "confidence_interval": (ci_lower, ci_upper), "standard_error": se_rd}
+        # Newcombe (1998), method 10.
+        ci_lower = rd - ((risk1 - l1) ** 2 + (u2 - risk2) ** 2).sqrt()
+        ci_upper = rd + ((u1 - risk1) ** 2 + (risk2 - l2) ** 2).sqrt()
+
+        # Reported for reference; it is NOT what the interval above is built from.
+        se_rd = ((risk1 * (1 - risk1)) / self._to_decimal(n1) + (risk2 * (1 - risk2)) / self._to_decimal(n2)).sqrt()
+
+        return {
+            "risk_difference": rd,
+            "confidence_interval": (ci_lower, ci_upper),
+            "standard_error": se_rd,
+            "interval_method": "Newcombe hybrid score",
+        }
 
     def _generate_recommendations(self, assumptions_met: Dict[str, bool], rows: int, cols: int, n: int) -> List[str]:
         """Generate recommendations based on test results"""

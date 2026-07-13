@@ -27,10 +27,38 @@ getcontext().rounding = ROUND_HALF_UP
 mpmath.mp.dps = 50  # 50 decimal places
 
 
+def hp_f_sf(f_stat: Union[Decimal, float, str], df1: Union[int, float], df2: Union[int, float]) -> Decimal:
+    """Upper-tail probability P(F_{df1,df2} > f) at the configured precision.
+
+    The idiom this replaces --
+
+        Decimal(str(1 - float(mpmath.betainc(df1/2, df2/2, 0, x, regularized=True))))
+
+    -- computes the LOWER tail in 50 digits, throws all of them away by casting to float,
+    and then subtracts from 1. Once the lower tail rounds to 1.0 in float64 (which happens
+    for any p below about 2e-16, i.e. for any decisively significant F), the answer is
+    exactly 0.0. Three tight, well-separated groups were enough: F = 20000 on df (2, 12)
+    reported p = 0 where the truth is 7.3e-22.
+
+    Asking betainc for the UPPER interval [x, 1] directly gives the tail with no
+    cancellation and no float round-trip.
+    """
+    f = mpmath.mpf(str(f_stat))
+    a = mpmath.mpf(str(df1)) / 2
+    b = mpmath.mpf(str(df2)) / 2
+
+    if f <= 0:
+        return Decimal("1")
+
+    x = (2 * a * f) / (2 * a * f + 2 * b)
+    tail = mpmath.betainc(a, b, x, 1, regularized=True)
+    return Decimal(mpmath.nstr(tail, mpmath.mp.dps, strip_zeros=False))
+
+
 def hp_sqrt(value: Union[Decimal, float, int, str]) -> Decimal:
     """Square root at the configured precision.
 
-    The idiom this replaces -- hp_sqrt(x) -- casts a 50-digit
+    The idiom this replaces -- Decimal(str(mpmath.sqrt(float(x)))) -- casts a 50-digit
     Decimal down to a float64 BEFORE taking the root, so the result carries ~17 real digits
     and the rest of the 50 printed digits are round-off. A tool whose headline claim is
     "50-decimal precision" must not print digits its arithmetic never computed.
@@ -305,10 +333,13 @@ class HighPrecisionCalculator:
             # Standard error
             se = hp_sqrt(var1 / n1_dec + var2 / n2_dec)
 
-            # Welch-Satterthwaite degrees of freedom
+            # Welch-Satterthwaite degrees of freedom. With both variances zero this is 0/0,
+            # and evaluating it raised decimal.InvalidOperation -- a 500 -- BEFORE the
+            # degenerate-case guard below could report the situation honestly. The pooled
+            # branch handled it; Welch's crashed. Both now reach the same guard.
             df_num = (var1 / n1_dec + var2 / n2_dec) ** 2
             df_denom = (var1 / n1_dec) ** 2 / (n1_dec - 1) + (var2 / n2_dec) ** 2 / (n2_dec - 1)
-            df = float(df_num / df_denom)
+            df = float(df_num / df_denom) if df_denom > 0 else 0.0
 
         # Calculate t-statistic with edge case handling
         extreme_precision_flag = False
@@ -449,27 +480,12 @@ class HighPrecisionCalculator:
         f_stat = msb / msw
 
         # Calculate p-value using mpmath F-distribution
-        f_float = float(f_stat)
         df1_float = float(df_between)
         df2_float = float(df_within)
 
-        # F-distribution CDF
-        # p_value = 1 - F_cdf(f_stat, df1, df2)
-        # Using mpmath for high precision
-        p_value = Decimal(
-            str(
-                1
-                - float(
-                    mpmath.betainc(
-                        df1_float / 2,
-                        df2_float / 2,
-                        0,
-                        df1_float * f_float / (df1_float * f_float + df2_float),
-                        regularized=True,
-                    )
-                )
-            )
-        )
+        # Upper tail, computed as an upper tail. See hp_f_sf: the old "1 - float(lower tail)"
+        # returned exactly 0 for any decisively significant F.
+        p_value = hp_f_sf(f_stat, df1_float, df2_float)
 
         return {
             "f_statistic": f_stat,

@@ -173,7 +173,7 @@ class LinearRegressionService:
         # F-statistic for overall model significance
         if ms_resid > 0 and df_model > 0:
             f_statistic = ms_model / ms_resid
-            f_p_value = 1 - stats.f.cdf(f_statistic, df_model, df_resid)
+            f_p_value = stats.f.sf(f_statistic, df_model, df_resid)
         else:
             f_statistic = 0
             f_p_value = 1
@@ -186,7 +186,7 @@ class LinearRegressionService:
 
         # T-statistics and p-values for coefficients
         t_statistics = beta / standard_errors if np.any(standard_errors > 0) else np.zeros_like(beta)
-        p_values = 2 * (1 - stats.t.cdf(np.abs(t_statistics), df_resid))
+        p_values = 2 * (stats.t.sf(np.abs(t_statistics), df_resid))
 
         # Confidence intervals
         t_critical = stats.t.ppf(1 - (1 - confidence_level) / 2, df_resid)
@@ -500,7 +500,7 @@ class LinearRegressionService:
 
             # Under null hypothesis, LM ~ Chi-square(k-1)
             df = X.shape[1] - 1
-            p_value = 1 - stats.chi2.cdf(lm_statistic, df)
+            p_value = stats.chi2.sf(lm_statistic, df)
 
             return {"statistic": lm_statistic, "p_value": p_value, "df": df, "homoscedastic": p_value > 0.05}
         except np.linalg.LinAlgError:
@@ -550,7 +550,7 @@ class LinearRegressionService:
             # Test statistic = n * R²
             test_stat = n * r_squared
             df = X_white.shape[1] - 1
-            p_value = 1 - stats.chi2.cdf(test_stat, df)
+            p_value = stats.chi2.sf(test_stat, df)
 
             return {"statistic": test_stat, "p_value": p_value, "df": df, "homoscedastic": p_value > 0.05}
         except np.linalg.LinAlgError:
@@ -609,7 +609,7 @@ class LinearRegressionService:
             f_stat = (rss2 / (n_half - k)) / (rss1 / (n_half - k))
 
             # P-value
-            p_value = 1 - stats.f.cdf(f_stat, n_half - k, n_half - k)
+            p_value = stats.f.sf(f_stat, n_half - k, n_half - k)
 
             return {"statistic": f_stat, "p_value": p_value, "linear": p_value > 0.05}
         except np.linalg.LinAlgError:

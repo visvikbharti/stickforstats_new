@@ -121,7 +121,7 @@ class MetaAnalysisEngine:
         ci_lower = pooled - z_crit * pooled_se
         ci_upper = pooled + z_crit * pooled_se
         z_stat = pooled / pooled_se
-        p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
+        p_value = 2 * (stats.norm.sf(abs(z_stat)))
 
         # Calculate total N if available
         total_n = sum(s.sample_size for s in studies if s.sample_size) or None
@@ -210,7 +210,7 @@ class MetaAnalysisEngine:
         # Calculate Q statistic
         pooled_fixed = np.sum(weights * effects) / np.sum(weights)
         q_stat = np.sum(weights * (effects - pooled_fixed) ** 2)
-        q_p = 1 - stats.chi2.cdf(q_stat, df)
+        q_p = stats.chi2.sf(q_stat, df)
 
         # Calculate τ² using specified method
         if method == "DL":
@@ -320,7 +320,7 @@ class MetaAnalysisEngine:
 
         # t-test for intercept
         t_stat = intercept / se_intercept
-        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), n - 2))
+        p_value = 2 * (stats.t.sf(abs(t_stat), n - 2))
 
         return {
             "intercept": float(intercept),
@@ -468,7 +468,7 @@ class MetaAnalysisEngine:
             overall_pooled = np.sum(weights * effects) / np.sum(weights)
             q_between = np.sum(weights * (effects - overall_pooled) ** 2)
             df_between = len(pooled_effects) - 1
-            p_between = 1 - stats.chi2.cdf(q_between, df_between)
+            p_between = stats.chi2.sf(q_between, df_between)
         else:
             q_between = 0
             df_between = 0

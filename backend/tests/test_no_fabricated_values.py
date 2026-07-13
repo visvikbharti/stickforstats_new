@@ -135,7 +135,7 @@ class RegressionReportsNoFTestRatherThanFEqualsZero(SimpleTestCase):
                 self.assertIsNone(result.f_statistic)
                 self.assertIsNone(result.f_p_value)
 
-    def test_exact_fit_has_no_standard_errors_and_no_aic(self):
+    def test_exact_fit_warns_that_its_uncertainty_is_round_off(self):
         exact_y = np.array([2.0, 4.0, 6.0, 8.0, 10.0, 12.0])
         result = self.hp.robust_regression(self.X, exact_y)
         # The coefficients are real and are still reported...
@@ -144,15 +144,62 @@ class RegressionReportsNoFTestRatherThanFEqualsZero(SimpleTestCase):
         # figures below it are round-off rather than sampling variability.
         self.assertTrue(any("round-off" in w for w in result.warnings))
 
-    def test_a_singular_design_yields_null_standard_errors_not_ones(self):
-        # Two perfectly collinear predictors: (X'WX) is singular, so the standard errors do
-        # not exist. They used to come back as exactly 1.0 each.
-        X = np.array([[1.0, 2.0], [2.0, 4.0], [3.0, 6.0], [4.0, 8.0], [5.0, 10.0]])
-        y = np.array([1.0, 2.1, 2.9, 4.2, 5.1])
-        result = self.hp.robust_regression(X, y)
-        for name, se in result.standard_errors.items():
-            with self.subTest(term=name):
-                self.assertNotEqual(se, Decimal("1"))
+    def test_ransac_reports_no_inference_at_all(self):
+        # RANSAC chooses which observations to keep, so the surviving inliers are not a
+        # sample from which its own uncertainty can be estimated. Computing standard errors
+        # from them anyway (which this code did) rejects a true null ~2/3 of the time.
+        result = self.hp.robust_regression(self.X, self.y, method="ransac")
+        self.assertIsNotNone(result.coefficients["X1"])  # the fit itself is real
+        self.assertIsNone(result.p_values["X1"])
+        self.assertIsNone(result.standard_errors["X1"])
+        self.assertIsNone(result.confidence_intervals["X1"][0])
+        self.assertTrue(any("no standard errors" in w for w in result.warnings))
+
+
+class RobustRegressionIsCalibrated(SimpleTestCase):
+    """Type I error rate under the null hypothesis of no relationship.
+
+    A p-value that is not calibrated is not a p-value. These estimators shipped with
+    standard errors borrowed from ordinary least squares (Theil-Sen) or computed from the
+    estimator's own hand-picked inliers (RANSAC); simulated under H0 at a nominal 5% they
+    rejected 9-10% and 66-72% of the time respectively. Nothing in a unit test that checks
+    a single fit against a reference value would have caught that -- only calibration does.
+    """
+
+    REPLICATES = 400
+    NOMINAL = 0.05
+
+    def _false_positive_rate(self, method, n=50, seed=11):
+        rng = np.random.default_rng(seed)
+        hp = HighPrecisionRegression(precision=20)
+        rejected = reported = 0
+        for _ in range(self.REPLICATES):
+            X = rng.normal(size=(n, 1))
+            y = rng.normal(size=n)  # H0: y is independent of X
+            result = hp.robust_regression(X, y, method=method)
+            p = result.p_values.get("X1")
+            if p is None:
+                continue
+            reported += 1
+            rejected += float(p) < self.NOMINAL
+        return (rejected / reported if reported else None), reported
+
+    def test_huber_holds_its_nominal_level(self):
+        rate, reported = self._false_positive_rate("huber")
+        self.assertEqual(reported, self.REPLICATES)
+        # Binomial standard error at 400 replicates is ~0.011; allow 3 of them plus the known
+        # mild small-sample anti-conservatism of the Huber asymptotic covariance.
+        self.assertLess(rate, 0.09, f"Huber rejects a true null {rate:.1%} of the time")
+
+    def test_theil_sen_holds_its_nominal_level(self):
+        rate, reported = self._false_positive_rate("theil_sen")
+        self.assertEqual(reported, self.REPLICATES)
+        self.assertLess(rate, 0.09, f"Theil-Sen rejects a true null {rate:.1%} of the time")
+
+    def test_ransac_offers_no_p_value_to_miscalibrate(self):
+        rate, reported = self._false_positive_rate("ransac")
+        self.assertEqual(reported, 0)
+        self.assertIsNone(rate)
 
 
 class MultiplicityThresholdIsNullWhenNothingIsRejected(SimpleTestCase):
@@ -165,3 +212,142 @@ class MultiplicityThresholdIsNullWhenNothingIsRejected(SimpleTestCase):
                 self.assertEqual(int(np.sum(result.rejected)), 0)
                 # "Adjusted threshold: 0.000000" is a cutoff the procedure never computed.
                 self.assertIsNone(result.threshold)
+
+
+class TailProbabilitiesSurviveOrdinaryData(SimpleTestCase):
+    """`1 - cdf(x)` cancels in float64: once cdf(x) rounds to 1.0, the tail is returned as
+    exactly 0.0. That destroys every p below ~2e-16 -- which is not an edge case, it is the
+    range every decisively significant result lives in. 87 sites in this codebase used it.
+    """
+
+    def test_anova_f_tail(self):
+        from core.hp_anova_comprehensive import HighPrecisionANOVA
+
+        groups = [
+            [10.0, 10.1, 9.9, 10.05],
+            [20.0, 20.1, 19.9, 20.05],
+            [30.0, 30.1, 29.9, 30.05],
+        ]
+        result = HighPrecisionANOVA().one_way_anova(*groups)
+        reference = stats.f_oneway(*groups).pvalue
+
+        # This used to be exactly 0.
+        self.assertGreater(result.p_value, 0)
+        self.assertAlmostEqual(
+            float(result.p_value) / reference, 1.0, places=6,
+            msg=f"got {result.p_value}, scipy says {reference}",
+        )
+
+    def test_correlation_t_tail(self):
+        from core.hp_correlation_comprehensive import HighPrecisionCorrelation
+
+        x = list(np.linspace(0, 1, 50))
+        y = [xi * 2 + 0.02 * np.sin(i) for i, xi in enumerate(x)]
+        result = HighPrecisionCorrelation().pearson_correlation(x, y)
+        reference = stats.pearsonr(x, y).pvalue
+
+        self.assertGreater(result.p_value, 0)  # was exactly 0.0
+        self.assertAlmostEqual(float(result.p_value) / reference, 1.0, places=6)
+
+
+class CorrelationRefusesUndefinedInput(SimpleTestCase):
+    def test_constant_variable_has_no_correlation(self):
+        from core.hp_correlation_comprehensive import HighPrecisionCorrelation
+
+        result = HighPrecisionCorrelation().pearson_correlation([5] * 8, [1, 2, 3, 4, 5, 6, 7, 8])
+        # Used to report r = 0, p = 1.0, CI [-0.705, +0.705] and the words "a negligible
+        # negative correlation that is not significant" -- a confident null verdict on data
+        # that cannot support one. scipy returns nan and raises ConstantInputWarning.
+        self.assertIsNone(result.correlation_coefficient)
+        self.assertIsNone(result.p_value)
+        self.assertIn("undefined", result.interpretation.lower())
+
+    def test_three_points_do_not_crash(self):
+        from core.hp_correlation_comprehensive import HighPrecisionCorrelation
+
+        # n = 3 is the serializer's own declared minimum, and 1/sqrt(n-3) raised
+        # decimal.DivisionByZero -> HTTP 500 on every 3-point correlation.
+        result = HighPrecisionCorrelation().pearson_correlation([1, 2, 3], [2, 4, 7])
+        self.assertIsNotNone(result.correlation_coefficient)
+        self.assertIsNone(result.confidence_interval_lower)
+
+
+class TwoByTwoMeasuresAtZeroCells(SimpleTestCase):
+    def setUp(self):
+        from core.hp_categorical_comprehensive import HighPrecisionCategorical
+
+        self.calc = HighPrecisionCategorical()
+
+    def test_no_events_in_either_arm_is_undefined(self):
+        table = np.array([[0, 50], [0, 50]])
+        odds = self.calc._calculate_odds_ratio(table)
+        risk = self.calc._calculate_relative_risk(table)
+        rd = self.calc._calculate_risk_difference(table)
+
+        # Used to report OR = 1, RR = 1 ("no association") and a risk-difference interval of
+        # exactly [0, 0] -- "95% confident the difference is precisely zero" -- for a trial in
+        # which nobody in either arm had an event. scipy refuses this table outright.
+        self.assertIsNone(odds["odds_ratio"])
+        self.assertIsNone(risk["relative_risk"])
+        # The risk difference IS zero here, honestly; its interval is not degenerate.
+        self.assertEqual(rd["risk_difference"], Decimal("0"))
+        low, high = rd["confidence_interval"]
+        self.assertLess(low, 0)
+        self.assertGreater(high, 0)
+
+    def test_ordinary_table_matches_statsmodels(self):
+        from statsmodels.stats.contingency_tables import Table2x2
+
+        table = np.array([[20, 30], [10, 40]])
+        reference = Table2x2(table)
+
+        odds = self.calc._calculate_odds_ratio(table)
+        risk = self.calc._calculate_relative_risk(table)
+        self.assertAlmostEqual(float(odds["odds_ratio"]), reference.oddsratio, places=9)
+        self.assertAlmostEqual(float(risk["relative_risk"]), reference.riskratio, places=9)
+
+        low, high = odds["confidence_interval"]
+        ref_low, ref_high = reference.oddsratio_confint()
+        self.assertAlmostEqual(float(low), ref_low, places=6)
+        self.assertAlmostEqual(float(high), ref_high, places=6)
+
+    def test_a_single_zero_cell_is_corrected_and_disclosed(self):
+        odds = self.calc._calculate_odds_ratio(np.array([[0, 50], [10, 40]]))
+        # Haldane-Anscombe is a documented, citable convention. Adding 1e-10 to every cell,
+        # as this code used to, is not -- it produced an interval of [8.4e-120379, 1.2e+120378].
+        self.assertTrue(odds["haldane_anscombe_correction"])
+        self.assertIn("Haldane", odds["note"])
+        low, high = odds["confidence_interval"]
+        self.assertGreater(float(low), 0)
+        self.assertLess(float(high), 1e6)
+
+
+class MannWhitneyStatisticAgreesWithItsOwnPValue(SimpleTestCase):
+    def test_one_sided_direction_is_coherent(self):
+        from core.hp_nonparametric_comprehensive import HighPrecisionNonParametric
+
+        a, b = [1, 2, 3, 4, 5], [6, 7, 8, 9, 10]
+        calc = HighPrecisionNonParametric()
+        for alternative in ("two-sided", "less", "greater"):
+            with self.subTest(alternative=alternative):
+                result = calc.mann_whitney_u(a, b, alternative=alternative)
+                reference = stats.mannwhitneyu(a, b, alternative=alternative)
+                # The reported U used to be min(U1, U2) while the p-value came from scipy's
+                # U1, so a one-sided test could show z = -0.84 next to p = 0.80.
+                self.assertEqual(float(result.test_statistic), float(reference.statistic))
+                self.assertAlmostEqual(float(result.p_value), float(reference.pvalue), places=9)
+
+        # Group 1 is entirely below group 2, so the rank-biserial correlation is -1. Computed
+        # from min(U1, U2) it could never be negative at all.
+        result = calc.mann_whitney_u(a, b)
+        self.assertEqual(float(result.effect_size), -1.0)
+
+
+class EffectSizesRefuseZeroVariance(SimpleTestCase):
+    def test_cohens_d_with_no_within_group_variance(self):
+        from core.effect_sizes import EffectSizeCalculator
+
+        # Two groups five units apart, each perfectly constant. d = 5/0. It used to report
+        # d = 0.00, "negligible effect", CI [-1.39, +1.39].
+        with self.assertRaises(ValueError):
+            EffectSizeCalculator().cohens_d([5, 5, 5, 5], [10, 10, 10, 10])

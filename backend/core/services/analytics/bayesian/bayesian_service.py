@@ -1017,10 +1017,10 @@ class BayesianService:
 
         # Calculate t-statistics and p-values
         intercept_tstat = model.intercept_ / se[0]
-        2 * (1 - stats.t.cdf(np.abs(intercept_tstat), dof))
+        2 * (stats.t.sf(np.abs(intercept_tstat), dof))
 
         coef_tstats = model.coef_ / se[1:]
-        coef_pvals = 2 * (1 - stats.t.cdf(np.abs(coef_tstats), dof))
+        coef_pvals = 2 * (stats.t.sf(np.abs(coef_tstats), dof))
 
         # Calculate confidence intervals
         alpha = 1 - credible_interval
@@ -1130,7 +1130,7 @@ class BayesianService:
                 "r_squared": float(r_squared),
                 "frequentist": {
                     "f_statistic": float(r_squared * (n - p - 1) / ((1 - r_squared) * p)),
-                    "f_pvalue": float(1 - stats.f.cdf(r_squared * (n - p - 1) / ((1 - r_squared) * p), p, n - p - 1)),
+                    "f_pvalue": float(stats.f.sf(r_squared * (n - p - 1) / ((1 - r_squared) * p), p, n - p - 1)),
                     "n": int(n),
                     "p": int(p),
                 },

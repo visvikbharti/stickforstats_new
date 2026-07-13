@@ -233,7 +233,7 @@ def calculate_icc(
         df1, df2 = df_between, df_residual
 
     # Calculate p-value
-    p_value = 1 - stats.f.cdf(f_value, df1, df2)
+    p_value = stats.f.sf(f_value, df1, df2)
 
     # Calculate confidence interval
     ci_lower, ci_upper = _calculate_icc_ci(icc, f_value, n, k, df1, df2, confidence_level, icc_type)

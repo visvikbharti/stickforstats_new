@@ -16,6 +16,8 @@ Coverage Target: 95%
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+from core.utils.anderson_darling import anderson_pvalue_continuous
 from typing import Dict, List, Tuple, Optional, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
@@ -373,10 +375,18 @@ class DataProfiler:
         if len(series) < 5000:
             stat, p_value = stats.shapiro(series)
         else:
+            # Anderson-Darling returns a statistic and a table of critical values, not a
+            # p-value. The old code invented one: exactly 0.05 if the statistic cleared the
+            # 5% critical value, exactly 0.10 otherwise. Two consequences:
+            #   * `normality_p_value` for any n >= 5000 was one of two made-up constants,
+            #     regardless of how normal or non-normal the data actually were;
+            #   * the warning below tests `p < 0.05`, and 0.05 < 0.05 is False -- so the
+            #     "not normally distributed" warning could NEVER fire for n >= 5000.
+            # The repo already contains the correct continuous p-value (Stephens' fitted
+            # curves, also used by the Guardian); use it.
             result = stats.anderson(series, dist="norm")
             stat = result.statistic
-            # Use 5% significance level
-            p_value = 0.05 if stat > result.critical_values[2] else 0.10
+            p_value = anderson_pvalue_continuous(float(stat), len(series))
 
         profile.normality_test_statistic = float(stat)
         profile.normality_p_value = float(p_value)

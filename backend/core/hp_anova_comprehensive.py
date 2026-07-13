@@ -47,7 +47,7 @@ import mpmath
 import scipy.stats as stats
 import logging
 
-from core.high_precision_calculator import hp_sqrt
+from core.high_precision_calculator import hp_sqrt, hp_f_sf
 
 # Set high precision
 getcontext().prec = 50
@@ -929,25 +929,13 @@ class HighPrecisionANOVA:
 
     def _calculate_f_p_value(self, f_stat: Decimal, df1: int, df2: int) -> Decimal:
         """Calculate p-value for F-statistic with high precision"""
-        f_float = float(f_stat)
         df1_float = float(df1)
         df2_float = float(df2)
 
-        # Use mpmath for high precision
-        p_value = Decimal(
-            str(
-                1
-                - float(
-                    mpmath.betainc(
-                        df1_float / 2,
-                        df2_float / 2,
-                        0,
-                        df1_float * f_float / (df1_float * f_float + df2_float),
-                        regularized=True,
-                    )
-                )
-            )
-        )
+        # Upper tail, computed as an upper tail (see hp_f_sf). The old form computed the
+        # LOWER tail in 50 digits, cast it to float, and subtracted from 1 -- which returns
+        # exactly 0 for any F a user would call significant.
+        p_value = hp_f_sf(f_stat, df1_float, df2_float)
 
         return p_value
 

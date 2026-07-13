@@ -450,7 +450,7 @@ class NonParametricService:
         if alternative == "two-sided":
             p_value = 2 * min(stats.binom.cdf(n_positive, n, 0.5), stats.binom.cdf(n - n_positive, n, 0.5))
         elif alternative == "greater":
-            p_value = 1 - stats.binom.cdf(n_positive - 1, n, 0.5)
+            p_value = stats.binom.sf(n_positive - 1, n, 0.5)
         else:  # less
             p_value = stats.binom.cdf(n_positive, n, 0.5)
 
@@ -522,7 +522,7 @@ class NonParametricService:
             if variance > 0:
                 z_stat = (abs(runs - expected_runs) - 0.5) / np.sqrt(variance)
                 z_stat = z_stat if runs >= expected_runs else -z_stat
-                p_value = 2 * (1 - stats.norm.cdf(np.abs(z_stat)))
+                p_value = 2 * (stats.norm.sf(np.abs(z_stat)))
             else:
                 z_stat = 0
                 p_value = 1
@@ -770,7 +770,7 @@ class NonParametricService:
                 z = (mean_ranks[i] - mean_ranks[j]) / se if se > 0 else 0
 
                 # P-value (two-tailed)
-                p = 2 * (1 - stats.norm.cdf(np.abs(z)))
+                p = 2 * (stats.norm.sf(np.abs(z)))
 
                 # Bonferroni correction
                 p_adjusted = min(1, p * k * (k - 1) / 2)

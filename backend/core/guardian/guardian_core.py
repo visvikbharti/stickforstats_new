@@ -1633,7 +1633,7 @@ class LinearityValidator:
         z_score = (runs - expected_runs) / np.sqrt(variance_runs)
 
         # Two-tailed p-value
-        p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))
+        p_value = 2 * (stats.norm.sf(abs(z_score)))
 
         # Pattern detected if too few runs (p < 0.05)
         pattern_detected = p_value < 0.05
@@ -1691,7 +1691,7 @@ class HomoscedasticityValidator:
         bp_statistic = n * r2_bp
 
         # Under null hypothesis, follows chi-square(1) distribution
-        p_value = 1 - stats.chi2.cdf(bp_statistic, df=1)
+        p_value = stats.chi2.sf(bp_statistic, df=1)
 
         if p_value < alpha:
             # Check variance ratio across fitted values

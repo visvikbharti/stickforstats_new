@@ -13,10 +13,11 @@ from decimal import Decimal, getcontext
 from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
-import math
 import numpy as np
 from scipy import stats
 import logging
+
+from core.high_precision_calculator import HighPrecisionCalculator
 
 # Configure high precision
 getcontext().prec = 50
@@ -44,15 +45,31 @@ class DataDistribution(Enum):
     LINEAR = "linear"
 
 
+
+def hp_t_sf_two_sided(t_stat: Union[Decimal, float], df: Union[int, float]) -> Decimal:
+    """Two-sided p-value of a t-statistic at the module's advertised precision.
+
+    Delegates to the same regularized incomplete beta the t-test uses, so the two agree
+    digit for digit. `Decimal(str(2 * stats.t.sf(float(t), df)))` is only correct to ~16
+    significant digits, and returns exactly 0 for any p below ~1e-308.
+    """
+    return HighPrecisionCalculator.t_p_value(t_stat, df, "two-sided")
+
+
 @dataclass
 class CorrelationResult:
     """Comprehensive correlation analysis result"""
 
-    correlation_coefficient: Decimal
-    p_value: Decimal
-    confidence_interval_lower: Decimal
-    confidence_interval_upper: Decimal
-    test_statistic: Decimal
+    # Optional because these quantities do not always exist. A constant variable has no
+    # correlation (0/0, not 0); n = 3 has no Fisher interval (1/sqrt(n-3) divides by zero);
+    # a perfect |r| = 1 has an infinite t and no interval. Each used to be reported as a
+    # confident number -- r = 0, "not significant", CI = [-0.705, +0.705] -- for data that
+    # cannot support any of those claims.
+    correlation_coefficient: Optional[Decimal]
+    p_value: Optional[Decimal]
+    confidence_interval_lower: Optional[Decimal]
+    confidence_interval_upper: Optional[Decimal]
+    test_statistic: Optional[Decimal]
     df: int
     sample_size: int
     correlation_type: str
@@ -370,40 +387,61 @@ class HighPrecisionCorrelation:
             sum_x_sq += x_diff**2
             sum_y_sq += y_diff**2
 
-        # Calculate correlation coefficient
-        denominator = (sum_x_sq * sum_y_sq).sqrt()
-
-        if denominator == 0:
-            r = Decimal(0)
-        else:
-            r = numerator / denominator
-
-        # Calculate t-statistic for significance test
         df = int(n - 2)
+
+        # A constant variable has no correlation with anything: r = 0/0. It is NOT zero.
+        # This used to set r = 0, which walked into t = 0 and p = 1.0 and printed
+        # "a negligible correlation that is not significant" -- a confident null verdict on
+        # data that cannot support one. scipy returns nan and warns (ConstantInputWarning);
+        # R's cor.test refuses outright.
+        denominator = (sum_x_sq * sum_y_sq).sqrt()
+        if denominator == 0:
+            return CorrelationResult(
+                correlation_coefficient=None,
+                p_value=None,
+                confidence_interval_lower=None,
+                confidence_interval_upper=None,
+                test_statistic=None,
+                df=df,
+                sample_size=int(n),
+                correlation_type="Pearson",
+                r_squared=None,
+                standard_error=None,
+                interpretation=(
+                    "Correlation undefined: at least one variable is constant, so its standard "
+                    "deviation is zero and r = 0/0. There is no linear relationship to estimate "
+                    "and no test to run."
+                ),
+            )
+
+        r = numerator / denominator
+
         if abs(r) == 1:
-            t_stat = Decimal("Infinity") if r > 0 else Decimal("-Infinity")
+            # Exactly collinear. t diverges; under H0 (rho = 0) with continuous data,
+            # P(|R| >= 1) = 0, so p = 0 is the limit, not a sentinel (scipy agrees).
+            t_stat = None
             p_value = Decimal(0)
         else:
             t_stat = r * ((n - 2) / (1 - r**2)).sqrt()
+            # mpmath, not float64. `2 * stats.t.sf(float(t), df)` is correct to ~16 digits
+            # and underflows to exactly 0 below ~1e-308 -- in a module that advertises 50.
+            p_value = hp_t_sf_two_sided(t_stat, df)
 
-            # Calculate p-value using scipy for now (can implement high-precision later)
-            p_value = Decimal(str(2 * (1 - stats.t.cdf(abs(float(t_stat)), df))))
+        # Fisher's z interval needs n > 3 (se_z = 1/sqrt(n - 3)) and |r| < 1 (atanh diverges).
+        # n = 3 is a VALID request -- the serializer's own min_length is 3 -- and this line
+        # used to raise decimal.DivisionByZero, i.e. a 500 on every 3-point correlation.
+        if n > 3 and abs(r) < 1:
+            z = self._fisher_z_transform(r)
+            se_z = Decimal(1) / (n - 3).sqrt()
+            z_critical = Decimal(str(stats.norm.ppf((1 + confidence_level) / 2)))
+            ci_lower = self._inverse_fisher_z(z - z_critical * se_z)
+            ci_upper = self._inverse_fisher_z(z + z_critical * se_z)
+        else:
+            ci_lower = None
+            ci_upper = None
 
-        # Calculate confidence interval using Fisher's z-transformation
-        z = self._fisher_z_transform(r)
-        se_z = Decimal(1) / (n - 3).sqrt()
-        z_critical = Decimal(str(stats.norm.ppf((1 + confidence_level) / 2)))
+        se_r = ((1 - r**2) / (n - 2)).sqrt() if abs(r) < 1 else None
 
-        ci_lower_z = z - z_critical * se_z
-        ci_upper_z = z + z_critical * se_z
-
-        ci_lower = self._inverse_fisher_z(ci_lower_z)
-        ci_upper = self._inverse_fisher_z(ci_upper_z)
-
-        # Standard error of r
-        se_r = ((1 - r**2) / (n - 2)).sqrt()
-
-        # Create result
         result = CorrelationResult(
             correlation_coefficient=r,
             p_value=p_value,
@@ -445,11 +483,12 @@ class HighPrecisionCorrelation:
 
         # For Spearman, use t-distribution (same as Pearson), matching R's cor.test(method="spearman")
         n = len(x)
-        if n > 20:
-            rs = float(result.correlation_coefficient)
-            t_stat = rs * math.sqrt((n - 2) / (1 - rs**2)) if abs(rs) < 1 else float("inf")
-            p_value = Decimal(str(2 * (1 - stats.t.cdf(abs(t_stat), n - 2))))
-            result.p_value = p_value
+        if n > 20 and result.correlation_coefficient is not None:
+            rs = result.correlation_coefficient
+            if abs(rs) < 1:
+                t_stat = rs * ((Decimal(n - 2)) / (Decimal(1) - rs**2)).sqrt()
+                result.test_statistic = t_stat
+                result.p_value = hp_t_sf_two_sided(t_stat, n - 2)
 
         return result
 

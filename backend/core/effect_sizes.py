@@ -221,8 +221,17 @@ class EffectSizeCalculator:
             sd = sd1
             df = n1 - 1
 
-        # Calculate Cohen's d
-        d = (mean1 - mean2) / sd if sd > 0 else 0
+        # Cohen's d = (mean1 - mean2) / sd. With sd = 0 this is a division by zero: if the
+        # means differ, d is infinite; if they do not, it is 0/0. Neither is 0. Returning 0
+        # reported [5,5,5,5] vs [10,10,10,10] -- two groups five units apart with no
+        # within-group variance -- as "negligible effect, d = 0.00, CI [-1.39, +1.39]".
+        if sd <= 0:
+            raise ValueError(
+                "Cohen's d is undefined: the pooled within-group standard deviation is zero "
+                "(every observation within each group is identical), so d = (mean difference) / 0. "
+                "There is no scale on which to express the effect."
+            )
+        d = (mean1 - mean2) / sd
 
         # Apply Hedges' correction if requested
         if hedges_correction:
@@ -351,14 +360,23 @@ class EffectSizeCalculator:
         Returns:
             EffectSizeResult with eta-squared
         """
+        # eta-squared is a PROPORTION of variance explained. With zero total variance there
+        # is nothing to explain and the proportion is 0/0 -- undefined, not "explains
+        # nothing". Constant data used to come back as "Negligible effect (eta^2 = 0.000)".
         if partial:
-            # For partial eta-squared, we need SS_error
             ss_error = ss_total - ss_effect
-            eta2 = ss_effect / (ss_effect + ss_error) if (ss_effect + ss_error) > 0 else 0
+            denominator = ss_effect + ss_error
             effect_type = EffectSizeType.PARTIAL_ETA_SQUARED
         else:
-            eta2 = ss_effect / ss_total if ss_total > 0 else 0
+            denominator = ss_total
             effect_type = EffectSizeType.ETA_SQUARED
+
+        if denominator <= 0:
+            raise ValueError(
+                "eta-squared is undefined: the total sum of squares is zero, so there is no "
+                "variance for the effect to explain (eta^2 = 0/0)."
+            )
+        eta2 = ss_effect / denominator
 
         # Calculate confidence interval if df provided
         ci_lower, ci_upper = None, None
@@ -424,16 +442,26 @@ class EffectSizeCalculator:
                 df_error = round(ss_error / ms_error) if ms_error > 0 else 0
             n_minus_df_effect = df_error + 1
             denominator = ss_effect + n_minus_df_effect * ms_error
-            omega2 = numerator / denominator if denominator > 0 else 0
             effect_type = EffectSizeType.PARTIAL_OMEGA_SQUARED
         else:
             # Regular omega-squared
             numerator = ss_effect - df_effect * ms_error
             denominator = ss_total + ms_error
-            omega2 = numerator / denominator if denominator > 0 else 0
             effect_type = EffectSizeType.OMEGA_SQUARED
 
-        # Ensure non-negative
+        # A zero denominator means there is no variance in the data at all: omega^2 is 0/0,
+        # not 0. (The max(0, ...) below is a different thing and is correct -- omega^2 is
+        # conventionally truncated at zero because a negative proportion of variance
+        # explained is not interpretable. That is a documented convention, not a stand-in
+        # for a number we failed to compute.)
+        if denominator <= 0:
+            raise ValueError(
+                "omega-squared is undefined: the data have no variance, so the proportion of "
+                "variance explained is 0/0."
+            )
+        omega2 = numerator / denominator
+
+        # Ensure non-negative (Olejnik & Algina; SPSS does the same)
         omega2 = max(0, omega2)
 
         # Interpret using eta-squared benchmarks
@@ -463,10 +491,20 @@ class EffectSizeCalculator:
         """
         ss_error = ss_total - ss_effect
         df_error = n - df_effect - 1
-        ms_error = ss_error / df_error if df_error > 0 else 0
+        if df_error <= 0:
+            raise ValueError(
+                f"epsilon-squared is undefined: no error degrees of freedom (n = {n}, "
+                f"df_effect = {df_effect}). MS_error would be 0/0."
+            )
+        ms_error = ss_error / df_error
 
-        epsilon2 = (ss_effect - df_effect * ms_error) / ss_total if ss_total > 0 else 0
-        epsilon2 = max(0, epsilon2)  # Ensure non-negative
+        if ss_total <= 0:
+            raise ValueError(
+                "epsilon-squared is undefined: the total sum of squares is zero, so there is "
+                "no variance for the effect to explain."
+            )
+        epsilon2 = (ss_effect - df_effect * ms_error) / ss_total
+        epsilon2 = max(0, epsilon2)  # Kelley's epsilon^2 is truncated at zero by convention
 
         interpretation = self._interpret_eta_squared(epsilon2)
 

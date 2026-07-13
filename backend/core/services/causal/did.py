@@ -250,7 +250,7 @@ def difference_in_differences(
     # Inference
     t_stat = did_estimate / se
     df = n - X.shape[1]
-    p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df))
+    p_value = 2 * (stats.t.sf(abs(t_stat), df))
     z_crit = stats.norm.ppf(0.975)
     ci_lower = did_estimate - z_crit * se
     ci_upper = did_estimate + z_crit * se
@@ -414,7 +414,7 @@ def event_study(
         coefficients[p] = float(model.coef_[col_idx])
         std_errors[p] = float(se_all[col_idx])
         t = coefficients[p] / std_errors[p] if std_errors[p] > 0 else 0
-        p_values[p] = float(2 * (1 - stats.norm.cdf(abs(t))))
+        p_values[p] = float(2 * (stats.norm.sf(abs(t))))
 
     # Confidence intervals
     z_crit = stats.norm.ppf(0.975)
@@ -429,7 +429,7 @@ def event_study(
         # Wald test
         chi_sq = sum((c / s) ** 2 for c, s in zip(pre_coefs, pre_ses))
         df_pre = len(pre_coefs)
-        p_pre = 1 - stats.chi2.cdf(chi_sq, df_pre)
+        p_pre = stats.chi2.sf(chi_sq, df_pre)
 
         pre_trend_test = {
             "test": "joint_wald",
@@ -507,7 +507,7 @@ def test_parallel_trends_simple(
         se = _robust_se(X, residuals)[3]
 
         t_stat = interaction_coef / se if se > 0 else 0
-        p_value = 2 * (1 - stats.t.cdf(abs(t_stat), len(Y) - 4))
+        p_value = 2 * (stats.t.sf(abs(t_stat), len(Y) - 4))
 
         return {
             "test": "differential_trends",
@@ -670,7 +670,7 @@ def staggered_did(
     overall_se = np.sqrt(sum((e["std_error"] * e["n_treated"] / total_weight) ** 2 for e in group_time_effects))
 
     t_stat = overall_att / overall_se if overall_se > 0 else 0
-    p_value = 2 * (1 - stats.norm.cdf(abs(t_stat)))
+    p_value = 2 * (stats.norm.sf(abs(t_stat)))
 
     # Aggregate by event time
     event_time_effects = {}

@@ -140,7 +140,7 @@ def compare_models(
         lrt_df = abs(n_params2 - n_params1)
 
         if lrt_df > 0:
-            lrt_p = 1 - stats.chi2.cdf(lrt_stat, lrt_df)
+            lrt_p = stats.chi2.sf(lrt_stat, lrt_df)
         else:
             lrt_p = 1.0
 
@@ -223,9 +223,9 @@ def likelihood_ratio_test(model_null, model_alt, boundary_correction: bool = Tru
     # P-value
     if boundary_correction and df == 1:
         # 50:50 mixture of chi2(0) and chi2(1) for variance at boundary
-        p_value = 0.5 * (1 - stats.chi2.cdf(lrt, 0)) + 0.5 * (1 - stats.chi2.cdf(lrt, 1))
+        p_value = 0.5 * (stats.chi2.sf(lrt, 0)) + 0.5 * (stats.chi2.sf(lrt, 1))
     else:
-        p_value = 1 - stats.chi2.cdf(lrt, df)
+        p_value = stats.chi2.sf(lrt, df)
 
     # Interpretation
     if p_value < 0.001:
