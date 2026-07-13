@@ -87,10 +87,25 @@ describe.each([
     }
   });
 
-  it('prefers the ARE the backend returned over its own table', () => {
-    // If the two ever diverge, the script must follow the number that was actually displayed.
-    const code = generate({ ...paramsFor('normal'), results: { are: 1.2345 } });
-    expect(areInCode(code)).toBeCloseTo(1.2345, 4);
+  it('uses the exact ARE the backend returned when it describes the parent being named', () => {
+    // The backend sends full precision; the table is rounded. Same parent -> take the backend's,
+    // so the script computes with the number the screen was computed with.
+    const code = generate({ ...paramsFor('laplace'), results: { are: 1.5000000001 } });
+    expect(areInCode(code)).toBeCloseTo(1.5, 6);
+  });
+
+  it('never names one parent while computing with another', () => {
+    // `results` (last completed run) and `parentDistribution` (live UI state) come from different
+    // places. A caller that lets them drift -- change the parent dropdown, do not re-run -- would
+    // otherwise emit "assumes a Laplace parent, ARE = 0.9549", which names one distribution and
+    // computes with another in a single line. On disagreement the STATED parent wins, because that
+    // is what the surrounding prose commits to.
+    const stale = { ...paramsFor('laplace'), results: { are: 3 / Math.PI } }; // normal's ARE
+    const code = generate(stale);
+
+    expect(code).toMatch(/Laplace/);
+    expect(areInCode(code)).toBeCloseTo(1.5, 6); // Laplace's ARE, not the stale normal one
+    expect(areInCode(code)).not.toBeCloseTo(0.955, 2);
   });
 
   it('covers all three rank tests', () => {

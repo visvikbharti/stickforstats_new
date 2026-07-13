@@ -19,7 +19,7 @@
  * - Hoenig, J. M. & Heisey, D. M. (2001). The abuse of power. The American Statistician 55(1).
  */
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -316,6 +316,39 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
    *   - `minimumDetectableEffectSize` binary-searched the approximate power. It is now solved
    *     against the exact power on the backend.
    */
+  /**
+   * An answer belongs to the inputs it was computed from. Change the inputs and it is withdrawn.
+   *
+   * `results` was only ever cleared by the Reset button, so every input on this screen could be
+   * changed underneath a standing answer. The result card, the power curve and the generated
+   * R/Python all went on describing the PREVIOUS design, under the new settings.
+   *
+   * The generated script made it concrete and self-contradictory. `getCodeParams` reads
+   * `parentDistribution` from live state and the ARE from `results`, so running a Mann-Whitney
+   * under a normal parent and then flipping the dropdown to Laplace -- without recalculating --
+   * emitted:
+   *
+   *     # This analysis assumes a Laplace (heavy-tailed) parent, ARE = 0.9549
+   *
+   * A Laplace parent has ARE = 1.5. The script named one distribution and computed with another,
+   * in the same line.
+   *
+   * Clearing the result is the whole fix: the code panel already refuses to generate a script when
+   * there is no result ("Run a power analysis first"), and the cards render nothing. The bump to
+   * `requestRef` withdraws anything still in flight, so a request launched under the old inputs
+   * cannot answer under the new ones either.
+   *
+   * `results` is deliberately NOT in the dependency list -- it is what this effect writes.
+   */
+  useEffect(() => {
+    requestRef.current += 1;
+    setResults(null);
+    setPowerCurveData(null);
+    setError(null);
+    setIsCalculating(false);
+  }, [testType, calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, numGroups,
+      degreesOfFreedom, allocationRatio, alternative, parentDistribution]);
+
   const calculatePower = useCallback(async () => {
     // Two clicks with different parameters race. If the first is slower, its answer lands last and
     // is displayed against the second set of inputs -- a result for a design the user is no longer

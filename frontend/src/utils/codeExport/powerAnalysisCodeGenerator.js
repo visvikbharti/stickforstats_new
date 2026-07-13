@@ -51,13 +51,31 @@ const PARENT_LABEL = {
 /**
  * The ARE the displayed answer was actually computed with.
  *
- * Prefer the value the BACKEND returned -- that is the one the number on screen came from, so the
- * script and the screen cannot disagree. Fall back to the table only if it is absent.
+ * Prefer the value the BACKEND returned: that is the one the number on screen came from, so the
+ * script and the screen cannot disagree about the arithmetic.
+ *
+ * But only when it AGREES with the parent the script is about to name. `results` and
+ * `parentDistribution` come from different places -- the former is the last completed run, the
+ * latter is live UI state -- so a caller that lets them drift would have this function print
+ *
+ *     # This analysis assumes a Laplace (heavy-tailed) parent, ARE = 0.9549
+ *
+ * naming one distribution and computing with another, in a single line. (PowerAnalysisTool no
+ * longer lets them drift -- it clears `results` when any input changes -- but a generator that is
+ * only correct because its caller is careful is one refactor away from lying again, and this file
+ * writes the artifact that outlives the session.)
+ *
+ * On disagreement the STATED parent wins, because that is what the surrounding prose commits to.
  */
 const areFor = (results, parentDistribution) => {
+  const table = ARE_BY_PARENT[parentDistribution] ?? ARE_BY_PARENT.normal;
   const fromBackend = results && results.are;
-  if (typeof fromBackend === 'number' && Number.isFinite(fromBackend)) return fromBackend;
-  return ARE_BY_PARENT[parentDistribution] ?? ARE_BY_PARENT.normal;
+
+  if (typeof fromBackend !== 'number' || !Number.isFinite(fromBackend)) return table;
+
+  // Same parent -> use the backend's value (it is the exact one the displayed answer used).
+  // Different parent -> `results` is stale; the script must describe the parent it names.
+  return Math.abs(fromBackend - table) < 1e-3 ? fromBackend : table;
 };
 
 /**
