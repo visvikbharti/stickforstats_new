@@ -302,3 +302,82 @@ class GenomicsUsesOneDefinitionOfSignificance(TestCase):
         # G0's fold change is far below the 1.0 cutoff the caller set.
         self.assertLess(abs(by_name["G0"]["log2_fold_change"]), 1.0)
         self.assertFalse(by_name["G0"]["significant"])
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class PowerHonoursTestType(TestCase):
+    URL = "/api/v1/power/t-test/"
+
+    def _power(self, test_type):
+        response = self.client.post(
+            self.URL,
+            data=json.dumps(
+                {
+                    "effect_size": 0.5,
+                    "sample_size": 64,
+                    "alpha": 0.05,
+                    "test_type": test_type,
+                    "alternative": "two-sided",
+                }
+            ),
+            content_type="application/json",
+        )
+        return response
+
+    def test_two_sample_is_a_two_sample_test(self):
+        # The calculator branches on test_type:
+        #
+        #     if test_type == "independent":   nc = d * sqrt(n / 2);  df = 2n - 2
+        #     elif test_type == "paired":      nc = d * sqrt(n);      df = n - 1
+        #     else:  # one-sample              nc = d * sqrt(n);      df = n - 1
+        #
+        # That `else` swallowed everything -- including "two_sample" and "two-sample", the two
+        # most natural names for the test and the ones an SDK or curl user reaches for first. The
+        # caller asked for a two-sample power calculation and got a ONE-SAMPLE one, labelled as
+        # the test they asked for.
+        #
+        # d = 0.5, n = 64, alpha = 0.05, two-sided:  0.8015 (correct) vs 0.9761 (the else branch).
+        from statsmodels.stats.power import TTestIndPower
+
+        reference = TTestIndPower().power(0.5, nobs1=64, alpha=0.05, ratio=1.0)
+
+        for name in ("independent", "two_sample", "two-sample", "unpaired"):
+            with self.subTest(test_type=name):
+                response = self._power(name)
+                self.assertEqual(response.status_code, 200)
+                power = float(response.json()["results"]["power_float"])
+                self.assertAlmostEqual(power, float(reference), places=6)
+
+    def test_paired_and_one_sample_are_still_themselves(self):
+        # These SHOULD use nc = d * sqrt(n), and give the higher power. The fix must not flatten
+        # every test into "independent".
+        for name in ("paired", "one-sample"):
+            with self.subTest(test_type=name):
+                power = float(self._power(name).json()["results"]["power_float"])
+                self.assertGreater(power, 0.95)
+
+    def test_an_unrecognized_test_type_is_a_400(self):
+        response = self._power("banana")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("test_type", json.dumps(response.json()))
+
+    def test_required_sample_size_is_not_half_what_it_should_be(self):
+        # The canonical G*Power benchmark: d = 0.5, alpha = 0.05, two-sided, 80% power needs
+        # n = 64 PER GROUP. Falling through to the one-sample branch returned 34 -- a researcher
+        # planning on that number runs the study at half the size they need, and it is
+        # under-powered. Which is the exact failure this platform exists to prevent.
+        response = self.client.post(
+            "/api/v1/power/sample-size/t-test/",
+            data=json.dumps(
+                {
+                    "effect_size": 0.5,
+                    "power": 0.80,
+                    "alpha": 0.05,
+                    "test_type": "two_sample",
+                    "alternative": "two-sided",
+                }
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"]["required_sample_size"], 64)

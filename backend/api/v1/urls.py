@@ -17,6 +17,9 @@ from .normality_view import NormalityTestView
 from .correlation_views import HighPrecisionCorrelationView, AutomaticTestSelectorView
 from .power_views import (
     calculate_power_t_test,
+    calculate_sample_size_anova,
+    calculate_sample_size_correlation,
+    power_curve,
     calculate_sample_size_t_test,
     calculate_effect_size_t_test,
     calculate_power_anova,
@@ -251,9 +254,16 @@ urlpatterns = [
     path("power/sample-size/t-test/", calculate_sample_size_t_test, name="sample-size-t-test"),
     path("power/effect-size/t-test/", calculate_effect_size_t_test, name="effect-size-t-test"),
     path("power/anova/", calculate_power_anova, name="power-anova"),
+    path("power/sample-size/anova/", calculate_sample_size_anova, name="sample-size-anova"),
+    path(
+        "power/sample-size/correlation/",
+        calculate_sample_size_correlation,
+        name="sample-size-correlation",
+    ),
     path("power/correlation/", calculate_power_correlation, name="power-correlation"),
     path("power/chi-square/", calculate_power_chi_square, name="power-chi-square"),
     path("power/curves/", create_power_curves, name="power-curves"),
+    path("power/curve/", power_curve, name="power-curve"),
     path("power/allocation/", optimal_allocation, name="optimal-allocation"),
     path("power/sensitivity/", sensitivity_analysis, name="sensitivity-analysis"),
     path("power/report/", comprehensive_power_report, name="power-report"),

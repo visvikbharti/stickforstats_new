@@ -250,6 +250,167 @@ export const runWilcoxon = async (x, y, alternative = 'two-sided') => {
   };
 };
 
+// ---------------------------------------------------------------- power analysis
+//
+// Power analysis is the one calculation whose whole purpose is to be run BEFORE the data exist.
+// If it returns a sample size that is too small, nothing downstream can detect that: the study
+// gets run, it is underpowered, it misses the effect, and the result is filed as a negative
+// finding. There is no residual to inspect and no diagnostic that fires. So it has to be right
+// when it is printed, and it was not.
+//
+// What the browser was computing, and what it should have been:
+//
+//   * t-test power used the NORMAL critical value and the NORMAL CDF, not the non-central t.
+//     Overstates power by up to ~4 points.
+//
+//   * ANOVA power used a normal approximation to the non-central F. At Cohen's f = 0.25 with 4
+//     groups and n = 45 it reported 0.66 where the truth is 0.80 -- it told you that you were
+//     underpowered when you were not. And `sqrt(2 * lambda - df1)` takes the square root of a
+//     NEGATIVE number for small effects; the resulting NaN rendered as "Underpowered (< 80%)",
+//     a confident verdict from a calculation that failed. The result was then clamped into
+//     [0.001, 0.999], which is itself an invented claim.
+//
+//   * ANOVA sample size was off by a FACTOR of 2.3x to 3.3x. At f = 0.25 with 4 groups it
+//     demanded 126 subjects per group -- 504 in total -- where 45 per group (180 total) reaches
+//     80% power. That is not a rounding error; it is a study that cannot be funded.
+//
+//   * t-test sample size used ceil(2 * ((z_a + z_b) / d)^2), which returns 63 for the single
+//     most common power analysis in the literature (d = 0.5, alpha = 0.05, power = 0.80). The
+//     answer is 64. At 63 the true power is 0.795, not the 0.80 the researcher believes they
+//     have. The formula drops the fact that the t critical value itself depends on n.
+//
+// All six now run on the backend, against the exact non-central distributions.
+
+const POWER_URLS = {
+  't-test': '/v1/power/t-test/',
+  anova: '/v1/power/anova/',
+  correlation: '/v1/power/correlation/',
+};
+
+const SAMPLE_SIZE_URLS = {
+  't-test': '/v1/power/sample-size/t-test/',
+  anova: '/v1/power/sample-size/anova/',
+  correlation: '/v1/power/sample-size/correlation/',
+};
+
+/**
+ * Power for a given effect size and n. `n` is per-group for the t-test and ANOVA.
+ */
+export const runPowerCalculation = async ({
+  testType,
+  effectSize,
+  sampleSize,
+  alpha = 0.05,
+  groups = 2,
+  alternative = 'two-sided',
+}) => {
+  const url = POWER_URLS[testType];
+  if (!url) throw new Error(`No power calculation is available for "${testType}".`);
+
+  const body = { effect_size: effectSize, alpha };
+  if (testType === 'anova') {
+    body.groups = groups;
+    body.n_per_group = sampleSize;
+  } else {
+    body.sample_size = sampleSize;
+    body.alternative = alternative;
+    if (testType === 't-test') body.test_type = 'independent';
+  }
+
+  const results = (await post(url, body)).results || {};
+  const power = num(results.power_float ?? results.power);
+
+  return {
+    mode: 'calculate-power',
+    testType,
+    effectSize,
+    sampleSize,
+    alpha,
+    groups: testType === 'anova' ? groups : null,
+    power,
+    // 1 - null is NaN, and NaN renders as an em dash. beta does not exist when power does not.
+    beta: power === null ? null : 1 - power,
+    criticalValue: num(results.critical_t ?? results.critical_f ?? results.critical_z),
+    nonCentrality: num(results.non_centrality),
+    interpretation: results.interpretation || null,
+    raw: results,
+  };
+};
+
+/**
+ * Required sample size for a target power. Per-group for the t-test and ANOVA; total for the
+ * correlation, which has only one sample.
+ */
+export const runSampleSizeCalculation = async ({
+  testType,
+  effectSize,
+  power = 0.8,
+  alpha = 0.05,
+  groups = 2,
+  alternative = 'two-sided',
+}) => {
+  const url = SAMPLE_SIZE_URLS[testType];
+  if (!url) throw new Error(`No sample-size calculation is available for "${testType}".`);
+
+  const body = { effect_size: effectSize, power, alpha };
+  if (testType === 'anova') body.groups = groups;
+  else body.alternative = alternative;
+  if (testType === 't-test') body.test_type = 'independent';
+
+  const results = (await post(url, body)).results || {};
+  const requiredN = num(results.required_sample_size);
+
+  return {
+    mode: 'calculate-n',
+    testType,
+    effectSize,
+    alpha,
+    groups: testType === 'anova' ? groups : null,
+    desiredPower: power,
+    requiredN,
+    // The correlation is a single sample, so "per group" is meaningless for it and its total is
+    // its n -- not n x 2, which is what the old code printed.
+    perGroup: testType === 'correlation' ? null : requiredN,
+    totalN: num(results.total_sample_size),
+    // The power actually delivered at that integer n, which is what the study will have. It is
+    // at or just above the target, never below -- that is the whole point of solving exactly.
+    actualPower: num(results.actual_power_float ?? results.actual_power),
+    raw: results,
+  };
+};
+
+/**
+ * Power as a function of n, for the chart.
+ */
+export const runPowerCurve = async ({
+  testType,
+  effectSize,
+  alpha = 0.05,
+  groups = 2,
+  alternative = 'two-sided',
+  nMin = 5,
+  nMax = 200,
+  step = 5,
+}) => {
+  const results =
+    (
+      await post('/v1/power/curve/', {
+        test_type: testType,
+        effect_size: effectSize,
+        alpha,
+        groups,
+        alternative,
+        n_min: nMin,
+        n_max: nMax,
+        step,
+      })
+    ).results || {};
+
+  return (results.points || [])
+    .map((point) => ({ n: num(point.n), power: num(point.power), target80: 0.8 }))
+    .filter((point) => point.n !== null && point.power !== null);
+};
+
 const hubTestService = {
   runNormalityTests,
   runTTest,
@@ -259,6 +420,9 @@ const hubTestService = {
   runMannWhitney,
   runKruskalWallis,
   runWilcoxon,
+  runPowerCalculation,
+  runSampleSizeCalculation,
+  runPowerCurve,
 };
 
 export default hubTestService;

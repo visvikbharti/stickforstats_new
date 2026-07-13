@@ -102,6 +102,65 @@ def adapt_power_params(data: Dict[str, Any]) -> Dict[str, Any]:
     return adapted
 
 
+# `adapt_power_params` is shared by every power endpoint, and `test_type` does not mean the same
+# thing in all of them: for /power/t-test/ it names the VARIANT ("independent" / "paired" /
+# "one-sample"), while for /power/curves/ it names the TEST ("t-test" / "anova" / "correlation").
+# So this validation belongs to the t-test endpoints, not to the shared adapter.
+T_TEST_TYPES = {
+    "independent": "independent",
+    "two_sample": "independent",
+    "two_sample_t": "independent",
+    "twosample": "independent",
+    "unpaired": "independent",
+    "ind": "independent",
+    "paired": "paired",
+    "dependent": "paired",
+    "repeated": "paired",
+    "one_sample": "one-sample",
+    "onesample": "one-sample",
+    "single_sample": "one-sample",
+    "one_sample_t": "one-sample",
+}
+
+
+def canonical_t_test_type(value):
+    """
+    Canonicalize the t-test variant, and REJECT anything unrecognized.
+
+    HighPrecisionPowerAnalysis.calculate_power_t_test branches:
+
+        if test_type == "independent":   nc = d * sqrt(n / 2);  df = 2n - 2
+        elif test_type == "paired":      nc = d * sqrt(n);      df = n - 1
+        else:  # one-sample              nc = d * sqrt(n);      df = n - 1
+
+    That `else` swallowed everything. "two_sample" and "two-sample" -- the two most natural names
+    for the test, and the ones an SDK or curl user reaches for first -- fell into it, and so did
+    every typo. The caller asked for a two-sample power calculation and was handed a ONE-SAMPLE
+    one, labelled as the test they asked for.
+
+    The difference is not academic. For d = 0.5, n = 64, alpha = 0.05, two-sided:
+
+        independent (correct):  power = 0.8015   <- matches statsmodels and G*Power
+        the `else` branch:      power = 0.9761
+
+    and in sample-size mode it returned n = 34 where the answer is 64 per group. A researcher
+    planning a study on those numbers runs it at half the size they need, and the study comes out
+    under-powered -- which is precisely the failure this platform exists to prevent.
+    """
+    if value is None:
+        return "independent"
+
+    canonical = T_TEST_TYPES.get(str(value).strip().lower().replace("-", "_"))
+    if canonical is None:
+        raise InvalidPowerParameter(
+            f"Unrecognized test_type {value!r}. Use one of: 'independent' (two-sample), "
+            f"'paired', or 'one-sample'. An unrecognized value used to be silently treated as a "
+            f"one-sample test, which reports a materially different power and a required sample "
+            f"size roughly half what is needed."
+        )
+    return canonical
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def calculate_power_t_test(request):
@@ -133,7 +192,7 @@ def calculate_power_t_test(request):
             sample_size=data["sample_size"],
             alpha=data.get("alpha", 0.05),
             alternative=data.get("alternative", "two-sided"),
-            test_type=data.get("test_type", "independent"),
+            test_type=canonical_t_test_type(data.get("test_type")),
         )
 
         # Log the analysis
@@ -182,7 +241,7 @@ def calculate_sample_size_t_test(request):
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             alternative=data.get("alternative", "two-sided"),
-            test_type=data.get("test_type", "independent"),
+            test_type=canonical_t_test_type(data.get("test_type")),
         )
 
         logger.info(f"Sample size calculation completed for user {request.user.id}")
@@ -230,7 +289,7 @@ def calculate_effect_size_t_test(request):
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             alternative=data.get("alternative", "two-sided"),
-            test_type=data.get("test_type", "independent"),
+            test_type=canonical_t_test_type(data.get("test_type")),
         )
 
         logger.info(f"Effect size calculation completed for user {request.user.id}")
@@ -244,6 +303,141 @@ def calculate_effect_size_t_test(request):
 
     except Exception as e:
         logger.error(f"Error in effect size calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def power_curve(request):
+    """
+    Power as a function of sample size, as a plain series the client can plot.
+
+    The existing /power/curves/ endpoint returns a rendered Plotly figure; this returns the
+    numbers, because the client draws its own chart and was otherwise computing this series
+    itself with a normal approximation to the non-central F that was wrong by up to 0.21.
+
+    Expected JSON payload:
+    {
+        "test_type": "t-test" | "anova" | "correlation",
+        "effect_size": 0.5,
+        "alpha": 0.05,
+        "groups": 4,               // anova only
+        "alternative": "two-sided",
+        "n_min": 5, "n_max": 200, "step": 5
+    }
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        if "effect_size" not in data:
+            return Response({"error": "Missing required parameter: effect_size"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.power_curve(
+            test_type=data.get("test_type", "t-test"),
+            effect_size=data["effect_size"],
+            alpha=data.get("alpha", 0.05),
+            groups=data.get("groups", 2),
+            alternative=data.get("alternative", "two-sided"),
+            n_min=data.get("n_min", 5),
+            n_max=data.get("n_max", 200),
+            step=data.get("step", 5),
+        )
+
+        return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error generating power curve: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def calculate_sample_size_anova(request):
+    """
+    Required sample size PER GROUP for a one-way ANOVA, with 50 decimal precision.
+
+    Solved against the exact non-central F power, not the normal approximation. The browser used
+    to compute this itself and rounded the wrong way at the boundary, which under-powers a study
+    by one subject per group without saying so.
+
+    Expected JSON payload:
+    {
+        "effect_size": 0.25,
+        "groups": 4,
+        "power": 0.8,
+        "alpha": 0.05
+    }
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        required = ["effect_size", "groups"]
+        for param in required:
+            if param not in data:
+                return Response({"error": f"Missing required parameter: {param}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_sample_size_anova(
+            effect_size=data["effect_size"],
+            groups=data["groups"],
+            power=data.get("power", 0.8),
+            alpha=data.get("alpha", 0.05),
+        )
+
+        logger.info(f"ANOVA sample size calculation completed for user {request.user.id}")
+
+        return Response(
+            {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
+        )
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in ANOVA sample size calculation: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def calculate_sample_size_correlation(request):
+    """
+    Required sample size for a correlation test, with 50 decimal precision.
+
+    Expected JSON payload:
+    {
+        "effect_size": 0.3,
+        "power": 0.8,
+        "alpha": 0.05,
+        "alternative": "two-sided"
+    }
+    """
+    try:
+        data = adapt_power_params(request.data)
+
+        if "effect_size" not in data:
+            return Response({"error": "Missing required parameter: effect_size"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = power_calculator.calculate_sample_size_correlation(
+            effect_size=data["effect_size"],
+            power=data.get("power", 0.8),
+            alpha=data.get("alpha", 0.05),
+            alternative=data.get("alternative", "two-sided"),
+        )
+
+        logger.info(f"Correlation sample size calculation completed for user {request.user.id}")
+
+        return Response(
+            {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
+        )
+
+    except (InvalidPowerParameter, ValueError) as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Error in correlation sample size calculation: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

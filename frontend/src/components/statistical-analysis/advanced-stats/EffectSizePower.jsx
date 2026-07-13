@@ -16,6 +16,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import jStat from 'jstat';
+import { runPowerCalculation, runSampleSizeCalculation, runPowerCurve } from '../utils/hubTestService';
 import {
   Box,
   Typography,
@@ -64,9 +65,75 @@ const EFFECT_SIZE_BENCHMARKS = {
   'cramers_v': { small: 0.1, medium: 0.3, large: 0.5 }
 };
 
+/**
+ * Power has three states, not two: adequate, inadequate, and NOT COMPUTED.
+ *
+ * The old code collapsed the third into the second. `powerResults.power >= 0.8` is false when
+ * power is null, so a failed calculation rendered as an orange "Underpowered (< 80%)" chip -- a
+ * confident verdict about a study, produced by a computation that did not happen. And
+ * `(null * 100).toFixed(1)` is "0.0", because null coerces to 0, so the headline read "0.0%":
+ * not "we could not work this out", but "this design has no chance whatsoever of detecting the
+ * effect". Those are very different sentences and only one of them was true.
+ */
+const formatPercent = (value, digits = 1) =>
+  value === null || value === undefined || Number.isNaN(value) ? '—' : `${(value * 100).toFixed(digits)}%`;
+
+const isAdequate = (power) => (power === null || power === undefined || Number.isNaN(power) ? null : power >= 0.8);
+
+const powerLabel = (power) => {
+  const adequate = isAdequate(power);
+  if (adequate === null) return 'Not computed';
+  return adequate ? 'Adequate power (≥ 80%)' : 'Underpowered (< 80%)';
+};
+
+const powerChipColor = (power) => {
+  const adequate = isAdequate(power);
+  if (adequate === null) return 'default';
+  return adequate ? 'success' : 'warning';
+};
+
+const sampleSizeLabel = (testType) => (testType === 'correlation' ? 'N' : 'N per group');
+
+const xAxisLabel = (testType) =>
+  testType === 'correlation' ? 'Sample Size' : 'Sample Size per Group';
+
+const powerInterpretation = (result) => {
+  if (result.power === null) {
+    return 'Power is not defined for this design, so no value is shown. Check the effect size, α and sample size.';
+  }
+  const pct = formatPercent(result.power, 1);
+  if (result.power >= 0.8) {
+    return `With this design you would detect an effect of this size ${pct} of the time. That is at or above the conventional 80% threshold.`;
+  }
+  return `With this design you would detect an effect of this size only ${pct} of the time — you would miss it ${formatPercent(result.beta, 1)} of the time. Consider increasing the sample size, or switch to "Calculate Required N" to find the size that reaches 80%.`;
+};
+
+const sampleSizeInterpretation = (result) => {
+  if (result.requiredN === null) return 'No sample size was returned for this design.';
+
+  const unit = result.testType === 'correlation' ? '' : ' per group';
+  const total = result.totalN !== null ? ` (${result.totalN} in total)` : '';
+  return `You need ${result.requiredN}${unit}${total} to reach ${formatPercent(result.desiredPower, 0)} power against an effect of ${result.effectSize}. At that sample size the power is ${formatPercent(result.actualPower, 1)} — n is an integer, so it lands just above the target rather than exactly on it.`;
+};
+
 const EffectSizePower = ({ data }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+
+  // Colour follows the same three states: green (adequate), amber (underpowered), and neutral
+  // grey when there is no power to report. Grey is the one that used to be amber.
+  const powerColor = (power) => {
+    const adequate = isAdequate(power);
+    if (adequate === null) return theme.palette.text.secondary;
+    return adequate ? theme.palette.success.main : theme.palette.warning.main;
+  };
+
+  const powerCardBg = (power) => {
+    const adequate = isAdequate(power);
+    if (adequate === null) return 'transparent';
+    const palette = adequate ? theme.palette.success : theme.palette.warning;
+    return isDarkMode ? palette.dark + '20' : palette.light + '30';
+  };
 
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
@@ -295,106 +362,58 @@ const EffectSizePower = ({ data }) => {
   };
 
   /**
-   * Calculate Power
+   * Power analysis. Runs on the backend, against the exact non-central distributions.
+   *
+   * It used to run here, on jStat, and every one of the six calculations was wrong:
+   *
+   *   - t-test power used the NORMAL critical value and the NORMAL CDF instead of the
+   *     non-central t, overstating power by up to ~4 points.
+   *
+   *   - ANOVA power used a normal approximation to the non-central F. At Cohen's f = 0.25 with
+   *     4 groups and n = 45 it reported 0.66 where the truth is 0.80 -- it told you that you
+   *     were underpowered when you were not. And `sqrt(2 * ncp - dfBetween)` takes the square
+   *     root of a NEGATIVE number whenever the effect is small; the NaN that came back was
+   *     rendered as a confident "Underpowered (< 80%)". The value was then clamped into
+   *     [0.001, 0.999], which is an invented claim in its own right.
+   *
+   *   - ANOVA sample size was off by a FACTOR of 2.3x to 3.3x: at f = 0.25 with 4 groups it
+   *     demanded 126 per group (504 total) where 45 per group (180 total) reaches 80% power.
+   *
+   *   - t-test sample size used ceil(2 * ((za + zb) / d)^2), which gives 63 for the most common
+   *     power analysis in the literature (d = 0.5, alpha = 0.05, power = 0.80). The answer is
+   *     64; at 63 the true power is 0.795, not the 0.80 the researcher thinks they have.
+   *
+   * The one calculation that was right -- correlation, via Fisher's z -- is the one the backend
+   * computes the same way, and it still agrees.
    */
   const calculatePower = useCallback(async () => {
     setPowerLoading(true);
     setPowerResults(null);
+    setPowerCurveData(null);
+
+    const common = {
+      testType: powerTestType,
+      effectSize: Number(powerEffectSize),
+      alpha: Number(powerAlpha),
+      groups: Number(nGroups),
+      alternative,
+    };
 
     try {
-      let result = {};
-
-      if (powerMode === 'calculate-power') {
-        // Calculate power given effect size and N
-        let power;
-
-        if (powerTestType === 't-test') {
-          // Two-sample t-test power approximation
-          const ncp = powerEffectSize * Math.sqrt(powerN / 2); // non-centrality parameter
-          const critT = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
-
-          // Power using normal CDF of (ncp - criticalValue)
-          power = jStat.normal.cdf(ncp - critT, 0, 1);
-
-        } else if (powerTestType === 'anova') {
-          // F-test power approximation
-          const f = powerEffectSize; // Cohen's f
-          const ncp = f * f * powerN * nGroups; // non-centrality parameter
-          const dfBetween = nGroups - 1;
-          const dfWithin = nGroups * (powerN - 1);
-
-          // Use proper F critical value from jStat
-          const critF = jStat.centralF.inv(1 - powerAlpha, dfBetween, dfWithin);
-          // Power via normal approximation to noncentral F
-          const zF = Math.sqrt(2 * critF * dfBetween) - Math.sqrt(2 * ncp - dfBetween);
-          power = jStat.normal.cdf(-zF, 0, 1);
-          power = Math.min(0.999, Math.max(0.001, power));
-
-        } else if (powerTestType === 'correlation') {
-          // Correlation power using Fisher's z transform
-          const z = 0.5 * Math.log((1 + powerEffectSize) / (1 - powerEffectSize)); // Fisher's z
-          const seZ = 1 / Math.sqrt(powerN - 3);
-          const critZ = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
-
-          power = jStat.normal.cdf(Math.abs(z) / seZ - critZ, 0, 1);
-        }
-
-        result = {
-          mode: 'calculate-power',
-          test_type: powerTestType,
-          effect_size: powerEffectSize,
-          sample_size: powerN,
-          alpha: powerAlpha,
-          power: power,
-          interpretation: power >= 0.8 ? 'Adequate power (≥ 80%)' : 'Underpowered (< 80%)',
-          beta: 1 - power
-        };
-
-        // Generate power curve data
-        generatePowerCurve(powerEffectSize, powerAlpha, powerTestType);
-
-      } else {
-        // Calculate required N given desired power
-        let requiredN;
-
-        if (powerTestType === 't-test') {
-          // Approximate sample size for t-test
-          const za = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
-          const zb = jStat.normal.inv(desiredPower, 0, 1);
-          requiredN = Math.ceil(2 * Math.pow((za + zb) / powerEffectSize, 2));
-
-        } else if (powerTestType === 'anova') {
-          // Approximate sample size for ANOVA
-          const za = jStat.normal.inv(1 - powerAlpha / 2, 0, 1);
-          const zb = jStat.normal.inv(desiredPower, 0, 1);
-          const f = powerEffectSize;
-          requiredN = Math.ceil(nGroups * Math.pow((za + zb) / (f * Math.sqrt(nGroups)), 2));
-
-        } else if (powerTestType === 'correlation') {
-          // Sample size for correlation
-          const za = jStat.normal.inv(alternative === 'two-sided' ? 1 - powerAlpha / 2 : 1 - powerAlpha, 0, 1);
-          const zb = jStat.normal.inv(desiredPower, 0, 1);
-          const zr = 0.5 * Math.log((1 + powerEffectSize) / (1 - powerEffectSize));
-          requiredN = Math.ceil(Math.pow((za + zb) / zr, 2) + 3);
-        }
-
-        result = {
-          mode: 'calculate-n',
-          test_type: powerTestType,
-          effect_size: powerEffectSize,
-          desired_power: desiredPower,
-          alpha: powerAlpha,
-          required_n: requiredN,
-          total_n: powerTestType === 'anova' ? requiredN * nGroups : requiredN * 2,
-          interpretation: `Need ${requiredN} per group to achieve ${(desiredPower * 100).toFixed(0)}% power`
-        };
-
-        // Generate power curve
-        generatePowerCurve(powerEffectSize, powerAlpha, powerTestType);
-      }
+      const result =
+        powerMode === 'calculate-power'
+          ? await runPowerCalculation({ ...common, sampleSize: Number(powerN) })
+          : await runSampleSizeCalculation({ ...common, power: Number(desiredPower) });
 
       setPowerResults(result);
 
+      // The curve is a second, independent request: if it fails, the number the user asked for
+      // is still on screen. A missing chart is not a reason to withhold the answer.
+      try {
+        setPowerCurveData(await runPowerCurve(common));
+      } catch {
+        setPowerCurveData(null);
+      }
     } catch (err) {
       setPowerResults({ error: err.message });
     } finally {
@@ -402,104 +421,6 @@ const EffectSizePower = ({ data }) => {
     }
   }, [powerMode, powerTestType, powerEffectSize, powerN, powerAlpha, desiredPower, alternative, nGroups]);
 
-  /**
-   * Generate power curve data
-   */
-  const generatePowerCurve = (effectSize, alpha, testType) => {
-    const curveData = [];
-
-    for (let n = 5; n <= 200; n += 5) {
-      let power;
-
-      if (testType === 't-test') {
-        const ncp = effectSize * Math.sqrt(n / 2);
-        const critT = jStat.normal.inv(1 - alpha / 2, 0, 1);
-        power = jStat.normal.cdf(ncp - critT, 0, 1);
-      } else if (testType === 'correlation') {
-        const z = 0.5 * Math.log((1 + effectSize) / (1 - effectSize));
-        const seZ = 1 / Math.sqrt(n - 3);
-        const critZ = jStat.normal.inv(1 - alpha / 2, 0, 1);
-        power = jStat.normal.cdf(Math.abs(z) / seZ - critZ, 0, 1);
-      } else {
-        // ANOVA power using normal approximation to noncentral F
-        const dfBetween = nGroups - 1;
-        const dfWithin = nGroups * (n - 1);
-        const ncp = effectSize * effectSize * n * nGroups;
-        const critF = jStat.centralF.inv(1 - alpha, dfBetween, dfWithin);
-        const zF = Math.sqrt(2 * critF * dfBetween) - Math.sqrt(2 * ncp - dfBetween);
-        power = jStat.normal.cdf(-zF, 0, 1);
-        power = Math.min(0.999, Math.max(0.001, power));
-      }
-
-      curveData.push({
-        n: n,
-        power: Math.max(0, Math.min(1, power)),
-        target80: 0.8
-      });
-    }
-
-    setPowerCurveData(curveData);
-  };
-
-  /**
-   * Helper: Get Z value from power
-   */
-  const getZFromPower = (power) => {
-    // Approximate inverse normal CDF
-    const p = power;
-    const a = [
-      -3.969683028665376e+01,
-      2.209460984245205e+02,
-      -2.759285104469687e+02,
-      1.383577518672690e+02,
-      -3.066479806614716e+01,
-      2.506628277459239e+00
-    ];
-    const b = [
-      -5.447609879822406e+01,
-      1.615858368580409e+02,
-      -1.556989798598866e+02,
-      6.680131188771972e+01,
-      -1.328068155288572e+01
-    ];
-
-    const q = p - 0.5;
-    let r, x;
-
-    if (Math.abs(q) <= 0.425) {
-      r = 0.180625 - q * q;
-      x = q * (((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * r + 1) /
-        ((((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)));
-    } else {
-      r = q < 0 ? p : 1 - p;
-      r = Math.sqrt(-Math.log(r));
-      x = (((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * r + 1) /
-        ((((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)));
-      if (q < 0) x = -x;
-    }
-
-    return x;
-  };
-
-  /**
-   * Error function
-   */
-  const erf = (x) => {
-    const a1 = 0.254829592;
-    const a2 = -0.284496736;
-    const a3 = 1.421413741;
-    const a4 = -1.453152027;
-    const a5 = 1.061405429;
-    const p = 0.3275911;
-
-    const sign = x < 0 ? -1 : 1;
-    x = Math.abs(x);
-
-    const t = 1.0 / (1.0 + p * x);
-    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-
-    return sign * y;
-  };
 
   // Render
   return (
@@ -1128,26 +1049,19 @@ const EffectSizePower = ({ data }) => {
               </Typography>
 
               <Grid container spacing={3}>
-                {powerMode === 'calculate-power' ? (
+                {powerResults.mode === 'calculate-power' ? (
                   <>
                     <Grid item xs={6} md={4}>
-                      <Card sx={{
-                        bgcolor: powerResults.power >= 0.8
-                          ? (isDarkMode ? theme.palette.success.dark + '20' : theme.palette.success.light + '30')
-                          : (isDarkMode ? theme.palette.warning.dark + '20' : theme.palette.warning.light + '30'),
-                        height: '100%'
-                      }}>
+                      <Card sx={{ bgcolor: powerCardBg(powerResults.power), height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Statistical Power</Typography>
-                          <Typography variant="h3" sx={{
-                            color: powerResults.power >= 0.8 ? theme.palette.success.main : theme.palette.warning.main
-                          }}>
-                            {(powerResults.power * 100).toFixed(1)}%
+                          <Typography variant="h3" sx={{ color: powerColor(powerResults.power) }}>
+                            {formatPercent(powerResults.power, 1)}
                           </Typography>
                           <Chip
-                            label={powerResults.interpretation}
+                            label={powerLabel(powerResults.power)}
                             size="small"
-                            color={powerResults.power >= 0.8 ? 'success' : 'warning'}
+                            color={powerChipColor(powerResults.power)}
                             sx={{ mt: 1 }}
                           />
                         </CardContent>
@@ -1157,8 +1071,8 @@ const EffectSizePower = ({ data }) => {
                       <Card sx={{ height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Type II Error (β)</Typography>
-                          <Typography variant="h4">{(powerResults.beta * 100).toFixed(1)}%</Typography>
-                          <Typography variant="caption">Probability of false negative</Typography>
+                          <Typography variant="h4">{formatPercent(powerResults.beta, 1)}</Typography>
+                          <Typography variant="caption">Probability of a false negative</Typography>
                         </CardContent>
                       </Card>
                     </Grid>
@@ -1166,8 +1080,11 @@ const EffectSizePower = ({ data }) => {
                       <Card sx={{ height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Parameters Used</Typography>
-                          <Typography variant="body2">Effect size: {powerResults.effect_size}</Typography>
-                          <Typography variant="body2">N per group: {powerResults.sample_size}</Typography>
+                          <Typography variant="body2">Effect size: {powerResults.effectSize}</Typography>
+                          <Typography variant="body2">{sampleSizeLabel(powerResults.testType)}: {powerResults.sampleSize}</Typography>
+                          {powerResults.groups !== null && (
+                            <Typography variant="body2">Groups: {powerResults.groups}</Typography>
+                          )}
                           <Typography variant="body2">α: {powerResults.alpha}</Typography>
                         </CardContent>
                       </Card>
@@ -1178,19 +1095,31 @@ const EffectSizePower = ({ data }) => {
                     <Grid item xs={6} md={4}>
                       <Card sx={{ bgcolor: isDarkMode ? theme.palette.primary.dark + '20' : theme.palette.primary.light + '30', height: '100%' }}>
                         <CardContent>
-                          <Typography variant="caption" color="text.secondary">Required N per Group</Typography>
-                          <Typography variant="h3" sx={{ color: theme.palette.primary.main }}>
-                            {powerResults.required_n}
+                          <Typography variant="caption" color="text.secondary">
+                            {powerResults.testType === 'correlation' ? 'Required N' : 'Required N per Group'}
                           </Typography>
-                          <Typography variant="body2">Total N: {powerResults.total_n}</Typography>
+                          <Typography variant="h3" sx={{ color: theme.palette.primary.main }}>
+                            {powerResults.requiredN ?? '—'}
+                          </Typography>
+                          <Typography variant="body2">Total N: {powerResults.totalN ?? '—'}</Typography>
                         </CardContent>
                       </Card>
                     </Grid>
                     <Grid item xs={6} md={4}>
                       <Card sx={{ height: '100%' }}>
                         <CardContent>
-                          <Typography variant="caption" color="text.secondary">Target Power</Typography>
-                          <Typography variant="h4">{(powerResults.desired_power * 100).toFixed(0)}%</Typography>
+                          <Typography variant="caption" color="text.secondary">Power at that N</Typography>
+                          <Typography variant="h4">{formatPercent(powerResults.actualPower, 1)}</Typography>
+                          {/*
+                            The target and the power actually delivered are shown together, and
+                            they are not the same number. n is an integer, so the power at the
+                            smallest n that clears the target lands slightly ABOVE it -- never
+                            below, which is the entire point of solving this exactly instead of
+                            rounding a closed form that lands one subject short.
+                          */}
+                          <Typography variant="caption">
+                            Target was {formatPercent(powerResults.desiredPower, 0)}
+                          </Typography>
                         </CardContent>
                       </Card>
                     </Grid>
@@ -1198,7 +1127,10 @@ const EffectSizePower = ({ data }) => {
                       <Card sx={{ height: '100%' }}>
                         <CardContent>
                           <Typography variant="caption" color="text.secondary">Parameters</Typography>
-                          <Typography variant="body2">Effect size: {powerResults.effect_size}</Typography>
+                          <Typography variant="body2">Effect size: {powerResults.effectSize}</Typography>
+                          {powerResults.groups !== null && (
+                            <Typography variant="body2">Groups: {powerResults.groups}</Typography>
+                          )}
                           <Typography variant="body2">α: {powerResults.alpha}</Typography>
                         </CardContent>
                       </Card>
@@ -1208,7 +1140,7 @@ const EffectSizePower = ({ data }) => {
               </Grid>
 
               {/* Power Curve */}
-              {powerCurveData && (
+              {powerCurveData && powerCurveData.length > 0 && (
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="subtitle1" gutterBottom>
                     Power Curve
@@ -1219,7 +1151,7 @@ const EffectSizePower = ({ data }) => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                           dataKey="n"
-                          label={{ value: 'Sample Size per Group', position: 'bottom', offset: 0 }}
+                          label={{ value: xAxisLabel(powerResults.testType), position: 'bottom', offset: 0 }}
                         />
                         <YAxis
                           domain={[0, 1]}
@@ -1231,7 +1163,7 @@ const EffectSizePower = ({ data }) => {
                             name === 'power' ? `${(value * 100).toFixed(1)}%` : `${(value * 100).toFixed(0)}%`,
                             name === 'power' ? 'Power' : 'Target'
                           ]}
-                          labelFormatter={(label) => `N = ${label} per group`}
+                          labelFormatter={(label) => `N = ${label}`}
                         />
                         <Legend />
                         <ReferenceLine y={0.8} stroke={theme.palette.warning.main} strokeDasharray="5 5" label={{ value: '80%', position: 'right' }} />
@@ -1244,8 +1176,12 @@ const EffectSizePower = ({ data }) => {
                           strokeWidth={2}
                           name="Power"
                         />
-                        {powerMode === 'calculate-power' && (
-                          <ReferenceLine x={powerN} stroke={theme.palette.success.main} strokeWidth={2} label={{ value: `N=${powerN}`, position: 'top' }} />
+                        {powerResults.mode === 'calculate-power' ? (
+                          <ReferenceLine x={powerResults.sampleSize} stroke={theme.palette.success.main} strokeWidth={2} label={{ value: `N=${powerResults.sampleSize}`, position: 'top' }} />
+                        ) : (
+                          powerResults.requiredN !== null && (
+                            <ReferenceLine x={powerResults.requiredN} stroke={theme.palette.success.main} strokeWidth={2} label={{ value: `N=${powerResults.requiredN}`, position: 'top' }} />
+                          )
                         )}
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1254,13 +1190,12 @@ const EffectSizePower = ({ data }) => {
               )}
 
               {/* Interpretation */}
-              <Alert severity="info" sx={{ mt: 3 }}>
+              <Alert severity={powerResults.power === null && powerResults.mode === 'calculate-power' ? 'warning' : 'info'} sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>Interpretation</Typography>
                 <Typography variant="body2">
-                  {powerResults.interpretation}
-                  {powerMode === 'calculate-power' && powerResults.power < 0.8 && (
-                    <><br /><strong>Recommendation:</strong> Consider increasing sample size to achieve at least 80% power.</>
-                  )}
+                  {powerResults.mode === 'calculate-power'
+                    ? powerInterpretation(powerResults)
+                    : sampleSizeInterpretation(powerResults)}
                 </Typography>
               </Alert>
             </Paper>
