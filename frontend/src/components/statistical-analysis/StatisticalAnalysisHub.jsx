@@ -290,15 +290,29 @@ const StatisticalAnalysisHub = () => {
           <Typography variant="body1" paragraph sx={{ mt: 2, maxWidth: '800px' }}>
             Welcome to the Statistical Analysis Platform! This comprehensive suite provides
             <strong> professional-grade statistical tools</strong> for data profiling, preprocessing,
-            visualization, hypothesis testing, and machine learning—all running directly in your browser.
+            visualization, hypothesis testing, and machine learning.
           </Typography>
 
+          {/*
+            This paragraph used to say: "All statistical computations run client-side using
+            JavaScript implementations of standard statistical methods. No data leaves your browser,
+            ensuring complete privacy."
+
+            Both halves are now false, and the second one was a PRIVACY promise. The inferential
+            tests on this page run on the server -- which is precisely why they are now correct; the
+            browser implementations they replaced computed p = 0.0000 for every strongly significant
+            result, a Shapiro-Wilk that could not return p < 0.001 for any sample however non-normal,
+            and power analyses that were wrong by a factor of three. A promise about where your data
+            goes has to be true, so it is stated accurately here instead of flatteringly.
+          */}
           <Typography variant="body2" paragraph sx={{ maxWidth: '800px', color: 'text.secondary' }}>
-            <strong>What makes this platform unique:</strong> All statistical computations run client-side
-            using JavaScript implementations of standard statistical methods. No data leaves your browser,
-            ensuring complete privacy. The platform includes the <strong>Guardian Statistical Protection System</strong>,
-            which validates statistical assumptions before running tests (normality, sample size, homogeneity of variance)
-            and provides actionable warnings when violations are detected.
+            <strong>How this works:</strong> Descriptive statistics, plots and data exploration run in
+            your browser. Inferential tests — t-tests, ANOVA, correlation, non-parametric tests, power
+            analysis — are computed on our server, against the exact distributions, and the values you
+            enter for them are sent there to be analysed. The platform includes the{' '}
+            <strong>Guardian Statistical Protection System</strong>, which checks statistical
+            assumptions before running a test (normality, sample size, homogeneity of variance) and
+            warns you when they are violated.
           </Typography>
 
           <Alert severity="info" sx={{ mt: 2, mb: 2 }}>

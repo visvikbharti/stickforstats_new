@@ -2,7 +2,7 @@
  * Power Analysis Step
  *
  * Step 4 of the Study Design Wizard.
- * Calculates required sample size using validated G*Power methodology.
+ * Calculates required sample size on the backend, against the exact non-central distributions.
  * Integrates with existing power calculation utilities.
  *
  * @author StickForStats Team
@@ -598,9 +598,10 @@ const PowerAnalysisStep = ({ data, updateData, errors }) => {
       {/* Citation */}
       <Alert severity="info" sx={{ mt: 3 }} icon={<InfoIcon />}>
         <Typography variant="caption">
-          <strong>Reference:</strong> Power calculations based on Cohen, J. (1988).
-          Statistical Power Analysis for the Behavioral Sciences (2nd ed.).
-          Validated against G*Power 3.1.9.7.
+          <strong>Reference:</strong> Cohen, J. (1988). Statistical Power Analysis for the
+          Behavioral Sciences (2nd ed.). Computed from the exact non-central t and F distributions
+          and verified against statsmodels. (We have not run G*Power itself, so we no longer claim
+          to have been validated against it.)
         </Typography>
       </Alert>
     </Box>

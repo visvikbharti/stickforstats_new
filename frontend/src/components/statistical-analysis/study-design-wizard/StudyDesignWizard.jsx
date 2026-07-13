@@ -615,9 +615,10 @@ const StudyDesignWizard = ({ onComplete, onCancel }) => {
         {/* Footer Info */}
         <Paper sx={{ p: 2, mt: 3, bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.12 : 0.08) }}>
           <Typography variant="body2" color="text.secondary">
-            <strong>Tip:</strong> The Study Design Wizard uses validated power analysis calculations
-            based on Cohen (1988) and G*Power methodology. All sample size estimates follow
-            established statistical conventions to ensure adequate power for detecting meaningful effects.
+            <strong>Tip:</strong> Sample sizes are solved on the server against the exact non-central
+            distributions (Cohen, 1988), and checked against statsmodels in our test suite. The answer
+            is the smallest n whose power actually meets your target — closed-form approximations
+            round the wrong way here and return one subject too few.
           </Typography>
         </Paper>
       </Container>

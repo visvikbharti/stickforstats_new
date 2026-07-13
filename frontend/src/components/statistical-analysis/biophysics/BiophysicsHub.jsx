@@ -193,7 +193,7 @@ const BiophysicsHub = ({ data, onAnalysisComplete }) => {
         {/* Feature Chips */}
         <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
           <Chip
-            label="G*Power Validated"
+            label="Exact non-central distributions"
             size="small"
             sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
           />

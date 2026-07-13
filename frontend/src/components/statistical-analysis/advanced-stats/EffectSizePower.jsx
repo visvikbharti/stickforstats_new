@@ -14,7 +14,7 @@
  * Backend API: /api/v1/effect-sizes/, /api/v1/power/
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import jStat from 'jstat';
 import { runPowerCalculation, runSampleSizeCalculation, runPowerCurve } from '../utils/hubTestService';
 import {
@@ -178,6 +178,8 @@ const EffectSizePower = ({ data }) => {
   const [powerResults, setPowerResults] = useState(null);
   const [powerLoading, setPowerLoading] = useState(false);
   const [powerCurveData, setPowerCurveData] = useState(null);
+  // Monotonic request counter: only the newest request may write to state.
+  const powerRequestRef = useRef(0);
 
   /**
    * Detect column types from data
@@ -387,6 +389,11 @@ const EffectSizePower = ({ data }) => {
    * computes the same way, and it still agrees.
    */
   const calculatePower = useCallback(async () => {
+    // Click "Calculate" twice with different parameters and the two requests race. If the first
+    // is slower, its answer lands last and is shown against the second set of inputs -- a result
+    // for a design the user is no longer looking at. Only the most recent request may write.
+    const requestId = ++powerRequestRef.current;
+
     setPowerLoading(true);
     setPowerResults(null);
     setPowerCurveData(null);
@@ -405,19 +412,22 @@ const EffectSizePower = ({ data }) => {
           ? await runPowerCalculation({ ...common, sampleSize: Number(powerN) })
           : await runSampleSizeCalculation({ ...common, power: Number(desiredPower) });
 
+      if (requestId !== powerRequestRef.current) return; // superseded
       setPowerResults(result);
 
       // The curve is a second, independent request: if it fails, the number the user asked for
       // is still on screen. A missing chart is not a reason to withhold the answer.
       try {
-        setPowerCurveData(await runPowerCurve(common));
+        const curve = await runPowerCurve(common);
+        if (requestId === powerRequestRef.current) setPowerCurveData(curve);
       } catch {
-        setPowerCurveData(null);
+        if (requestId === powerRequestRef.current) setPowerCurveData(null);
       }
     } catch (err) {
+      if (requestId !== powerRequestRef.current) return;
       setPowerResults({ error: err.message });
     } finally {
-      setPowerLoading(false);
+      if (requestId === powerRequestRef.current) setPowerLoading(false);
     }
   }, [powerMode, powerTestType, powerEffectSize, powerN, powerAlpha, desiredPower, alternative, nGroups]);
 

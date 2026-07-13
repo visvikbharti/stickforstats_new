@@ -1,19 +1,25 @@
 /**
- * Power Analysis Tool - Module 8 of Statistical Analysis Platform
+ * Power Analysis Tool
  *
- * Client-side power analysis calculations validated against G*Power 3.1.9.7.
- * Provides sample size determination, power calculation, and effect size analysis.
+ * Sample size determination, power calculation, and minimum detectable effect.
+ *
+ * This header used to say: "All calculations run client-side using validated statistical
+ * algorithms. No data leaves your browser." Neither half was true. The calculations ran on
+ * `distributionFunctions.js`, whose own header concedes "These are approximations suitable for
+ * interactive demonstrations" -- and they were not validated against G*Power, they disagreed with
+ * it: the ANOVA sample size came out 2.3x to 3.3x too large, and the non-parametric sizes were the
+ * parametric answer divided by a constant that assumes normally-distributed data.
+ *
+ * Every calculation now runs on the backend, against the exact non-central t, F and chi-square
+ * distributions. Only the parameters you type are sent -- your data is not.
  *
  * Scientific Foundation:
  * - Cohen, J. (1988). Statistical power analysis for the behavioral sciences.
  * - Faul, F., et al. (2007). G*Power 3: A flexible statistical power analysis program.
- * - Faul, F., et al. (2009). Statistical power analyses using G*Power 3.1.
- *
- * All calculations run client-side using validated statistical algorithms.
- * No data leaves your browser.
+ * - Hoenig, J. M. & Heisey, D. M. (2001). The abuse of power. The American Statistician 55(1).
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -164,7 +170,7 @@ const TEST_TYPES = {
     description: 'Non-parametric alternative to independent t-test',
     effectSizeLabel: "Cohen's d equivalent",
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
-    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
   },
   'wilcoxon': {
@@ -172,7 +178,7 @@ const TEST_TYPES = {
     description: 'Non-parametric alternative to paired t-test',
     effectSizeLabel: "Cohen's d equivalent",
     effectSizeBenchmarks: { small: 0.2, medium: 0.5, large: 0.8 },
-    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
   },
   'kruskal-wallis': {
@@ -180,7 +186,7 @@ const TEST_TYPES = {
     description: 'Non-parametric alternative to one-way ANOVA',
     effectSizeLabel: "Cohen's f equivalent",
     effectSizeBenchmarks: { small: 0.10, medium: 0.25, large: 0.40 },
-    formula: 'ARE = 3/π ≈ 0.955 (for normal data)',
+    formula: 'Pitman ARE against the parametric test, for the parent distribution you choose',
     reference: 'Lehmann (1975)'
   }
 };
@@ -220,6 +226,8 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   const [powerCurveData, setPowerCurveData] = useState(null);
   const [error, setError] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  // Monotonic request counter: only the newest request may write to state.
+  const requestRef = useRef(0);
   // The rank tests' power depends on the shape of the parent distribution, and the old code
   // silently assumed 'normal'. It is now the user's choice, and it is shown in the result.
   const [parentDistribution, setParentDistribution] = useState('normal');
@@ -307,6 +315,11 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
    *     against the exact power on the backend.
    */
   const calculatePower = useCallback(async () => {
+    // Two clicks with different parameters race. If the first is slower, its answer lands last and
+    // is displayed against the second set of inputs -- a result for a design the user is no longer
+    // looking at. Only the newest request may write.
+    const requestId = ++requestRef.current;
+
     setError(null);
     setIsCalculating(true);
 
@@ -383,21 +396,24 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       result.effectSizeLabel = currentTest.effectSizeLabel;
       result.reference = currentTest.reference;
 
+      if (requestId !== requestRef.current) return; // superseded
       setResults(result);
 
       // A missing curve is a missing chart, not a wrong number: the headline result stands even
       // if the curve request fails.
       try {
-        setPowerCurveData(await buildPowerCurves());
+        const curves = await buildPowerCurves();
+        if (requestId === requestRef.current) setPowerCurveData(curves);
       } catch {
-        setPowerCurveData(null);
+        if (requestId === requestRef.current) setPowerCurveData(null);
       }
     } catch (err) {
+      if (requestId !== requestRef.current) return;
       setError(err.message);
       setResults(null);
       setPowerCurveData(null);
     } finally {
-      setIsCalculating(false);
+      if (requestId === requestRef.current) setIsCalculating(false);
     }
   }, [calculationMode, testType, alpha, power, effectSize, sampleSize, sampleSize2,
       numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves,
