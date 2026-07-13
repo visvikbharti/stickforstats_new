@@ -178,7 +178,14 @@ const IntervalVisualization = ({
         .style("font-size", "12px")
         .text(pointEstimate.toFixed(2));
     }
-  }, [result, height, margin, showDistribution, showAxisLabels, generateDistributionCurve]);
+    // generateDistributionCurve must NOT be listed here. It is a component-scoped const
+    // declared just below this hook, and a deps array is evaluated during render — naming
+    // it reads the binding while it is still in its temporal dead zone and throws
+    // "Cannot access 'generateDistributionCurve' before initialization" on every render.
+    // The effect calls it from inside the callback, which runs after render, by which point
+    // the binding is initialized.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, height, margin, showDistribution, showAxisLabels]);
 
   // Helper function to generate distribution curve data based on interval type
   const generateDistributionCurve = (

@@ -54,6 +54,57 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 /**
  * Main Linear Regression Component
  */
+// Kept at MODULE scope on purpose: the `modelResults` useMemo below calls this
+// during render, so a component-scoped const would still be in its temporal dead
+// zone and throw "Cannot access 'gaussianElimination' before initialization"
+// the moment a model is trained.
+/**
+ * Gaussian elimination for solving linear system
+ */
+const gaussianElimination = (A, b) => {
+  const n = b.length;
+  const augmented = A.map((row, i) => [...row, b[i]]);
+
+  // Forward elimination
+  for (let i = 0; i < n; i++) {
+    // Find pivot
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+        maxRow = k;
+      }
+    }
+
+    // Swap rows
+    [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+
+    // Check for singular matrix
+    if (Math.abs(augmented[i][i]) < 1e-10) {
+      return null;
+    }
+
+    // Eliminate column
+    for (let k = i + 1; k < n; k++) {
+      const factor = augmented[k][i] / augmented[i][i];
+      for (let j = i; j <= n; j++) {
+        augmented[k][j] -= factor * augmented[i][j];
+      }
+    }
+  }
+
+  // Back substitution
+  const x = new Array(n);
+  for (let i = n - 1; i >= 0; i--) {
+    x[i] = augmented[i][n];
+    for (let j = i + 1; j < n; j++) {
+      x[i] -= augmented[i][j] * x[j];
+    }
+    x[i] /= augmented[i][i];
+  }
+
+  return x;
+};
+
 const LinearRegressionML = ({ data }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
@@ -265,52 +316,6 @@ const LinearRegressionML = ({ data }) => {
     };
   }, [preparedData, features, modelTrained]);
 
-  /**
-   * Gaussian elimination for solving linear system
-   */
-  const gaussianElimination = (A, b) => {
-    const n = b.length;
-    const augmented = A.map((row, i) => [...row, b[i]]);
-
-    // Forward elimination
-    for (let i = 0; i < n; i++) {
-      // Find pivot
-      let maxRow = i;
-      for (let k = i + 1; k < n; k++) {
-        if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
-          maxRow = k;
-        }
-      }
-
-      // Swap rows
-      [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
-
-      // Check for singular matrix
-      if (Math.abs(augmented[i][i]) < 1e-10) {
-        return null;
-      }
-
-      // Eliminate column
-      for (let k = i + 1; k < n; k++) {
-        const factor = augmented[k][i] / augmented[i][i];
-        for (let j = i; j <= n; j++) {
-          augmented[k][j] -= factor * augmented[i][j];
-        }
-      }
-    }
-
-    // Back substitution
-    const x = new Array(n);
-    for (let i = n - 1; i >= 0; i--) {
-      x[i] = augmented[i][n];
-      for (let j = i + 1; j < n; j++) {
-        x[i] -= augmented[i][j] * x[j];
-      }
-      x[i] /= augmented[i][i];
-    }
-
-    return x;
-  };
 
   /**
    * Guardian Integration: Check statistical assumptions for linear regression
