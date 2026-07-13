@@ -17,6 +17,8 @@ Version: 1.0.0
 License: MIT
 """
 
+import math
+
 import numpy as np
 from decimal import getcontext
 from mpmath import mp, mpf, sqrt, exp, erf, erfinv, log
@@ -304,6 +306,15 @@ class HighPrecisionPowerAnalysis:
             # d * sqrt(n1*n2/(n1+n2)); it collapses to d * sqrt(n/2) when they are equal, so the
             # balanced case is unchanged.
             n2 = self._to_high_precision(sample_size2) if sample_size2 is not None else n
+            # A group of one supports no within-group variance estimate. /power/mde/ already refuses
+            # this; /power/t-test/ was accepting n2 = 1 with a 200 and returning a number
+            # (power = 0.0763), and n2 = 0 with a 200 returning alpha. Two endpoints on the same
+            # engine disagreeing about whether a design is legal is how a caller learns to trust
+            # whichever one answers.
+            if n2 < mpf("2"):
+                raise ValueError(
+                    f"The second group needs at least n = 2 to be defined at all; got n2 = {int(n2)}."
+                )
             df = n + n2 - mpf("2")
             nc_factor = sqrt((n * n2) / (n + n2))
         elif test_type == "paired":
@@ -1001,7 +1012,7 @@ class HighPrecisionPowerAnalysis:
         It defaults to 1.0, so a balanced curve is unchanged.
 
         Without it the curve was always drawn for a BALANCED design while the headline beside it
-        honoured the group-2 box -- so a 30/60 design got a headline power of 0.6633 sitting above a
+        honoured the group-2 box -- so a 30/60 design got a headline power of 0.5994 sitting above a
         curve reading 0.4779 at n = 30. Two numbers, one screen, one design, both claiming to be its
         power. That is the defect this module has now been through four times; the curve was the last
         place it was still live.
@@ -1015,6 +1026,7 @@ class HighPrecisionPowerAnalysis:
 
         points = []
         for n in range(int(n_min), int(n_max) + 1, int(step)):
+            n2 = None
             if test_type == "anova":
                 power = self._anova_power_float(effect_size, groups, n, alpha) if n >= 2 else None
             elif test_type == "correlation":
@@ -1027,13 +1039,29 @@ class HighPrecisionPowerAnalysis:
                 # and it reaches a given power at roughly half the sample size.
                 # The second arm tracks n1 at the fixed allocation ratio, so the point at the
                 # user's own n1 IS the headline power, and the curve passes through it.
+                #
+                # It is ROUNDED (a group cannot have 7.5 people) and FLOORED AT 2 (a group of one
+                # supports no variance estimate). Both mean the design actually plotted can differ
+                # from the ratio that was asked for -- at ratio 0.033, every point below n1 = 60
+                # clamps to n2 = 2, so the leftmost point is really a 10/2 design, a ratio of 0.2.
+                # So each point reports the arms it was ACTUALLY computed with, rather than leaving
+                # the caller to infer them from a ratio the points do not honour.
+                #
+                # round() in Python is banker's rounding: round(7.5) = 8 but round(12.5) = 12, so
+                # adjacent points on one curve would round in opposite directions. floor(x + 0.5) is
+                # round-half-up everywhere.
                 n2 = None
                 if t_test_type == "independent" and allocation_ratio != 1.0:
-                    n2 = max(2, int(round(n * allocation_ratio)))
+                    n2 = max(2, int(math.floor(n * allocation_ratio + 0.5)))
                 power = self._t_power_float(effect_size, n, alpha, t_test_type, alternative, n2=n2)
 
             if power is not None and np.isfinite(power):
-                points.append({"n": n, "power": float(power)})
+                point = {"n": n, "power": float(power)}
+                if n2 is not None:
+                    point["n1"] = n
+                    point["n2"] = n2
+                    point["actual_ratio"] = n2 / n  # what was plotted, not what was requested
+                points.append(point)
 
         return {
             "points": points,

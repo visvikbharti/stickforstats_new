@@ -367,6 +367,35 @@ export const acceptsSecondArm = (testType) => {
 };
 
 /**
+ * THE second arm of the design being reported. One rule. Every consumer reads THIS.
+ *
+ * This value has been wrong five times, and the reason was never carelessness at any one site: the
+ * rule was re-derived at each call site and the derivations drifted apart.
+ *
+ *   1. the power request dropped it -- the box did nothing at all;
+ *   2. the total N kept a STALE one after the test changed, exporting 90 subjects for a design
+ *      whose power was computed at 30/30;
+ *   3. the code generator put an n2 into the script that the power had ignored;
+ *   4. the minimum-detectable-effect request dropped it, answering a 30/60 design as a balanced
+ *      one -- overstating the smallest detectable effect by 16%;
+ *   5. the curve's allocation ratio ignored the MODE, drawing a 1:2 curve over a balanced answer.
+ *
+ * Two conditions, and BOTH matter:
+ *   - the test must HAVE a second arm (only the independent t does);
+ *   - the box must be ON SCREEN. It does not render in sample-size mode, where the answer is n per
+ *     group and balanced by construction. A value the user cannot see is not one they have told us.
+ *
+ * It lives here rather than in the component so that the tests can pin the RULE and not a copy of
+ * it: the previous test re-implemented this expression inline, so it would have gone on passing if
+ * the component's derivation changed underneath it.
+ */
+export const secondArmFor = (calculationMode, testType, sampleSize2) => {
+  if (calculationMode === 'sampleSize') return null;
+  if (!acceptsSecondArm(testType)) return null;
+  return num(sampleSize2) && num(sampleSize2) >= 2 ? num(sampleSize2) : null;
+};
+
+/**
  * How many subjects the design actually needs in total.
  *
  * `n` means "per group" for the two-group and k-group tests and "the sample" for the rest, and
@@ -630,8 +659,10 @@ export const runPowerCurve = async ({
 
   // n2/n1, held fixed as n1 moves along the curve. The curve was always drawn for a BALANCED design
   // while the headline above it honoured the group-2 box, so a 30/60 design showed a headline power
-  // of 0.6633 over a curve reading 0.4779 at n = 30 -- two numbers on one screen, same design, both
-  // claiming to be its power. With the ratio fixed, the curve passes through the headline point.
+  // of 0.5994 over a curve reading 0.4779 at n = 30 -- two numbers on one screen, same design, both
+  // claiming to be its power. With the ratio fixed, the curve describes the same allocation as the
+  // headline. (It is drawn at Cohen's benchmark effect sizes on a grid of n, so it is the family of
+  // curves the headline belongs to -- not literally a line through the dot.)
   if (acceptsSecondArm(testType) && allocationRatio && allocationRatio !== 1) {
     body.allocation_ratio = allocationRatio;
   }

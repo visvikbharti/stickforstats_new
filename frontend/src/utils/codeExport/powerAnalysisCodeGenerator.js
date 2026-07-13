@@ -79,15 +79,58 @@ const SAMPLE_SIZE_TABLE = {
 
 const ARE_COLUMN = { normal: '0.955', uniform: '1.000', logistic: '1.097', 'Laplace (heavy tails)': '1.500', 'exponential (skewed)': '3.000' };
 
-/** The comment table for the rank test actually being generated. */
-const sampleSizeTable = (testType) => {
+/**
+ * The comment table for the rank test actually being generated.
+ *
+ * The Kruskal-Wallis column is computed at k = 3, but the user can pick any k, and the answer moves
+ * a long way: at d = 0.5 and 80% power under a normal parent it is 18 per group at k = 2, 15 at
+ * k = 3, and 6 at k = 20. A table printing 15 beside a user's own answer of 6 is a number that was
+ * not computed for their design -- the defect this table has already had twice. So when their k is
+ * not the illustrative one, the script says so instead of letting the reader assume.
+ *
+ * The ARE column is k-invariant and always applies, which is the point the table exists to make.
+ */
+const sampleSizeTable = (testType, numGroups) => {
   const table = SAMPLE_SIZE_TABLE[testType] || SAMPLE_SIZE_TABLE['mann-whitney'];
   const header = `#     parent distribution      ARE     ${table.unit} (d = 0.5, 80% power)`;
   const rule = '#     ---------------------  ------    --------------------------------';
   const rows = table.rows.map(
     ([parent, n]) => `#     ${parent.padEnd(21)}  ${ARE_COLUMN[parent]}     ${String(n).padStart(12)}`
   );
-  return [header, rule, ...rows].join('\n');
+
+  const lines = [header, rule, ...rows];
+
+  if (testType === 'kruskal-wallis' && Number(numGroups) !== 3) {
+    lines.push('#');
+    lines.push(`#     NOTE: the n column above is for k = 3 groups. Your design has k = ${numGroups},`);
+    lines.push('#     so those counts do NOT describe it -- more groups need fewer subjects each.');
+    lines.push('#     The ARE column does not depend on k and applies to your design as it stands.');
+  }
+
+  return lines.join('\n');
+};
+
+/**
+ * The second arm, as the SCRIPT must express it.
+ *
+ * `sampleSize2` arrives as null whenever the design has no second arm — the test is one-sample, or
+ * the box is not on screen (sample-size mode), or the user backspaced the field to empty. The
+ * generators divided by it and interpolated it directly:
+ *
+ *     const ratio = n2 / n1;      // null / 30 === 0   in JavaScript
+ *     n2 <- ${n2}                 // "n2 <- null"      which is not R
+ *
+ * so the exported R script told the researcher group 2 gets ZERO subjects
+ * ("n2 = ceiling(result$n * 0)"), and the power script emitted a `null` literal that no R or Python
+ * interpreter will accept. The backend has always read a missing second arm as "balanced"; the
+ * script must say the same thing, and say it in a language that runs.
+ *
+ * Normalised ONCE here, not re-derived per generator — re-derivation per call site is what made
+ * this value wrong five times in a row.
+ */
+const secondArmForScript = (sampleSize2, sampleSize) => {
+  const n2 = Number(sampleSize2);
+  return Number.isFinite(n2) && n2 >= 2 ? n2 : sampleSize; // absent / empty / nonsense => balanced
 };
 
 /**
@@ -178,7 +221,10 @@ library(pwr)
   // Generate test-specific code
   switch (testType) {
     case 'two-sample-t':
-      code += generateRCodeTwoSampleT(calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, altR, results);
+      code += generateRCodeTwoSampleT(
+        calculationMode, alpha, power, effectSize, sampleSize,
+        secondArmForScript(sampleSize2, sampleSize), altR, results
+      );
       break;
     case 'one-sample-t':
       code += generateRCodeOneSampleT(calculationMode, alpha, power, effectSize, sampleSize, altR, results);
@@ -279,7 +325,10 @@ from statsmodels.stats.power import (
   // Generate test-specific code
   switch (testType) {
     case 'two-sample-t':
-      code += generatePythonCodeTwoSampleT(calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, alternative, results);
+      code += generatePythonCodeTwoSampleT(
+        calculationMode, alpha, power, effectSize, sampleSize,
+        secondArmForScript(sampleSize2, sampleSize), alternative, results
+      );
       break;
     case 'one-sample-t':
       code += generatePythonCodeOneSampleT(calculationMode, alpha, power, effectSize, sampleSize, alternative, results);
@@ -333,8 +382,6 @@ from statsmodels.stats.power import (
 // ============================================================================
 
 function generateRCodeTwoSampleT(mode, alpha, power, d, n1, n2, alt, results) {
-  const ratio = n2 / n1;
-
   if (mode === 'power') {
     return `# Two-Sample Independent t-test: Calculate Power
 # Parameters
@@ -386,9 +433,8 @@ cat("\\n")
 cat("Required n per group:", ceiling(result$n), "\\n")
 cat("Total sample size:", ceiling(result$n) * 2, "\\n")
 
-# For unequal allocation (ratio = ${ratio}):
-# n1 = ceiling(result$n)
-# n2 = ceiling(result$n * ${ratio})
+# This solves the BALANCED design: pwr.t.test(type = "two.sample") returns n PER GROUP, which is
+# what the figure above is. For an unequal design, use pwr.t2n.test() with the two arms you want.
 
 # StickForStats Result: n = ${results.totalN || results.n1 + results.n2 || 'N/A'}
 `;
@@ -766,7 +812,7 @@ function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, 
 #
 # THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-${sampleSizeTable(testType)}
+${sampleSizeTable(testType, k)}
 #
 # This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
 #
@@ -832,6 +878,17 @@ cat("Effective sample size:", round(effective_n, 1), "\\n")
 // Python Code Generators for Specific Tests
 // ============================================================================
 
+/**
+ * The Python twin of generateRCodeTwoSampleT — and it must describe the SAME study.
+ *
+ * Its minimum-detectable-effect branch hardcoded `ratio=1.0` and ignored n2 entirely, so a 30/60
+ * design was solved as a balanced 30/30 one: d = 0.7356 where the answer for that design is 0.6334.
+ * The R script beside it, which does use both arms, printed 0.6334. One export, two scripts, two
+ * different studies, and only one of them agreed with the screen.
+ *
+ * The bug story stays HERE, in the source. It does not belong in the generated script — that is the
+ * researcher's artifact, not a changelog.
+ */
 function generatePythonCodeTwoSampleT(mode, alpha, power, d, n1, n2, alt, results) {
   const altPy = alt === 'two-sided' ? 'two-sided' : alt === 'greater' ? 'larger' : 'smaller';
 
@@ -905,24 +962,29 @@ print(f"Total sample size: {total_n}")
   } else {
     return `# Two-Sample Independent t-test: Calculate Minimum Detectable Effect Size
 # Parameters
-n = ${n1}         # Sample size per group
+n1 = ${n1}        # Sample size group 1
+n2 = ${n2}        # Sample size group 2
 power_target = ${power}  # Desired power
 alpha = ${alpha}  # Significance level
 alternative = "${altPy}"
 
+# The arms may be unequal, and the minimum detectable effect depends on both.
+ratio = n2 / n1
+
 # Calculate minimum detectable effect size
 analysis = TTestIndPower()
 d = analysis.solve_power(
-    nobs1=n,
+    nobs1=n1,
     power=power_target,
     alpha=alpha,
-    ratio=1.0,
+    ratio=ratio,
     alternative=alternative
 )
 
 print(f"Two-Sample t-test Effect Size Calculation")
 print(f"=" * 40)
-print(f"Sample Size per group: {n}")
+print(f"Sample Size Group 1: {n1}")
+print(f"Sample Size Group 2: {n2}")
 print(f"Target Power: {power_target}")
 print(f"Significance Level: {alpha}")
 print(f"-" * 40)
@@ -1313,7 +1375,7 @@ function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, 
 #
 # THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-${sampleSizeTable(testType)}
+${sampleSizeTable(testType, k)}
 #
 # This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
 #

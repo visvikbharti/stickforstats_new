@@ -90,6 +90,7 @@ import {
   isPowerTestSupported,
   totalSampleSize,
   acceptsSecondArm,
+  secondArmFor,
 } from '../utils/hubTestService';
 import { interpretEffectSize } from '../../power-analysis/education/utils/powerCalculations';
 
@@ -282,11 +283,16 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
    * Two conditions, and BOTH matter: the test must have a second arm, and the box must actually be
    * on screen. A value the user cannot see is not a value they have told us.
    */
-  const secondArm =
-    calculationMode !== 'sampleSize' && acceptsSecondArm(testType) ? sampleSize2 || null : null;
+  const secondArm = secondArmFor(calculationMode, testType, sampleSize2);
 
-  // n2/n1, held fixed as n1 moves along the curve, so the curve passes THROUGH the headline point
-  // rather than describing a balanced design the user did not ask for. G*Power does the same.
+  // n2/n1, held fixed as n1 moves along the curve, so the curve describes the SAME ALLOCATION as
+  // the headline rather than a balanced design the user did not ask for. G*Power does the same.
+  //
+  // To be precise about what this does and does not buy: the curve is drawn at Cohen's benchmark
+  // effect sizes (0.2 / 0.5 / 0.8), on a grid of n = 10, 20, ... 500 -- not at the user's own d,
+  // and not necessarily at their own n. So it is not literally a line through the headline dot; it
+  // is the family of curves the headline belongs to. What is fixed here is that it is no longer the
+  // family for a DIFFERENT design.
   const curveAllocationRatio = secondArm && sampleSize ? secondArm / sampleSize : 1;
 
   const buildPowerCurves = useCallback(async () => {
@@ -305,8 +311,8 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
           nMin: 10,
           nMax: 500,
           step: 10,
-          // Hold n2/n1 fixed as n1 moves along the curve, so the curve passes through the headline
-          // point instead of describing a balanced design the user did not ask for.
+          // Hold n2/n1 fixed as n1 moves along the curve, so the curve describes the user's own
+          // allocation instead of a balanced design they did not ask for.
           allocationRatio: curveAllocationRatio,
         }).then((points) => ({ es, points }))
       )

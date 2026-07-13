@@ -21,6 +21,7 @@ import {
   isPowerTestSupported,
   totalSampleSize,
   acceptsSecondArm,
+  secondArmFor,
 } from '../hubTestService';
 
 const mockJson = (body, ok = true, statusText = 'OK') => {
@@ -394,10 +395,10 @@ describe('acceptsSecondArm', () => {
  * they have told us.
  */
 describe('the second arm is only part of the design when the box is on screen', () => {
-  // The single rule, as PowerAnalysisTool derives it.
-  const secondArmFor = (calculationMode, testType, sampleSize2) =>
-    calculationMode !== 'sampleSize' && acceptsSecondArm(testType) ? sampleSize2 || null : null;
-
+  // THE rule, imported — not re-implemented. The previous version of this test copied the
+  // expression inline, so it pinned the copy and would have gone on passing if the component's
+  // derivation changed underneath it. That is the same mechanism by which three earlier tests
+  // failed to see the bug they were written for.
   const ratioFor = (secondArm, sampleSize) => (secondArm && sampleSize ? secondArm / sampleSize : 1);
 
   it('is dropped in sample-size mode, where the box is not rendered', () => {

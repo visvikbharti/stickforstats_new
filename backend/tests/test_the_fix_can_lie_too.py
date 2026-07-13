@@ -597,7 +597,7 @@ class TheCurvePassesThroughTheHeadline(TestCase):
     The last place the group-2 box was still being ignored: the power curve underneath the answer.
 
     The curve was always drawn for a BALANCED design while the headline honoured the second arm, so
-    a 30/60 t-test put a headline power of 0.6633 directly above a curve reading 0.4779 at n = 30.
+    a 30/60 t-test put a headline power of 0.5994 directly above a curve reading 0.4779 at n = 30.
     Two numbers, one screen, one design, both claiming to be its power -- the same defect this
     module has now been through four times, in its last hiding place.
 
