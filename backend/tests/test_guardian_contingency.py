@@ -95,6 +95,24 @@ class ContingencyGuardianTests(SimpleTestCase):
         self.assertEqual(report.violations[0].severity, "warning")
         self.assertTrue(report.can_proceed)  # warning must not block
 
+    def test_raw_sample_vectors_are_not_mistaken_for_a_table(self):
+        """
+        Regression: the cascade engine passes TWO RAW 1-D vectors (e.g. columns of
+        0/1 codes) for "chi_square_independence". np.asarray([a, b]) on those is a
+        valid 2-D array, so an over-eager contingency sniffer read 2x100 raw
+        observations as a 2x100 contingency table and broke
+        core.tests.test_autonomous_services.TestCascadeEngine.test_execute_chi_square.
+        A table must be DECLARED (dict key), never inferred from shape.
+        """
+        a = np.array([0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0])
+        b = np.array([1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0])
+
+        self.assertIsNone(self.guardian._extract_contingency([a, b]))
+
+        # and the check must still go down the ordinary numeric path
+        report = self.guardian.check([a, b], "chi_square_independence")
+        self.assertNotIn("table_shape", report.data_summary)
+
     def test_summarize_data_never_500s_on_string_arrays(self):
         """The old crash: string labels must degrade gracefully, not raise."""
         summary = self.guardian._summarize_data(

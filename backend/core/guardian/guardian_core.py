@@ -728,9 +728,15 @@ class GuardianCore:
         Pull a 2-D numeric contingency table out of a categorical payload.
 
         The frontend sends {observed: [[a, b], [c, d]], categories1: [...],
-        categories2: [...]} where the category arrays are strings. Returns None
-        when there is no usable table, so the caller can fall back to the normal
-        numeric path rather than guessing.
+        categories2: [...]} where the category arrays are strings.
+
+        The table must be DECLARED under an explicit key. A bare list of arrays is
+        deliberately NOT accepted: callers such as the cascade engine legitimately
+        pass two raw 1-D sample vectors for "chi_square_independence" (e.g. two
+        columns of 0/1 codes), and np.asarray([a, b]) on those is a perfectly valid
+        2-D array -- so sniffing shape alone would silently misread 2x100 raw
+        observations as a 2x100 contingency table. Returns None when there is no
+        declared table, so the caller falls back to the numeric path.
         """
         table = None
         if isinstance(data, dict):
@@ -738,8 +744,6 @@ class GuardianCore:
                 if key in data:
                     table = data[key]
                     break
-        elif isinstance(data, (list, tuple, np.ndarray)):
-            table = data
 
         if table is None:
             return None
