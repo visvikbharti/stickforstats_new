@@ -18,7 +18,11 @@ import logging
 from typing import Dict, Any
 
 # Import our high-precision non-parametric module
-from core.hp_nonparametric_comprehensive import HighPrecisionNonParametric
+from core.hp_nonparametric_comprehensive import (
+    HighPrecisionNonParametric,
+    canonical_alternative,
+    canonical_ordered_alternative,
+)
 from .parameter_adapter import parameter_adapter
 
 # Set up logging
@@ -26,6 +30,29 @@ logger = logging.getLogger(__name__)
 
 # Initialize calculator
 nonparametric_calculator = HighPrecisionNonParametric()
+
+
+class InvalidAlternative(ValueError):
+    """Raised when `alternative` cannot be canonicalized -- surfaced as a 400, not a 500."""
+
+
+def pop_alternative(data: Dict[str, Any], default: str = "two-sided", ordered: bool = False) -> str:
+    """
+    Read `alternative` off the payload and canonicalize it to the vocabulary the test speaks.
+
+    Two vocabularies exist and they are NOT interchangeable:
+      * directional tests (Mann-Whitney, Wilcoxon, sign) -> {"two-sided", "less", "greater"}
+      * ordered-alternative tests (Jonckheere, Page)     -> {"increasing", "decreasing", "two-sided"}
+
+    Every view must go through here. Previously two views hand-patched the underscore spelling
+    back to scipy's hyphen and the other two did not, so Mann-Whitney 500'd on every request that
+    supplied `alternative` -- the very test the Guardian recommends when it blocks a t-test.
+    """
+    raw = data.get("alternative", default)
+    try:
+        return canonical_ordered_alternative(raw) if ordered else canonical_alternative(raw)
+    except ValueError as exc:
+        raise InvalidAlternative(str(exc)) from exc
 
 
 def adapt_nonparametric_params(data: Dict[str, Any], original_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -110,7 +137,7 @@ def mann_whitney_u_test(request):
 
         group1 = np.array(data.get("group1"))
         group2 = np.array(data.get("group2"))
-        alternative = data.get("alternative", "two-sided")
+        alternative = pop_alternative(data)
         use_continuity = data.get("use_continuity", True)
         data.get("calculate_effect_size", True)
 
@@ -132,6 +159,9 @@ def mann_whitney_u_test(request):
             },
             status=status.HTTP_200_OK,
         )
+
+    except InvalidAlternative as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in Mann-Whitney U test: {str(e)}")
@@ -157,12 +187,6 @@ def wilcoxon_signed_rank_test(request):
         # For Wilcoxon, we need x/y specifically, so handle this specially
         data = dict(request.data)  # Make a copy
 
-        # Handle alternative parameter variations
-        if "alternative" in data and data["alternative"] == "two-sided":
-            data["alternative"] = "two-sided"  # Keep as is
-        elif "alternative" in data and data["alternative"] == "two_sided":
-            data["alternative"] = "two-sided"
-
         # Map common variations to x/y
         if "data1" in data and "x" not in data:
             data["x"] = data["data1"]
@@ -186,7 +210,7 @@ def wilcoxon_signed_rank_test(request):
 
         x = np.array(data.get("x"))
         y = data.get("y", None)
-        alternative = data.get("alternative", "two-sided")
+        alternative = pop_alternative(data)
         zero_method = data.get("zero_method", "pratt")
         correction = data.get("correction", False)
 
@@ -211,6 +235,9 @@ def wilcoxon_signed_rank_test(request):
             },
             status=status.HTTP_200_OK,
         )
+
+    except InvalidAlternative as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in Wilcoxon test: {str(e)}")
@@ -319,10 +346,6 @@ def sign_test(request):
         # For Sign test, we need x/y specifically, handle like Wilcoxon
         data = dict(request.data)  # Make a copy
 
-        # Handle alternative parameter variations
-        if "alternative" in data and data["alternative"] == "two_sided":
-            data["alternative"] = "two-sided"
-
         # Map common variations to x/y
         if "data1" in data and "x" not in data:
             data["x"] = data["data1"]
@@ -343,7 +366,7 @@ def sign_test(request):
 
         x = np.array(data.get("x"))
         y = data.get("y", None)
-        alternative = data.get("alternative", "two-sided")
+        alternative = pop_alternative(data)
 
         if y is not None:
             y = np.array(y)
@@ -357,6 +380,9 @@ def sign_test(request):
             {"success": True, "results": result.to_dict(), "precision": "50 decimal places", "method": "sign_test"},
             status=status.HTTP_200_OK,
         )
+
+    except InvalidAlternative as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in sign test: {str(e)}")
@@ -424,7 +450,7 @@ def jonckheere_terpstra_test(request):
             return Response({"error": "Missing required parameter: groups"}, status=status.HTTP_400_BAD_REQUEST)
 
         groups = [np.array(g) for g in data.get("groups")]
-        alternative = data.get("alternative", "increasing")
+        alternative = pop_alternative(data, default="increasing", ordered=True)
 
         # Perform calculation
         result = nonparametric_calculator.jonckheere_terpstra(groups, alternative=alternative)
@@ -441,6 +467,9 @@ def jonckheere_terpstra_test(request):
             status=status.HTTP_200_OK,
         )
 
+    except InvalidAlternative as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         logger.error(f"Error in Jonckheere-Terpstra test: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -455,7 +484,8 @@ def pages_trend_test(request):
     Expected JSON payload:
     {
         "data": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-        "ranked": false
+        "ranked": false,
+        "alternative": "increasing"
     }
     """
     try:
@@ -470,9 +500,10 @@ def pages_trend_test(request):
         # Get data from either 'data' or 'groups' (adapter may have transformed it)
         test_data = np.array(data.get("data") if "data" in data else data.get("groups"))
         ranked = data.get("ranked", False)
+        alternative = pop_alternative(data, default="increasing", ordered=True)
 
         # Perform calculation
-        result = nonparametric_calculator.pages_trend(test_data, ranked=ranked)
+        result = nonparametric_calculator.pages_trend(test_data, ranked=ranked, alternative=alternative)
 
         logger.info(f"Page's trend test completed for user {request.user.id}")
 
@@ -480,6 +511,9 @@ def pages_trend_test(request):
             {"success": True, "results": result.to_dict(), "precision": "50 decimal places", "method": "pages_trend"},
             status=status.HTTP_200_OK,
         )
+
+    except InvalidAlternative as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.error(f"Error in Page's trend test: {str(e)}")

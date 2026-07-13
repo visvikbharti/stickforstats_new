@@ -143,6 +143,85 @@ class PostHocResult:
         }
 
 
+# scipy accepts exactly {"two-sided", "less", "greater"}. Any other spelling that reaches
+# us -- "two_sided" from the API parameter adapter, "both", "ne", "2-sided", stray
+# capitals or whitespace -- must be canonicalized HERE, at the boundary with scipy,
+# rather than in each individual view. Two views (wilcoxon, sign) hand-patched it and two
+# did not, so mann_whitney_u returned HTTP 500 on every request that supplied
+# `alternative` -- including the Mann-Whitney the Guardian itself recommends when it
+# blocks an independent t-test. Normalizing at the choke point means no caller, present
+# or future, can reintroduce that bug.
+#
+# NOTE: this is the two-sided/less/greater vocabulary only. Ordered-alternative tests
+# (Jonckheere-Terpstra, Page's trend) use increasing/decreasing and must NOT be routed
+# through here.
+_ALTERNATIVE_CANONICAL = {
+    "two-sided": "two-sided",
+    "two_sided": "two-sided",
+    "two.sided": "two-sided",
+    "twosided": "two-sided",
+    "two sided": "two-sided",
+    "2-sided": "two-sided",
+    "both": "two-sided",
+    "not_equal": "two-sided",
+    "ne": "two-sided",
+    "!=": "two-sided",
+    "less": "less",
+    "less_than": "less",
+    "lt": "less",
+    "<": "less",
+    "greater": "greater",
+    "greater_than": "greater",
+    "gt": "greater",
+    ">": "greater",
+}
+
+
+def canonical_alternative(alternative: Optional[str]) -> str:
+    """Map any accepted spelling of `alternative` onto scipy's vocabulary."""
+    if alternative is None:
+        return "two-sided"
+    key = str(alternative).strip().lower()
+    try:
+        return _ALTERNATIVE_CANONICAL[key]
+    except KeyError:
+        raise ValueError(
+            f"Unknown alternative {alternative!r}. Expected one of: two-sided, less, greater."
+        )
+
+
+# Ordered-alternative (trend) tests -- Jonckheere-Terpstra, Page's trend -- take a
+# DIRECTION, not scipy's less/greater. Keep the two vocabularies apart: routing an
+# ordered test through canonical_alternative() would reject "increasing" outright.
+_ORDERED_ALTERNATIVE_CANONICAL = {
+    "increasing": "increasing",
+    "increase": "increasing",
+    "up": "increasing",
+    "greater": "increasing",
+    "decreasing": "decreasing",
+    "decrease": "decreasing",
+    "down": "decreasing",
+    "less": "decreasing",
+    "two-sided": "two-sided",
+    "two_sided": "two-sided",
+    "both": "two-sided",
+}
+
+
+def canonical_ordered_alternative(alternative: Optional[str]) -> str:
+    """Map any accepted spelling onto {increasing, decreasing, two-sided}."""
+    if alternative is None:
+        return "increasing"
+    key = str(alternative).strip().lower()
+    try:
+        return _ORDERED_ALTERNATIVE_CANONICAL[key]
+    except KeyError:
+        raise ValueError(
+            f"Unknown ordered alternative {alternative!r}. "
+            "Expected one of: increasing, decreasing, two-sided."
+        )
+
+
 class HighPrecisionNonParametric:
     """
     High-precision non-parametric statistical tests.
@@ -244,6 +323,7 @@ class HighPrecisionNonParametric:
         Returns:
             NonParametricResult with test statistics and interpretation
         """
+        alternative = canonical_alternative(alternative)
         x_arr = np.array(x)
         y_arr = np.array(y)
         n1, n2 = len(x_arr), len(y_arr)
@@ -363,6 +443,7 @@ class HighPrecisionNonParametric:
         Returns:
             NonParametricResult with test statistics
         """
+        alternative = canonical_alternative(alternative)
         # Calculate differences
         if y is not None:
             if len(x) != len(y):
@@ -687,6 +768,7 @@ class HighPrecisionNonParametric:
         Returns:
             NonParametricResult with test statistics
         """
+        alternative = canonical_alternative(alternative)
         # Calculate differences
         if y is not None:
             if len(x) != len(y):
@@ -793,7 +875,7 @@ class HighPrecisionNonParametric:
         """Alias for moods_median_test for API consistency."""
         return self.moods_median_test(*groups)
 
-    def jonckheere_terpstra_test(self, *groups) -> NonParametricResult:
+    def jonckheere_terpstra_test(self, *groups, alternative: str = "increasing") -> NonParametricResult:
         """
         High-precision Jonckheere-Terpstra test.
 
@@ -810,40 +892,80 @@ class HighPrecisionNonParametric:
         if k < 3:
             raise ValueError("Jonckheere-Terpstra test requires at least 3 groups")
 
-        # Calculate U statistics for all pairs
+        alternative = canonical_ordered_alternative(alternative)
+        arrays = [np.asarray(g, dtype=float) for g in groups]
+        n_i = [len(g) for g in arrays]
+        n_total = sum(n_i)
+
+        # J counts CONCORDANT pairs: for every pair of groups i < j, how many observations
+        # in the EARLIER group are SMALLER than an observation in the LATER group (ties
+        # count a half). A large J is evidence of an increasing trend.
+        #
+        # This used to sum `_calculate_mann_whitney_u_statistic(groups[i], groups[j])`,
+        # which is U_x = #{x > y} -- the pairs running the OTHER way. J therefore came out
+        # inverted: on a textbook increasing trend (low < mid < high) it returned J = 7.5
+        # where the definition gives 292.5, so the test reported p ~= 1.0 for "increasing"
+        # and ~0 for "decreasing". Exactly backwards.
         j_stat = self._to_decimal(0)
-
         for i in range(k - 1):
             for j in range(i + 1, k):
-                # Mann-Whitney U for groups i and j
-                u_ij = self._calculate_mann_whitney_u_statistic(groups[i], groups[j])
-                j_stat += u_ij
+                later = arrays[j]
+                for value in arrays[i]:
+                    j_stat += self._to_decimal(
+                        int(np.count_nonzero(later > value)) + 0.5 * int(np.count_nonzero(later == value))
+                    )
 
-        # Calculate expected value and variance
-        n_i = [len(g) for g in groups]
-        sum(n_i)
+        # E[J] = (N^2 - sum n_i^2) / 4
+        mu_j = self._to_decimal(n_total**2 - sum(n * n for n in n_i)) / self._to_decimal(4)
 
-        # Expected value
-        mu_j = self._to_decimal(0)
-        for i in range(k - 1):
-            for j in range(i + 1, k):
-                mu_j += self._to_decimal(n_i[i] * n_i[j] / 2)
+        # Var[J], Hollander & Wolfe, corrected for ties. The old code summed the variances
+        # of the individual pairwise Mann-Whitney U's -- but those U's share observations
+        # and are NOT independent, so their variances do not add. It understated sigma
+        # (22.91 vs the correct 26.30 on 3 groups of 10), which biased |z| upward and made
+        # even the two-sided p-value wrong.
+        ties = [int(c) for c in np.unique(np.concatenate(arrays), return_counts=True)[1] if c > 1]
 
-        # Variance (without ties)
-        var_j = self._to_decimal(0)
-        for i in range(k - 1):
-            for j in range(i + 1, k):
-                var_j += self._to_decimal(n_i[i] * n_i[j] * (n_i[i] + n_i[j] + 1) / 12)
+        def _t(vals, coef):
+            return sum(v * (v - 1) * (coef(v)) for v in vals)
+
+        term1 = self._to_decimal(
+            n_total * (n_total - 1) * (2 * n_total + 5)
+            - _t(n_i, lambda v: 2 * v + 5)
+            - _t(ties, lambda v: 2 * v + 5)
+        ) / self._to_decimal(72)
+
+        var_j = term1
+        if ties and n_total > 2:
+            sum_n3 = sum(n * (n - 1) * (n - 2) for n in n_i)
+            sum_t3 = sum(t * (t - 1) * (t - 2) for t in ties)
+            sum_n2 = sum(n * (n - 1) for n in n_i)
+            sum_t2 = sum(t * (t - 1) for t in ties)
+            var_j += self._to_decimal(sum_n3 * sum_t3) / self._to_decimal(
+                36 * n_total * (n_total - 1) * (n_total - 2)
+            )
+            var_j += self._to_decimal(sum_n2 * sum_t2) / self._to_decimal(8 * n_total * (n_total - 1))
+
+        if var_j <= 0:
+            raise ValueError("Jonckheere-Terpstra variance is zero -- every observation is tied")
 
         sigma_j = var_j.sqrt()
-
-        # Calculate z-score
         z = (j_stat - mu_j) / sigma_j
 
-        # Calculate p-value (two-tailed)
-        p_value = self._to_decimal(2 * (1 - stats.norm.cdf(abs(float(z)))))
+        # P-value for the requested ordered alternative. Jonckheere-Terpstra exists
+        # precisely to test a DIRECTIONAL trend, so honouring `alternative` is the whole
+        # point of the test: this used to always return the two-sided p-value while the
+        # view defaulted the parameter to "increasing" and the wrapper silently discarded
+        # it, so a user asking for an increasing trend got a p-value 2x too large.
+        zf = float(z)
+        if alternative == "increasing":
+            p_value = self._to_decimal(stats.norm.sf(zf))
+        elif alternative == "decreasing":
+            p_value = self._to_decimal(stats.norm.cdf(zf))
+        else:  # two-sided
+            p_value = self._to_decimal(2 * stats.norm.sf(abs(zf)))
 
-        # Effect size
+        # Effect size: J as a fraction of the maximum possible J. 1.0 = perfectly
+        # increasing, 0.5 = no trend, 0.0 = perfectly decreasing.
         max_j = sum(n_i[i] * n_i[j] for i in range(k - 1) for j in range(i + 1, k))
         effect_size = j_stat / self._to_decimal(max_j)
 
@@ -855,20 +977,34 @@ class HighPrecisionNonParametric:
             sample_sizes=n_i,
             z_score=z,
             effect_size=effect_size,
-            interpretation=self._interpret_jonckheere(j_stat, p_value, effect_size, k),
+            ties_present=bool(ties),
+            ties_correction_applied=bool(ties),
+            interpretation=self._interpret_jonckheere(j_stat, p_value, effect_size, k, alternative),
         )
 
         return result
 
-    def jonckheere_terpstra(self, groups, alternative: str = "two-sided") -> NonParametricResult:
-        """Alias for jonckheere_terpstra_test for API consistency."""
+    def jonckheere_terpstra(self, groups, alternative: str = "increasing") -> NonParametricResult:
+        """
+        Alias for jonckheere_terpstra_test for API consistency.
+
+        `alternative` is an ORDERED alternative -- 'increasing', 'decreasing' or
+        'two-sided' -- NOT scipy's less/greater vocabulary, so it must not be routed
+        through canonical_alternative(). It used to be accepted here and then dropped on
+        the floor, which silently gave every caller the two-sided p-value.
+        """
+        alternative = canonical_ordered_alternative(alternative)
         # Unpack groups tuple/list and pass as *args
         if isinstance(groups, (list, tuple)) and len(groups) > 0 and isinstance(groups[0], (list, np.ndarray)):
-            return self.jonckheere_terpstra_test(*groups)
-        else:
-            return self.jonckheere_terpstra_test(groups)
+            return self.jonckheere_terpstra_test(*groups, alternative=alternative)
+        return self.jonckheere_terpstra_test(groups, alternative=alternative)
 
-    def pages_trend(self, data: Union[List[List], np.ndarray], ranked: bool = False) -> NonParametricResult:
+    def pages_trend(
+        self,
+        data: Union[List[List], np.ndarray],
+        ranked: bool = False,
+        alternative: str = "increasing",
+    ) -> NonParametricResult:
         """
         High-precision Page's trend test.
 
@@ -878,10 +1014,12 @@ class HighPrecisionNonParametric:
         Args:
             data: 2D array where rows are subjects, columns are ordered treatments
             ranked: Whether data is already ranked (default: False)
+            alternative: 'increasing' (default), 'decreasing' or 'two-sided'
 
         Returns:
             NonParametricResult with test statistics
         """
+        alternative = canonical_ordered_alternative(alternative)
         data = np.array(data)
         n_subjects, k_treatments = data.shape
 
@@ -914,27 +1052,53 @@ class HighPrecisionNonParametric:
         # Expected value: E(L) = n*k*(k+1)^2 / 4
         mu_l = n * k * (k + 1) ** 2 / self._to_decimal(4)
 
-        # Variance: Var(L) = n*k^2*(k+1)*(k-1) / 144
-        var_l = n * k**2 * (k + 1) * (k - 1) / self._to_decimal(144)
+        # Variance: Var(L) = n * k^2 * (k+1)^2 * (k-1) / 144.
+        #
+        # This is the variance implied by the standard Page statistic
+        #     z = (12L - 3nk(k+1)^2) / (k(k+1)*sqrt(n(k-1)))
+        # The old code wrote n*k^2*(k+1)*(k-1)/144 -- one factor of (k+1) short. That makes
+        # sigma too small by sqrt(k+1) and inflates every |z| by the same factor, so the
+        # test fired on pure noise: a Monte-Carlo null gave z with sd 1.99 instead of 1.0
+        # and a 21% false-positive rate at alpha = 0.05 for k = 3. It was a Type I error
+        # machine, not a trend test.
+        var_l = n * k**2 * (k + 1) ** 2 * (k - 1) / self._to_decimal(144)
         sigma_l = var_l.sqrt()
 
         # Calculate z-score
         z = (l_stat - mu_l) / sigma_l
+        zf = float(z)
 
-        # Calculate p-value (one-tailed test for increasing trend)
-        p_value = self._to_decimal(1 - stats.norm.cdf(float(z)))
+        # Page's L is an ORDERED-alternative test, so the direction is the point of it.
+        # It used to hard-code the one-tailed increasing p-value regardless of what the
+        # caller asked for.
+        if alternative == "increasing":
+            p_value = self._to_decimal(stats.norm.sf(zf))
+        elif alternative == "decreasing":
+            p_value = self._to_decimal(stats.norm.cdf(zf))
+        else:  # two-sided
+            p_value = self._to_decimal(2 * stats.norm.sf(abs(zf)))
 
-        # Effect size (normalized L)
-        max_l = n * k * (k + 1) * (k + 1) / self._to_decimal(2)  # Maximum possible L
-        min_l = n * k * (k + 1) / self._to_decimal(2)  # Minimum possible L
+        # Effect size: L rescaled onto [0, 1], where 1 is a perfectly increasing ordering
+        # in every subject and 0 a perfectly decreasing one.
+        #   max L (ranks 1..k in order)          = n * sum(j^2)      = n*k*(k+1)*(2k+1)/6
+        #   min L (ranks k..1, i.e. reversed)    = n * sum(j*(k+1-j)) = n*k*(k+1)*(k+2)/6
+        # The old bounds (n*k*(k+1)^2/2 and n*k*(k+1)/2) were neither, so the "effect size"
+        # was not on any meaningful scale.
+        max_l = n * k * (k + 1) * (2 * k + 1) / self._to_decimal(6)
+        min_l = n * k * (k + 1) * (k + 2) / self._to_decimal(6)
         effect_size = (l_stat - min_l) / (max_l - min_l) if (max_l - min_l) > 0 else self._to_decimal(0)
 
         # Interpretation
+        trend = {
+            "increasing": "an increasing trend",
+            "decreasing": "a decreasing trend",
+            "two-sided": "a monotone trend in either direction",
+        }[alternative]
         interpretation = f"Page's L = {float(l_stat):.2f}, z = {float(z):.4f}, p = {float(p_value):.4f}. "
         if p_value < self._to_decimal(0.05):
-            interpretation += f"Significant increasing trend across {k_treatments} ordered treatments."
+            interpretation += f"Significant evidence of {trend} across {k_treatments} ordered treatments."
         else:
-            interpretation += "No significant trend detected."
+            interpretation += f"No significant evidence of {trend}."
 
         # Create result
         result = NonParametricResult(
@@ -1370,8 +1534,23 @@ class HighPrecisionNonParametric:
 
         return f"Mood's median test comparing {k} groups is {sig} (χ² = {chi2:.2f}, p = {p_value:.4f}) with a {effect_mag} effect size (V = {cramers_v:.3f})"
 
-    def _interpret_jonckheere(self, j: Decimal, p_value: Decimal, effect_size: Decimal, k: int) -> str:
+    def _interpret_jonckheere(
+        self, j: Decimal, p_value: Decimal, effect_size: Decimal, k: int, alternative: str = "increasing"
+    ) -> str:
         """Generate interpretation for Jonckheere-Terpstra test"""
         sig = "statistically significant" if p_value < self._to_decimal("0.05") else "not statistically significant"
 
-        return f"The Jonckheere-Terpstra test for ordered alternatives across {k} groups is {sig} (J = {j:.2f}, p = {p_value:.4f})"
+        trend = {
+            "increasing": "an increasing trend",
+            "decreasing": "a decreasing trend",
+            "two-sided": "a monotone trend in either direction",
+        }.get(alternative, "an ordered alternative")
+
+        # effect_size is J / max(J): 1 = perfectly increasing, 0.5 = no trend, 0 = perfectly decreasing.
+        observed = "increasing" if effect_size > self._to_decimal("0.5") else "decreasing"
+
+        return (
+            f"The Jonckheere-Terpstra test for {trend} across {k} ordered groups is {sig} "
+            f"(J = {j:.2f}, p = {p_value:.4f}). The observed ordering is {observed} "
+            f"(J/J_max = {effect_size:.3f}; 0.5 would indicate no trend)."
+        )

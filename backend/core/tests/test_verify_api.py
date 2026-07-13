@@ -39,6 +39,13 @@ def _build_csv_and_t() -> tuple[str, float, float]:
     return csv, abs(float(t)), float(p)
 
 
+# Without this the test client's plain-HTTP requests are 301'd to https by the
+# SecurityMiddleware and every assertion below compares against a redirect instead of the
+# real response. That is the repo-wide convention for API tests -- this module was the one
+# that forgot it, which is why its 8 tests failed locally (where DEBUG is off) while passing
+# in CI. A permanently-red block of tests is worse than no tests: it trains you to ignore
+# the suite.
+@override_settings(SECURE_SSL_REDIRECT=False)
 class VerifyAnalyzeAPITest(APITestCase):
     ANALYZE = "/api/v1/verify/analyze/"
 
@@ -117,6 +124,7 @@ class VerifyAnalyzeAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class VerifyAccessControlTest(APITestCase):
     """Access policy for the verification endpoints: open behind the beta gateway by
     default, switchable to auth-required via VERIFY_REQUIRE_AUTH, and rate-limited."""

@@ -119,14 +119,28 @@ class UniversalParameterAdapter:
         },
     }
 
-    # Alternative values mappings
+    # Alternative values mappings.
+    #
+    # The canonical value is scipy's "two-sided" (hyphen), because scipy/statsmodels are
+    # the ultimate consumers of this parameter and `core/` speaks that spelling
+    # throughout. This adapter used to canonicalize to "two_sided" (underscore), which
+    # scipy rejects with:
+    #     ValueError: `alternative` must be one of {'less', 'two-sided', 'greater'}
+    # i.e. the adapter CORRUPTED a perfectly valid incoming value. Two views
+    # (wilcoxon, sign) hand-patched it back and worked; mann-whitney and jonckheere
+    # never got the patch and returned HTTP 500 on every request that supplied
+    # `alternative` -- including the Mann-Whitney the Guardian itself recommends when it
+    # blocks an independent t-test. Do not reintroduce the underscore spelling.
     ALTERNATIVE_MAPPINGS = {
-        "two-sided": "two_sided",
-        "two.sided": "two_sided",
-        "both": "two_sided",
-        "not_equal": "two_sided",
-        "ne": "two_sided",
-        "!=": "two_sided",
+        "two_sided": "two-sided",
+        "two.sided": "two-sided",
+        "twosided": "two-sided",
+        "two sided": "two-sided",
+        "2-sided": "two-sided",
+        "both": "two-sided",
+        "not_equal": "two-sided",
+        "ne": "two-sided",
+        "!=": "two-sided",
         "less_than": "less",
         "lt": "less",
         "<": "less",
@@ -193,11 +207,17 @@ class UniversalParameterAdapter:
             if old_name in params and new_name not in params:
                 params[new_name] = params.pop(old_name)
 
-        # Handle alternative hypothesis
-        if "alternative" in params:
-            alt = str(params["alternative"]).lower()
-            if alt in self.ALTERNATIVE_MAPPINGS:
-                params["alternative"] = self.ALTERNATIVE_MAPPINGS[alt]
+        # Handle alternative hypothesis.
+        #
+        # Always case-fold, even when the value needs no mapping: "TWO-SIDED" used to sail
+        # through untouched and then blow up in scipy. Values this adapter does not
+        # recognise are lower-cased and passed on rather than rejected -- the ordered-
+        # alternative tests (Jonckheere, Page) legitimately say "increasing"/"decreasing",
+        # and it is the view's job, not the adapter's, to validate against the vocabulary
+        # the specific test actually speaks.
+        if params.get("alternative") is not None:
+            alt = str(params["alternative"]).strip().lower()
+            params["alternative"] = self.ALTERNATIVE_MAPPINGS.get(alt, alt)
 
         return params
 

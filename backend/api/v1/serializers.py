@@ -5,6 +5,11 @@ Serializers for High-Precision Statistical API
 from rest_framework import serializers
 import numpy as np
 
+from core.hp_nonparametric_comprehensive import (
+    canonical_alternative,
+    canonical_ordered_alternative,
+)
+
 
 class FlexibleDataField(serializers.Field):
     """Field that accepts both string (comma-separated) and list formats"""
@@ -83,15 +88,27 @@ class TTestRequestSerializer(serializers.Serializer):
         "dependent": "paired",
     }
 
-    ALTERNATIVES = ["two_sided", "less", "greater"]
-    ALTERNATIVE_ALIASES = {"two-sided": "two_sided", "two.sided": "two_sided", "both": "two_sided"}
+    # Canonical is scipy's "two-sided" (hyphen) -- scipy/statsmodels are the ultimate
+    # consumers and core/ speaks that spelling throughout. Canonicalizing to "two_sided"
+    # here (and in the parameter adapter) actively corrupted a valid value and produced
+    # HTTP 500s downstream. Accept every spelling; emit scipy's.
+    ALTERNATIVES = ["two-sided", "less", "greater"]
+    ALTERNATIVE_ALIASES = {
+        "two_sided": "two-sided",
+        "two.sided": "two-sided",
+        "twosided": "two-sided",
+        "2-sided": "two-sided",
+        "both": "two-sided",
+        "not_equal": "two-sided",
+        "ne": "two-sided",
+    }
 
     test_type = serializers.CharField()  # Changed from ChoiceField for flexibility
     data1 = FlexibleDataField()
     data2 = FlexibleDataField(required=False)
 
     # Additional parameters with multiple name support
-    alternative = serializers.CharField(default="two_sided", required=False)
+    alternative = serializers.CharField(default="two-sided", required=False)
     confidence_level = serializers.CharField(default="95", required=False)
     hypothesized_mean = serializers.CharField(required=False)
     mu = serializers.CharField(required=False)  # Alias for hypothesized_mean
@@ -131,7 +148,7 @@ class TTestRequestSerializer(serializers.Serializer):
             if alt in self.ALTERNATIVE_ALIASES:
                 data["alternative"] = self.ALTERNATIVE_ALIASES[alt]
             elif alt not in self.ALTERNATIVES:
-                data["alternative"] = "two_sided"  # Default
+                data["alternative"] = "two-sided"  # Default
             else:
                 data["alternative"] = alt
 
@@ -611,12 +628,20 @@ class NonParametricRequestSerializer(serializers.Serializer):
         "nemenyi",
     ]
 
+    # Tests whose `alternative` is an ORDER, not a direction: they take
+    # increasing/decreasing/two-sided, never less/greater.
+    ORDERED_TESTS = ["jonckheere", "page_trend"]
+
     test_type = serializers.ChoiceField(choices=TEST_TYPES)
     groups = serializers.ListField(child=serializers.ListField(child=serializers.FloatField()), required=False)
     data1 = serializers.ListField(child=serializers.FloatField(), required=False, validators=[DataArrayValidator()])
     data2 = serializers.ListField(child=serializers.FloatField(), required=False, validators=[DataArrayValidator()])
     paired = serializers.BooleanField(default=False)
-    alternative = serializers.ChoiceField(choices=["two_sided", "greater", "less"], default="two_sided")
+    # A CharField, not a ChoiceField: the old ChoiceField(choices=["two_sided", ...])
+    # REJECTED scipy's own "two-sided" with a 400, and could not express the
+    # increasing/decreasing vocabulary the ordered tests need. Normalization happens in
+    # validate() so every spelling is accepted and scipy's spelling is what leaves here.
+    alternative = serializers.CharField(default="two-sided", required=False)
     alpha = serializers.FloatField(default=0.05, min_value=0, max_value=1)
     parameters = serializers.DictField(required=False, default=dict)
     options = serializers.DictField(required=False, default=dict)
@@ -624,6 +649,16 @@ class NonParametricRequestSerializer(serializers.Serializer):
     def validate(self, data):
         """Validate non-parametric test data"""
         test_type = data["test_type"]
+
+        # Normalize `alternative` to the vocabulary the underlying test actually speaks.
+        if data.get("alternative"):
+            try:
+                if test_type in self.ORDERED_TESTS:
+                    data["alternative"] = canonical_ordered_alternative(data["alternative"])
+                else:
+                    data["alternative"] = canonical_alternative(data["alternative"])
+            except ValueError as exc:
+                raise serializers.ValidationError({"alternative": str(exc)})
 
         # Validate data requirements based on test type
         if test_type in ["mann_whitney", "wilcoxon", "sign_test"]:
