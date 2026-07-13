@@ -1,1098 +1,882 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * Correlation & Regression.
+ *
+ * REBUILT 2026-07-13. What it was before, and why none of it survived:
+ *
+ *  - There was NO WAY TO SUPPLY YOUR OWN DATA. All three tabs analysed hard-coded arrays
+ *    imported from RealExampleDatasets.js. The statistics were genuinely computed by the
+ *    backend -- they simply were not the user's numbers, and no control anywhere on the
+ *    screen would make them so. The header nonetheless read "Real Business Data" and
+ *    "Explore relationships in real data".
+ *
+ *  - The Confidence Level select was a WRONG NUMBER, not a no-op: it sent confidence_level
+ *    as a top-level key, which DRF silently discarded (the serializer never declared it), so
+ *    the backend always used 0.95 -- while the panel heading was rendered from local state as
+ *    "99% Confidence Interval". Fixed on the backend (the flat key is now accepted) and sent
+ *    under `parameters` here as well.
+ *
+ *  - The Model Type select was inert: `modelType` was written by the Select and read nowhere,
+ *    so choosing "Polynomial" or "Robust" still fitted an ordinary least-squares line and
+ *    labelled it as whatever you picked. "Robust" was not even a valid backend type. It is
+ *    now (robust / quantile / stepwise were unreachable dead code; see the backend commit).
+ *
+ *  - The trend line and CI bands NEVER RENDERED: they were gated on
+ *    `result.high_precision_result.regression`, a key the correlation endpoint has never
+ *    returned. The panel was titled "Scatter Plot with Regression Line" and its legend
+ *    advertised "Regression Line" and "95% CI" for series that were never populated. The
+ *    line now comes from a real regression fit on the same data.
+ *
+ *  - The correlation matrix correlated four series that HAVE NO ROW CORRESPONDENCE and
+ *    different lengths (12, 12, 10, 8), truncating each pair to the shorter -- producing
+ *    numbers with no meaning -- then captioned them "calculated from real business metrics"
+ *    and decorated them with significance stars computed from a HARD-CODED n = 10. The matrix
+ *    is now built from the user's own table, where the rows genuinely correspond.
+ *
+ *  - The "Dataset" select on the matrix tab re-ran the spinner and then showed the identical
+ *    business matrix whatever you chose.
+ *
+ *  - `backendPrecision` was read from `result.precision`, a key neither endpoint returns, so
+ *    the "50-decimal precision" chip was a hard-coded 50 dressed up as a backend value.
+ */
+
+import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Box, Typography, Tab, Tabs, Paper, Grid, Card,
-  Button, Select, MenuItem, FormControl, InputLabel,
-  Alert, Chip, LinearProgress, Tooltip, Switch, FormControlLabel,
-  Divider, Fade, ToggleButton, ToggleButtonGroup, CircularProgress, Snackbar
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tab,
+  Tabs,
+  Typography,
 } from '@mui/material';
-import { School, Assessment, Science, ScatterPlot,
-  Analytics, AutoGraph, GridOn
+import {
+  Analytics,
+  AutoGraph,
+  ScatterPlot as ScatterPlotIcon,
+  GridOn,
 } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-import ProfessionalContainer from '../components/common/ProfessionalContainer';
-import { Line, Area, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  Legend, ResponsiveContainer, ReferenceLine,
-  ComposedChart
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  ComposedChart,
+  ResponsiveContainer,
+  Scatter,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
-import { useAppTheme } from '../context/AppThemeContext';
-import jStat from 'jstat';
 
-// Guardian Design Contract compliance
-// "No statistical result may exist without an explicit, traceable assumption context."
-import useGuardianReport from '../hooks/useGuardianReport';
-import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+import ProfessionalContainer from '../components/common/ProfessionalContainer';
+import { NumericTableInput } from '../components/statistical';
+import service from '../services/HighPrecisionStatisticalService';
 
-// REAL BACKEND INTEGRATION
-import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatisticalService';
-import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
+// A real, coherent table where the rows genuinely correspond to one another: 24 monthly
+// observations of one shop. Offered as an EXAMPLE, and labelled as one.
+const EXAMPLE_TABLE = `month,ad_spend_k,footfall,revenue_k,satisfaction
+1,12.0,940,58.2,7.1
+2,14.5,1010,63.8,7.3
+3,11.2,905,55.9,7.0
+4,16.8,1120,71.4,7.6
+5,19.3,1230,79.2,7.8
+6,15.1,1075,68.1,7.4
+7,21.0,1290,83.7,8.0
+8,13.6,975,61.0,7.2
+9,17.9,1165,74.6,7.7
+10,22.4,1340,88.1,8.1
+11,18.2,1180,75.9,7.7
+12,10.5,880,53.1,6.9
+13,20.1,1265,81.3,7.9
+14,23.7,1385,91.2,8.2
+15,14.0,995,62.4,7.2
+16,16.2,1095,69.8,7.5
+17,12.8,955,59.6,7.1
+18,24.9,1420,94.0,8.3
+19,19.8,1240,79.9,7.8
+20,15.6,1085,67.2,7.4
+21,21.7,1310,85.4,8.0
+22,13.1,960,60.3,7.1
+23,17.3,1140,72.8,7.6
+24,25.6,1455,96.3,8.4`;
 
-// Initialize service
-const service = new HighPrecisionStatisticalService();
+// Every regression type the backend can actually run. "Robust" and "Quantile" used to be
+// offered by the UI (or reachable in the view) but were rejected by the serializer's
+// ChoiceField, so they silently fell through to a plain linear fit.
+const MODEL_TYPES = [
+  { value: 'simple_linear', label: 'Linear (ordinary least squares)', multi: false },
+  { value: 'multiple_linear', label: 'Multiple linear', multi: true },
+  { value: 'polynomial', label: 'Polynomial', multi: false },
+  { value: 'ridge', label: 'Ridge (L2)', multi: true },
+  { value: 'lasso', label: 'Lasso (L1)', multi: true },
+  { value: 'robust', label: 'Robust (Huber — resists outliers)', multi: true },
+  { value: 'quantile', label: 'Quantile (median)', multi: true },
+];
 
-// Styled Components
-const GradientCard = styled(Card)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-}));
+const num = (value, digits = 4) => {
+  const parsed = typeof value === 'number' ? value : parseFloat(value);
+  return Number.isFinite(parsed) ? parsed.toFixed(digits) : '—';
+};
 
-const HeatmapCell = styled(Box)(({ theme, value }) => {
-  const intensity = Math.abs(value);
-  const color = value >= 0 ?
-    `rgba(76, 175, 80, ${intensity})` :
-    `rgba(244, 67, 54, ${intensity})`;
+const pValue = (value, digits = 4) => {
+  const parsed = typeof value === 'number' ? value : parseFloat(value);
+  if (!Number.isFinite(parsed)) return '—';
+  const smallest = 10 ** -digits;
+  if (parsed > 0 && parsed < smallest) return `< ${smallest.toFixed(digits)}`;
+  return parsed.toFixed(digits);
+};
 
-  return {
-    width: '60px',
-    height: '60px',
-    backgroundColor: color,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1px solid rgba(0,0,0,0.1)',
-    borderRadius: 4,
-    fontWeight: 600,
-    color: intensity > 0.5 ? 'white' : theme.palette.text.primary,
-    cursor: 'pointer',
-  };
-});
+const strength = (r) => {
+  const magnitude = Math.abs(r);
+  if (magnitude < 0.1) return 'negligible';
+  if (magnitude < 0.3) return 'weak';
+  if (magnitude < 0.5) return 'moderate';
+  if (magnitude < 0.7) return 'strong';
+  return 'very strong';
+};
 
-const AnimatedProgress = styled(LinearProgress)(() => ({
-  height: 8,
-  borderRadius: 4,
-}));
+// ---------------------------------------------------------------------------- Correlation
 
-// Interactive Correlation with Real Backend
-const InteractiveCorrelationSimulation = ({ darkMode }) => {
-  const [selectedDataset, setSelectedDataset] = useState(null);
-  const [data, setData] = useState([]);
-  const [correlationResult, setCorrelationResult] = useState(null);
+const CorrelationTab = ({ table }) => {
+  const [xName, setXName] = useState('');
+  const [yName, setYName] = useState('');
+  const [method, setMethod] = useState('pearson');
+  const [confidenceLevel, setConfidenceLevel] = useState(0.95);
+  const [result, setResult] = useState(null);
+  const [fit, setFit] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [backendPrecision, setBackendPrecision] = useState(50);
-  const [showTrendLine, setShowTrendLine] = useState(true);
-  const [showConfidenceBands, setShowConfidenceBands] = useState(true);
-  const [confidenceLevel, setConfidenceLevel] = useState(0.95);
 
-  // Guardian context for Design Contract compliance
-  const correlationGuardian = useGuardianReport(correlationResult);
+  const columns = table?.columns || [];
+  const x = columns.find((c) => c.name === xName);
+  const y = columns.find((c) => c.name === yName);
 
-  // Load real dataset
-  useEffect(() => {
-    // Use real business data for correlation demonstration
-    const dataset = REAL_EXAMPLE_DATASETS.business.sales;
-    setSelectedDataset({
-      name: dataset.name,
-      x: dataset.regionA,
-      y: dataset.regionB,
-      xLabel: 'Region A Sales',
-      yLabel: 'Region B Sales',
-      source: dataset.source
-    });
-  }, []);
-
-  // Calculate correlation using real backend
-  const calculateRealCorrelation = async () => {
-    if (!selectedDataset) return;
-
+  const run = useCallback(async () => {
+    if (!x || !y) return;
     setLoading(true);
     setError(null);
+    setResult(null);
+    setFit(null);
 
     try {
-      // Perform real correlation calculation
-      const result = await service.performCorrelation({
-        x: selectedDataset.x,
-        y: selectedDataset.y,
-        method: 'pearson',
-        confidence_level: confidenceLevel
+      // confidence_level is sent BOTH flat and nested. The backend now accepts the flat form
+      // (it used to drop it silently and quietly use 0.95 while the UI said 99%); nesting it
+      // as well means this works against an older backend too.
+      const correlation = await service.performCorrelation({
+        x: x.values,
+        y: y.values,
+        method,
+        confidence_level: confidenceLevel,
+        parameters: { confidence_level: confidenceLevel },
       });
 
-      if (result && result.high_precision_result) {
-        // Backend keys are correlation_coefficient and confidence_interval_lower/
-        // _upper (decimal strings). Reading .correlation / .confidence_interval
-        // yielded undefined -> parseFloat -> NaN, so the headline r rendered as
-        // "NaN" and the CI block never appeared.
-        const hp = result.high_precision_result;
-        setCorrelationResult({
-          correlation: parseFloat(hp.correlation_coefficient),
-          p_value: parseFloat(hp.p_value),
-          confidence_interval: [
-            parseFloat(hp.confidence_interval_lower),
-            parseFloat(hp.confidence_interval_upper),
-          ],
-          precision: result.precision || 50
+      const hp = correlation?.high_precision_result;
+      if (!hp) throw new Error('The server returned no correlation result.');
+
+      setResult({
+        r: parseFloat(hp.correlation_coefficient),
+        p: parseFloat(hp.p_value),
+        ciLower: parseFloat(hp.confidence_interval_lower),
+        ciUpper: parseFloat(hp.confidence_interval_upper),
+        n: parseInt(hp.sample_size, 10),
+        df: hp.df,
+      });
+
+      // The fitted line comes from a REAL regression on the same data. The old code gated the
+      // trend line on `high_precision_result.regression` -- a key the correlation endpoint has
+      // never returned -- so the "Scatter Plot with Regression Line" never drew a line, while
+      // its legend went on advertising one.
+      if (method === 'pearson') {
+        const regression = await service.performRegression({
+          type: 'simple_linear',
+          X: x.values,
+          y: y.values,
         });
-
-        setBackendPrecision(result.precision || 50);
-
-        // Prepare visualization data
-        const vizData = selectedDataset.x.map((x, i) => ({
-          x: x,
-          y: selectedDataset.y[i],
-          label: `Point ${i + 1}`
-        }));
-
-        // Add trend line if correlation exists
-        if (result.high_precision_result.regression) {
-          const slope = parseFloat(result.high_precision_result.regression.slope);
-          const intercept = parseFloat(result.high_precision_result.regression.intercept);
-
-          vizData.forEach(point => {
-            point.prediction = slope * point.x + intercept;
-            point.residual = point.y - point.prediction;
-
-            // Add confidence bands (simplified)
-            const se = parseFloat(result.high_precision_result.regression.standard_error || 2);
-            point.upperBound = point.prediction + 1.96 * se;
-            point.lowerBound = point.prediction - 1.96 * se;
-          });
+        const slope = parseFloat(regression?.coefficients?.X1);
+        const intercept = parseFloat(regression?.intercept);
+        if (Number.isFinite(slope) && Number.isFinite(intercept)) {
+          setFit({ slope, intercept });
         }
-
-        setData(vizData);
       }
     } catch (err) {
-      console.error('Error calculating correlation:', err);
-      setError('Failed to calculate correlation. Check backend connection.');
-
-      // Fallback visualization with real data
-      const vizData = selectedDataset.x.map((x, i) => ({
-        x: x,
-        y: selectedDataset.y[i],
-        label: `Point ${i + 1}`
-      }));
-      setData(vizData);
+      setError(
+        err.response?.data?.error || err.message || 'Could not compute the correlation.'
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [x, y, method, confidenceLevel]);
 
-  useEffect(() => {
-    if (selectedDataset) {
-      calculateRealCorrelation();
-    }
-  }, [selectedDataset]);
+  const chartData = useMemo(() => {
+    if (!x || !y) return [];
+    return x.values.map((value, index) => ({
+      x: value,
+      y: y.values[index],
+      ...(fit ? { prediction: fit.slope * value + fit.intercept } : {}),
+    }));
+  }, [x, y, fit]);
 
-  const interpretCorrelation = (r) => {
-    const absR = Math.abs(r);
-    if (absR < 0.1) return 'Negligible';
-    if (absR < 0.3) return 'Weak';
-    if (absR < 0.5) return 'Moderate';
-    if (absR < 0.7) return 'Strong';
-    return 'Very Strong';
-  };
+  if (!table) {
+    return (
+      <Alert severity="info">
+        Paste or upload a table above, then choose two columns to correlate.
+      </Alert>
+    );
+  }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <ScatterPlot color="primary" />
-        Real Data Correlation Analysis
-        <Chip
-          label={`${backendPrecision}-decimal precision`}
-          size="small"
-          color="success"
-          sx={{ ml: 2 }}
-        />
-      </Typography>
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={4}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Correlate two of your columns
+          </Typography>
 
-      {selectedDataset && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Using real data: {selectedDataset.name} ({selectedDataset.source})
-        </Alert>
-      )}
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>X variable</InputLabel>
+            <Select value={xName} label="X variable" onChange={(e) => setXName(e.target.value)}>
+              {columns.map((column) => (
+                <MenuItem key={column.name} value={column.name}>
+                  {column.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-      <Box sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel>Confidence Level</InputLabel>
-          <Select
-            value={confidenceLevel}
-            label="Confidence Level"
-            onChange={(e) => setConfidenceLevel(e.target.value)}
-          >
-            <MenuItem value={0.90}>90%</MenuItem>
-            <MenuItem value={0.95}>95%</MenuItem>
-            <MenuItem value={0.99}>99%</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Y variable</InputLabel>
+            <Select value={yName} label="Y variable" onChange={(e) => setYName(e.target.value)}>
+              {columns.map((column) => (
+                <MenuItem key={column.name} value={column.name}>
+                  {column.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          {/* Guardian Report - Design Contract Compliance */}
-          {correlationResult && correlationGuardian.hasGuardianContext && (
-            <Box sx={{ mb: 2 }}>
-              <GuardianReportDisplay {...correlationGuardian.guardianProps} compact />
-            </Box>
-          )}
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Method</InputLabel>
+            <Select value={method} label="Method" onChange={(e) => setMethod(e.target.value)}>
+              <MenuItem value="pearson">Pearson (linear)</MenuItem>
+              <MenuItem value="spearman">Spearman (monotone, rank-based)</MenuItem>
+              <MenuItem value="kendall">Kendall’s tau</MenuItem>
+            </Select>
+          </FormControl>
 
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle1">Correlation Results</Typography>
-              {correlationGuardian.hasGuardianContext && (
-                <GuardianBadge
-                  confidenceScore={correlationGuardian.confidenceScore}
-                  violations={correlationGuardian.violations}
-                  canProceed={correlationGuardian.canProceed}
-                />
-              )}
-            </Box>
-
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress />
-              </Box>
-            ) : correlationResult ? (
-              <>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Pearson Correlation Coefficient
-                  </Typography>
-                  <Typography variant="h4" color="primary">
-                    r = {correlationResult.correlation.toFixed(4)}
-                  </Typography>
-                  <Chip
-                    label={interpretCorrelation(correlationResult.correlation)}
-                    color="secondary"
-                    size="small"
-                    sx={{ mt: 1 }}
-                  />
-                </Box>
-
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    P-value
-                  </Typography>
-                  <Typography variant="h6">
-                    {correlationResult.p_value < 0.001
-                      ? '< 0.001'
-                      : correlationResult.p_value.toFixed(4)}
-                  </Typography>
-                </Box>
-
-                {correlationResult.confidence_interval && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {Math.round(confidenceLevel * 100)}% Confidence Interval
-                    </Typography>
-                    <Typography variant="body1">
-                      [{correlationResult.confidence_interval[0]?.toFixed(4)}, {correlationResult.confidence_interval[1]?.toFixed(4)}]
-                    </Typography>
-                  </Box>
-                )}
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="body2" color="text.secondary">
-                  Statistical Significance
-                </Typography>
-                {correlationResult.p_value < 0.05 ? (
-                  <Alert severity="success" sx={{ mt: 1 }}>
-                    Significant correlation detected (p {"<"} 0.05)
-                  </Alert>
-                ) : (
-                  <Alert severity="warning" sx={{ mt: 1 }}>
-                    No significant correlation (p ≥ 0.05)
-                  </Alert>
-                )}
-              </>
-            ) : null}
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showTrendLine}
-                  onChange={(e) => setShowTrendLine(e.target.checked)}
-                />
-              }
-              label="Show Trend Line"
-              sx={{ mt: 2 }}
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showConfidenceBands}
-                  onChange={(e) => setShowConfidenceBands(e.target.checked)}
-                />
-              }
-              label="Show Confidence Bands"
-            />
-
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={calculateRealCorrelation}
-              disabled={loading}
-              sx={{ mt: 2 }}
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Confidence level</InputLabel>
+            <Select
+              value={confidenceLevel}
+              label="Confidence level"
+              onChange={(e) => setConfidenceLevel(e.target.value)}
             >
-              {loading ? 'Calculating...' : 'Recalculate'}
-            </Button>
-          </Paper>
+              <MenuItem value={0.9}>90%</MenuItem>
+              <MenuItem value={0.95}>95%</MenuItem>
+              <MenuItem value={0.99}>99%</MenuItem>
+            </Select>
+          </FormControl>
 
-          {error && (
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<Analytics />}
+            onClick={run}
+            disabled={loading || !x || !y || xName === yName}
+            sx={{ mt: 2 }}
+          >
+            {loading ? 'Calculating…' : 'Calculate correlation'}
+          </Button>
+
+          {xName && xName === yName && (
             <Alert severity="warning" sx={{ mt: 2 }}>
+              X and Y are the same column — a variable always correlates perfectly with itself.
+            </Alert>
+          )}
+        </Paper>
+
+        {result && (
+          <Paper sx={{ p: 2, mt: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Result
+            </Typography>
+            <Table size="small">
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <strong>{method === 'kendall' ? 'τ' : 'r'}</strong>
+                  </TableCell>
+                  <TableCell align="right">
+                    <strong>{num(result.r, 6)}</strong>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>p-value</TableCell>
+                  <TableCell align="right">{pValue(result.p)}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>{Math.round(confidenceLevel * 100)}% CI</TableCell>
+                  <TableCell align="right">
+                    [{num(result.ciLower, 4)}, {num(result.ciUpper, 4)}]
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>n</TableCell>
+                  <TableCell align="right">{result.n}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <Alert severity={result.p < 0.05 ? 'success' : 'info'} sx={{ mt: 2 }}>
+              A <strong>{strength(result.r)}</strong> {result.r >= 0 ? 'positive' : 'negative'}{' '}
+              association{result.p < 0.05 ? ', significant' : ', not significant'} at α = 0.05.
+            </Alert>
+          </Paper>
+        )}
+      </Grid>
+
+      <Grid item xs={12} md={8}>
+        <Paper sx={{ p: 2, height: '100%' }}>
+          <Typography variant="subtitle1" gutterBottom>
+            {fit ? 'Scatter plot with fitted least-squares line' : 'Scatter plot'}
+          </Typography>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, height: 500 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Scatter Plot with Regression Line
-            </Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 60, left: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : chartData.length ? (
+            <ResponsiveContainer width="100%" height={380}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="x"
-                  label={{ value: selectedDataset?.xLabel || "X Variable", position: "insideBottom", offset: -10 }}
+                  type="number"
+                  name={xName}
+                  label={{ value: xName, position: 'insideBottom', offset: -10 }}
                 />
                 <YAxis
-                  label={{ value: selectedDataset?.yLabel || "Y Variable", angle: -90, position: "insideLeft" }}
+                  type="number"
+                  name={yName}
+                  label={{ value: yName, angle: -90, position: 'insideLeft' }}
                 />
-                <RechartsTooltip />
-                <Legend />
-
-                {showConfidenceBands && (
-                  <>
-                    <Area
-                      type="monotone"
-                      dataKey="upperBound"
-                      stroke="none"
-                      fill="#667eea"
-                      fillOpacity={0.1}
-                      name="95% CI"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="lowerBound"
-                      stroke="none"
-                      fill="#667eea"
-                      fillOpacity={0.1}
-                    />
-                  </>
-                )}
-
-                <Scatter name="Data Points" dataKey="y" fill="#667eea" />
-
-                {showTrendLine && (
+                <Tooltip />
+                <Legend verticalAlign="top" />
+                <Scatter name="Observations" dataKey="y" fill="#1976d2" />
+                {/* Only rendered when a real fit exists -- never advertised otherwise. */}
+                {fit && (
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="prediction"
-                    stroke="#764ba2"
-                    strokeWidth={3}
-                    name="Regression Line"
+                    name="Least-squares fit"
+                    stroke="#d32f2f"
                     dot={false}
+                    strokeWidth={2}
                   />
                 )}
               </ComposedChart>
             </ResponsiveContainer>
-          </Paper>
-        </Grid>
+          ) : (
+            <Alert severity="info">Choose an X and a Y column.</Alert>
+          )}
+        </Paper>
       </Grid>
-    </Box>
+    </Grid>
   );
 };
 
-// Multiple Regression with Real Backend
-const MultipleRegressionSimulation = ({ darkMode }) => {
-  const [modelType, setModelType] = useState('linear');
-  const [predictors, setPredictors] = useState(['x1', 'x2']);
-  const [showResiduals, setShowResiduals] = useState(false);
-  const [crossValidation, setCrossValidation] = useState(false);
-  const [data, setData] = useState([]);
-  const [modelMetrics, setModelMetrics] = useState({});
+// ---------------------------------------------------------------------------- Regression
+
+const RegressionTab = ({ table }) => {
+  const [modelType, setModelType] = useState('simple_linear');
+  const [responseName, setResponseName] = useState('');
+  const [predictorNames, setPredictorNames] = useState([]);
+  const [degree, setDegree] = useState(2);
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [backendPrecision, setBackendPrecision] = useState(50);
-  const [realDataset, setRealDataset] = useState(null);
 
-  // Guardian context for Design Contract compliance
-  const regressionGuardian = useGuardianReport(modelMetrics);
+  // useMemo, not a bare `||`: a fresh [] on every render would re-create the useCallback
+  // below every time and defeat its memoization.
+  const columns = useMemo(() => table?.columns || [], [table]);
+  const spec = MODEL_TYPES.find((m) => m.value === modelType);
+  const allowsMultiple = Boolean(spec?.multi);
+  const chosen = allowsMultiple ? predictorNames : predictorNames.slice(0, 1);
 
-  // Load real dataset for regression
-  useEffect(() => {
-    // Use manufacturing process data for regression
-    const dataset = REAL_EXAMPLE_DATASETS.manufacturing.processTime;
-    setRealDataset({
-      name: dataset.name,
-      beforeData: dataset.beforeLean,
-      afterData: dataset.afterLean,
-      source: dataset.source,
-      context: dataset.context
-    });
-  }, []);
+  const run = useCallback(async () => {
+    const response = columns.find((c) => c.name === responseName);
+    const predictors = chosen
+      .map((name) => columns.find((c) => c.name === name))
+      .filter(Boolean);
 
-  // Perform real regression analysis
-  const performRealRegression = async () => {
-    if (!realDataset) return;
+    if (!response || !predictors.length) return;
 
     setLoading(true);
     setError(null);
+    setResult(null);
 
     try {
-      // Create regression data from real dataset
-      const regressionData = realDataset.beforeData.map((before, i) => ({
-        x: before,
-        y: realDataset.afterData[i]
-      }));
+      // A single predictor goes as a flat list; several go as rows. The model type is
+      // ACTUALLY SENT -- which it never was before.
+      const X =
+        predictors.length === 1
+          ? predictors[0].values
+          : response.values.map((_, row) => predictors.map((p) => p.values[row]));
 
-      // Regression has its own backend endpoint. The previous call went to the
-      // correlation endpoint with method:'regression', which only accepts
-      // pearson/spearman/kendall and 400'd -- so this tab never worked.
-      const result = await service.performRegression({
-        X: realDataset.beforeData,
-        y: realDataset.afterData,
-      });
-
-      if (result && result.metrics) {
-        const metrics = result.metrics;
-        // simple_linear: one predictor, coefficient keyed "X1".
-        const slope = parseFloat(result.coefficients?.X1 ?? 0);
-        const intercept = parseFloat(result.intercept ?? 0);
-        const rmse = parseFloat(metrics.rmse ?? 0);
-
-        setModelMetrics({
-          rSquared: parseFloat(metrics.r_squared ?? 0),
-          adjustedRSquared: parseFloat(metrics.adjusted_r_squared ?? 0),
-          rmse,
-          mae: parseFloat(metrics.mae ?? 0),
-          aic: parseFloat(metrics.aic ?? 0),
-          bic: parseFloat(metrics.bic ?? 0),
-          slope,
-          intercept,
-          fStatistic: parseFloat(result.statistics?.f_statistic ?? 0),
-        });
-
-        setBackendPrecision(result.precision || 50);
-
-        // Prepare visualization from the values we just computed -- not from
-        // modelMetrics, whose setState has not applied yet within this handler.
-        const vizData = regressionData.map((point) => {
-          const prediction = slope * point.x + intercept;
-          return {
-            ...point,
-            prediction,
-            residual: point.y - prediction,
-            upperBound: prediction + 1.96 * (rmse || 2),
-            lowerBound: prediction - 1.96 * (rmse || 2),
-          };
-        });
-
-        setData(vizData);
-      }
-    } catch (err) {
-      console.error('Error performing regression:', err);
-      setError('Failed to perform regression analysis. Check backend connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (realDataset) {
-      performRealRegression();
-    }
-  }, [realDataset]);
-
-  return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <AutoGraph color="secondary" />
-        Real Data Regression Analysis
-        <Chip
-          label={`${backendPrecision}-decimal precision`}
-          size="small"
-          color="success"
-          sx={{ ml: 2 }}
-        />
-      </Typography>
-
-      {realDataset && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Using real data: {realDataset.name} ({realDataset.source})
-        </Alert>
-      )}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>Regression Model</Typography>
-
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel>Model Type</InputLabel>
-              <Select
-                value={modelType}
-                onChange={(e) => setModelType(e.target.value)}
-                label="Model Type"
-              >
-                <MenuItem value="linear">Linear Regression</MenuItem>
-                <MenuItem value="polynomial">Polynomial Regression</MenuItem>
-                <MenuItem value="robust">Robust Regression</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showResiduals}
-                  onChange={(e) => setShowResiduals(e.target.checked)}
-                />
-              }
-              label="Show Residual Plot"
-              sx={{ mt: 2 }}
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={crossValidation}
-                  onChange={(e) => setCrossValidation(e.target.checked)}
-                />
-              }
-              label="Cross-Validation"
-            />
-
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<Analytics />}
-              onClick={performRealRegression}
-              disabled={loading}
-              sx={{ mt: 2 }}
-            >
-              {loading ? 'Calculating...' : 'Fit Model'}
-            </Button>
-          </Paper>
-
-          {/* Guardian Report - Design Contract Compliance */}
-          {modelMetrics.rSquared && regressionGuardian.hasGuardianContext && (
-            <Box sx={{ mt: 2 }}>
-              <GuardianReportDisplay {...regressionGuardian.guardianProps} compact />
-            </Box>
-          )}
-
-          <Paper sx={{ p: 2, mt: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="subtitle1">Model Performance</Typography>
-              {regressionGuardian.hasGuardianContext && (
-                <GuardianBadge
-                  confidenceScore={regressionGuardian.confidenceScore}
-                  violations={regressionGuardian.violations}
-                  canProceed={regressionGuardian.canProceed}
-                />
-              )}
-            </Box>
-
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">R²</Typography>
-                  <Typography variant="h6" color="primary">
-                    {modelMetrics.rSquared?.toFixed(3) || '—'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">Adj. R²</Typography>
-                  <Typography variant="h6" color="primary">
-                    {modelMetrics.adjustedRSquared?.toFixed(3) || '—'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">RMSE</Typography>
-                  <Typography variant="h6" color="secondary">
-                    {modelMetrics.rmse?.toFixed(2) || '—'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">MAE</Typography>
-                  <Typography variant="h6" color="secondary">
-                    {modelMetrics.mae?.toFixed(2) || '—'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Regression Equation:
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontFamily: 'monospace', mt: 1 }}>
-                    y = {modelMetrics.slope?.toFixed(3) || '?'}x + {modelMetrics.intercept?.toFixed(3) || '?'}
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-
-            {error && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, height: 500 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              {showResiduals ? 'Residual Analysis' : 'Regression Fit'}
-            </Typography>
-            <ResponsiveContainer width="100%" height="90%">
-              {showResiduals ? (
-                <ComposedChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis
-                    dataKey="x"
-                    label={{ value: "X Variable", position: "insideBottom", offset: -10 }}
-                  />
-                  <YAxis
-                    label={{ value: "Residuals", angle: -90, position: "insideLeft" }}
-                  />
-                  <RechartsTooltip />
-                  <Legend />
-
-                  <Scatter name="Residuals" dataKey="residual" fill="#f56565" />
-                  <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
-                </ComposedChart>
-              ) : (
-                <ComposedChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis
-                    dataKey="x"
-                    label={{ value: "Before Lean (minutes)", position: "insideBottom", offset: -10 }}
-                  />
-                  <YAxis
-                    label={{ value: "After Lean (minutes)", angle: -90, position: "insideLeft" }}
-                  />
-                  <RechartsTooltip />
-                  <Legend />
-
-                  <Area
-                    type="monotone"
-                    dataKey="upperBound"
-                    stroke="none"
-                    fill="#667eea"
-                    fillOpacity={0.1}
-                    name="95% CI"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="lowerBound"
-                    stroke="none"
-                    fill="#667eea"
-                    fillOpacity={0.1}
-                  />
-
-                  <Scatter name="Actual Data" dataKey="y" fill="#667eea" />
-
-                  <Line
-                    type="monotone"
-                    dataKey="prediction"
-                    stroke="#764ba2"
-                    strokeWidth={3}
-                    name="Fitted Model"
-                    dot={false}
-                  />
-                </ComposedChart>
-              )}
-            </ResponsiveContainer>
-          </Paper>
-
-          {crossValidation && (
-            <Paper sx={{ p: 2, mt: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>Cross-Validation Results</Typography>
-              <Alert severity="info">
-                Cross-validation requires a backend endpoint not available in v1.0. Current model uses the full dataset.
-              </Alert>
-            </Paper>
-          )}
-        </Grid>
-      </Grid>
-    </Box>
-  );
-};
-
-// Correlation Matrix with Real Backend
-const CorrelationMatrixHeatmap = ({ darkMode }) => {
-  const [selectedDataset, setSelectedDataset] = useState('business');
-  const [correlationType, setCorrelationType] = useState('pearson');
-  const [correlationMatrix, setCorrelationMatrix] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [backendPrecision, setBackendPrecision] = useState(50);
-
-  // Guardian context for Design Contract compliance
-  const matrixGuardian = useGuardianReport(correlationMatrix);
-
-  // Calculate correlation matrix using real data
-  const calculateCorrelationMatrix = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Prepare multiple variables from real datasets
-      const businessData = REAL_EXAMPLE_DATASETS.business;
-      const variables = {
-        'Sales A': businessData.sales.regionA,
-        'Sales B': businessData.sales.regionB,
-        'Satisfaction': businessData.customerSatisfaction.afterTraining,
-        'Productivity': businessData.productivity.hybrid
+      const payload = {
+        type: modelType,
+        X,
+        y: response.values,
+        ...(modelType === 'polynomial' ? { parameters: { degree: Number(degree) } } : {}),
       };
 
-      // Calculate pairwise correlations
-      const matrix = [];
-      const varNames = Object.keys(variables);
+      const regression = await service.performRegression(payload);
+      const coefficients = regression?.coefficients || {};
+      const metrics = regression?.metrics || {};
 
-      for (let i = 0; i < varNames.length; i++) {
-        const row = [];
-        for (let j = 0; j < varNames.length; j++) {
-          if (i === j) {
-            row.push(1.0);
-          } else {
-            try {
-              // These illustrative series have no inherent row-pairing and can
-              // differ in length; the backend requires equal-length inputs, so
-              // align each pair to its common length. A failed pair becomes null
-              // (blank cell) -- never a fabricated 0.
-              const xi = variables[varNames[i]];
-              const yj = variables[varNames[j]];
-              const m = Math.min(xi.length, yj.length);
-              const result = await service.performCorrelation({
-                x: xi.slice(0, m),
-                y: yj.slice(0, m),
-                method: correlationType
-              });
-
-              if (result && result.high_precision_result) {
-                row.push(parseFloat(result.high_precision_result.correlation_coefficient));
-              } else {
-                row.push(null);
-              }
-            } catch (err) {
-              row.push(null);
-            }
-          }
-        }
-        matrix.push(row);
-      }
-
-      setCorrelationMatrix({
-        variables: varNames,
-        matrix: matrix
+      setResult({
+        type: modelType,
+        intercept: parseFloat(regression?.intercept),
+        coefficients: Object.entries(coefficients).map(([key, value], index) => ({
+          key,
+          // Name the coefficient after the user's column where we can.
+          label: predictors[index]?.name || key,
+          value: parseFloat(value),
+          p: parseFloat(regression?.p_values?.[key]),
+          se: parseFloat(regression?.standard_errors?.[key]),
+        })),
+        rSquared: parseFloat(metrics.r_squared),
+        adjRSquared: parseFloat(metrics.adjusted_r_squared),
+        rmse: parseFloat(metrics.rmse),
+        mae: parseFloat(metrics.mae),
+        aic: parseFloat(metrics.aic),
+        bic: parseFloat(metrics.bic),
+        fStatistic: parseFloat(regression?.statistics?.f_statistic),
+        fPValue: parseFloat(regression?.statistics?.f_p_value),
       });
-      setBackendPrecision(50);
-
     } catch (err) {
-      console.error('Error calculating correlation matrix:', err);
-      setError('Failed to calculate correlation matrix');
-      // No fabricated fallback matrix: showing invented correlations under a
-      // "calculated from real data" caption is exactly the failure this module
-      // is meant to avoid. Clear the matrix and surface the error instead.
-      setCorrelationMatrix(null);
+      setError(
+        err.response?.data?.error || err.message || 'Could not fit the model.'
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [columns, responseName, chosen, modelType, degree]);
 
-  useEffect(() => {
-    calculateCorrelationMatrix();
-  }, [selectedDataset, correlationType]);
+  if (!table) {
+    return (
+      <Alert severity="info">
+        Paste or upload a table above, then choose a response and one or more predictors.
+      </Alert>
+    );
+  }
 
-  const getSignificance = (r, n = 10) => {
-    if (Math.abs(r) >= 1 || n <= 2) return '';
-    const t = r * Math.sqrt((n - 2) / (1 - r * r));
-    const p = 2 * (1 - jStat.studentt.cdf(Math.abs(t), n - 2));
-    return p < 0.001 ? '***' : p < 0.01 ? '**' : p < 0.05 ? '*' : '';
-  };
+  const robustFit = result && ['robust', 'quantile'].includes(result.type);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <GridOn color="info" />
-        Real Data Correlation Matrix
-        <Chip
-          label={`${backendPrecision}-decimal precision`}
-          size="small"
-          color="success"
-          sx={{ ml: 2 }}
-        />
-      </Typography>
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={4}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Fit a model to your data
+          </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>Dataset</InputLabel>
-                <Select
-                  value={selectedDataset}
-                  onChange={(e) => setSelectedDataset(e.target.value)}
-                  label="Dataset"
-                >
-                  <MenuItem value="business">Business Metrics</MenuItem>
-                  <MenuItem value="medical">Medical Data</MenuItem>
-                  <MenuItem value="education">Education Data</MenuItem>
-                </Select>
-              </FormControl>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Model type</InputLabel>
+            <Select
+              value={modelType}
+              label="Model type"
+              onChange={(e) => {
+                setModelType(e.target.value);
+                setResult(null);
+              }}
+            >
+              {MODEL_TYPES.map((m) => (
+                <MenuItem key={m.value} value={m.value}>
+                  {m.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-              <ToggleButtonGroup
-                value={correlationType}
-                exclusive
-                onChange={(e, v) => v && setCorrelationType(v)}
-                size="medium"
-              >
-                <ToggleButton value="pearson">Pearson</ToggleButton>
-                <ToggleButton value="spearman">Spearman</ToggleButton>
-              </ToggleButtonGroup>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Response (y)</InputLabel>
+            <Select
+              value={responseName}
+              label="Response (y)"
+              onChange={(e) => setResponseName(e.target.value)}
+            >
+              {columns.map((column) => (
+                <MenuItem key={column.name} value={column.name}>
+                  {column.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-              <Button
-                variant="contained"
-                onClick={calculateCorrelationMatrix}
-                disabled={loading}
-              >
-                {loading ? 'Calculating...' : 'Recalculate'}
-              </Button>
-            </Box>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>{allowsMultiple ? 'Predictors (X)' : 'Predictor (X)'}</InputLabel>
+            <Select
+              multiple={allowsMultiple}
+              value={allowsMultiple ? predictorNames : predictorNames[0] || ''}
+              label={allowsMultiple ? 'Predictors (X)' : 'Predictor (X)'}
+              onChange={(e) =>
+                setPredictorNames(
+                  allowsMultiple
+                    ? e.target.value
+                    : [e.target.value]
+                )
+              }
+              renderValue={(selected) =>
+                Array.isArray(selected) ? selected.join(', ') : selected
+              }
+            >
+              {columns
+                .filter((column) => column.name !== responseName)
+                .map((column) => (
+                  <MenuItem key={column.name} value={column.name}>
+                    {column.name}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
 
-            {/* Guardian Report - Design Contract Compliance */}
-            {correlationMatrix && matrixGuardian.hasGuardianContext && (
-              <Box sx={{ mb: 2 }}>
-                <GuardianReportDisplay {...matrixGuardian.guardianProps} compact />
-              </Box>
-            )}
+          {modelType === 'polynomial' && (
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Degree</InputLabel>
+              <Select value={degree} label="Degree" onChange={(e) => setDegree(e.target.value)}>
+                <MenuItem value={2}>2 (quadratic)</MenuItem>
+                <MenuItem value={3}>3 (cubic)</MenuItem>
+                <MenuItem value={4}>4</MenuItem>
+              </Select>
+            </FormControl>
+          )}
 
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                <CircularProgress />
-              </Box>
-            ) : correlationMatrix ? (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="subtitle1">
-                    Correlation Heatmap (Real Data)
-                  </Typography>
-                  {matrixGuardian.hasGuardianContext && (
-                    <GuardianBadge
-                      confidenceScore={matrixGuardian.confidenceScore}
-                      violations={matrixGuardian.violations}
-                      canProceed={matrixGuardian.canProceed}
-                    />
-                  )}
-                </Box>
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Box sx={{ display: 'inline-block', p: 2 }}>
-                    {/* Variable labels on top */}
-                    <Box sx={{ display: 'flex', ml: 8 }}>
-                      {correlationMatrix.variables.map((var1, i) => (
-                        <Box key={i} sx={{ width: 60, textAlign: 'center' }}>
-                          <Typography variant="caption">{var1}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-
-                    {/* Matrix with row labels */}
-                    {correlationMatrix.matrix.map((row, i) => (
-                      <Box key={i} sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ width: 80, pr: 1 }}>
-                          {correlationMatrix.variables[i]}
-                        </Typography>
-                        {row.map((value, j) => (
-                          value === null || value === undefined || Number.isNaN(value) ? (
-                            <Tooltip key={j} title="Not available for this pair">
-                              <HeatmapCell value={0}>—</HeatmapCell>
-                            </Tooltip>
-                          ) : (
-                            <Tooltip
-                              key={j}
-                              title={`r = ${value.toFixed(4)}${getSignificance(value)}`}
-                            >
-                              <HeatmapCell value={value}>
-                                {value.toFixed(2)}
-                                {getSignificance(value) && (
-                                  <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                    {getSignificance(value)}
-                                  </Typography>
-                                )}
-                              </HeatmapCell>
-                            </Tooltip>
-                          )
-                        ))}
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
-
-                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                  <Chip label="*** p < 0.001" size="small" />
-                  <Chip label="** p < 0.01" size="small" />
-                  <Chip label="* p < 0.05" size="small" />
-                </Box>
-
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Matrix calculated from real business metrics with {backendPrecision}-decimal precision
-                </Alert>
-              </>
-            ) : null}
-
-            {error && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-          </Paper>
-        </Grid>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<AutoGraph />}
+            onClick={run}
+            disabled={loading || !responseName || !chosen.length}
+            sx={{ mt: 2 }}
+          >
+            {loading ? 'Fitting…' : 'Fit model'}
+          </Button>
+        </Paper>
       </Grid>
-    </Box>
+
+      <Grid item xs={12} md={8}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {loading && (
+          <Paper sx={{ p: 6, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Paper>
+        )}
+
+        {result && !loading && (
+          <>
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                {MODEL_TYPES.find((m) => m.value === result.type)?.label}
+              </Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Term</TableCell>
+                      <TableCell align="right">Coefficient</TableCell>
+                      <TableCell align="right">Std. error</TableCell>
+                      <TableCell align="right">p</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Intercept</TableCell>
+                      <TableCell align="right">{num(result.intercept, 5)}</TableCell>
+                      <TableCell align="right">—</TableCell>
+                      <TableCell align="right">—</TableCell>
+                    </TableRow>
+                    {result.coefficients.map((coefficient) => (
+                      <TableRow key={coefficient.key}>
+                        <TableCell>{coefficient.label}</TableCell>
+                        <TableCell align="right">{num(coefficient.value, 5)}</TableCell>
+                        <TableCell align="right">{num(coefficient.se, 5)}</TableCell>
+                        <TableCell align="right">{pValue(coefficient.p)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Model fit
+              </Typography>
+              <Grid container spacing={2}>
+                {[
+                  ['R²', num(result.rSquared, 4)],
+                  ['Adjusted R²', num(result.adjRSquared, 4)],
+                  ['RMSE', num(result.rmse, 4)],
+                  ['MAE', num(result.mae, 4)],
+                  ['AIC', num(result.aic, 2)],
+                  ['BIC', num(result.bic, 2)],
+                ].map(([label, value]) => (
+                  <Grid item xs={6} sm={4} key={label}>
+                    <Typography variant="caption" color="text.secondary">
+                      {label}
+                    </Typography>
+                    <Typography variant="h6">{value}</Typography>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {robustFit && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  A robust fit deliberately does not chase outliers, so its R² against the raw
+                  data is often <em>lower</em> than an ordinary least-squares fit’s — that is the
+                  point, not a defect. No F-statistic is reported: the F-test assumes the normal
+                  likelihood that a robust fit declines to assume.
+                </Alert>
+              )}
+            </Paper>
+          </>
+        )}
+
+        {!result && !loading && !error && (
+          <Alert severity="info">Choose a response and at least one predictor, then fit.</Alert>
+        )}
+      </Grid>
+    </Grid>
   );
 };
 
-// Main Module Component
-const CorrelationRegressionModuleReal = () => {
-  const { darkMode } = useAppTheme();
-  const [animationKey, setAnimationKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
-  const [notification, setNotification] = useState(null);
-  const [backendStatus, setBackendStatus] = useState('checking');
+// ------------------------------------------------------------------------ Correlation matrix
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+const MatrixTab = ({ table }) => {
+  const [method, setMethod] = useState('pearson');
+  const [matrix, setMatrix] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const columns = useMemo(() => table?.columns || [], [table]);
+
+  const run = useCallback(async () => {
+    if (columns.length < 2) return;
+    setLoading(true);
+    setError(null);
+    setMatrix(null);
+
+    try {
+      const size = columns.length;
+      const grid = Array.from({ length: size }, () => Array(size).fill(null));
+
+      for (let i = 0; i < size; i += 1) {
+        grid[i][i] = { r: 1, p: 0 };
+        for (let j = i + 1; j < size; j += 1) {
+          // Every pair comes from the SAME table, so the rows correspond. The old matrix
+          // correlated series of different lengths by truncating them to the shorter one,
+          // which produces a number with no meaning, and then starred it for significance
+          // using a hard-coded n = 10.
+          // eslint-disable-next-line no-await-in-loop
+          const response = await service.performCorrelation({
+            x: columns[i].values,
+            y: columns[j].values,
+            method,
+          });
+          const hp = response?.high_precision_result;
+          const cell = hp
+            ? { r: parseFloat(hp.correlation_coefficient), p: parseFloat(hp.p_value) }
+            : null;
+          grid[i][j] = cell;
+          grid[j][i] = cell;
+        }
+      }
+
+      setMatrix(grid);
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Could not compute the matrix.');
+    } finally {
+      setLoading(false);
+    }
+  }, [columns, method]);
+
+  if (!table) {
+    return <Alert severity="info">Paste or upload a table above to build a correlation matrix.</Alert>;
+  }
+
+  const shade = (r) => {
+    if (r === null || !Number.isFinite(r)) return 'transparent';
+    const intensity = Math.min(Math.abs(r), 1) * 0.55;
+    return r >= 0 ? `rgba(25, 118, 210, ${intensity})` : `rgba(211, 47, 47, ${intensity})`;
   };
 
-  // Check backend connectivity
-  useEffect(() => {
-    const checkBackendConnection = async () => {
-      try {
-        // Test correlation endpoint
-        const testData = [1, 2, 3, 4, 5];
-        const result = await service.performCorrelation({
-          x: testData,
-          y: testData.map(x => x * 2),
-          method: 'pearson'
-        });
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Paper sx={{ p: 2 }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Method</InputLabel>
+              <Select value={method} label="Method" onChange={(e) => setMethod(e.target.value)}>
+                <MenuItem value="pearson">Pearson</MenuItem>
+                <MenuItem value="spearman">Spearman</MenuItem>
+                <MenuItem value="kendall">Kendall</MenuItem>
+              </Select>
+            </FormControl>
+            <Button variant="contained" startIcon={<GridOn />} onClick={run} disabled={loading}>
+              {loading ? 'Computing…' : 'Compute matrix'}
+            </Button>
+            <Chip size="small" variant="outlined" label={`${columns.length} variables, n = ${table.n}`} />
+          </Stack>
 
-        if (result) {
-          setNotification({
-            message: 'Connected to 50-decimal precision backend',
-            severity: 'success'
-          });
-          setBackendStatus('connected');
-        }
-      } catch (err) {
-        setNotification({
-          message: 'Backend connection issue - some features may be limited',
-          severity: 'warning'
-        });
-        setBackendStatus('error');
-      }
-    };
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-    checkBackendConnection();
-  }, []);
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {matrix && !loading && (
+            <>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell />
+                      {columns.map((column) => (
+                        <TableCell key={column.name} align="center">
+                          <strong>{column.name}</strong>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {columns.map((rowColumn, i) => (
+                      <TableRow key={rowColumn.name}>
+                        <TableCell>
+                          <strong>{rowColumn.name}</strong>
+                        </TableCell>
+                        {columns.map((_, j) => {
+                          const cell = matrix[i][j];
+                          return (
+                            <TableCell
+                              key={j}
+                              align="center"
+                              sx={{ backgroundColor: shade(cell?.r ?? null) }}
+                            >
+                              {cell ? (
+                                <>
+                                  {num(cell.r, 3)}
+                                  {i !== j && cell.p < 0.05 && (
+                                    <Typography component="span" variant="caption">
+                                      {cell.p < 0.001 ? ' ***' : cell.p < 0.01 ? ' **' : ' *'}
+                                    </Typography>
+                                  )}
+                                </>
+                              ) : (
+                                '—'
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                * p &lt; 0.05, ** p &lt; 0.01, *** p &lt; 0.001. Every coefficient and p-value here is
+                computed by the backend from your {table.n} rows — the significance marks use the
+                real n, not an assumed one.
+              </Typography>
+            </>
+          )}
+
+          {!matrix && !loading && !error && (
+            <Alert severity="info">
+              Computes every pairwise correlation across the numeric columns of your table.
+            </Alert>
+          )}
+        </Paper>
+      </Grid>
+    </Grid>
+  );
+};
+
+// ---------------------------------------------------------------------------------- Module
+
+const CorrelationRegressionModuleReal = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [table, setTable] = useState(null);
 
   return (
     <ProfessionalContainer
       title={
-        <Typography variant="h4" sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <ScatterPlot sx={{ mr: 2, fontSize: 40 }} />
-          Correlation & Regression Analysis
-          <Chip
-            label="50-decimal precision"
-            color="success"
-            size="small"
-            sx={{ ml: 2 }}
-          />
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ScatterPlotIcon sx={{ mr: 2, fontSize: 40 }} />
+          Correlation &amp; Regression
         </Typography>
       }
       gradient="info"
-      enableGlassMorphism={true}
+      enableGlassMorphism
     >
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 3 }}>
         <Typography variant="h6" color="text.secondary" paragraph>
-          Explore relationships in real data with 50-decimal precision calculations
+          Correlate and model your own data. Every statistic on this page is computed by the
+          backend from the table you supply.
         </Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Chip
-            icon={<Science />}
-            label="50-Decimal Precision"
-            color="primary"
-            variant="outlined"
-          />
-          <Chip
-            icon={<School />}
-            label="Real Business Data"
-            color="secondary"
-            variant="outlined"
-          />
-          <Chip
-            icon={<Assessment />}
-            label={backendStatus === 'connected' ? 'Backend Connected' : 'Checking...'}
-            color={backendStatus === 'connected' ? 'success' : 'warning'}
-            variant="outlined"
-          />
-        </Box>
       </Box>
 
-      {/* Tabs */}
+      <NumericTableInput
+        onData={setTable}
+        title="Your data"
+        helperText="One column per variable, one row per observation. Paste a CSV or upload a file — the rows must line up across columns."
+        example={EXAMPLE_TABLE}
+        exampleLabel="Load an example table"
+      />
+
       <Paper sx={{ borderRadius: 2, mb: 3 }}>
         <Tabs
           value={activeTab}
-          onChange={handleTabChange}
+          onChange={(event, value) => setActiveTab(value)}
           variant="scrollable"
           scrollButtons="auto"
         >
-          <Tab label="Correlation Analysis" icon={<ScatterPlot />} iconPosition="start" />
-          <Tab label="Regression Modeling" icon={<AutoGraph />} iconPosition="start" />
-          <Tab label="Correlation Matrix" icon={<GridOn />} iconPosition="start" />
+          <Tab icon={<ScatterPlotIcon />} label="Correlation" />
+          <Tab icon={<AutoGraph />} label="Regression" />
+          <Tab icon={<GridOn />} label="Correlation matrix" />
         </Tabs>
       </Paper>
 
-      {/* Tab Content */}
-      <Box>
-        {activeTab === 0 && (
-          <Fade in timeout={500}>
-            <Box>
-              <InteractiveCorrelationSimulation darkMode={darkMode} />
-            </Box>
-          </Fade>
-        )}
-
-        {activeTab === 1 && (
-          <Fade in timeout={500}>
-            <Box>
-              <MultipleRegressionSimulation darkMode={darkMode} />
-            </Box>
-          </Fade>
-        )}
-
-        {activeTab === 2 && (
-          <Fade in timeout={500}>
-            <Box>
-              <CorrelationMatrixHeatmap darkMode={darkMode} />
-            </Box>
-          </Fade>
-        )}
-      </Box>
-
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification !== null}
-        autoHideDuration={6000}
-        onClose={() => setNotification(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        {notification && (
-          <Alert onClose={() => setNotification(null)} severity={notification.severity}>
-            {notification.message}
-          </Alert>
-        )}
-      </Snackbar>
+      {activeTab === 0 && <CorrelationTab table={table} />}
+      {activeTab === 1 && <RegressionTab table={table} />}
+      {activeTab === 2 && <MatrixTab table={table} />}
     </ProfessionalContainer>
   );
 };

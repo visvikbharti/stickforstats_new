@@ -2,6 +2,7 @@
 export {
   DataInput,
   FactorialDataInput,
+  NumericTableInput,
   AssumptionChecker,
   ResultDisplay,
   InterpretationPanel

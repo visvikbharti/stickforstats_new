@@ -486,6 +486,15 @@ class CorrelationRequestSerializer(serializers.Serializer):
     x = serializers.ListField(child=serializers.FloatField(), min_length=3, validators=[DataArrayValidator()])
     y = serializers.ListField(child=serializers.FloatField(), min_length=3, validators=[DataArrayValidator()])
     method = serializers.ChoiceField(choices=CORRELATION_METHODS, default="pearson")
+
+    # Top-level alias for parameters["confidence_level"]. The view reads the nested key, but
+    # the frontend sends the flag flat -- and DRF silently drops fields that are not declared,
+    # so the request quietly fell back to the 0.95 default while the UI relabelled the result
+    # "99% Confidence Interval". A wrong interval under a confident heading, which is worse
+    # than no interval. (Exactly the failure mode of the dropped `equal_variance` flag on the
+    # t-test; same fix.)
+    confidence_level = serializers.FloatField(required=False, min_value=0.5, max_value=0.9999)
+
     parameters = serializers.DictField(required=False, default=dict)
     options = serializers.DictField(required=False, default=dict)
 
@@ -493,6 +502,13 @@ class CorrelationRequestSerializer(serializers.Serializer):
         """Ensure x and y have same length"""
         if len(data["x"]) != len(data["y"]):
             raise serializers.ValidationError("x and y must have the same length")
+
+        # Fold the flat alias into the nested parameters the view actually reads. An
+        # explicitly nested value wins, so a caller using the documented form is unaffected.
+        if "confidence_level" in data:
+            parameters = dict(data.get("parameters") or {})
+            parameters.setdefault("confidence_level", data["confidence_level"])
+            data["parameters"] = parameters
         return data
 
 
