@@ -380,6 +380,9 @@ export const runPowerCalculation = async ({
   testType,
   effectSize,
   sampleSize,
+  // Unequal group sizes are a real design, and the UI has always had a "Sample Size (Group 2)"
+  // box. It was never sent: a user who entered n1 = 30, n2 = 60 was shown the power for 30/30.
+  sampleSize2 = null,
   alpha = 0.05,
   groups = 2,
   df = 1,
@@ -404,7 +407,11 @@ export const runPowerCalculation = async ({
   } else {
     body.sample_size = sampleSize;
     body.alternative = alternative;
-    if (spec.family === 't') body.test_type = spec.variant;
+    if (spec.family === 't') {
+      body.test_type = spec.variant;
+      // Only the two-sample test has a second group.
+      if (spec.variant === 'independent' && sampleSize2) body.sample_size2 = sampleSize2;
+    }
   }
 
   const results = (await post(POWER_URLS[spec.family], body)).results || {};

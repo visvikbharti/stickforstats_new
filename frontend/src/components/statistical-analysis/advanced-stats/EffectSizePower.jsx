@@ -921,7 +921,14 @@ const EffectSizePower = ({ data }) => {
                     onChange={(e) => setAlternative(e.target.value)}
                   >
                     <MenuItem value="two-sided">Two-sided</MenuItem>
-                    <MenuItem value="one-sided">One-sided</MenuItem>
+                    {/*
+                      This used to be value="one-sided". No mapping recognised that string, so it
+                      fell through the backend's `else` into a LEFT-tailed test -- the tail pointing
+                      AWAY from the effect -- and the screen reported 0.0% power for a design with
+                      88% power. A one-sided power analysis is computed in the hypothesised
+                      direction, which is "greater"; the backend now rejects anything else outright.
+                    */}
+                    <MenuItem value="greater">One-sided (in the hypothesised direction)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

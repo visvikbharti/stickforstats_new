@@ -257,6 +257,7 @@ class HighPrecisionPowerAnalysis:
         self,
         effect_size: Union[float, str],
         sample_size: Union[int, str],
+        sample_size2: Union[int, str, None] = None,
         alpha: Union[float, str] = 0.05,
         alternative: str = "two-sided",
         test_type: str = "independent",
@@ -297,8 +298,14 @@ class HighPrecisionPowerAnalysis:
 
         # Calculate degrees of freedom
         if test_type == "independent":
-            df = mpf("2") * n - mpf("2")
-            nc_factor = sqrt(n / mpf("2"))
+            # Unequal group sizes are a real design, and the UI has always offered a "Sample Size
+            # (Group 2)" box -- it was simply never sent, so a user who entered n1 = 30, n2 = 60 was
+            # shown the power for 30/30. With n1 != n2 the non-centrality is the harmonic-mean form
+            # d * sqrt(n1*n2/(n1+n2)); it collapses to d * sqrt(n/2) when they are equal, so the
+            # balanced case is unchanged.
+            n2 = self._to_high_precision(sample_size2) if sample_size2 is not None else n
+            df = n + n2 - mpf("2")
+            nc_factor = sqrt((n * n2) / (n + n2))
         elif test_type == "paired":
             df = n - mpf("1")
             nc_factor = sqrt(n)
@@ -373,25 +380,14 @@ class HighPrecisionPowerAnalysis:
         power_hp = self._to_high_precision(power)
         alpha_hp = self._to_high_precision(alpha)
 
-        # Initial approximation using normal distribution
-        if alternative == "two-sided":
-            z_alpha = self._normal_ppf(mpf("1") - alpha_hp / mpf("2"))
-        else:
-            z_alpha = self._normal_ppf(mpf("1") - alpha_hp)
-
-        z_beta = self._normal_ppf(power_hp)
-
-        # Initial sample size estimate
-        if test_type == "independent":
-            n_approx = mpf("2") * mp_power((z_alpha + z_beta) / d, mpf("2"))
-        else:
-            n_approx = mp_power((z_alpha + z_beta) / d, mpf("2"))
-
-        # Power is monotonically increasing in n, so search for the SMALLEST
-        # integer sample size whose power meets or exceeds the target. The old
-        # loop nudged n by ratios and stopped near the target, then rounded, so
-        # it could return an under-powered n (e.g. 63 instead of 64 for d=0.5,
-        # power=0.80) — silently under-powering the study.
+        # The normal closed form used to seed this search:
+        #
+        #     n_approx = 2 * ((z_alpha + z_beta) / d)^2
+        #
+        # It is gone. That is the formula which returns 63 where the answer is 64 (d = 0.5,
+        # alpha = 0.05, power = 0.80 -- the most common power analysis in the literature; at n = 63
+        # the true power is 0.795, not the 0.80 the researcher believes they have). The exact search
+        # below is cheap enough not to need a seed, and a wrong seed is a liability, not a speed-up.
         def power_at(n_int):
             res = self.calculate_power_t_test(
                 effect_size=str(d),
@@ -402,15 +398,30 @@ class HighPrecisionPowerAnalysis:
             )
             return mpf(res["power"])
 
-        n_final = max(2, int(n_approx))
-
-        # Walk up until the target is met (bounded to avoid runaway searches).
-        max_n = 10_000_000
-        while power_at(n_final) < power_hp and n_final < max_n:
-            n_final += 1
-        # Walk down to the smallest n that still meets the target.
-        while n_final > 2 and power_at(n_final - 1) >= power_hp:
-            n_final -= 1
+        # This used to be a naive linear walk:
+        #
+        #     while power_at(n_final) < power_hp and n_final < 10_000_000:
+        #         n_final += 1
+        #
+        # which assumes power always INCREASES with n. It does not. A one-sided test in the
+        # direction OPPOSITE to the effect (alternative="less" with a positive d -- offered in the
+        # UI as "One-sided (mu1 < mu2)") has power that DECREASES monotonically toward zero:
+        # 3.2e-03 at n = 10, 6.2e-38 at n = 1000. The loop condition therefore never became false
+        # and the walk ran to max_n at ~5 ms per exact evaluation -- roughly FIFTEEN HOURS of CPU
+        # pinned on a single request, from a legitimate click.
+        #
+        # `_smallest_n_meeting_power` brackets before it walks, so a design no sample size can
+        # satisfy raises immediately instead of hanging. And the answer it returns is certified by
+        # the exact power function: power(n) >= target > power(n - 1).
+        try:
+            n_final = self._smallest_n_meeting_power(power_at, power_hp, n_start=2, max_n=1_000_000)
+        except ValueError:
+            raise ValueError(
+                f"No sample size reaches a power of {float(power_hp)} for this design. A one-sided "
+                f"test in the direction opposite to the effect (alternative='{alternative}' with a "
+                f"positive effect size) LOSES power as the sample grows, so no n can satisfy it. "
+                f"Check that the alternative matches the direction of the effect you expect."
+            )
 
         # Final verification
         final_result = self.calculate_power_t_test(
@@ -501,7 +512,11 @@ class HighPrecisionPowerAnalysis:
         if df2 < 1:
             return 0.0
         lambda_nc = n_per_group * groups * effect_size * effect_size
-        return float(stats.ncf.sf(stats.f.ppf(1 - alpha, df1, df2), df1, df2, lambda_nc))
+        value = float(stats.ncf.sf(stats.f.ppf(1 - alpha, df1, df2), df1, df2, lambda_nc))
+
+        # As with the non-central t above: a non-finite value must never be returned, because every
+        # comparison against NaN is False and it would drive a search rather than stop it.
+        return value if np.isfinite(value) else None
 
     def calculate_sample_size_chi_square(
         self,
@@ -729,26 +744,58 @@ class HighPrecisionPowerAnalysis:
         if not mpf("0") < target < mpf("1"):
             raise ValueError("Power must lie strictly between 0 and 1.")
 
+        # Every test has a smallest design that can support it at all. Below that the degrees of
+        # freedom collapse (df = 0, or sqrt(n - 3) = 0 for the Fisher transform) and the search
+        # produced either a 500 or -- worse -- a NaN that reached the JSON encoder.
+        minimum_n = {"anova": 2, "correlation": 4}.get(test_type, 2)
+        if n < minimum_n:
+            raise ValueError(
+                f"A {test_type} needs at least n = {minimum_n} "
+                f"{'per group' if test_type == 'anova' else ''}"
+                f" to be defined at all; got n = {n}.".replace("  ", " ")
+            )
+
+        # A power target at or below alpha is not a target. Under the null the test already rejects
+        # at rate alpha, so ANY effect -- including no effect at all -- "achieves" it, and the
+        # bisection duly converged on an effect size of 8.7e-18 and reported it as the minimum
+        # detectable effect. That is not a small effect; it is the absence of one, dressed up as an
+        # answer.
+        if target <= alpha_hp:
+            raise ValueError(
+                f"A power target of {float(target)} is at or below alpha ({float(alpha_hp)}). The "
+                f"test already rejects the null at rate alpha when there is no effect, so no "
+                f"minimum detectable effect exists. Choose a power above alpha (0.80 is conventional)."
+            )
+
+        # Bisecting the 50-digit power here took ~60 evaluations, and one 50-digit non-central F
+        # costs ~1.5 s -- about ninety seconds of CPU per ANOVA request. The float64 non-central
+        # F/t is the SAME distribution (this was never a precision bug -- the old browser code was
+        # wrong because it used a normal APPROXIMATION, a different distribution entirely), and it
+        # agrees with the 50-digit engine to 4.4e-16. A minimum detectable effect is a design
+        # quantity reported to two or three decimals; sixteen significant figures is already far
+        # past anything that can be acted on.
         def power_at(effect):
             if test_type == "anova":
-                result = self.calculate_power_anova(
-                    effect_size=str(effect), groups=str(k), n_per_group=str(n), alpha=str(alpha_hp)
-                )
+                value = self._anova_power_float(float(effect), k, n, float(alpha_hp))
+                if value is None:
+                    # scipy could not evaluate it (very large non-centrality). Fall back to the
+                    # exact 50-digit non-central F rather than substituting a zero, which would
+                    # silently steer the bisection -- the mistake that made the t-test MDE come
+                    # back as 6.44 instead of 0.499.
+                    value = self.calculate_power_anova(
+                        effect_size=str(effect), groups=str(k), n_per_group=str(n), alpha=str(alpha_hp)
+                    )["power_float"]
             elif test_type == "correlation":
-                result = self.calculate_power_correlation(
-                    effect_size=str(effect), sample_size=str(n), alpha=str(alpha_hp), alternative=alternative
-                )
+                value = self._correlation_power_float(float(effect), n, float(alpha_hp), alternative)
+                if value is None:
+                    raise ValueError(f"Power is not defined for this correlation design (n = {n}).")
             else:
-                result = self.calculate_power_t_test(
-                    effect_size=str(effect),
-                    sample_size=str(n),
-                    alpha=str(alpha_hp),
-                    alternative=alternative,
-                    test_type=t_test_type,
-                )
-            return mpf(result["power"])
+                value = self._t_power_float(float(effect), n, float(alpha_hp), t_test_type, alternative)
+                if value is None:
+                    raise ValueError(f"Power is not defined for this t-test design (n = {n}).")
+            return mpf(value)
 
-        # A correlation cannot exceed 1; the standardized effect sizes are unbounded in principle
+        # A correlation cannot exceed 1; the standardized effect sizes are unbounded in principle,
         # but 10 is far past any real design.
         hi = mpf("0.999999") if test_type == "correlation" else mpf("10")
         lo = mpf("0")
@@ -759,9 +806,10 @@ class HighPrecisionPowerAnalysis:
                 "The sample is too small to detect any effect at this power."
             )
 
-        # 60 bisections resolves the effect to ~1e-17 -- far finer than any effect size is
-        # meaningfully reported.
-        for _ in range(60):
+        # Power is monotone increasing in the effect size, so bisect for the boundary. 100 steps
+        # narrows a bracket of width 10 to ~1e-29, which is already far past what float64 can
+        # resolve -- there is nothing to gain from more.
+        for _ in range(100):
             mid = (lo + hi) / 2
             if power_at(mid) >= target:
                 hi = mid
@@ -769,6 +817,9 @@ class HighPrecisionPowerAnalysis:
                 lo = mid
 
         achieved = power_at(hi)
+        if not mp.isfinite(hi) or not mp.isfinite(achieved):
+            raise ValueError("The minimum detectable effect is not defined for this design.")
+
         return {
             "minimum_detectable_effect": str(hi),
             "minimum_detectable_effect_float": float(hi),
@@ -779,6 +830,7 @@ class HighPrecisionPowerAnalysis:
             "alpha": float(alpha_hp),
             "test_type": test_type,
             "groups": k if test_type == "anova" else None,
+            "precision": "float64 (exact non-central distribution)",
             "note": (
                 "This is the smallest true effect the design could detect at the stated power. "
                 "It is reported instead of observed (post-hoc) power, which is a monotone "
@@ -805,9 +857,23 @@ class HighPrecisionPowerAnalysis:
     # goes NEGATIVE for small effects, so it takes the square root of a negative number, and the
     # resulting NaN was rendered to the user as a confident "Underpowered (< 80%)".
 
-    @staticmethod
-    def _t_power_float(effect_size, n_per_group, alpha, test_type="independent", alternative="two-sided"):
-        """Exact non-central t power, float64. Curve rendering only."""
+    def _t_power_float(self, effect_size, n_per_group, alpha, test_type="independent", alternative="two-sided"):
+        """
+        Non-central t power in float64, with an exact fallback.
+
+        scipy's `nct` returns **NaN** once the non-centrality gets large -- at n = 64 that is any
+        Cohen's d above roughly 1.5, which is an ordinary effect size, not an exotic one. NaN then
+        propagates silently, because every comparison against it is False:
+
+          - it drove the minimum-detectable-effect bisection, which returned d = 6.44 (the edge of
+            the NaN region) where the answer is 0.499;
+          - and it dropped the high-effect end off every power curve, since a non-finite point is
+            filtered out.
+
+        So a non-finite result is never returned. It falls back to the module's own 50-digit
+        non-central t (Algorithm AS 243), which has no such limit. The fallback is only reached in
+        the region where scipy fails, so the common path stays fast.
+        """
         if test_type == "independent":
             df = 2 * n_per_group - 2
             ncp = effect_size * np.sqrt(n_per_group / 2.0)
@@ -819,9 +885,29 @@ class HighPrecisionPowerAnalysis:
 
         if alternative == "two-sided":
             crit = stats.t.ppf(1 - alpha / 2, df)
-            return float(stats.nct.sf(crit, df, ncp) + stats.nct.cdf(-crit, df, ncp))
-        crit = stats.t.ppf(1 - alpha, df)
-        return float(stats.nct.sf(crit, df, ncp))
+            value = float(stats.nct.sf(crit, df, ncp) + stats.nct.cdf(-crit, df, ncp))
+        elif alternative == "less":
+            crit = stats.t.ppf(alpha, df)
+            value = float(stats.nct.cdf(crit, df, ncp))
+        else:  # greater
+            crit = stats.t.ppf(1 - alpha, df)
+            value = float(stats.nct.sf(crit, df, ncp))
+
+        if np.isfinite(value):
+            return value
+
+        return float(self._t_power_exact(effect_size, n_per_group, alpha, test_type, alternative))
+
+    def _t_power_exact(self, effect_size, n_per_group, alpha, test_type, alternative):
+        """50-digit non-central t power (AS 243). The fallback for scipy's NaN region."""
+        result = self.calculate_power_t_test(
+            effect_size=str(effect_size),
+            sample_size=str(n_per_group),
+            alpha=str(alpha),
+            alternative=alternative,
+            test_type=test_type,
+        )
+        return mpf(result["power"])
 
     @staticmethod
     def _correlation_power_float(effect_size, n, alpha, alternative="two-sided"):
@@ -914,7 +1000,11 @@ class HighPrecisionPowerAnalysis:
             return mpf(result["power"])
 
         def guide_power_at(n_int):
-            return mpf(self._anova_power_float(float(f), k, n_int, float(alpha_hp)))
+            # The guide only brackets; the exact function certifies. If scipy cannot evaluate a
+            # point, treat it as "not yet at target" so the bracket keeps widening -- it can never
+            # decide the answer on its own.
+            value = self._anova_power_float(float(f), k, n_int, float(alpha_hp))
+            return mpf(value) if value is not None else mpf("0")
 
         n_final = self._smallest_n_meeting_power(
             exact_power_at, power_hp, guide_power_at=guide_power_at, n_start=2

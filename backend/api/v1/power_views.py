@@ -123,6 +123,74 @@ T_TEST_TYPES = {
 }
 
 
+ALTERNATIVES = {
+    "two_sided": "two-sided",
+    "twosided": "two-sided",
+    "two.sided": "two-sided",
+    "both": "two-sided",
+    "not_equal": "two-sided",
+    "ne": "two-sided",
+    "!=": "two-sided",
+    "2_sided": "two-sided",
+    # A one-sided power analysis is conventionally computed in the HYPOTHESISED direction, which is
+    # "greater". "one-sided" on its own does not name a tail, so it must resolve to that -- never to
+    # "less", which is the tail AWAY from the effect.
+    "one_sided": "greater",
+    "onesided": "greater",
+    "one.sided": "greater",
+    "1_sided": "greater",
+    "greater": "greater",
+    "larger": "greater",
+    "gt": "greater",
+    ">": "greater",
+    "less": "less",
+    "smaller": "less",
+    "lt": "less",
+    "<": "less",
+}
+
+
+def canonical_alternative(value):
+    """
+    Canonicalize `alternative`, and REJECT anything unrecognized.
+
+    This is the same bug as `canonical_t_test_type` below, on a different parameter, and it was
+    still live after that one was fixed.
+
+    calculate_power_t_test branches:
+
+        if alternative == "two-sided":  ...
+        elif alternative == "greater":  ...
+        else:  # less                   <-- everything unrecognized lands HERE
+
+    and the Effect Size & Power tab's own menu offered the literal string "one-sided". That string
+    is in no mapping, so it fell into the `else` and was computed as a LEFT-tailed test -- the tail
+    pointing away from the effect. For d = 0.5, n = 64, alpha = 0.05:
+
+        two-sided:   power = 0.8015
+        greater:     power = 0.8787   <- what the user asked for
+        "one-sided": power = 0.0000041   <- what they were shown
+
+    The screen reported "0.0% power, Underpowered" for a design with 88% power.
+
+    Worse, it was not only a wrong number. A left-tailed test against a positive effect LOSES power
+    as n grows (6.2e-38 at n = 1000), so the sample-size solver's search for "the smallest n that
+    reaches 80%" could never terminate -- roughly fifteen hours of CPU on one request. That search
+    is now bracketed, but the real fix is here: a value we do not understand is a 400, not a guess.
+    """
+    if value is None:
+        return "two-sided"
+
+    canonical = ALTERNATIVES.get(str(value).strip().lower().replace("-", "_"))
+    if canonical is None:
+        raise InvalidPowerParameter(
+            f"Unrecognized alternative {value!r}. Use 'two-sided', 'greater', or 'less'. An "
+            f"unrecognized value used to be silently treated as a LEFT-tailed test, which reports a "
+            f"power near zero for an effect in the opposite direction."
+        )
+    return canonical
+
+
 def canonical_t_test_type(value):
     """
     Canonicalize the t-test variant, and REJECT anything unrecognized.
@@ -190,8 +258,9 @@ def calculate_power_t_test(request):
         result = power_calculator.calculate_power_t_test(
             effect_size=data["effect_size"],
             sample_size=data["sample_size"],
+            sample_size2=data.get("sample_size2"),
             alpha=data.get("alpha", 0.05),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
             test_type=canonical_t_test_type(data.get("test_type")),
         )
 
@@ -202,7 +271,7 @@ def calculate_power_t_test(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -240,7 +309,7 @@ def calculate_sample_size_t_test(request):
             effect_size=data["effect_size"],
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
             test_type=canonical_t_test_type(data.get("test_type")),
         )
 
@@ -250,7 +319,7 @@ def calculate_sample_size_t_test(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -288,7 +357,7 @@ def calculate_effect_size_t_test(request):
             sample_size=data["sample_size"],
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
             test_type=canonical_t_test_type(data.get("test_type")),
         )
 
@@ -298,7 +367,7 @@ def calculate_effect_size_t_test(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -372,7 +441,7 @@ def calculate_power_nonparametric(request):
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),
             parent_distribution=data.get("parent_distribution", "normal"),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
         )
         return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
 
@@ -404,7 +473,7 @@ def calculate_sample_size_nonparametric(request):
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),
             parent_distribution=data.get("parent_distribution", "normal"),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
         )
         return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
 
@@ -443,12 +512,14 @@ def minimum_detectable_effect(request):
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
             t_test_type=canonical_t_test_type(data.get("t_test_type")),
         )
-        return Response(
-            {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
-        )
+        # No "50 decimal places" claim here: this is bisected on the float64 non-central
+        # distribution (see the engine). It is the same distribution, agreeing with the 50-digit
+        # path to 4.4e-16 -- but it is not fifty digits, and saying so would be the same kind of
+        # overclaim this work exists to remove.
+        return Response({"success": True, "results": result}, status=status.HTTP_200_OK)
 
     except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -489,7 +560,7 @@ def power_curve(request):
             effect_size=data["effect_size"],
             alpha=data.get("alpha", 0.05),
             groups=data.get("groups", 2),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
             n_min=data.get("n_min", 5),
             n_max=data.get("n_max", 200),
             step=data.get("step", 5),
@@ -577,7 +648,7 @@ def calculate_sample_size_correlation(request):
             effect_size=data["effect_size"],
             power=data.get("power", 0.8),
             alpha=data.get("alpha", 0.05),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
         )
 
         logger.info(f"Correlation sample size calculation completed for user {request.user.id}")
@@ -632,7 +703,7 @@ def calculate_power_anova(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -669,7 +740,7 @@ def calculate_power_correlation(request):
             effect_size=data["effect_size"],
             sample_size=data["sample_size"],
             alpha=data.get("alpha", 0.05),
-            alternative=data.get("alternative", "two-sided"),
+            alternative=canonical_alternative(data.get("alternative")),
         )
 
         logger.info(f"Correlation power calculation completed for user {request.user.id}")
@@ -678,7 +749,7 @@ def calculate_power_correlation(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -724,7 +795,7 @@ def calculate_power_chi_square(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -779,7 +850,7 @@ def create_power_curves(request):
             status=status.HTTP_200_OK,
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -825,7 +896,7 @@ def optimal_allocation(request):
             {"success": True, "results": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -890,7 +961,7 @@ def sensitivity_analysis(request):
             status=status.HTTP_200_OK,
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
@@ -935,7 +1006,7 @@ def comprehensive_power_report(request):
             {"success": True, "report": result, "precision": "50 decimal places"}, status=status.HTTP_200_OK
         )
 
-    except InvalidPowerParameter as e:
+    except (InvalidPowerParameter, ValueError) as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:

@@ -233,6 +233,57 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
   // Get current test configuration
   const currentTest = TEST_TYPES[testType];
 
+  // NOTE: this must be declared BEFORE calculatePower. It is named in calculatePower's dependency
+  // array, and a dependency array is an ordinary argument -- it is evaluated during render, at the
+  // useCallback call. With the declaration below, that read hit the temporal dead zone and threw
+  // `ReferenceError: Cannot access 'buildPowerCurves' before initialization` on EVERY render, so
+  // the whole Power Analysis Tool white-screened. (CI's eslint does not lint .jsx, so nothing
+  // caught it; the same TDZ class crashed three other components earlier this month.)
+  /**
+   * Three exact power curves -- small, medium and large effect -- from the backend.
+   *
+   * The old version called the browser engine per point and wrote `|| 0` into any point whose
+   * power failed to compute, plotting a FAILED calculation as a power of zero.
+   */
+  // Cohen's benchmarks for THIS test. The chart reads the same value, so its data keys and the
+  // keys we fetch can no longer drift apart.
+  const usesCohensF = currentTest.effectSizeLabel.includes('f');
+  const curveBenchmarks = CURVE_BENCHMARKS[usesCohensF ? 'f' : 'd'];
+  const effectSizeSymbol = usesCohensF ? 'f' : 'd';
+
+  const buildPowerCurves = useCallback(async () => {
+    if (!isPowerTestSupported(testType)) return null;
+
+    const benchmarks = curveBenchmarks;
+
+    const series = await Promise.all(
+      benchmarks.map((es) =>
+        runPowerCurve({
+          testType,
+          effectSize: es,
+          alpha,
+          groups: numGroups,
+          alternative,
+          nMin: 10,
+          nMax: 500,
+          step: 10,
+        }).then((points) => ({ es, points }))
+      )
+    );
+
+    // Merge the three series on n. A point missing from a series stays missing -- it is not
+    // plotted at zero.
+    const byN = new Map();
+    for (const { es, points } of series) {
+      for (const point of points) {
+        if (!byN.has(point.n)) byN.set(point.n, { n: point.n });
+        byN.get(point.n)[`d_${es}`] = point.power;
+      }
+    }
+
+    return [...byN.values()].sort((a, b) => a.n - b.n);
+  }, [testType, alpha, alternative, numGroups, curveBenchmarks]);
+
   /**
    * All three modes now run on the backend, against the exact non-central distributions.
    *
@@ -273,12 +324,19 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
       let result;
 
       if (calculationMode === 'power') {
-        const backend = await runPowerCalculation({ ...common, sampleSize });
+        const backend = await runPowerCalculation({
+          ...common,
+          sampleSize,
+          // The "Sample Size (Group 2)" box was collected and then dropped on the floor.
+          sampleSize2: testType === 'two-sample-t' ? sampleSize2 : null,
+        });
         result = {
           mode: 'power',
           power: backend.power,
           beta: backend.beta,
           ncp: backend.nonCentrality,
+          criticalValue: backend.criticalValue,
+          interpretation: backend.interpretation,
           totalN: backend.groups ? sampleSize * backend.groups : sampleSize,
           are: backend.are ?? null,
           parentDistribution: backend.parentDistribution ?? null,
@@ -308,7 +366,12 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
         result = {
           mode: 'effectSize',
           effectSize: backend.effect,
-          interpretation: backend.interpretation,
+          // The chip below wants a benchmark WORD. `backend.note` is a paragraph, and setting it
+          // here rendered the whole Hoenig & Heisey explanation as a chip label.
+          interpretation:
+            backend.effect === null
+              ? null
+              : interpretEffectSize(backend.effect, usesCohensF ? 'cohens_f' : 'cohens_d'),
           sampleSize,
           power: backend.achievedPower,
         };
@@ -336,47 +399,9 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     } finally {
       setIsCalculating(false);
     }
-  }, [calculationMode, testType, alpha, power, effectSize, sampleSize,
-      numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves]);
-
-  /**
-   * Three exact power curves -- small, medium and large effect -- from the backend.
-   *
-   * The old version called the browser engine per point and wrote `|| 0` into any point whose
-   * power failed to compute, plotting a FAILED calculation as a power of zero.
-   */
-  const buildPowerCurves = useCallback(async () => {
-    if (!isPowerTestSupported(testType)) return null;
-
-    const benchmarks = CURVE_BENCHMARKS[currentTest.effectSizeLabel.includes('f') ? 'f' : 'd'];
-
-    const series = await Promise.all(
-      benchmarks.map((es) =>
-        runPowerCurve({
-          testType,
-          effectSize: es,
-          alpha,
-          groups: numGroups,
-          alternative,
-          nMin: 10,
-          nMax: 500,
-          step: 10,
-        }).then((points) => ({ es, points }))
-      )
-    );
-
-    // Merge the three series on n. A point missing from a series stays missing -- it is not
-    // plotted at zero.
-    const byN = new Map();
-    for (const { es, points } of series) {
-      for (const point of points) {
-        if (!byN.has(point.n)) byN.set(point.n, { n: point.n });
-        byN.get(point.n)[`d_${es}`] = point.power;
-      }
-    }
-
-    return [...byN.values()].sort((a, b) => a.n - b.n);
-  }, [testType, alpha, alternative, numGroups, currentTest]);
+  }, [calculationMode, testType, alpha, power, effectSize, sampleSize, sampleSize2,
+      numGroups, degreesOfFreedom, alternative, parentDistribution, currentTest, buildPowerCurves,
+      usesCohensF]);
 
   /**
    * Reset all inputs to defaults
@@ -430,6 +455,12 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
    * Get interpretation of power level
    */
   const getPowerInterpretation = (powerValue) => {
+    // Every `>=` comparison against null is false, so a MISSING power used to fall all the way
+    // through to "Very Low -- Likely underpowered study". That is a verdict about a study,
+    // delivered with total confidence, by a calculation that failed.
+    if (powerValue === null || powerValue === undefined || Number.isNaN(powerValue)) {
+      return { level: 'Not computed', color: theme.palette.text.secondary, description: 'Power is not defined for this design' };
+    }
     if (powerValue >= 0.95) return { level: 'Excellent', color: theme.palette.success.dark, description: 'Very high probability of detecting effect' };
     if (powerValue >= 0.80) return { level: 'Adequate', color: theme.palette.success.main, description: 'Standard convention for most research' };
     if (powerValue >= 0.60) return { level: 'Moderate', color: theme.palette.warning.main, description: 'Acceptable for exploratory research' };
@@ -668,7 +699,15 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                   InputProps={{ inputProps: { min: 2 } }}
                 />
 
-                {(testType === 'two-sample-t' || testType === 'mann-whitney') && (
+                {/*
+                  Shown only for the two-sample t-test, which is the one test here whose power we
+                  can actually compute for unequal groups (non-centrality d*sqrt(n1*n2/(n1+n2))).
+                  It used to be shown for Mann-Whitney as well, and in both cases the value was
+                  collected and then never sent: enter n1 = 30, n2 = 60 and you were shown the
+                  power for 30/30. A field that does nothing is worse than no field, because the
+                  user believes they have told us something.
+                */}
+                {testType === 'two-sample-t' && (
                   <TextField
                     fullWidth
                     label="Sample Size (Group 2)"
@@ -677,6 +716,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     onChange={(e) => setSampleSize2(parseInt(e.target.value) || 0)}
                     sx={{ mb: 2 }}
                     InputProps={{ inputProps: { min: 2 } }}
+                    helperText="Leave equal to Group 1 for a balanced design."
                   />
                 )}
               </>
@@ -900,7 +940,10 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                           {calculationMode === 'effectSize' ? fx(results.effectSize, 3) : effectSize}
                         </TableCell>
                       </TableRow>
-                      {results.ncp !== undefined && (
+                      {/* `!== undefined` does NOT catch null, and null.toFixed(4) is a TypeError that
+                          unmounts the page. The correlation and rank-test endpoints return no
+                          non-centrality at all, so this crashed for four of the nine tests. */}
+                      {results.ncp != null && (
                         <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>Noncentrality Parameter (λ)</TableCell>
                           <TableCell>{results.ncp.toFixed(4)}</TableCell>
@@ -938,7 +981,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
               </Paper>
 
               {/* Power Curve Visualization */}
-              {powerCurveData && (
+              {powerCurveData && powerCurveData.length > 0 && (
                 <Paper elevation={2} sx={{ p: 3 }}>
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                     Power Curves by Effect Size
@@ -965,30 +1008,22 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                       />
                       <Legend />
                       <ReferenceLine y={0.8} stroke={theme.palette.text.secondary} strokeDasharray="5 5" label="80%" />
-                      <Line
-                        type="monotone"
-                        dataKey="d_0.2"
-                        stroke={theme.palette.primary.light}
-                        strokeWidth={2}
-                        name="Small (d=0.2)"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="d_0.5"
-                        stroke={theme.palette.primary.main}
-                        strokeWidth={2}
-                        name="Medium (d=0.5)"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="d_0.8"
-                        stroke={theme.palette.primary.dark}
-                        strokeWidth={2}
-                        name="Large (d=0.8)"
-                        dot={false}
-                      />
+                      {/* The data keys follow CURVE_BENCHMARKS, which is [0.1, 0.25, 0.4] for
+                          Cohen's f and [0.2, 0.5, 0.8] for Cohen's d. These <Line> elements used to
+                          hardcode the d keys, so every ANOVA and Kruskal-Wallis curve rendered as
+                          an empty chart: axes, a legend naming three effect sizes, and no lines. */}
+                      {curveBenchmarks.map((es, index) => (
+                        <Line
+                          key={es}
+                          type="monotone"
+                          dataKey={`d_${es}`}
+                          stroke={[theme.palette.primary.light, theme.palette.primary.main, theme.palette.primary.dark][index]}
+                          strokeWidth={2}
+                          name={`${['Small', 'Medium', 'Large'][index]} (${effectSizeSymbol} = ${es})`}
+                          dot={false}
+                          connectNulls={false}
+                        />
+                      ))}
                     </ComposedChart>
                   </ResponsiveContainer>
                 </Paper>
@@ -1041,7 +1076,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
                     With n={sampleSize} and {(power * 100).toFixed(0)}% power at α={alpha},
                     your study can reliably detect effects of{' '}
                     {fx(results.effectSize, 2)}
-                    {results.effectSize != null && ` (${interpretEffectSize(results.effectSize, 'cohens_d').level ?? ''})`} or larger.
+                    {results.interpretation && ` (${results.interpretation})`} or larger.
                     Smaller effects may go undetected.
                     <br />
                     <br />
