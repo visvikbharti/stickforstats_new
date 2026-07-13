@@ -453,6 +453,19 @@ class GuardianCore:
         GuardianReport : Complete assessment with recommendations
         """
 
+        # A categorical test hands us a contingency TABLE plus string category
+        # labels -- not numeric group arrays. Normality, variance homogeneity and
+        # skewness are meaningless on that payload, and _prepare_data would build
+        # a 2-D array and two string arrays that took _summarize_data down with
+        # "only 0-dimensional arrays can be converted to Python scalars" -- a 500
+        # that made the Guardian silently unavailable on every chi-square. Route
+        # it instead to the assumption that actually governs a chi-square test:
+        # the expected cell frequencies (Cochran's rule).
+        if test_type in self._CONTINGENCY_TESTS:
+            observed = self._extract_contingency(data)
+            if observed is not None:
+                return self._check_contingency(observed, test_type)
+
         # Prepare data
         data_arrays = self._prepare_data(data)
 
@@ -667,21 +680,189 @@ class GuardianCore:
             return [np.array(data)]
 
     def _summarize_data(self, data_arrays: List[np.ndarray]) -> Dict[str, Any]:
-        """Create summary statistics for the data"""
+        """
+        Create summary statistics for the data.
+
+        Deliberately defensive: a non-numeric or multi-dimensional array (e.g. the
+        string category labels a categorical payload carries alongside its table)
+        must never take the whole check down with a 500. Summarise what can be
+        summarised and record why the rest could not be.
+        """
         summary = {}
         for i, arr in enumerate(data_arrays):
             key = f"group_{i+1}" if len(data_arrays) > 1 else "data"
-            summary[key] = {
-                "n": len(arr),
-                "mean": float(np.mean(arr)),
-                "std": float(np.std(arr, ddof=1)),
-                "median": float(np.median(arr)),
-                "min": float(np.min(arr)),
-                "max": float(np.max(arr)),
-                "skewness": float(stats.skew(arr)),
-                "kurtosis": float(stats.kurtosis(arr)),
-            }
+            try:
+                flat = np.asarray(arr, dtype=float).ravel()
+                flat = flat[np.isfinite(flat)]
+                if flat.size == 0:
+                    raise ValueError("no finite numeric values")
+                summary[key] = {
+                    "n": int(flat.size),
+                    "mean": float(np.mean(flat)),
+                    "std": float(np.std(flat, ddof=1)) if flat.size > 1 else 0.0,
+                    "median": float(np.median(flat)),
+                    "min": float(np.min(flat)),
+                    "max": float(np.max(flat)),
+                    "skewness": float(stats.skew(flat)),
+                    "kurtosis": float(stats.kurtosis(flat)),
+                }
+            except (TypeError, ValueError) as exc:
+                summary[key] = {
+                    "n": int(np.size(arr)),
+                    "note": f"not summarisable as numeric data ({exc})",
+                }
         return summary
+
+    # Tests whose payload is a contingency table rather than numeric samples.
+    _CONTINGENCY_TESTS = {
+        "chi_square",
+        "chi_squared",
+        "chisquare",
+        "chi_square_independence",
+        "fisher_exact",
+    }
+
+    @staticmethod
+    def _extract_contingency(data) -> Optional[np.ndarray]:
+        """
+        Pull a 2-D numeric contingency table out of a categorical payload.
+
+        The frontend sends {observed: [[a, b], [c, d]], categories1: [...],
+        categories2: [...]} where the category arrays are strings. Returns None
+        when there is no usable table, so the caller can fall back to the normal
+        numeric path rather than guessing.
+        """
+        table = None
+        if isinstance(data, dict):
+            for key in ("observed", "table", "contingency_table", "counts"):
+                if key in data:
+                    table = data[key]
+                    break
+        elif isinstance(data, (list, tuple, np.ndarray)):
+            table = data
+
+        if table is None:
+            return None
+        try:
+            arr = np.asarray(table, dtype=float)
+        except (TypeError, ValueError):
+            return None
+        if arr.ndim != 2 or arr.size == 0:
+            return None
+        if not np.all(np.isfinite(arr)) or np.any(arr < 0):
+            return None
+        return arr
+
+    def _check_contingency(self, observed: np.ndarray, test_type: str) -> GuardianReport:
+        """
+        Guardian check for a chi-square test of independence.
+
+        The assumption that actually governs the chi-square approximation is the
+        expected cell frequency, not normality. Cochran's rule: no expected count
+        may fall below 1, and at most 20% of cells may fall below 5 (for a 2x2,
+        every cell must reach 5). Violating it is exactly when Fisher's exact test
+        should be used instead.
+
+        Reference: Cochran, W.G. (1954). "Some methods for strengthening the
+        common chi-square tests." Biometrics 10(4): 417-451.
+        """
+        now_iso = datetime.now(timezone.utc).isoformat()
+        citation = "Cochran (1954), Biometrics 10(4):417-451"
+        violations: List[AssumptionViolation] = []
+        audit_trail: List[GuardianAuditEntry] = []
+
+        n = float(observed.sum())
+        if n > 0:
+            row_totals = observed.sum(axis=1, keepdims=True)
+            col_totals = observed.sum(axis=0, keepdims=True)
+            expected = (row_totals @ col_totals) / n
+        else:
+            expected = np.zeros_like(observed)
+
+        n_cells = int(expected.size)
+        min_expected = float(expected.min()) if n_cells else 0.0
+        cells_below_5 = int(np.sum(expected < 5))
+        pct_below_5 = (cells_below_5 / n_cells) if n_cells else 0.0
+        is_2x2 = observed.shape == (2, 2)
+
+        if min_expected < 1 or (is_2x2 and min_expected < 5):
+            severity = "critical"
+        elif pct_below_5 > 0.20:
+            severity = "warning"
+        else:
+            severity = None
+
+        if severity:
+            recommendation = (
+                "Use Fisher's exact test instead."
+                if is_2x2
+                else "Collapse sparse categories, or use an exact / Monte-Carlo chi-square test."
+            )
+            violations.append(
+                AssumptionViolation(
+                    assumption="expected_frequencies",
+                    test_name="Cochran's expected-frequency rule",
+                    severity=severity,
+                    p_value=None,
+                    statistic=round(min_expected, 4),
+                    message=(
+                        f"{cells_below_5} of {n_cells} cells have an expected frequency "
+                        f"below 5 (smallest expected = {min_expected:.2f}). The chi-square "
+                        f"approximation is unreliable for this table."
+                    ),
+                    recommendation=recommendation,
+                )
+            )
+
+        audit_trail.append(
+            GuardianAuditEntry(
+                timestamp=now_iso,
+                assumption="expected_frequencies",
+                test_performed="Cochran's expected-frequency rule",
+                result="violation" if severity else "pass",
+                severity=severity or "none",
+                citation=citation,
+            )
+        )
+
+        # Independence of observations cannot be recovered from a collapsed
+        # contingency table -- it is a property of how the data were collected.
+        # Say so, rather than certifying an untested assumption as "satisfied".
+        audit_trail.append(
+            GuardianAuditEntry(
+                timestamp=now_iso,
+                assumption="independence",
+                test_performed="N/A - determined by study design",
+                result="not_applicable",
+                severity="none",
+            )
+        )
+
+        alternatives: List[str] = []
+        if violations:
+            alternatives = (
+                ["fisher_exact"] if is_2x2 else ["fisher_exact", "monte_carlo_chi_square"]
+            )
+
+        return GuardianReport(
+            test_type=test_type,
+            data_summary={
+                "table_shape": [int(d) for d in observed.shape],
+                "n": int(n),
+                "n_cells": n_cells,
+                "min_expected_frequency": round(min_expected, 4),
+                "cells_below_5": cells_below_5,
+            },
+            assumptions_checked=["expected_frequencies", "independence"],
+            violations=violations,
+            can_proceed=not any(v.severity == "critical" for v in violations),
+            alternative_tests=alternatives,
+            confidence_score=self._calculate_confidence(violations),
+            visual_evidence={},
+            effect_size_report=None,
+            audit_trail=audit_trail,
+            context_adjustments_applied=False,
+        )
 
     def _normalize_design(
         self,
