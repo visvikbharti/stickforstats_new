@@ -1,6 +1,9 @@
 import {
   adaptAnovaResponse,
   adaptPostHocResults,
+  adaptRepeatedMeasuresResponse,
+  adaptTwoWayResponse,
+  buildTwoWayCells,
   formatPValue,
   formatStat,
 } from '../anovaResultAdapter';
@@ -192,5 +195,134 @@ describe('formatStat', () => {
     expect(formatStat(3.45678, 3)).toBe('3.457');
     expect(formatStat(null, 3)).toBe('—');
     expect(formatStat(Infinity, 3)).toBe('—');
+  });
+});
+
+/**
+ * Two-way and repeated-measures ANOVA have been implemented and cross-validated in the
+ * backend for months (two-way vs pingouin, repeated-measures vs statsmodels AnovaRM), and
+ * the module's own Theory tab teaches both designs -- but the Analysis tab hard-coded
+ * anova_type: 'one_way' and presented the three designs as three decorative <Chip>s. To a
+ * user that looked exactly like a toggle group with two broken options, which is precisely
+ * how it was reported.
+ */
+describe('adaptTwoWayResponse', () => {
+  const payload = {
+    high_precision_result: {
+      anova_type: 'two_way',
+      design: {
+        factor1_n_levels: 2,
+        factor2_n_levels: 2,
+        balanced: true,
+        cell_sizes: [3, 3, 3, 3],
+        n_total: 12,
+        sum_of_squares_type: 2,
+        interaction: true,
+      },
+      effects: [
+        { name: 'factor1', f_statistic: 4.2, p_value: 0.074, df: 1, df_residual: 8, sum_of_squares: 10.5, mean_square: 10.5, partial_eta_squared: 0.344 },
+        { name: 'factor2', f_statistic: 96.3, p_value: 9.7e-6, df: 1, df_residual: 8, sum_of_squares: 240.1, mean_square: 240.1, partial_eta_squared: 0.923 },
+        { name: 'interaction', f_statistic: 18.7, p_value: 0.0025, df: 1, df_residual: 8, sum_of_squares: 46.6, mean_square: 46.6, partial_eta_squared: 0.700 },
+      ],
+      r_squared: 0.94,
+      adjusted_r_squared: 0.91,
+    },
+  };
+
+  it('exposes every effect, not just the first', () => {
+    const result = adaptTwoWayResponse(payload);
+    expect(result.design).toBe('two_way');
+    expect(result.effects.map((e) => e.key)).toEqual(['factor1', 'factor2', 'interaction']);
+  });
+
+  it('flags significance per effect', () => {
+    const { effects } = adaptTwoWayResponse(payload);
+    expect(effects.find((e) => e.key === 'factor1').significant).toBe(false);
+    expect(effects.find((e) => e.key === 'factor2').significant).toBe(true);
+    expect(effects.find((e) => e.key === 'interaction').significant).toBe(true);
+  });
+
+  it('carries the design metadata a reader needs to judge the fit', () => {
+    const result = adaptTwoWayResponse(payload);
+    expect(result.balanced).toBe(true);
+    expect(result.sumOfSquaresType).toBe(2);
+    expect(result.nTotal).toBe(12);
+    expect(result.modelRSquared).toBeCloseTo(0.94);
+  });
+
+  it('throws rather than rendering an empty table when the server returns nothing', () => {
+    expect(() => adaptTwoWayResponse({})).toThrow(/no two-way ANOVA result/i);
+  });
+});
+
+describe('adaptRepeatedMeasuresResponse', () => {
+  const build = (spherical) => ({
+    high_precision_result: {
+      anova_type: 'repeated_measures',
+      n_subjects: 10,
+      n_conditions: 3,
+      f_statistic: 12.4,
+      p_value: 0.0003,
+      df_between: 2,
+      df_within: 18,
+      partial_eta_squared: 0.58,
+      sphericity: {
+        mauchly_w: spherical ? 0.91 : 0.42,
+        chi_square: spherical ? 0.8 : 7.6,
+        df: 2,
+        p_value: spherical ? 0.67 : 0.022,
+        assumption_met: spherical,
+      },
+      greenhouse_geisser: { epsilon: spherical ? 0.95 : 0.63, p_value: spherical ? 0.0004 : 0.0031 },
+      recommended_p_value: spherical ? 0.0003 : 0.0031,
+      recommended_p_basis: spherical ? 'uncorrected' : 'greenhouse_geisser',
+    },
+  });
+
+  it('reports the uncorrected p when sphericity holds', () => {
+    const result = adaptRepeatedMeasuresResponse(build(true));
+    expect(result.sphericity.assumption_met).toBe(true);
+    expect(result.recommended_p_basis).toBe('uncorrected');
+    expect(result.recommended_p_value).toBeCloseTo(0.0003);
+  });
+
+  it('switches to the Greenhouse-Geisser p when sphericity is violated', () => {
+    // Reporting the uncorrected F under a sphericity violation inflates the Type I error
+    // rate -- which is exactly the mistake a user makes when the tool does not tell them.
+    const result = adaptRepeatedMeasuresResponse(build(false));
+    expect(result.sphericity.assumption_met).toBe(false);
+    expect(result.recommended_p_basis).toBe('greenhouse_geisser');
+    expect(result.recommended_p_value).toBeCloseTo(0.0031);
+    expect(result.recommended_p_value).toBeGreaterThan(result.p_value);
+    expect(result.greenhouse_geisser.epsilon).toBeCloseTo(0.63);
+  });
+});
+
+describe('buildTwoWayCells', () => {
+  const rows = [
+    { value: 21.4, factor1: 'A', factor2: 'low' },
+    { value: 23.1, factor1: 'A', factor2: 'low' },
+    { value: 27.6, factor1: 'A', factor2: 'high' },
+    { value: 18.2, factor1: 'B', factor2: 'low' },
+    { value: 30.1, factor1: 'B', factor2: 'high' },
+    { value: 31.8, factor1: 'B', factor2: 'high' },
+  ];
+
+  it('lays the cells out in the row-major order the backend expects', () => {
+    // two_way_anova indexes groups[i * n2 + j] for (factor1_levels[i], factor2_levels[j]).
+    const { cells, factor1Levels, factor2Levels } = buildTwoWayCells(rows);
+    expect(factor1Levels).toEqual(['A', 'B']);
+    expect(factor2Levels).toEqual(['low', 'high']);
+    expect(cells).toEqual([[21.4, 23.1], [27.6], [18.2], [30.1, 31.8]]);
+  });
+
+  it('refuses an empty cell rather than sending an inestimable design', () => {
+    const missing = rows.filter((r) => !(r.factor1 === 'B' && r.factor2 === 'low'));
+    expect(() => buildTwoWayCells(missing)).toThrow(/B x low/);
+  });
+
+  it('requires at least two levels per factor', () => {
+    const oneLevel = rows.map((r) => ({ ...r, factor1: 'A' }));
+    expect(() => buildTwoWayCells(oneLevel)).toThrow(/at least 2 levels/i);
   });
 });

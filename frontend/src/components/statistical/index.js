@@ -1,6 +1,7 @@
 // Core Components
 export {
   DataInput,
+  FactorialDataInput,
   AssumptionChecker,
   ResultDisplay,
   InterpretationPanel
