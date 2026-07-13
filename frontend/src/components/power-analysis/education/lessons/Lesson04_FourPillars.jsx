@@ -124,10 +124,20 @@ const Lesson04_FourPillars = ({ onComplete }) => {
   const [calcError, setCalcError] = useState(null);
 
   // Power at the settings the sliders are showing, for the marker on the curve.
-  const [currentPower, setCurrentPower] = useState(null);
+  /**
+   * Both of these are fetched asynchronously, by SEPARATE effects, and both depend on the t-variant
+   * -- so they can disagree about which variant they describe. Flip the toggle to Paired and the
+   * curves arrive from one request while the marker's power arrives from another; in the window
+   * between them, a two-sample dot would sit on paired curves, or the reverse.
+   *
+   * So each carries the variant it was computed FOR, and the marker is only drawn when both agree
+   * with the toggle. A dot on the wrong lines is a wrong number, even if it is only wrong for
+   * 250 ms and even if nothing crashed.
+   */
+  const [currentPower, setCurrentPower] = useState(null); // { variant, value } | null
 
   // The three benchmark curves, from the backend. null while loading or on failure.
-  const [curves, setCurves] = useState(null);
+  const [curves, setCurves] = useState(null); // { variant, series } | null
   const [curvesError, setCurvesError] = useState(null);
 
   // Power curve canvas
@@ -197,7 +207,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
 
         if (cancelled) return;
         setCalculatedValue(result);
-        setCurrentPower(markerPower);
+        setCurrentPower(markerPower == null ? null : { variant: testType, value: markerPower });
         setCalcError(null);
       } catch (err) {
         if (cancelled) return;
@@ -249,7 +259,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
           )
         );
         if (cancelled) return;
-        setCurves(series);
+        setCurves({ variant: testType, series });
         setCurvesError(null);
       } catch (err) {
         if (cancelled) return;
@@ -320,9 +330,15 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw the benchmark curves. A point the backend could not compute is absent from the series
-    // rather than plotted at zero, so the line has a gap where the power does not exist.
-    (curves || []).forEach(({ color, points }) => {
+    // Draw the benchmark curves -- the ones for the variant currently selected, and no others. The
+    // chart title names that variant, so lines left over from the previous one would be labelled as
+    // a test they are not. While the new ones are in flight there are no lines, and the empty state
+    // below says why.
+    const freshCurves = curves?.variant === testType ? curves.series : null;
+
+    // A point the backend could not compute is absent from the series rather than plotted at zero,
+    // so the line has a gap where the power does not exist.
+    (freshCurves || []).forEach(({ color, points }) => {
       ctx.strokeStyle = color;
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -336,14 +352,17 @@ const Lesson04_FourPillars = ({ onComplete }) => {
       ctx.stroke();
     });
 
-    // Mark the current settings. The curves are now drawn for the SELECTED variant, so the marker
-    // is a point on a line it actually belongs to and can always be drawn. (It could not be, while
-    // these were pinned to two-sample: a paired power at the same d and n sits well above the
-    // independent curve, and the dot would have read as a point on a line it was not on.)
-    if (currentPower !== null && sampleSize >= xMin && sampleSize <= xMax) {
+    // Mark the current settings -- but only when the dot and the lines are describing the SAME
+    // test. The curves now follow the variant, so the marker belongs on them; it just has to be
+    // the marker for the variant they were drawn for. The two arrive from separate requests, so
+    // until both have caught up with the toggle there is no dot. A paired power at the same d and
+    // n sits well above the independent curve, and a dot placed there would read as a point on a
+    // line it is not on.
+    const inSync = freshCurves && currentPower?.variant === testType;
+    if (inSync && currentPower.value !== null && sampleSize >= xMin && sampleSize <= xMax) {
       ctx.fillStyle = '#d32f2f';
       ctx.beginPath();
-      ctx.arc(xScale(sampleSize), yScale(currentPower), 8, 0, 2 * Math.PI);
+      ctx.arc(xScale(sampleSize), yScale(currentPower.value), 8, 0, 2 * Math.PI);
       ctx.fill();
     }
 
@@ -410,7 +429,7 @@ const Lesson04_FourPillars = ({ onComplete }) => {
     ctx.fillText('80% Power', margin.left + 10, yScale(0.8) - 5);
 
     // An empty plot says so. It does not draw three flat lines at zero.
-    if (!curves) {
+    if (!freshCurves) {
       ctx.fillStyle = '#757575';
       ctx.font = '13px Arial';
       ctx.textAlign = 'center';
