@@ -16,6 +16,51 @@
  */
 
 /**
+ * Pitman asymptotic relative efficiency of a rank test against its parametric counterpart, by the
+ * distribution the DATA are assumed to come from.
+ *
+ * Both rank-test generators used to hardcode `const are = 0.955` and tell the reader "for normally
+ * distributed data" -- while the tool above them lets the user choose the parent distribution and
+ * computes with the matching ARE. So a user who selected Laplace was shown n = 43 per group and
+ * handed a script that computes 68. The exported code contradicted the analysis it claimed to
+ * reproduce, which is worse than no script at all: it is the artifact that outlives the session.
+ *
+ * 3/π is also the WRONG default to fall back on silently. It is the efficiency under NORMALITY --
+ * an odd assumption for a test chosen precisely because normality failed -- and the "~5% larger
+ * samples" line it justified points the wrong way for every heavier-tailed parent, where the rank
+ * test needs FEWER subjects, not more.
+ *
+ * Mirrors ARE_VS_PARAMETRIC in backend/core/hp_power_analysis_comprehensive.py.
+ */
+const ARE_BY_PARENT = {
+  normal: 3 / Math.PI, // ~0.955
+  uniform: 1.0,
+  logistic: Math.PI ** 2 / 9, // ~1.097
+  laplace: 1.5,
+  exponential: 3.0,
+};
+
+const PARENT_LABEL = {
+  normal: 'normal',
+  uniform: 'uniform',
+  logistic: 'logistic',
+  laplace: 'Laplace (heavy-tailed)',
+  exponential: 'exponential (skewed)',
+};
+
+/**
+ * The ARE the displayed answer was actually computed with.
+ *
+ * Prefer the value the BACKEND returned -- that is the one the number on screen came from, so the
+ * script and the screen cannot disagree. Fall back to the table only if it is absent.
+ */
+const areFor = (results, parentDistribution) => {
+  const fromBackend = results && results.are;
+  if (typeof fromBackend === 'number' && Number.isFinite(fromBackend)) return fromBackend;
+  return ARE_BY_PARENT[parentDistribution] ?? ARE_BY_PARENT.normal;
+};
+
+/**
  * Generate R code for power analysis
  *
  * @param {Object} params - Analysis parameters
@@ -42,6 +87,7 @@ export function generateRCode(params) {
     sampleSize2 = 30,
     numGroups = 3,
     alternative = 'two-sided',
+    parentDistribution = 'normal',
     results = {}
   } = params;
 
@@ -92,7 +138,7 @@ library(pwr)
     case 'mann-whitney':
     case 'wilcoxon':
     case 'kruskal-wallis':
-      code += generateRCodeNonParametric(testType, calculationMode, alpha, power, effectSize, sampleSize, numGroups, altR, results);
+      code += generateRCodeNonParametric(testType, calculationMode, alpha, power, effectSize, sampleSize, numGroups, altR, results, parentDistribution);
       break;
     default:
       code += `# Test type "${testType}" code generation not yet implemented\n`;
@@ -135,6 +181,7 @@ export function generatePythonCode(params) {
     sampleSize2 = 30,
     numGroups = 3,
     alternative = 'two-sided',
+    parentDistribution = 'normal',
     results = {}
   } = params;
 
@@ -192,7 +239,7 @@ from statsmodels.stats.power import (
     case 'mann-whitney':
     case 'wilcoxon':
     case 'kruskal-wallis':
-      code += generatePythonCodeNonParametric(testType, calculationMode, alpha, power, effectSize, sampleSize, numGroups, alternative, results);
+      code += generatePythonCodeNonParametric(testType, calculationMode, alpha, power, effectSize, sampleSize, numGroups, alternative, results, parentDistribution);
       break;
     default:
       code += `# Test type "${testType}" code generation not yet implemented\n`;
@@ -647,26 +694,39 @@ cat("\\nMinimum Detectable Effect Size (Cohen's w):", round(result$w, 4), "\\n")
   }
 }
 
-function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results) {
+function generateRCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results, parentDistribution = 'normal') {
   const testName = getTestName(testType);
-  const are = 0.955; // 3/π for normal data
+  const are = areFor(results, parentDistribution);
 
   return `# ${testName}: Power Analysis
 # ============================================================================
-# Note: Non-parametric tests don't have direct power functions in base R.
-# We use the Asymptotic Relative Efficiency (ARE) approximation.
+# Non-parametric tests have no distribution-free closed-form power. This uses the Pitman
+# asymptotic relative efficiency (ARE) of the rank test against its parametric counterpart:
+# the rank test at n behaves like the parametric test at n * ARE.
 #
-# For normally distributed data:
-#   ARE = 3/π ≈ 0.955 (relative to parametric equivalent)
+# THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-# This means non-parametric tests need ~5% larger samples for same power.
+#     parent distribution      ARE     n per group (d = 0.5, 80% power)
+#     ---------------------  ------    --------------------------------
+#     normal                  0.955                  68
+#     uniform                 1.000                  65
+#     logistic                1.097                  59
+#     Laplace (heavy tails)   1.500                  43
+#     exponential (skewed)    3.000                  22
+#
+# This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
+#
+# Note that ARE = 3/pi ~ 0.955 -- the figure usually quoted, and the source of the common claim
+# that rank tests "cost about 5% more subjects" -- holds only under NORMALITY, which is an odd
+# thing to assume about data for which you have chosen a rank test. For every heavier-tailed
+# parent the ARE is ABOVE 1 and the rank test needs FEWER subjects, not more.
 # ============================================================================
 
 # Parameters
 d <- ${d}        # Effect size (Cohen's d equivalent)
 n <- ${n}        # Sample size
 alpha <- ${alpha}  # Significance level
-ARE <- ${are}     # Asymptotic Relative Efficiency
+ARE <- ${are.toFixed(6)}     # Pitman ARE, ${PARENT_LABEL[parentDistribution] || parentDistribution} parent
 
 # Approach: Calculate power for parametric equivalent, then adjust
 # The effective sample size for non-parametric is n * ARE
@@ -1187,26 +1247,39 @@ print(f"Minimum Detectable Effect Size (Cohen's w): {w:.4f}")
   }
 }
 
-function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results) {
+function generatePythonCodeNonParametric(testType, mode, alpha, power, d, n, k, alt, results, parentDistribution = 'normal') {
   const testName = getTestName(testType);
-  const are = 0.955;
+  const are = areFor(results, parentDistribution);
 
   return `# ${testName}: Power Analysis
 # ============================================================================
-# Note: Non-parametric tests don't have direct power functions in statsmodels.
-# We use the Asymptotic Relative Efficiency (ARE) approximation.
+# Non-parametric tests have no distribution-free closed-form power. This uses the Pitman
+# asymptotic relative efficiency (ARE) of the rank test against its parametric counterpart:
+# the rank test at n behaves like the parametric test at n * ARE.
 #
-# For normally distributed data:
-#   ARE = 3/π ≈ 0.955 (relative to parametric equivalent)
+# THE ARE DEPENDS ON THE DISTRIBUTION THE DATA COME FROM, and the answer is not a footnote:
 #
-# This means non-parametric tests need ~5% larger samples for same power.
+#     parent distribution      ARE     n per group (d = 0.5, 80% power)
+#     ---------------------  ------    --------------------------------
+#     normal                  0.955                  68
+#     uniform                 1.000                  65
+#     logistic                1.097                  59
+#     Laplace (heavy tails)   1.500                  43
+#     exponential (skewed)    3.000                  22
+#
+# This analysis assumes a ${PARENT_LABEL[parentDistribution] || parentDistribution} parent, ARE = ${are.toFixed(4)}.
+#
+# Note that ARE = 3/pi ~ 0.955 -- the figure usually quoted, and the source of the common claim
+# that rank tests "cost about 5% more subjects" -- holds only under NORMALITY, which is an odd
+# thing to assume about data for which you have chosen a rank test. For every heavier-tailed
+# parent the ARE is ABOVE 1 and the rank test needs FEWER subjects, not more.
 # ============================================================================
 
 # Parameters
 d = ${d}        # Effect size (Cohen's d equivalent)
 n = ${n}        # Sample size
 alpha = ${alpha}  # Significance level
-ARE = ${are}     # Asymptotic Relative Efficiency
+ARE = ${are.toFixed(6)}     # Pitman ARE, ${PARENT_LABEL[parentDistribution] || parentDistribution} parent
 
 # Effective sample size for non-parametric is n * ARE
 effective_n = n * ARE

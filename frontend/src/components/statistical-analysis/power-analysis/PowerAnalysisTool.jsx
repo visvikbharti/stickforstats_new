@@ -506,14 +506,21 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
     alpha,
     power,
     effectSize,
+    // The generated script must describe the design whose answer is on screen. Only the tests that
+    // HAVE a second arm get one -- the group-2 box does not clear when the test changes, and a
+    // stale value handed to a Mann-Whitney would put an n2 in the script that the power ignored.
     sampleSize,
-    sampleSize2,
+    sampleSize2: acceptsSecondArm(testType) ? sampleSize2 : null,
     numGroups,
     degreesOfFreedom,
     allocationRatio,
     alternative,
+    // The rank-test generators hardcoded the NORMAL-parent ARE (0.955) while the tool computed
+    // with whichever parent the user picked. Pick Laplace and the screen said 43 per group while
+    // the script you copied computed 68.
+    parentDistribution,
     results: results || {}
-  }), [testType, calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, numGroups, degreesOfFreedom, allocationRatio, alternative, results]);
+  }), [testType, calculationMode, alpha, power, effectSize, sampleSize, sampleSize2, numGroups, degreesOfFreedom, allocationRatio, alternative, parentDistribution, results]);
 
   /**
    * Generate code for current analysis
