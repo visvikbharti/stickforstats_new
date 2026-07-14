@@ -310,7 +310,11 @@ jobs:
     # Lint is in this list on purpose. It used to sit outside the chain, so a red
     # lint could not stop an image push — which made it decorative. It gates now
     # that frontend lint actually looks at .jsx and reports 0 errors.
-    needs: [backend-test, frontend-test, backend-lint, frontend-lint]
+    #
+    # beta-gate is here for the same reason: a check that cannot stop a ship is
+    # not a check. If the closed-beta auth gate is ever removed from nginx.conf,
+    # nothing should be published until a human has said that was deliberate.
+    needs: [backend-test, frontend-test, backend-lint, frontend-lint, beta-gate]
     runs-on: ubuntu-latest
     strategy:
       matrix:
