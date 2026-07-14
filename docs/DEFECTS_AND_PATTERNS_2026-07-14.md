@@ -184,6 +184,28 @@ rule dies.
 **The lesson is not "be careful with const."** It is: *a lint rule you never run is not a lint rule,
 and a gate that is not in `needs:` is not a gate.*
 
+### CLASS G — The green check that is green for the wrong reason
+
+Three instances found in a single day, in three unrelated systems. This is the most dangerous class in
+the repo, because it does not produce a bug report — it produces *silence*, which reads as health.
+
+| check | why it was green | what it would have missed |
+|---|---|---|
+| `npx eslint src/ --max-warnings 0` | a **directory** expands to `.js` only, so it linted **0 of 469 `.jsx` files** and reported 0/0 | every `.jsx` error in the repo, including 7 unconditional `ReferenceError`s |
+| `HEALTHCHECK curl -f .../api/health/` | the path is a **404**, but plain HTTP is **301**-redirected to HTTPS *before routing*, and `curl -f` treats 301 as **success** | Django 500-ing on every request. The container would still say **healthy**. |
+| a Monte-Carlo coverage test with a `0.93–0.97` band | the bug produced **0.9426** — *inside* the band | a 95% CI that actually covered 94.3% |
+
+The shape is always: **the check never touched the thing it claims to check.** It cannot fail, so it
+tells you nothing, and it does so in the most reassuring possible voice.
+
+**The discipline:** when a check is green, ask *what would it take to make it red* — and then **do
+that**. Point the linter at a file you know is bad. Curl a path you know does not exist. Put the bug
+back. If the check stays green, you did not have a check; you had a decoration.
+
+    /api/health/     -> 301, curl -f exit 0   <- "healthy"
+    /api/v1/health/  -> 200, curl -f exit 0   <- actually healthy
+    /api/v1/health-NOPE/ -> 404, curl -f exit 22  <- and it CAN go red. Now it is a check.
+
 ### CLASS F — The guard that fails in a place nobody watches
 
 Also 2026-07-14 — and I nearly shipped it **while fixing** Class A.

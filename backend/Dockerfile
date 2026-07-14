@@ -69,9 +69,22 @@ RUN mkdir -p /app/static /app/media /app/logs /app/audit_logs && \
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear 2>/dev/null || true
 
-# Health check
+# Health check.
+#
+# This check used to be `curl -f http://localhost:8000/api/health/`, and it passed
+# VACUOUSLY: that path does not exist (404), but plain HTTP is 301-redirected to
+# HTTPS by Django's SECURE_SSL_REDIRECT *before routing*, and `curl -f` treats a
+# 301 as success (exit 0). So the container reported "healthy" because of a
+# redirect — it would have kept reporting healthy with Django 500-ing on every
+# request. Verified on the live host: raw -> 301/exit 0; with the proto header ->
+# 404/exit 22.
+#
+# The real endpoint is /api/v1/health/ (api/v1/urls.py), and it reports database
+# connectivity, not just liveness. X-Forwarded-Proto tells Django this is already
+# HTTPS so it routes instead of redirecting. Verified non-vacuous in the running
+# container: /api/v1/health/ -> 200/exit 0, a bogus path -> 404/exit 22.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health/ || exit 1
+    CMD curl -fsS -H "X-Forwarded-Proto: https" http://localhost:8000/api/v1/health/ || exit 1
 
 # Switch to non-root user
 USER appuser
