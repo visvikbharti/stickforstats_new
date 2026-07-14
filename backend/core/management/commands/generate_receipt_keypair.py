@@ -20,6 +20,7 @@ and receipts signed earlier will no longer verify.
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 
@@ -57,6 +58,15 @@ class Command(BaseCommand):
             default=2048,
             help="RSA key size in bits (default 2048; minimum 2048 enforced).",
         )
+        parser.add_argument(
+            "--env",
+            action="store_true",
+            help=(
+                "Print the ready-to-paste .env lines (RECEIPT_RSA_PRIVATE_KEY_B64 and "
+                "RECEIPT_RSA_KEY_ID) instead of the raw PEM. This is the form a "
+                "docker-compose .env file can hold, since it is a single line."
+            ),
+        )
 
     def handle(self, *args, **options):
         key_size = options["key_size"]
@@ -65,6 +75,9 @@ class Command(BaseCommand):
 
         kid = options["kid"]
         output = options["output"]
+
+        if options["env"] and output:
+            raise CommandError("--env and --output are mutually exclusive.")
 
         self.stdout.write(f"Generating {key_size}-bit RSA keypair...")
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=key_size)
@@ -76,7 +89,15 @@ class Command(BaseCommand):
             encryption_algorithm=serialization.NoEncryption(),
         )
 
-        if output == "-":
+        if options["env"]:
+            b64 = base64.b64encode(pem_bytes).decode("ascii")
+            self.stdout.write("")
+            self.stdout.write("-" * 60)
+            self.stdout.write("Add these two lines to your .env (keep them secret):")
+            self.stdout.write("-" * 60)
+            self.stdout.write(f"RECEIPT_RSA_PRIVATE_KEY_B64={b64}")
+            self.stdout.write(f"RECEIPT_RSA_KEY_ID={kid}")
+        elif output == "-":
             self.stdout.write(pem_bytes.decode("ascii"))
         elif output:
             path = Path(output)

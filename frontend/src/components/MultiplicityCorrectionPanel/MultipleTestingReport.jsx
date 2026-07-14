@@ -183,14 +183,19 @@ const MultipleTestingReport = ({
   const generateDecisionAudit = () => {
     const decisions = sessionTests.map((test, index) => {
       const wasSignificant = isSignificant(test.pValue, alpha);
-      const isSignificant = test.adjustedPValue ? isSignificant(test.adjustedPValue, alpha) : false;
-      const changed = wasSignificant !== isSignificant;
-      
+      // Do NOT name this `isSignificant`: a local const shadows the imported
+      // helper across the whole block, so the call on the line above would
+      // resolve to this binding while it is still in its temporal dead zone.
+      const adjustedSignificant = test.adjustedPValue
+        ? isSignificant(test.adjustedPValue, alpha)
+        : false;
+      const changed = wasSignificant !== adjustedSignificant;
+
       return {
         id: test.id || index + 1,
         hypothesis: test.hypothesis || `Hypothesis ${index + 1}`,
         original: wasSignificant ? 'Reject H₀' : 'Fail to reject H₀',
-        adjusted: isSignificant ? 'Reject H₀' : 'Fail to reject H₀',
+        adjusted: adjustedSignificant ? 'Reject H₀' : 'Fail to reject H₀',
         changed: changed ? 'Yes' : 'No',
         risk: changed ? 'Type I error prevented' : 'No change'
       };

@@ -64,8 +64,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      # `eslint src/` expands a DIRECTORY to .js only (plus overrides[].files globs,
+      # and react-app's only such glob is **/*.ts?(x)). It therefore linted 293 files
+      # and ZERO of the repo's 469 .jsx files, reported 0/0, and exited 0 — so
+      # `--max-warnings 0` passed vacuously while no-use-before-define errors sat
+      # uncaught in .jsx. That rule flags the temporal-dead-zone crashes that took
+      # down the chi-square screen, ML train and CI plot.
+      #
+      # --ext makes it look at all 764 files. --max-warnings is a RATCHET: it is the
+      # current count, so the gate cannot get worse; lower it as warnings are burned
+      # down. Errors always fail, and no-use-before-define is now an error.
       - name: ESLint
-        run: npx eslint src/ --max-warnings 0 --no-error-on-unmatched-pattern
+        run: npm run lint
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
 
@@ -258,7 +268,10 @@ jobs:
   docker-build:
     name: Docker Build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [backend-test, frontend-test]
+    # Lint is in this list on purpose. It used to sit outside the chain, so a red
+    # lint could not stop an image push — which made it decorative. It gates now
+    # that frontend lint actually looks at .jsx and reports 0 errors.
+    needs: [backend-test, frontend-test, backend-lint, frontend-lint]
     runs-on: ubuntu-latest
     strategy:
       matrix:

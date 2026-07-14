@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -42,22 +42,22 @@ const ConversationHistory = ({ moduleContext = null }) => {
   
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchConversations();
-  }, [moduleContext, fetchConversations]);
-
-  const fetchConversations = async () => {
+  // Defined BEFORE the effect that lists it as a dependency. A dependency array
+  // is an ordinary argument, evaluated eagerly during render — so naming this
+  // const in an effect declared above it read the binding inside its temporal
+  // dead zone and threw on every render.
+  const fetchConversations = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       let url = '/rag_system/api/conversations/';
-      
+
       // Add module filter if provided
       if (moduleContext) {
         url += `?context__module=${moduleContext}`;
       }
-      
+
       const response = await api.get(url);
       setConversations(response.data);
     } catch (err) {
@@ -66,7 +66,11 @@ const ConversationHistory = ({ moduleContext = null }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [moduleContext]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
 
   const fetchConversationMessages = async (conversationId) => {
     setLoadingMessages(true);

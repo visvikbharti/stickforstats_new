@@ -10,15 +10,49 @@ certification service uses (HMAC would require trusting our verify endpoint).
 
 Key source, in priority order:
 
-1. ``RECEIPT_RSA_PRIVATE_KEY`` env var (PEM) + optional ``RECEIPT_RSA_KEY_ID``.
-2. An ephemeral 2048-bit keypair generated on first use, with a loud
-   warning. Dev only: receipts signed with an ephemeral key will NOT
-   verify after a process restart.
+1. ``RECEIPT_RSA_PRIVATE_KEY`` env var (PEM), or ``RECEIPT_RSA_PRIVATE_KEY_B64``
+   (the same PEM, base64-encoded — the single-line form a ``.env`` file can
+   hold), plus optional ``RECEIPT_RSA_KEY_ID``.
+2. An ephemeral 2048-bit keypair generated on first use. **Never in
+   production**: see below.
 
 Generate a production key with::
 
     python manage.py generate_receipt_keypair --output receipt_private.pem
     export RECEIPT_RSA_PRIVATE_KEY="$(cat receipt_private.pem)"
+
+or, for a ``.env`` file::
+
+    python manage.py generate_receipt_keypair --env   # prints RECEIPT_RSA_PRIVATE_KEY_B64=...
+
+Why signing is fail-closed when ``DEBUG=False``
+-----------------------------------------------
+
+The backend runs gunicorn with ``--workers 4`` and no ``--preload``, so the
+key is loaded *per worker*. With no key configured, every worker would mint
+its **own** ephemeral keypair — and they all used to advertise the *same*
+``kid``. A receipt signed by worker 1 and verified by worker 3 therefore
+passed the key-id check and failed the signature check: a genuine receipt
+reported as invalid, at random, roughly 3 times in 4. The receipt is the
+one artifact a journal editor is asked to trust, so silently signing with a
+throwaway key is worse than not signing at all.
+
+Two changes make that impossible:
+
+* Ephemeral key ids now carry the public key's fingerprint
+  (``stickforstats-receipt-ephemeral-<fp>``), so two workers can no longer
+  claim the same identity for different keys. A mismatch is now *diagnosable*
+  rather than silent.
+* :func:`get_keypair` **refuses** to generate an ephemeral key when
+  ``settings.DEBUG`` is False (outside the test suite). Set a real key, or
+  set ``RECEIPT_ALLOW_EPHEMERAL_KEY=1`` to accept unverifiable receipts
+  deliberately.
+
+The guard lives here, at key-load time, and deliberately *not* in
+``AppConfig.ready()``: the Docker image runs ``manage.py collectstatic ...
+2>/dev/null || true`` at build time with ``DEBUG=False``, so a raise during
+app startup would abort collectstatic and be swallowed by that ``|| true``,
+shipping an image with no static files.
 
 This mirrors ``core/services/lti_keys.py`` (the LTI tool's JWKS keypair),
 deliberately kept as a *separate* key so receipt trust and LTI trust are
@@ -28,6 +62,7 @@ independent and can be rotated independently.
 from __future__ import annotations
 
 import base64
+import hashlib
 import logging
 import os
 import threading
@@ -37,11 +72,43 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
 _LOCK = threading.Lock()
 _CACHED: Optional[Tuple[RSAPrivateKey, RSAPublicKey, str]] = None
+
+_TRUTHY = {"1", "true", "yes", "on"}
+
+#: Env vars that can carry the signing key, in the order they are consulted.
+KEY_ENV_VARS = ("RECEIPT_RSA_PRIVATE_KEY", "RECEIPT_RSA_PRIVATE_KEY_B64")
+
+
+def key_is_configured() -> bool:
+    """True if a signing key is supplied by the environment."""
+    return any(os.environ.get(var, "").strip() for var in KEY_ENV_VARS)
+
+
+def ephemeral_keys_allowed() -> bool:
+    """True if this process may sign receipts with a throwaway key.
+
+    Allowed in development (``DEBUG``) and under the test suite, or when an
+    operator opts in explicitly with ``RECEIPT_ALLOW_EPHEMERAL_KEY``.
+    """
+    if os.environ.get("RECEIPT_ALLOW_EPHEMERAL_KEY", "").strip().lower() in _TRUTHY:
+        return True
+    return bool(getattr(settings, "DEBUG", False)) or bool(getattr(settings, "TESTING", False))
+
+
+def _public_fingerprint(public_key: RSAPublicKey) -> str:
+    """Short, stable fingerprint of a public key (SHA-256 over its DER SPKI)."""
+    der = public_key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    return hashlib.sha256(der).hexdigest()[:16]
 
 
 def _int_to_b64url(value: int) -> str:
@@ -88,16 +155,43 @@ def _load_from_env() -> Optional[Tuple[RSAPrivateKey, RSAPublicKey, str]]:
     return private_key, private_key.public_key(), kid
 
 
+EPHEMERAL_KEY_REFUSAL = (
+    "No reproducibility-receipt signing key is configured "
+    "(RECEIPT_RSA_PRIVATE_KEY_B64 or RECEIPT_RSA_PRIVATE_KEY) and DEBUG is False.\n"
+    "\n"
+    "Refusing to sign receipts with an ephemeral key. The backend runs 4 gunicorn "
+    "workers without --preload, so each worker would mint a DIFFERENT key: a genuine "
+    "receipt signed by one worker would fail verification on the others. A receipt "
+    "nobody can verify is worse than no receipt at all.\n"
+    "\n"
+    "Fix — generate a key and put it in the environment:\n"
+    "    python manage.py generate_receipt_keypair --env\n"
+    "    # copy the printed RECEIPT_RSA_PRIVATE_KEY_B64 line into .env, then redeploy\n"
+    "\n"
+    "Or, to accept unverifiable receipts deliberately (never in production):\n"
+    "    RECEIPT_ALLOW_EPHEMERAL_KEY=1"
+)
+
+
 def _generate_ephemeral() -> Tuple[RSAPrivateKey, RSAPublicKey, str]:
-    logger.warning(
-        "RECEIPT_RSA_PRIVATE_KEY env var not set; generating an EPHEMERAL "
-        "RSA keypair for reproducibility-receipt signing. Receipts signed "
-        "now will NOT verify after a process restart. Run "
-        "`python manage.py generate_receipt_keypair` and set "
-        "RECEIPT_RSA_PRIVATE_KEY for production."
-    )
+    if not ephemeral_keys_allowed():
+        raise ImproperlyConfigured(EPHEMERAL_KEY_REFUSAL)
+
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    return private_key, private_key.public_key(), "stickforstats-receipt-ephemeral"
+    public_key = private_key.public_key()
+    # The fingerprint makes the key id unique to THIS key. Without it every
+    # process advertised the same kid, so a signature made under a different
+    # ephemeral key failed the crypto check while passing the identity check —
+    # a genuine receipt reported invalid, with nothing to diagnose it by.
+    kid = f"stickforstats-receipt-ephemeral-{_public_fingerprint(public_key)}"
+    logger.warning(
+        "No receipt signing key in the environment; generated an EPHEMERAL keypair "
+        "(kid=%s). Receipts signed now will NOT verify after a restart, nor across "
+        "processes. Run `python manage.py generate_receipt_keypair --env` and set "
+        "RECEIPT_RSA_PRIVATE_KEY_B64 for any deployment whose receipts must be trusted.",
+        kid,
+    )
+    return private_key, public_key, kid
 
 
 def get_keypair() -> Tuple[RSAPrivateKey, RSAPublicKey, str]:

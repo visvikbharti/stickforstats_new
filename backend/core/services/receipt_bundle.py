@@ -119,8 +119,36 @@ You can also cross-check the public key against the live JWKS endpoint at
 """
 
 
+class SigningKeyMismatch(RuntimeError):
+    """The key this process holds is not the key that signed this receipt."""
+
+
 def build_artifact(receipt) -> dict:
-    """Return the self-contained signed-receipt artifact dict."""
+    """Return the self-contained signed-receipt artifact dict.
+
+    Raises :class:`SigningKeyMismatch` if the active key is not the one that
+    signed ``receipt``. The bundle embeds ``public_key_pem`` so a third party can
+    verify offline *without trusting us*; embedding the serving process's key
+    when a different key produced the signature would hand a journal editor a
+    genuine receipt that fails its own verify instructions — indistinguishable,
+    to them, from a forgery. Refusing the download is the lesser harm: it is
+    honest, and it is fixable by restoring the key that signed.
+
+    This bites on key rotation (a receipt signed under the old kid, downloaded
+    after the new key is installed). It also catches an ephemeral key that
+    differs across workers, because ephemeral key ids carry the public key's
+    fingerprint and therefore differ too.
+    """
+    active_kid = receipt_signing.active_key_id()
+    if receipt.key_id and receipt.key_id != active_kid:
+        raise SigningKeyMismatch(
+            f"Receipt {receipt.receipt_id} was signed under key id "
+            f"'{receipt.key_id}', but this process holds '{active_kid}'. Refusing "
+            "to emit a bundle whose embedded public key cannot verify the "
+            "signature inside it. Restore the signing key with that key id (or "
+            "serve the receipt from a process that holds it)."
+        )
+
     rid = str(receipt.receipt_id)
     return {
         "stickforstats_reproducibility_receipt": receipt.schema_version,

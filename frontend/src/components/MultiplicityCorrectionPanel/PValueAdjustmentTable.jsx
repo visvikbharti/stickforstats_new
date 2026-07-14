@@ -76,8 +76,11 @@ const PValueAdjustmentTable = ({
       }
 
       const wasSignificant = isSignificant(item.pValue, alpha);
-      const isSignificant = adjusted < alpha;
-      const decisionChanged = wasSignificant !== isSignificant;
+      // Not `isSignificant`: a local of that name shadows the imported helper
+      // across this whole block, so the call above would hit its temporal dead
+      // zone and throw on every row.
+      const adjustedSignificant = isSignificant(adjusted, alpha);
+      const decisionChanged = wasSignificant !== adjustedSignificant;
 
       adjustedData.push({
         ...item,
@@ -87,7 +90,7 @@ const PValueAdjustmentTable = ({
         difference: adjusted - item.pValue,
         percentChange: ((adjusted - item.pValue) / item.pValue * 100),
         wasSignificant,
-        isSignificant,
+        isSignificant: adjustedSignificant,
         decisionChanged,
         decisionType: decisionChanged ? 
           (wasSignificant ? 'lost_significance' : 'gained_significance') : 

@@ -14,6 +14,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 
+import IntervalVisualization from '../IntervalVisualization';
+
 // d3 and jstat ship ESM, which CRA's jest does not transform. Stub them with a
 // chainable proxy. This does not weaken the test: the TDZ ReferenceError fires when
 // the useEffect deps array is evaluated *during render*, long before any d3 call.
@@ -27,8 +29,6 @@ jest.mock('d3', () => {
 jest.mock('jstat', () => ({
   jStat: new Proxy({}, { get: () => new Proxy(function () {}, { get: () => () => 0, apply: () => 0 }) }),
 }));
-
-import IntervalVisualization from '../IntervalVisualization';
 
 describe('IntervalVisualization', () => {
   it('renders with no result instead of throwing a TDZ ReferenceError', () => {

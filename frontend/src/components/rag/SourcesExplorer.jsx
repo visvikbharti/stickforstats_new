@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -61,26 +61,25 @@ const SourcesExplorer = () => {
     'instruction', 'explanation', 'example', 'reference', 'guideline'
   ]);
 
-  useEffect(() => {
-    fetchDocuments();
-    fetchModuleOptions();
-  }, [page, rowsPerPage, filterModule, filterType, fetchDocuments]);
-
-  const fetchDocuments = async () => {
+  // Both callbacks are defined BEFORE the effect that depends on them. A
+  // dependency array is an ordinary argument, evaluated eagerly during render —
+  // so listing `fetchDocuments` in an effect declared above its `const` read the
+  // binding inside its temporal dead zone and threw on every render.
+  const fetchDocuments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       let url = `/rag_system/api/documents/?limit=${rowsPerPage}&offset=${page * rowsPerPage}`;
-      
+
       if (filterModule) {
         url += `&module=${filterModule}`;
       }
-      
+
       if (filterType) {
         url += `&document_type=${filterType}`;
       }
-      
+
       const response = await api.get(url);
       setDocuments(response.data.results || []);
     } catch (err) {
@@ -89,16 +88,21 @@ const SourcesExplorer = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, filterModule, filterType]);
 
-  const fetchModuleOptions = async () => {
+  const fetchModuleOptions = useCallback(async () => {
     try {
       const response = await api.get('/core/api/modules/');
       setModuleOptions(response.data.map(module => module.name));
     } catch (err) {
       console.error('Error fetching module options:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDocuments();
+    fetchModuleOptions();
+  }, [fetchDocuments, fetchModuleOptions]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

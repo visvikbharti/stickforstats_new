@@ -67,12 +67,17 @@ services:
       - ENABLE_PROFILING=${ENABLE_PROFILING:-false}
       - AUDIT_LOG_RETENTION_DAYS=${AUDIT_LOG_RETENTION_DAYS:-2555}
       - FDA_COMPLIANCE_MODE=${FDA_COMPLIANCE_MODE:-true}
-      # Reproducibility-receipt RS256 signing key. Set a STABLE key in .env
-      # (RECEIPT_RSA_PRIVATE_KEY_B64=base64 PEM) for production so all workers
-      # share it and receipts keep verifying across restarts; otherwise an
-      # ephemeral key is generated per process. See generate_receipt_keypair.
+      # Reproducibility-receipt RS256 signing key. REQUIRED whenever DEBUG=False:
+      # gunicorn runs 4 workers without --preload, so without a stable key each
+      # worker would mint its own and receipts would fail verification at random.
+      # Signing is fail-closed — with no key the receipt endpoints raise rather
+      # than sign with a throwaway key. Generate one with:
+      #     docker compose exec backend python manage.py generate_receipt_keypair --env
       - RECEIPT_RSA_PRIVATE_KEY_B64=${RECEIPT_RSA_PRIVATE_KEY_B64:-}
       - RECEIPT_RSA_KEY_ID=${RECEIPT_RSA_KEY_ID:-stickforstats-receipt-prod-1}
+      # Escape hatch: accept unverifiable (per-process, throwaway) receipt keys.
+      # Never set this in production.
+      - RECEIPT_ALLOW_EPHEMERAL_KEY=${RECEIPT_ALLOW_EPHEMERAL_KEY:-}
     depends_on:
       - postgres
       - redis
@@ -162,6 +167,12 @@ services:
       - DJANGO_SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env (no insecure default)}
       - DJANGO_SETTINGS_MODULE=stickforstats.settings
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # No task signs receipts today, but the worker runs the same image as the
+      # backend — give it the same key so it can never diverge into signing with
+      # a throwaway one if a task ever does.
+      - RECEIPT_RSA_PRIVATE_KEY_B64=${RECEIPT_RSA_PRIVATE_KEY_B64:-}
+      - RECEIPT_RSA_KEY_ID=${RECEIPT_RSA_KEY_ID:-stickforstats-receipt-prod-1}
+      - RECEIPT_ALLOW_EPHEMERAL_KEY=${RECEIPT_ALLOW_EPHEMERAL_KEY:-}
     depends_on:
       - postgres
       - redis

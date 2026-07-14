@@ -393,12 +393,14 @@ const SessionTracker = ({
           
           {filteredTests.map((test, index) => {
             const position = getTestPosition(test, index);
-            const isSignificant = isSignificant(test.pValue, 0.05);
-            
+            // Not `isSignificant`: that name would shadow the imported helper
+            // and put this very call in its temporal dead zone.
+            const testIsSignificant = isSignificant(test.pValue, 0.05);
+
             return (
               <div
                 key={test.id}
-                className={`timeline-point ${isSignificant ? 'significant' : ''} ${test.flagged ? 'flagged' : ''}`}
+                className={`timeline-point ${testIsSignificant ? 'significant' : ''} ${test.flagged ? 'flagged' : ''}`}
                 style={position}
                 onClick={() => setSelectedTest(test)}
                 title={`${test.type}: p=${formatNumber(test.pValue, 4)}`}

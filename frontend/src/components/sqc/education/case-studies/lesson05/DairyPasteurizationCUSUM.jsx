@@ -1236,6 +1236,36 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
     </Box>
   );
 
+  // Backend integration function. Must be defined BEFORE `interactiveSimulation`
+  // below: that const holds a JSX *value*, not a render function, so its
+  // `onClick={handleAnalyzeWithBackend}` reads this binding while the element is
+  // constructed — during render. Declared after it, the read landed in the
+  // temporal dead zone and threw on every render.
+  const handleAnalyzeWithBackend = async () => {
+    try {
+      setBackendLoading(true);
+      setBackendError(null);
+
+      const temperatures = pasteurizationData.map(d => d.temperature);
+
+      const response = await cusumChart({
+        data: temperatures,
+        target: 72.0,
+        std_dev: 0.3,
+        reference_value: 0.15, // K = 0.5σ
+        decision_interval: 1.5  // H = 5σ
+      });
+
+      if (response.status === 'success') {
+        setBackendResults(response.data);
+      }
+    } catch (error) {
+      setBackendError(error.message || 'Failed to connect to backend API');
+    } finally {
+      setBackendLoading(false);
+    }
+  };
+
   // ============================================================================
   // SECTION 4: INTERACTIVE SIMULATION
   // ============================================================================
@@ -1773,32 +1803,6 @@ const DairyPasteurizationCUSUM = ({ onComplete }) => {
       </Alert>
     </Box>
   );
-
-  // Backend integration function
-  const handleAnalyzeWithBackend = async () => {
-    try {
-      setBackendLoading(true);
-      setBackendError(null);
-
-      const temperatures = pasteurizationData.map(d => d.temperature);
-
-      const response = await cusumChart({
-        data: temperatures,
-        target: 72.0,
-        std_dev: 0.3,
-        reference_value: 0.15, // K = 0.5σ
-        decision_interval: 1.5  // H = 5σ
-      });
-
-      if (response.status === 'success') {
-        setBackendResults(response.data);
-      }
-    } catch (error) {
-      setBackendError(error.message || 'Failed to connect to backend API');
-    } finally {
-      setBackendLoading(false);
-    }
-  };
 
   // ============================================================================
   // SECTION 5: PROFESSIONAL INTERPRETATION

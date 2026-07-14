@@ -154,6 +154,59 @@ Mutation results from today, for reference:
 
 ---
 
+### CLASS E — The temporal dead zone: a `const` read before it exists
+
+Added 2026-07-14, after CI's eslint was finally pointed at `.jsx` and produced **7 of these at once**.
+This class has already caused **real P0 crashes** (chi-square screen, ML train, CI plot, 2026-07-13).
+
+A `const`/`let` binding exists from the top of its block but cannot be *read* until its declaration
+runs. A read before that is not `undefined` — it **throws**:
+
+    ReferenceError: Cannot access 'x' before initialization
+
+Three shapes, all found live in this repo:
+
+| shape | why it throws |
+|---|---|
+| `const wasSig = isSignificant(p, a);`<br>`const isSignificant = adjusted < a;` | the local **shadows the imported helper for the whole block**, so the call on the line above resolves to the local, not the import |
+| `useEffect(() => f(), [dep, f]);`<br>`const f = async () => {…}` | a **deps array is an ordinary argument**, evaluated eagerly *during render* — unlike the callback, it is not deferred |
+| `const ui = (<Button onClick={h} />);`<br>… 500 lines later …<br>`const h = () => {…}` | a JSX **value** (not a render function) builds its props object immediately, reading `h` |
+
+**Why it survives review:** all three *look* like ordinary React. The second is the nastiest — the
+callback body is deferred, so the eye assumes the deps array is too.
+
+**Why nothing caught it:** `no-use-before-define` was **enabled the whole time** and flags all three.
+CI just never linted a `.jsx` file. It is now an **error**, with `variables: false` (react-app's own
+option) — that catches the dangerous *same-scope* case while ignoring safe outer-scope references;
+`variables: true` reports 399 mostly-harmless sites and would have to be suppressed, which is how a
+rule dies.
+
+**The lesson is not "be careful with const."** It is: *a lint rule you never run is not a lint rule,
+and a gate that is not in `needs:` is not a gate.*
+
+### CLASS F — The guard that fails in a place nobody watches
+
+Also 2026-07-14 — and I nearly shipped it **while fixing** Class A.
+
+Making receipt signing fail-closed, the obvious home for the check was `AppConfig.ready()`: fail at
+boot, loudly. But `backend/Dockerfile:70` is
+
+    RUN python manage.py collectstatic --noinput --clear 2>/dev/null || true
+
+which runs at **build** time with `DEBUG=False` and no signing key. A raise in `ready()` would abort
+collectstatic, and `2>/dev/null || true` would **swallow it whole** — shipping an image with no
+static files, from a green build, caused by a safety check.
+
+**Before adding a fail-closed check, enumerate every process that will execute it** — gunicorn,
+celery, `manage.py` at build time, CI, the test runner — and ask what each one does with the
+exception. A guard whose exception lands inside a `|| true` is worse than no guard: it converts a
+loud failure into a silent one, which is the exact thing it was written to prevent.
+
+The check ended up at **key-load time**: it fires where the damage would occur (signing), and cannot
+touch a build step that never signs anything.
+
+---
+
 ## The meta-pattern — read this twice
 
 Across eight adversarial rounds, **every fix commit shipped a new defect of the same class**,

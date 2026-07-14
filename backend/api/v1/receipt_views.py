@@ -164,15 +164,29 @@ class ReceiptDownloadView(APIView):
 
         rid = str(receipt.receipt_id)
 
-        if fmt == "zip":
-            # A self-contained, offline-verifiable bundle (signed receipt +
-            # public key + a stdlib verify_receipt.py + README).
-            data = receipt_bundle.build_zip(receipt)
-            response = HttpResponse(data, content_type="application/zip")
-            response["Content-Disposition"] = f'attachment; filename="receipt-{rid}.zip"'
-            return response
+        try:
+            if fmt == "zip":
+                # A self-contained, offline-verifiable bundle (signed receipt +
+                # public key + a stdlib verify_receipt.py + README).
+                data = receipt_bundle.build_zip(receipt)
+                response = HttpResponse(data, content_type="application/zip")
+                response["Content-Disposition"] = f'attachment; filename="receipt-{rid}.zip"'
+                return response
 
-        artifact = receipt_bundle.build_artifact(receipt)
+            artifact = receipt_bundle.build_artifact(receipt)
+        except receipt_bundle.SigningKeyMismatch as exc:
+            # Hand back an honest error rather than a bundle that would fail its
+            # own verify instructions and read as a forgery.
+            logger.error("Receipt %s cannot be bundled: %s", rid, exc)
+            return Response(
+                {
+                    "error": "Receipt cannot be exported: its signing key is not available.",
+                    "detail": str(exc),
+                    "receipt_id": rid,
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
         response = Response(artifact, status=status.HTTP_200_OK)
         response["Content-Disposition"] = f'attachment; filename="receipt-{rid}.json"'
         return response
