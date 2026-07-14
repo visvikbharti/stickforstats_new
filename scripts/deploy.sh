@@ -40,6 +40,26 @@ warn() { printf '    %s!%s %s\n' "$YLW" "$RST" "$1"; }
 die()  { printf '\n%s✗ ABORT:%s %s\n\n' "$RED" "$RST" "$1" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = "1" ]; then printf '    [dry-run] %s\n' "$*"; else "$@"; fi; }
 
+# Probe the LIVE edge and require Basic Auth on every path that matters. This is
+# the real security property — is auth actually enforced? — as opposed to a
+# substring count in nginx.conf, which is blind to scope (auth_basic moved into a
+# `location` block), to `auth_basic off;`, and to commented-out lines. A 200 on
+# ANY of these means that surface is PUBLIC. Used post-reload on both the forward
+# deploy and the rollback path.
+assert_edge_gated() {
+  local bad=0 code
+  for p in / /api/ /api/v1/health/ /static/js/ /modules/multiplicity; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${EDGE_URL}${p}" || echo 000)"
+    if [ "$code" = "401" ]; then
+      ok "edge gated: ${p} -> 401"
+    else
+      printf '    %s✗%s edge NOT gated: %s -> HTTP %s (expected 401 — THIS PATH IS PUBLIC)\n' "$RED" "$RST" "$p" "$code"
+      bad=1
+    fi
+  done
+  return "$bad"
+}
+
 cd "$APP_DIR" || die "cannot cd to $APP_DIR"
 command -v docker >/dev/null || die "docker not found"
 [ -f docker-compose.yml ] || die "no docker-compose.yml in $APP_DIR — wrong directory?"
@@ -56,8 +76,27 @@ if [ "${1:-}" = "--rollback" ]; then
   run docker tag stickforstats/frontend:rollback-prev stickforstats/frontend:1.0.0
   run docker compose up -d --no-build
   run docker compose restart nginx
-  warn "Images rolled back. NOTE: this does NOT revert the checkout — if the bad"
-  warn "deploy changed compose/nginx config, also: git checkout -f <previous-sha>"
+  if [ "$DRY_RUN" != "1" ]; then
+    sleep 5
+    # Rollback reverts IMAGES only, not the on-disk nginx.conf. If a bad forward
+    # deploy left an ungated config on disk, restarting nginx here would keep the
+    # site public. Verify the live surface and refuse to exit 0 on an open site.
+    step "Verify rollback did not leave the site public"
+    if assert_edge_gated; then
+      ok "edge still gated after rollback"
+    else
+      die "ROLLBACK LEFT THE SITE PUBLIC. The on-disk nginx.conf is not gating.
+    Rollback reverts images, NOT config. Restore a gated nginx.conf now:
+      git checkout -f <a-sha-whose-nginx.conf-has-the-gate> -- nginx/nginx.conf
+      docker compose restart nginx
+    (Do NOT 'git checkout -f 900296a' — that commit predates the committed gate
+    and its nginx.conf has ZERO auth_basic lines.)"
+    fi
+  fi
+  warn "Images rolled back. This did NOT revert the git checkout — if the bad"
+  warn "deploy also changed compose/nginx/monitoring config, revert the checkout"
+  warn "to a KNOWN-GATED commit (check /root/deploy-backup-*/git-head.txt), NOT"
+  warn "blindly to the host's previous HEAD."
   exit 0
 fi
 
@@ -80,21 +119,32 @@ ok "current: ${CURRENT:0:7}"
 step "Pre-flight"
 
 # 1. The closed-beta gate MUST be in the target tree. If it is not, deploying
-#    would publish the site the moment nginx reloads. This is the single most
-#    dangerous thing this script can do, so it is checked first.
+#    would publish the site the moment nginx reloads.
 #
-#    The pattern is ANCHORED and requires an ACTIVE directive. A bare
-#    `grep -c auth_basic` is fooled by a commented-out gate: given
-#       # auth_basic "StickForStats closed beta";
-#       # auth_basic_user_file /etc/nginx/ssl/.htpasswd;
-#    it counts 2 and cheerfully reports the gate "present" while the site is wide
-#    open. Same regex as the `beta-gate` job in .github/workflows/ci.yml — they
-#    must agree, or one of them is lying.
-GATE_LINES="$(git show "$SHA:nginx/nginx.conf" | grep -cE '^[[:space:]]*auth_basic' || true)"
-[ "$GATE_LINES" -eq 2 ] || die "target $SHORT has $GATE_LINES ACTIVE auth_basic directives (expected 2).
-    Deploying it would REMOVE THE CLOSED-BETA GATE and publish the site.
-    If opening the beta is intentional, do it deliberately — not via this script."
-ok "closed-beta auth gate present in target tree"
+#    This is a STATIC pre-check on the file — it cannot be authoritative, because
+#    a file grep is blind to nginx scope (auth_basic inside a `location` block
+#    leaves other locations open). It is a fast fail to catch the obvious cases;
+#    the AUTHORITATIVE check is assert_edge_gated() against the running site after
+#    reload, below. Here we require the two directives to be ACTIVE (anchored, so
+#    a commented-out gate does not count), an ENABLED realm (a quoted string —
+#    `auth_basic off;` has no quote), and present at server scope, i.e. BEFORE the
+#    first `location` block. Same active-directive regex as CI's beta-gate job.
+GATE_CONF="$(git show "$SHA:nginx/nginx.conf")"
+# Everything from the 443 server's opening brace up to its first `location`:
+SERVER_HEAD="$(printf '%s\n' "$GATE_CONF" | awk '
+  /listen[[:space:]]+443/ {inserver=1}
+  inserver && /location[[:space:]]/ {exit}
+  inserver {print}')"
+GATE_REALM="$(printf '%s\n' "$SERVER_HEAD" | grep -cE '^[[:space:]]*auth_basic[[:space:]]+"' || true)"
+GATE_FILE="$(printf '%s\n' "$SERVER_HEAD"  | grep -cE '^[[:space:]]*auth_basic_user_file[[:space:]]' || true)"
+GATE_OFF="$(printf '%s\n' "$GATE_CONF"     | grep -cE '^[[:space:]]*auth_basic[[:space:]]+off' || true)"
+{ [ "$GATE_REALM" -ge 1 ] && [ "$GATE_FILE" -ge 1 ] && [ "$GATE_OFF" -eq 0 ]; } || \
+  die "target $SHORT does not gate at SERVER scope with an ENABLED Basic Auth realm
+    (server-scope enabled realm: $GATE_REALM, user_file: $GATE_FILE, 'auth_basic off': $GATE_OFF).
+    Deploying it could REMOVE OR NARROW THE CLOSED-BETA GATE and expose the site.
+    If opening the beta is intentional, do it deliberately — not via this script.
+    NOTE: this is a static check; the live edge is verified after reload regardless."
+ok "closed-beta gate present at server scope in target tree (live edge verified after reload)"
 
 # 2. Images for this exact commit must already exist. Syncing config to a commit
 #    whose images were never built leaves config and code out of step — the very
@@ -146,16 +196,41 @@ step "Backup host-only state"
 BK="/root/deploy-backup-$(date +%Y%m%d-%H%M%S)"
 run mkdir -p "$BK"
 if [ "$DRY_RUN" != "1" ]; then
-  cp -a .env "$BK/env" 2>/dev/null || true
-  cp -a docker-compose.override.yml "$BK/" 2>/dev/null || true
-  cp -a nginx/nginx.conf "$BK/nginx.conf" 2>/dev/null || true
-  tar czf "$BK/nginx-ssl.tgz" nginx/ssl 2>/dev/null || true   # certs + .htpasswd
-  tar czf "$BK/secrets.tgz" secrets 2>/dev/null || true
+  # This backup is the ONLY safety net in front of `git checkout -f` against a
+  # host that holds the TLS private key, the beta password file and the receipt
+  # RSA key. So it is verified, not best-effort: a failed capture must ABORT the
+  # deploy, because "backup failed" is not "backup succeeded" (the exact vacuous-
+  # success trap this script preaches against elsewhere).
+  need() { [ -e "$1" ] || return 0; cp -a "$1" "$2" || die "backup of $1 failed — refusing to proceed"; }
+  need .env "$BK/env"
+  need docker-compose.override.yml "$BK/docker-compose.override.yml"
+  need nginx/nginx.conf "$BK/nginx.conf"
+  [ -e nginx/ssl ] && { tar czf "$BK/nginx-ssl.tgz" nginx/ssl || die "backup of nginx/ssl failed"; }
+  [ -e secrets ]   && { tar czf "$BK/secrets.tgz" secrets     || die "backup of secrets failed"; }
+  # Capture the CONTENT of every modified tracked file, not a fixed by-name list —
+  # a host hot-patch to any tracked file (compose, prometheus.yml, ...) is inside
+  # this diff and thus recoverable. `git diff HEAD` covers all tracked mods.
+  git diff HEAD > "$BK/tracked-host-edits.patch" || die "could not capture tracked host edits"
   git rev-parse HEAD > "$BK/git-head.txt"
   git status --porcelain > "$BK/git-status.txt"
   docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | grep stickforstats > "$BK/images.txt" || true
+
+  # Positively verify the critical items landed — a backup you did not confirm is
+  # not a backup.
+  [ -s "$BK/git-head.txt" ] || die "backup verification failed: git-head.txt empty"
+  [ -f .env ] && { [ -s "$BK/env" ] || die "backup verification failed: .env not captured"; }
+  if [ -f nginx/ssl/.htpasswd ]; then
+    tar tzf "$BK/nginx-ssl.tgz" 2>/dev/null | grep -q '\.htpasswd$' \
+      || die "backup verification failed: .htpasswd not in nginx-ssl.tgz"
+  fi
+  ok "backed up to $BK (verified: git-head, .env, nginx/ssl, tracked-edits patch)"
+else
+  ok "[dry-run] would back up to $BK"
 fi
-ok "backed up to $BK"
+
+# The rollback SHA the trap and failure banner point at: the host's HEAD BEFORE
+# this deploy. Captured now so a mid-deploy abort knows where to return.
+PREV_SHA="$(git rev-parse HEAD)"
 
 # ---------------------------------------------------------------------------
 # Arm the rollback BEFORE changing anything: whatever is live now becomes
@@ -173,21 +248,45 @@ done
 
 # ---------------------------------------------------------------------------
 # THE FIX: sync the CHECKOUT, not just the images.
+#
+# Everything from here until the stack is successfully up is "in flight". A
+# failure in this window (a 429 on an image pull, a bad nginx.conf, the box
+# rebooting) would otherwise strand the host with NEW config on disk but OLD
+# containers running — silent, and exactly the split-brain state this whole
+# script exists to prevent. The trap below reverts the tree AND the image tags on
+# any non-zero exit, until DEPLOY_COMMITTED is set once the stack is verified up.
 # ---------------------------------------------------------------------------
+DEPLOY_COMMITTED=0
+if [ "$DRY_RUN" != "1" ]; then
+  rollback_on_abort() {
+    local rc=$?
+    [ "$DEPLOY_COMMITTED" = "1" ] && exit "$rc"
+    printf '\n%s✗ deploy aborted mid-flight (exit %s) — reverting to %s%s\n' "$RED" "$rc" "${PREV_SHA:0:7}" "$RST" >&2
+    git checkout -f "$PREV_SHA" >/dev/null 2>&1 && echo "    tree reverted to ${PREV_SHA:0:7}" >&2 \
+      || echo "    ${RED}could not revert tree — restore nginx.conf from $BK by hand${RST}" >&2
+    for img in backend frontend; do
+      docker image inspect "stickforstats/$img:rollback-prev" >/dev/null 2>&1 \
+        && docker tag "stickforstats/$img:rollback-prev" "stickforstats/$img:1.0.0" >/dev/null 2>&1
+    done
+    docker compose up -d --no-build >/dev/null 2>&1 && docker compose restart nginx >/dev/null 2>&1 \
+      && echo "    images reverted and stack restarted on the previous release" >&2 \
+      || echo "    ${RED}stack revert failed — run: ./scripts/deploy.sh --rollback${RST}" >&2
+    exit "$rc"
+  }
+  trap rollback_on_abort EXIT
+fi
+
 step "Sync checkout to $SHORT (config + images move together)"
 # -f discards tracked modifications (backed up above). Untracked files — .env,
-# nginx/ssl/, secrets/, docker-compose.override.yml — are NOT touched by checkout.
+# nginx/ssl/, secrets/, docker-compose.override.yml — are NOT touched by checkout
+# (proven in a throwaway repo), UNLESS the target commit tracks that exact path,
+# which pre-flight #5 already refused.
 run git checkout -f -B main "$SHA"
 if [ "$DRY_RUN" != "1" ]; then
   ok "checkout now at $(git rev-parse --short HEAD) on $(git rev-parse --abbrev-ref HEAD)"
 
-  # Post-checkout assertions. If any fail we have a broken host: restore and abort.
-  restore_and_die() {
-    warn "restoring backed-up config from $BK"
-    cp -a "$BK/nginx.conf" nginx/nginx.conf 2>/dev/null || true
-    cp -a "$BK/env" .env 2>/dev/null || true
-    die "$1"
-  }
+  # Post-checkout assertions. The trap handles reverting; these just fail loudly.
+  restore_and_die() { die "$1"; }
   # Anchored, as in the pre-flight: a commented-out gate must NOT count as present.
   [ "$(grep -cE '^[[:space:]]*auth_basic' nginx/nginx.conf || true)" -eq 2 ] \
     || restore_and_die "auth gate MISSING from nginx.conf after checkout — refusing to continue"
@@ -227,8 +326,15 @@ fi
 # ---------------------------------------------------------------------------
 step "Apply"
 run docker compose up -d --no-build
-run docker compose restart nginx      # nginx only re-reads its config on restart
-run docker compose restart prometheus # bind-mounted config: content change does not recreate
+# A bind-mounted config file changing on disk does NOT recreate its container, so
+# every service whose mounted config the checkout may have changed is restarted
+# explicitly. nginx (nginx.conf), prometheus (prometheus.yml), grafana
+# (dashboards + datasources) all mount from ./ — see docker-compose.yml volumes.
+run docker compose restart nginx
+# prometheus/grafana may not exist in every environment; a missing optional
+# service must not abort the deploy (the trap would then revert a good release).
+run docker compose restart prometheus 2>/dev/null || warn "prometheus not restarted (service absent?)"
+run docker compose restart grafana 2>/dev/null || warn "grafana not restarted (service absent?)"
 ok "stack up"
 
 # ---------------------------------------------------------------------------
@@ -268,12 +374,17 @@ if [ "$DRY_RUN" != "1" ]; then
 
   # Receipt signing. gunicorn runs 4 workers with no --preload, so a per-worker
   # ephemeral key shows up as SEVERAL distinct kids across repeated reads.
-  # Collect the kids, then assert positively on what we got.
-  KIDS="$(for _ in 1 2 3 4 5 6 7 8; do
-            docker exec stickforstats-backend curl -s -H 'X-Forwarded-Proto: https' \
-              http://localhost:8000/api/v1/receipt/jwks/ 2>/dev/null \
-            | sed -n 's/.*"kid":[[:space:]]*"\([^"]*\)".*/\1/p'
-          done | sort -u)"
+  # Collect ALL kids from EVERY response (grep -oE, not a greedy sed that would
+  # capture only the LAST kid on a multi-key line and hide an ephemeral one). The
+  # `|| true` on the pipeline is load-bearing: without it, under `set -e` a
+  # non-listening backend makes this command substitution abort the whole script,
+  # skipping the edge security check below.
+  KIDS="$( { for _ in 1 2 3 4 5 6 7 8; do
+              docker exec stickforstats-backend curl -s -H 'X-Forwarded-Proto: https' \
+                http://localhost:8000/api/v1/receipt/jwks/ 2>/dev/null \
+              | grep -oE '"kid"[[:space:]]*:[[:space:]]*"[^"]*"' \
+              | sed -E 's/.*"([^"]*)"$/\1/'
+            done; } 2>/dev/null | sort -u || true)"
   N_KIDS="$(printf '%s\n' "$KIDS" | grep -c . || true)"
   if [ "$N_KIDS" -eq 1 ]; then
     check "receipt JWKS serves exactly ONE key ($KIDS)" PASS
@@ -289,14 +400,12 @@ if [ "$DRY_RUN" != "1" ]; then
     *)                             check "receipt key is a stable, configured key" PASS ;;
   esac
 
-  # THE SECURITY CHECK. The closed beta must still demand a password.
-  # A 200 here means the site is PUBLIC. 000 means the edge is unreachable.
-  EDGE="$(curl -s -o /dev/null -w '%{http_code}' "$EDGE_URL" || echo 000)"
-  if [ "$EDGE" = "401" ]; then
-    check "edge still requires Basic Auth (HTTP 401)" PASS
-  else
-    check "edge returned HTTP $EDGE, expected 401 — THE SITE MAY BE PUBLIC" FAIL
-  fi
+  # THE SECURITY CHECK, and the authoritative one for the gate. Probe the LIVE
+  # edge on every path that matters — /, /api/, the health endpoint, the JS
+  # bundle, an app route. A 200 on ANY means that surface is PUBLIC. This catches
+  # what a file grep cannot: a gate mis-scoped into a `location` block, or
+  # `auth_basic off;`, because it tests the running server, not the text.
+  if assert_edge_gated; then :; else FAILED=1; fi
 
   # Nothing is crash-looping. Assert positively that we could read the state list.
   PS="$(docker ps --format '{{.Names}} {{.Status}}' 2>/dev/null || true)"
@@ -309,24 +418,44 @@ if [ "$DRY_RUN" != "1" ]; then
     check "$RESTARTING container(s) RESTARTING" FAIL
   fi
 
-  # The image can now say which commit it is (OCI label added 2026-07-14).
+  # Which commit is ACTUALLY RUNNING. Inspect the running CONTAINER, not the
+  # :1.0.0 tag — an override pinning a different image, or a hand-retag, would make
+  # the tag lie. The label was added 2026-07-14; images built before it have none,
+  # so a fresh deploy of an old commit legitimately has no label. Rather than skip
+  # (which lets "wrong image" never fire), fall back to a positive image-ID match:
+  # the running backend container's image ID must equal the ID GHCR published for
+  # this SHA.
   REV="$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' \
-          stickforstats/backend:1.0.0 2>/dev/null || true)"
-  if [ -z "$REV" ]; then
-    warn "backend image carries no revision label (built before labels were added) — skipping"
-  elif [ "$REV" = "$SHA" ]; then
-    check "backend image self-reports revision $SHORT" PASS
+          stickforstats-backend 2>/dev/null || true)"
+  if [ -n "$REV" ]; then
+    if [ "$REV" = "$SHA" ]; then check "running backend self-reports revision $SHORT" PASS
+    else check "running backend reports revision ${REV:0:7}, expected $SHORT — WRONG IMAGE IS LIVE" FAIL; fi
   else
-    check "backend image reports revision ${REV:0:7}, expected $SHORT — WRONG IMAGE IS LIVE" FAIL
+    RUN_ID="$(docker inspect -f '{{.Image}}' stickforstats-backend 2>/dev/null || true)"
+    WANT_ID="$(docker image inspect -f '{{.Id}}' "$REGISTRY/backend:$SHA" 2>/dev/null || true)"
+    if [ -n "$RUN_ID" ] && [ -n "$WANT_ID" ] && [ "$RUN_ID" = "$WANT_ID" ]; then
+      check "running backend image == GHCR image for $SHORT (no revision label yet)" PASS
+    else
+      check "cannot confirm running backend is $SHORT (no label, and image-ID match failed)" FAIL
+    fi
   fi
 fi
 
 if [ "$FAILED" -ne 0 ]; then
   printf '\n%s✗ DEPLOY VERIFICATION FAILED.%s The stack is up but WRONG.\n' "$RED" "$RST"
-  printf '  Roll back now:\n    cd %s && ./scripts/deploy.sh --rollback\n' "$APP_DIR"
-  printf '    git checkout -f %s     # and revert the config too\n\n' "$(cut -c1-7 "$BK/git-head.txt" 2>/dev/null || echo '<previous-sha>')"
+  printf '  The site may be public or the wrong code may be live. Roll back NOW:\n'
+  printf '    cd %s && ./scripts/deploy.sh --rollback\n' "$APP_DIR"
+  printf '  and if config changed, revert the checkout to the previous release:\n'
+  printf '    git checkout -f %s\n\n' "${PREV_SHA:0:12}"
+  # The trap is still armed (DEPLOY_COMMITTED=0), so exiting non-zero here AUTO-
+  # reverts tree + images to the previous release. The banner above is guidance
+  # for the operator in case the auto-revert itself hits trouble.
   exit 1
 fi
+
+# Success: disarm the mid-flight rollback trap. Everything from here is safe.
+DEPLOY_COMMITTED=1
+trap - EXIT
 
 step "Deployed $SHORT"
 ok "config and images are both at $SHORT — they can no longer drift apart"
