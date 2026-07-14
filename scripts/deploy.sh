@@ -261,9 +261,24 @@ if [ "$DRY_RUN" != "1" ]; then
   rollback_on_abort() {
     local rc=$?
     [ "$DEPLOY_COMMITTED" = "1" ] && exit "$rc"
-    printf '\n%s✗ deploy aborted mid-flight (exit %s) — reverting to %s%s\n' "$RED" "$rc" "${PREV_SHA:0:7}" "$RST" >&2
+    printf '\n%s✗ deploy aborted mid-flight (exit %s) — reverting to the previous release%s\n' "$RED" "$rc" "$RST" >&2
     git checkout -f "$PREV_SHA" >/dev/null 2>&1 && echo "    tree reverted to ${PREV_SHA:0:7}" >&2 \
-      || echo "    ${RED}could not revert tree — restore nginx.conf from $BK by hand${RST}" >&2
+      || echo "    ${RED}could not revert tree${RST}" >&2
+
+    # CRITICAL: $PREV_SHA may be a commit that PREDATES the committed auth gate
+    # (the production host's HEAD was 900296a, whose nginx.conf has ZERO
+    # auth_basic lines). Reverting the tree to it and restarting nginx would
+    # PUBLISH the site. So always restore the gated nginx.conf from the backup —
+    # which was captured from the live, gated config at the start of this run,
+    # and is guaranteed to carry the gate — rather than trusting the reverted
+    # tree. This is the fix for the exact incident that first exercised this trap.
+    if [ -f "$BK/nginx.conf" ] && grep -qE '^[[:space:]]*auth_basic[[:space:]]+"' "$BK/nginx.conf"; then
+      cp -a "$BK/nginx.conf" nginx/nginx.conf
+      echo "    restored the GATED nginx.conf from backup" >&2
+    else
+      echo "    ${RED}backup nginx.conf missing or ungated — check the gate BY HAND now${RST}" >&2
+    fi
+
     for img in backend frontend; do
       docker image inspect "stickforstats/$img:rollback-prev" >/dev/null 2>&1 \
         && docker tag "stickforstats/$img:rollback-prev" "stickforstats/$img:1.0.0" >/dev/null 2>&1
@@ -271,6 +286,14 @@ if [ "$DRY_RUN" != "1" ]; then
     docker compose up -d --no-build >/dev/null 2>&1 && docker compose restart nginx >/dev/null 2>&1 \
       && echo "    images reverted and stack restarted on the previous release" >&2 \
       || echo "    ${RED}stack revert failed — run: ./scripts/deploy.sh --rollback${RST}" >&2
+
+    # Do not exit on a public site. Verify the gate held; if not, say so loudly.
+    sleep 3
+    if assert_edge_gated >/dev/null 2>&1; then
+      echo "    ${GRN}verified: edge still requires Basic Auth after revert${RST}" >&2
+    else
+      printf '    %s*** THE SITE MAY BE PUBLIC — restore a gated nginx.conf and reload nginx NOW ***%s\n' "$RED" "$RST" >&2
+    fi
     exit "$rc"
   }
   trap rollback_on_abort EXIT
@@ -313,12 +336,24 @@ step "Validate config"
 run docker compose config --quiet
 ok "docker compose config is valid"
 if [ "$DRY_RUN" != "1" ]; then
-  docker run --rm \
-    -v "$APP_DIR/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
-    -v "$APP_DIR/nginx/ssl:/etc/nginx/ssl:ro" \
-    nginx:alpine nginx -t >/dev/null 2>&1 \
-    && ok "nginx -t passes against the new nginx.conf" \
-    || die "nginx -t FAILED on the new config — not applying it"
+  # Validate nginx.conf inside the RUNNING nginx container, which is on the
+  # compose network. A throwaway `docker run nginx:alpine` is NOT on that network,
+  # so it cannot resolve `upstream backend:8000` and fails `nginx -t` with
+  # "host not found in upstream" on a perfectly valid config — a false negative
+  # that (before this fix) aborted a good deploy and triggered a revert. The
+  # running container resolves the upstreams exactly as production does.
+  if docker cp nginx/nginx.conf stickforstats-nginx:/tmp/nginx.new.conf >/dev/null 2>&1 \
+     && docker exec stickforstats-nginx nginx -t -c /tmp/nginx.new.conf >/dev/null 2>&1; then
+    docker exec stickforstats-nginx rm -f /tmp/nginx.new.conf >/dev/null 2>&1 || true
+    ok "nginx -t passes against the new nginx.conf (validated in the running nginx container)"
+  else
+    docker exec stickforstats-nginx rm -f /tmp/nginx.new.conf >/dev/null 2>&1 || true
+    # Show the real reason before aborting (the trap will revert).
+    docker cp nginx/nginx.conf stickforstats-nginx:/tmp/nginx.new.conf >/dev/null 2>&1 || true
+    docker exec stickforstats-nginx nginx -t -c /tmp/nginx.new.conf 2>&1 | tail -2 >&2 || true
+    docker exec stickforstats-nginx rm -f /tmp/nginx.new.conf >/dev/null 2>&1 || true
+    die "nginx -t FAILED on the new config — not applying it (see error above)"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
