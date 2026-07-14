@@ -8,7 +8,7 @@ whole point of the "reproducibility receipt" — independent verifiability —
 so we use asymmetric signing rather than the symmetric HMAC the
 certification service uses (HMAC would require trusting our verify endpoint).
 
-Key source, in priority order:
+The signing key (one, "active") source, in priority order:
 
 1. ``RECEIPT_RSA_PRIVATE_KEY`` env var (PEM), or ``RECEIPT_RSA_PRIVATE_KEY_B64``
    (the same PEM, base64-encoded — the single-line form a ``.env`` file can
@@ -24,6 +24,40 @@ Generate a production key with::
 or, for a ``.env`` file::
 
     python manage.py generate_receipt_keypair --env   # prints RECEIPT_RSA_PRIVATE_KEY_B64=...
+
+The keyring: verify against any known key, sign with the newest
+--------------------------------------------------------------
+
+Receipts are long-lived: a journal editor may verify one months after it was
+issued. If the signing key is ever rotated and only ONE key is ever held, every
+receipt signed under the old key becomes unverifiable and its downloadable
+bundle self-inconsistent (it would embed the new public key next to an old
+signature) — so a *genuine* receipt reads as a forgery. That defeats the whole
+point of the receipt.
+
+So this module holds a **keyring**, not a single key:
+
+* One **active** key (above) — the only key that SIGNS. New receipts use it.
+* Zero or more **retired**, verify-only keys, supplied as
+  ``RECEIPT_RSA_RETIRED_KEYS_B64`` = base64 of a JSON array
+  ``[{"kid": "...", "public_pem": "<PEM>"}, ...]``. These never sign; they exist
+  only so old receipts keep verifying and keep exporting a self-consistent
+  bundle. Retired entries need only the PUBLIC half — the old *private* key can
+  be destroyed at rotation, which is the safer posture.
+
+:func:`verify` looks a signature up by its ``key_id`` and checks it against
+*that* key. :func:`get_public_jwks` publishes every key in the ring. The bundle
+(:mod:`core.services.receipt_bundle`) embeds the public key that MATCHES the
+receipt's ``key_id`` via :func:`public_pem_for`, so it is always self-consistent.
+
+Rotate with::
+
+    python manage.py rotate_receipt_key --env
+
+which prints the new ``RECEIPT_RSA_PRIVATE_KEY_B64`` / ``RECEIPT_RSA_KEY_ID`` and
+a ``RECEIPT_RSA_RETIRED_KEYS_B64`` that folds the *current* active public key
+into the retired set. Paste the three lines, redeploy: new receipts sign with the
+new key, old receipts keep verifying against the retired one.
 
 Why signing is fail-closed when ``DEBUG=False``
 -----------------------------------------------
@@ -63,10 +97,12 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import logging
 import os
 import threading
-from typing import Any, Dict, Optional, Tuple
+from collections import OrderedDict
+from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
@@ -78,12 +114,18 @@ from django.core.exceptions import ImproperlyConfigured
 logger = logging.getLogger(__name__)
 
 _LOCK = threading.Lock()
-_CACHED: Optional[Tuple[RSAPrivateKey, RSAPublicKey, str]] = None
+_CACHED: "Optional[_Keyring]" = None
 
 _TRUTHY = {"1", "true", "yes", "on"}
 
-#: Env vars that can carry the signing key, in the order they are consulted.
+#: Env vars that can carry the active signing key, in the order they are consulted.
 KEY_ENV_VARS = ("RECEIPT_RSA_PRIVATE_KEY", "RECEIPT_RSA_PRIVATE_KEY_B64")
+
+#: Env var carrying verify-only (retired) public keys: base64 of a JSON array
+#: ``[{"kid": "...", "public_pem": "<PEM>"}, ...]``. These never sign; they let
+#: receipts issued under a rotated-out key keep verifying and keep exporting a
+#: self-consistent bundle. See the module docstring ("The keyring").
+RETIRED_KEYS_ENV_VAR = "RECEIPT_RSA_RETIRED_KEYS_B64"
 
 
 def key_is_configured() -> bool:
@@ -194,33 +236,156 @@ def _generate_ephemeral() -> Tuple[RSAPrivateKey, RSAPublicKey, str]:
     return private_key, public_key, kid
 
 
-def get_keypair() -> Tuple[RSAPrivateKey, RSAPublicKey, str]:
-    """Return ``(private_key, public_key, kid)`` for receipt signing.
+class _Keyring:
+    """The set of receipt keys this process trusts.
 
-    Loads from ``RECEIPT_RSA_PRIVATE_KEY`` if set, otherwise generates an
-    ephemeral keypair and warns. Cached after the first call.
+    ``signing_*`` is the one active key — the only key that SIGNS. ``verify_keys``
+    maps every trusted ``kid`` to its public key and ALWAYS includes the active
+    key, so :func:`verify` can look a signature up by its ``key_id`` and cover
+    both the current key and any retired, verify-only keys. Insertion order is
+    active-first, which is also the order JWKS publishes them in.
     """
+
+    __slots__ = ("signing_private", "signing_public", "signing_kid", "verify_keys")
+
+    def __init__(
+        self,
+        signing_private: RSAPrivateKey,
+        signing_public: RSAPublicKey,
+        signing_kid: str,
+        verify_keys: "OrderedDict[str, RSAPublicKey]",
+    ) -> None:
+        self.signing_private = signing_private
+        self.signing_public = signing_public
+        self.signing_kid = signing_kid
+        self.verify_keys = verify_keys
+
+
+def _load_public_key_from_pem(pem: str) -> RSAPublicKey:
+    """Parse a PEM holding an RSA public key.
+
+    Retired entries should carry only the PUBLIC half — that is the whole point
+    of retiring a key: the private half can be destroyed. But if a private PEM
+    is pasted in by mistake, take its public half rather than failing.
+    """
+    raw = pem.strip()
+    if "\\n" in raw and "\n" not in raw:
+        raw = raw.replace("\\n", "\n")
+    data = raw.encode("utf-8")
+    try:
+        key: Any = serialization.load_pem_public_key(data)
+    except Exception:  # noqa: BLE001 - fall back to a private PEM below
+        try:
+            key = serialization.load_pem_private_key(data, password=None).public_key()
+        except Exception as exc:  # noqa: BLE001 - re-raised with context
+            raise RuntimeError(
+                f"a retired receipt key could not be parsed as a PEM public "
+                f"(or private) RSA key: {exc}"
+            ) from exc
+    if not isinstance(key, RSAPublicKey):
+        raise RuntimeError(
+            f"a retired receipt key must be RSA; got {type(key).__name__}"
+        )
+    return key
+
+
+def _load_retired_keys() -> "OrderedDict[str, RSAPublicKey]":
+    """Parse ``RECEIPT_RSA_RETIRED_KEYS_B64`` into an ordered ``kid -> public key`` map."""
+    result: "OrderedDict[str, RSAPublicKey]" = OrderedDict()
+    blob = os.environ.get(RETIRED_KEYS_ENV_VAR, "").strip()
+    if not blob:
+        return result
+    try:
+        decoded = base64.b64decode(blob).decode("utf-8")
+        entries = json.loads(decoded)
+    except Exception as exc:  # noqa: BLE001 - re-raised with actionable context
+        raise RuntimeError(
+            f"{RETIRED_KEYS_ENV_VAR} is set but is not base64-encoded JSON: {exc}"
+        ) from exc
+    if not isinstance(entries, list):
+        raise RuntimeError(
+            f"{RETIRED_KEYS_ENV_VAR} must decode to a JSON array of "
+            '{"kid": ..., "public_pem": ...} objects.'
+        )
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            raise RuntimeError(f"{RETIRED_KEYS_ENV_VAR}[{i}] is not a JSON object")
+        kid = str(entry.get("kid", "")).strip()
+        pem = entry.get("public_pem") or entry.get("pem") or ""
+        if not kid or not pem:
+            raise RuntimeError(
+                f"{RETIRED_KEYS_ENV_VAR}[{i}] needs both a 'kid' and a 'public_pem'"
+            )
+        if kid in result:
+            raise RuntimeError(
+                f"{RETIRED_KEYS_ENV_VAR} lists kid {kid!r} more than once"
+            )
+        result[kid] = _load_public_key_from_pem(str(pem))
+    return result
+
+
+def _build_keyring() -> _Keyring:
+    """Assemble the trusted keyring from the environment.
+
+    Active key first (so it wins JWKS ordering and any kid collision with a
+    misconfigured retired entry), then every retired verify-only key.
+    """
+    loaded = _load_from_env()
+    private_key, public_key, kid = loaded if loaded is not None else _generate_ephemeral()
+    verify_keys: "OrderedDict[str, RSAPublicKey]" = OrderedDict()
+    verify_keys[kid] = public_key
+    for retired_kid, retired_pub in _load_retired_keys().items():
+        if retired_kid == kid:
+            # The active key is authoritative for its own kid; a retired entry
+            # claiming the same kid is a config smell, not a second key.
+            logger.warning(
+                "Retired receipt key kid=%s collides with the active signing kid; "
+                "ignoring the retired entry and keeping the active key.",
+                retired_kid,
+            )
+            continue
+        verify_keys[retired_kid] = retired_pub
+    return _Keyring(private_key, public_key, kid, verify_keys)
+
+
+def _get_keyring() -> _Keyring:
     global _CACHED
     with _LOCK:
         if _CACHED is None:
-            loaded = _load_from_env()
-            _CACHED = loaded if loaded is not None else _generate_ephemeral()
+            _CACHED = _build_keyring()
         return _CACHED
 
 
+def get_keypair() -> Tuple[RSAPrivateKey, RSAPublicKey, str]:
+    """Return ``(private_key, public_key, kid)`` for the ACTIVE signing key.
+
+    Loads from ``RECEIPT_RSA_PRIVATE_KEY`` if set, otherwise generates an
+    ephemeral keypair and warns. Cached (with the rest of the keyring) after the
+    first call. Only the active key signs; use :func:`verify` /
+    :func:`public_pem_for` to reach retired keys by ``kid``.
+    """
+    ring = _get_keyring()
+    return ring.signing_private, ring.signing_public, ring.signing_kid
+
+
 def reset_cache() -> None:
-    """Drop the cached keypair (used in tests)."""
+    """Drop the cached keyring (used in tests)."""
     global _CACHED
     with _LOCK:
         _CACHED = None
 
 
 def active_key_id() -> str:
-    return get_keypair()[2]
+    return _get_keyring().signing_kid
+
+
+def known_key_ids() -> Tuple[str, ...]:
+    """Every ``kid`` the ring can verify against (active first, then retired)."""
+    return tuple(_get_keyring().verify_keys.keys())
 
 
 def sign(data: bytes) -> Dict[str, str]:
-    """RS256-sign ``data``; return a detached-signature dict.
+    """RS256-sign ``data`` with the ACTIVE key; return a detached-signature dict.
 
     Returns ``{"alg": "RS256", "key_id": kid, "value": base64-signature}``.
     """
@@ -230,42 +395,78 @@ def sign(data: bytes) -> Dict[str, str]:
 
 
 def verify(data: bytes, signature_b64: str, key_id: Optional[str] = None) -> bool:
-    """Verify an RS256 signature over ``data`` against the active public key.
+    """Verify an RS256 signature over ``data`` against the key named by ``key_id``.
 
-    ``key_id`` is checked when supplied (forward-compatibility for key
-    rotation): in v1 only the active key is held, so a signature made under
-    a different ``key_id`` cannot be verified here and returns ``False``.
+    * A known ``key_id`` is verified against *that* key — so a receipt signed
+      under a since-rotated key still verifies as long as its key is retained in
+      the ring.
+    * An **unknown** ``key_id`` returns ``False``: the signing key is not in this
+      process's ring, so we cannot vouch for it (we do not fall back to trying
+      other keys, which would let a stripped/spoofed kid probe the whole ring).
+    * A blank/absent ``key_id`` is a legacy receipt that recorded no kid; it is
+      tried against every key in the ring.
     """
-    _, public_key, kid = get_keypair()
-    if key_id and key_id != kid:
-        return False
+    ring = _get_keyring()
+    if key_id:
+        public_key = ring.verify_keys.get(key_id)
+        if public_key is None:
+            return False
+        candidates: List[RSAPublicKey] = [public_key]
+    else:
+        candidates = list(ring.verify_keys.values())
     try:
-        public_key.verify(
-            base64.b64decode(signature_b64),
-            data,
-            padding.PKCS1v15(),
-            hashes.SHA256(),
-        )
-        return True
-    except (InvalidSignature, ValueError, TypeError):
+        raw_sig = base64.b64decode(signature_b64)
+    except (ValueError, TypeError):
         return False
+    for public_key in candidates:
+        try:
+            public_key.verify(raw_sig, data, padding.PKCS1v15(), hashes.SHA256())
+            return True
+        except (InvalidSignature, ValueError, TypeError):
+            continue
+    return False
 
 
-def public_pem() -> str:
-    """Return the active public key as a PEM string (bundled into downloads)."""
-    _, public_key, _ = get_keypair()
+def _public_pem_bytes(public_key: RSAPublicKey) -> str:
     return public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     ).decode("ascii")
 
 
+def public_pem() -> str:
+    """Return the ACTIVE public key as a PEM string."""
+    return _public_pem_bytes(_get_keyring().signing_public)
+
+
+def public_pem_for(key_id: Optional[str]) -> Optional[str]:
+    """PEM for a specific ``key_id`` — the key that signed a given receipt.
+
+    Returns ``None`` if ``key_id`` is not in the ring (so the caller can refuse
+    to ship a self-inconsistent bundle). A blank/None ``key_id`` is a legacy
+    receipt with no recorded kid; fall back to the active key.
+    """
+    ring = _get_keyring()
+    if not key_id:
+        return _public_pem_bytes(ring.signing_public)
+    public_key = ring.verify_keys.get(key_id)
+    if public_key is None:
+        return None
+    return _public_pem_bytes(public_key)
+
+
 def get_public_jwks() -> Dict[str, Any]:
-    """Return the receipt public JWKS document for the receipt JWKS endpoint."""
-    _, public_key, kid = get_keypair()
-    public_numbers = public_key.public_numbers()
-    return {
-        "keys": [
+    """Return the receipt public JWKS document — EVERY key in the ring.
+
+    Publishing all keys (not just the active one) is what lets a third party
+    verify a receipt signed under a since-rotated key: they find its ``kid`` in
+    the JWKS. The active key is listed first.
+    """
+    ring = _get_keyring()
+    keys: List[Dict[str, str]] = []
+    for kid, public_key in ring.verify_keys.items():
+        public_numbers = public_key.public_numbers()
+        keys.append(
             {
                 "kty": "RSA",
                 "alg": "RS256",
@@ -274,5 +475,5 @@ def get_public_jwks() -> Dict[str, Any]:
                 "n": _int_to_b64url(public_numbers.n),
                 "e": _int_to_b64url(public_numbers.e),
             }
-        ]
-    }
+        )
+    return {"keys": keys}

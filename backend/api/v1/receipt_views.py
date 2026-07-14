@@ -193,7 +193,12 @@ class ReceiptDownloadView(APIView):
 
 
 class ReceiptJWKSView(APIView):
-    """GET /api/v1/receipt/jwks/ — the receipt signing public key (JWKS)."""
+    """GET /api/v1/receipt/jwks/ — every receipt public key in the ring (JWKS).
+
+    Publishes the active signing key AND any retired verify-only keys, so a third
+    party can verify a receipt signed under a since-rotated key by matching its
+    ``kid``. The active key is listed first.
+    """
 
     permission_classes = [AllowAny]
 

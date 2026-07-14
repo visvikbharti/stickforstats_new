@@ -126,27 +126,32 @@ class SigningKeyMismatch(RuntimeError):
 def build_artifact(receipt) -> dict:
     """Return the self-contained signed-receipt artifact dict.
 
-    Raises :class:`SigningKeyMismatch` if the active key is not the one that
-    signed ``receipt``. The bundle embeds ``public_key_pem`` so a third party can
-    verify offline *without trusting us*; embedding the serving process's key
-    when a different key produced the signature would hand a journal editor a
-    genuine receipt that fails its own verify instructions — indistinguishable,
-    to them, from a forgery. Refusing the download is the lesser harm: it is
-    honest, and it is fixable by restoring the key that signed.
+    The bundle embeds ``public_key_pem`` so a third party can verify offline
+    *without trusting us*. The embedded key is the one that MATCHES the receipt's
+    own ``key_id`` (:func:`receipt_signing.public_pem_for`), never merely the
+    active signing key — so a receipt signed under a since-rotated key still
+    ships the public key that actually verifies it, as long as that key is
+    retained in the ring (``RECEIPT_RSA_RETIRED_KEYS_B64``).
 
-    This bites on key rotation (a receipt signed under the old kid, downloaded
-    after the new key is installed). It also catches an ephemeral key that
-    differs across workers, because ephemeral key ids carry the public key's
-    fingerprint and therefore differ too.
+    Raises :class:`SigningKeyMismatch` only if the receipt's ``key_id`` is
+    genuinely absent from the ring — then no held key can verify it, and
+    embedding the wrong key would hand a journal editor a genuine receipt that
+    fails its own verify instructions, indistinguishable to them from a forgery.
+    Refusing is the lesser harm: it is honest, and it is fixable by adding the
+    retired key back to the ring. This also catches an ephemeral key that differs
+    across workers, because ephemeral key ids carry the public key's fingerprint
+    and therefore differ too.
     """
-    active_kid = receipt_signing.active_key_id()
-    if receipt.key_id and receipt.key_id != active_kid:
+    public_key_pem = receipt_signing.public_pem_for(receipt.key_id)
+    if public_key_pem is None:
+        known = ", ".join(receipt_signing.known_key_ids()) or "(none)"
         raise SigningKeyMismatch(
             f"Receipt {receipt.receipt_id} was signed under key id "
-            f"'{receipt.key_id}', but this process holds '{active_kid}'. Refusing "
-            "to emit a bundle whose embedded public key cannot verify the "
-            "signature inside it. Restore the signing key with that key id (or "
-            "serve the receipt from a process that holds it)."
+            f"'{receipt.key_id}', which is not in this process's receipt keyring "
+            f"(known: {known}). Refusing to emit a bundle whose embedded public "
+            "key cannot verify the signature inside it. Add that key to "
+            "RECEIPT_RSA_RETIRED_KEYS_B64 (its public half is enough), or serve "
+            "the receipt from a process that holds it."
         )
 
     rid = str(receipt.receipt_id)
@@ -159,7 +164,7 @@ def build_artifact(receipt) -> dict:
             "key_id": receipt.key_id,
             "value": receipt.signature,
         },
-        "public_key_pem": receipt_signing.public_pem(),
+        "public_key_pem": public_key_pem,
         "jwks_url": "/api/v1/receipt/jwks/",
         "verify_url": f"/api/v1/receipt/verify/{rid}/",
         "verify_instructions": (

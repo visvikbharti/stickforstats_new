@@ -75,6 +75,10 @@ services:
       #     docker compose exec backend python manage.py generate_receipt_keypair --env
       - RECEIPT_RSA_PRIVATE_KEY_B64=${RECEIPT_RSA_PRIVATE_KEY_B64:-}
       - RECEIPT_RSA_KEY_ID=${RECEIPT_RSA_KEY_ID:-stickforstats-receipt-prod-1}
+      # Retired (verify-only) keys so receipts signed under a rotated-out key keep
+      # verifying and keep exporting a self-consistent bundle. Base64 of a JSON
+      # array of {kid, public_pem}. Produced by `manage.py rotate_receipt_key`.
+      - RECEIPT_RSA_RETIRED_KEYS_B64=${RECEIPT_RSA_RETIRED_KEYS_B64:-}
       # Escape hatch: accept unverifiable (per-process, throwaway) receipt keys.
       # Never set this in production.
       - RECEIPT_ALLOW_EPHEMERAL_KEY=${RECEIPT_ALLOW_EPHEMERAL_KEY:-}
@@ -172,6 +176,7 @@ services:
       # a throwaway one if a task ever does.
       - RECEIPT_RSA_PRIVATE_KEY_B64=${RECEIPT_RSA_PRIVATE_KEY_B64:-}
       - RECEIPT_RSA_KEY_ID=${RECEIPT_RSA_KEY_ID:-stickforstats-receipt-prod-1}
+      - RECEIPT_RSA_RETIRED_KEYS_B64=${RECEIPT_RSA_RETIRED_KEYS_B64:-}
       - RECEIPT_ALLOW_EPHEMERAL_KEY=${RECEIPT_ALLOW_EPHEMERAL_KEY:-}
     depends_on:
       - postgres
