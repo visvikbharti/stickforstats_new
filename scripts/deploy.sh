@@ -421,12 +421,17 @@ if [ "$DRY_RUN" != "1" ]; then
               | sed -E 's/.*"([^"]*)"$/\1/'
             done; } 2>/dev/null | sort -u || true)"
   N_KIDS="$(printf '%s\n' "$KIDS" | grep -c . || true)"
-  if [ "$N_KIDS" -eq 1 ]; then
-    check "receipt JWKS serves exactly ONE key ($KIDS)" PASS
-  elif [ "$N_KIDS" -eq 0 ]; then
+  # With the signing KEYRING, JWKS legitimately serves MORE THAN ONE key after a
+  # rotation: the active key plus retired, verify-only keys, so a receipt signed
+  # under a rotated-out key still verifies (its kid is still published). Multiple
+  # STABLE keys is therefore healthy, not a fault. The failure this once guarded
+  # against — per-worker EPHEMERAL divergence (4 workers minting 4 throwaway kids)
+  # — is caught by the ephemeral check below, which fails on ANY ephemeral kid
+  # regardless of count. So the only count that fails here is zero (JWKS down).
+  if [ "$N_KIDS" -eq 0 ]; then
     check "receipt JWKS unreachable — cannot confirm the signing key at all" FAIL
   else
-    check "receipt JWKS serves $N_KIDS DIFFERENT keys — receipts will not verify" FAIL
+    check "receipt JWKS serves $N_KIDS key(s) ($(printf '%s' "$KIDS" | tr '\n' ' '))" PASS
   fi
   # Must have OBSERVED a kid, and it must not be ephemeral.
   case "$KIDS" in
