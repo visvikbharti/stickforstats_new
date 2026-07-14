@@ -22,6 +22,45 @@ concurrency:
 
 jobs:
   # ── Stage 1: Lint (parallel, required) ──────────────────────────────
+  # The site is a CLOSED BETA. Its only gate is two auth_basic lines in
+  # nginx/nginx.conf. Until 2026-07-14 those lines lived ONLY as an uncommitted
+  # edit on the production host — a clean checkout there would have published the
+  # site silently. They are committed now; this job makes their removal loud.
+  #
+  # It is a real gate, not a decoration: delete either line and this job fails.
+  # When the beta genuinely opens, delete this job in the same reviewed commit.
+  beta-gate:
+    name: Closed-beta gate present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: nginx.conf must still gate the site behind Basic Auth
+        run: |
+          set -euo pipefail
+          missing=0
+          grep -qE '^\s*auth_basic\s+"' nginx/nginx.conf || { echo "::error file=nginx/nginx.conf::auth_basic directive is GONE — the closed beta would be PUBLIC"; missing=1; }
+          grep -qE '^\s*auth_basic_user_file\s+/etc/nginx/ssl/\.htpasswd;' nginx/nginx.conf || { echo "::error file=nginx/nginx.conf::auth_basic_user_file is GONE or repointed — the closed beta would be PUBLIC"; missing=1; }
+          if [ "$missing" -ne 0 ]; then
+            echo "The closed-beta access gate has been removed from nginx/nginx.conf."
+            echo "If that was deliberate (the beta is opening), delete the 'beta-gate' job in the same commit."
+            exit 1
+          fi
+          echo "OK: closed-beta Basic Auth gate is present in nginx/nginx.conf."
+
+      - name: the password file and TLS key must never be committed
+        run: |
+          set -euo pipefail
+          if git ls-files --error-unmatch nginx/ssl/.htpasswd >/dev/null 2>&1; then
+            echo "::error::nginx/ssl/.htpasswd is TRACKED — the beta password hash is in git history."
+            exit 1
+          fi
+          leaked=$(git ls-files | grep -E '\.pem$|\.key$|htpasswd' || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::secret material is tracked:"; echo "$leaked"; exit 1
+          fi
+          echo "OK: no TLS key, receipt key, or password file is tracked."
+
   backend-lint:
     name: Backend Lint
     runs-on: ubuntu-latest

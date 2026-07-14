@@ -145,3 +145,20 @@ RELEASE_PREPARATION_COMPLETE.md
 paper/plos_compbio/IMPLEMENTATION_TRACKER.md
 paper/plos_compbio/SUBMISSION_ASSESSMENT.md
 paper/plos_compbio/FEATURE_PLAN.md
+
+# =============================================================================
+# Secret material that lives ONLY on the deployment host — never commit it.
+# =============================================================================
+# nginx/ssl/ holds the TLS private key AND .htpasswd (the closed-beta password
+# hash). It is mounted read-only into the nginx container from the host. It was
+# not previously ignored, so a `git add -A` on a host that has this directory
+# would have committed the private key and the password hash.
+nginx/ssl/
+**/.htpasswd
+*.pem
+!paper/**/*.pem
+
+# The receipt signing key, if ever written to disk (see .env.example).
+receipt_private.pem
+*.key
+docker-compose.override.yml
