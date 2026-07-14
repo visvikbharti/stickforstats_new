@@ -1,5 +1,10 @@
 # Session Handoff — February 19, 2026 (v2.0 Build Day)
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 ## Session Summary
 
 This was a massive build session that transformed StickForStats from a v1.0 academic tool into a v2.0 world-class statistical analysis platform. Over the course of multiple continuation sessions, we implemented all 3 pillars of the strategic vision and updated all documentation.

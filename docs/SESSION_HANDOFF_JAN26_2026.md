@@ -1,5 +1,10 @@
 # Session Handoff - January 26, 2026
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 ## StickForStats Development Session - Guardian Design Contract Compliance
 
 ---

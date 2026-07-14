@@ -1,5 +1,10 @@
 # Next-Session Pickup — 2026-05-06
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 **Last session ended:** 2026-05-06 ~21:00 IST (laptop battery emergency at 1%)
 **Branch:** `main`, fully synced with `origin/main`
 **Last commit:** `93783b6` (`fix(security): Real JWT signature verification for SSO + LTI 1.3`)

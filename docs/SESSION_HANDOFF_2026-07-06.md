@@ -1,5 +1,10 @@
 # Session handoff — 2026-07-06
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 **Branch:** `docs/plos-compbio-submission` · **`main` = `78fffb7`** (branch and main in sync; every change below
 is committed + pushed). **CI: green.** Working tree clean except the pre-existing stray
 `paper/replication/verification/FP_VALIDATION_REPORT_PREFIX_2026-06-25.md.bak` (never commit it).

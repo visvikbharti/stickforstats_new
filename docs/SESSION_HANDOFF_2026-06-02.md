@@ -1,5 +1,10 @@
 # Session Handoff — 2026-06-02
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 **Theme:** Deployed the closed beta to a real host end-to-end, found + fixed two real image
 bugs, hardened the repo so the deploy is reproducible, and added the §0 beta-shape (banner +
 privacy notice + feedback channel). **StickForStats is live at https://stickforstats.com.**

@@ -1,5 +1,10 @@
 # Session Handoff — 2026-07-11 (Integrity marathon + Guardian design-aware)
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 > **Resume entry for the next session.** Read this top-to-bottom, then use the
 > "Next-session prompt" at the bottom. Companion auto-memory:
 > `memory/session-2026-07-11-integrity-audit-guardian-spine.md` and the

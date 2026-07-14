@@ -1,5 +1,10 @@
 # Session handoff — 2026-07-13 (power analysis)
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 **Branch:** `main` @ `9c046a2` (pushed). Three commits: `04b450b`, `1e5fd75`, `9c046a2`.
 
 ## The short version
@@ -139,8 +144,23 @@ Rollback point, tagged on the host as `stickforstats/{backend,frontend}:rollback
 
 ## Still open
 
-- **Beta Basic-Auth password has NOT been rotated** off the old one.
-- The 13 dead education files (see above) still hold wrong browser-side power math.
+> ⚠ **CORRECTED 2026-07-14 — this section was WRONG, and the error was repeated for two days.**
+> This document is a dated snapshot. **The current truth is in
+> [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md)**;
+> start from [`README.md`](README.md), which is the undated index.
+
+- ~~**Beta Basic-Auth password has NOT been rotated** off the old one.~~
+  **FALSE.** It *was* rotated on 2026-07-13 (off the weak `qwerty121`). Verified 2026-07-14 by
+  `htpasswd -vb` against the live `nginx/ssl/.htpasswd` **and** a 200 through the edge. The secret
+  lives only in `/root/stickforstats-beta-access.txt` on the host.
+  This one wrong line got repeated for two days, because nothing said which document to trust — it is
+  the reason `docs/README.md` is now an index. **Method note:** a `401` for the old password proves
+  *nothing* (the edge 401s any credential, including one that never existed). Only `htpasswd -v`, or a
+  successful 200, settles it. *A plausible inference is not a verification.*
+- The 13 dead education files still hold wrong browser-side power math. **Partly re-scoped**: the
+  education hub *is* routed, but the broken power math in `powerCalculations.js` is reached only by 4
+  simulation/visualization components. Its `interpretEffectSize` **is** live — and was mislabelling
+  every ANOVA effect size as "negligible" until `cfe14c1`. See `TODO_2026-07-14.md`.
 
 ---
 

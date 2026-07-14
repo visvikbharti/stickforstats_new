@@ -1,5 +1,10 @@
 # Session Handoff — 2026-06-01
 
+> **Dated snapshot — superseded.** This records what was believed on the date in its title.
+> For the current state of the project, start at [`README.md`](README.md) (the undated index),
+> then [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) and [`TODO_2026-07-14.md`](TODO_2026-07-14.md).
+> **Do not trust a "Still open" section in a dated document without re-checking it.**
+
 **Theme:** Ship the audit-remediation branch, cut the first beta release, publish the `sfs` CLI to
 PyPI, and write the production deploy runbook. **Everything that can be done without a deploy host is
 now done.** The single remaining gate to invite beta testers is the **host deploy** + the **§0
