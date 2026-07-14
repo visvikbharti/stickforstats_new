@@ -14,41 +14,87 @@ alerting:
         - targets: []
 
 # Rule files
-rule_files:
-  - "prometheus/alerts.yml"
+# ⚠ DISABLED: this pointed at "prometheus/alerts.yml", which exists in NEITHER the
+# repo NOR the running container. Verified against the live Prometheus API on
+# 2026-07-14: `/api/v1/rules` returns 0 rule groups and 0 alerting rules — so
+# NOTHING CAN EVER FIRE. If production went down, nobody would be paged.
+# Left commented (rather than pointing at a phantom file) so the gap is visible.
+# rule_files:
+#   - "prometheus/alerts.yml"
+
+# =============================================================================
+# ⚠ THIS MONITORING STACK HAS NEVER WORKED. Verified on production 2026-07-14:
+# every non-self target is DOWN, and none of them CAN come up as written.
+#
+#   job=stickforstats-backend   http://backend:8000/api/v1/metrics/  -> HTTP 400
+#   job=stickforstats-frontend  http://frontend:80/metrics           -> text/html
+#   job=redis                   http://redis:6379/metrics            -> EOF
+#   job=postgres                http://postgres:5432/metrics         -> EOF
+#
+# Root causes (each confirmed by execution, not inferred):
+#
+#   backend  — there is NO metrics route anywhere in the codebase. Neither
+#              django-prometheus nor prometheus_client is installed. With a valid
+#              Host header /api/v1/metrics/ returns 404; the 400 above is Django
+#              rejecting the Host 'backend:8000' (not in ALLOWED_HOSTS) in
+#              middleware, BEFORE routing. That rejection also logs an ERROR *with
+#              a traceback* on every scrape — 366 of them in 30 minutes on prod,
+#              burying real errors in the log. Fixing ALLOWED_HOSTS alone would
+#              only convert the 400 into a 404; the endpoint still would not exist.
+#
+#   frontend — nginx serves the SPA with try_files, so /metrics returns
+#              index.html, not metrics. Every path returns 200 HTML.
+#
+#   redis /  — these scrape the DATABASE'S OWN PROTOCOL PORT over HTTP. Prometheus
+#   postgres   cannot speak RESP or the Postgres wire protocol; it needs a sidecar
+#              (redis_exporter :9121, postgres_exporter :9187). Neither is deployed.
+#
+# The jobs are disabled rather than left to fail silently, so that nobody reads a
+# populated-looking Grafana as evidence of anything. To make monitoring REAL:
+#   1. add django-prometheus (or a prometheus_client view) and expose /metrics
+#   2. deploy redis_exporter and postgres_exporter as sidecars
+#   3. add 'backend' to ALLOWED_HOSTS so in-network scrapes are not rejected
+#   4. re-enable the jobs below, and CHECK THE TARGETS PAGE IS GREEN
+# Tracked in docs/TODO_2026-07-14.md.
+# =============================================================================
 
 # Scrape configurations
 scrape_configs:
-  # Prometheus self-monitoring
+  # Prometheus self-monitoring — the only target that actually works today.
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # StickForStats Backend API
-  - job_name: 'stickforstats-backend'
-    metrics_path: /api/v1/metrics/
-    static_configs:
-      - targets: ['backend:8000']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'stickforstats-api'
-
-  # StickForStats Frontend (Nginx metrics)
-  - job_name: 'stickforstats-frontend'
-    static_configs:
-      - targets: ['frontend:80']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'stickforstats-frontend'
-
-  # Redis metrics
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis:6379']
-
-  # PostgreSQL metrics (requires postgres_exporter)
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres:5432']
+  # --- DISABLED: see the block above. Each of these is unreachable BY DESIGN, ---
+  # --- not by misconfiguration. Re-enable only once the endpoint/exporter it  ---
+  # --- depends on actually exists, and only after confirming the target goes  ---
+  # --- green on Prometheus's /targets page.                                   ---
+  #
+  # # StickForStats Backend API — needs a real /metrics endpoint first.
+  # - job_name: 'stickforstats-backend'
+  #   metrics_path: /api/v1/metrics/
+  #   static_configs:
+  #     - targets: ['backend:8000']
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: instance
+  #       replacement: 'stickforstats-api'
+  #
+  # # StickForStats Frontend — needs nginx-prometheus-exporter; the SPA returns HTML.
+  # - job_name: 'stickforstats-frontend'
+  #   static_configs:
+  #     - targets: ['frontend:80']
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: instance
+  #       replacement: 'stickforstats-frontend'
+  #
+  # # Redis — needs redis_exporter (:9121). :6379 is the RESP port, not HTTP.
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis:6379']
+  #
+  # # PostgreSQL — needs postgres_exporter (:9187). :5432 is the wire protocol port.
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres:5432']
