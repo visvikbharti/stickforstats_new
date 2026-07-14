@@ -339,42 +339,85 @@ docker compose restart nginx                         # after replacing TLS certs
 
 ### Update / upgrade flow
 
+**Use `scripts/deploy.sh`. Do not hand-roll a deploy.**
+
 ```bash
-# 1. Back up the DB first
-docker compose exec postgres-backup /backup.sh
+# On the host, from the repo root:
+cd /opt/stickforstats_new
 
-# 2. Pull the new images and retag to the local refs Compose expects
-docker pull ghcr.io/visvikbharti/stickforstats_new/backend:latest
-docker pull ghcr.io/visvikbharti/stickforstats_new/frontend:latest
-docker tag ghcr.io/visvikbharti/stickforstats_new/backend:latest  stickforstats/backend:1.0.0
-docker tag ghcr.io/visvikbharti/stickforstats_new/frontend:latest stickforstats/frontend:1.0.0
+docker compose exec postgres-backup /backup.sh   # 1. back up the DB first
 
-# 3. Recreate containers with the new images (no build)
-docker compose up -d --no-build
-
-# 4. Apply any new migrations + refresh static
-docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py collectstatic --noinput
-
-# 5. Re-run the smoke test
-BASE_URL=https://beta.example.com ./scripts/smoke_test.sh
+DRY_RUN=1 ./scripts/deploy.sh                    # 2. see exactly what would happen
+./scripts/deploy.sh                              # 3. deploy origin/main
+./scripts/deploy.sh <git-sha>                    #    ...or a specific commit
 ```
 
-> Pin to immutable `:<sha>` tags instead of `:latest` if you want reproducible upgrades/rollbacks (the GHCR repo publishes both). CI publishes images on merge but does **not** deploy ("Deploy to Staging" is a placeholder echo) — deployment is always this manual operator step.
+The script syncs the **checkout** and the **images** to the same commit, validates
+before applying, and verifies afterwards. It aborts if the closed-beta auth gate is
+missing from the target tree, if the images for that commit were never published, or
+if a tracked path would overwrite the host's secrets.
+
+> ### ⚠ Why the old procedure was wrong — read this once
+>
+> The previous version of this section said: pull `:latest`, retag, `docker compose up -d`.
+> **It never synced the git checkout.** That is not a nitpick — it is a silent-failure
+> machine, and it bit us on 2026-07-14:
+>
+> * The host drifted onto branch `docs/plos-compbio-submission` @ `900296a` while running
+>   images built from `main`. **`git rev-parse HEAD` on the host lied about what was deployed.**
+> * **Anything living in `docker-compose.yml`, `nginx.conf`, or `monitoring/` silently did
+>   not deploy.** It shipped in the commit, CI went green, the deploy "succeeded" — and the
+>   change was simply not there. Nothing in any log said so. A receipt-signing key that
+>   `main` wired into the celery service never arrived, and nobody would have known.
+> * The closed-beta **auth gate existed only as an uncommitted edit on that host**. A clean
+>   checkout would have **published the site**, silently.
+>
+> Config and images must move together, or you do not know what is running. That is the
+> entire job of `scripts/deploy.sh`.
+>
+> Also: `:latest` is a moving target. Deploy an immutable `:<sha>`. The script does.
+>
+> CI publishes images on merge but does **not** deploy ("Deploy to Staging" is a placeholder
+> echo) — deployment is always this manual operator step.
+
+**After the script finishes**, apply migrations if the release has any:
+
+```bash
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py collectstatic --noinput
+```
+
+### What "which commit is live?" means now
+
+Images built after 2026-07-14 carry an OCI revision label, so the running container can
+answer for itself — no more content-hashing 468 files against a git tree:
+
+```bash
+docker inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' \
+  stickforstats/backend:1.0.0
+```
+
+**Do not trust `git rev-parse HEAD` on the host to tell you what is deployed** unless the
+deploy was done with `scripts/deploy.sh` (which is exactly what makes the two agree).
 
 ### Rollback
 
 ```bash
-# Re-tag the previous known-good image (sha or prior :latest digest) and recreate
-docker pull ghcr.io/visvikbharti/stickforstats_new/backend:<previous-sha>
-docker pull ghcr.io/visvikbharti/stickforstats_new/frontend:<previous-sha>
-docker tag ghcr.io/visvikbharti/stickforstats_new/backend:<previous-sha>  stickforstats/backend:1.0.0
-docker tag ghcr.io/visvikbharti/stickforstats_new/frontend:<previous-sha> stickforstats/frontend:1.0.0
-docker compose up -d --no-build
-
-# If the new release ran migrations that the old code can't read, restore the
-# pre-upgrade DB backup (see Restore above) — migrations are not auto-reversed.
+cd /opt/stickforstats_new
+./scripts/deploy.sh --rollback
 ```
+
+This swaps the `:1.0.0` tags back to `:rollback-prev` (armed automatically at the start of
+every deploy) and restarts. **It rolls back the images only.** If the bad deploy also changed
+compose/nginx config, revert the checkout too:
+
+```bash
+git checkout -f <previous-sha>    # the SHA is recorded in /root/deploy-backup-*/git-head.txt
+docker compose up -d --no-build && docker compose restart nginx
+```
+
+If the new release ran migrations the old code cannot read, restore the pre-upgrade DB
+backup (see *Restore* above) — **migrations are not auto-reversed.**
 
 ---
 
