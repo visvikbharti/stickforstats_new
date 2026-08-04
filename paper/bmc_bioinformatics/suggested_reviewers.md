@@ -12,10 +12,10 @@ collaboration network). Emails were only taken where an official institutional p
 |---|---|---|---|---|
 | 1 | **Charlotte Soneson** | Computational Biology Platform, Friedrich Miescher Institute (FMI) & SIB Swiss Institute of Bioinformatics, Basel, Switzerland | `charlotte.soneson@fmi.ch` · https://csoneson.github.io/ | RNA-seq DE + FDR/Type-I calibration |
 | 2 | **Frank E. Harrell Jr.** | Dept. of Biostatistics, Vanderbilt University Medical Center, Nashville, USA | `f.harrell@vumc.org` · https://www.vumc.org/biostatistics/person/frank-e-harrell-jr | Assumption-checking + robust/nonparametric stats |
-| 3 | **Michèle B. Nuijten** | Dept. of Methodology & Statistics / Meta-Research Center, Tilburg University, Netherlands | https://mbnuijten.com/ (email on page) | The manuscript-consistency-checker module |
-| 4 | **Frank Konietschke** | Institute of Biometry & Clinical Epidemiology, Charité – Universitätsmedizin Berlin, Germany | https://biometrie.charite.de/en/metas/person/person/address_detail/prof_dr_frank_konietschke/ | Nonparametric/rank-based routing + small-sample error control |
-| 5 | **Daniel Lüdecke** | Institute of Medical Sociology, University Medical Center Hamburg-Eppendorf (UKE), Germany | https://scholar.google.com/citations?user=wC_6-9MAAAAJ | The Guardian software concept (nearest existing tool) |
-| 6 | **Davis J. McCarthy** | St Vincent's Institute of Medical Research & University of Melbourne, Australia | https://scholar.google.com/citations?user=A1F5_UEAAAAJ | Second RNA-seq DE voice (edgeR co-developer) |
+| 3 | **Michèle B. Nuijten** | Dept. of Methodology & Statistics / Meta-Research Center, Tilburg University, Netherlands | `m.b.nuijten@tilburguniversity.edu` · https://mbnuijten.com/ ✅ verified 2026-08-05 from her own site | The manuscript-consistency-checker module |
+| 4 | **Frank Konietschke** | Institute of Biometry & Clinical Epidemiology, Charité – Universitätsmedizin Berlin, Germany | ⚠️ **email not confirmed.** The `/en/` URL previously here **404s**; working page is https://biometrie.charite.de/metas/person/person/address_detail/prof_dr_frank_konietschke — but it publishes no address, only a contact form. Search results give `Frank.Konietschke@charite.de` (Charité's standard Firstname.Lastname format); **confirm from a recent paper's corresponding-author line before entering it** | Nonparametric/rank-based routing + small-sample error control |
+| 5 | **Daniel Lüdecke** | Institute of Medical Sociology, University Medical Center Hamburg-Eppendorf (UKE), Germany | ⚠️ **institutional email not confirmed.** His UKE team page now returns **410 Gone** and the UKE research portal was unreachable on 2026-08-05. Only a personal-site address surfaced (`mail@danielluedecke.de`, via danielluedecke.de). Prefer an institutional address; check a recent `performance`/`sjPlot` paper | The Guardian software concept (nearest existing tool) |
+| 6 | **Davis J. McCarthy** | St Vincent's Institute of Medical Research & University of Melbourne, Australia | ⚠️ **email not found.** Only contact-scraper aggregators returned anything, all redacted; SVI profile https://www.svi.edu.au/researchers/dr-davis-mccarthy/ publishes none. Domain is `svi.edu.au`. Take it from a recent edgeR/scater paper's corresponding-author line | Second RNA-seq DE voice (edgeR co-developer) |
 
 ### Why each fits
 1. **Soneson** — first author of *"A comparison of methods for differential expression analysis of RNA-seq data"* (BMC Bioinformatics, 2013) and author of `tximport`; a leading DE-method benchmarker with deep FDR/Type-I-error expertise and a frequent Bioconductor / BMC Bioinformatics author. Ideal for the GSE271517 case study **and** the calibration benchmark, on the journal's own terms.
@@ -38,3 +38,26 @@ collaboration network). Emails were only taken where an official institutional p
 - **No preferred-reviewer is at CSIR-IGIB/AcSIR or a co-author/collaborator of the authors** (verified).
 - BMC also lets you list **non-preferred (opposed) reviewers** — optional; leave blank unless you have a specific reason.
 - Suggesting reviewers does not obligate the editor to use them, but a strong, conflict-free, on-topic list speeds triage.
+
+
+---
+
+## Email verification status — checked 2026-08-05
+
+**Do not enter an unverified address.** A suggested reviewer who never receives the invitation is
+worse than one fewer suggestion, and BMC does not require six.
+
+| # | Reviewer | Email | Status |
+|---|---|---|---|
+| 1 | Soneson | `charlotte.soneson@fmi.ch` | carried from the original compilation |
+| 2 | Harrell | `f.harrell@vumc.org` | carried from the original compilation |
+| 3 | Nuijten | `m.b.nuijten@tilburguniversity.edu` | ✅ **verified** from mbnuijten.com |
+| 4 | Konietschke | *(candidate: `Frank.Konietschke@charite.de`)* | ⚠️ unconfirmed — official page publishes no address |
+| 5 | Lüdecke | *(personal: `mail@danielluedecke.de`)* | ⚠️ institutional address not found; UKE pages 410/unreachable |
+| 6 | McCarthy | — | ⚠️ not found in any authoritative source |
+
+**Recommendation:** submit with **1–3** (all with working addresses, and between them they cover the
+three things a reviewer needs to judge here: RNA-seq DE benchmarking, assumption-checking
+methodology, and the statcheck lineage of the manuscript checker). Add 4–6 only if you can confirm
+their addresses from a recent paper's corresponding-author line — that is the one source that is
+both authoritative and current.
