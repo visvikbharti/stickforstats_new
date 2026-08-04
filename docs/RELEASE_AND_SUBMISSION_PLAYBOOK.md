@@ -41,10 +41,52 @@ docker compose up -d --no-build                         # 2. recreate
 docker compose exec backend python manage.py migrate --noinput          # (no new migrations; safe)
 docker compose exec backend python manage.py collectstatic --noinput
 docker compose restart nginx                            # 3. the known post-recreate gotcha
-curl -fsS https://stickforstats.com/api/health && echo OK
 ```
-Verify: homepage reads "guards against Type I errors"; a t-test on cross-sectional data shows independence
-"referred to study design" instead of a lag-1 violation.
+
+> `curl -fsS https://stickforstats.com/api/health` used to be the last line here. It does not work:
+> that route **404s** (verified 2026-08-05), and the site is behind basic auth so an unauthenticated
+> curl gets 401 before it ever reaches a route. Use the behavioural checks below instead.
+
+### Two traps the 2026-08-05 v1.2.0 deploy hit
+
+**1. `collectstatic` fails, and `set -e` then skips the nginx restart.**
+`/app/static` is the named volume `backend-static`, not image content, so it still holds root-owned
+files from an earlier run and the non-root container cannot overwrite them:
+
+    PermissionError: [Errno 13] Permission denied: '/app/static/admin/css/dashboard.css'
+
+Cosmetic in itself — the image already carries its statics, and nginx has **no `location /static/`
+block**, so Django admin assets are not served in production either way (the SPA's own bundles come
+from the frontend container and are unaffected). But under `set -euo pipefail` the failure aborts the
+script *before* `docker compose restart nginx`, the one step this runbook calls essential. Either
+tolerate it explicitly, or drop the step since the image is built with statics already collected:
+
+```bash
+docker compose exec -T backend python manage.py collectstatic --noinput || \
+  echo "collectstatic failed (root-owned backend-static volume); non-fatal, continuing"
+docker compose restart nginx
+```
+
+**2. Do not pipe the deploy script into `ssh 'bash -s'`.**
+`docker compose exec -T` reads stdin, and when the script itself arrives on stdin the exec swallows
+the remainder of it. The first attempt stopped silently after the database backup — no error, no
+indication anything was missing. Copy it over and run it as a file with stdin closed:
+
+```bash
+scp deploy.sh root@HOST:/root/ && ssh root@HOST 'bash /root/deploy.sh < /dev/null'
+```
+
+### Verify by BEHAVIOUR, not by a version string
+
+`git rev-parse HEAD` on the host lies, and so can an API field: before this deploy the live site
+listed `similar_shapes` in `assumptions_checked` precisely **because** nothing evaluated it. The
+label was evidence of the bug, not of the fix. Assert what the software *does* (all four passed on
+2026-08-05):
+
+- a 100x spread difference **raises** a shape violation — confidence 0.444, not 1.000
+- the t-test returns `ci_lower`, `ci_upper`, `effect_size`, `mean_difference`
+- an unknown `test_type` is refused with **400**, not certified
+- anonymous access is still **401** — a deploy must never open the closed beta
 
 ---
 
