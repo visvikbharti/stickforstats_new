@@ -525,10 +525,6 @@ class PdfExportMustSurviveValidatorProseTests(SimpleTestCase):
         from core.guardian.report_generator import GuardianReportGenerator
 
         rng = np.random.default_rng(808)
-        report = GuardianCore().check(
-            {"a": rng.normal(0, 1, 30).tolist(), "b": rng.normal(0, 5, 30).tolist()},
-            "t_test",
-        )
         # These are the shapes that actually break reportlab, established by
         # feeding candidates to a bare Paragraph. It tolerates a CLOSED unknown
         # tag ("A <test> & another" renders fine) and a lone "< " with a space,
