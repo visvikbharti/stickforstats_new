@@ -132,11 +132,14 @@ render_one \
   ""  # title comes from the manuscript's own H1; empty here avoids a duplicate title block
 
 echo ""
-echo "==> Rendering submission-package manuscript (BMC Bioinformatics / bioRxiv v2)"
+echo "==> Rendering the BMC manuscript as a READING COPY only"
+# BMC will not accept a PDF as the manuscript. The submittable artifact is built by
+# paper/build_bmc_docx.sh (.docx with line numbers and double spacing). This PDF exists
+# solely so the paper can be read on screen, hence the _reading_copy suffix.
 render_one \
-  "$PAPER_DIR/submission_package/manuscript.md" \
-  "$PAPER_DIR/submission_package" \
-  "$PAPER_DIR/submission_package/manuscript_rendered.pdf" \
+  "$PAPER_DIR/bmc_bioinformatics/manuscript.md" \
+  "$PAPER_DIR/bmc_bioinformatics" \
+  "$PAPER_DIR/bmc_bioinformatics/manuscript_reading_copy.pdf" \
   ""  # title from the manuscript's own H1
 
 echo ""
@@ -150,5 +153,5 @@ render_one \
 echo ""
 echo "Done. Output:"
 echo "  $PAPER_DIR/plos_compbio/manuscript_rendered.pdf"
-echo "  $PAPER_DIR/submission_package/manuscript_rendered.pdf"
+echo "  $PAPER_DIR/bmc_bioinformatics/manuscript_reading_copy.pdf  (reading copy; NOT the submission file)"
 echo "  $PAPER_DIR/paper_rendered.pdf"

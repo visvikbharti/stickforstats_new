@@ -1,35 +1,48 @@
-# Submission package — StickForStats platform paper
+# submission_package — venue-neutral and superseded material only
 
-A **self-contained package** for resubmitting the StickForStats software paper to a new journal.
-Everything you need to upload is in this folder.
+> ## The BMC Bioinformatics submission is **not here**.
+> It lives in **`paper/bmc_bioinformatics/`**. Start with that directory's `README.md`.
 
-**Paper:** *StickForStats: automated statistical assumption validation for reproducible computational biology*
-**Authors:** Vishal Bharti, Debojyoti Chakraborty (CSIR-IGIB)
-**Live preprint:** bioRxiv doi 10.64898/2026.06.15.732278 (this version supersedes it)
+On 2026-08-04 every BMC-specific file was moved out of this directory into
+`paper/bmc_bioinformatics/`, so that there is exactly one place to look and no chance of anyone editing a
+stale copy of the manuscript. What moved:
 
-## What's in here
-
-| File | What it is |
+| Was here | Is now |
 |---|---|
-| `manuscript.md` | The full manuscript — **already corrected** (Group B reframed; extraction described as regex-based). This is the version to submit. |
-| `figures/` | The 7 manuscript figures (`fig1`–`fig7`, PNG). Re-export to the chosen journal's DPI/format before submitting. |
-| `COVER_LETTER.md` | A ready cover letter with `[JOURNAL]`/`[EDITOR]`/`[DATE]` placeholders + per-venue tailoring notes. |
-| `SUBMISSION_GUIDE.md` | **Start here.** Step-by-step submission, a ranked journal list (with fit/APC/watch-outs), and a pre-submission checklist. |
-| `CHANGES_FROM_PREPRINT.md` | A transparent changelog vs the bioRxiv v1 — the two integrity corrections + the reframing. Useful for the cover letter and a bioRxiv v2. |
+| `manuscript.md` | `paper/bmc_bioinformatics/manuscript.md` |
+| `manuscript_bmc.docx` | `paper/bmc_bioinformatics/manuscript.docx` |
+| `additional_file_1.md` | `paper/bmc_bioinformatics/additional_file_1.md` |
+| `BMC_COVER_LETTER.md` | `paper/bmc_bioinformatics/cover_letter.md` |
+| `BMC_SUGGESTED_REVIEWERS.md` | `paper/bmc_bioinformatics/suggested_reviewers.md` |
+| *(none — `SUBMISSION_STEPS.md` was written new in `paper/bmc_bioinformatics/`, not moved)* | `paper/bmc_bioinformatics/SUBMISSION_STEPS.md` |
+| `figures/` | `paper/bmc_bioinformatics/figures/` |
+| `figures_plos` symlink | deleted — the manuscript now references `figures/` directly |
 
-## How to use it (short version)
+## What remains here, and why
 
-1. Read **`SUBMISSION_GUIDE.md`** → pick a venue (default recommendation: **PLOS ONE**; cheaper: **PeerJ** or **GigaByte**).
-2. Reformat `manuscript.md` to that venue's house style; re-export `figures/` to its spec.
-3. Fill in `COVER_LETTER.md` (`[JOURNAL]`/`[EDITOR]`/`[DATE]`) and the per-venue first paragraph.
-4. Mint a **Zenodo DOI** from the v1.0.0 GitHub release; add it to the Data/Code Availability statement.
-5. Work through the **pre-submission checklist** in the guide, then submit.
+| File | Status |
+|---|---|
+| `BIORXIV_V2_UPLOAD.md` | bioRxiv v2 packet. **Superseded** — it instructs a PDF upload and uses the pre-renumbering figure names, and the v2 route is blocked upstream |
+| `COVER_LETTER.md` | The generic / PLOS-era cover letter, kept for the PLOS backup route. **Not** the BMC letter |
+| `VENUE_RECOMMENDATION.md` | The nine-venue comparison that led to choosing BMC Bioinformatics. Historical rationale |
+| `CHANGES_FROM_PREPRINT.md` | What changed between the bioRxiv preprint and the submitted paper. Historical, and it predates the 2026-08-04 corrections, so it is no longer a complete changelog |
+| `SUBMISSION_GUIDE.md` | **Superseded** by `paper/bmc_bioinformatics/SUBMISSION_STEPS.md`. Kept because older handoff documents cite it by name |
+| ~~`STALE_DO_NOT_SUBMIT_manuscript_rendered_2026-07-08.pdf`~~ | **Deleted, not archived.** It was the old PLOS-structured render carrying the pre-correction numbers, kept locally as a tripwire. It is deliberately absent from the v1.2.0 tag: that tag is archived to Zenodo and cited by the manuscript, and a 2.3 MB PDF full of superseded statistics has no business inside a citable artifact where someone unpacking the zip could read it as current. Rebuild a reading copy from `manuscript.md` if you need one |
 
-> Every fee/format detail in the guide is marked **"VERIFY at submission"** — confirm on the journal's site the day you submit; do not rely on the numbers here for cost decisions.
+## Why this directory still exists at all
 
-## Important notes
+Several dated documents under `docs/` — session handoffs, the onboarding notes, the release playbook — cite
+paths inside `paper/submission_package/`. Those are records of what was believed at the time and are
+deliberately left unedited, so this directory is kept as a real location rather than deleted, with this file
+at the top of it to stop anyone following an old path into a stale manuscript.
 
-- **The integrity fixes are already applied** in `manuscript.md` (you do not need to redo them) — but if you also post a **bioRxiv v2**, apply the same two corrections to that abstract/text (see `CHANGES_FROM_PREPRINT.md`).
-- Figure sources also live at `../plos_compbio/figures_plos/` (originals).
-- This is the **first of two** papers from this program (decision 2026-06-29). The second is a combined **verifier-method + 10k-census** meta-research paper under `../census_paper/` (the verification engine is its Methods backbone; the census is the result). Keep them as separate submissions. See `SUBMISSION_GUIDE.md` → "After this paper".
-- Replication scripts for every reported value are under `../replication/`.
+## Corrections to what this file used to say
+
+The previous version of this README described the package as self-contained and ready, and said the
+manuscript was "already corrected". Both were true of an earlier round of fixes and both became misleading:
+
+- ~~"Everything you need to upload is in this folder"~~ — the manuscript was a PDF, which BMC does not accept, and there was no Additional file 1 at all.
+- ~~"already corrected (Group B reframed; extraction described as regex-based)"~~ — the text said regex-based while Fig. 3 still had "regex + LLM hybrid" drawn into it, and the Group B reframing rested on fold changes that were not fold changes. Both were fixed on 2026-08-04.
+- ~~"pick a venue (default recommendation: PLOS ONE)"~~ — the venue decision was settled as BMC Bioinformatics; see `VENUE_RECOMMENDATION.md`.
+
+Full detail: `docs/BMC_SUBMISSION_VERIFICATION_2026-08-04.md`.

@@ -138,7 +138,9 @@ def run_guardian(log_cpm: pd.DataFrame, meta: pd.DataFrame) -> tuple[pd.DataFram
 
     print("\n=== Running Guardian-augmented analysis ===")
     print(f"  Calling DifferentialExpressionService.analyze() on {len(gene_names):,} genes …")
-    service = DifferentialExpressionService(alpha=0.05, normality_alpha=0.05)
+    service = DifferentialExpressionService(
+        input_scale="log2", alpha=0.05, normality_alpha=0.05
+    )
     result = service.analyze(
         expression_matrix=expression_matrix,
         gene_names=gene_names,

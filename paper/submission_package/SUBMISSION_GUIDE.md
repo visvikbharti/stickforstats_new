@@ -1,3 +1,8 @@
+> **SUPERSEDED (2026-08-04).** For the BMC Bioinformatics submission follow
+> `paper/bmc_bioinformatics/SUBMISSION_STEPS.md`. This document predates the BMC restructure and the
+> figure renumbering: it tells you to upload a PDF (BMC requires an editable .docx or LaTeX),
+> and its figure filenames and `figures_plos/` paths no longer exist. Kept as a record.
+
 # SUBMISSION_GUIDE.md — Resubmitting the StickForStats software paper
 
 **Paper:** *StickForStats: automated statistical assumption validation for reproducible computational biology*

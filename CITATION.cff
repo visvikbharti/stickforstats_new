@@ -17,13 +17,16 @@ authors:
     given-names: Debojyoti
     orcid: "https://orcid.org/0000-0003-1460-7594"
     affiliation: "CSIR-Institute of Genomics and Integrative Biology, New Delhi, India; Academy of Scientific and Innovative Research (AcSIR), Ghaziabad, India"
-version: 1.1.0
-date-released: "2026-07-08"
+version: 1.2.0
+date-released: "2026-08-05"
+# Concept DOI: always resolves to the latest archived version. Stable across releases.
 doi: 10.5281/zenodo.21258381
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.21258382
-    description: "Archived snapshot of v1.1.0 (this release)"
+# The VERSION DOI for v1.2.0 does not exist until the GitHub release is created and
+# Zenodo archives this tag; Zenodo mints it at that moment. The v1.1.0 version DOI
+# (10.5281/zenodo.21258382) was here and would have been a false identifier for this
+# release, so it is removed rather than guessed at. Add the real one back as an
+# `identifiers` entry once Zenodo returns it — see
+# paper/bmc_bioinformatics/SUBMISSION_STEPS.md, which sequences this.
 license: MIT
 repository-code: "https://github.com/visvikbharti/stickforstats_new"
 url: "https://github.com/visvikbharti/stickforstats_new"

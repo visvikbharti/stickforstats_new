@@ -12,8 +12,20 @@ alone as a record of what was believed at the time.
 
 ## Read these first — current as of **2026-07-14**
 
+> 🚨 **Before touching the BMC submission, read
+> [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md).** Every reported
+> number in the manuscript was re-executed from raw data and code on 2026-08-04. Case Study 3's statistics and
+> the calibration benchmark came back clean, and Case Study 1's statistics all reproduce. What did **not**:
+> Case Study 1's Guardian paragraph (a phantom sample-size warning — ANOVA never invokes that validator),
+> Case Study 4's fold changes (a ratio of means taken on data already on a log scale), the verifier corpus
+> section, Fig 7 (Guardian's variance verdict printed inverted, p = 0.7907 labelled "Violated"), Fig 3
+> (a screenshot of a broken build — still open), reference 5 (it does not exist) and the abstract's motivating
+> premise (it misread its only source).
+> **Do not submit against Zenodo v1.1.0** — ten defect classes were executed *out of the published artifact*.
+
 | order | document | what you get |
 |---|---|---|
+| 0 | [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md) | **the submission blocker list**, with every manuscript number re-executed and each finding adversarially re-checked |
 | 1 | [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) | where the code is, what is live, what the gates actually prove, how to deploy, what is *unverified* |
 | 2 | [`TODO_2026-07-14.md`](TODO_2026-07-14.md) | the work queue, ordered by risk to a user's scientific conclusion |
 | 3 | [`DEFECTS_AND_PATTERNS_2026-07-14.md`](DEFECTS_AND_PATTERNS_2026-07-14.md) | **the most useful document here.** The four bug classes that keep recurring, why they recur, and what actually stops them |

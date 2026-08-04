@@ -103,7 +103,16 @@ def load_data():
 def run_genomics_once(Service, matrix, gene_names, labels):
     """Run the production DE pipeline; return the reported summary + the set
     of significant gene IDs."""
-    service = Service(alpha=ALPHA, normality_alpha=ALPHA)
+    service = Service(
+        # REQUIRED since the fold-change fix: this script feeds log2-CPM
+        # values, so the service must not exponentiate them. It does not read
+        # log2_fold_change at all (the calibration measures Type I error, FDR
+        # and power from p-values), so this argument does not affect any number
+        # this script reports -- but it must still describe the data truthfully.
+        input_scale="log2",
+        alpha=ALPHA,
+        normality_alpha=ALPHA,
+    )
     result = service.analyze(
         expression_matrix=matrix,
         gene_names=gene_names,

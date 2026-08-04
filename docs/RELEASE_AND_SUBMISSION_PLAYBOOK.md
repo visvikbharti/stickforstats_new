@@ -1,3 +1,8 @@
+> **SUPERSEDED for the BMC step (2026-08-04).** Phase 4 of this playbook predates the BMC
+> restructure: it points at `paper/submission_package/` and a PDF upload, neither of which is
+> current. Follow **`paper/bmc_bioinformatics/SUBMISSION_STEPS.md`** instead. Phases 0–3
+> (deploy, Zenodo, bioRxiv) are unaffected. Kept as a record of the plan as of 2026-07-06.
+
 # Release & submission playbook — Paper 1 (StickForStats / Guardian)
 
 **Created:** 2026-07-06. The remaining actions are human-only (portals, deploy, DOI). This is the exact order.

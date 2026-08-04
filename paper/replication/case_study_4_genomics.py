@@ -17,8 +17,10 @@ What this script does
 2. Runs the Guardian-augmented genomics differential-expression
    pipeline (`backend/core/services/genomics/differential_expression.py`)
    on the Primary-tumour vs Metastasis contrast (n = 55 vs 36).
-3. Runs a naive parametric baseline (per-gene Welch t-test) on the
-   same data for comparison.
+3. Runs a naive parametric baseline (per-gene EQUAL-VARIANCE Student
+   t-test -- scipy ttest_ind(equal_var=True)) on the same data for
+   comparison. This used to be labelled "Welch" here and in the
+   manuscript; the code has always been the pooled-variance Student t.
 4. Verifies the headline numbers from the manuscript are reproduced
    to within a small tolerance.
 5. Exits 0 on success, non-zero on any verification failure.
@@ -259,7 +261,9 @@ def main() -> int:
     # 3. Guardian-augmented analysis (production module)
     print("\n[guardian] calling DifferentialExpressionService.analyze() …")
     genomics = load_genomics_module()
-    service = genomics.DifferentialExpressionService(alpha=0.05, normality_alpha=0.05)
+    service = genomics.DifferentialExpressionService(
+        input_scale="log2", alpha=0.05, normality_alpha=0.05
+    )
     result = service.analyze(
         expression_matrix=log_cpm.values,
         gene_names=log_cpm.index.tolist(),
@@ -284,7 +288,7 @@ def main() -> int:
     g_df = pd.DataFrame(g_rows).set_index("ensembl_gene_id")
 
     # 4. Naive parametric baseline
-    print("\n[naive] per-gene Welch t-test (no Guardian) …")
+    print("\n[naive] per-gene equal-variance Student t-test (no Guardian) …")
     primary_mask = (meta["tumor_type"] == "Primary_tumor").values
     meta_mask = (meta["tumor_type"] == "Metastasis").values
     n_df = naive_ttest(log_cpm, primary_mask, meta_mask)
