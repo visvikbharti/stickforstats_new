@@ -15,7 +15,12 @@ import numpy as np
 from typing import Dict, Any
 import traceback
 
-from .guardian_core import GuardianCore, GuardianReport
+from .guardian_core import (
+    GuardianCore,
+    GuardianInputError,
+    GuardianReport,
+    UnknownTestTypeError,
+)
 from .report_generator import GuardianReportGenerator
 from .transformation_engine import TransformationEngine
 
@@ -74,6 +79,19 @@ class GuardianCheckView(APIView):
             response_data = self._serialize_report(report)
 
             return Response(response_data, status=status.HTTP_200_OK)
+
+        except (GuardianInputError, UnknownTestTypeError) as e:
+            # These two mean the REQUEST was unusable -- data no validator can
+            # compute on, or a test_type Guardian does not know. That is a 400,
+            # not a 500: a 500 tells the caller the server is broken and tells
+            # the client developer nothing about what to change, and it puts
+            # avoidable noise into error monitoring. Both messages are written
+            # to be actionable, so they are passed through verbatim; the
+            # unknown-test-type message enumerates the accepted values.
+            return Response(
+                {"error": str(e), "error_type": type(e).__name__},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         except Exception as e:
             print(f"Guardian error: {str(e)}")
@@ -207,15 +225,38 @@ class GuardianTestRequirementsView(APIView):
         guardian = GuardianCore()
 
         if test_type:
-            requirements = guardian.test_requirements.get(test_type)
-            if not requirements:
-                return Response({"error": f"Unknown test type: {test_type}"}, status=status.HTTP_404_NOT_FOUND)
+            # Canonicalise first. Reading test_requirements directly made this
+            # endpoint 404 for every alias that check() itself accepts -- so
+            # `welch_t` or `students_t` would report "unknown test type" here
+            # while running perfectly well through the check endpoint. The two
+            # must agree on what a valid test_type is.
+            try:
+                canonical = guardian._canonical_test_type(test_type)
+            except UnknownTestTypeError as e:
+                return Response(
+                    {"error": str(e), "error_type": type(e).__name__},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            requirements = guardian.test_requirements.get(canonical)
+            if requirements is None:
+                # A canonical contingency-table test: its assumptions are
+                # evaluated by a dedicated path rather than the registry, so
+                # report them rather than claiming the test is unknown.
+                if canonical in guardian._CONTINGENCY_TESTS:
+                    requirements = ["expected_frequencies", "independence"]
+                else:
+                    return Response(
+                        {"error": f"Unknown test type: {test_type}"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
             return Response(
                 {
                     "test_type": test_type,
+                    "canonical_test_type": canonical,
                     "requirements": requirements,
-                    "description": self._get_test_description(test_type),
+                    "description": self._get_test_description(canonical),
                 },
                 status=status.HTTP_200_OK,
             )

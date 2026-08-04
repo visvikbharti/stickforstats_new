@@ -552,12 +552,31 @@ const MANOVA = ({ data }) => {
 
       {/* Guardian Warning */}
       {guardianReport && (
-        <GuardianWarning
-          guardianReport={guardianReport}
-          onProceed={handleProceed}
-          onSelectAlternative={handleSelectAlternative}
-          onViewEvidence={handleViewEvidence}
-        />
+        <>
+          <GuardianWarning
+            guardianReport={guardianReport}
+            onProceed={handleProceed}
+            onSelectAlternative={handleSelectAlternative}
+            onViewEvidence={handleViewEvidence}
+          />
+          {/* Scope disclosure. Guardian has no validator for multivariate
+              normality or for equality of covariance matrices (Box's M), and
+              this screen sends only the first dependent variable's values. A
+              clean Guardian panel here therefore does NOT mean MANOVA's
+              assumptions have all been verified, and saying so is the
+              difference between a partial check and a misleading one. */}
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Scope of this check.</strong> Guardian assessed normality,
+              equality of variance, independence and outliers on{' '}
+              <strong>{dependentVars[0]}</strong> across groups. It did{' '}
+              <strong>not</strong> assess multivariate normality of the response
+              vector or equality of the group covariance matrices (Box&rsquo;s{' '}
+              <em>M</em>) — no validator implements either, so those two
+              assumptions of MANOVA remain unverified rather than satisfied.
+            </Typography>
+          </Alert>
+        </>
       )}
 
       {/* Test Blocked */}

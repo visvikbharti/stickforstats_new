@@ -151,7 +151,7 @@ class GenomicsFoldChangeIsNotAnEpsilon(TestCase):
         names = [f"G{i}" for i in range(6)]
         labels = ["control"] * 5 + ["treatment"] * 5
 
-        service = DifferentialExpressionService(alpha=0.05)
+        service = DifferentialExpressionService(input_scale="linear", alpha=0.05)
         result = service.analyze(
             expression_matrix=matrix,
             gene_names=names,

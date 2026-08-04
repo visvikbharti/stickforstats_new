@@ -20,6 +20,7 @@ Scientific Accuracy: VERIFIED against R and SAS
 Performance: <10ms for standard datasets
 """
 
+import math
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Any, Union
@@ -101,7 +102,15 @@ class AssumptionResult:
             else str(self.assumption_type),
             "test_name": self.test_name,
             "test_statistic": float(self.test_statistic) if not np.isnan(self.test_statistic) else None,
-            "p_value": float(self.p_value) if self.p_value is not None else None,
+            # NaN and +/-Inf must become null here. JSON has no representation for
+            # them, and DRF's renderer raises "Out of range float values are not
+            # JSON compliant" -- turning a degenerate-input request into an
+            # HTTP 500. The statistic above was already guarded; the p-value was
+            # not, so a non-finite p from a test that could not be computed
+            # crashed the response instead of being reported as absent.
+            "p_value": float(self.p_value)
+            if self.p_value is not None and np.isfinite(self.p_value)
+            else None,
             "is_met": self.is_met,
             "confidence": float(self.confidence) if self.confidence is not None else None,
             "details": self.details,
@@ -345,29 +354,57 @@ class AssumptionChecker:
         results = {}
         suggestions = []
 
+        def _record(name, stat, p_value):
+            """Record a variance test only if it actually produced numbers.
+
+            scipy returns NaN rather than raising when a variance test cannot be
+            computed -- notably when every observation within a group is
+            identical, so the within-group variance is 0. Two things then go
+            wrong if the result is stored unchecked. `NaN > alpha` is False, so
+            the assumption is recorded as VIOLATED on the strength of a
+            comparison against a number that does not exist; and the NaN float
+            reaches DRF's JSON renderer, which raises "Out of range float
+            values are not JSON compliant" and turns the whole endpoint into a
+            500. A test that could not be computed is not a test that failed.
+            """
+            if stat is None or p_value is None or not (
+                math.isfinite(float(stat)) and math.isfinite(float(p_value))
+            ):
+                logger.warning(
+                    "%s returned a non-finite result (statistic=%r, p=%r); "
+                    "recording it as not computable rather than as a violation",
+                    name, stat, p_value,
+                )
+                return
+            results[name] = {
+                "statistic": float(stat),
+                "p_value": float(p_value),
+                "equal_variance": float(p_value) > self.alpha,
+            }
+
         # Levene's test (robust to non-normality)
         if method in ["levene", "combined"]:
             try:
                 stat, p_value = levene(*groups, center="median")
-                results["levene"] = {"statistic": stat, "p_value": p_value, "equal_variance": p_value > self.alpha}
-            except:
-                logger.warning("Levene's test failed")
+                _record("levene", stat, p_value)
+            except Exception:
+                logger.warning("Levene's test failed", exc_info=True)
 
         # Bartlett's test (sensitive to non-normality)
         if method in ["bartlett", "combined"]:
             try:
                 stat, p_value = bartlett(*groups)
-                results["bartlett"] = {"statistic": stat, "p_value": p_value, "equal_variance": p_value > self.alpha}
-            except:
-                logger.warning("Bartlett's test failed")
+                _record("bartlett", stat, p_value)
+            except Exception:
+                logger.warning("Bartlett's test failed", exc_info=True)
 
         # Fligner-Killeen test (most robust to non-normality)
         if method in ["fligner", "combined"]:
             try:
                 stat, p_value = fligner(*groups, center="median")
-                results["fligner"] = {"statistic": stat, "p_value": p_value, "equal_variance": p_value > self.alpha}
-            except:
-                logger.warning("Fligner-Killeen test failed")
+                _record("fligner", stat, p_value)
+            except Exception:
+                logger.warning("Fligner-Killeen test failed", exc_info=True)
 
         # Determine overall result
         if method == "combined":
@@ -411,6 +448,32 @@ class AssumptionChecker:
                 avg_p_value = results["fligner"]["p_value"]
                 test_statistic = results["fligner"]["statistic"]
                 test_name = "fligner"
+            elif method in ("levene", "bartlett", "fligner"):
+                # The method is recognised but produced no usable result -- the
+                # test raised, or returned a non-finite statistic because the
+                # within-group variance is zero. That is NOT an unknown method,
+                # and reporting it as one produced the actively false message
+                # "Unknown homoscedasticity test method 'levene'". Report a
+                # check that could not be computed, which (per the same
+                # convention as the small-sample branch of check_normality) is
+                # is_met=False carrying an explicit reason -- not a verdict of
+                # unequal variances inferred from the absence of a number.
+                return AssumptionResult(
+                    assumption_type=AssumptionType.HOMOSCEDASTICITY,
+                    test_name=f"{method} (not computable)",
+                    test_statistic=np.nan,
+                    p_value=None,
+                    is_met=False,
+                    confidence=None,
+                    details={"groups": len(groups), "method": method},
+                    suggestions=[TestSuggestion.USE_WELCH],
+                    warning_message=(
+                        f"{method} could not be computed on these groups (most often "
+                        f"because every observation within a group is identical, so the "
+                        f"within-group variance is zero). Homogeneity of variance is "
+                        f"UNVERIFIED here, not satisfied and not refuted."
+                    ),
+                )
             else:
                 raise ValueError(
                     f"Unknown homoscedasticity test method {method!r}. Choose one of: levene, "

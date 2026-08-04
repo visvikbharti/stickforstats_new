@@ -253,7 +253,7 @@ class GenomicsUsesOneDefinitionOfSignificance(TestCase):
         gene_names = [f"G{i}" for i in range(20)]
         labels = ["control"] * 5 + ["treatment"] * 5
 
-        service = DifferentialExpressionService(alpha=0.01)
+        service = DifferentialExpressionService(input_scale="linear", alpha=0.01)
         result = service.analyze(
             expression_matrix=matrix,
             gene_names=gene_names,
@@ -289,7 +289,7 @@ class GenomicsUsesOneDefinitionOfSignificance(TestCase):
         # The volcano plot draws the user's fold-change cutoff as two vertical lines. It was
         # never applied: significance was adjusted-p only, so points well inside the lines were
         # still coloured and counted as significant.
-        strict = DifferentialExpressionService(alpha=0.05, log2fc_threshold=1.0)
+        strict = DifferentialExpressionService(input_scale="linear", alpha=0.05, log2fc_threshold=1.0)
         result = strict.analyze(
             expression_matrix=matrix,
             gene_names=names,

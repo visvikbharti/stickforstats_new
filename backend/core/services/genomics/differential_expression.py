@@ -45,10 +45,20 @@ class GeneResult:
     statistic: float
     raw_p_value: float
     adjusted_p_value: float = 1.0  # Set after FDR correction
-    # None when either group mean is 0: log2(0/x) and log2(x/0) do not exist.
-    log2_fold_change: Optional[float] = 0.0
-    mean_group1: float = 0.0
-    mean_group2: float = 0.0
+    # log2(group2 / group1) on a linear input scale, or group2 - group1 on a log2 one --
+    # see DifferentialExpressionService._compute_log2_fold_change. None only on a linear
+    # scale when a group mean is <= 0: log2(0/x) and log2(x/0) do not exist. On a log2
+    # scale it is a difference, so it is always defined.
+    log2_fold_change: Optional[float] = None
+    # None, not 0.0. These are only meaningful for a TWO-group contrast, and the
+    # analyze() loop sets them only on that path. Defaulting them to 0.0 meant
+    # every gene in a three-or-more-group (ANOVA / Kruskal-Wallis) analysis
+    # reported mean_group1 = mean_group2 = 0.0 and log2_fold_change = 0.0 --
+    # definite numeric claims that the group means are zero and there is no
+    # change, on data whose means are typically around 8 on the log2 scale.
+    # A missing quantity must read as missing, not as zero.
+    mean_group1: Optional[float] = None
+    mean_group2: Optional[float] = None
     guardian_confidence: float = 1.0
     assumptions_passed: bool = True
     cascaded: bool = False  # True if Guardian triggered nonparametric cascade
@@ -99,8 +109,12 @@ class GeneResult:
             "log2_fold_change": (
                 round(self.log2_fold_change, 4) if self.log2_fold_change is not None else None
             ),
-            "mean_group1": round(self.mean_group1, 4),
-            "mean_group2": round(self.mean_group2, 4),
+            "mean_group1": (
+                round(self.mean_group1, 4) if self.mean_group1 is not None else None
+            ),
+            "mean_group2": (
+                round(self.mean_group2, 4) if self.mean_group2 is not None else None
+            ),
             "guardian_confidence": round(self.guardian_confidence, 4),
             "assumptions_passed": self.assumptions_passed,
             "cascaded": self.cascaded,
@@ -124,6 +138,11 @@ class DifferentialExpressionResult:
     n_cascaded: int = 0
     fdr_method: str = "benjamini_hochberg"
     alpha: float = 0.05
+    # The scale the caller declared the input matrix was on. Echoed back because it decides
+    # how every log2_fold_change in this result was computed (ratio of means on a linear
+    # scale, difference of means on a log2 one), and a reader of the output otherwise has no
+    # way to tell which convention produced the numbers they are looking at.
+    input_scale: str = "linear"
     gene_results: List[GeneResult] = field(default_factory=list)
     volcano_data: List[Dict] = field(default_factory=list)
     guardian_summary: Dict[str, Any] = field(default_factory=dict)
@@ -141,6 +160,7 @@ class DifferentialExpressionResult:
                 "n_cascaded": self.n_cascaded,
                 "fdr_method": self.fdr_method,
                 "alpha": self.alpha,
+                "input_scale": self.input_scale,
             },
             "gene_results": [g.to_dict() for g in self.gene_results],
             "volcano_data": self.volcano_data,
@@ -164,18 +184,69 @@ class DifferentialExpressionService:
     - Generates volcano plot data (log2FC vs -log10 adjusted p)
     """
 
+    #: The scales this service knows how to compute a fold change on.
+    VALID_INPUT_SCALES = ("linear", "log2")
+
     def __init__(
         self,
+        input_scale: str,
         alpha: float = 0.05,
         normality_alpha: float = 0.05,
         log2fc_threshold: Optional[float] = None,
     ):
+        """
+        Args:
+            input_scale: REQUIRED. The scale ``expression_matrix`` is already on --
+                ``"linear"`` (counts, CPM, TPM, intensities) or ``"log2"`` (values that
+                have already been log2-transformed, e.g. log2(CPM+1)).
+
+                This has no default on purpose. It used to be an unstated assumption --
+                the service always computed log2(mean2/mean1), which is only a fold
+                change on a linear scale. Fed log2(CPM+1) it silently returned log2 of a
+                ratio of log-scale means: a number with no fold-change interpretation,
+                reported to users and plotted on the volcano plot as though it were one.
+                A caller that has not decided which scale its matrix is on cannot get a
+                correct fold change, so it is made to decide here rather than be given a
+                plausible wrong answer.
+        """
+        if input_scale not in self.VALID_INPUT_SCALES:
+            raise ValueError(
+                f"input_scale must be one of {self.VALID_INPUT_SCALES}, got {input_scale!r}. "
+                "Pass 'linear' for counts/CPM/TPM or 'log2' for an already-log2-transformed "
+                "matrix -- the fold change is computed differently on each and there is no "
+                "safe default."
+            )
+        self.input_scale = input_scale
         self.alpha = alpha
         self.normality_alpha = normality_alpha
         # None means "no fold-change filter". When set, a gene must clear BOTH the adjusted
         # p-value and the fold-change cutoff to be called significant -- which is what the
         # volcano plot's vertical lines have always implied, and never enforced.
         self.log2fc_threshold = log2fc_threshold
+
+    def _compute_log2_fold_change(self, mean1: float, mean2: float) -> Optional[float]:
+        """The log2 fold change of group 2 relative to group 1, on the declared input scale.
+
+        One rule, one place: every fold change this service reports comes from here.
+
+        On a **linear** scale the fold change is the RATIO of the group means, so
+        log2FC = log2(mean2 / mean1). It is undefined when either mean is <= 0: the ratio
+        is 0/x or x/0. This used to clamp both means at 1e-10, which does not make the
+        quantity defined -- it invents one. The magnitude then comes from the EPSILON
+        rather than the data: with mean1 = 1 and mean2 = 0 the clamp yields a log2 fold
+        change of -33.2, an enormous, entirely fabricated effect, which then sits at the
+        far edge of the volcano plot looking like the most compelling gene in the
+        experiment. Change the epsilon to 1e-20 and the "effect" doubles.
+
+        On a **log2** scale the values are already logarithms, so the fold change is the
+        DIFFERENCE of the group means: log2FC = mean2 - mean1. It is always defined --
+        there is no division, so zero and negative group means are fine.
+        """
+        if self.input_scale == "log2":
+            return float(mean2 - mean1)
+        if mean1 > 0 and mean2 > 0:
+            return float(np.log2(mean2 / mean1))
+        return None
 
     def _is_significant(self, gene) -> bool:
         """One definition of significance, used by the per-gene table, the summary counts and
@@ -247,19 +318,7 @@ class DifferentialExpressionService:
                 mean2 = np.mean(row[g2_idx])
                 result.mean_group1 = mean1
                 result.mean_group2 = mean2
-                # log2(mean2 / mean1) is undefined when either group's mean is 0: the ratio is
-                # 0/x = 0 (log2 -> -inf) or x/0 (log2 -> +inf).
-                #
-                # This used to clamp both means at 1e-10, which does not make the quantity
-                # defined -- it invents one. The magnitude then comes from the EPSILON rather
-                # than the data: with mean1 = 1 and mean2 = 0 the clamp yields a log2 fold change
-                # of -33.2, an enormous, entirely fabricated effect, which then sits at the far
-                # edge of the volcano plot looking like the most compelling gene in the
-                # experiment. Change the epsilon to 1e-20 and the "effect" doubles.
-                if mean1 > 0 and mean2 > 0:
-                    result.log2_fold_change = float(np.log2(mean2 / mean1))
-                else:
-                    result.log2_fold_change = None
+                result.log2_fold_change = self._compute_log2_fold_change(mean1, mean2)
 
             if result.cascaded:
                 n_cascaded += 1
@@ -321,6 +380,7 @@ class DifferentialExpressionService:
             group2_name=group2_name,
             n_significant=n_significant,
             n_cascaded=n_cascaded,
+            input_scale=self.input_scale,
             gene_results=gene_results,
             volcano_data=volcano_data,
             guardian_summary=guardian_summary,

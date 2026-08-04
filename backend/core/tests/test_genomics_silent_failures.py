@@ -41,7 +41,7 @@ from core.services.genomics.differential_expression import (
 class TestMannWhitneyFailureFlag(TestCase):
 
     def setUp(self):
-        self.svc = DifferentialExpressionService()
+        self.svc = DifferentialExpressionService(input_scale="linear")
 
     def test_all_tied_input_yields_nan_and_flag(self):
         """When Mann-Whitney cannot be computed because both groups
@@ -93,7 +93,7 @@ class TestMannWhitneyFailureFlag(TestCase):
 class TestNormalityVarianceFailureForcesCascade(TestCase):
 
     def setUp(self):
-        self.svc = DifferentialExpressionService()
+        self.svc = DifferentialExpressionService(input_scale="linear")
 
     def test_normality_failure_records_violation_and_forces_cascade(self):
         """When shapiro/levene cannot be computed (raised OR returned
@@ -134,7 +134,7 @@ class TestMultiGroupFailurePath(TestCase):
     """Same contracts apply to the multi-group helper."""
 
     def setUp(self):
-        self.svc = DifferentialExpressionService()
+        self.svc = DifferentialExpressionService(input_scale="linear")
 
     def test_multi_group_normality_failure_records_violation(self):
         const_g1 = np.ones(8)

@@ -20,12 +20,38 @@ from .serializers import (
     ComparisonRequestSerializer,
     ANOVARequestSerializer,
 )
+import math
 import pandas as pd
 import numpy as np
 from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _json_safe(value):
+    """Recursively replace non-finite floats with None.
+
+    JSON has no representation for NaN or +/-Inf, and DRF's renderer raises
+    "Out of range float values are not JSON compliant" -- so a single NaN turns
+    an otherwise successful response into an HTTP 500. Assumption dictionaries
+    are assembled field by field in the views below rather than through
+    AssumptionResult.to_dict(), so its NaN guard does not protect them; this is
+    the one place every such dictionary passes through.
+
+    Executed example of the failure this prevents: a two-sample t-test on
+    data1=[5]*5, data2=[7]*5 (zero within-group variance) produced
+    assumptions.equal_variance.test_statistic = nan and the whole endpoint
+    500'd. null is the honest JSON encoding of "this statistic does not exist";
+    the accompanying warning field says why.
+    """
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, (float, np.floating)):
+        return float(value) if math.isfinite(value) else None
+    return value
 
 
 class HighPrecisionTTestView(APIView):
@@ -150,7 +176,7 @@ class HighPrecisionTTestView(APIView):
                     "warning": outlier_result.warning_message,
                 }
 
-                response_data["assumptions"] = assumptions
+                response_data["assumptions"] = _json_safe(assumptions)
 
             # Step 2: Perform high-precision calculation
             logger.info("Performing high-precision t-test calculation")
@@ -197,6 +223,93 @@ class HighPrecisionTTestView(APIView):
             response_data["high_precision_result"] = {
                 key: str(value) if isinstance(value, Decimal) else value for key, value in hp_result.items()
             }
+
+            # The confidence interval for the mean difference and Cohen's d used to be absent from
+            # this response entirely, while the UI displayed rows for both -- so a two-sample t-test
+            # showed "Confidence Interval (95%): [N/A, N/A]" and "Effect Size (Cohen's d): N/A" on
+            # every run. Neither is computed here from scratch: the interval uses the SAME verified
+            # high-precision Student-t quantile as the power module (mpmath findroot refined against
+            # the 50-digit t CDF), and Cohen's d comes from the existing EffectSizeCalculator rather
+            # than a second, unvalidated implementation. A browser-side approximation is exactly the
+            # class of shortcut that produced a "95%" interval covering 94.3% elsewhere in this
+            # codebase, so neither quantity is computed in the client.
+            try:
+                hpr = response_data["high_precision_result"]
+                if {"mean_diff", "se", "df"} <= set(hpr):
+                    from mpmath import mpf
+
+                    from core.hp_power_analysis_comprehensive import HighPrecisionPowerAnalysis
+
+                    # A confidence LEVEL, normalised. This key arrives on two
+                    # scales depending on the serializer: TTestRequestSerializer
+                    # declares confidence_level as a percent string (default
+                    # "95") and derives it from alpha as (1 - alpha) * 100,
+                    # while CorrelationRequestSerializer declares it as a
+                    # fraction in [0.5, 0.9999]. Read as a fraction, a percent
+                    # makes (1 + 99)/2 = 50, and _t_ppf returns NaN for a
+                    # probability outside (0, 1) rather than raising -- so the
+                    # response carried ci_lower = ci_upper = "NaN" with HTTP 200
+                    # and ci_level echoed as 99.0. Accept either scale, and
+                    # refuse anything that is not a usable level.
+                    raw_level = float(parameters.get("confidence_level", 0.95))
+                    conf_level = raw_level / 100.0 if raw_level > 1.0 else raw_level
+                    if not 0.0 < conf_level < 1.0:
+                        raise ValueError(
+                            f"confidence_level must be a fraction in (0, 1) or a "
+                            f"percentage in (0, 100); got {raw_level!r}"
+                        )
+
+                    # Do NOT report an interval for a test that has no estimate.
+                    # On degenerate input (zero within-group variance) the
+                    # calculator correctly reports t and p as None, but se is
+                    # exactly 0, so the half-width is 0 and this emitted a
+                    # zero-width "95% CI" -- an interval of [md, md] that
+                    # excludes 0 and would read as a significant result for a
+                    # test statistic that does not exist. A fabricated interval
+                    # is worse than a missing one. Cohen's d already refuses on
+                    # the same input; the CI now matches that behaviour.
+                    se = Decimal(str(hpr["se"]))
+                    if se <= 0 or hpr.get("t_statistic") is None:
+                        hpr["ci_error"] = (
+                            "Confidence interval is undefined: the standard error of "
+                            "the mean difference is zero (every observation within "
+                            "each group is identical), so there is no sampling "
+                            "variability to interval-estimate."
+                        )
+                    else:
+                        df_val = Decimal(str(hpr["df"]))
+                        t_crit = HighPrecisionPowerAnalysis()._t_ppf(
+                            mpf(str((1 + conf_level) / 2)), mpf(str(df_val))
+                        )
+                        # _t_ppf signals failure by returning NaN rather than
+                        # raising, so emitting it unchecked put the string "NaN"
+                        # in a field the UI renders as an interval.
+                        if not math.isfinite(float(t_crit)):
+                            raise ValueError(
+                                f"t quantile did not converge for confidence_level="
+                                f"{conf_level} and df={df_val}"
+                            )
+                        md = Decimal(str(hpr["mean_diff"]))
+                        half = Decimal(str(t_crit)) * se
+                        hpr["ci_lower"] = str(md - half)
+                        hpr["ci_upper"] = str(md + half)
+                        hpr["ci_level"] = conf_level
+                    # Alias for the field name the UI reads; mean_diff is kept for existing callers.
+                    hpr["mean_difference"] = hpr["mean_diff"]
+
+                if test_type == "two_sample" and data2:
+                    from core.effect_sizes import EffectSizeCalculator
+
+                    es = EffectSizeCalculator().cohens_d(np.array(data1), np.array(data2))
+                    hpr["cohens_d"] = es.value
+                    hpr["effect_size"] = es.value
+                    hpr["effect_size_ci"] = [es.ci_lower, es.ci_upper]
+                    hpr["effect_size_interpretation"] = es.interpretation
+            except Exception as exc:  # noqa: BLE001 - never fail the primary test for a derived field
+                # Report the failure rather than silently emitting a field-less response that the UI
+                # would render as "N/A" with no explanation of why.
+                logger.warning("Could not derive CI / effect size for t-test: %s", exc)
+                response_data["high_precision_result"]["derived_fields_error"] = str(exc)
 
             # Step 3: Compare with standard precision if requested
             # Skip comparison for extreme precision cases
@@ -585,7 +698,7 @@ class HighPrecisionANOVAView(APIView):
                         "details": outliers_result.details,
                     }
 
-                response_data["assumptions"] = assumptions
+                response_data["assumptions"] = _json_safe(assumptions)
 
             # Step 2: Perform high-precision ANOVA
             logger.info(f"Performing high-precision {anova_type} ANOVA")

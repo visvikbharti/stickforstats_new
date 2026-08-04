@@ -20,6 +20,7 @@ from core.guardian.guardian_core import (
     HomoscedasticityValidator,
     SEVERITY_WEIGHTS,
     AssumptionViolation,
+    UnknownTestTypeError,
 )
 
 
@@ -411,13 +412,45 @@ class GuardianCoreIntegrationTests(TestCase):
         self.assertIn("mean", summary)
         self.assertIn("std", summary)
 
-    def test_unknown_test_type_runs_without_checks(self):
-        """An unknown test type should not cause an error, just skip checks."""
+    def test_unknown_test_type_refuses_to_report(self):
+        """An unrecognised test type must RAISE, not return a clean report.
+
+        This test previously asserted the opposite -- that an unknown test type
+        "should not cause an error, just skip checks", and that the resulting
+        report carried confidence_score == 1.0. That was the bug, written down
+        as if it were the specification: a caller who misspelled a test type
+        received zero assumptions_checked, zero violations and full confidence,
+        which is indistinguishable from "every assumption was verified and all
+        of them held". Guardian's entire purpose is to prevent exactly that
+        conclusion from being reached without evidence, so it now refuses.
+        """
         data = [np.random.normal(0, 1, 50).tolist()]
-        report = self.guardian.check(data, "unknown_test")
-        self.assertEqual(len(report.assumptions_checked), 0)
-        self.assertEqual(len(report.violations), 0)
-        self.assertEqual(report.confidence_score, 1.0)
+        with self.assertRaises(UnknownTestTypeError) as ctx:
+            self.guardian.check(data, "unknown_test")
+        # The message must be actionable: name the offending value and enumerate
+        # what would have been accepted, or the caller cannot fix their call.
+        message = str(ctx.exception)
+        self.assertIn("unknown_test", message)
+        self.assertIn("t_test", message)
+
+    def test_known_aliases_still_resolve_and_check(self):
+        """The refusal above must not swallow legitimate synonyms.
+
+        Guarding against the obvious over-correction: if canonicalisation were
+        too strict, real callers using ordinary spellings would start raising,
+        and the natural "fix" would be to re-widen the net until the defect
+        came back. Each of these must resolve to a real requirement set and
+        actually run checks.
+        """
+        data = {"group1": np.random.normal(0, 1, 40).tolist(),
+                "group2": np.random.normal(0, 1, 40).tolist()}
+        for alias in ("welch_t", "students_t", "mann_whitney_u", "oneway_anova"):
+            with self.subTest(alias=alias):
+                report = self.guardian.check(data, alias)
+                self.assertGreater(
+                    len(report.assumptions_checked), 0,
+                    f"alias {alias!r} resolved to zero assumption checks",
+                )
 
     def _ar1_groups(self):
         """Two strongly autocorrelated (AR(1)) groups -- lag-1 would flag them
@@ -564,3 +597,82 @@ class ConfidenceScoreTests(TestCase):
         self.assertEqual(SEVERITY_WEIGHTS["critical"], 3.0)
         self.assertEqual(SEVERITY_WEIGHTS["warning"], 2.0)
         self.assertEqual(SEVERITY_WEIGHTS["minor"], 1.0)
+
+
+class ConfidenceScoreMeasuresSeverityNotCountTests(TestCase):
+    """The documented property of the score, which nothing pinned.
+
+    ``_calculate_confidence`` divides the total penalty by
+    ``len(violations) * 3.0``, so BOTH numerator and denominator scale with the
+    count. The score therefore reports AVERAGE severity, not how much is wrong:
+    one critical violation and five critical violations both give 0.167. That is
+    a deliberate design choice stated in the method's own docstring, and it is a
+    headline number -- it appears in Guardian reports, in the API response and
+    in the manuscript's case studies.
+
+    It had no test. Mutating the denominator from ``len(violations) * 3.0`` to
+    ``1 * 3.0`` -- which makes the score count-sensitive, so two minor
+    violations fall from 0.722 to 0.444 and three criticals to 0.0 -- left all
+    98 tests across the three Guardian test modules passing. The existing
+    ConfidenceScoreTests only ever build single-violation lists, where the
+    mutation is a no-op, and the one multi-violation test asserts only an
+    ordering that survives it.
+    """
+
+    def setUp(self):
+        self.guardian = GuardianCore()
+
+    def _v(self, severity):
+        return AssumptionViolation(
+            assumption="normality",
+            test_name="Shapiro-Wilk",
+            severity=severity,
+            p_value=0.001,
+            statistic=0.5,
+            message="m",
+            recommendation="r",
+        )
+
+    def test_score_is_invariant_to_the_number_of_violations(self):
+        for severity in ("critical", "warning", "minor"):
+            one = self.guardian._calculate_confidence([self._v(severity)])
+            for n in (2, 3, 5, 20):
+                many = self.guardian._calculate_confidence([self._v(severity)] * n)
+                with self.subTest(severity=severity, n=n):
+                    self.assertAlmostEqual(
+                        one, many, places=9,
+                        msg=f"{n} {severity} violations scored {many} but one scored "
+                            f"{one}; the score has become count-sensitive, so it no "
+                            f"longer means what its docstring and the manuscript say",
+                    )
+
+    def test_the_three_attainable_uniform_values_are_what_is_documented(self):
+        """Hand-computed from the formula, not copied from a document.
+
+        confidence = 1 - total/(len*3.0*1.2). For a uniform set the count
+        cancels, leaving 1 - w/3.6: critical 1 - 3/3.6 = 0.167, warning
+        1 - 2/3.6 = 0.444, minor 1 - 1/3.6 = 0.722. The implementation rounds
+        the result to three decimals, so the assertion matches that rounding
+        rather than the unrounded quotient -- this test was written against the
+        unrounded value first and failed, which is how the rounding was found.
+        """
+        for severity, weight in (("critical", 3.0), ("warning", 2.0), ("minor", 1.0)):
+            expected = round(1 - weight / 3.6, 3)
+            got = self.guardian._calculate_confidence([self._v(severity)] * 3)
+            with self.subTest(severity=severity):
+                self.assertAlmostEqual(got, expected, places=6)
+                # And the rounding is to exactly 3 decimals, not more.
+                self.assertEqual(got, round(got, 3))
+
+    def test_a_mixed_set_averages_the_severities(self):
+        # [minor, critical]: total 4.0, denominator 2 * 3.0 * 1.2 = 7.2
+        got = self.guardian._calculate_confidence([self._v("minor"), self._v("critical")])
+        self.assertAlmostEqual(got, round(1 - 4.0 / 7.2, 3), places=6)
+        # Which must sit between the all-minor and all-critical values.
+        self.assertGreater(got, self.guardian._calculate_confidence([self._v("critical")]))
+        self.assertLess(got, self.guardian._calculate_confidence([self._v("minor")]))
+
+    def test_no_violations_is_the_only_way_to_score_one(self):
+        self.assertEqual(self.guardian._calculate_confidence([]), 1.0)
+        for severity in ("critical", "warning", "minor"):
+            self.assertLess(self.guardian._calculate_confidence([self._v(severity)]), 1.0)

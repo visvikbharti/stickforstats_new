@@ -27,7 +27,15 @@ logger = logging.getLogger(__name__)
 # non-parametric design (n = 30 under a normal parent returned 0.451351 where it is
 # 0.460036) and, because the normal ARE is 0.955 < 1, sometimes not advancing at all
 # when a subject was added. Same request body, different -- and now correct -- answer.
-CACHE_SCHEMA_VERSION = 5
+# v6 (2026-08-04): the t-test response changed for unchanged request bodies in three
+# ways. (a) It now carries `ci_lower`/`ci_upper`/`ci_level` and Cohen's d at all.
+# (b) On degenerate input (zero within-group variance) it no longer carries a
+# zero-width "95% CI" of [mean_diff, mean_diff] -- an interval excluding 0 for a
+# test whose statistic is None -- and instead carries `ci_error`. (c) A
+# `confidence_level` given as a percentage produced ci_lower = ci_upper = "NaN"
+# and now produces the correct interval, so 99 and 0.99 finally agree. Without
+# this bump, a cached pre-fix entry would keep serving the fabricated interval.
+CACHE_SCHEMA_VERSION = 6
 
 
 def generate_cache_key(prefix, data_dict, version=CACHE_SCHEMA_VERSION):

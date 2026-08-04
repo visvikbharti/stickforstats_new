@@ -16,7 +16,12 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 import logging
 
-from ..guardian.guardian_core import GuardianCore, GuardianReport
+from ..guardian.guardian_core import (
+    GuardianCore,
+    GuardianReport,
+    GuardianInputError,
+    UnknownTestTypeError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +114,23 @@ class AutonomousCascadeEngine:
     def __init__(self):
         self.guardian = GuardianCore()
 
+    def _guardian_can_check(self, test_name: str) -> bool:
+        """Whether Guardian recognises this test name at all.
+
+        Used to filter cascade candidates before they are fed back into
+        ``guardian.check()``. Only the caller's own ``intended_test`` should be
+        able to raise UnknownTestTypeError out of ``execute_with_cascade`` --
+        that is a genuine client error worth reporting. A name this engine
+        generated for itself must never do so.
+        """
+        try:
+            self.guardian._canonical_test_type(
+                self.GUARDIAN_TEST_MAP.get(test_name, test_name)
+            )
+            return True
+        except (UnknownTestTypeError, GuardianInputError, TypeError, ValueError):
+            return False
+
     def execute_with_cascade(
         self,
         data: Any,
@@ -141,19 +163,49 @@ class AutonomousCascadeEngine:
             guardian_type = self.GUARDIAN_TEST_MAP.get(current_test, current_test)
             try:
                 guardian_report = self.guardian.check(data, guardian_type, alpha)
-            except Exception as e:
-                logger.warning(f"Guardian check failed for {current_test}: {e}")
-                # If Guardian itself fails, try to execute anyway
-                guardian_report = None
+            except (GuardianInputError, UnknownTestTypeError):
+                # A caller error: this data, or this test name, cannot support an
+                # assumption check at all. Propagate it. Catching it here and
+                # running the test anyway is how the fail-open below happened.
+                raise
+            except Exception as exc:
+                # An internal validator failure. Two things must NOT happen here.
+                # (1) The step must not be recorded as guardian_passed=True. It
+                #     used to be: `passed` was initialised True and only lowered
+                #     inside `if guardian_report:`, so a Guardian crash produced
+                #     the single most dangerous output this system can emit --
+                #     "assumptions checked, none violated". An assumption that
+                #     could not be checked is not an assumption that held.
+                # (2) We must not cascade. Nothing was found to be violated, so
+                #     there is no evidence on which to prefer an alternative
+                #     test, and every alternative would hit the same error.
+                logger.exception("Guardian check errored for %s: %s", current_test, exc)
+                cascade_path.append(
+                    CascadeStep(
+                        test_attempted=current_test,
+                        guardian_passed=False,
+                        violations=[
+                            f"Assumption checking did not complete ({exc}). The "
+                            f"assumptions of {current_test} were NOT verified; the "
+                            f"test result below is unvalidated."
+                        ],
+                        alternatives_suggested=[],
+                    )
+                )
+                return CascadeResult(
+                    original_test=intended_test,
+                    final_test=current_test,
+                    cascade_path=cascade_path,
+                    n_cascades=attempt,
+                    assumptions_satisfied=False,
+                    guardian_report=None,
+                    result=self._execute_test(data, current_test, alpha),
+                    confidence_score=0.0,
+                )
 
-            violations = []
-            alternatives = []
-            passed = True
-
-            if guardian_report:
-                violations = [v.message for v in guardian_report.violations]
-                alternatives = guardian_report.alternative_tests
-                passed = guardian_report.can_proceed
+            violations = [v.message for v in guardian_report.violations]
+            alternatives = guardian_report.alternative_tests
+            passed = guardian_report.can_proceed
 
             step = CascadeStep(
                 test_attempted=current_test,
@@ -182,7 +234,25 @@ class AutonomousCascadeEngine:
             # Cascade to alternative
             alt_chain = self.CASCADE_ALTERNATIVES.get(current_test, [])
             # Also consider Guardian's suggestions
-            all_alternatives = alt_chain + [a for a in alternatives if a not in alt_chain]
+            candidates = alt_chain + [a for a in alternatives if a not in alt_chain]
+            # ...but only ones Guardian can actually validate. Both sources
+            # yield names outside Guardian's vocabulary -- CASCADE_ALTERNATIVES
+            # contains "permutation_test", and Guardian's own alternative_tests
+            # lists suggest "distance_correlation" among others. Feeding such a
+            # name back into guardian.check() raises UnknownTestTypeError, and
+            # since that exception is now (correctly) propagated rather than
+            # swallowed, an ordinary Pearson request on outlier-bearing data
+            # crashed with "Guardian does not recognise test_type
+            # 'distance_correlation'". Filtering here is the right place: a test
+            # whose assumptions Guardian cannot check is not a cascade target,
+            # because routing to it would produce exactly the unvalidated
+            # "passed" report this engine exists to avoid.
+            all_alternatives = [a for a in candidates if self._guardian_can_check(a)]
+            dropped = [a for a in candidates if a not in all_alternatives]
+            if dropped:
+                logger.debug(
+                    "Cascade candidates Guardian cannot validate, skipped: %s", dropped
+                )
 
             next_test = None
             for alt in all_alternatives:

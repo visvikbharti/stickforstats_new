@@ -20,6 +20,40 @@ from .effect_size_calculator import EffectSizeCalculator
 # Set precision for high-accuracy calculations
 getcontext().prec = 50
 
+
+class GuardianInputError(ValueError):
+    """
+    The data handed to the Guardian cannot be validated at all.
+
+    Raised instead of returning a GuardianReport, because a report is a
+    *certificate*: it carries ``can_proceed`` and ``confidence_score``, and
+    every consumer in this repo reads those two fields without asking whether
+    the underlying checks were computable. There is no honest value for either
+    field when a group has fewer than two observations -- the sample variance,
+    the IQR and the z-score are all undefined or 0/0 -- so the only way to keep
+    a caller from acting on a confident-looking report built on unvalidatable
+    data is to produce no report at all.
+
+    Subclasses ValueError so existing ``except ValueError`` / ``except
+    Exception`` handlers keep working.
+    """
+
+
+class UnknownTestTypeError(ValueError):
+    """
+    The Guardian was asked to validate a test it does not recognise.
+
+    Previously an unrecognised ``test_type`` produced an empty requirement
+    list, which meant zero assumption checks, zero violations and
+    ``confidence_score = 1.0`` -- the platform's most damaging possible failure
+    mode, since "validation is the default, not an opt-in" is the whole claim.
+    A plausible-looking but unmapped string (``"correlation"``,
+    ``"pearson_correlation"``) must therefore fail loudly.
+
+    Subclasses ValueError so existing handlers keep working.
+    """
+
+
 # Severity-based penalty weights for confidence scoring
 # Critical violations are penalized 3x, warnings 2x, minor issues 1x
 # This reflects the relative impact of each violation type on analysis validity
@@ -360,6 +394,7 @@ class GuardianCore:
             "modality": ModalityDetector(),
             "linearity": LinearityValidator(),
             "homoscedasticity": HomoscedasticityValidator(),
+            "similar_shapes": SimilarShapesValidator(),
         }
 
         # Test requirements mapping
@@ -401,6 +436,22 @@ class GuardianCore:
             # Factor analysis
             "factor_analysis": ["normality", "sample_size"],
             "pca": ["sample_size"],
+            # MANOVA is listed with the UNIVARIATE assumptions only, and that
+            # limit is deliberate and must be stated wherever the report is
+            # shown. Guardian evaluates normality, equality of variance,
+            # independence and outliers on the response values it is given. It
+            # does NOT evaluate the two assumptions specific to the
+            # multivariate case -- multivariate normality of the response
+            # vector, and equality of the group covariance matrices (Box's M) --
+            # because no validator implements either.
+            #
+            # This entry exists because the alternative was worse, not because
+            # the coverage is complete: before it, 'manova' was absent from this
+            # table, so the MANOVA screen received a report with zero checks and
+            # confidence 1.0 and rendered a green all-clear having verified
+            # nothing whatsoever. A genuine partial check that says what it
+            # covered beats a total absence of checking that looks complete.
+            "manova": ["normality", "variance_homogeneity", "independence", "outliers"],
         }
 
         # Initialize visualization and effect size calculators
@@ -410,6 +461,51 @@ class GuardianCore:
         # Context-aware severity adjuster (v2)
         self.severity_adjuster = ContextualSeverityAdjuster()
 
+        self._assert_every_requirement_is_implemented()
+
+    # Requirements that are legitimately absent from ``self.validators``
+    # because a dedicated code path evaluates them instead of the generic
+    # validator loop. ``expected_frequencies`` is computed inside
+    # ``_check_contingency``, which builds its own report from the observed
+    # table rather than from ``analysis_arrays``.
+    _SPECIALLY_DISPATCHED_REQUIREMENTS = frozenset({"expected_frequencies"})
+
+    def _assert_every_requirement_is_implemented(self) -> None:
+        """Fail at construction if a declared assumption has no implementation.
+
+        The validator loop in ``check()`` reads ``if req in self.validators``,
+        so a requirement with no registered validator is skipped in silence --
+        while ``assumptions_checked`` is populated from the *requirements* list
+        and therefore still names it. The result is a report that claims an
+        assumption was checked, finds no violation because nothing ran, and
+        returns full confidence.
+
+        That is not hypothetical. ``similar_shapes`` sat in ``mann_whitney`` and
+        ``kruskal_wallis`` with no validator behind it: normal-versus-exponential
+        data, a 100x spread difference and strong bimodality all returned zero
+        violations and confidence 1.0, with "similar_shapes" listed as checked.
+        The check now exists, and this assertion is what stops the next
+        requirement added to the table above from repeating the same silence.
+        """
+        declared = {
+            req
+            for requirements in self.test_requirements.values()
+            for req in requirements
+        }
+        missing = sorted(
+            declared - set(self.validators) - self._SPECIALLY_DISPATCHED_REQUIREMENTS
+        )
+        if missing:
+            raise RuntimeError(
+                f"Guardian is misconfigured: test_requirements declares "
+                f"{missing}, which no registered validator implements and no "
+                f"dedicated code path handles. Guardian would report these as "
+                f"checked assumptions while never evaluating them, yielding "
+                f"reports with unearned confidence. Either implement a "
+                f"validator and register it in self.validators, or remove the "
+                f"requirement from test_requirements."
+            )
+
     # Values of ``observation_order`` that mean "rows are in genuine
     # time/sequence order", which is the only situation in which the
     # lag-1 autocorrelation independence check is informative.
@@ -417,6 +513,264 @@ class GuardianCore:
         "sequential", "temporal", "time", "timeseries",
         "time_series", "time-series", "ordered", "serial",
     })
+
+    # ------------------------------------------------------------------
+    # test_type canonicalisation
+    # ------------------------------------------------------------------
+    # Synonyms for the canonical keys of ``test_requirements`` (and of
+    # ``_CONTINGENCY_TESTS``). These are pure ROUTING entries: every alias maps
+    # to a test whose assumption set is the same one a statistician would apply
+    # to the alias. No alias invents a new requirement list.
+    #
+    # Deliberately absent: strings with no defensible canonical equivalent in
+    # ``test_requirements`` (e.g. "variance_test", "logistic_regression"). They
+    # raise UnknownTestTypeError rather than being silently routed to a
+    # requirement list that does not describe them.
+    #
+    # "manova" is NOT in that category and must not be listed here: it is a
+    # canonical key of ``test_requirements`` in its own right (see the entry and
+    # its caveat block above), so it resolves rather than raising. An earlier
+    # version of this comment claimed the opposite, which was a false statement
+    # about assumption coverage sitting in the archived source. The concern that
+    # comment raised is real and is handled at the entry itself: MANOVA's
+    # multivariate assumptions -- multivariate normality and Box's M -- are not
+    # implemented, so the entry declares only the univariate checks and every
+    # surface that renders the report says so explicitly.
+    _TEST_TYPE_ALIASES = {
+        # --- t-tests (all reduce to the same assumption set; `design`
+        #     distinguishes one-sample / paired / independent downstream) ---
+        "t": "t_test",
+        "ttest": "t_test",
+        "t_tests": "t_test",
+        "students_t": "t_test",
+        "student_t": "t_test",
+        "student_t_test": "t_test",
+        "students_t_test": "t_test",
+        "one_sample": "t_test",
+        "one_sample_t": "t_test",
+        "one_sample_t_test": "t_test",
+        "one_sample_ttest": "t_test",
+        "paired": "t_test",
+        "paired_t": "t_test",
+        "paired_t_test": "t_test",
+        "paired_ttest": "t_test",
+        "paired_samples_t_test": "t_test",
+        "two_sample": "t_test",
+        "two_sample_t": "t_test",
+        "two_sample_t_test": "t_test",
+        "independent": "t_test",
+        "independent_t": "t_test",
+        "independent_t_test": "t_test",
+        "independent_samples_t_test": "t_test",
+        # Welch's t-test is a t-test: the frontend and the cascade engine both
+        # send "welch_t", and it previously matched nothing at all.
+        "welch": "t_test",
+        "welch_t": "t_test",
+        "welch_t_test": "t_test",
+        "welchs_t_test": "t_test",
+        # --- ANOVA ---
+        "one_way": "anova",
+        "one_way_anova": "anova",
+        "oneway_anova": "anova",
+        "anova_one_way": "anova",
+        "two_way": "anova",
+        "two_way_anova": "anova",
+        "twoway_anova": "anova",
+        "factorial_anova": "anova",
+        "repeated_measures": "anova",
+        "repeated_measures_anova": "anova",
+        "rm_anova": "anova",
+        # --- correlation ---
+        # "pearson" is the canonical key; these are the names callers actually
+        # use, including the two the audit found returning confidence 1.0.
+        "correlation": "pearson",
+        "pearson_r": "pearson",
+        "pearson_correlation": "pearson",
+        "correlation_pearson": "pearson",
+        # Spearman / Kendall are rank correlations: they do not need normality,
+        # but they DO need a monotone (Spearman) association and are outlier
+        # sensitive through the ranks, so the same checked set is reported and
+        # the normality result is what tells a user Spearman is preferable.
+        # This mirrors the routing already used by the cascade engine.
+        "spearman": "pearson",
+        "spearman_correlation": "pearson",
+        "spearman_rho": "pearson",
+        "kendall": "pearson",
+        "kendall_tau": "pearson",
+        "kendall_correlation": "pearson",
+        # --- regression ---
+        "linear_regression": "regression",
+        "multiple_regression": "regression",
+        "multiple_linear_regression": "regression",
+        "ols": "regression",
+        "ols_regression": "regression",
+        "simple_linear_regression": "regression",
+        # --- rank-based group comparisons ---
+        "mann_whitney_u": "mann_whitney",
+        "mannwhitney": "mann_whitney",
+        "mann_whitney_wilcoxon": "mann_whitney",
+        "wilcoxon": "mann_whitney",
+        "wilcoxon_rank_sum": "mann_whitney",
+        "wilcoxon_signed_rank": "mann_whitney",
+        "kruskal": "kruskal_wallis",
+        "kruskalwallis": "kruskal_wallis",
+        "kruskal_wallis_h": "kruskal_wallis",
+        # --- contingency-table tests (handled by _check_contingency) ---
+        # All of these canonicalise to "chi_square", which IS a member of
+        # _CONTINGENCY_TESTS, so a declared table still routes to
+        # _check_contingency. Routing them here rather than leaving them as
+        # bare _CONTINGENCY_TESTS members also closes a second silent hole: a
+        # payload with no declared table (e.g. two raw 0/1 vectors sent as
+        # "chi_square_independence") fell through to the numeric path with an
+        # EMPTY requirement list and confidence 1.0.
+        "chi_squared": "chi_square",
+        "chisquare": "chi_square",
+        "chi_square_independence": "chi_square",
+        "chi_square_goodness_of_fit": "chi_square",
+        "chi2": "chi_square",
+        "chi2_contingency": "chi_square",
+        "fisher_exact": "chi_square",
+        "fishers_exact": "chi_square",
+        "fisher_exact_test": "chi_square",
+    }
+
+    # When an alias names the DESIGN as well as the test (e.g. "paired_t",
+    # "repeated_measures"), carry that design through so the collapsed
+    # canonical test_type does not lose it. Only used when the caller did not
+    # pass `design` explicitly -- an explicit argument always wins.
+    _TEST_TYPE_IMPLIED_DESIGN = {
+        "one_sample": "one_sample",
+        "one_sample_t": "one_sample",
+        "one_sample_t_test": "one_sample",
+        "one_sample_ttest": "one_sample",
+        "paired": "paired",
+        "paired_t": "paired",
+        "paired_t_test": "paired",
+        "paired_ttest": "paired",
+        "paired_samples_t_test": "paired",
+        "two_sample": "independent",
+        "two_sample_t": "independent",
+        "two_sample_t_test": "independent",
+        "independent": "independent",
+        "independent_t": "independent",
+        "independent_t_test": "independent",
+        "independent_samples_t_test": "independent",
+        "welch": "independent",
+        "welch_t": "independent",
+        "welch_t_test": "independent",
+        "welchs_t_test": "independent",
+        "one_way": "between",
+        "one_way_anova": "between",
+        "oneway_anova": "between",
+        "anova_one_way": "between",
+        "two_way": "between",
+        "two_way_anova": "between",
+        "twoway_anova": "between",
+        "factorial_anova": "between",
+        "repeated_measures": "repeated",
+        "repeated_measures_anova": "repeated",
+        "rm_anova": "repeated",
+    }
+
+    def known_test_types(self) -> List[str]:
+        """Every test_type string ``check()`` accepts, sorted."""
+        return sorted(
+            set(self.test_requirements)
+            | set(self._CONTINGENCY_TESTS)
+            | set(self._TEST_TYPE_ALIASES)
+        )
+
+    def _canonical_test_type(self, test_type: Any) -> str:
+        """
+        Resolve a caller's test_type to a canonical key, or raise.
+
+        An unrecognised test_type must NEVER fall through to an empty
+        requirement list: that produced a report with zero checks and
+        confidence 1.0, which is indistinguishable from a genuinely clean
+        result. See UnknownTestTypeError.
+        """
+        if test_type is None or not str(test_type).strip():
+            raise UnknownTestTypeError(
+                "Guardian requires a test_type; none was given. "
+                "Valid values: " + ", ".join(self.known_test_types())
+            )
+
+        key = (
+            str(test_type).strip().lower().replace(" ", "_").replace("-", "_")
+        )
+        # Aliases are consulted FIRST. Several contingency synonyms
+        # ("chi_square_independence", "fisher_exact") are members of
+        # _CONTINGENCY_TESTS but have no entry in test_requirements, so an
+        # identity-first lookup returned them unchanged and they kept falling
+        # through to an EMPTY requirement list. No alias key collides with a
+        # test_requirements key (asserted in
+        # backend/tests/test_guardian_fails_loudly.py).
+        if key in self._TEST_TYPE_ALIASES:
+            return self._TEST_TYPE_ALIASES[key]
+        if key in self.test_requirements or key in self._CONTINGENCY_TESTS:
+            return key
+
+        raise UnknownTestTypeError(
+            f"Guardian does not recognise test_type {test_type!r}, so it "
+            "cannot validate any assumption for it. Refusing to return a "
+            "report: an unchecked test must not be reported as a passed one. "
+            "Valid values: " + ", ".join(self.known_test_types())
+        )
+
+    # ------------------------------------------------------------------
+    # data checkability
+    # ------------------------------------------------------------------
+    # Two observations is the smallest sample on which the dispersion
+    # statistics every validator depends on are defined at all: ddof=1 variance
+    # (Levene), the IQR (outliers) and the z-score (outliers) are undefined or
+    # 0/0 at n=1, and np.percentile raises IndexError at n=0. At n=2 they are
+    # defined, and the normality check itself reports n=2 as a critical
+    # violation, so the platform still fails loudly there without refusing to
+    # answer.
+    _MIN_OBSERVATIONS = 2
+
+    def _require_checkable_data(
+        self, data_arrays: List[np.ndarray], what: str = "data"
+    ) -> None:
+        """
+        Refuse to build a report on data no validator can actually check.
+
+        Raises GuardianInputError for: no groups at all, or any group with
+        fewer than ``_MIN_OBSERVATIONS`` finite numeric values.
+        """
+        if not data_arrays or len(data_arrays) == 0:
+            raise GuardianInputError(
+                f"Guardian received no {what} to validate (zero groups). "
+                "No assumption can be checked, so no report is produced."
+            )
+
+        for i, arr in enumerate(data_arrays):
+            a = np.asarray(arr)
+            try:
+                as_float = np.asarray(a, dtype=float).ravel()
+                n_usable = int(np.count_nonzero(np.isfinite(as_float)))
+                kind = "finite numeric value"
+            except (TypeError, ValueError):
+                # Non-numeric payload (e.g. string category labels): fall back
+                # to the raw element count. _summarize_data already degrades
+                # gracefully for these, so only the empty case is refused here.
+                n_usable = int(a.size)
+                kind = "value"
+
+            if n_usable < self._MIN_OBSERVATIONS:
+                label = (
+                    f"group_{i + 1}" if len(data_arrays) > 1 else what
+                )
+                raise GuardianInputError(
+                    f"Guardian cannot validate {what}: {label} has "
+                    f"{n_usable} {kind}(s), but at least "
+                    f"{self._MIN_OBSERVATIONS} are required. With fewer than "
+                    f"{self._MIN_OBSERVATIONS} observations the sample "
+                    "variance, the IQR and the z-score are all undefined, so "
+                    "every assumption check would either raise or record an "
+                    "uncomputable result as 'satisfied'. No report is "
+                    "produced: refusing to answer is the only honest outcome."
+                )
 
     def check(
         self,
@@ -453,6 +807,17 @@ class GuardianCore:
         GuardianReport : Complete assessment with recommendations
         """
 
+        # Resolve the test_type FIRST. An unrecognised string must never reach
+        # the requirement lookup, where `.get(test_type, [])` turned it into a
+        # zero-check report with confidence 1.0.
+        canonical_test_type = self._canonical_test_type(test_type)
+        if design is None:
+            key = (
+                str(test_type).strip().lower()
+                .replace(" ", "_").replace("-", "_")
+            )
+            design = self._TEST_TYPE_IMPLIED_DESIGN.get(key)
+
         # A categorical test hands us a contingency TABLE plus string category
         # labels -- not numeric group arrays. Normality, variance homogeneity and
         # skewness are meaningless on that payload, and _prepare_data would build
@@ -461,21 +826,51 @@ class GuardianCore:
         # that made the Guardian silently unavailable on every chi-square. Route
         # it instead to the assumption that actually governs a chi-square test:
         # the expected cell frequencies (Cochran's rule).
-        if test_type in self._CONTINGENCY_TESTS:
+        contingency_without_table = False
+        if canonical_test_type in self._CONTINGENCY_TESTS:
             observed = self._extract_contingency(data)
             if observed is not None:
                 return self._check_contingency(observed, test_type)
+            # No DECLARED table, so Cochran's rule cannot be evaluated. The
+            # numeric path below is still the right destination -- the cascade
+            # engine legitimately passes two raw 1-D code vectors here, and
+            # sniffing them as a table would misread 2x100 observations as a
+            # 2x100 contingency table (see _extract_contingency).
+            #
+            # But `expected_frequencies` must then NOT be reported as checked.
+            # It used to be: the dispatch loop skipped it (no registered
+            # validator), while assumptions_checked -- built from the
+            # requirements list -- still named it. Executed, a table passed as
+            # [[[1, 2], [3, 4]]] returned assumptions_checked
+            # ['expected_frequencies', 'independence'], zero violations,
+            # confidence 1.000 and can_proceed True, with the audit trail
+            # recording expected_frequencies as "skipped". The SAME table
+            # declared as {"observed": ...} is a critical violation with
+            # confidence 0.167. So the more careless the caller, the cleaner the
+            # report -- and this is reachable from the manuscript verifier,
+            # which certified a grossly Cochran-violating chi-square as
+            # assumption-clean.
+            contingency_without_table = True
 
         # Prepare data
         data_arrays = self._prepare_data(data)
 
+        # Refuse to certify data that cannot be validated at all (empty or
+        # single-observation groups). Must happen BEFORE any validator runs:
+        # np.percentile raised an uncaught IndexError at n=0, and at n=1 Levene
+        # and the z-score return NaN, which `if p < alpha` records as a passed
+        # assumption -- a confident report on unvalidatable data.
+        self._require_checkable_data(data_arrays)
+
         # Resolve the design (one_sample / paired / independent for t_test;
         # between / repeated for anova) so downstream checks and recommendations
         # are design-correct rather than keyed on the collapsed test_type.
-        design = self._normalize_design(test_type, design, data_arrays)
+        design = self._normalize_design(canonical_test_type, design, data_arrays)
 
         # Get requirements for this test
-        requirements = list(self.test_requirements.get(test_type, []))
+        requirements = list(
+            self.test_requirements.get(canonical_test_type, [])
+        )
 
         # A paired or one-sample t-test is a one-sample test (on the paired
         # differences, or on the single column). Homogeneity of variance between
@@ -483,6 +878,27 @@ class GuardianCore:
         # meaningless "Satisfied" for a test that never ran.
         if design in ("one_sample", "paired") and "variance_homogeneity" in requirements:
             requirements.remove("variance_homogeneity")
+
+        # The same reasoning applies to shape similarity, and for the same
+        # reason it must be dropped rather than left to no-op. A paired design
+        # collapses analysis_arrays to the single array of differences below, so
+        # there is no second distribution to compare shapes against -- yet
+        # "similar_shapes" would stay in assumptions_checked, telling the user an
+        # assumption was examined when the validator had nothing to examine.
+        #
+        # This is a genuine gap, not a solved problem: the assumption the paired
+        # rank test (Wilcoxon signed-rank) actually needs is SYMMETRY of the
+        # differences about zero, and no validator implements that. Dropping the
+        # requirement makes the report honest about what it checked; it does not
+        # make the test's assumptions verified.
+        if design in ("one_sample", "paired") and "similar_shapes" in requirements:
+            requirements.remove("similar_shapes")
+
+        # See the contingency branch above: without a declared table the
+        # expected-frequency rule is unevaluated, so it must leave
+        # assumptions_checked rather than sit there looking verified.
+        if contingency_without_table and "expected_frequencies" in requirements:
+            requirements.remove("expected_frequencies")
 
         # For a paired design the t-test operates on the differences, so
         # normality and outliers must be assessed on the differences — not on
@@ -593,7 +1009,7 @@ class GuardianCore:
             adjusted_violations, adj_descriptions = (
                 self.severity_adjuster.adjust_all(
                     violations, sample_sizes,
-                    group_sizes, test_type,
+                    group_sizes, canonical_test_type,
                 )
             )
 
@@ -619,6 +1035,49 @@ class GuardianCore:
 
             violations = adjusted_violations
 
+        # A chi-square reached here without a declared table, so Cochran's rule
+        # was never applied. Dropping it from `requirements` above stops the
+        # report claiming it was checked; this says so out loud, because
+        # otherwise the response is an empty violation list with confidence
+        # 1.000 -- indistinguishable from a table that genuinely passed. Warning,
+        # not critical: the caller may legitimately be passing raw code vectors,
+        # and blocking them would be wrong. It is added AFTER the contextual
+        # severity adjustment so that pass cannot silently downgrade it.
+        if contingency_without_table:
+            violations.append(
+                AssumptionViolation(
+                    assumption="expected_frequencies",
+                    test_name="Cochran's expected-frequency rule (not performed)",
+                    severity="warning",
+                    p_value=None,
+                    statistic=None,
+                    message=(
+                        "The expected-frequency rule was NOT evaluated: no "
+                        "contingency table was declared in the request, so the "
+                        "expected cell counts could not be computed. This is an "
+                        "unchecked assumption, not a satisfied one."
+                    ),
+                    recommendation=(
+                        "Send the counts under an explicit key -- "
+                        '{"observed": [[a, b], [c, d]]} -- to have Cochran\'s '
+                        "rule applied. Without it, a table with small expected "
+                        "counts cannot be distinguished from one without."
+                    ),
+                    visual_evidence=None,
+                )
+            )
+            audit_trail.append(
+                GuardianAuditEntry(
+                    timestamp=now_iso,
+                    assumption="expected_frequencies",
+                    test_performed="Cochran's expected-frequency rule (not performed)",
+                    result="not_performed",
+                    severity="warning",
+                    p_value=None,
+                    citation=self._get_citation_for_assumption("expected_frequencies"),
+                )
+            )
+
         # Determine if we can proceed
         critical_violations = [
             v for v in violations if v.severity == "critical"
@@ -626,7 +1085,9 @@ class GuardianCore:
         can_proceed = len(critical_violations) == 0
 
         # Get alternative tests if needed (design-aware)
-        alternatives = self._get_alternatives(test_type, violations, design)
+        alternatives = self._get_alternatives(
+            canonical_test_type, violations, design
+        )
 
         # Calculate confidence score (severity-weighted; see _calculate_confidence)
         confidence = self._calculate_confidence(violations)
@@ -643,7 +1104,12 @@ class GuardianCore:
                 {"assumption": v.assumption, "severity": v.severity, "test_name": v.test_name} for v in violations
             ]
 
-            visual_plots = self.viz_generator.generate_all_diagnostics(viz_data, violation_dicts, test_type)
+            # Downstream helpers key on the CANONICAL name ("t_test", "anova",
+            # "pearson", "regression"); an alias such as "welch_t" used to match
+            # none of their branches and silently produced no diagnostics.
+            visual_plots = self.viz_generator.generate_all_diagnostics(
+                viz_data, violation_dicts, canonical_test_type
+            )
             visual_evidence.update(visual_plots)
         except Exception as e:
             warnings.warn(f"Failed to generate visualizations: {str(e)}")
@@ -652,7 +1118,9 @@ class GuardianCore:
         # Calculate effect sizes
         effect_size_report = None
         try:
-            effect_size_report = self.effect_calculator.generate_effect_size_report(test_type, data_arrays)
+            effect_size_report = self.effect_calculator.generate_effect_size_report(
+                canonical_test_type, data_arrays
+            )
         except Exception as e:
             warnings.warn(f"Failed to calculate effect sizes: {str(e)}")
 
@@ -1178,6 +1646,248 @@ class VarianceHomogeneityValidator:
             "variances": [float(np.var(arr, ddof=1)) for arr in data_arrays],
             "std_devs": [float(np.std(arr, ddof=1)) for arr in data_arrays],
             "group_sizes": [len(arr) for arr in data_arrays],
+        }
+
+
+class SimilarShapesValidator:
+    """Validates the equal-shape assumption of the rank-based location tests.
+
+    Mann-Whitney U and Kruskal-Wallis are frequently described, including in
+    much of the applied literature, as "non-parametric tests of the median".
+    They are not. Both test stochastic dominance -- broadly, P(X < Y) != 1/2 --
+    and only become tests *of location* under the additional assumption that
+    the groups' distributions share a common shape and differ, if at all, by a
+    shift. When the shapes differ (unequal spread, opposite skew, one bimodal
+    and one not), a significant result still means "these samples do not come
+    from the same distribution", but it no longer licenses the conclusion the
+    user almost always wants to draw, which is "the groups differ in location".
+    Since the shapes can differ while the medians are identical, the direction
+    of the reported effect can be the opposite of the direction of the medians.
+
+    Method
+    ------
+    The assumption is about shape *net of location*, so each group is first
+    centred on its own median -- removing exactly the shift the test is about,
+    and doing so robustly, which matters because these are rank tests chosen
+    precisely when the data are skewed or heavy-tailed. The centred samples are
+    then compared with the two-sample Kolmogorov-Smirnov test, whose statistic
+    D = sup|F1 - F2| is the largest discrepancy between the two empirical
+    distribution functions. For k > 2 groups every pair is compared and alpha
+    is Bonferroni-corrected across the k(k-1)/2 pairs.
+
+    Both D and p are used to grade the result. p alone is not enough in either
+    direction: at large n a negligible shape difference attains a tiny p, and
+    at small n a gross one attains none.
+
+    Severity is deliberately capped at "warning" and never reaches "critical"
+    ---------------------------------------------------------------------------
+    Two reasons, and the cap is load-bearing in both.
+
+    1. Statistically, differing shapes do not invalidate these tests. The test
+       remains a valid test of stochastic dominance; what fails is the *median*
+       interpretation of it. Blocking the analysis would overstate the problem.
+    2. Structurally, Guardian's own normality and variance validators recommend
+       Mann-Whitney and Kruskal-Wallis as the fallback when a parametric
+       assumption fails. If this validator could emit a critical violation it
+       would set can_proceed = False on the very test Guardian just recommended,
+       leaving the user with no test that Guardian permits -- a dead end of the
+       kind this project has shipped before. A warning informs without trapping.
+    """
+
+    # Below this many observations in a group the empirical distribution
+    # function has too few steps for a shape comparison to carry information.
+    MIN_N_FOR_SHAPE = 5
+
+    # Grading threshold on D, calibrated rather than guessed.
+    #
+    # D has no conventional small/medium/large scale, so it was anchored to the
+    # thresholds this codebase already uses for the closely related unequal-
+    # spread problem: VarianceHomogeneityValidator grades a variance ratio > 2
+    # as a warning and > 4 as critical, after Box (1954). Measuring D between
+    # median-centred distributions at n = 10^6 per group gives the equivalent
+    # points on the D scale, alongside reference shape differences:
+    #
+    #     D = 0.002   two identical normals
+    #     D = 0.031   normal vs t(5)              (heavier tails)
+    #     D = 0.055   SD ratio 1.25
+    #     D = 0.057   normal vs uniform
+    #     D = 0.097   SD ratio 1.5
+    #     D = 0.162   SD ratio 2                  <-- Box's warning cut
+    #     D = 0.174   normal vs lognormal(0, 1)
+    #     D = 0.244   normal vs exponential
+    #     D = 0.291   SD ratio 4                  <-- Box's "not robust" cut
+    #     D = 0.500   unimodal vs strongly bimodal
+    #
+    # These are the figures printed by Part 6 of
+    # paper/replication/guardian_validator_evidence.py, which measures them on
+    # each run and asserts that the constant below still matches the ratio-2
+    # row. They are Monte-Carlo estimates and move in the third decimal from
+    # seed to seed, so the assertion allows 0.01 rather than demanding equality.
+    #
+    # The cut is therefore placed at Box's warning equivalent. Anything the
+    # variance validator would call a warning or worse, this one calls a
+    # warning too; the milder differences that Box's work says these tests
+    # tolerate are graded minor. Note that a violation is only raised at all
+    # when the KS p-value clears the Bonferroni-corrected alpha, so a trivial
+    # difference detected at very large n still grades as minor rather than
+    # being escalated by sample size alone.
+    D_SUBSTANTIAL = 0.161
+
+    def validate(self, data_arrays: List[np.ndarray], alpha: float = 0.05) -> Dict:
+        test_name = "Kolmogorov-Smirnov (median-centred)"
+
+        if data_arrays is None or len(data_arrays) < 2:
+            # One group: there is no second shape to compare against.
+            #
+            # `not_applicable` is load-bearing, not decoration. Without it the
+            # audit trail records this as result="pass" and the report comes
+            # back with confidence 1.0 -- which is the very defect this
+            # validator was written to remove, reintroduced in its own
+            # no-op branch. Reachable two ways: a single-group rank-test
+            # payload, and any paired design, where analysis_arrays has
+            # already collapsed to the one array of differences before the
+            # dispatch loop runs. IndependenceValidator sets the same flag.
+            return {
+                "violated": False,
+                "not_applicable": True,
+                "test_name": test_name,
+                "details": "Fewer than two groups; no shape comparison applies.",
+            }
+
+        # Drop non-finite values rather than letting them propagate. A NaN
+        # reaching stats.ks_2samp yields a NaN p-value, and `if p < alpha` is
+        # False for NaN -- which would read as "assumption satisfied" on data
+        # that was never actually compared.
+        cleaned = [np.asarray(a, dtype=float) for a in data_arrays]
+        cleaned = [a[np.isfinite(a)] for a in cleaned]
+        sizes = [int(a.size) for a in cleaned]
+
+        too_small = [i for i, n in enumerate(sizes) if n < self.MIN_N_FOR_SHAPE]
+        if too_small:
+            # Fail loud, but as a warning, not a block. Reporting this as a
+            # clean pass is what the absent validator used to do; reporting it
+            # as critical would block small-sample rank tests, which are the
+            # main legitimate use of these tests in the first place.
+            return {
+                "violated": True,
+                "test_name": test_name,
+                "severity": "warning",
+                "message": (
+                    f"Equal-shape assumption could NOT be checked: group sizes "
+                    f"{sizes} include a group below n={self.MIN_N_FOR_SHAPE}. "
+                    f"This is an unverified assumption, not a satisfied one."
+                ),
+                "recommendation": (
+                    # Deliberately free of '<', '>' and '&'. Violation messages
+                    # and recommendations are passed to reportlab's Paragraph
+                    # mini-XML parser by the PDF report generator, which treats
+                    # a bare '<' as an unclosed tag and made
+                    # /api/guardian/export/pdf/ return HTTP 500 for every rank
+                    # test with a group below MIN_N_FOR_SHAPE. Prose rather
+                    # than an escaped entity, so it stays safe in every
+                    # renderer this string reaches.
+                    "Interpret the result as a test of stochastic dominance -- "
+                    "whether values from one group tend to exceed values from "
+                    "the other -- rather than as a comparison of medians, since "
+                    "the shift-only assumption that makes it a median test is "
+                    "unverified here."
+                ),
+                "visual_data": {"group_sizes": sizes, "checked": False},
+            }
+
+        centred = [a - np.median(a) for a in cleaned]
+
+        pairs = [
+            (i, j) for i in range(len(centred)) for j in range(i + 1, len(centred))
+        ]
+        alpha_adj = alpha / len(pairs)  # Bonferroni across pairwise comparisons
+
+        results = []
+        for i, j in pairs:
+            stat, p_value = stats.ks_2samp(centred[i], centred[j])
+            results.append((float(stat), float(p_value), i, j))
+
+        if any(not np.isfinite(p) for _, p, _, _ in results):
+            return {
+                "violated": True,
+                "test_name": test_name,
+                "severity": "warning",
+                "message": (
+                    "Equal-shape assumption could NOT be checked: the "
+                    "Kolmogorov-Smirnov comparison returned a non-finite "
+                    "p-value. This is an unverified assumption, not a "
+                    "satisfied one."
+                ),
+                "recommendation": (
+                    "Inspect the group distributions directly before "
+                    "interpreting this test as a comparison of medians."
+                ),
+                "visual_data": {"group_sizes": sizes, "checked": False},
+            }
+
+        # Report the worst pair, ranked by D. D is the effect size of the shape
+        # discrepancy; p only says whether it is distinguishable from sampling
+        # noise at these sample sizes.
+        d_stat, p_value, gi, gj = max(results, key=lambda r: r[0])
+        violating = [r for r in results if r[1] < alpha_adj]
+
+        if violating:
+            d_stat, p_value, gi, gj = max(violating, key=lambda r: r[0])
+            severity = "warning" if d_stat > self.D_SUBSTANTIAL else "minor"
+
+            iqrs = [float(np.subtract(*np.percentile(a, [75, 25]))) for a in cleaned]
+            nonzero = [v for v in iqrs if v > 0]
+            spread_ratio = (max(nonzero) / min(nonzero)) if len(nonzero) == len(iqrs) and nonzero else None
+            spread_note = (
+                f" Interquartile spread differs by {spread_ratio:.2f}x."
+                if spread_ratio is not None and spread_ratio > 1.5
+                else ""
+            )
+
+            return {
+                "violated": True,
+                "test_name": test_name,
+                "severity": severity,
+                "p_value": p_value,
+                "statistic": d_stat,
+                "message": (
+                    f"Groups {gi + 1} and {gj + 1} have different distribution "
+                    f"shapes after median-centring (D={d_stat:.3f}, "
+                    f"p={p_value:.4g}).{spread_note} A rank test on these groups "
+                    f"tests whether one group's values tend to exceed the "
+                    f"other's, which is not the same as a difference in medians."
+                ),
+                "recommendation": (
+                    "Report the result as stochastic dominance rather than as a "
+                    "median difference, and give a Hodges-Lehmann shift estimate "
+                    "with its confidence interval, or compare the distributions "
+                    "directly (e.g. quantile comparison) instead of summarising "
+                    "them by one location number."
+                ),
+                "visual_data": self._generate_visual_data(cleaned, results),
+            }
+
+        return {
+            "violated": False,
+            "test_name": test_name,
+            "p_value": p_value,
+            "statistic": d_stat,
+        }
+
+    def _generate_visual_data(
+        self, cleaned: List[np.ndarray], results: List
+    ) -> Dict:
+        """Per-group shape descriptors plus every pairwise KS comparison."""
+        return {
+            "group_sizes": [int(a.size) for a in cleaned],
+            "medians": [float(np.median(a)) for a in cleaned],
+            "iqrs": [float(np.subtract(*np.percentile(a, [75, 25]))) for a in cleaned],
+            "skewness": [float(stats.skew(a)) for a in cleaned],
+            "pairwise_ks": [
+                {"groups": [i + 1, j + 1], "D": d, "p_value": p}
+                for d, p, i, j in results
+            ],
+            "checked": True,
         }
 
 
