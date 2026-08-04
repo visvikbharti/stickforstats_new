@@ -17,18 +17,21 @@ reproducible computational biology,"** for consideration as a **Software** artic
 **The problem and the software.** Reproducible computational biology depends on statistical decisions that
 routine workflows often skip — verifying that a differential-expression test's assumptions hold across all
 genes, that a strategy-comparison ANOVA is robust to non-normality, or that a meta-analysis is not distorted by
-publication bias. Surveys consistently find that fewer than 20% of published biomedical studies report checking
-these assumptions, and most statistical software leaves validation to the analyst as an optional step.
+publication bias. Surveys of the published literature find such checks are rarely reported at all: of 141 gene-expression
+application papers, 3.5% stated the variance-homogeneity assumption behind their t-tests and ANOVAs, and of
+95 health-research papers using linear regression, none reported checking all four of its assumptions.
+Existing statistical software leaves validation to the analyst as an optional step.
 StickForStats is an open-source, MIT-licensed web platform that reframes assumption validation as a *default
-precondition* for every analysis. Its Guardian system — a middleware pipeline of eight validators (normality,
-variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity) — checks
+precondition* for every analysis. Its Guardian system — a middleware pipeline of nine validators (normality,
+variance homogeneity, independence, outliers, sample size, modality, linearity, homoscedasticity, shape
+similarity) — checks
 assumptions before a test runs and, on critical violations, automatically reroutes to an appropriate
 nonparametric alternative with a documented decision trail.
 
 **Fit with BMC Bioinformatics and the Software article type.** The tool is a general statistical platform whose
 primary demonstration is at genome scale: applying Guardian to a 91-sample synovial-sarcoma RNA-seq study
-(NCBI GEO GSE271517) cascaded 90.6% of 27,221 genes to a rank-based test and changed the differential-expression
-verdict for 553 genes, materially altering the gene list a biologist would act on. Unlike general statistical
+(NCBI GEO GSE271517) rerouted 90.5% of 27,221 genes off the parametric default (89.6% to a
+rank-based test) and changed the differential-expression verdict for 553 genes, materially altering the gene list a biologist would act on. Unlike general statistical
 packages (R, SPSS, jamovi, JASP), where assumption checking is an optional, manual step, StickForStats makes
 validation an automatic, transparent default and records the reasoning behind every test substitution. The
 platform additionally integrates a manuscript statistical-consistency checker (which recomputes reported

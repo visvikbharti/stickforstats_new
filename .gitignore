@@ -162,3 +162,15 @@ nginx/ssl/
 receipt_private.pem
 *.key
 docker-compose.override.yml
+
+# --- BMC submission working files: deliberately NOT tracked -------------------
+# The letterhead cover letter carries the LIVE reviewer password. This repo is
+# public and is archived to Zenodo on every release, so committing it would
+# publish the credential to everyone. The tracked source of truth is
+# paper/bmc_bioinformatics/cover_letter.md, which keeps a [REVIEWER-PASSWORD]
+# placeholder; the real value is substituted only in the copy uploaded to the
+# portal, and lives on the host in /root/stickforstats-beta-access.txt.
+paper/bmc_bioinformatics/Cover-letter-BMC-Bioinformatics.doc
+# The release source archive: 62 MB, already published at
+# https://doi.org/10.5281/zenodo.21797621, and reproducible from the v1.2.0 tag.
+paper/bmc_bioinformatics/stickforstats_new-v*.zip
