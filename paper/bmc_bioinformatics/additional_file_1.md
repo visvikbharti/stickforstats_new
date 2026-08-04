@@ -10,7 +10,7 @@ Vishal Bharti, Debojyoti Chakraborty
 
 Every number in this document was produced by executing code in the repository, not by
 transcription from any prior document. All values below were emitted at commit
-**`8fbada2fed94b24a0888026e5a93af03e4e6b935`** of
+**`41d4a27e5fb0e9d221c493db5f5b2e0d4df17005`** (release **v1.2.0**, archived on Zenodo as 10.5281/zenodo.21797621) of
 <https://github.com/visvikbharti/stickforstats_new>, on macOS 26.5.2 (arm64), with
 **Python 3.11.11**, **NumPy 2.4.6**, **SciPy 1.17.1**, **pandas 2.3.3**,
 **scikit-learn 1.9.0**, **statsmodels 0.14.6**, and **R 4.4.1 (2024-06-14)** for the
