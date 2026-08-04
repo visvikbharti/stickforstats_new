@@ -25,32 +25,28 @@ file to upload by mistake. If you want a reading copy, build one:
 
 ---
 
-## Step 1 — Cut and archive the version the paper describes  ✅ mostly done
+## Step 1 — Cut and archive the version the paper describes  ✅ DONE
 
-`v1.2.0` is tagged, merged to `main`, and **pushed**; CI has built and pushed the images. What remains
-is creating the GitHub release, which is what Zenodo actually watches.
+Merged to `main`, tagged `v1.2.0`, released, **archived by Zenodo, and deployed to production**.
 
-**The manuscript no longer waits on a DOI.** It cites the Zenodo **concept DOI**
-(10.5281/zenodo.21258381), which already exists and always resolves to the latest archived version,
-and names the snapshot as **v1.2.0, git tag `v1.2.0`**. That removes a circularity: the version DOI
-is minted only when Zenodo archives the tag, but the manuscript lives *inside* the tag, so citing it
-would have frozen a `[PENDING-…]` placeholder into the archive that Additional file 2 ships. Zenodo's
-Versions panel lists v1.2.0 and its own version DOI for anyone who needs to cite the exact snapshot.
+| | |
+|---|---|
+| `main` / tag `v1.2.0` | `41d4a27` |
+| GitHub release | <https://github.com/visvikbharti/stickforstats_new/releases/tag/v1.2.0> |
+| Zenodo concept DOI | [10.5281/zenodo.21258381](https://doi.org/10.5281/zenodo.21258381) — verified 2026-08-05 to resolve to **v1.2.0** |
+| Zenodo version DOI | 10.5281/zenodo.21797621 |
+| Additional file 2 | the 62 MB source zip on that Zenodo record |
+| Production | running this build; four behavioural checks pass |
 
-```bash
-gh release create v1.2.0 --title "StickForStats v1.2.0" --notes-file <(git tag -l --format='%(contents)' v1.2.0)
-```
-or use the GitHub UI: Releases → Draft a new release → choose the **existing** `v1.2.0` tag.
+**Nothing needs filling in.** The manuscript cites the concept DOI and names the snapshot as v1.2.0 /
+git tag `v1.2.0`, which sidestepped the circularity of citing a DOI that only exists once the tag
+containing the manuscript has been archived. `CITATION.cff` now also carries the version DOI, added
+after the release as planned.
 
-The Zenodo webhook fires on **release creation**, not on the tag push. It is known to work: the
-v1.1.0 release of 2026-07-08 produced the Zenodo v1.1.0 archive dated the same day.
-
-After the release exists, confirm the archive appeared and that the concept DOI now resolves to
-v1.2.0:
-
-```bash
-curl -sL https://zenodo.org/doi/10.5281/zenodo.21258381 | grep -o 'v1\.2\.0' | head -1
-```
+*Optional:* now that the version DOI exists, it could be named in the manuscript too
+(`…concept DOI 10.5281/zenodo.21258381; this snapshot, v1.2.0, is 10.5281/zenodo.21797621`). Not
+required — the current wording is complete and unambiguous — but it is now free of the placeholder
+problem that made us avoid it.
 
 ---
 

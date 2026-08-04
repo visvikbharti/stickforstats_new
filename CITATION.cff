@@ -21,12 +21,14 @@ version: 1.2.0
 date-released: "2026-08-05"
 # Concept DOI: always resolves to the latest archived version. Stable across releases.
 doi: 10.5281/zenodo.21258381
-# The VERSION DOI for v1.2.0 does not exist until the GitHub release is created and
-# Zenodo archives this tag; Zenodo mints it at that moment. The v1.1.0 version DOI
-# (10.5281/zenodo.21258382) was here and would have been a false identifier for this
-# release, so it is removed rather than guessed at. Add the real one back as an
-# `identifiers` entry once Zenodo returns it — see
-# paper/bmc_bioinformatics/SUBMISSION_STEPS.md, which sequences this.
+# Version DOI for v1.2.0, minted by Zenodo when it archived this tag on 2026-08-04.
+# It was deliberately absent until then rather than guessed at: the v1.1.0 DOI
+# (10.5281/zenodo.21258382) had been sitting here and would have been a false
+# identifier for this release.
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21797621
+    description: "Archived snapshot of v1.2.0 (this release)"
 license: MIT
 repository-code: "https://github.com/visvikbharti/stickforstats_new"
 url: "https://github.com/visvikbharti/stickforstats_new"
