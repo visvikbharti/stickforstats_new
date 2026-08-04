@@ -25,51 +25,32 @@ file to upload by mistake. If you want a reading copy, build one:
 
 ---
 
-## Step 1 — Cut and archive the version the paper describes
+## Step 1 — Cut and archive the version the paper describes  ✅ mostly done
 
-The tag and the version bumps are **done**. What remains is yours, because only you can push and
-because Zenodo mints the DOI.
+`v1.2.0` is tagged, merged to `main`, and **pushed**; CI has built and pushed the images. What remains
+is creating the GitHub release, which is what Zenodo actually watches.
 
-`v1.2.0` is tagged locally on branch `release/v1.2.0`. `CITATION.cff` says 1.2.0, `.zenodo.json`
-describes nine validators, and the manuscript's two version sentences say v1.2.0. The one value that
-could not be filled in advance is the Zenodo **version DOI**, which does not exist until you create
-the release — so both places that need it hold the marker `[PENDING-ZENODO-V120-DOI]`, and
-`paper/build_bmc_docx.sh` **refuses to build** while that marker is present. You cannot forget it.
+**The manuscript no longer waits on a DOI.** It cites the Zenodo **concept DOI**
+(10.5281/zenodo.21258381), which already exists and always resolves to the latest archived version,
+and names the snapshot as **v1.2.0, git tag `v1.2.0`**. That removes a circularity: the version DOI
+is minted only when Zenodo archives the tag, but the manuscript lives *inside* the tag, so citing it
+would have frozen a `[PENDING-…]` placeholder into the archive that Additional file 2 ships. Zenodo's
+Versions panel lists v1.2.0 and its own version DOI for anyone who needs to cite the exact snapshot.
 
 ```bash
-cd /Users/vishalbharti/StickForStats_v1.0_Production
-git log --oneline -3 release/v1.2.0          # confirm what you are pushing
-git push -u origin release/v1.2.0            # open a PR, or merge to main first if you prefer
-git push origin v1.2.0                       # the tag Zenodo archives
+gh release create v1.2.0 --title "StickForStats v1.2.0" --notes-file <(git tag -l --format='%(contents)' v1.2.0)
 ```
+or use the GitHub UI: Releases → Draft a new release → choose the **existing** `v1.2.0` tag.
 
-Then create the **GitHub release** from the `v1.2.0` tag (Releases → Draft a new release → choose
-the existing tag). The Zenodo webhook fires on release creation, not on the tag push.
+The Zenodo webhook fires on **release creation**, not on the tag push. It is known to work: the
+v1.1.0 release of 2026-07-08 produced the Zenodo v1.1.0 archive dated the same day.
 
-Then, once Zenodo has minted it:
+After the release exists, confirm the archive appeared and that the concept DOI now resolves to
+v1.2.0:
 
-1. Replace **both** occurrences of `[PENDING-ZENODO-V120-DOI]` in `manuscript.md` with the version
-   DOI Zenodo returns (they are in `Availability of data and materials` and
-   `Availability and requirements`), and put the same value in the cover letter.
-   ```bash
-   grep -n 'PENDING-ZENODO-V120-DOI' paper/bmc_bioinformatics/manuscript.md
-   ```
-2. Add it back to `CITATION.cff` as an `identifiers` entry — it was deliberately removed rather than
-   guessed at, and the file has a comment saying so:
-   ```yaml
-   identifiers:
-     - type: doi
-       value: 10.5281/zenodo.XXXXXXXX
-       description: "Archived snapshot of v1.2.0 (this release)"
-   ```
-   The concept DOI in `doi:` (10.5281/zenodo.21258381) is unchanged and already correct.
-3. **Re-verify the paper's numbers at that tag** — this is the check that was never done for v1.1.0 and is
-   the reason it shipped with broken statistics. `paper/replication/` has the scripts, and
-   `paper/bmc_bioinformatics/README.md` lists the exact commands.
-4. Rebuild the .docx. It will now succeed, because the placeholder is gone:
-   ```bash
-   bash paper/build_bmc_docx.sh
-   ```
+```bash
+curl -sL https://zenodo.org/doi/10.5281/zenodo.21258381 | grep -o 'v1\.2\.0' | head -1
+```
 
 ---
 

@@ -49,7 +49,7 @@ technical soundness, transparency, and full reproducibility, consistent with the
 **Availability.** StickForStats is MIT-licensed and openly available at
 https://github.com/visvikbharti/stickforstats_new; a versioned, citable snapshot is archived on Zenodo
 (concept DOI: https://doi.org/10.5281/zenodo.21258381, always resolving to the latest version; this
-submission corresponds to v1.2.0, DOI [PENDING-ZENODO-V120-DOI]). A Python client SDK and
+submission corresponds to v1.2.0, git tag `v1.2.0`). A Python client SDK and
 command-line interface are on PyPI (`pip install stickforstats`). All datasets analysed are public
 and previously published.
 
