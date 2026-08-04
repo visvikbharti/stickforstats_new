@@ -49,9 +49,20 @@ technical soundness, transparency, and full reproducibility, consistent with the
 **Availability.** StickForStats is MIT-licensed and openly available at
 https://github.com/visvikbharti/stickforstats_new; a versioned, citable snapshot is archived on Zenodo
 (concept DOI: https://doi.org/10.5281/zenodo.21258381, always resolving to the latest version; this
-submission corresponds to v1.1.0, DOI 10.5281/zenodo.21258382). A Python client SDK and command-line interface are on PyPI
-(`pip install stickforstats`), and a hosted instance is available for evaluation at https://stickforstats.com.
-All datasets analysed are public and previously published.
+submission corresponds to v1.2.0, DOI [PENDING-ZENODO-V120-DOI]). A Python client SDK and
+command-line interface are on PyPI (`pip install stickforstats`). All datasets analysed are public
+and previously published.
+
+**Access for reviewers.** The hosted instance at https://stickforstats.com is a closed beta and is
+password-protected. We have created an account solely for peer review of this manuscript:
+
+> username: `bmc-reviewer`
+> password: `[REVIEWER-PASSWORD]`
+
+This account is separate from our own and will be revoked once review concludes. Reviewers who
+prefer not to use a hosted service can reproduce everything locally instead: the repository ships a
+`Dockerfile` and `docker-compose.yml` that provision the full stack, and `paper/replication/`
+contains a script for every number reported in the manuscript.
 
 **Declarations.** This manuscript is original, has not been published previously, and is not under consideration
 by any other journal. A preprint of an earlier version is posted on bioRxiv

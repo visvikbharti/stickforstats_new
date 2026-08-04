@@ -31,6 +31,18 @@ command -v pandoc >/dev/null || { echo "ERROR: pandoc not found on PATH" >&2; ex
 # then. Guessing a plausible successor to the previous version DOI would be
 # fabricating an identifier, so the marker stays and this refuses to build past
 # it. Pass ALLOW_PLACEHOLDERS=1 to produce a reading copy before the DOI exists.
+# The cover letter is pasted into the portal, not built here, so it gets its own
+# check: it carries [REVIEWER-PASSWORD] deliberately, because the real password
+# must never be committed -- this repo becomes public on GitHub and is archived
+# to Zenodo, so a credential in it would be published to everyone.
+COVER="$PKG/cover_letter.md"
+if [ -f "$COVER" ] && grep -q 'REVIEWER-PASSWORD' "$COVER"; then
+  echo "NOTE: $COVER still has the [REVIEWER-PASSWORD] placeholder." >&2
+  echo "      That is correct for the repo copy. Substitute the real password ONLY" >&2
+  echo "      when pasting the letter into the submission portal; it lives in" >&2
+  echo "      /root/stickforstats-beta-access.txt on the host." >&2
+fi
+
 if grep -q 'PENDING-[A-Z0-9-]*' "$SRC"; then
   if [ "${ALLOW_PLACEHOLDERS:-0}" = "1" ]; then
     echo "WARNING: manuscript still contains placeholders; building anyway because" >&2
