@@ -163,7 +163,6 @@ def fig3_case_studies():
         ax.plot([ci_lo, ci_hi], [y, y], color='#333', linewidth=1)
         ax.scatter(es, y, s=max(weight * 800, 8), color='#2196F3', zorder=5,
                    edgecolors='#1565C0', linewidths=0.5)
-        ax.text(-3.4, y, name, ha='left', va='center', fontsize=7)
 
     # Pooled diamond
     y_pooled = 0
@@ -172,23 +171,92 @@ def fig3_case_studies():
     diamond_x = [ci_lo_re, pooled_re, ci_hi_re, pooled_re]
     diamond_y = [y_pooled, y_pooled + 0.3, y_pooled, y_pooled - 0.3]
     ax.fill(diamond_x, diamond_y, color='#d32f2f', alpha=0.7)
-    ax.text(-3.4, y_pooled, 'Pooled (RE)', ha='left', va='center', fontsize=8, fontweight='bold')
+    # Study labels as Y-TICK labels, not in-axes text. Drawing them at x = -3.4
+    # inside the axes put them in the data region, so every confidence interval
+    # reaching past -3.4 was struck through its own study's name -- five of the
+    # sixteen (Shechter 1989, Ceremuzynski 1989, Bertschat 1989, Pereira 1990,
+    # Shechter 1991). Tick labels live in the margin, which matplotlib reserves,
+    # so a wide interval can never collide with them.
+    ax.set_yticks([y_pooled] + y_positions)
+    ax.set_yticklabels(['Pooled (RE)'] + study_names, fontsize=7)
+    for lbl in ax.get_yticklabels()[:1]:
+        lbl.set_fontweight('bold')
+        lbl.set_fontsize(8)
+    ax.tick_params(axis='y', length=0)
 
     ax.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
     ax.set_xlabel('log Odds Ratio (mortality)', fontsize=11)
-    ax.set_xlim(-3.5, 1.5)
-    ax.set_ylim(-1, len(effect_sizes) + 1)
-    ax.set_yticks([])
+    # x range from the intervals themselves, with a small pad. The old hardcoded
+    # -3.5 existed only to make room for the in-axes labels; with the labels in
+    # the margin the data can use the full width.
+    _lo = float(np.min(effect_sizes - 1.96 * standard_errors))
+    _hi = float(np.max(effect_sizes + 1.96 * standard_errors))
+    _pad = 0.08 * (_hi - _lo)
+    ax.set_xlim(_lo - _pad, _hi + _pad)
+    # A band BELOW the pooled diamond for the Guardian annotation. There is no
+    # empty space inside the forest -- the assertion at the end of this function
+    # rejected every in-forest placement tried -- and putting it in headroom
+    # above the studies forced the leader to sweep diagonally across a dozen
+    # confidence intervals. Below the diamond is genuinely empty.
+    ax.set_ylim(-3.4, len(effect_sizes) + 0.9)
     ax.set_title('B. IV Magnesium for AMI: Meta-Analysis Forest Plot', fontsize=11, fontweight='bold')
 
     # Guardian annotation — Egger's test result from real data
+    # Annotation in the headroom band, anchored on the pooled estimate rather
+    # than on an arbitrary mid-plot row. It previously sat at (0.4, 12), inside
+    # the forest, overlapping the Feldstedt 1988 row.
+    # Annotation beside the pooled diamond, which is the estimate the bias
+    # actually threatens, in the empty lower-left. Two earlier placements were
+    # worse: at (0.4, 12) it sat on top of the Feldstedt 1988 row, and in the
+    # top-left headroom the leader had to sweep diagonally across the whole
+    # forest, crossing a dozen confidence intervals on its way down.
     ax.annotate('Guardian: Publication bias\nEgger t = -5.78, p < 0.001',
-                xy=(pooled_re, 8), xytext=(0.4, 12),
-                fontsize=8, ha='center',
+                xy=(pooled_re, y_pooled - 0.35),
+                xytext=(pooled_re, y_pooled - 2.5),
+                fontsize=8, ha='center', va='center',
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='#fff3cd', edgecolor='#ffc107'),
-                arrowprops=dict(arrowstyle='->', color='#ffc107'))
+                arrowprops=dict(arrowstyle='->', color='#ffc107', linewidth=1.2))
 
     plt.tight_layout()
+
+    # Geometry assertions for panel B, in the same spirit as the fig4 checks.
+    # This panel shipped for months with the study labels drawn inside the axes
+    # at x = -3.4, so five confidence intervals ran straight through their own
+    # study's name, and with the Guardian box parked mid-forest on top of the
+    # Feldstedt 1988 row. Neither is visible in a thumbnail and neither is
+    # caught by any test, so assert it here where it can fail loudly.
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+
+    # (a) no tick label may overlap the plotting area
+    ax_bb = ax.get_window_extent(renderer=rend)
+    for lbl in ax.get_yticklabels():
+        tb = lbl.get_window_extent(renderer=rend)
+        assert tb.x1 <= ax_bb.x0 + 1.0, (
+            f'study label {lbl.get_text()!r} extends into the axes '
+            f'(label right {tb.x1:.0f}px vs axes left {ax_bb.x0:.0f}px) -- '
+            f'confidence intervals will strike through it'
+        )
+
+    # (b) the Guardian annotation box may not cover any confidence-interval line
+    ann = [c for c in ax.get_children() if isinstance(c, matplotlib.text.Annotation)]
+    assert len(ann) == 1, f'expected 1 annotation on panel B, found {len(ann)}'
+    bb = ann[0].get_bbox_patch().get_window_extent(renderer=rend)
+    worst = None
+    for i, (es, se, y) in enumerate(zip(effect_sizes, standard_errors, y_positions)):
+        x0, x1 = es - 1.96 * se, es + 1.96 * se
+        (px0, py) = ax.transData.transform([[x0, y]])[0]
+        (px1, _) = ax.transData.transform([[x1, y]])[0]
+        if bb.y0 <= py <= bb.y1 and px0 <= bb.x1 and px1 >= bb.x0:
+            raise AssertionError(
+                f'Guardian box overlaps the {study_names[i]} interval '
+                f'(row y={py:.0f}px, box y {bb.y0:.0f}-{bb.y1:.0f}px)'
+            )
+        gap = min(abs(py - bb.y0), abs(py - bb.y1)) if not (bb.y0 <= py <= bb.y1) else 0
+        worst = gap if worst is None else min(worst, gap)
+    print(f'  fig3 panel B: {len(ax.get_yticklabels())} labels clear of the axes; '
+          f'Guardian box clears every CI row (nearest {worst:.0f} px)')
+
     plt.savefig(os.path.join(BASE, 'fig3_case_studies.png'))
     plt.savefig(os.path.join(BASE, 'fig3_case_studies.pdf'))
     print("Saved fig3_case_studies.png/pdf")
