@@ -15,6 +15,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from datetime import datetime
+import html
 import io
 from typing import Dict, Any, List
 
@@ -552,13 +553,31 @@ class GuardianReportGenerator:
             test_stat_str = f"{violation.statistic:.4f}" if violation.statistic is not None else "N/A"
             p_value_str = f"{violation.p_value:.4f}" if violation.p_value is not None else "N/A"
 
+            # Escape every validator-authored string. reportlab parses a
+            # Paragraph as mini-XML, so a bare '<' or '&' in a message,
+            # test_name or recommendation is a syntax error that aborts the
+            # whole render: "paraparser: syntax error: parse ended with 1
+            # unclosed tags", surfaced as HTTP 500 from
+            # /api/guardian/export/pdf/. That is not hypothetical -- a
+            # recommendation reading "P(X<Y) != 0.5" did exactly this for every
+            # rank test with a small group.
+            #
+            # Escaping here rather than in the validators is deliberate: the
+            # validators' job is to write the clearest sentence for a human,
+            # and there are dozens of message strings across nine validators.
+            # Requiring every future author to remember that one consumer parses
+            # their prose as XML is a trap that will be sprung again. This is the
+            # single place all of them converge.
+            def esc(value):
+                return html.escape(str(value), quote=False)
+
             details = f"""
-            <b>Test Used:</b> {violation.test_name}<br/>
-            <b>Severity:</b> {violation.severity.upper()}<br/>
+            <b>Test Used:</b> {esc(violation.test_name)}<br/>
+            <b>Severity:</b> {esc(violation.severity.upper())}<br/>
             <b>Test Statistic:</b> {test_stat_str}<br/>
             <b>P-value:</b> {p_value_str}<br/><br/>
-            <b>Issue:</b> {violation.message}<br/><br/>
-            <b>Recommendation:</b> {violation.recommendation}
+            <b>Issue:</b> {esc(violation.message)}<br/><br/>
+            <b>Recommendation:</b> {esc(violation.recommendation)}
             """
 
             elements.append(Paragraph(details, self.styles["GuardianBodyText"]))

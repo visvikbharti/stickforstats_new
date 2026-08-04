@@ -607,27 +607,27 @@ backend, `react-scripts test --testPathPattern=…` for the frontend), not `grep
 |---|---|---|---|
 | Guardian integration (backend) | `backend/core/guardian/tests/test_guardian_integration.py` | 22 | OK |
 | Guardian middleware (backend) | `backend/core/guardian/tests/test_guardian_middleware.py` | 16 | OK |
-| Guardian validator unit tests (backend) | `backend/tests/test_guardian_validators.py` | **52** | OK |
+| Guardian validator unit tests (backend) | `backend/tests/test_guardian_validators.py` | **56** | OK |
 | Guardian math-correctness (backend) | `backend/core/tests/test_guardian_math_fixes.py` | 12 | OK |
-| Guardian fail-loudly regression tests (backend) | `backend/tests/test_guardian_fails_loudly.py` | 27 | OK |
+| Guardian fail-loudly regression tests (backend) | `backend/tests/test_guardian_fails_loudly.py` | 35 | OK |
 | Shape-similarity regression tests (backend) | `backend/tests/test_guardian_similar_shapes.py` | 19 | OK |
-| **Backend Guardian subtotal** | | **148** | |
+| **Backend Guardian subtotal** | | **160** | |
 | Guardian React components (frontend) | `frontend/src/components/Guardian/__tests__/GuardianComponents.test.jsx` | 25 | 25 passed |
 | `useGuardianReport` hook (frontend) | `frontend/src/hooks/__tests__/useGuardianReport.test.js` | 30 | 30 passed |
 | **Frontend Guardian subtotal** | | **55** | |
 
-Whole-suite totals executed at the same commit: **backend 1,405 tests, `OK`** and
-**frontend 1,031 tests across 58 suites, all passing** — 2,436 tests in total.
+Whole-suite totals executed at the same commit: **backend 1,427 tests, `OK`** and
+**frontend 1,031 tests across 58 suites, all passing** — 2,458 tests in total.
 
 **This breakdown is not a complete accounting of the test suite.** The eight suites above are
-the Guardian-specific ones; they are **148 of 1,405 backend tests (10.53%)** and
+the Guardian-specific ones; they are **160 of 1,427 backend tests (11.21%)** and
 **55 of 1,031 frontend tests (5.33%)**. The remaining ~90% of the backend and ~95% of the
 frontend suite cover the other platform modules (statistical endpoints, manuscript
 verification, genomics, power analysis, authentication, the React application) and are not
 enumerated here.
 
 > Reproducibility caveat, stated because it is the kind of discrepancy that otherwise looks
-> like an error: the backend total is **1,405 on a clean checkout of the commit named
+> like an error: the backend total is **1,427 on a clean checkout of the commit named
 > above**. Run against a working tree that also contains uncommitted test files, the runner
 > reports a larger number. The evidence script prints `git status --porcelain -- backend`
 > immediately before the totals so this is always visible.

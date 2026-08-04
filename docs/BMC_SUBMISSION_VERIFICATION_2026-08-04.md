@@ -1805,3 +1805,31 @@ side by side — they are visually identical. A reviewer will notice struck-thro
 ### Suite
 
 `manage.py test`: **1,424 OK** (1,380 with one error at the start of this session).
+
+### Round 3 addendum — two findings from the verification pass itself
+
+The skeptic pass on the chi-square finding reported it as **worse** than first stated: reachable
+through the production endpoint with an ordinary payload, `POST /api/guardian/check/` with
+`{"data": [[1,2],[3,4]], "test_type": "chi_square"}`, returning HTTP 200 and
+*"All assumptions satisfied. Safe to proceed with analysis."* on a table whose every expected count
+is 1.2. Re-executed after the fix: all four routes (`chi_square`, `chi_square_independence`, `chi2`,
+`fisher_exact`) now return confidence 0.444 with an explicit "NOT evaluated" warning and no claim
+that the rule was checked. It also noted that `_serialize_report` never emits `audit_trail`, so the
+`"skipped"` marker never reached the client — which is why the report looked clean rather than
+merely incomplete.
+
+On the PDF export it made a better point than the original finding: escaping the one offending
+string leaves the trap armed, because `report_generator.py` interpolates `test_name`, `message` and
+`recommendation` into reportlab mini-XML with **no escaping anywhere in the file**, and the endpoint
+has **zero test coverage** in the whole repository — which is why the string shipped. The escape is
+now applied at that single convergence point rather than in the validators, whose job is to write
+the clearest sentence for a human.
+
+Writing the test for it produced a **surviving mutation on the first attempt**: removing the escaping
+left the suite green. The cause was the test data, not the fix. Fed to a bare `Paragraph`, reportlab
+tolerates a closed unknown tag (`A <test> & another` renders) and a spaced `value < 5`; what raises
+is `<` immediately followed by text and never closed — the real `P(X<Y) != 0.5`, and a real tag name
+left open, `the <b thing`. The test now uses those shapes across all three fields and catches the
+mutation. A plausible-looking string proved nothing.
+
+Suite after these: **1,427 OK**; 160 Guardian-specific backend tests.

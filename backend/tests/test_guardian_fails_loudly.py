@@ -471,3 +471,94 @@ class ChiSquareWithoutATableMustNotCertifyItTests(SimpleTestCase):
         report = self.guardian.check({"observed": [[26, 24], [23, 27]]}, "chi_square")
         self.assertEqual(len(report.violations), 0)
         self.assertEqual(report.confidence_score, 1.0)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class PdfExportMustSurviveValidatorProseTests(SimpleTestCase):
+    """Validator prose reaches reportlab's mini-XML parser unescaped.
+
+    ``report_generator.py`` interpolates ``violation.test_name``,
+    ``violation.message`` and ``violation.recommendation`` straight into a
+    reportlab ``Paragraph``, which parses its input as XML. A bare ``<`` is
+    therefore a syntax error that aborts the whole render.
+
+    Executed before the fix: a recommendation reading "P(X<Y) != 0.5" made
+    ``POST /api/guardian/export/pdf/`` return **HTTP 500**
+    ("paraparser: syntax error: parse ended with 1 unclosed tags") for every
+    Mann-Whitney or Kruskal-Wallis with a group below n = 5. The same data with
+    test_type="t_test" returned 200, and the JSON export returned 200, which is
+    what localised it to the PDF path.
+
+    This endpoint had **no test anywhere in the repository**, so the suite went
+    green with it broken. That absence is the reason the string shipped.
+    """
+
+    URL = "/api/guardian/export/pdf/"
+
+    def _post(self, payload):
+        return Client().post(self.URL, payload, content_type="application/json")
+
+    def test_rank_test_below_the_shape_minimum_still_renders(self):
+        r = self._post({"data": {"a": [1, 2, 3], "b": [9, 8, 7]},
+                        "test_type": "mann_whitney"})
+        self.assertEqual(r.status_code, 200, r.content[:300])
+        self.assertGreater(len(r.content), 1000, "an empty PDF is not a PDF")
+
+    def test_every_size_around_the_shape_minimum_renders(self):
+        for n in (2, 3, 4, 5, 6):
+            with self.subTest(n=n):
+                a = list(range(1, n + 1))
+                b = [x + 10 for x in a]
+                r = self._post({"data": {"a": a, "b": b}, "test_type": "mann_whitney"})
+                self.assertEqual(r.status_code, 200, f"n={n}: {r.content[:200]}")
+
+    def test_markup_characters_in_validator_prose_do_not_break_the_render(self):
+        """Directly pin the escaping, not just the one string that exposed it.
+
+        Any future validator message containing < > or & must not be able to
+        500 this endpoint. Asserted against the generator rather than through a
+        payload, because reaching it through data would require a validator
+        that happens to emit those characters -- which is exactly the fragile
+        coupling being removed.
+        """
+        from core.guardian.guardian_core import AssumptionViolation, GuardianCore
+        from core.guardian.report_generator import GuardianReportGenerator
+
+        rng = np.random.default_rng(808)
+        report = GuardianCore().check(
+            {"a": rng.normal(0, 1, 30).tolist(), "b": rng.normal(0, 5, 30).tolist()},
+            "t_test",
+        )
+        # These are the shapes that actually break reportlab, established by
+        # feeding candidates to a bare Paragraph. It tolerates a CLOSED unknown
+        # tag ("A <test> & another" renders fine) and a lone "< " with a space,
+        # so a synthetic-looking string proves nothing -- an earlier version of
+        # this test used exactly such a string and the mutation survived it.
+        # What raises is "<" immediately followed by text and never closed:
+        # "P(X<Y) != 0.5" -> "parse ended with 1 unclosed tags", and a real tag
+        # name left open, "the <b thing" -> 2 unclosed.
+        for field, text in (
+            ("message", "P(X<Y) != 0.5 for the two groups"),
+            ("recommendation", "Report the shift, not the <b median"),
+            ("test_name", "Kolmogorov-Smirnov (P(X<Y) form)"),
+        ):
+            with self.subTest(field=field):
+                kwargs = dict(
+                    assumption="normality",
+                    test_name="Shapiro-Wilk",
+                    severity="warning",
+                    p_value=0.01,
+                    statistic=1.0,
+                    message="m",
+                    recommendation="r",
+                )
+                kwargs[field] = text
+                probe = GuardianCore().check(
+                    {"a": rng.normal(0, 1, 30).tolist(),
+                     "b": rng.normal(0, 5, 30).tolist()},
+                    "t_test",
+                )
+                probe.violations.append(AssumptionViolation(**kwargs))
+                pdf = GuardianReportGenerator().generate_pdf(probe)
+                self.assertTrue(pdf.startswith(b"%PDF"), "output is not a PDF")
+                self.assertGreater(len(pdf), 1000)
