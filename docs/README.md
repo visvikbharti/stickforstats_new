@@ -10,26 +10,28 @@ alone as a record of what was believed at the time.
 
 ---
 
-## Read these first — current as of **2026-07-14**
+## Read these first — current as of **2026-08-05**
 
-> 🚨 **Before touching the BMC submission, read
-> [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md).** Every reported
-> number in the manuscript was re-executed from raw data and code on 2026-08-04. Case Study 3's statistics and
-> the calibration benchmark came back clean, and Case Study 1's statistics all reproduce. What did **not**:
-> Case Study 1's Guardian paragraph (a phantom sample-size warning — ANOVA never invokes that validator),
-> Case Study 4's fold changes (a ratio of means taken on data already on a log scale), the verifier corpus
-> section, Fig 7 (Guardian's variance verdict printed inverted, p = 0.7907 labelled "Violated"), Fig 3
-> (a screenshot of a broken build — still open), reference 5 (it does not exist) and the abstract's motivating
-> premise (it misread its only source).
-> **Do not submit against Zenodo v1.1.0** — ten defect classes were executed *out of the published artifact*.
+> ✅ **SUBMITTED to BMC Bioinformatics on 2026-08-05** — submission
+> `64da7fba-9eef-454c-bf56-30e2d1afd762`, at technical check. Read
+> [`STATUS_2026-08-05.md`](STATUS_2026-08-05.md) first; it supersedes the 2026-07-14 set and every
+> earlier "still blocking" list.
+>
+> Submitted against **v1.2.0** (tag `41d4a27`, Zenodo `10.5281/zenodo.21797621`). Production runs that
+> build. **Two things to remember:** revoke the `bmc-reviewer` account when review closes, and do not
+> roll production below v1.2.0 while reviewers may be looking.
+>
+> The earlier warning here said *"Do not submit against Zenodo v1.1.0"* — that is now resolved; v1.2.0
+> is cut, archived and deployed.
 
 | order | document | what you get |
 |---|---|---|
-| 0 | [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md) | **the submission blocker list**, with every manuscript number re-executed and each finding adversarially re-checked |
-| 1 | [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) | where the code is, what is live, what the gates actually prove, how to deploy, what is *unverified* |
-| 2 | [`TODO_2026-07-14.md`](TODO_2026-07-14.md) | the work queue, ordered by risk to a user's scientific conclusion |
-| 3 | [`DEFECTS_AND_PATTERNS_2026-07-14.md`](DEFECTS_AND_PATTERNS_2026-07-14.md) | **the most useful document here.** The four bug classes that keep recurring, why they recur, and what actually stops them |
-| 4 | [`ROADMAP_2026-07-14.md`](ROADMAP_2026-07-14.md) | where the product goes, and in what order |
+| 0 | [`STATUS_2026-08-05.md`](STATUS_2026-08-05.md) | **start here.** Submission state, what was fixed to get there, the two post-submission obligations, and what is genuinely still open |
+| 1 | [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md) | the full audit ledger — every manuscript number re-executed, four rounds, each finding adversarially re-checked. **Also records the mistakes I made and corrected** |
+| 2 | [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) | superseded, but still the best description of the codebase itself |
+| 3 | [`TODO_2026-07-14.md`](TODO_2026-07-14.md) | the work queue, ordered by risk to a user's scientific conclusion |
+| 4 | [`DEFECTS_AND_PATTERNS_2026-07-14.md`](DEFECTS_AND_PATTERNS_2026-07-14.md) | **the most useful document here.** The four bug classes that keep recurring, why they recur, and what actually stops them |
+| 5 | [`ROADMAP_2026-07-14.md`](ROADMAP_2026-07-14.md) | where the product goes, and in what order |
 
 Living documents (not dated — keep them current):
 
@@ -47,6 +49,13 @@ They are the real deliverable of the last month, and they belong on the front pa
    three rounds. *Running* them found a 34-point contradiction immediately.
 4. **Never type a number you have not run — especially in prose.** All six fabrications in the recent
    arc were in comments, docstrings and commit messages, where no test can reach. Every one passed CI.
+5. **A label can lie — assert BEHAVIOUR.** The live site listed `similar_shapes` in
+   `assumptions_checked` precisely *because* nothing evaluated it. Verify what the software *does*.
+6. **A plausible-looking test proves nothing.** An escaping test used a string reportlab happens to
+   tolerate, so the mutation survived. Mutation-check with data that reproduces the *actual* failure.
+7. **Artifacts lie too — extract and grep them.** A 45 KB PDF with a valid header was a rendered
+   "file not found" page; the cover letter in the portal still said "eight validators" an hour before
+   submission. Neither was visible by reading.
 
 ## Naming convention
 
