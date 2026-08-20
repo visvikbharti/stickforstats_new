@@ -56,19 +56,39 @@ def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
 
 def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_available: bool,
                    executed_ok: bool, assumptions_ok: Optional[bool],
-                   statistic_match: Optional[bool]) -> Verdict:
+                   statistic_match: Optional[bool],
+                   assumptions_reported: Optional[bool] = None) -> Verdict:
     """The §2 verdict-assignment precedence.
 
     Order matters:
       1. extraction not reliable            -> UNVERIFIABLE_EXTRACTION
-      2. no resolvable test / no data       -> INSUFFICIENT_DATA   (dominates; most papers)
-      3. test couldn't execute on the data  -> INSUFFICIENT_DATA
-      4. assumptions of the used test fail  -> ASSUMPTION_VIOLATED (independent of p/stat match)
-      5. numbers reproduce                  -> VERIFIED  else DISCREPANT
+      2. no resolvable test                 -> INSUFFICIENT_DATA
+      3. no data, assumptions undisclosed   -> ASSUMPTION_UNREPORTED  (T17; needs NO raw data)
+      4. no data otherwise                  -> INSUFFICIENT_DATA      (still dominates)
+      5. test couldn't execute on the data  -> INSUFFICIENT_DATA
+      6. assumptions of the used test fail  -> ASSUMPTION_VIOLATED (independent of p/stat match)
+      7. numbers reproduce                  -> VERIFIED  else DISCREPANT
+
+    ``assumptions_reported`` is a THREE-state signal from
+    ``assumption_reporting.detect_assumption_reporting``:
+      * ``False`` -- the test requires an assumption whose check the paper never reports.
+      * ``True``  -- every required assumption's check is reported.
+      * ``None``  -- no opinion (test/design not stated, nothing conventionally required, or the
+        audit could not run). ``None`` must NEVER produce a finding; that is the interlock that
+        keeps a guess from becoming an accusation.
+
+    Why step 3 sits *above* INSUFFICIENT_DATA but *below* the with-data verdicts: when raw data
+    exist, ``ASSUMPTION_VIOLATED`` is a stronger, evidence-based statement about the same
+    concern, so it keeps precedence. When they do not, disclosure is the only thing decidable —
+    and it is precisely the case that used to collapse into INSUFFICIENT_DATA for ~96% of papers.
     """
     if not extraction_reliable:
         return Verdict.UNVERIFIABLE_EXTRACTION
-    if not test_resolved or not data_available:
+    if not test_resolved:
+        return Verdict.INSUFFICIENT_DATA
+    if not data_available:
+        if assumptions_reported is False:
+            return Verdict.ASSUMPTION_UNREPORTED
         return Verdict.INSUFFICIENT_DATA
     if not executed_ok:
         return Verdict.INSUFFICIENT_DATA

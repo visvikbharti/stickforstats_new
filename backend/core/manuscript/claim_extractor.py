@@ -350,6 +350,69 @@ class ExtractionSummary:
 # =============================================================================
 
 
+# Design qualifiers a paper may state for a t-test. Order matters when scanning: "independent"
+# contains the substring "dependent", so a bare "dependent" check would misfire on
+# "independent-samples" (the same trap test_resolver documents).
+_T_DESIGN_PATTERNS = (
+    ("Welch's t-test", re.compile(r"welch", re.IGNORECASE)),
+    ("independent t-test", re.compile(
+        r"independent[\s-]*(?:samples?|groups?)?|two[\s-]*sample|unpaired|between[\s-]*(?:subjects?|groups?)",
+        re.IGNORECASE)),
+    ("paired t-test", re.compile(
+        r"paired|\bdependent[\s-]*samples?|repeated[\s-]*measures|within[\s-]*subjects?|matched",
+        re.IGNORECASE)),
+    ("one-sample t-test", re.compile(r"one[\s-]*sample|single[\s-]*sample", re.IGNORECASE)),
+)
+
+#: characters either side of a t-statistic searched for a stated design qualifier.
+T_DESIGN_CONTEXT = 250
+
+
+# F-test / ANOVA designs. The non-one-way forms come FIRST: "one-way repeated-measures ANOVA"
+# contains "one-way", so testing one-way first would wrongly report it as a simple one-way design.
+_F_DESIGN_PATTERNS = (
+    ("repeated-measures ANOVA", re.compile(
+        r"repeated[\s-]*measures|within[\s-]*subjects?", re.IGNORECASE)),
+    ("mixed ANOVA", re.compile(r"mixed[\s-]*(?:design|model|ANOVA|factorial)", re.IGNORECASE)),
+    ("factorial ANOVA", re.compile(
+        r"two[\s-]*way|three[\s-]*way|factorial|\d\s*[x×]\s*\d", re.IGNORECASE)),
+    ("ANCOVA", re.compile(r"ANCOVA|analysis\s+of\s+covariance", re.IGNORECASE)),
+    ("one-way ANOVA", re.compile(r"one[\s-]*way|one[\s-]*factor", re.IGNORECASE)),
+)
+
+# Chi-square variants. Which one it is does not change the assumption we require (Cochran's
+# expected-count rule applies to both), but it does change what we may CALL it back to the author.
+_CHI_DESIGN_PATTERNS = (
+    ("chi-square goodness-of-fit test", re.compile(
+        r"goodness[\s-]*of[\s-]*fit", re.IGNORECASE)),
+    ("chi-square test of independence", re.compile(
+        r"independence|association|contingency", re.IGNORECASE)),
+)
+
+
+def _design_from_context(text: str, start: int, end: int, patterns) -> str:
+    """The design the PAPER states near this statistic, or "" if it states none.
+
+    Returning "" is the honest outcome and makes ``test_resolver`` mark the resolution
+    ambiguous. Never guess a design here: downstream consumers cannot tell a guess from a fact,
+    and one of them (the assumption-disclosure audit) refuses to act on an ambiguous resolution
+    precisely so that a guess can never become a finding about someone's paper.
+
+    `patterns` is an ORDERED tuple of (name, regex); the first match wins, so callers must put
+    the more specific designs first.
+    """
+    window = text[max(0, start - T_DESIGN_CONTEXT): end + T_DESIGN_CONTEXT]
+    for name, pattern in patterns:
+        if pattern.search(window):
+            return name
+    return ""
+
+
+def _t_test_design_from_context(text: str, start: int, end: int) -> str:
+    """The t-test design stated near this statistic, or "" (see :func:`_design_from_context`)."""
+    return _design_from_context(text, start, end, _T_DESIGN_PATTERNS)
+
+
 def _parse_p_comparison(symbol: str) -> str:
     """Convert a comparison symbol to a named constant."""
     if symbol == "<":
@@ -663,11 +726,19 @@ class StatisticalClaimExtractor:
             p_comp = _parse_p_comparison(m.group(3))
             p_val = _parse_p_value(m.group(4))
 
-            # Determine test name heuristic: fractional df -> Welch's
+            # Name the test from what the PAPER says, not from a guess.
+            #
+            # A fractional df is a genuine statistical signature -- the Welch-Satterthwaite
+            # correction produces one -- so it is a legitimate inference. An INTEGER df is not:
+            # it is equally consistent with an independent, paired or one-sample t-test. This
+            # used to default to "independent t-test", and `test_resolver` then reported that as
+            # "independent-samples t-test (from test_name)" with ambiguous=False -- laundering a
+            # heuristic guess into a design the authors never stated, one module downstream.
+            # Leaving it empty makes the resolver flag the design as not stated, which is true.
             if df_val != int(df_val):
                 test_name = "Welch's t-test"
             else:
-                test_name = "independent t-test"
+                test_name = _t_test_design_from_context(text, m.start(), m.end())
 
             confidence = self._score_confidence(
                 has_statistic=True,
@@ -708,8 +779,16 @@ class StatisticalClaimExtractor:
             p_comp = _parse_p_comparison(m.group(4))
             p_val = _parse_p_value(m.group(5))
 
-            # Heuristic: df1 == 1 might be regression F-test
-            test_name = "one-way ANOVA" if df1 > 1 else "F-test"
+            # Name the ANOVA from what the PAPER says, not from df1.
+            #
+            # This used to be `"one-way ANOVA" if df1 > 1 else "F-test"`, which OVERWROTE an
+            # explicit "two-way factorial ANOVA" or "repeated-measures ANOVA" with the literal
+            # string "one-way ANOVA". `test_resolver` then read that back as a stated design
+            # (ambiguous=False), so the guard for non-one-way designs was unreachable and the
+            # assumption-disclosure audit told authors their "one-way ANOVA" was undisclosed when
+            # they had written something else. df1 does not identify a design: df1 > 1 is equally
+            # consistent with one-way, factorial and repeated-measures.
+            test_name = _design_from_context(text, m.start(), m.end(), _F_DESIGN_PATTERNS)
 
             claims.append(
                 StatisticalClaim(
@@ -749,7 +828,10 @@ class StatisticalClaimExtractor:
 
             claim = StatisticalClaim(
                 claim_type=CLAIM_TYPE_CHI2,
-                test_name="chi-square test",
+                # which chi-square the paper says it ran; "" when unstated. Both variants
+                # require the same expected-count check, so this affects the LABEL and the
+                # re-run path, not the assumption.
+                test_name=_design_from_context(text, m.start(), m.end(), _CHI_DESIGN_PATTERNS),
                 statistic_value=stat_val,
                 statistic_raw=m.group(3),
                 p_value=p_val,

@@ -38,7 +38,11 @@ CERTIFY_NOTE = (
     "data were available, re-runs the authors' tests and audits their assumptions. It does NOT "
     "certify the scientific validity, design, or conclusions of the study. Claims marked "
     "INSUFFICIENT_DATA could not be verified because the underlying data were unavailable or "
-    "not linkable."
+    "not linkable. "
+    "ASSUMPTION_UNREPORTED means only that the manuscript does not state that a required "
+    "assumption was checked — it is a statement about DISCLOSURE, not about the data: the "
+    "assumption may well hold, and the result may well be correct. It is raised only when the "
+    "paper names its test explicitly; where the design is not stated, no claim is made."
 )
 
 
@@ -93,7 +97,8 @@ def _context(text: str, position: int, radius: int = 200) -> str:
 
 
 def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None,
-                      alpha: float = 0.05, linker=None) -> VerificationProfile:
+                      alpha: float = 0.05, linker=None,
+                      methods_text: str = "") -> VerificationProfile:
     """Verify every extractable statistical claim in `text` (single-source case).
 
     `dataframe` (optional): a single imported table to link claims against (tabular case). When
@@ -102,11 +107,12 @@ def verify_manuscript(text: str, dataframe=None, full_text: Optional[str] = None
     the tabular linker; a genomics/other linker can be injected.
     """
     return verify_segments([("", text)], dataframe=dataframe, full_text=full_text,
-                           alpha=alpha, linker=linker)
+                           alpha=alpha, linker=linker, methods_text=methods_text)
 
 
 def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
-                    alpha: float = 0.05, linker=None) -> VerificationProfile:
+                    alpha: float = 0.05, linker=None,
+                    methods_text: str = "") -> VerificationProfile:
     """Verify claims across MULTIPLE source files, tagging each claim with its home file.
 
     `segments`: a list of ``(source_file, text)`` — or ``(source_file, text, reference_context)``
@@ -207,7 +213,11 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
                     spec.link_confidence = getattr(lr, "confidence", None)
                     link_reason = getattr(lr, "reason", "") or ""
 
-        cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
+        cv = verify_claim(ClaimVerificationRequest(
+            claim=claim, data_spec=spec, alpha=alpha,
+            # T17: the assumption-DISCLOSURE audit needs the paper's own text. `seg_text` is this
+            # claim's home file, so a claim from a supplement is audited against the supplement.
+            manuscript_text=seg_text, methods_text=methods_text or ""))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
         cv.notes.extend(ref_notes)
 

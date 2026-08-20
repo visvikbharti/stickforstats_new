@@ -22,6 +22,11 @@ cascade_engine is imported lazily so the pure decision/resolver paths unit-test 
 from __future__ import annotations
 
 from .extraction_quality import is_claim_extraction_reliable
+from .assumption_reporting import (
+    describe_assumptions,
+    describe_test,
+    detect_assumption_reporting,
+)
 from .test_resolver import resolve_test
 from .verdict_decision import assign_verdict, statistic_matches
 from .verdicts import ClaimVerdict, ClaimVerificationRequest, Verdict
@@ -87,11 +92,44 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     # 2. resolve test + data availability
     tr = resolve_test(claim)
     if not tr.resolved or not request.data_available():
+        # T17: with no raw data we cannot re-run anything, but assumption DISCLOSURE is still
+        # decidable from the text. This is the branch that used to collapse to INSUFFICIENT_DATA
+        # for the overwhelming majority of claims.
+        notes = [tr.reason if not tr.resolved else "no linked dataset for this claim"]
+        reporting = None
+        if tr.resolved:
+            try:
+                reporting = detect_assumption_reporting(
+                    claim,
+                    manuscript_text=request.manuscript_text,
+                    methods_text=request.methods_text,
+                    test_key=tr.intended_test if not tr.ambiguous else None,
+                )
+            except Exception as exc:
+                # FAIL CLOSED: a crash in the audit must never read as "assumptions fine". Leave
+                # `reporting` None (no opinion -> INSUFFICIENT_DATA) and say so out loud. The
+                # cascade_engine fail-open incident, where a Guardian crash recorded
+                # guardian_passed=True, is the precedent for making this explicit.
+                notes.append(f"assumption-disclosure audit failed: {exc}")
+                reporting = None
+
+        assumptions_reported = reporting.all_reported if reporting is not None else None
         v = assign_verdict(extraction_reliable=True, test_resolved=tr.resolved,
                            data_available=request.data_available(), executed_ok=False,
-                           assumptions_ok=None, statistic_match=None)
-        note = tr.reason if not tr.resolved else "no linked dataset for this claim"
-        return ClaimVerdict(verdict=v, recomputed_test=tr.intended_test, notes=[note], **base)
+                           assumptions_ok=None, statistic_match=None,
+                           assumptions_reported=assumptions_reported)
+        if reporting is not None and reporting.evaluable and reporting.required:
+            if reporting.unreported:
+                notes.append(
+                    "the manuscript does not report checking "
+                    + describe_assumptions(reporting.unreported)
+                    + f", required for {describe_test(reporting.test_key)}. This concerns "
+                    "DISCLOSURE, not the data: the assumption may still hold.")
+            else:
+                notes.append("assumption checks reported for: "
+                             + describe_assumptions(reporting.reported))
+        return ClaimVerdict(verdict=v, recomputed_test=tr.intended_test, notes=notes,
+                            assumptions_reported_in_text=assumptions_reported, **base)
 
     # 3. re-run the AUTHORS' test (no auto-substitution)
     intended = spec.intended_test or tr.intended_test

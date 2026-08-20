@@ -66,11 +66,29 @@ def resolve_test(claim) -> TestResolution:
         return TestResolution("pearson", "correlation", True, "defaulted to Pearson correlation")
 
     if ct == "f_statistic":
+        # Check the designs we CANNOT resolve first. "one-way repeated-measures ANOVA" contains
+        # the substring "one-way", so testing for one-way first would wrongly mark it certain
+        # (the same substring trap the t branch above documents for "independent"/"dependent").
+        if any(k in name for k in ("repeated", "within-subject", "within subject", "mixed",
+                                   "two-way", "two way", "factorial", "three-way", "three way")):
+            return TestResolution("one_way_anova", "k_group", True,
+                                  "ANOVA design not re-runnable from summary arrays "
+                                  "(repeated-measures / factorial); defaulted to one-way")
+        if "one-way" in name or "one way" in name or "one-factor" in name:
+            return TestResolution("one_way_anova", "k_group", False, "one-way ANOVA (from test_name)")
         return TestResolution("one_way_anova", "k_group", True,
                               "defaulted to one-way ANOVA (could be factorial / repeated-measures)")
 
     if ct == "chi_square":
-        return TestResolution("chi_square_independence", "contingency", False, "chi-square test of independence")
+        # A goodness-of-fit test is NOT a test of independence and cascade_engine has no executor
+        # for it (GUARDIAN_TEST_MAP / _exec_chi_square cover independence only), so re-running it
+        # as independence would be wrong. Flag it ambiguous: the disclosure audit then stays
+        # silent and the re-analysis path carries an honest "design inferred" note.
+        if "goodness" in name:
+            return TestResolution("chi_square_independence", "contingency", True,
+                                  "goodness-of-fit test: not re-runnable as a test of independence")
+        return TestResolution("chi_square_independence", "contingency", False,
+                              "chi-square test of independence")
 
     if ct == "mann_whitney":
         return TestResolution("mann_whitney_u", "two_group_nonparametric", False, "Mann-Whitney U")

@@ -374,7 +374,11 @@ const DEFAULT_CERTIFY_NOTE =
   'This report checks the internal consistency of the reported statistics and, where raw data were ' +
   'available, re-runs the authors’ tests and audits their assumptions. It does NOT certify the ' +
   'scientific validity, design, or conclusions of the study. Claims marked INSUFFICIENT_DATA could ' +
-  'not be verified because the underlying data were unavailable or not linkable.';
+  'not be verified because the underlying data were unavailable or not linkable. ' +
+  'ASSUMPTION_UNREPORTED means only that the manuscript does not state that a required assumption ' +
+  'was checked — it is a statement about DISCLOSURE, not about the data: the assumption may well ' +
+  'hold, and the result may well be correct. It is raised only when the paper names its test ' +
+  'explicitly; where the design is not stated, no claim is made.';
 
 function CertifyNote({ note }) {
   return (

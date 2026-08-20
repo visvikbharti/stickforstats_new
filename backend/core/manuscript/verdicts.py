@@ -137,6 +137,10 @@ class ClaimVerificationRequest:
     claim: "StatisticalClaim"          # duck-typed; see claim_extractor.StatisticalClaim
     data_spec: Optional[ClaimDataSpec] = None
     alpha: float = 0.05
+    #: source text for the T17 assumption-DISCLOSURE audit, which needs no raw data. Optional:
+    #: when both are empty the audit reports "not evaluable" and no finding is produced.
+    manuscript_text: str = ""
+    methods_text: str = ""
 
     def data_available(self) -> bool:
         return self.data_spec is not None and self.data_spec.has_data()
