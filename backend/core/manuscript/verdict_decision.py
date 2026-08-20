@@ -54,6 +54,53 @@ def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
     return abs(r - c) <= rel_tol * max(abs(c), 1e-9)
 
 
+def p_matches(claimed_p: Optional[float], recomputed_p: Optional[float],
+              claimed_p_raw=None, p_comparison: str = "equals",
+              tolerance: float = 0.005) -> Optional[bool]:
+    """Does the p recomputed FROM THE DATA agree with the p the paper reports?
+
+    The sibling of ``statistic_matches``, and needed for the same reason: the engine was
+    computing the correct p, holding it on the verdict, and never comparing it -- so a paper
+    reporting p = 0.0001 where the data give p = 0.0047 came back VERIFIED on the strength of a
+    matching t alone.
+
+    This is NOT ``consistency_core.classify``, which answers a different question: that recomputes
+    p from the paper's own reported STATISTIC (statcheck, no data required). Here the recomputed p
+    comes from re-running the test on the linked data. The comparison rules are deliberately the
+    same ones, because the way a reported p must be read does not depend on where the comparison
+    value came from:
+
+    * An INEQUALITY is judged by SATISFACTION, never by equality. ``p < .05`` with a recomputed
+      .0047 is correct reporting, not a discrepancy -- treating it as one would flag most of the
+      literature.
+    * An EXACT p is judged by overlap of its rounding interval at the reported precision.
+      ``p = .005`` with a recomputed .0047 rounds to the same thing and matches.
+
+    Returns None when either side is missing, or when the reported p is outside (0, 1] -- an
+    impossible p is an extraction artifact, not the author's error.
+    """
+    if claimed_p is None or recomputed_p is None:
+        return None
+    if claimed_p < 0 or claimed_p > 1:
+        return None
+
+    # Slack is the ROUNDING interval of the bound as the paper reported it -- NOT a flat
+    # constant. A flat 0.005 swamps small p entirely: "p < .001" against a recomputed .0047
+    # would be judged satisfied (.0047 <= .001 + .005), certifying a real reporting error. That
+    # is the defect consistency_core already records for its exact branch ("the previous flat
+    # additive +/-tolerance swamped tiny p-intervals ... hiding genuine small-p reporting
+    # errors", audit 2026-06-04 F-06); the same trap applies to inequalities. At ".001" the
+    # rounding half-width is .0005, so the bound is satisfied only below .0015.
+    dec = _decimals(claimed_p_raw)
+    half = 0.5 * (10.0 ** (-dec)) if dec is not None else tolerance
+
+    if p_comparison == "less_than":
+        return recomputed_p <= claimed_p + half + 1e-12
+    if p_comparison == "greater_than":
+        return recomputed_p >= claimed_p - half - 1e-12
+    return abs(recomputed_p - claimed_p) <= half + 1e-12
+
+
 def expected_degrees_of_freedom(intended_test: Optional[str], spec) -> Optional[tuple]:
     """The df the linked DATA implies for ``intended_test``, or None when not predictable.
 
@@ -116,7 +163,8 @@ def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_avail
                    executed_ok: bool, assumptions_ok: Optional[bool],
                    statistic_match: Optional[bool],
                    assumptions_reported: Optional[bool] = None,
-                   df_matches_design: Optional[bool] = None) -> Verdict:
+                   df_matches_design: Optional[bool] = None,
+                   p_match: Optional[bool] = None) -> Verdict:
     """The §2 verdict-assignment precedence.
 
     Order matters:
@@ -127,7 +175,18 @@ def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_avail
       5. test couldn't execute on the data  -> INSUFFICIENT_DATA
       6. reported df contradicts the data    -> INSUFFICIENT_DATA (we ran a DIFFERENT model)
       7. assumptions of the used test fail  -> ASSUMPTION_VIOLATED (independent of p/stat match)
-      8. numbers reproduce                  -> VERIFIED  else DISCREPANT
+      8. statistic AND p reproduce          -> VERIFIED  else DISCREPANT
+
+    ``p_match`` closes a hole where a matching statistic alone earned VERIFIED: a paper reporting
+    p = 0.0001 on data that give p = 0.0047 was certified correct because its t matched. VERIFIED
+    now requires that the p not be known-wrong. It is three-state like the rest -- ``None`` (no p
+    reported, or an impossible one) must not block VERIFIED, or every claim without a p would
+    become DISCREPANT.
+
+    ``effect_match`` remains unassigned ON PURPOSE. Comparing a claimed effect size to a
+    recomputed one needs scale normalisation first (Cohen's d vs Hedges' g, eta-squared vs partial
+    eta-squared, r vs r-squared) -- that is TODO item T16-EFFECT, and comparing across incompatible
+    scales would manufacture discrepancies rather than find them.
 
     ``df_matches_design`` is the same three-state shape (see ``df_corroborates_design``).
     ``False`` means the df the authors reported is not the df their linked data implies, so the
@@ -165,4 +224,6 @@ def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_avail
         return Verdict.INSUFFICIENT_DATA
     if assumptions_ok is False:
         return Verdict.ASSUMPTION_VIOLATED
-    return Verdict.VERIFIED if statistic_match else Verdict.DISCREPANT
+    if statistic_match and p_match is not False:
+        return Verdict.VERIFIED
+    return Verdict.DISCREPANT

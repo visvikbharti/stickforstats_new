@@ -128,9 +128,11 @@ class EndToEndDfGateTests(SimpleTestCase):
         """
         groups = _groups([20, 20, 20], [0, 0.8, 1.6])
         from scipy import stats
-        f, _ = stats.f_oneway(*groups)
+        f, pval = stats.f_oneway(*groups)
+        # the p must be the data's own p too: now that p_match is enforced, a placeholder p
+        # would make this "correct paper" control fail for the wrong reason.
         paper = (f"A one-way ANOVA compared the three conditions, "
-                 f"F(2, 57) = {f:.2f}, p = .034.")
+                 f"F(2, 57) = {f:.2f}, p = {pval:.4f}.")
         spec = ClaimDataSpec(intended_test="one_way_anova", design_type="k_group", groups=groups)
         v = _verify(paper, spec)
         self.assertEqual(v.verdict, Verdict.VERIFIED)

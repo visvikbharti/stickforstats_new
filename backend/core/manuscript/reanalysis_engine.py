@@ -32,6 +32,7 @@ from .verdict_decision import (
     assign_verdict,
     df_corroborates_design,
     expected_degrees_of_freedom,
+    p_matches,
     statistic_matches,
 )
 from .verdicts import ClaimVerdict, ClaimVerificationRequest, Verdict
@@ -165,10 +166,17 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     expected_df = expected_degrees_of_freedom(intended, spec)
     df_ok = df_corroborates_design(getattr(claim, "df", None), expected_df)
 
-    # 7. assign verdict (T19)
+    # 7. does the p recomputed from the data match the reported p? Rounding- and
+    #    inequality-aware: "p < .05" against a recomputed .0047 is correct reporting.
+    pmatch = p_matches(getattr(claim, "p_value", None),
+                       float(tres.p_value) if tres.p_value is not None else None,
+                       getattr(claim, "p_value_raw", None),
+                       getattr(claim, "p_comparison", "equals"))
+
+    # 8. assign verdict (T19)
     verdict = assign_verdict(extraction_reliable=True, test_resolved=True, data_available=True,
                              executed_ok=True, assumptions_ok=assumptions_ok,
-                             statistic_match=smatch, df_matches_design=df_ok)
+                             statistic_match=smatch, df_matches_design=df_ok, p_match=pmatch)
 
     notes = []
     if df_ok is False:
@@ -192,6 +200,7 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         recomputed_effect_size=tres.effect_size,
         recomputed_effect_name=tres.effect_size_name,
         statistic_match=smatch,
+        p_match=pmatch,
         deltas={"claimed": getattr(claim, "statistic_value", None), "recomputed": float(tres.statistic)},
         assumptions_checked=res.guardian_report is not None,
         assumptions_satisfied=assumptions_ok,

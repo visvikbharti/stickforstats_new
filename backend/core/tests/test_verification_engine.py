@@ -49,15 +49,22 @@ class VerificationEngineControlSuite(SimpleTestCase):
         # Three clean, equal-variance normal groups -> a well-behaved one-way ANOVA.
         cls.groups = [list(rng.normal(m, 2.0, 40)) for m in (10.0, 11.5, 13.0)]
         cls.F_true = round(float(stats.f_oneway(*cls.groups).statistic), 2)
+        cls.F_p_true = float(stats.f_oneway(*cls.groups).pvalue)
         # Two clean normal groups -> a well-behaved independent t-test.
         cls.g1 = list(rng.normal(10.0, 2.0, 40))
         cls.g2 = list(rng.normal(11.4, 2.0, 40))
         cls.t_true = round(float(stats.ttest_ind(cls.g1, cls.g2, equal_var=True).statistic), 2)
+        cls.t_p_true = float(stats.ttest_ind(cls.g1, cls.g2, equal_var=True).pvalue)
+        # NOTE: these p-values used to be arbitrary placeholders (0.001 / 0.01) because nothing
+        # compared them -- ClaimVerdict.p_match was declared and never assigned. Now that the
+        # engine checks the reported p against the data, a placeholder IS a discrepancy (0.01
+        # against a true 0.0026 is a real reporting error, and flagging it is the point of the
+        # tool). A "fully correct claim" control must therefore report the true p.
 
     def test_correct_value_and_assumptions_ok_is_verified(self):
         cv = _verify(
             dict(claim_id="V1", claim_type="f_statistic", statistic_value=self.F_true,
-                 statistic_raw=f"{self.F_true:.2f}", p_value=0.001, test_name="one-way ANOVA"),
+                 statistic_raw=f"{self.F_true:.2f}", p_value=self.F_p_true, test_name="one-way ANOVA"),
             dict(groups=self.groups))
         self.assertEqual(cv.verdict, Verdict.VERIFIED)
         self.assertTrue(cv.statistic_match)
@@ -65,7 +72,8 @@ class VerificationEngineControlSuite(SimpleTestCase):
     def test_correct_ttest_value_is_verified(self):
         cv = _verify(
             dict(claim_id="V2", claim_type="t_statistic", statistic_value=self.t_true,
-                 statistic_raw=f"{self.t_true:.2f}", p_value=0.01, test_name="independent samples t-test"),
+                 statistic_raw=f"{self.t_true:.2f}", p_value=self.t_p_true,
+                 test_name="independent samples t-test"),
             dict(groups=[self.g1, self.g2]))
         self.assertEqual(cv.verdict, Verdict.VERIFIED)
 
