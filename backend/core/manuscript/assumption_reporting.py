@@ -150,21 +150,44 @@ GUARDIAN_TEST_ALIAS: Dict[str, Optional[str]] = {
 # authors examined the assumption; a pattern matching means "they reported it", NOT "it held".
 # We are auditing disclosure, not correctness.
 EVIDENCE_PATTERNS: Dict[str, re.Pattern] = {
+    # Adversarial review found this missed 6 of 7 ordinary disclosure phrasings, so papers that
+    # DID state the check were told they had not -- a false accusation in the feature's flagship
+    # verdict. Named tests and plots were covered; the far commoner prose forms ("the normality
+    # assumption was met", "data were approximately normally distributed") were not. Recall
+    # matters more than precision here and the asymmetry is deliberate: crediting a check that
+    # was not really run costs a missed finding, while missing a real disclosure accuses an
+    # author who did the work.
     "normality": re.compile(
+        # named tests and diagnostics
         r"shapiro[\s-]*(?:wilk)?|kolmogorov[\s-]*smirnov|\bK\s*-\s*S\s+test|lilliefors|"
         r"anderson[\s-]*darling|d'agostino|jarque[\s-]*bera|omnibus\s+normality|"
         r"(?:Q[\s-]*Q|quantile[\s-]*quantile|normal\s+probability)\s+plot|"
-        r"normality\s+(?:was\s+|were\s+)?(?:test|check|assess|verif|examin|inspect|evaluat)"
-        r"\w*|"
-        r"(?:tested|checked|assessed|examined)\s+for\s+normality|"
-        r"(?:skewness|kurtosis)\s+(?:and\s+kurtosis\s+)?(?:was|were|values?|statistics?)|"
-        r"normally\s+distributed\s*\(",
+        # "normality was tested/checked/assessed/verified/confirmed/met/satisfied/..."
+        r"normalit(?:y|ies)\s+(?:of\s+[^.;]{0,40}\s+)?"
+        r"(?:was|were|is|are)?\s*"
+        r"(?:test|check|assess|verif|examin|inspect|evaluat|confirm|establish|met|satisf|"
+        r"ensur|hold|held)\w*|"
+        r"(?:tested|checked|assessed|examined|verified|confirmed)\s+for\s+normality|"
+        r"assumptions?\s+of\s+normality\s+(?:was|were|is|are)?\s*"
+        r"(?:met|satisf|verif|confirm|check|test|assess|hold|held)\w*|"
+        r"normality\s+assumptions?\s+(?:was|were|is|are)?\s*"
+        r"(?:met|satisf|verif|confirm|check|test|assess|hold|held)\w*|"
+        # "(approximately/reasonably) normally distributed", "did not deviate from normality"
+        r"(?:approximately|reasonably|sufficiently|were|was|are|is)\s+normally\s+distributed|"
+        r"normally\s+distributed\s*[\(,.;]|"
+        r"(?:did\s+not|no)\s+(?:significantly\s+)?(?:deviate|depart)\w*\s+from\s+normal|"
+        r"(?:skewness|kurtosis)\s+(?:and\s+kurtosis\s+)?(?:was|were|values?|statistics?)",
         re.IGNORECASE,
     ),
     "variance_homogeneity": re.compile(
         r"levene|bartlett|brown[\s-]*forsythe|fligner|hartley|"
-        r"homogeneity\s+of\s+(?:the\s+)?variance|homoscedasticity\s+(?:was|were)|"
-        r"equality\s+of\s+variance|equal\s+variances?\s+(?:was|were|assumption)",
+        r"homogeneity\s+of\s+(?:the\s+)?variance\w*|homoscedastic\w*|"
+        r"equality\s+of\s+variance\w*|"
+        r"(?:equal|homogeneous)\s+variances?\s*"
+        r"(?:was|were|is|are|assumption|could|was\s+not)?[^.;]{0,30}"
+        r"(?:met|satisf|assum|verif|confirm|check|test|assess|hold|held)?\w*|"
+        r"variances?\s+(?:was|were|is|are)\s+(?:not\s+)?(?:significantly\s+)?"
+        r"(?:different|unequal|homogeneous|equal)",
         re.IGNORECASE,
     ),
     "expected_frequencies": re.compile(

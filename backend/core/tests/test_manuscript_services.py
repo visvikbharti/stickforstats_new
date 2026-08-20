@@ -1010,8 +1010,8 @@ class TestAdvancedValidators(unittest.TestCase):
         MUTATION: widen the ordinal cue search from the claim's sentence to the whole text ->
         the negative case below starts firing and this fails.
         """
-        text = ("Satisfaction was rated on a 5-point Likert scale and correlated with age, "
-                "r(48) = .31, p = .03.")
+        text = ("Satisfaction was rated on a 5-point Likert scale and correlated with age "
+                "using Pearson correlation, r(48) = .31, p = .03.")
         claims = StatisticalClaimExtractor().extract(text, section="Results")
         findings = MethodologicalAppropriatenessValidator().validate(text, claims)
         self.assertTrue([f for f in findings if "ordinal" in f.title.lower()])

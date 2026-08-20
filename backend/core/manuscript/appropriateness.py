@@ -163,61 +163,32 @@ def _small_n_parametric_undisclosed(claim, ctx) -> Outcome:
 
 
 # ---------------------------------------------------------------------------
-# Rule 2 — reported df contradicts the reported sample size
+# RETIRED: DF_CONTRADICTS_REPORTED_N — the premise was false
 # ---------------------------------------------------------------------------
-
-
-def plausible_df_readings(test_key: str, n: int, df: Tuple) -> List[int]:
-    """Every df the reported n could legitimately imply, under every reading of n.
-
-    ``sample_size`` is whatever number the extractor found nearest the claim, and papers write
-    both "N = 60" (total) and "n = 20 per group". Assuming one reading manufactures a false
-    contradiction on a correct paper, so BOTH are enumerated and the rule fires only when the
-    reported df matches none of them. That asymmetry is deliberate: a missed contradiction costs
-    nothing, a false one accuses an author.
-    """
-    readings: List[int] = []
-    if test_key in ("independent_t", "welch_t"):
-        readings += [n - 2, 2 * n - 2]          # n as total, n as per-group
-    elif test_key in ("paired_t", "one_sample_t"):
-        readings += [n - 1, 2 * n - 1]          # n as pairs, or as total observations
-    elif test_key == "pearson":
-        readings += [n - 2]
-    elif test_key == "one_way_anova" and df and len(df) == 2:
-        k = int(df[0]) + 1                      # df1 = k - 1
-        readings += [n - k, n * k - k]          # between-subjects: total / per-group
-        readings += [(k - 1) * (n - 1)]         # repeated-measures reading
-    return [r for r in readings if r > 0]
-
-
-def _df_contradicts_reported_n(claim, ctx) -> Outcome:
-    n = getattr(claim, "sample_size", None)
-    df = getattr(claim, "df", None)
-    test_key = ctx.get("test_key")
-    if n is None or n <= 0:
-        return Silent("no sample size reported for this claim")
-    if not df:
-        return Silent("no degrees of freedom reported")
-    if ctx.get("test_ambiguous"):
-        return Silent("the design is not stated, so no df is predictable")
-
-    readings = plausible_df_readings(test_key, n, df)
-    if not readings:
-        return Silent(f"df is not predictable from n for {test_key}")
-
-    reported = int(df[-1])                       # the error df (df2 for F, df for t/r)
-    if reported in readings:
-        return Silent(f"reported df={reported} is consistent with n={n}")
-
-    return Fires(
-        evidence=f"reported df = {reported} with n = {n}",
-        detail=(f"The reported degrees of freedom ({reported}) are not consistent with the "
-                f"reported sample size (n = {n}) under any standard reading of n for this test "
-                f"— neither as a total nor as a per-group count. Expected one of "
-                f"{sorted(set(readings))}. Either the sample size, the degrees of freedom, or "
-                f"the test described is not what was actually run."),
-        grade=EvidenceGrade.ARITHMETIC,
-    )
+#
+# The rule compared a claim's reported df against the df implied by its reported n, firing when
+# no reading matched. Adversarial review found THREE independent ways it accuses correct papers,
+# all reproduced:
+#
+#   1. WELCH. The Welch-Satterthwaite df is a function of the two VARIANCES, not of n, and is
+#      virtually always fractional. Scoring it against the pooled readings [n-2, 2n-2] fires on
+#      essentially every correctly reported Welch test -- and Welch is the MORE rigorous choice,
+#      typically adopted after a significant Levene's test. The rule was silent only in the exact
+#      equal-variance case, i.e. precisely when Welch was unwarranted. This module also
+#      contradicted its own repo: verdict_decision.expected_degrees_of_freedom already returns
+#      None for welch_t, with the correct reason.
+#   2. UNBALANCED GROUPS. df = n1+n2-2 is not recoverable from a single n.
+#   3. WHAT `sample_size` ACTUALLY IS. The extractor attaches the nearest "N = x" within a few
+#      hundred characters. That number is as likely to be an attrition count, a subgroup, an
+#      imaging subset or "n = 3 replicates" as the analysis N. Verified: a claim of t(198) beside
+#      a mention of "a subset of N = 12" was accused.
+#
+# (3) is fatal and cannot be patched: the rule needs a TYPED analysis-n, and `sample_size` is not
+# one. The same arithmetic IS sound in verdict_decision.df_corroborates_design, which compares
+# the reported df against the shape of the ACTUAL LINKED DATA -- real evidence -- and which only
+# ever SUPPRESSES a verdict rather than raising an accusation. Same comparison, opposite safety
+# profile, because the evidence quality and the direction of the consequence differ. That one
+# stays; this one is gone.
 
 
 # ---------------------------------------------------------------------------
@@ -239,6 +210,13 @@ def _pearson_on_ordinal(claim, ctx) -> Outcome:
     measurement." -- a Discussion sentence EXPLAINING the correct choice. Requiring the cue and
     the claim to share a sentence is what makes the check mean anything.
     """
+    if ctx.get("test_ambiguous"):
+        # This was the one rule that ignored the ambiguity interlock every other rule respects.
+        # A correlation whose type the paper never states resolves to `pearson` by DEFAULT, so
+        # without this guard an unstated correlation was accused of being a Pearson on ordinal
+        # data purely because Pearson is the resolver's fallback.
+        return Silent("the correlation type is not stated, so it may not be Pearson")
+
     sentence = (ctx.get("sentence") or "").strip()
     if not sentence:
         return Silent("no sentence context available for this claim")
@@ -277,17 +255,6 @@ RULES: Tuple[Rule, ...] = (
         recommendation=("Use Spearman's rho or Kendall's tau for ordinal measures, or state why "
                         "interval-level measurement is defensible here."),
         citation="Norman (2010), Adv Health Sci Educ 15(5):625-32",
-    ),
-    Rule(
-        rule_id="DF_CONTRADICTS_REPORTED_N",
-        applies_to=frozenset(),
-        requires=frozenset({"sample_size", "df"}),
-        predicate=_df_contradicts_reported_n,
-        severity="major",
-        title="Reported degrees of freedom are inconsistent with the reported sample size",
-        recommendation=("Check the sample size, the degrees of freedom and the test named in "
-                        "the text against one another; one of the three does not match."),
-        citation="Bakker & Wicherts (2011), Behav Res Methods 43(3):666-78",
     ),
 )
 
@@ -343,12 +310,27 @@ _assert_no_rule_can_carry_a_confidence()
 # ---------------------------------------------------------------------------
 
 
-def _sentence_of(text: str, position: int) -> str:
-    """The sentence containing `position` — the tightest honest scope for a textual cue."""
-    if not text:
+def _sentence_of(text: str, claim) -> str:
+    """The sentence containing this claim, located by its OWN reported text.
+
+    NOT by ``claim.position``. That offset is relative to whatever string the claim was extracted
+    from -- usually one section -- while callers hand this module the whole manuscript. Indexing
+    the full text with a section-relative offset reads an unrelated sentence: verified, a claim at
+    section-offset 74 resolved to "Introduction." from 200 characters into the paper. Any rule
+    trusting that would quote one part of a manuscript as evidence about another.
+
+    Searching for the claim's own ``raw_text`` is self-validating: if the claim did not come from
+    this string, the search fails and we return "" -- and every rule treats an empty sentence as
+    "no opinion". A wrong offset can no longer masquerade as evidence.
+    """
+    raw = (getattr(claim, "raw_text", "") or "").strip()
+    if not text or not raw:
         return ""
-    start = text.rfind(".", 0, position) + 1
-    end = text.find(".", position)
+    at = text.find(raw)
+    if at == -1:
+        return ""
+    start = text.rfind(".", 0, at) + 1
+    end = text.find(".", at + len(raw))
     return text[start:len(text) if end == -1 else end + 1].strip()
 
 
@@ -422,5 +404,5 @@ def evaluate_claims(claims, manuscript_text: str = "",
         out.extend(evaluate_claim(
             claim, resolution.intended_test,
             test_ambiguous=resolution.ambiguous, assumption_reporting=reporting,
-            sentence=_sentence_of(manuscript_text, getattr(claim, "position", 0))))
+            sentence=_sentence_of(manuscript_text, claim)))
     return out

@@ -18,7 +18,6 @@ from core.manuscript.appropriateness import (
     Silent,
     evaluate_claim,
     evaluate_claims,
-    plausible_df_readings,
 )
 from core.manuscript.claim_extractor import StatisticalClaimExtractor
 
@@ -125,35 +124,115 @@ class RuleBehaviourTests(SimpleTestCase):
             "t(198) = 2.10, p = .041.")
         self.assertEqual(findings, [])
 
-    def test_df_that_contradicts_n_under_every_reading_fires(self):
-        """MUTATION: `return Silent(...)` unconditionally from rule 2 -> fails."""
-        _, findings = _findings(
-            "Normality was checked with Shapiro-Wilk. With N = 18, an independent-samples "
-            "t-test gave t(48) = 2.10, p = .041.")
-        self.assertIn("DF_CONTRADICTS_REPORTED_N", [f.rule_id for f in findings])
+    def test_a_correct_welch_t_test_is_never_accused(self):
+        """DF_CONTRADICTS_REPORTED_N was retired for this.
 
-    def test_df_consistent_under_the_per_group_reading_is_silent(self):
-        """"n = 25 per group" with t(48) is correct: 2*25-2 = 48.
+        The Welch-Satterthwaite df is a function of the two VARIANCES, not of n, and is virtually
+        always fractional. Scoring it against pooled readings [n-2, 2n-2] fired on essentially
+        every correct Welch test -- and Welch is the MORE rigorous choice, usually adopted after
+        a significant Levene's test. The rule was silent only in the exact equal-variance case,
+        i.e. precisely when Welch was unwarranted.
 
-        MUTATION: enumerate only the total-N reading in plausible_df_readings -> a correct paper
-        is accused, and this fails. This is the rule's whole safety argument.
+        MUTATION: reinstate the rule -> fails.
         """
         _, findings = _findings(
-            "Normality was checked with Shapiro-Wilk. With n = 25 per group, an "
-            "independent-samples t-test, t(48) = 2.10, p = .041.")
+            "n = 24 per group. Normality verified with Shapiro-Wilk. Levene's test showed "
+            "heterogeneity of variance, so Welch's t-test was used, t(38.92) = 3.05, p = .004.")
         self.assertEqual(findings, [])
 
-    def test_plausible_readings_cover_both_interpretations(self):
-        self.assertEqual(sorted(plausible_df_readings("independent_t", 25, (48,))), [23, 48])
-        self.assertIn(23, plausible_df_readings("paired_t", 24, (23,)))
-        # a one-way F offers between-subjects (total / per-group) AND repeated-measures readings
-        self.assertIn(57, plausible_df_readings("one_way_anova", 60, (2, 57)))
-        self.assertIn(38, plausible_df_readings("one_way_anova", 20, (2, 38)))
+    def test_unbalanced_groups_are_never_accused(self):
+        """df = n1+n2-2 is not recoverable from a single reported n.
+
+        MUTATION: reinstate the rule -> fails.
+        """
+        _, findings = _findings(
+            "Groups of 20 and 40 (N = 32 on average). Normality checked with Shapiro-Wilk. An "
+            "independent-samples t-test, t(58) = 2.10, p = .04.")
+        self.assertEqual(findings, [])
+
+    def test_an_unrelated_sample_size_nearby_is_never_accused(self):
+        """`sample_size` is the nearest "N = x", as likely an attrition or subgroup count as the
+        analysis n. That is why the df rule could not be made safe.
+
+        MUTATION: reinstate the rule -> fails.
+        """
+        _, findings = _findings(
+            "Normality checked with Shapiro-Wilk. A subset of N = 12 provided imaging. An "
+            "independent-samples t-test on the full cohort, t(198) = 2.10, p = .04.")
+        self.assertEqual(findings, [])
+
+    def test_a_spearman_paper_is_not_accused_of_using_pearson(self):
+        """The extractor used to hardcode test_name="Pearson correlation" for any "r = ".
+
+        MUTATION: restore the hardcoded name in _extract_correlations, or drop the
+        `test_ambiguous` guard from _pearson_on_ordinal -> fails.
+        """
+        _, findings = _findings(
+            "Because the measure was a 5-point Likert scale we used Spearman rank correlation, "
+            "r(48) = .31, p = .03.")
+        self.assertEqual(findings, [])
+
+    def test_an_unstated_correlation_type_is_not_accused(self):
+        """`pearson` is the resolver's DEFAULT for a bare r, so acting on it accuses a guess.
+
+        MUTATION: drop the test_ambiguous guard from _pearson_on_ordinal -> fails.
+        """
+        _, findings = _findings(
+            "Satisfaction on a 5-point Likert scale correlated with age, r(48) = .31, p = .03.")
+        self.assertEqual(findings, [])
+
+    def test_the_claims_sentence_is_located_by_its_own_text_not_by_position(self):
+        """`claim.position` is relative to the SECTION it was extracted from, while callers hand
+        this module the whole manuscript. Indexing full text with a section-relative offset reads
+        an unrelated sentence -- verified: a claim at section-offset 74 resolved to
+        "Introduction." from 200 characters into the paper. A rule trusting that would quote one
+        part of a manuscript as evidence about another.
+
+        Here the ordinal cue sits ONLY in the far-away preamble, never beside the claim. A
+        position-based lookup lands in the preamble and fires; locating the claim by its own
+        raw_text lands on its real sentence, which has no cue, and stays silent.
+
+        MUTATION: revert _sentence_of to slicing on `position` -> fails.
+        """
+        from core.manuscript.appropriateness import _sentence_of
+
+        preamble = "Responses used a 5-point Likert scale throughout. " * 6
+        results = ("Age and reaction time were related using Pearson correlation, "
+                   "r(48) = .31, p = .03.")
+        full = preamble + results
+
+        claims = StatisticalClaimExtractor().extract(results, section="Results")
+        claim = claims[0]
+        self.assertLess(claim.position, len(results),
+                        "precondition: position is relative to the section, not the full text")
+
+        located = _sentence_of(full, claim)
+        self.assertIn("Pearson correlation", located,
+                      "the located sentence must be the claim's own")
+        self.assertNotIn("Likert", located,
+                         "a far-away sentence must not be read as the claim's own")
+
+        self.assertEqual(evaluate_claims(claims, manuscript_text=full, methods_text=""), [])
+
+    def test_a_disclosure_in_ordinary_prose_counts(self):
+        """The evidence patterns missed 6 of 7 normal phrasings, so papers that DID disclose were
+        told they had not -- a false accusation in the flagship verdict.
+
+        MUTATION: revert EVIDENCE_PATTERNS['normality'] to the named-tests-only form -> fails.
+        """
+        for phrasing in ("The normality assumption was met.",
+                         "Assumptions of normality were satisfied.",
+                         "Data were approximately normally distributed.",
+                         "The distribution did not deviate from normality."):
+            _, findings = _findings(
+                f"{phrasing} Participants (N = 18) completed it. An independent-samples t-test, "
+                f"t(16) = 2.10, p = .041.")
+            self.assertEqual(findings, [], f"false accusation despite: {phrasing}")
 
     def test_ordinal_cue_must_be_in_the_claims_own_sentence(self):
         """MUTATION: search the whole text for the ordinal cue -> the negative case fires, fails."""
         _, fires = _findings("Satisfaction was rated on a 5-point Likert scale and correlated "
-                             "with age, r(48) = .31, p = .03.")
+                             "with age using Pearson correlation, r(48) = .31, p = .03.")
         self.assertIn("PEARSON_ON_ORDINAL", [f.rule_id for f in fires])
 
         _, silent = _findings(

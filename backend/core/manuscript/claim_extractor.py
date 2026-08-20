@@ -390,6 +390,18 @@ _CHI_DESIGN_PATTERNS = (
 )
 
 
+# Correlation types. Same fabrication bug as t/F/chi-square, and the one I missed first time
+# round: any "r = ..." was hardcoded to "Pearson correlation", so a paper stating it used
+# Spearman was recorded as having used Pearson -- and then accused of it.
+_CORR_DESIGN_PATTERNS = (
+    ("Spearman correlation", re.compile(
+        r"spearman|rank[\s-]*order\s+correlation|rank\s+correlation", re.IGNORECASE)),
+    ("Kendall correlation", re.compile(r"kendall|\btau\b", re.IGNORECASE)),
+    ("Pearson correlation", re.compile(
+        r"pearson|product[\s-]*moment", re.IGNORECASE)),
+)
+
+
 def _design_from_context(text: str, start: int, end: int, patterns) -> str:
     """The design the PAPER states near this statistic, or "" if it states none.
 
@@ -887,7 +899,10 @@ class StatisticalClaimExtractor:
             claims.append(
                 StatisticalClaim(
                     claim_type=CLAIM_TYPE_R,
-                    test_name="Pearson correlation",
+                    # read the correlation type from the paper; "" when unstated, which
+                    # makes test_resolver mark it ambiguous rather than asserting Pearson.
+                    test_name=_design_from_context(text, m.start(), m.end(),
+                                                   _CORR_DESIGN_PATTERNS),
                     statistic_value=r_val,
                     statistic_raw=m.group(2),
                     p_value=p_val,

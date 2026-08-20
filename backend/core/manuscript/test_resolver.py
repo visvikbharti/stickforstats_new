@@ -63,6 +63,13 @@ def resolve_test(claim) -> TestResolution:
             return TestResolution("spearman", "correlation", False, "Spearman (from test_name)")
         if "kendall" in name:
             return TestResolution("kendall", "correlation", False, "Kendall (from test_name)")
+        # An explicitly STATED Pearson is not a default. This branch used to fall straight
+        # through to the defaulted return, so a paper that plainly said "Pearson correlation"
+        # was marked ambiguous -- the same "resolver ignores information it already has" gap
+        # fixed above for f_statistic. It matters now that rules refuse to act on an ambiguous
+        # resolution: without this, no correlation claim could ever be evaluated.
+        if "pearson" in name or "product-moment" in name or "product moment" in name:
+            return TestResolution("pearson", "correlation", False, "Pearson (from test_name)")
         return TestResolution("pearson", "correlation", True, "defaulted to Pearson correlation")
 
     if ct == "f_statistic":
