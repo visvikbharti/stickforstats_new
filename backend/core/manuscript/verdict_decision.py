@@ -54,10 +54,69 @@ def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
     return abs(r - c) <= rel_tol * max(abs(c), 1e-9)
 
 
+def expected_degrees_of_freedom(intended_test: Optional[str], spec) -> Optional[tuple]:
+    """The df the linked DATA implies for ``intended_test``, or None when not predictable.
+
+    This is the cheap, exact corroboration that the analysis we are about to re-run is the one
+    the authors actually reported. A paper reporting ``F(2, 45)`` whose linked data yield
+    ``F(2, 57)`` did not run the model we just ran -- most often because the paper reports a
+    factorial or repeated-measures ANOVA and ``test_resolver`` can only offer one-way, but a
+    mis-linked dataset produces the same signal, and both mean the same thing: we did not
+    reproduce THEIR analysis, so we may not call their numbers discrepant.
+
+    Returns None (no opinion) rather than guessing whenever df is not a deterministic function
+    of the data shape:
+      * Welch's t -- the Satterthwaite df depends on the variances, not just the counts;
+      * rank-based tests and correlations reported without df -- no conventional df.
+    """
+    if not intended_test or spec is None:
+        return None
+
+    groups = getattr(spec, "groups", None) or []
+    sizes = [len(g) for g in groups if g is not None]
+
+    if intended_test == "independent_t":
+        return (sizes[0] + sizes[1] - 2,) if len(sizes) >= 2 else None
+    if intended_test in ("paired_t", "one_sample_t"):
+        return (sizes[0] - 1,) if sizes else None
+    if intended_test == "one_way_anova":
+        if len(sizes) < 2:
+            return None
+        k, n_total = len(sizes), sum(sizes)
+        return (k - 1, n_total - k)
+    if intended_test == "pearson":
+        x = getattr(spec, "x", None)
+        return (len(x) - 2,) if x is not None and len(x) > 2 else None
+    if intended_test == "chi_square_independence":
+        table = getattr(spec, "table", None)
+        if table and len(table) > 1 and len(table[0]) > 1:
+            return ((len(table) - 1) * (len(table[0]) - 1),)
+        return None
+    # welch_t (Satterthwaite), mann_whitney_u, kruskal_wallis, spearman, kendall: not predictable
+    return None
+
+
+def df_corroborates_design(claimed_df, expected_df) -> Optional[bool]:
+    """Does the paper's reported df agree with the df its linked data implies?
+
+    True/False, or None when either side is unknown -- and None must never produce a finding,
+    the same three-state discipline as ``assumptions_reported``.
+    """
+    if not claimed_df or not expected_df:
+        return None
+    if len(claimed_df) != len(expected_df):
+        return None            # different shapes are not comparable; say nothing
+    try:
+        return all(int(c) == int(e) for c, e in zip(claimed_df, expected_df))
+    except (TypeError, ValueError):
+        return None
+
+
 def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_available: bool,
                    executed_ok: bool, assumptions_ok: Optional[bool],
                    statistic_match: Optional[bool],
-                   assumptions_reported: Optional[bool] = None) -> Verdict:
+                   assumptions_reported: Optional[bool] = None,
+                   df_matches_design: Optional[bool] = None) -> Verdict:
     """The §2 verdict-assignment precedence.
 
     Order matters:
@@ -66,8 +125,18 @@ def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_avail
       3. no data, assumptions undisclosed   -> ASSUMPTION_UNREPORTED  (T17; needs NO raw data)
       4. no data otherwise                  -> INSUFFICIENT_DATA      (still dominates)
       5. test couldn't execute on the data  -> INSUFFICIENT_DATA
-      6. assumptions of the used test fail  -> ASSUMPTION_VIOLATED (independent of p/stat match)
-      7. numbers reproduce                  -> VERIFIED  else DISCREPANT
+      6. reported df contradicts the data    -> INSUFFICIENT_DATA (we ran a DIFFERENT model)
+      7. assumptions of the used test fail  -> ASSUMPTION_VIOLATED (independent of p/stat match)
+      8. numbers reproduce                  -> VERIFIED  else DISCREPANT
+
+    ``df_matches_design`` is the same three-state shape (see ``df_corroborates_design``).
+    ``False`` means the df the authors reported is not the df their linked data implies, so the
+    model we just executed is not the model they described -- most often a factorial or
+    repeated-measures ANOVA that ``test_resolver`` could only offer as one-way. DISCREPANT
+    asserts "we ran YOUR test and got a different number"; when we did not run their test, that
+    assertion is false, and a confident false accusation is the most damaging output this engine
+    can produce. So it degrades to INSUFFICIENT_DATA, which is the honest answer. It suppresses
+    ASSUMPTION_VIOLATED too: an assumption report about the wrong model is equally meaningless.
 
     ``assumptions_reported`` is a THREE-state signal from
     ``assumption_reporting.detect_assumption_reporting``:
@@ -91,6 +160,8 @@ def assign_verdict(*, extraction_reliable: bool, test_resolved: bool, data_avail
             return Verdict.ASSUMPTION_UNREPORTED
         return Verdict.INSUFFICIENT_DATA
     if not executed_ok:
+        return Verdict.INSUFFICIENT_DATA
+    if df_matches_design is False:
         return Verdict.INSUFFICIENT_DATA
     if assumptions_ok is False:
         return Verdict.ASSUMPTION_VIOLATED

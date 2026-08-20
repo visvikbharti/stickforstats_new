@@ -28,7 +28,12 @@ from .assumption_reporting import (
     detect_assumption_reporting,
 )
 from .test_resolver import resolve_test
-from .verdict_decision import assign_verdict, statistic_matches
+from .verdict_decision import (
+    assign_verdict,
+    df_corroborates_design,
+    expected_degrees_of_freedom,
+    statistic_matches,
+)
 from .verdicts import ClaimVerdict, ClaimVerificationRequest, Verdict
 
 # statistics whose sign depends on an arbitrary group ordering -> compare magnitude
@@ -153,11 +158,26 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
                                getattr(claim, "statistic_raw", None),
                                symmetric=(intended in _SYMMETRIC_TESTS))
 
-    # 6. assign verdict (T19)
+    # 6. does the reported df match the df the linked data implies? A mismatch means we executed
+    #    a DIFFERENT model from the one the paper describes (a factorial/repeated-measures ANOVA
+    #    offered only as one-way, or a mis-linked dataset), so no comparison of ours is about
+    #    their analysis.
+    expected_df = expected_degrees_of_freedom(intended, spec)
+    df_ok = df_corroborates_design(getattr(claim, "df", None), expected_df)
+
+    # 7. assign verdict (T19)
     verdict = assign_verdict(extraction_reliable=True, test_resolved=True, data_available=True,
-                             executed_ok=True, assumptions_ok=assumptions_ok, statistic_match=smatch)
+                             executed_ok=True, assumptions_ok=assumptions_ok,
+                             statistic_match=smatch, df_matches_design=df_ok)
 
     notes = []
+    if df_ok is False:
+        notes.append(
+            f"not comparable: the manuscript reports df={tuple(claim.df)} but the linked data "
+            f"imply df={tuple(expected_df)} for {intended}. We therefore executed a different "
+            f"model from the one described, and make no claim about whether the reported "
+            f"numbers reproduce. Most often this means a factorial or repeated-measures design "
+            f"reported as a single F, or a mis-linked dataset.")
     if tr.ambiguous:
         notes.append(f"test design inferred: {tr.reason}")
     if verdict == Verdict.ASSUMPTION_VIOLATED and smatch:
