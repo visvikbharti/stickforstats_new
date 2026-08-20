@@ -398,14 +398,30 @@ def _design_from_context(text: str, start: int, end: int, patterns) -> str:
     and one of them (the assumption-disclosure audit) refuses to act on an ambiguous resolution
     precisely so that a guess can never become a finding about someone's paper.
 
-    `patterns` is an ORDERED tuple of (name, regex); the first match wins, so callers must put
-    the more specific designs first.
+    Scope is the claim's OWN SENTENCE first, and only then a bounded window -- and at either
+    level, if the text names MORE THAN ONE design, this returns "" rather than picking one.
+
+    Both halves of that are load-bearing, and a plain first-match-in-a-window is not enough. A
+    paper reading "Experiment 1 ... paired-samples t-test, t(23) = 3.10 ... Experiment 2 ... an
+    independent-samples t-test" put BOTH cues inside a 250-character window of the Experiment 1
+    claim; with patterns tried in a fixed order, "independent" won and a perfectly correct paired
+    t-test was mis-labelled -- which then made a downstream df rule fire on a correct paper. That
+    is the same non-sequitur as the document-level co-occurrence validator this work replaces,
+    just at a smaller radius. Proximity does not license picking one of two competing cues, so
+    ambiguity resolves to "" (design not stated), which every consumer treats as silence.
     """
-    window = text[max(0, start - T_DESIGN_CONTEXT): end + T_DESIGN_CONTEXT]
-    for name, pattern in patterns:
-        if pattern.search(window):
-            return name
-    return ""
+    def _named(scope: str) -> str:
+        hits = {name for name, pattern in patterns if pattern.search(scope)}
+        return hits.pop() if len(hits) == 1 else ""
+
+    sentence_start = text.rfind(".", 0, start) + 1
+    sentence_end = text.find(".", end)
+    sentence_end = len(text) if sentence_end == -1 else sentence_end + 1
+    named = _named(text[sentence_start:sentence_end])
+    if named:
+        return named
+
+    return _named(text[max(0, start - T_DESIGN_CONTEXT): end + T_DESIGN_CONTEXT])
 
 
 def _t_test_design_from_context(text: str, start: int, end: int) -> str:

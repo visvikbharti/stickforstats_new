@@ -1035,102 +1035,52 @@ class ReproducibilityValidator:
 
 
 class MethodologicalAppropriatenessValidator:
-    """Cross-check study design descriptors against statistical tests used.
+    """Adapter over the claim-level engine in ``appropriateness.py``.
 
-    Statistical rationale
-    ~~~~~~~~~~~~~~~~~~~~~
-    Using the wrong test for a given design can produce misleading results.
-    Common mismatches include using an independent-samples t-test on
-    repeated-measures data (which ignores within-subject correlation and
-    inflates error variance) or using Pearson's r on ordinal data (which
-    assumes interval-level measurement and linearity).
+    This class used to own five document-level co-occurrence checks -- booleans like
+    ``has_repeated_measures and has_independent_t`` over concatenated Methods+Results text,
+    each emitting a hardcoded ``confidence=0.80``. Executed against a textbook-correct
+    manuscript (Experiment 1 repeated-measures + paired t; Experiment 2 between-subjects +
+    independent t) it produced TWO "major" findings that contradicted each other, because
+    nothing tied a design cue to the analysis it belonged to.
 
-    Checks
-    ------
-    * "repeated measures" / "within-subjects" + independent t-test -> major
-    * "between-subjects" / "independent groups" + paired t-test -> major
-    * Ordinal data + Pearson correlation -> moderate (should be Spearman)
-    * Non-normal data + parametric test without justification -> moderate
-    * Small sample (< 20) + parametric without normality check -> moderate
+    The logic now lives in ``core.manuscript.appropriateness`` and is claim-level, so the
+    verifier pipeline and this legacy pipeline share ONE implementation. The class survives so
+    ``ALL_VALIDATORS``, ``_VALIDATOR_CATEGORY`` and the report shape are untouched -- it just
+    stops owning rules.
 
-    Severity mapping
-    ~~~~~~~~~~~~~~~~
-    * **major** -- clear design-test mismatch.
-    * **moderate** -- potential mismatch or missing justification.
+    What changed for callers: findings are now per-CLAIM, so an empty ``claims`` list yields no
+    findings. That is correct -- a claim-level rule has nothing to say about a document with no
+    extracted claims -- and it is why the two tests that called ``validate(text, [])`` had to be
+    rewritten to pass real claims.
+
+    Retired outright rather than ported: the "non-normal data + parametric test" check, whose
+    false-positive mode is unfixable at document scope (a paper correctly using Mann-Whitney for
+    its skewed variable AND ANOVA for its normal one satisfies the conjunction and gets flagged
+    for doing the right thing). ``assumption_reporting`` answers that question properly, per
+    claim, with an interlock. Also retired: ``_find_smallest_n``, which swept every
+    reported sample size across the whole manuscript and took the MINIMUM, so an "n = 12" aside flagged a
+    500-subject study; the claim's own ``sample_size`` is used instead.
     """
 
     VALIDATOR_NAME = "MethodologicalAppropriatenessValidator"
 
-    # Design descriptors
-    REPEATED_MEASURES_PATTERN = re.compile(
-        r"repeated[\s-]?measures|within[\s-]?subjects?|"
-        r"pre[\s-]?(?:test)?[\s-]?(?:and)?[\s-]?post[\s-]?(?:test)?|"
-        r"longitudinal\s+(?:design|study)|cross[\s-]?over",
-        re.IGNORECASE,
-    )
+    #: severity of a claim-level finding -> ValidatorFinding severity. Identity today; kept
+    #: explicit so a future rule severity cannot silently become an unknown string.
+    _SEVERITY_MAP = {"blocking": "blocking", "major": "major",
+                     "moderate": "moderate", "minor": "minor"}
 
-    BETWEEN_SUBJECTS_PATTERN = re.compile(
-        r"between[\s-]?(?:subjects?|groups?)|independent[\s-]?(?:groups?|samples?)",
-        re.IGNORECASE,
-    )
-
-    ORDINAL_DATA_PATTERN = re.compile(
-        r"ordinal\s+(?:data|variables?|scale|measure)|"
-        r"Likert[\s-]?(?:type|scale)|"
-        r"ranked?\s+(?:data|order|scale)",
-        re.IGNORECASE,
-    )
-
-    NON_NORMAL_PATTERN = re.compile(
-        r"non[\s-]?normal(?:ly)?\s+distribut|"
-        r"(?:Shapiro|Kolmogorov|Lilliefors|Anderson[\s-]?Darling)"
-        r"\s+(?:test|statistic)?\s*(?:was|were|indicated|showed|revealed|suggested)?"
-        r"\s*(?:significant|p\s*[<])",
-        re.IGNORECASE,
-    )
-
-    NORMALITY_CHECK_PATTERN = re.compile(
-        r"(?:Shapiro|Kolmogorov|Lilliefors|Anderson[\s-]?Darling)\s+test|"
-        r"normality\s+(?:was\s+)?(?:tested|checked|assessed|verified|examined)|"
-        r"(?:Q[\s-]?Q|quantile[\s-]?quantile)\s+plot|"
-        r"(?:skewness|kurtosis)\s+(?:was|were|values?)",
-        re.IGNORECASE,
-    )
-
-    NORMALITY_JUSTIFIED_PATTERN = re.compile(
-        r"central\s+limit\s+theorem|"
-        r"robust\s+to\s+(?:violations?\s+of\s+)?normality|"
-        r"(?:approximately|reasonably|sufficiently)\s+normal|"
-        r"normality\s+(?:assumption\s+)?(?:was\s+)?(?:met|satisfied|tenable)",
-        re.IGNORECASE,
-    )
-
-    # Test type patterns (for claims and text)
-    INDEPENDENT_T_PATTERN = re.compile(
-        r"independent[\s-]?samples?\s+t[\s-]?test|"
-        r"two[\s-]?sample\s+t[\s-]?test|"
-        r"(?:Student\'?s?\s+)?t[\s-]?test\s+for\s+independent",
-        re.IGNORECASE,
-    )
-
-    PAIRED_T_PATTERN = re.compile(
-        r"paired[\s-]?(?:samples?)?\s+t[\s-]?test|"
-        r"\bdependent[\s-]?samples?\s+t[\s-]?test|"
-        r"t[\s-]?test\s+for\s+(?:paired|dependent|related)",
-        re.IGNORECASE,
-    )
-
-    PEARSON_PATTERN = re.compile(
-        r"Pearson(?:\'?s?)?\s+(?:r|correlation|product[\s-]?moment)",
-        re.IGNORECASE,
-    )
-
-    PARAMETRIC_TESTS = re.compile(
-        r"(?:independent[\s-]?samples?\s+)?t[\s-]?test|"
-        r"ANOVA|analysis\s+of\s+variance|"
-        r"(?:Pearson|linear)\s+(?:correlation|regression)",
-        re.IGNORECASE,
-    )
+    #: EvidenceGrade -> the legacy ``confidence`` float, which ValidatorFinding requires.
+    #:
+    #: This is a LOSSY projection onto a field the legacy report shape demands, NOT a measured
+    #: probability -- the whole point of the new engine is that a rule cannot assert its own
+    #: confidence. The authoritative signal is the grade, which the adapter also writes into the
+    #: description. Read these as "how the finding was established", not "how likely the paper is
+    #: wrong": ARITHMETIC means the stated fact is a verified property of the reported numbers
+    #: (a df that matches no reading of the reported n), so the finding itself is certain even
+    #: though its importance is a judgement; DIRECT means a cue read from the claim's own
+    #: sentence; SCOPED means the surrounding section.
+    _GRADE_CONFIDENCE = {"arithmetic": 1.0, "direct": 0.75, "scoped": 0.5}
 
     def validate(
         self,
@@ -1138,213 +1088,26 @@ class MethodologicalAppropriatenessValidator:
         claims: list,
         sections: Optional[Dict[str, str]] = None,
     ) -> List[ValidatorFinding]:
-        """Cross-check design and test type.
+        """Run the shared claim-level engine and adapt its findings to ValidatorFinding."""
+        from .appropriateness import evaluate_claims
 
-        Parameters
-        ----------
-        manuscript_text : str
-            Full manuscript text.
-        claims : list
-            ``StatisticalClaim`` objects.
-        sections : dict, optional
-            Section name -> text mapping.
-
-        Returns
-        -------
-        List[ValidatorFinding]
-        """
+        methods_text = (sections or {}).get("methods", "") or ""
         findings: List[ValidatorFinding] = []
-
-        methods_text = ""
-        results_text = ""
-        if sections:
-            methods_text = sections.get("methods", "")
-            results_text = sections.get("results", "")
-        full_search = methods_text + " " + results_text
-        if not full_search.strip():
-            full_search = manuscript_text
-
-        # --- Check 1: Repeated measures + independent t-test ---
-        has_rm = bool(self.REPEATED_MEASURES_PATTERN.search(full_search))
-        has_indep_t = bool(self.INDEPENDENT_T_PATTERN.search(full_search))
-
-        if has_rm and has_indep_t:
-            rm_match = self.REPEATED_MEASURES_PATTERN.search(full_search)
-            evidence = _extract_context(full_search, rm_match.start(), radius=120)
+        for f in evaluate_claims(claims, manuscript_text=manuscript_text,
+                                 methods_text=methods_text):
             findings.append(
                 ValidatorFinding(
                     validator=self.VALIDATOR_NAME,
-                    severity="major",
-                    confidence=0.80,
-                    title="Repeated measures design with independent t-test",
-                    description=(
-                        "The manuscript describes a repeated-measures or "
-                        "within-subjects design but reports an independent-samples "
-                        "t-test. A paired-samples t-test or repeated-measures "
-                        "ANOVA would be more appropriate, as the independent "
-                        "t-test ignores the within-subject correlation."
-                    ),
-                    evidence=evidence,
-                    recommendation=(
-                        "Use a paired-samples t-test or repeated-measures ANOVA "
-                        "for within-subjects comparisons. If the independent "
-                        "t-test was intentional, provide justification."
-                    ),
-                    section="methods",
+                    severity=self._SEVERITY_MAP.get(f.severity, "minor"),
+                    confidence=self._GRADE_CONFIDENCE.get(f.grade.value, 0.5),
+                    title=f.title,
+                    description=f"{f.description} [evidence: {f.grade.value}; {f.citation}]",
+                    evidence=f.evidence,
+                    recommendation=f.recommendation,
+                    section=f.section,
                 )
             )
-
-        # --- Check 2: Between-subjects + paired t-test ---
-        has_between = bool(self.BETWEEN_SUBJECTS_PATTERN.search(full_search))
-        has_paired_t = bool(self.PAIRED_T_PATTERN.search(full_search))
-
-        if has_between and has_paired_t:
-            bs_match = self.BETWEEN_SUBJECTS_PATTERN.search(full_search)
-            evidence = _extract_context(full_search, bs_match.start(), radius=120)
-            findings.append(
-                ValidatorFinding(
-                    validator=self.VALIDATOR_NAME,
-                    severity="major",
-                    confidence=0.80,
-                    title="Between-subjects design with paired t-test",
-                    description=(
-                        "The manuscript describes a between-subjects or "
-                        "independent-groups design but reports a paired-samples "
-                        "t-test. An independent-samples t-test would be the "
-                        "standard choice for between-groups comparisons."
-                    ),
-                    evidence=evidence,
-                    recommendation=(
-                        "Use an independent-samples t-test for between-subjects "
-                        "comparisons. If the paired test was intentional (e.g. "
-                        "matched pairs), clarify the matching procedure."
-                    ),
-                    section="methods",
-                )
-            )
-
-        # --- Check 3: Ordinal data + Pearson correlation ---
-        has_ordinal = bool(self.ORDINAL_DATA_PATTERN.search(full_search))
-        has_pearson = bool(self.PEARSON_PATTERN.search(full_search))
-
-        if has_ordinal and has_pearson:
-            ord_match = self.ORDINAL_DATA_PATTERN.search(full_search)
-            evidence = _extract_context(full_search, ord_match.start(), radius=120)
-            findings.append(
-                ValidatorFinding(
-                    validator=self.VALIDATOR_NAME,
-                    severity="moderate",
-                    confidence=0.75,
-                    title="Pearson correlation with ordinal data",
-                    description=(
-                        "The manuscript describes ordinal-level data (e.g. "
-                        "Likert-type scales) but uses Pearson's correlation, "
-                        "which assumes interval-level measurement. Spearman's "
-                        "rho or Kendall's tau may be more appropriate."
-                    ),
-                    evidence=evidence,
-                    recommendation=(
-                        "Consider using Spearman's rank correlation (rho) or "
-                        "Kendall's tau for ordinal data. If Pearson's r is "
-                        "used intentionally, justify the interval-level "
-                        "assumption."
-                    ),
-                    section="methods",
-                )
-            )
-
-        # --- Check 4: Non-normal data + parametric test without justification ---
-        has_nonnormal = bool(self.NON_NORMAL_PATTERN.search(full_search))
-        has_parametric = bool(self.PARAMETRIC_TESTS.search(full_search))
-        has_justification = bool(self.NORMALITY_JUSTIFIED_PATTERN.search(full_search))
-
-        if has_nonnormal and has_parametric and not has_justification:
-            nn_match = self.NON_NORMAL_PATTERN.search(full_search)
-            evidence = _extract_context(full_search, nn_match.start(), radius=120)
-            findings.append(
-                ValidatorFinding(
-                    validator=self.VALIDATOR_NAME,
-                    severity="moderate",
-                    confidence=0.70,
-                    title="Parametric test with non-normal data",
-                    description=(
-                        "The manuscript indicates that data are non-normally "
-                        "distributed but uses a parametric test without "
-                        "justifying robustness to the normality violation."
-                    ),
-                    evidence=evidence,
-                    recommendation=(
-                        "Either use a non-parametric alternative (e.g. "
-                        "Mann-Whitney U, Kruskal-Wallis, Wilcoxon signed-rank) "
-                        "or justify why the parametric test is robust in this "
-                        "context (e.g. due to the central limit theorem with "
-                        "sufficiently large N)."
-                    ),
-                    section="methods",
-                )
-            )
-
-        # --- Check 5: Small sample + parametric without normality check ---
-        smallest_n = self._find_smallest_n(claims, manuscript_text)
-        has_normality_check = bool(self.NORMALITY_CHECK_PATTERN.search(full_search))
-
-        if (
-            smallest_n is not None
-            and smallest_n < 20
-            and has_parametric
-            and not has_normality_check
-            and not has_justification
-        ):
-            findings.append(
-                ValidatorFinding(
-                    validator=self.VALIDATOR_NAME,
-                    severity="moderate",
-                    confidence=0.70,
-                    title="Small sample parametric test without normality check",
-                    description=(
-                        f"A parametric test is used with a small sample "
-                        f"(N = {smallest_n} < 20) but no normality check "
-                        f"(e.g. Shapiro-Wilk test, Q-Q plot) or justification "
-                        f"was detected. With small samples, parametric tests "
-                        f"are sensitive to non-normality."
-                    ),
-                    evidence=f"N = {smallest_n}",
-                    recommendation=(
-                        "Verify normality using the Shapiro-Wilk test or "
-                        "inspection of Q-Q plots before applying parametric "
-                        "tests with small samples. Alternatively, use "
-                        "non-parametric tests."
-                    ),
-                    section="methods",
-                )
-            )
-
         return findings
-
-    def _find_smallest_n(
-        self,
-        claims: list,
-        manuscript_text: str,
-    ) -> Optional[int]:
-        """Extract the smallest sample size from claims or text."""
-        sample_sizes: List[int] = []
-        for claim in claims:
-            n = getattr(claim, "sample_size", None)
-            if n is not None and n > 0:
-                sample_sizes.append(n)
-            groups = getattr(claim, "group_sizes", None)
-            if groups:
-                sample_sizes.extend(g for g in groups if g > 0)
-
-        for m in re.finditer(r"(?<![A-Za-z])[Nn]\s*=\s*(\d+)", manuscript_text):
-            try:
-                val = int(m.group(1))
-                if 2 <= val <= 10000:
-                    sample_sizes.append(val)
-            except (ValueError, IndexError):
-                pass
-
-        return min(sample_sizes) if sample_sizes else None
 
 
 # ============================================================================
