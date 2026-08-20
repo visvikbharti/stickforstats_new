@@ -2475,7 +2475,17 @@ class HomoscedasticityValidator:
                 "severity": severity,
                 "p_value": float(p_value),
                 "statistic": float(bp_statistic),
-                "message": f"Homoscedasticity violated (BP test p={p_value:.4f}, variance ratio={var_ratio:.2f})",
+                # var_ratio is None on an intended path (see above) -- formatting it unguarded
+                # raised TypeError out of validate(), which the validator loop does not catch, so
+                # the whole /api/guardian/check/ request 500'd. Say what is true instead.
+                "message": (
+                    f"Homoscedasticity violated (BP test p={p_value:.4f}, "
+                    f"variance ratio={var_ratio:.2f})"
+                    if var_ratio is not None else
+                    f"Homoscedasticity violated (BP test p={p_value:.4f}; variance ratio not "
+                    f"computable — one half of the fitted range has zero residual variance, so "
+                    f"the violation is real but its severity is not graded)"
+                ),
                 "recommendation": "Consider weighted least squares, robust regression, or transformation",
                 "visual_data": {
                     "fitted_values": y_pred.tolist(),
