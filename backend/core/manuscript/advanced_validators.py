@@ -670,9 +670,9 @@ class PowerReportingValidator:
     )
 
     # Pattern for small sample sizes
-    SMALL_N_PATTERN = re.compile(
-        r"(?<![A-Za-z])[Nn]\s*=\s*(\d+)",
-    )
+    # SMALL_N_PATTERN (a bare `N = <int>` sweep of the whole manuscript) is deleted rather
+    # than left unused: it is the thing that produced the unattributable minimum, and leaving
+    # a loaded regex lying next to a validator invites its reuse.
 
     SMALL_N_THRESHOLD = 30
 
@@ -724,8 +724,9 @@ class PowerReportingValidator:
             )
             return findings
 
-        # No power analysis found -- check for small N
-        smallest_n = self._find_smallest_n(claims, manuscript_text)
+        # No power analysis found -- is any ANALYSIS small? Read that from the claims' own
+        # degrees of freedom, which the authors reported and which belong to one analysis.
+        smallest_n, small_claim = self._smallest_analysis_n(claims)
 
         if smallest_n is not None and smallest_n < self.SMALL_N_THRESHOLD:
             findings.append(
@@ -733,14 +734,20 @@ class PowerReportingValidator:
                     validator=self.VALIDATOR_NAME,
                     severity="major",
                     confidence=0.85,
-                    title="Small sample with no power justification",
+                    title="Small analysis with no power justification",
                     description=(
-                        f"The smallest sample size detected is N = {smallest_n} "
-                        f"(below the threshold of {self.SMALL_N_THRESHOLD}), "
-                        f"and no power analysis or sample-size justification "
-                        f"was found. The study may be underpowered."
+                        f"The smallest analysis in this manuscript rests on at most "
+                        f"{smallest_n} observations, derived from its own reported degrees of "
+                        f"freedom, which is below {self.SMALL_N_THRESHOLD} -- and no power "
+                        f"analysis or sample-size justification was found. This is a statement "
+                        f"about THIS analysis, not about the study as a whole: a large trial "
+                        f"may legitimately contain a small sub-analysis, but that analysis "
+                        f"still needs a justification."
                     ),
-                    evidence=f"N = {smallest_n}",
+                    # Quote the claim itself. The previous version synthesised "N = 3" from a
+                    # document-wide minimum, which an author could not trace to any sentence --
+                    # and which was routinely a replicate count rather than an analysis N.
+                    evidence=(getattr(small_claim, "raw_text", "") or "")[:200],
                     recommendation=(
                         "Report an a-priori power analysis (e.g. from G*Power) "
                         "specifying the expected effect size, desired power "
@@ -775,33 +782,65 @@ class PowerReportingValidator:
 
         return findings
 
-    def _find_smallest_n(
-        self,
-        claims: list,
-        manuscript_text: str,
-    ) -> Optional[int]:
-        """Find the smallest reported sample size from claims or text."""
-        sample_sizes: List[int] = []
+    #: Claim types whose degrees of freedom DETERMINE the size of the analysis, so that
+    #: ``sum(df) + 1`` is a guaranteed lower bound on the number of observations:
+    #:
+    #:     independent t        df = n1 + n2 - 2  -> N = df + 2
+    #:     paired/one-sample t  df = n - 1        -> N = df + 1
+    #:     one-way ANOVA        df = (k-1, N-k)   -> N = df1 + df2 + 1
+    #:     Pearson r            df = n - 2        -> N = df + 2
+    #:
+    #: A chi-square is deliberately absent: its df is ``(r-1)(c-1)``, a property of the TABLE
+    #: SHAPE that says nothing whatsoever about N. Welch is covered by ``t_statistic`` because
+    #: its Satterthwaite df, however the variances fall, never exceeds n1 + n2 - 2 -- so
+    #: ``df + 1`` remains a LOWER bound, which is the only direction this rule relies on.
+    _DF_DETERMINES_N = frozenset({"t_statistic", "f_statistic", "r_value"})
 
-        # From claims
-        for claim in claims:
-            n = getattr(claim, "sample_size", None)
-            if n is not None and n > 0:
-                sample_sizes.append(n)
-            groups = getattr(claim, "group_sizes", None)
-            if groups:
-                sample_sizes.extend(g for g in groups if g > 0)
+    def _smallest_analysis_n(self, claims: list):
+        """Lower bound on the smallest ANALYSIS size, read from each claim's own df.
 
-        # From text patterns
-        for m in self.SMALL_N_PATTERN.finditer(manuscript_text):
+        This replaces a sweep for ``N = <int>`` across the whole manuscript that took the
+        MINIMUM. That number was attributable to nothing: executed, a 512-participant
+        randomised trial mentioning a pilot on "n = 12 volunteers" and assays run in "n = 3
+        technical replicates" was reported as ``severity=major, evidence="N = 3", "The smallest
+        sample size detected is N = 3 ... The study may be underpowered."`` Removing those two
+        incidental sentences dropped the identical manuscript to ``moderate``, so the accusation
+        was entirely the aside's doing. The evidence field was the synthesised string "N = 3"
+        rather than a quotation, so an author could not even trace it back to a sentence.
+
+        The claim's own ``sample_size`` is no better: ``appropriateness.py`` retired
+        ``DF_CONTRADICTS_REPORTED_N`` for exactly this reason -- that field is "as likely to be
+        an attrition count, a subgroup, an imaging subset or 'n = 3 replicates' as the analysis
+        N", which it called fatal and unpatchable.
+
+        Degrees of freedom are different in kind. The authors report them AS PART OF THE
+        STATISTIC, they belong to one specific analysis, and for the tests above they pin its
+        size arithmetically. It is the same distinction ``verdict_decision`` already draws when
+        it compares a reported df against the shape of the linked data: a df is evidence, a
+        nearby ``N =`` token is not.
+
+        Returns ``(n_lower, claim)`` for the smallest qualifying analysis, or ``(None, None)``
+        when no claim carries a usable df -- in which case this validator says nothing about
+        size at all, which is the honest outcome rather than a guess.
+        """
+        smallest = None
+        for claim in claims or []:
+            if getattr(claim, "claim_type", "") not in self._DF_DETERMINES_N:
+                continue
+            df = getattr(claim, "df", None)
+            if df is None:
+                continue
+            parts = df if isinstance(df, (list, tuple)) else [df]
             try:
-                val = int(m.group(1))
-                if 2 <= val <= 10000:  # reasonable range
-                    sample_sizes.append(val)
-            except (ValueError, IndexError):
-                pass
-
-        return min(sample_sizes) if sample_sizes else None
+                total = sum(float(p) for p in parts)
+            except (TypeError, ValueError):
+                continue
+            if total <= 0:
+                continue
+            n_lower = int(total) + 1
+            if smallest is None or n_lower < smallest[0]:
+                smallest = (n_lower, claim)
+        return smallest if smallest is not None else (None, None)
 
 
 # ============================================================================

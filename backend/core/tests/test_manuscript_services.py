@@ -895,6 +895,12 @@ class TestAdvancedValidators(unittest.TestCase):
             statistic_value=2.0,
             p_value=0.05,
             sample_size=15,
+            # The df is what makes this analysis small, and a real extracted claim always
+            # carries it: the extractor returns df=(13,) for this exact sentence. The fixture
+            # omitted it and set only `sample_size`, so it exercised the document-wide-minimum
+            # path that has now been retired -- it was less faithful to production than the
+            # code it tested.
+            df=(13,),
             raw_text="t(13) = 2.0, p = .05",
             location="results",
             position=0,
@@ -1116,6 +1122,7 @@ class TestAdvancedValidators(unittest.TestCase):
             statistic_value=2.0,
             p_value=0.05,
             sample_size=10,
+            df=(8,),          # as the extractor really produces it; see the note above
             raw_text="t(8) = 2.0, p = .05",
             location="results",
             position=0,
