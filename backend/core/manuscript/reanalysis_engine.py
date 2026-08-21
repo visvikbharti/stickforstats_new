@@ -246,8 +246,16 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         statistic_match=smatch,
         p_match=pmatch,
         deltas={"claimed": getattr(claim, "statistic_value", None), "recomputed": float(tres.statistic)},
-        assumptions_checked=res.guardian_report is not None,
-        assumptions_satisfied=assumptions_ok,
+        # Did Guardian actually EXAMINE anything? This was `res.guardian_report is not None`,
+        # i.e. "a report object exists" -- which is true even when every requirement came back
+        # not_applicable. Guardian now reports what it evaluated rather than what the test
+        # declares, so this can finally be answered honestly instead of assumed.
+        assumptions_checked=bool((res.guardian_report or {}).get("assumptions_checked")),
+        # ...and with nothing examined there is no opinion to give. `assign_verdict` only acts
+        # on `assumptions_ok is False`, so None neither blocks VERIFIED nor forges a clean bill;
+        # it stops the verdict asserting that assumptions hold on the strength of no evidence.
+        assumptions_satisfied=(assumptions_ok if (res.guardian_report or {}).get(
+            "assumptions_checked") else None),
         # Now that the disclosure audit is hoisted out of the no-data branch, this branch KNOWS
         # the answer. It was previously left None on every re-analysed claim -- a field declared,
         # persisted and rendered, and never assigned on the path that matters most. It is

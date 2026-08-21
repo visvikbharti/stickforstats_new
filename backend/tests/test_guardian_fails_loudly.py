@@ -140,10 +140,17 @@ class EmptyAndSingletonInputFailsLoudly(SimpleTestCase):
         )
         self.assertTrue(report.can_proceed)
         self.assertEqual(report.violations, [])
+        # `independence` is REQUIRED by a t-test but is not evaluated here: the lag-1
+        # autocorrelation test only runs when the caller declares the rows are ordered, and
+        # this call does not. It used to be listed as checked anyway, because
+        # `assumptions_checked` was the requirements list rather than a record of what ran --
+        # so this assertion pinned the defect as the specification. The two lists together
+        # still reconstruct the requirements; only the claim about what we DID has changed.
         self.assertEqual(
             report.assumptions_checked,
-            ["normality", "variance_homogeneity", "independence", "outliers"],
+            ["normality", "variance_homogeneity", "outliers"],
         )
+        self.assertEqual(report.assumptions_not_evaluated, ["independence"])
 
 
 class UnknownTestTypeFailsLoudly(SimpleTestCase):
@@ -177,23 +184,88 @@ class UnknownTestTypeFailsLoudly(SimpleTestCase):
             with self.assertRaises(UnknownTestTypeError):
                 self.guardian.check(test_type=bad, data=self.data)
 
-    def test_no_test_type_produces_zero_checks_with_full_confidence(self):
-        """The core invariant: an accepted test_type must check something.
+    #: Test types that examine NOTHING when handed two plain numeric groups with no
+    #: observation_order. This is a property of (test type x THIS data), not of the test type
+    #: alone -- verified: chi_square on the same numeric groups examines nothing, while
+    #: chi_square with a declared {"observed": [[...]]} table examines Cochran's rule at
+    #: confidence 1.0. Two distinct causes:
+    #:
+    #:   * the eight modelling tests whose ONLY declared requirement is `independence`, which
+    #:     is evaluated only when the caller declares the rows are ordered. These are a real
+    #:     PRODUCT GAP: we offer survival, Cox, IV, PSM and DiD with no assumption validation
+    #:     behind them at all.
+    #:   * the chi-square / Fisher family, which is being called with the wrong payload here.
+    #:     Nothing is wrong with the test; the caller has not supplied a table.
+    #:
+    #: The set exists so neither cause can grow in silence. Shrinking it is progress.
+    EXAMINE_NOTHING_ON_PLAIN_NUMERIC_GROUPS = {
+        # no validation behind these at all -- a product gap, not a caller error
+        "bayesian_correlation", "cox_regression", "did", "difference_in_differences",
+        "iv", "propensity_score", "psm", "survival",
+        # need a declared contingency table; correct to examine nothing without one
+        "chi2", "chi2_contingency", "chi_square", "chi_squared", "chisquare",
+        "chi_square_goodness_of_fit", "chi_square_independence",
+        "fisher_exact", "fisher_exact_test", "fishers_exact",
+    }
 
-        This is the property the defect violated: 'correlation' was accepted
-        and returned assumptions_checked == [] with confidence_score == 1.0.
+    def test_no_test_type_certifies_without_having_checked(self):
+        """The core invariant, restated so it cannot be satisfied by a LABEL.
+
+        The original form asserted ``len(report.assumptions_checked) > 0``. It passed for every
+        test type -- including the eight that examine nothing -- because
+        ``assumptions_checked`` was populated from the REQUIREMENTS list, so it was never empty
+        no matter what ran. **The test written to catch this defect was defeated by the very
+        lie it was written to detect.** Its own docstring named the property ("'correlation' was
+        accepted and returned assumptions_checked == [] with confidence_score == 1.0") while
+        asserting a value that could not express it.
+
+        Now ``assumptions_checked`` records what was EXAMINED, so the honest invariant is: a
+        report either examined something, or says so unmistakably. A caller must never be able
+        to read an absence of evidence as a clean bill.
+
+        MUTATION: drop the `none_evaluated` warning from guardian_core -> confidence returns to
+        1.0 for the eight and this fails. MUTATION: revert `assumptions_checked` to the
+        requirements list -> the membership assertion fails, because
+        types that examine nothing would once again look as though they had.
         """
+        examined_nothing = set()
         for test_type in self.guardian.known_test_types():
             report = self.guardian.check(test_type=test_type, data=self.data)
-            self.assertGreater(
-                len(report.assumptions_checked),
-                0,
-                msg=(
-                    f"test_type={test_type!r} was accepted but checked "
-                    f"nothing (confidence_score="
-                    f"{report.confidence_score})"
-                ),
+
+            # every name we claim to have checked must be backed by a real audit entry
+            really_ran = {
+                e.assumption for e in report.audit_trail
+                if e.result in ("pass", "violation")
+            }
+            self.assertEqual(
+                set(report.assumptions_checked) - really_ran, set(),
+                msg=f"test_type={test_type!r} claims a check its audit trail does not record",
             )
+
+            if report.assumptions_checked:
+                continue
+
+            examined_nothing.add(test_type)
+            # Examined nothing -> this must be unmistakable, in three independent ways.
+            self.assertTrue(
+                report.assumptions_not_evaluated,
+                msg=f"test_type={test_type!r} examined nothing and did not say what it skipped",
+            )
+            self.assertLess(
+                report.confidence_score, 1.0,
+                msg=f"test_type={test_type!r} examined nothing at full confidence",
+            )
+            self.assertTrue(
+                any(v.assumption == "none_evaluated" for v in report.violations),
+                msg=f"test_type={test_type!r} examined nothing without saying so",
+            )
+
+        self.assertEqual(
+            examined_nothing, self.EXAMINE_NOTHING_ON_PLAIN_NUMERIC_GROUPS,
+            msg="the set of test types with no real assumption validation has CHANGED. If it "
+                "shrank, delete the entry and celebrate. If it grew, a test is now offered with "
+                "nothing behind it.",
+        )
 
     def test_the_two_strings_the_audit_found_now_run_real_checks(self):
         for test_type in ("correlation", "pearson_correlation"):
@@ -220,8 +292,9 @@ class UnknownTestTypeFailsLoudly(SimpleTestCase):
         report = self.guardian.check(test_type="welch_t", data=self.data)
         self.assertEqual(
             report.assumptions_checked,
-            ["normality", "variance_homogeneity", "independence", "outliers"],
+            ["normality", "variance_homogeneity", "outliers"],
         )
+        self.assertEqual(report.assumptions_not_evaluated, ["independence"])
 
     def test_design_naming_aliases_keep_their_design(self):
         """"paired_t" must not be validated as an independent-samples test."""

@@ -206,6 +206,11 @@ class GuardianReport:
     effect_size_report: Optional[Dict[str, Any]] = None
     audit_trail: List[GuardianAuditEntry] = field(default_factory=list)
     context_adjustments_applied: bool = False
+    #: Assumptions this test REQUIRES that were not actually evaluated on this data --
+    #: a validator that declined (independence on non-sequential rows), one with nothing to
+    #: compare against, or one with no implementation. Unchecked is NOT satisfied, and the
+    #: distinction has to survive into the report or the caller cannot make it.
+    assumptions_not_evaluated: List[str] = field(default_factory=list)
 
 
 class ContextualSeverityAdjuster:
@@ -469,6 +474,51 @@ class GuardianCore:
     # ``_check_contingency``, which builds its own report from the observed
     # table rather than from ``analysis_arrays``.
     _SPECIALLY_DISPATCHED_REQUIREMENTS = frozenset({"expected_frequencies"})
+
+    #: Audit-trail results that mean an assumption was genuinely EXAMINED on this data.
+    #: Anything else -- "not_applicable" (the validator declined), "skipped" (no validator),
+    #: "not_performed" (the input could not support the check) -- means it was not.
+    _EVALUATED_RESULTS = frozenset({"pass", "violation"})
+
+    @staticmethod
+    def _partition_by_what_actually_ran(requirements, audit_trail):
+        """Split declared requirements into (evaluated, not_evaluated) using the AUDIT TRAIL.
+
+        ``assumptions_checked`` used to be the declared ``test_requirements`` list, which is a
+        statement about what the test NEEDS, published as though it were a statement about what
+        we DID. Executed against this class, 22 of 25 test types listed ``independence`` as
+        checked while the trail recorded ``not_applicable`` -- the lag-1 autocorrelation test
+        only runs when the caller declares the rows are ordered, which almost no caller does.
+        ``_check_contingency`` was blunter still: it appends an audit entry explicitly recording
+        independence as not_applicable, with a comment reading "Say so, rather than certifying
+        an untested assumption as 'satisfied'", and then listed it in ``assumptions_checked``
+        anyway. The function contradicted itself in the space of thirty lines.
+
+        This is the ``similar_shapes`` defect in its general form. That one was a requirement
+        with no validator; ``_assert_every_requirement_is_implemented`` now makes THAT
+        unrepresentable. But a validator that exists and DECLINES leaves exactly the same
+        residue -- a name in ``assumptions_checked``, no violation because nothing ran, and full
+        confidence -- and no construction-time check can see it, because whether a validator
+        declines depends on the DATA.
+
+        The three existing repairs (``variance_homogeneity`` and ``similar_shapes`` dropped for
+        paired designs, ``expected_frequencies`` dropped without a declared table) are each a
+        hand-written ``requirements.remove(...)`` for one known case. They stay -- they also
+        stop a meaningless validator running -- but the label no longer depends on someone
+        remembering to add a fourth. The trail records every requirement the loop touched, so
+        reading the answer off it cannot miss a case.
+        """
+        result_by_assumption = {}
+        for entry in audit_trail:
+            # A requirement is evaluated if ANY entry for it shows real work. (Nothing emits
+            # two entries per assumption today; `or` keeps this correct if something ever does.)
+            evaluated = entry.result in GuardianCore._EVALUATED_RESULTS
+            result_by_assumption[entry.assumption] = (
+                result_by_assumption.get(entry.assumption, False) or evaluated
+            )
+        checked = [r for r in requirements if result_by_assumption.get(r, False)]
+        not_evaluated = [r for r in requirements if not result_by_assumption.get(r, False)]
+        return checked, not_evaluated
 
     def _assert_every_requirement_is_implemented(self) -> None:
         """Fail at construction if a declared assumption has no implementation.
@@ -1124,10 +1174,61 @@ class GuardianCore:
         except Exception as e:
             warnings.warn(f"Failed to calculate effect sizes: {str(e)}")
 
+        checked, not_evaluated = self._partition_by_what_actually_ran(
+            requirements, audit_trail)
+
+        # NOTHING was evaluated. An empty `assumptions_checked` beside confidence 1.000 and
+        # can_proceed True is indistinguishable from a test that passed everything, and it is
+        # reachable over the live endpoint: POST /api/guardian/check/ with test_type
+        # "cox_regression" (or survival / iv / psm / propensity_score / did /
+        # difference_in_differences / bayesian_correlation) returned exactly that.
+        #
+        # Say it out loud, in the same shape as the expected-frequency case above: a WARNING
+        # violation, which lowers the confidence score away from a clean bill without touching
+        # can_proceed -- the caller is not doing anything forbidden, we simply have no evidence
+        # about them. Deliberately scoped to "nothing ran at all" rather than "something was
+        # skipped": firing it whenever independence is unevaluated would re-rate almost every
+        # check the product performs, which is a far larger behavioural change than the defect
+        # warrants, and the truthful `assumptions_not_evaluated` list already carries that case.
+        if requirements and not checked:
+            violations.append(
+                AssumptionViolation(
+                    assumption="none_evaluated",
+                    test_name="No assumption check could be performed",
+                    severity="warning",
+                    p_value=None,
+                    statistic=None,
+                    message=(
+                        f"NONE of the assumptions required for '{test_type}' were evaluated on "
+                        f"this data ({', '.join(not_evaluated)}). This report therefore says "
+                        f"nothing about whether they hold: it is an absence of evidence, not a "
+                        f"clean bill of health."
+                    ),
+                    recommendation=(
+                        "Treat these assumptions as UNVERIFIED. Where a check is available but "
+                        "declined, supply what it needs -- e.g. pass observation_order="
+                        "'sequential' for independence when the rows are genuinely ordered."
+                    ),
+                    visual_evidence=None,
+                )
+            )
+            audit_trail.append(
+                GuardianAuditEntry(
+                    timestamp=now_iso,
+                    assumption="none_evaluated",
+                    test_performed="No assumption check could be performed",
+                    result="not_performed",
+                    severity="warning",
+                    p_value=None,
+                )
+            )
+            confidence = self._calculate_confidence(violations)
+
         return GuardianReport(
             test_type=test_type,
             data_summary=self._summarize_data(data_arrays),
-            assumptions_checked=requirements,
+            assumptions_checked=checked,
+            assumptions_not_evaluated=not_evaluated,
             violations=violations,
             can_proceed=can_proceed,
             alternative_tests=alternatives,
@@ -1325,7 +1426,12 @@ class GuardianCore:
                 "min_expected_frequency": round(min_expected, 4),
                 "cells_below_5": cells_below_5,
             },
-            assumptions_checked=["expected_frequencies", "independence"],
+            # Read off the trail, like the main path: this function records independence as
+            # not_applicable two dozen lines above and used to list it here regardless.
+            **dict(zip(
+                ("assumptions_checked", "assumptions_not_evaluated"),
+                self._partition_by_what_actually_ran(
+                    ["expected_frequencies", "independence"], audit_trail))),
             violations=violations,
             can_proceed=not any(v.severity == "critical" for v in violations),
             alternative_tests=alternatives,

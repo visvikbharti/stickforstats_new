@@ -638,6 +638,12 @@ class AutonomousCascadeEngine:
             "can_proceed": report.can_proceed,
             "confidence_score": report.confidence_score,
             "assumptions_checked": report.assumptions_checked,
+            # Required but NOT examined on this data. Without it the dict cannot express the
+            # difference between "checked and clean" and "nothing ran", and every downstream
+            # consumer -- reanalysis_engine sets `assumptions_checked=True` on the mere
+            # existence of this dict -- was forced to guess. The audit trail itself stays out:
+            # it is unbounded and per-claim, and this is the only bit of it callers act on.
+            "assumptions_not_evaluated": list(report.assumptions_not_evaluated or []),
             "violations": [
                 {
                     "assumption": v.assumption,

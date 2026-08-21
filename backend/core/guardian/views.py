@@ -104,6 +104,11 @@ class GuardianCheckView(APIView):
             "test_type": report.test_type,
             "data_summary": report.data_summary,
             "assumptions_checked": report.assumptions_checked,
+            # What the test REQUIRES but we could not examine on this data. `assumptions_checked`
+            # used to be the requirements list itself, so this endpoint reported assumptions as
+            # checked that nothing had looked at -- independence on 22 of 25 test types. The two
+            # lists are now disjoint and together they reconstruct the requirements.
+            "assumptions_not_evaluated": report.assumptions_not_evaluated,
             "violations": [
                 {
                     "assumption": v.assumption,

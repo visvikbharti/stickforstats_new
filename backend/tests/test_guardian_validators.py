@@ -469,7 +469,13 @@ class GuardianCoreIntegrationTests(TestCase):
         strongly autocorrelated data (which would flag if lag-1 ran)."""
         data = self._ar1_groups()
         report = self.guardian.check(data, "t_test")
-        self.assertIn("independence", report.assumptions_checked)
+        # "Referred to study design" means NOT EXAMINED, so it belongs in the not-evaluated
+        # list. This assertion used to read `assertIn("independence", assumptions_checked)`,
+        # directly contradicting the audit-trail assertion four lines below, which this same
+        # test has always made: result == "not_applicable". The test recorded the contradiction
+        # without noticing it -- the trail knew the truth while the label said otherwise.
+        self.assertNotIn("independence", report.assumptions_checked)
+        self.assertIn("independence", report.assumptions_not_evaluated)
         violated = {v.assumption for v in report.violations}
         self.assertNotIn("independence", violated)
         # audit trail records it as not_applicable rather than pass/violation
