@@ -81,6 +81,12 @@ def decimals_from_token(token, is_p: bool) -> Optional[int]:
     [2.825e-91, 2.835e-91], i.e. a half-width of 0.5e-93 -> 93 decimal places.
     A positive exponent yields a NEGATIVE result, which is correct and intended:
     "2.83e5" is 283000 known to 3 significant digits, half-width 500.
+
+    That interval is what the TOKEN states, and it is what ``classify`` enforces. It is NOT what
+    ``verdict_decision.p_matches`` enforces: that path compares against a p recomputed from
+    re-run DEPOSITED data and floors the half-width at REANALYSIS_P_REL_FLOOR of the reported
+    value, because deposited tables are rounded. Do not read this docstring as a statement about
+    the tolerance any particular caller applies.
     """
     if token is None:
         return None
