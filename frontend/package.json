@@ -62,7 +62,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings 1064"
+    "lint": "node scripts/lint-ratchet.js",
+    "lint:baseline": "node scripts/lint-ratchet.js --update-baseline"
   },
   "eslintConfig": {
     "extends": [
@@ -70,27 +71,34 @@
       "react-app/jest"
     ],
     "rules": {
-      "no-unused-vars": ["warn", {
-        "varsIgnorePattern": "^_",
-        "args": "none",
-        "destructuredArrayIgnorePattern": "^_",
-        "caughtErrors": "none"
-      }],
-      "@typescript-eslint/no-unused-vars": ["warn", {
-        "varsIgnorePattern": "^_",
-        "args": "none",
-        "destructuredArrayIgnorePattern": "^_",
-        "caughtErrors": "none"
-      }],
-      "no-use-before-define": ["error", {
-        "functions": false,
-        "classes": false,
-        "variables": false
-      }]
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "varsIgnorePattern": "^_",
+          "args": "none",
+          "destructuredArrayIgnorePattern": "^_",
+          "caughtErrors": "none"
+        }
+      ],
+      "no-use-before-define": [
+        "error",
+        {
+          "functions": false,
+          "classes": false,
+          "variables": false
+        }
+      ]
     },
     "overrides": [
       {
-        "files": ["**/*.test.js", "**/*.test.jsx", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
+        "files": [
+          "**/*.test.js",
+          "**/*.test.jsx",
+          "**/*.test.ts",
+          "**/*.test.tsx",
+          "**/__tests__/**"
+        ],
         "rules": {
           "testing-library/no-node-access": "warn",
           "testing-library/no-container": "warn",

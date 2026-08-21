@@ -110,9 +110,22 @@ jobs:
       # uncaught in .jsx. That rule flags the temporal-dead-zone crashes that took
       # down the chi-square screen, ML train and CI plot.
       #
-      # --ext makes it look at all 764 files. --max-warnings is a RATCHET: it is the
-      # current count, so the gate cannot get worse; lower it as warnings are burned
-      # down. Errors always fail, and no-use-before-define is now an error.
+      # `npm run lint` is now scripts/lint-ratchet.js, which keeps the ratchet but makes
+      # it maintainable: errors ALWAYS fail; warnings may never exceed the committed
+      # .eslint-baseline.json; and when they fall below it, `npm run lint:baseline`
+      # locks the improvement in. The baseline refuses to RISE without --force, so debt
+      # cannot grow quietly, and a failure prints the rules and files that grew instead
+      # of just "N exceeds M" -- this job gates docker-build, so a cryptic lint failure
+      # blocks a production image push.
+      #
+      # The count fell 1064 -> 631 without fixing a single warning: `no-unused-vars` and
+      # `@typescript-eslint/no-unused-vars` were BOTH enabled with identical options, so
+      # every unused variable was reported twice (433 identical file/line/column/message
+      # pairs, 0 unique to either). The base rule is off; the TS rule still reports all
+      # 433 inside .jsx, so no coverage was lost.
+      #
+      # There is deliberately NO slack: a buffer would let warnings accumulate invisibly
+      # up to the cap, which is the same shape as the defect this job was created to fix.
       - name: ESLint
         run: npm run lint
         env:
