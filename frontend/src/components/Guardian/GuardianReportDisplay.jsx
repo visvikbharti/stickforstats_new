@@ -58,6 +58,8 @@ const GuardianReportDisplay = ({
   assumptionsChecked = [],
   assumptionsNotEvaluated = [],
   assumptionCoverage = null,
+  validated = true,
+  unvalidatedReason = '',
   violations = [],
   confidenceScore = 0,
   canProceed = true,
@@ -255,6 +257,21 @@ const GuardianReportDisplay = ({
 
           {/* Confidence Gauge */}
           <Box sx={{ mb: 3 }}>
+            {/*
+              A refusal, shown ABOVE the confidence gauge because it changes how every number
+              below it should be read. Guardian recognises these tests (Cox, survival, IV, PSM,
+              DiD) but has no validators for what they actually assume, so the report asserts
+              nothing at all. Rendered without this, the panel shows an empty "Assumptions
+              Checked (0)" and a single warning -- which reads as "almost clean".
+            */}
+            {!validated && (
+              <Alert severity="info" icon={<HelpOutlineIcon />} sx={{ mb: 2 }}>
+                <AlertTitle>Assumptions were not checked</AlertTitle>
+                {unvalidatedReason
+                  || 'Guardian has no assumption validators for this test, so this report '
+                     + 'asserts nothing about whether its assumptions hold.'}
+              </Alert>
+            )}
             <Typography variant="subtitle2" gutterBottom>
               Result Confidence
             </Typography>

@@ -113,6 +113,9 @@ class GuardianCheckView(APIView):
             # findings were; it does not say how much was examined, and a caller reading only
             # that number cannot tell a thorough clean report from an empty one.
             "assumption_coverage": report.assumption_coverage,
+            # An explicit refusal, not a pass. See GuardianCore.UNVALIDATED_TEST_TYPES.
+            "validated": report.validated,
+            "unvalidated_reason": report.unvalidated_reason,
             "violations": [
                 {
                     "assumption": v.assumption,
@@ -135,6 +138,18 @@ class GuardianCheckView(APIView):
 
     def _get_status_message(self, report: GuardianReport) -> Dict[str, str]:
         """Generate user-friendly status message"""
+        # A refusal must be reported as a refusal. This is the most user-visible string in the
+        # payload, and without this branch an unvalidated report falls into the `can_proceed`
+        # arm below and reads "Minor violations detected but analysis can proceed with caution"
+        # -- describing an assessment that never happened as a mild one that did.
+        if not report.validated:
+            return {
+                "level": "warning",
+                "message": ("ℹ️ Assumptions were NOT checked for this test — Guardian has no "
+                            "validators for it. This is not a clean result; it is an absence "
+                            "of evidence."),
+                "emoji": "❔",
+            }
         if report.can_proceed:
             if not report.violations:
                 return {

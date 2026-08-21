@@ -73,6 +73,11 @@ const useGuardianReport = (response) => {
           // null (not 0) when the backend does not supply it: 0.0 is a real, meaningful
           // coverage value ("nothing was examined") and must not be confused with "unknown".
           assumptionCoverage: response.assumption_coverage ?? null,
+          // False when Guardian RECOGNISES the test but has no validators for it (Cox,
+          // survival, IV, PSM, DiD). Such a report asserts nothing: it carries one warning
+          // and an empty checked list, which without this flag reads as a near-clean result.
+          validated: response.validated ?? true,
+          unvalidatedReason: response.unvalidated_reason || '',
           violations: response.violations || [],
           confidenceScore: response.confidence_score ?? 0,
           canProceed: response.can_proceed ?? true,

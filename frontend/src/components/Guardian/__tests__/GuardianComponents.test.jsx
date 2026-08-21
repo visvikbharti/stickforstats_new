@@ -461,3 +461,65 @@ describe('GuardianReportDisplay — unexamined assumptions and coverage', () => 
     expect(screen.queryByText(/Violations/i)).not.toBeInTheDocument();
   });
 });
+
+describe('GuardianReportDisplay — a test Guardian cannot validate', () => {
+  const theme3 = createTheme();
+  const wrap3 = (ui) => render(<ThemeProvider theme={theme3}>{ui}</ThemeProvider>);
+
+  const refused = {
+    guardianReport: { test_type: 'cox_regression' },
+    assumptionsChecked: [],
+    assumptionsNotEvaluated: ['proportional_hazards', 'non_informative_censoring'],
+    assumptionCoverage: 0,
+    validated: false,
+    unvalidatedReason:
+      "Guardian has no assumption validators for 'cox_regression'. Its key assumption "
+      + '(proportional hazards) is not implemented, so this report asserts NOTHING.',
+    violations: [{ assumption: 'not_validated', severity: 'warning', message: 'x' }],
+    confidenceScore: 44.4,
+    canProceed: true,
+    alternativeTests: [],
+    expertModeOverride: false,
+  };
+
+  it('says plainly that nothing was checked', () => {
+    // Without this banner the panel shows "Assumptions Checked (0)" and one warning, which
+    // reads as "almost clean" rather than "nobody looked".
+    // MUTATION: drop the `!validated` Alert -> fails.
+    wrap3(<GuardianReportDisplay {...refused} />);
+    expect(screen.getByText(/Assumptions were not checked/i)).toBeInTheDocument();
+    // "proportional hazards" appears TWICE by design -- once in the banner's reason and once
+    // as a not-evaluated chip -- so getByText would throw on the duplicate. That both surfaces
+    // name it is the point, so assert on the reason text specifically.
+    expect(screen.getByText(/no assumption validators for/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/proportional hazards/i).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not show the banner on a test that WAS validated', () => {
+    // The silence control: a normal report must not grow a scary panel.
+    // MUTATION: render the Alert unconditionally -> fails.
+    wrap3(
+      <GuardianReportDisplay
+        {...refused}
+        validated
+        unvalidatedReason=""
+        assumptionsChecked={['normality', 'linearity', 'outliers']}
+        assumptionsNotEvaluated={[]}
+        assumptionCoverage={1}
+      />
+    );
+    expect(screen.queryByText(/Assumptions were not checked/i)).not.toBeInTheDocument();
+  });
+
+  it('defaults to validated for a payload that predates the field', () => {
+    // Stored/cached responses have no `validated` key. Defaulting to FALSE would slap a
+    // "not checked" banner on every historical report.
+    // MUTATION: `response.validated ?? true` -> `?? false` in the hook, or `validated = false`
+    // as the component default -> fails.
+    // `_validated` is destructured only to REMOVE the key; the underscore matches the
+    // project's varsIgnorePattern so it does not read as dead code.
+    const { validated: _validated, ...noFlag } = refused;
+    wrap3(<GuardianReportDisplay {...noFlag} assumptionsChecked={['normality']} />);
+    expect(screen.queryByText(/Assumptions were not checked/i)).not.toBeInTheDocument();
+  });
+});

@@ -648,6 +648,11 @@ class AutonomousCascadeEngine:
             # confidence_score, which grades the SEVERITY of what was found and is happily
             # 1.000 on a report that examined one assumption of four.
             "assumption_coverage": report.assumption_coverage,
+            # False when Guardian recognises the test but has no validators for it. A
+            # consumer that reads only `violations` would see one warning and could take it
+            # for a near-clean result; this says plainly that nothing was assessed.
+            "validated": report.validated,
+            "unvalidated_reason": report.unvalidated_reason,
             "violations": [
                 {
                     "assumption": v.assumption,

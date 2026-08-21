@@ -93,12 +93,20 @@ class TheLabelMatchesTheAuditTrailTests(SimpleTestCase):
                              & set(report.assumptions_not_evaluated), set(), test_type)
 
     def test_a_report_that_examined_nothing_says_so(self):
-        """`cox_regression` returned confidence 1.0 having examined nothing, over HTTP.
+        """A chi-square handed plain numeric groups declares no table, so Cochran's rule cannot
+        be evaluated and independence declines -- nothing is examined, and the report must say
+        so rather than return an empty violation list at full confidence.
+
+        This used to be tested with `cox_regression`. That test type has since been RETIRED to
+        UNVALIDATED_TEST_TYPES and takes the explicit-refusal path instead, so it no longer
+        exercises this branch. chi-square does, and unlike cox_regression it is a genuine
+        caller-payload problem rather than a missing validator: hand it a declared table and it
+        examines Cochran's rule at coverage 1.0.
 
         MUTATION: delete the `none_evaluated` block in guardian_core -> confidence returns to
-        1.0 and all three assertions fail.
+        1.0 and the last two assertions fail.
         """
-        report = self.guardian.check(self.data, "cox_regression")
+        report = self.guardian.check(self.data, "chi_square")
         self.assertEqual(report.assumptions_checked, [])
         self.assertEqual(report.assumptions_not_evaluated, ["independence"])
         self.assertLess(report.confidence_score, 1.0)
@@ -146,6 +154,26 @@ class ItSurvivesTheCascadeBoundaryTests(SimpleTestCase):
         self.assertEqual(payload["assumptions_checked"],
                          ["normality", "variance_homogeneity", "outliers"])
         self.assertEqual(payload["assumptions_not_evaluated"], ["independence"])
+
+    def test_the_dict_carries_the_refusal_flag(self):
+        """A consumer reading only `violations` sees ONE warning on a retired test type and
+        could take it for a near-clean result. The dict is the boundary where the audit trail
+        is dropped, so the refusal has to cross it explicitly or it does not cross at all.
+
+        This assertion was missing when the field was added -- the field sat in the payload
+        with nothing pinning it, and a mutation removing it SURVIVED. That is the same
+        declared-but-unasserted shape this whole file is about.
+
+        MUTATION: remove `validated`/`unvalidated_reason` from _report_to_dict -> fails.
+        """
+        engine = AutonomousCascadeEngine()
+        validated = engine._report_to_dict(GuardianCore().check(_two_groups(), "t_test"))
+        self.assertIs(validated["validated"], True)
+        self.assertEqual(validated["unvalidated_reason"], "")
+
+        refused = engine._report_to_dict(GuardianCore().check(_two_groups(), "cox_regression"))
+        self.assertIs(refused["validated"], False)
+        self.assertIn("proportional hazards", refused["unvalidated_reason"])
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -232,7 +260,12 @@ class TheLiveEndpointTellsTheTruthTests(TestCase):
         payload = self._check("cox_regression")
         self.assertEqual(payload["assumptions_checked"], [])
         self.assertLess(payload["confidence_score"], 1.0)
-        self.assertTrue(any(v["assumption"] == "none_evaluated"
+        # cox_regression is now an explicit REFUSAL rather than an empty report: Guardian has
+        # no validator for proportional hazards, so it declines instead of returning a report
+        # that reads like a pass.
+        self.assertIs(payload["validated"], False)
+        self.assertIn("proportional hazards", payload["unvalidated_reason"])
+        self.assertTrue(any(v["assumption"] == "not_validated"
                             for v in payload["violations"]))
 
 
@@ -361,3 +394,170 @@ class CoverageReachesTheSurfacesTests(TestCase):
         # MUTATION: stop passing assumptions_not_evaluated in reanalysis_engine, or drop
         # "not_evaluated" from ClaimVerdict.to_dict -> fails.
         self.assertEqual(assumptions["not_evaluated"], ["independence"])
+
+
+class RetiredTestTypesRefuseInsteadOfCertifyingTests(SimpleTestCase):
+    """Seven test types Guardian recognises but cannot validate.
+
+    Each sat in `test_requirements` as `["independence"]`, which was wrong twice over. It
+    UNDERSTATED the design (a Cox model's defining requirement is proportional hazards, not
+    independence; DiD's is parallel trends; IV's is the exclusion restriction), and nothing
+    evaluated even the one assumption it named. The table's own comments recorded checks that
+    exist nowhere in the repository -- "# Parallel trends checked separately", "# Overlap
+    checked in matching".
+
+    What is retired is the CLAIM, not the feature: `api_views.py` calls Guardian with
+    `propensity_score`, `difference_in_differences` (twice) and `bayesian_correlation` from live
+    analysis endpoints, and those analyses still run and still return their statistical results.
+    """
+
+    def setUp(self):
+        self.guardian = GuardianCore()
+        self.data = _two_groups()
+
+    RETIRED = ["cox_regression", "survival", "did", "difference_in_differences",
+               "iv", "propensity_score", "psm"]
+
+    def test_a_retired_test_refuses_rather_than_returning_an_empty_pass(self):
+        """MUTATION: delete the UNVALIDATED_TEST_TYPES early return in check() -> these fall
+        through to the requirement loop, and `validated` is True again.
+        """
+        for test_type in self.RETIRED:
+            report = self.guardian.check(self.data, test_type)
+            self.assertIs(report.validated, False, test_type)
+            self.assertEqual(report.assumptions_checked, [], test_type)
+            self.assertEqual(report.assumption_coverage, 0.0, test_type)
+            self.assertLess(report.confidence_score, 1.0, test_type)
+            self.assertTrue(any(v.assumption == "not_validated" for v in report.violations),
+                            test_type)
+
+    def test_the_refusal_names_the_assumption_it_could_not_check(self):
+        """"We didn't check" is only useful if it says WHAT. A Cox report that omits
+        proportional hazards understates the gap exactly as the old declaration did.
+
+        MUTATION: return `["independence"]` (the old declaration) as the requirement set ->
+        fails.
+        """
+        cox = self.guardian.check(self.data, "cox_regression")
+        self.assertIn("proportional_hazards", cox.assumptions_not_evaluated)
+        self.assertIn("proportional hazards", cox.unvalidated_reason)
+        did = self.guardian.check(self.data, "difference_in_differences")
+        self.assertIn("parallel_trends", did.assumptions_not_evaluated)
+        iv = self.guardian.check(self.data, "iv")
+        self.assertIn("exclusion_restriction", iv.assumptions_not_evaluated)
+
+    def test_a_retired_test_does_not_block_the_analysis(self):
+        """`can_proceed` stays True. The user is not doing anything forbidden; we simply have
+        no evidence about their assumptions, and refusing to check is not the same as
+        objecting. These back live endpoints -- blocking would break working features.
+
+        MUTATION: set can_proceed=False in _unvalidated_report -> fails.
+        """
+        for test_type in self.RETIRED:
+            self.assertIs(self.guardian.check(self.data, test_type).can_proceed, True, test_type)
+
+    def test_every_refusal_cites_a_source(self):
+        """A refusal that cannot point the user anywhere is not actionable. Same rule the
+        appropriateness engine enforces on its own findings.
+
+        MUTATION: blank any citation -> the construction-time invariant raises.
+        """
+        for test_type in self.RETIRED:
+            [violation] = [v for v in self.guardian.check(self.data, test_type).violations
+                           if v.assumption == "not_validated"]
+            self.assertTrue(violation.recommendation.strip(), test_type)
+            self.assertRegex(violation.recommendation, r"\(\d{4}\)")   # a year, i.e. a citation
+
+    def test_bayesian_correlation_was_promoted_not_retired(self):
+        """It was never unvalidatable -- it was MISDECLARED. Its payload is exactly Pearson's
+        [x, y] (api_views.py:884), so Pearson's validators apply verbatim; declaring only
+        `independence` meant it examined nothing while three working validators sat unused.
+
+        MUTATION: put bayesian_correlation back in UNVALIDATED_TEST_TYPES -> the construction
+        invariant raises, because every assumption it requires IS implemented.
+        """
+        report = self.guardian.check(self.data, "bayesian_correlation")
+        self.assertIs(report.validated, True)
+        self.assertEqual(report.assumptions_checked, ["normality", "linearity", "outliers"])
+        self.assertEqual(report.assumption_coverage, 1.0)
+
+    def test_the_two_tables_cannot_contradict_each_other(self):
+        """MUTATION: add any retired name back to test_requirements -> construction raises,
+        because a test type declared both validated and unvalidated would resolve by lookup
+        order.
+        """
+        overlap = set(self.guardian.UNVALIDATED_TEST_TYPES) & set(self.guardian.test_requirements)
+        self.assertEqual(overlap, set())
+
+    def test_a_retired_test_is_still_RECOGNISED_not_rejected(self):
+        """It must not raise UnknownTestTypeError. `_create_guardian_enriched_response` calls
+        guardian.check() with NO try/except from four live endpoints, so an exception here
+        would break Bayesian correlation, PSM and difference-in-differences.
+
+        MUTATION: remove UNVALIDATED_TEST_TYPES from the `_canonical_test_type` recognition
+        clause -> every one of these raises and this fails.
+        """
+        for test_type in self.RETIRED:
+            self.assertIsNotNone(self.guardian.check(self.data, test_type), test_type)
+
+
+class TheLiveAnalysisEndpointsCarryTheRefusalTests(SimpleTestCase):
+    """`api_views._create_guardian_enriched_response` is a THIRD GuardianReport serializer
+    (alongside guardian/views._serialize_report and cascade_engine._report_to_dict), and it is
+    the one the live analysis endpoints use: Bayesian correlation, propensity-score matching and
+    difference-in-differences (twice) all call it, tagged "DESIGN CONTRACT COMPLIANCE".
+
+    It is also the one that matters most for this change. Without the refusal fields a caller of
+    /causal/did/ sees `assumptions_checked: []` and nothing else, which reads as "we checked and
+    found nothing wrong" rather than "nobody looked".
+    """
+
+    def _enriched(self, test_type, data):
+        from core.api_views import _create_guardian_enriched_response
+        return _create_guardian_enriched_response({"stat": 1.0}, data, test_type, False)
+
+    def test_a_retired_type_still_returns_its_statistical_result(self):
+        """The feature is NOT retired, only the claim. guardian.check() is called here with no
+        try/except, so a refusal that raised would break three live endpoints.
+
+        MUTATION: make _unvalidated_report raise, or drop UNVALIDATED_TEST_TYPES from
+        _canonical_test_type -> these raise and this fails.
+        """
+        import numpy as np
+        rng = np.random.default_rng(3)
+        for test_type, data in [
+            ("propensity_score", [rng.integers(0, 2, 80).astype(float)]),
+            ("difference_in_differences", [rng.normal(0, 1, 80)]),
+        ]:
+            enriched = self._enriched(test_type, data)
+            self.assertEqual(enriched["stat"], 1.0, test_type)          # analysis preserved
+            self.assertIs(enriched["guardian_report"]["validated"], False, test_type)
+
+    def test_the_live_endpoint_payload_explains_the_empty_check_list(self):
+        """MUTATION: remove the four fields from api_views' guardian_report dict -> the payload
+        carries `assumptions_checked: []` with nothing to explain it, and this fails.
+        """
+        import numpy as np
+        rng = np.random.default_rng(3)
+        report = self._enriched("difference_in_differences",
+                                [rng.normal(0, 1, 80)])["guardian_report"]
+        self.assertEqual(report["assumptions_checked"], [])
+        self.assertEqual(report["assumption_coverage"], 0.0)
+        self.assertIn("parallel_trends", report["assumptions_not_evaluated"])
+        self.assertIn("parallel trends", report["unvalidated_reason"])
+
+    def test_bayesian_correlation_now_reports_a_real_check_here_too(self):
+        """The promotion has to reach the surface that actually serves it.
+
+        MUTATION: revert bayesian_correlation to ["independence"] -> coverage drops and this
+        fails.
+        """
+        import numpy as np
+        rng = np.random.default_rng(3)
+        report = self._enriched(
+            "bayesian_correlation",
+            [rng.normal(0, 1, 60), rng.normal(0, 1, 60)])["guardian_report"]
+        self.assertIs(report["validated"], True)
+        self.assertEqual(report["assumption_coverage"], 1.0)
+        self.assertEqual(report["assumptions_checked"],
+                         ["normality", "linearity", "outliers"])

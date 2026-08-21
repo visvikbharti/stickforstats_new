@@ -199,14 +199,20 @@ class UnknownTestTypeFailsLoudly(SimpleTestCase):
     #:
     #: The set exists so neither cause can grow in silence. Shrinking it is progress.
     EXAMINE_NOTHING_ON_PLAIN_NUMERIC_GROUPS = {
-        # no validation behind these at all -- a product gap, not a caller error
-        "bayesian_correlation", "cox_regression", "did", "difference_in_differences",
-        "iv", "propensity_score", "psm", "survival",
-        # need a declared contingency table; correct to examine nothing without one
+        # These need a DECLARED contingency table; examining nothing without one is correct,
+        # and it is a caller-payload issue rather than a missing validator -- hand chi-square
+        # a {"observed": [[...]]} table and it evaluates Cochran's rule at coverage 1.0.
         "chi2", "chi2_contingency", "chi_square", "chi_squared", "chisquare",
         "chi_square_goodness_of_fit", "chi_square_independence",
         "fisher_exact", "fisher_exact_test", "fishers_exact",
     }
+    # The eight entries that used to sit above them are GONE, and the two causes were not the
+    # same. Seven (cox_regression, survival, iv, psm, propensity_score, did,
+    # difference_in_differences) had no validators for what they actually assume and are now
+    # explicit refusals in GuardianCore.UNVALIDATED_TEST_TYPES -- they no longer appear in
+    # known_test_types() at all. The eighth, bayesian_correlation, was never unvalidatable: it
+    # was MISDECLARED as ["independence"] while its [x, y] payload is exactly Pearson's, and it
+    # now examines normality, linearity and outliers at coverage 1.0.
 
     def test_no_test_type_certifies_without_having_checked(self):
         """The core invariant, restated so it cannot be satisfied by a LABEL.

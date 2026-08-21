@@ -643,6 +643,16 @@ def _create_guardian_enriched_response(
             "test_type": guardian_report.test_type,
             "data_summary": guardian_report.data_summary,
             "assumptions_checked": guardian_report.assumptions_checked,
+            # This is the THIRD place a GuardianReport is turned into a dict (the others are
+            # guardian/views._serialize_report and cascade_engine._report_to_dict), and it is
+            # the one the live analysis endpoints use. Without these four fields a caller of
+            # /causal/did/ or /causal/psm/ sees `assumptions_checked: []` and no explanation --
+            # which reads as "we checked and found nothing wrong" rather than "Guardian has no
+            # validator for parallel trends and did not look".
+            "assumptions_not_evaluated": guardian_report.assumptions_not_evaluated,
+            "assumption_coverage": guardian_report.assumption_coverage,
+            "validated": guardian_report.validated,
+            "unvalidated_reason": guardian_report.unvalidated_reason,
             "violations": [
                 {
                     "assumption": v.assumption,

@@ -102,6 +102,11 @@ describe('useGuardianReport Hook', () => {
         // stop the UI silently dropping a requirement instead of reporting it as unexamined.
         assumptionsNotEvaluated: ['independence'],
         assumptionCoverage: 0.667,
+        // Guardian recognises some tests it cannot validate at all (Cox, survival, IV, PSM,
+        // DiD). Defaulting to TRUE matters: a stored response predating the field must not
+        // acquire a "not checked" banner retroactively.
+        validated: true,
+        unvalidatedReason: '',
         violations: [{ severity: 'warning', assumption: 'normality' }],
         confidenceScore: 75.5,
         canProceed: true,

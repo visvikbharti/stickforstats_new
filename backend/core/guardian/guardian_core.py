@@ -211,6 +211,12 @@ class GuardianReport:
     #: compare against, or one with no implementation. Unchecked is NOT satisfied, and the
     #: distinction has to survive into the report or the caller cannot make it.
     assumptions_not_evaluated: List[str] = field(default_factory=list)
+    #: False when Guardian recognises this test but has no validators for it. A report with
+    #: validated=False asserts NOTHING about the data; it is a refusal, not a pass. Callers that
+    #: render an assumption panel must say so rather than showing an empty list of violations,
+    #: which is indistinguishable from a clean result.
+    validated: bool = True
+    unvalidated_reason: str = ""
 
     @property
     def assumption_coverage(self) -> Optional[float]:
@@ -450,19 +456,24 @@ class GuardianCore:
             "multilevel": ["normality", "independence", "homoscedasticity"],
             # Causal Inference (NEW)
             # Reference: Angrist & Pischke (2009), Imbens & Rubin (2015)
-            "difference_in_differences": ["independence"],  # Parallel trends checked separately
-            "did": ["independence"],  # Alias
-            "propensity_score": ["independence"],  # Overlap checked in matching
-            "psm": ["independence"],  # Alias for propensity score matching
+            #
+            # difference_in_differences / did / propensity_score / psm / iv have MOVED to
+            # UNVALIDATED_TEST_TYPES. Their entries here read `["independence"]` with the
+            # comments "# Parallel trends checked separately" and "# Overlap checked in
+            # matching" -- both describing checks that exist nowhere in this repository. The
+            # declaration understated what these designs require AND nothing evaluated even the
+            # one assumption named.
             "mediation": ["normality", "independence", "linearity"],
-            "iv": ["independence"],  # Instrumental variables
             # Bayesian tests
             "bayesian_t_test": ["normality", "independence"],
             "bayesian_anova": ["normality", "independence"],
-            "bayesian_correlation": ["independence"],
-            # Survival analysis
-            "survival": ["independence"],
-            "cox_regression": ["independence"],
+            # A Bayesian correlation is Pearson's r under a prior: the caller hands Guardian the
+            # same [x, y] payload (core/api_views.py:884), so Pearson's validators apply
+            # verbatim. It declared ["independence"] alone and therefore examined NOTHING --
+            # a MISDECLARATION, not an unvalidatable test. Verified: all three evaluate on its
+            # data, 3 of 3, with nothing skipped.
+            "bayesian_correlation": ["normality", "linearity", "outliers"],
+            # Survival analysis: survival / cox_regression have MOVED to UNVALIDATED_TEST_TYPES.
             # Factor analysis
             "factor_analysis": ["normality", "sample_size"],
             "pca": ["sample_size"],
@@ -492,6 +503,7 @@ class GuardianCore:
         self.severity_adjuster = ContextualSeverityAdjuster()
 
         self._assert_every_requirement_is_implemented()
+        self._assert_unvalidated_registry_is_honest()
 
     # Requirements that are legitimately absent from ``self.validators``
     # because a dedicated code path evaluates them instead of the generic
@@ -500,10 +512,124 @@ class GuardianCore:
     # table rather than from ``analysis_arrays``.
     _SPECIALLY_DISPATCHED_REQUIREMENTS = frozenset({"expected_frequencies"})
 
+    #: Tests Guardian RECOGNISES but cannot validate, and the honest reason why.
+    #:
+    #: These are real analyses the platform performs; what is retired is the CLAIM to have
+    #: validated them, not the feature. Each entry previously sat in ``test_requirements`` as
+    #: ``["independence"]`` -- which was wrong twice over. It understated the design's actual
+    #: assumptions (a Cox model's defining requirement is proportional hazards, not
+    #: independence), and nothing evaluated even the one assumption it named, because the
+    #: lag-1 independence check declines unless the caller declares the rows ordered. Executed
+    #: over the live endpoint before this change, ``test_type="cox_regression"`` returned
+    #: HTTP 200 with ``assumptions_checked: ["independence"]``, ``confidence_score: 1.0`` and
+    #: ``can_proceed: true`` on data nothing had looked at.
+    #:
+    #: ``requires`` names what the design ACTUALLY assumes, so the report can say what it did
+    #: not check rather than implying the list is short. Implementing any of these is what it
+    #: would take to move an entry back into ``test_requirements``; until then the honest
+    #: output is an explicit refusal, not an empty report that reads like a pass.
+    UNVALIDATED_TEST_TYPES: Dict[str, Dict[str, Any]] = {
+        "cox_regression": {
+            "requires": ["proportional_hazards", "non_informative_censoring", "independence"],
+            "key_assumption": "proportional_hazards",
+            "citation": "Cox (1972) JRSS-B 34(2):187-220; Grambsch & Therneau (1994) "
+                        "Biometrika 81(3):515-26 (the Schoenfeld-residual PH test)",
+        },
+        "survival": {
+            "requires": ["non_informative_censoring", "independence"],
+            "key_assumption": "non_informative_censoring",
+            "citation": "Kaplan & Meier (1958) JASA 53(282):457-81",
+        },
+        "difference_in_differences": {
+            "requires": ["parallel_trends", "no_anticipation", "stable_composition"],
+            "key_assumption": "parallel_trends",
+            "citation": "Angrist & Pischke (2009), Mostly Harmless Econometrics, ch. 5",
+        },
+        "did": {
+            "requires": ["parallel_trends", "no_anticipation", "stable_composition"],
+            "key_assumption": "parallel_trends",
+            "citation": "Angrist & Pischke (2009), Mostly Harmless Econometrics, ch. 5",
+        },
+        "propensity_score": {
+            "requires": ["no_unmeasured_confounding", "common_support", "covariate_balance"],
+            "key_assumption": "common_support",
+            "citation": "Rosenbaum & Rubin (1983) Biometrika 70(1):41-55; "
+                        "Austin (2011) Multivariate Behav Res 46(3):399-424",
+        },
+        "psm": {
+            "requires": ["no_unmeasured_confounding", "common_support", "covariate_balance"],
+            "key_assumption": "common_support",
+            "citation": "Rosenbaum & Rubin (1983) Biometrika 70(1):41-55; "
+                        "Austin (2011) Multivariate Behav Res 46(3):399-424",
+        },
+        "iv": {
+            "requires": ["instrument_relevance", "exclusion_restriction", "independence"],
+            "key_assumption": "exclusion_restriction",
+            "citation": "Angrist, Imbens & Rubin (1996) JASA 91(434):444-55",
+        },
+    }
+
     #: Audit-trail results that mean an assumption was genuinely EXAMINED on this data.
     #: Anything else -- "not_applicable" (the validator declined), "skipped" (no validator),
     #: "not_performed" (the input could not support the check) -- means it was not.
     _EVALUATED_RESULTS = frozenset({"pass", "violation"})
+
+    def _unvalidated_report(self, canonical: str, requested: Any) -> "GuardianReport":
+        """An explicit refusal for a test Guardian recognises but cannot validate.
+
+        The shape matters as much as the content. It carries ``validated=False``, an EMPTY
+        ``assumptions_checked``, the design's real assumptions in ``assumptions_not_evaluated``,
+        and a WARNING violation -- so a caller reading any one of those four fields reaches the
+        same conclusion. A report that said only "no violations" would be read as a pass, which
+        is exactly what these test types returned before: confidence 1.000, can_proceed true,
+        zero violations, on data nothing had examined.
+
+        ``can_proceed`` stays True on purpose. The user is not doing anything forbidden and we
+        have no grounds to block them; we simply have no evidence about their assumptions, and
+        saying so is different from objecting.
+        """
+        spec = self.UNVALIDATED_TEST_TYPES[canonical]
+        reason = (
+            f"Guardian has no assumption validators for '{canonical}'. Its key assumption "
+            f"({spec['key_assumption'].replace('_', ' ')}) is not implemented, so this report "
+            f"asserts NOTHING about whether the assumptions hold — it is a refusal to check, "
+            f"not a clean bill of health. The analysis itself is unaffected."
+        )
+        now_iso = datetime.now(timezone.utc).isoformat()
+        return GuardianReport(
+            test_type=str(requested),
+            data_summary={},
+            assumptions_checked=[],
+            assumptions_not_evaluated=list(spec["requires"]),
+            violations=[AssumptionViolation(
+                assumption="not_validated",
+                test_name=f"No validator for {canonical}",
+                severity="warning",
+                p_value=None,
+                statistic=None,
+                message=reason,
+                recommendation=(
+                    f"Assess {spec['key_assumption'].replace('_', ' ')} outside this tool "
+                    f"before relying on the result. See {spec['citation']}."
+                ),
+                visual_evidence=None,
+            )],
+            can_proceed=True,
+            alternative_tests=[],
+            confidence_score=self._calculate_confidence([
+                AssumptionViolation(assumption="not_validated", test_name="", severity="warning",
+                                    p_value=None, statistic=None, message="", recommendation="",
+                                    visual_evidence=None)]),
+            visual_evidence={},
+            effect_size_report=None,
+            audit_trail=[GuardianAuditEntry(
+                timestamp=now_iso, assumption=a, test_performed="N/A - no validator",
+                result="not_performed", severity="warning",
+            ) for a in spec["requires"]],
+            context_adjustments_applied=False,
+            validated=False,
+            unvalidated_reason=reason,
+        )
 
     @staticmethod
     def _partition_by_what_actually_ran(requirements, audit_trail):
@@ -544,6 +670,46 @@ class GuardianCore:
         checked = [r for r in requirements if result_by_assumption.get(r, False)]
         not_evaluated = [r for r in requirements if not result_by_assumption.get(r, False)]
         return checked, not_evaluated
+
+    def _assert_unvalidated_registry_is_honest(self) -> None:
+        """Refuse to construct a Guardian whose two test tables contradict each other.
+
+        Three properties, each of which was violated by the state this replaces:
+
+        1. **Disjoint.** A test type cannot be both validated and unvalidated. Listing one in
+           both would let the outcome depend on lookup order.
+        2. **Every unvalidated entry is genuinely unvalidatable** -- it must name at least one
+           required assumption with NO registered validator. Without this the registry becomes
+           a place to hide tests we simply have not wired up, which is how
+           ``bayesian_correlation`` sat declaring ``["independence"]`` and examining nothing
+           while Pearson's three validators applied to its data verbatim.
+        3. **Every entry cites a source and names its key assumption**, and that key assumption
+           is one of the ones it requires. A refusal that cannot say what it failed to check,
+           or points at something the design does not assume, is not an honest refusal.
+        """
+        both = set(self.UNVALIDATED_TEST_TYPES) & set(self.test_requirements)
+        if both:
+            raise RuntimeError(
+                f"guardian: test type(s) {sorted(both)} are declared BOTH validated and "
+                f"unvalidated; the report would depend on lookup order")
+
+        for name, spec in self.UNVALIDATED_TEST_TYPES.items():
+            requires = spec.get("requires") or []
+            key = spec.get("key_assumption")
+            if not requires or not key or not (spec.get("citation") or "").strip():
+                raise RuntimeError(
+                    f"guardian: unvalidated entry {name!r} must declare requires, "
+                    f"key_assumption and a citation")
+            if key not in requires:
+                raise RuntimeError(
+                    f"guardian: unvalidated entry {name!r} names key_assumption {key!r}, "
+                    f"which is not among the assumptions it says the design requires")
+            if all(a in self.validators for a in requires):
+                raise RuntimeError(
+                    f"guardian: unvalidated entry {name!r} requires only assumptions that ARE "
+                    f"implemented ({requires}) — it belongs in test_requirements, not here. "
+                    f"This is the bayesian_correlation defect: a validatable test parked as "
+                    f"unvalidatable examines nothing while its validators sit unused.")
 
     def _assert_every_requirement_is_implemented(self) -> None:
         """Fail at construction if a declared assumption has no implementation.
@@ -782,7 +948,8 @@ class GuardianCore:
         # backend/tests/test_guardian_fails_loudly.py).
         if key in self._TEST_TYPE_ALIASES:
             return self._TEST_TYPE_ALIASES[key]
-        if key in self.test_requirements or key in self._CONTINGENCY_TESTS:
+        if (key in self.test_requirements or key in self._CONTINGENCY_TESTS
+                or key in self.UNVALIDATED_TEST_TYPES):
             return key
 
         raise UnknownTestTypeError(
@@ -886,6 +1053,14 @@ class GuardianCore:
         # the requirement lookup, where `.get(test_type, [])` turned it into a
         # zero-check report with confidence 1.0.
         canonical_test_type = self._canonical_test_type(test_type)
+
+        # Recognised, but we have no validators for it. Refuse explicitly and say what the
+        # design actually assumes. Returning early -- before _prepare_data and the requirement
+        # loop -- is what makes the refusal unconditional: there is no path from here to an
+        # empty-but-confident report.
+        if canonical_test_type in self.UNVALIDATED_TEST_TYPES:
+            return self._unvalidated_report(canonical_test_type, test_type)
+
         if design is None:
             key = (
                 str(test_type).strip().lower()
