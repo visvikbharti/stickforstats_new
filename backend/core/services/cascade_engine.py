@@ -644,6 +644,10 @@ class AutonomousCascadeEngine:
             # existence of this dict -- was forced to guess. The audit trail itself stays out:
             # it is unbounded and per-claim, and this is the only bit of it callers act on.
             "assumptions_not_evaluated": list(report.assumptions_not_evaluated or []),
+            # How much of what this test requires did we actually look at? Distinct from
+            # confidence_score, which grades the SEVERITY of what was found and is happily
+            # 1.000 on a report that examined one assumption of four.
+            "assumption_coverage": report.assumption_coverage,
             "violations": [
                 {
                     "assumption": v.assumption,

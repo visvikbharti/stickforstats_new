@@ -212,6 +212,31 @@ class GuardianReport:
     #: distinction has to survive into the report or the caller cannot make it.
     assumptions_not_evaluated: List[str] = field(default_factory=list)
 
+    @property
+    def assumption_coverage(self) -> Optional[float]:
+        """Fraction of this test's required assumptions that were actually EVALUATED.
+
+        ``confidence_score`` answers "how bad was what we found"; it is severity-weighted and
+        says nothing about how much we looked at. A report can be 1.000 confident having
+        examined one assumption out of four -- and, before today, having examined none at all.
+        The two numbers answer different questions and a reader was only ever shown one.
+
+        Deliberately a PROPERTY, not a field. This class has now been the site of five separate
+        "declared but not performed" defects, every one of which was a value that flowed from
+        the specification into the report without passing through the execution. A derived
+        read-only property cannot be assigned, so a coverage figure that disagrees with the two
+        lists beside it is not a bug someone can write. Same reasoning as ``Rule`` having no
+        ``confidence`` field: make the wrong thing unrepresentable rather than discouraged.
+
+        ``None`` when the test declares no requirements at all -- no opinion rather than a
+        flattering 1.0. (No test type does today; the branch exists so that adding one cannot
+        silently mint perfect coverage.)
+        """
+        total = len(self.assumptions_checked) + len(self.assumptions_not_evaluated)
+        if not total:
+            return None
+        return round(len(self.assumptions_checked) / total, 3)
+
 
 class ContextualSeverityAdjuster:
     """

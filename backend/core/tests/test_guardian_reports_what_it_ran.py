@@ -234,3 +234,125 @@ class TheLiveEndpointTellsTheTruthTests(TestCase):
         self.assertLess(payload["confidence_score"], 1.0)
         self.assertTrue(any(v["assumption"] == "none_evaluated"
                             for v in payload["violations"]))
+
+
+class CoverageIsPublishedBesideConfidenceTests(SimpleTestCase):
+    """`confidence_score` grades how BAD the findings were. It says nothing about how much was
+    examined, and on its own it cannot distinguish a thorough clean report from an empty one.
+
+    Executed on identical data before this change, every one of these read "confidence 1.0"
+    with a full assumptions_checked list:
+
+        pearson       confidence 1.0   coverage 1.00   (3 of 3 examined)
+        independent_t confidence 1.0   coverage 0.75   (3 of 4)
+        mann_whitney  confidence 1.0   coverage 0.50   (1 of 2)
+        cox_regression                 coverage 0.00   (0 of 1)
+    """
+
+    def setUp(self):
+        self.guardian = GuardianCore()
+
+    def test_coverage_reports_the_fraction_actually_examined(self):
+        """MUTATION: `return 1.0` from assumption_coverage -> fails."""
+        self.assertEqual(
+            self.guardian.check(_clean_two_groups(), "pearson").assumption_coverage, 1.0)
+        self.assertEqual(
+            self.guardian.check(_clean_two_groups(), "t_test").assumption_coverage, 0.75)
+        self.assertEqual(
+            self.guardian.check(_clean_two_groups(), "mann_whitney").assumption_coverage, 0.5)
+        self.assertEqual(
+            self.guardian.check(_clean_two_groups(), "cox_regression").assumption_coverage, 0.0)
+
+    def test_full_confidence_does_not_imply_full_coverage(self):
+        """THE POINT OF THE NUMBER. Two reports, both perfectly confident, one of which
+        examined half as much. Nothing in the old payload could tell them apart.
+
+        MUTATION: derive coverage from `confidence_score` -> the two become equal and this
+        fails.
+        """
+        thorough = self.guardian.check(_clean_two_groups(), "pearson")
+        partial = self.guardian.check(_clean_two_groups(), "mann_whitney")
+        self.assertEqual(thorough.confidence_score, partial.confidence_score)
+        self.assertGreater(thorough.assumption_coverage, partial.assumption_coverage)
+
+    def test_coverage_cannot_be_assigned(self):
+        """It is a read-only property, so a figure disagreeing with the two lists beside it is
+        not a bug anyone can write -- the same reasoning as `Rule` having no confidence field.
+
+        MUTATION: turn it into a plain dataclass field -> the assignment succeeds and this
+        fails.
+        """
+        report = self.guardian.check(_clean_two_groups(), "t_test")
+        with self.assertRaises(AttributeError):
+            report.assumption_coverage = 1.0
+
+    def test_coverage_agrees_with_the_two_lists_for_every_test_type(self):
+        """The invariant that makes it trustworthy: it is DERIVED, never stored.
+
+        MUTATION: round to 0 decimals, or divide by len(assumptions_checked) -> fails.
+        """
+        for test_type in sorted(self.guardian.test_requirements):
+            report = self.guardian.check(_two_groups(), test_type)
+            n_checked = len(report.assumptions_checked)
+            n_total = n_checked + len(report.assumptions_not_evaluated)
+            expected = round(n_checked / n_total, 3) if n_total else None
+            self.assertEqual(report.assumption_coverage, expected, test_type)
+
+    def test_no_requirements_means_no_opinion_rather_than_a_flattering_one(self):
+        """A test declaring nothing must not mint coverage 1.0. No test type does today; the
+        branch exists so that adding one cannot silently claim perfection.
+
+        MUTATION: `return 1.0` when total == 0 -> fails.
+        """
+        report = self.guardian.check(_clean_two_groups(), "t_test")
+        report.assumptions_checked = []
+        report.assumptions_not_evaluated = []
+        self.assertIsNone(report.assumption_coverage)
+
+    def test_coverage_crosses_the_cascade_boundary_and_the_api(self):
+        """MUTATION: drop it from _report_to_dict or from _serialize_report -> fails."""
+        report = self.guardian.check(_clean_two_groups(), "t_test")
+        self.assertEqual(
+            AutonomousCascadeEngine()._report_to_dict(report)["assumption_coverage"], 0.75)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class CoverageReachesTheSurfacesTests(TestCase):
+
+    def test_the_guardian_endpoint_publishes_coverage(self):
+        """MUTATION: remove it from views._serialize_report -> KeyError, fails."""
+        payload = self.client.post(
+            "/api/guardian/check/",
+            data={"data": {"a": _clean_two_groups()[0], "b": _clean_two_groups()[1]},
+                  "test_type": "independent_t", "alpha": 0.05},
+            content_type="application/json").json()
+        self.assertEqual(payload["assumption_coverage"], 0.75)
+        self.assertEqual(payload["confidence_score"], 1.0)   # the contrast is the point
+
+    def test_a_claim_verdict_carries_coverage(self):
+        """A claim can be VERIFIED with assumptions "checked" and "satisfied" while a quarter
+        of them were never examined. The verdict now says which quarter.
+
+        MUTATION: stop passing assumption_coverage in reanalysis_engine, or drop "coverage"
+        from ClaimVerdict.to_dict -> fails.
+        """
+        import numpy as np
+        from scipy import stats
+
+        from core.manuscript.claim_extractor import StatisticalClaimExtractor
+        from core.manuscript.reanalysis_engine import verify_claim
+        from core.manuscript.verdicts import ClaimDataSpec, ClaimVerificationRequest
+
+        rng = np.random.default_rng(7)
+        a, b = list(rng.normal(0, 1, 25)), list(rng.normal(0.6, 1, 25))
+        t, p = stats.ttest_ind(a, b)
+        paper = f"An independent-samples t-test, t(48) = {abs(t):.2f}, p = {p:.4f}."
+        claim = StatisticalClaimExtractor().extract(paper, section="Results")[0]
+        verdict = verify_claim(ClaimVerificationRequest(
+            claim=claim,
+            data_spec=ClaimDataSpec(intended_test="independent_t", design_type="two_group",
+                                    groups=[a, b]),
+            manuscript_text=paper, sentence=paper))
+        assumptions = verdict.to_dict()["assumptions"]
+        self.assertIs(assumptions["satisfied"], True)
+        self.assertEqual(assumptions["coverage"], 0.75)

@@ -180,7 +180,12 @@ class ClaimVerdict:
     deltas: Dict[str, Any] = field(default_factory=dict)
 
     # --- assumptions ---
-    assumptions_checked: bool = False           # did we run Guardian on the data?
+    assumptions_checked: bool = False           # did Guardian actually evaluate anything?
+    #: fraction of the test's required assumptions Guardian actually EVALUATED (None when no
+    #: re-analysis ran). `assumptions_satisfied` says whether what we looked at was clean;
+    #: this says how much we looked at. Reporting the first without the second is how a claim
+    #: came to read "assumptions checked: yes, satisfied: yes" on an evaluation of nothing.
+    assumption_coverage: Optional[float] = None
     assumptions_satisfied: Optional[bool] = None
     assumption_violations: List[str] = field(default_factory=list)
     assumptions_reported_in_text: Optional[bool] = None   # A5(i) text detection
@@ -258,6 +263,7 @@ class ClaimVerdict:
             },
             "assumptions": {
                 "checked": self.assumptions_checked,
+                "coverage": self.assumption_coverage,
                 "satisfied": self.assumptions_satisfied,
                 "violations": self.assumption_violations,
                 "reported_in_text": self.assumptions_reported_in_text,

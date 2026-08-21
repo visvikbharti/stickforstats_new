@@ -109,6 +109,10 @@ class GuardianCheckView(APIView):
             # checked that nothing had looked at -- independence on 22 of 25 test types. The two
             # lists are now disjoint and together they reconstruct the requirements.
             "assumptions_not_evaluated": report.assumptions_not_evaluated,
+            # The headline this endpoint was missing. `confidence_score` grades how bad the
+            # findings were; it does not say how much was examined, and a caller reading only
+            # that number cannot tell a thorough clean report from an empty one.
+            "assumption_coverage": report.assumption_coverage,
             "violations": [
                 {
                     "assumption": v.assumption,

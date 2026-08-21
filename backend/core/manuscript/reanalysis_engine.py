@@ -251,6 +251,10 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         # not_applicable. Guardian now reports what it evaluated rather than what the test
         # declares, so this can finally be answered honestly instead of assumed.
         assumptions_checked=bool((res.guardian_report or {}).get("assumptions_checked")),
+        # Read straight from Guardian rather than recomputed here: the ratio is derived in ONE
+        # place (a read-only property on GuardianReport), so this surface cannot disagree with
+        # the endpoint's.
+        assumption_coverage=(res.guardian_report or {}).get("assumption_coverage"),
         # ...and with nothing examined there is no opinion to give. `assign_verdict` only acts
         # on `assumptions_ok is False`, so None neither blocks VERIFIED nor forges a clean bill;
         # it stops the verdict asserting that assumptions hold on the strength of no evidence.
