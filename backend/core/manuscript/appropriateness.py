@@ -301,8 +301,28 @@ def _assert_no_rule_can_carry_a_confidence() -> None:
                 f"carry an EvidenceGrade describing HOW they were established")
 
 
+def _assert_every_grade_is_orderable() -> None:
+    """Every ``EvidenceGrade`` must have a rank in ``_GRADE_ORDER``.
+
+    The evaluator compares ``_GRADE_ORDER[outcome.grade]`` against the emit floor, and that
+    lookup sits OUTSIDE the per-rule try/except -- so a grade added to the enum without a rank
+    raises KeyError out of ``evaluate_claim``, out of ``verify_claim``, and out of
+    ``/api/v1/verify/analyze/`` as an HTTP 500. That escape route only opened when the verifier
+    pipeline was wired to this engine; on the legacy validator path the same crash was absorbed
+    and downgraded. Rather than widen the try (which would silently drop the rule), the mismatch
+    is made impossible at import, in the same spirit as
+    ``_assert_every_requirement_has_a_detector``.
+    """
+    missing = [g.value for g in EvidenceGrade if g not in _GRADE_ORDER]
+    if missing:
+        raise RuntimeError(
+            f"appropriateness: EvidenceGrade(s) {missing} have no rank in _GRADE_ORDER; the "
+            f"evaluator would raise KeyError on any finding carrying one")
+
+
 _assert_rule_table_is_well_formed()
 _assert_no_rule_can_carry_a_confidence()
+_assert_every_grade_is_orderable()
 
 
 # ---------------------------------------------------------------------------
@@ -383,7 +403,16 @@ def evaluate_claim(claim, test_key: Optional[str], *, test_ambiguous: bool = Fal
 
 def evaluate_claims(claims, manuscript_text: str = "",
                     methods_text: str = "") -> List[ClaimFinding]:
-    """Resolve each claim's test and audit it. The entry point both pipelines call."""
+    """Resolve each claim's test and audit it — the batch entry point.
+
+    Used by the legacy validator surface (``advanced_validators``), which is handed a whole
+    document and a claim list and has nothing else to work with. The raw-data verifier pipeline
+    calls :func:`evaluate_claim` directly instead: by the time it reaches a claim it has ALREADY
+    resolved the test and run the disclosure audit, and recomputing them here would mean two
+    computations of the same thing that can drift apart. Both routes evaluate the same ``RULES``
+    through the same evaluator, which is what "one implementation" has to mean — not "one
+    function everybody calls" but "one place the rules live".
+    """
     from .assumption_reporting import detect_assumption_reporting
     from .test_resolver import resolve_test
 

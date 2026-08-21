@@ -141,6 +141,13 @@ class ClaimVerificationRequest:
     #: when both are empty the audit reports "not evaluable" and no finding is produced.
     manuscript_text: str = ""
     methods_text: str = ""
+    #: the claim's OWN sentence, supplied by the caller that extracted it. Sentence-local
+    #: appropriateness rules read this and nothing else; an empty string means "no context",
+    #: on which every such rule stays SILENT. It is deliberately not derived here from
+    #: ``claim.position``: that offset is relative to the string the claim was extracted from
+    #: (one file of a bundle), while ``manuscript_text`` may be the whole submission — indexing
+    #: one with the other quotes an unrelated sentence as evidence.
+    sentence: str = ""
 
     def data_available(self) -> bool:
         return self.data_spec is not None and self.data_spec.has_data()
@@ -177,6 +184,13 @@ class ClaimVerdict:
     assumptions_satisfied: Optional[bool] = None
     assumption_violations: List[str] = field(default_factory=list)
     assumptions_reported_in_text: Optional[bool] = None   # A5(i) text detection
+
+    # --- methodological appropriateness (claim-level rule engine) ---
+    #: findings from ``core.manuscript.appropriateness``, as ``ClaimFinding.to_dict()`` payloads.
+    #: SEPARATE from the verdict on purpose: a verdict answers "do these numbers reproduce", a
+    #: finding answers "was this test the right one to run". Folding an appropriateness rule into
+    #: the verdict would let a heuristic about methodology overturn an arithmetic result.
+    appropriateness_findings: List[Dict[str, Any]] = field(default_factory=list)
 
     # --- data availability ---
     data_available: bool = False
@@ -248,6 +262,7 @@ class ClaimVerdict:
                 "violations": self.assumption_violations,
                 "reported_in_text": self.assumptions_reported_in_text,
             },
+            "appropriateness": list(self.appropriateness_findings),
             "data_available": self.data_available,
             "linked_dataset_id": self.linked_dataset_id,
             "confidence": {

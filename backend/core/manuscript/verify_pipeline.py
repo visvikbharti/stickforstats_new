@@ -42,7 +42,10 @@ CERTIFY_NOTE = (
     "ASSUMPTION_UNREPORTED means only that the manuscript does not state that a required "
     "assumption was checked — it is a statement about DISCLOSURE, not about the data: the "
     "assumption may well hold, and the result may well be correct. It is raised only when the "
-    "paper names its test explicitly; where the design is not stated, no claim is made."
+    "paper names its test explicitly; where the design is not stated, no claim is made. "
+    "Any 'appropriateness' findings attached to a claim are advisory notes about method choice "
+    "and reporting practice, raised from the claim's own numbers and its own sentence. They are "
+    "NOT verdicts, they never change one, and they are not an assertion that a result is wrong."
 )
 
 
@@ -58,6 +61,7 @@ class VerificationProfile:
     n_decision_changing: int = 0         # inconsistencies that flip significance (gross_error)
     n_references_resolved: int = 0       # claims whose cited reference resolved to an artifact/data file
     n_citation_conflicts: int = 0        # claims flagged with a citation-content conflict
+    n_appropriateness_findings: int = 0  # claim-level methodological findings (appropriateness.py)
     claim_verdicts: List[ClaimVerdict] = field(default_factory=list)
     certify_note: str = CERTIFY_NOTE
 
@@ -73,6 +77,7 @@ class VerificationProfile:
             "n_decision_changing": self.n_decision_changing,
             "n_references_resolved": self.n_references_resolved,
             "n_citation_conflicts": self.n_citation_conflicts,
+            "n_appropriateness_findings": self.n_appropriateness_findings,
             "certify_note": self.certify_note,
             "claims": [v.to_dict() for v in self.claim_verdicts],
         }
@@ -155,6 +160,15 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
     coverage_text = full_text if full_text is not None else "\n\n".join(full_parts)
     summary = extractor.summarize(all_claims, full_text=coverage_text)
 
+    # Scope of the assumption-DISCLOSURE audit: the WHOLE submission, not the claim's own file.
+    # Per-file scope told a supplement's claim that the manuscript never reported a check the main
+    # text reports two files away -- a false accusation. The asymmetry is deliberate and is the
+    # module's stated design: missing a real omission costs a reader nothing, while announcing
+    # "you did not report normality" to authors who did is the failure mode that makes the tool
+    # untrustworthy. Sentence-local evidence still comes from the claim's OWN segment (below), so
+    # widening this does not let one file supply another's quoted evidence.
+    disclosure_text = "\n\n".join(full_parts)
+
     # Renumber sequentially across ALL files: each segment's extractor numbers from C001
     # independently, so without this the same claim_id would collide across files in a bundle.
     for i, c in enumerate(test_claims, 1):
@@ -215,9 +229,11 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
 
         cv = verify_claim(ClaimVerificationRequest(
             claim=claim, data_spec=spec, alpha=alpha,
-            # T17: the assumption-DISCLOSURE audit needs the paper's own text. `seg_text` is this
-            # claim's home file, so a claim from a supplement is audited against the supplement.
-            manuscript_text=seg_text, methods_text=methods_text or ""))
+            # T17: the assumption-DISCLOSURE audit reads the whole submission (see
+            # `disclosure_text` above); sentence-local rules read only this claim's own sentence,
+            # computed from its home segment, where its `position` is valid.
+            manuscript_text=disclosure_text, methods_text=methods_text or "",
+            sentence=sentence))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
         cv.notes.extend(ref_notes)
 
@@ -259,5 +275,6 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         n_decision_changing=n_decision_changing,
         n_references_resolved=n_references_resolved,
         n_citation_conflicts=n_citation_conflicts,
+        n_appropriateness_findings=sum(len(v.appropriateness_findings) for v in verdicts),
         claim_verdicts=verdicts,
     )

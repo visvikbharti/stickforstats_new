@@ -95,31 +95,73 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
     if not is_claim_extraction_reliable(claim):
         return ClaimVerdict.unverifiable_extraction(cid, "claim not reliably extracted", **prov)
 
-    # 2. resolve test + data availability
+    # 2. resolve test, audit assumption DISCLOSURE, and run the claim-level appropriateness rules.
+    #
+    # All three are decidable from the TEXT alone, so they run on every claim regardless of
+    # whether raw data were linked. The disclosure audit used to sit inside the no-data branch;
+    # it is hoisted here so the with-data branch reaches it too, and so the rule engine and the
+    # verdict logic read ONE audit result rather than each computing their own (two computations
+    # of the same thing is how this codebase has repeatedly produced two contradictory answers).
     tr = resolve_test(claim)
+    reporting = None
+    disclosure_error = ""
+    if tr.resolved:
+        try:
+            reporting = detect_assumption_reporting(
+                claim,
+                manuscript_text=request.manuscript_text,
+                methods_text=request.methods_text,
+                test_key=tr.intended_test if not tr.ambiguous else None,
+            )
+        except Exception as exc:
+            # FAIL CLOSED: a crash in the audit must never read as "assumptions fine". Leave
+            # `reporting` None (no opinion -> INSUFFICIENT_DATA) and say so out loud. The
+            # cascade_engine fail-open incident, where a Guardian crash recorded
+            # guardian_passed=True, is the precedent for making this explicit.
+            disclosure_error = f"assumption-disclosure audit failed: {exc}"
+            reporting = None
+
+    assumptions_reported = reporting.all_reported if reporting is not None else None
+
+    # Methodological appropriateness (Phase 2). Attached to `base`, so EVERY verdict constructed
+    # below carries it -- including the engine-error branches, whose findings are about the
+    # paper's reported numbers and disclosure and do not depend on our re-analysis succeeding.
+    # Deliberately NOT attached to the UNVERIFIABLE_EXTRACTION return above: we have just said we
+    # do not trust the claim we parsed, and an accusation built on it would be built on nothing.
+    #
+    # Wrapped because wiring this in put the rule engine on the request path of the flagship
+    # endpoint. `evaluate_claim` already fails closed per RULE, but a failure in the evaluator
+    # itself (rather than in a rule) would previously have been absorbed by the legacy validator
+    # loop and now escapes as an HTTP 500 -- the exact shape of the HomoscedasticityValidator
+    # incident. Degrade to NO findings (the safe direction: we decline to accuse) and say so
+    # loudly, so a broken engine can never be mistaken for a clean paper.
+    appropriateness_error = ""
+    if tr.resolved:
+        from .appropriateness import evaluate_claim  # local: keeps the import graph acyclic
+        try:
+            base["appropriateness_findings"] = [
+                f.to_dict() for f in evaluate_claim(
+                    claim, tr.intended_test, test_ambiguous=tr.ambiguous,
+                    assumption_reporting=reporting, sentence=request.sentence,
+                )
+            ]
+        except Exception as exc:
+            appropriateness_error = (
+                f"methodological appropriateness checks could not be run for this claim "
+                f"({type(exc).__name__}: {str(exc)[:120]}). This is a tool error; no conclusion "
+                f"about the manuscript should be drawn from their absence.")
+
+    # Both text-stage failures travel with the claim no matter which branch it lands in. A note
+    # that only some return paths carry is a note that disappears exactly when the pipeline is
+    # already in trouble.
+    carried_notes = [n for n in (disclosure_error, appropriateness_error) if n]
+
     if not tr.resolved or not request.data_available():
         # T17: with no raw data we cannot re-run anything, but assumption DISCLOSURE is still
         # decidable from the text. This is the branch that used to collapse to INSUFFICIENT_DATA
         # for the overwhelming majority of claims.
         notes = [tr.reason if not tr.resolved else "no linked dataset for this claim"]
-        reporting = None
-        if tr.resolved:
-            try:
-                reporting = detect_assumption_reporting(
-                    claim,
-                    manuscript_text=request.manuscript_text,
-                    methods_text=request.methods_text,
-                    test_key=tr.intended_test if not tr.ambiguous else None,
-                )
-            except Exception as exc:
-                # FAIL CLOSED: a crash in the audit must never read as "assumptions fine". Leave
-                # `reporting` None (no opinion -> INSUFFICIENT_DATA) and say so out loud. The
-                # cascade_engine fail-open incident, where a Guardian crash recorded
-                # guardian_passed=True, is the precedent for making this explicit.
-                notes.append(f"assumption-disclosure audit failed: {exc}")
-                reporting = None
-
-        assumptions_reported = reporting.all_reported if reporting is not None else None
+        notes.extend(carried_notes)
         v = assign_verdict(extraction_reliable=True, test_resolved=tr.resolved,
                            data_available=request.data_available(), executed_ok=False,
                            assumptions_ok=None, statistic_match=None,
@@ -144,10 +186,12 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
                                              alpha=request.alpha, max_cascades=0)
     except Exception as exc:  # degenerate input must surface, never silently pass
         return ClaimVerdict(verdict=Verdict.INSUFFICIENT_DATA, recomputed_test=intended,
-                            test_failed=True, test_failure_reason=f"engine error: {str(exc)[:140]}", **base)
+                            test_failed=True, notes=list(carried_notes),
+                            test_failure_reason=f"engine error: {str(exc)[:140]}", **base)
     if res.result is None:
         return ClaimVerdict(verdict=Verdict.INSUFFICIENT_DATA, recomputed_test=intended,
-                            test_failed=True, test_failure_reason="engine returned no result", **base)
+                            test_failed=True, notes=list(carried_notes),
+                            test_failure_reason="engine returned no result", **base)
 
     tres = res.result
     # 4. assumptions, with the T14 independence-gate
@@ -178,7 +222,7 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
                              executed_ok=True, assumptions_ok=assumptions_ok,
                              statistic_match=smatch, df_matches_design=df_ok, p_match=pmatch)
 
-    notes = []
+    notes = list(carried_notes)
     if df_ok is False:
         notes.append(
             f"not comparable: the manuscript reports df={tuple(claim.df)} but the linked data "
@@ -204,6 +248,13 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         deltas={"claimed": getattr(claim, "statistic_value", None), "recomputed": float(tres.statistic)},
         assumptions_checked=res.guardian_report is not None,
         assumptions_satisfied=assumptions_ok,
+        # Now that the disclosure audit is hoisted out of the no-data branch, this branch KNOWS
+        # the answer. It was previously left None on every re-analysed claim -- a field declared,
+        # persisted and rendered, and never assigned on the path that matters most. It is
+        # informational only: it is NOT passed to assign_verdict here, because with real data in
+        # hand the assumption is CHECKED, and a paper that verifies must not be downgraded for
+        # failing to narrate a check we just performed ourselves.
+        assumptions_reported_in_text=assumptions_reported,
         assumption_violations=[v.get("message", "") for v in crit],
         uncalibrated_engine_confidence=res.confidence_score,
         notes=notes,
