@@ -20,15 +20,52 @@ from .verdicts import Verdict
 
 DEFAULT_REL_TOL = 0.02  # provisional; pre-register in B1
 
+#: Relative floor under the p rounding-interval, for the RE-ANALYSIS comparison only.
+#:
+#: `statistic_matches` has always had a relative-tolerance fallback; `p_matches` had none, and
+#: that asymmetry was harmless only while scientific notation was read as "precision unknown"
+#: (which sent it to a flat 0.005 window). Reading e-notation properly makes the interval
+#: astronomically narrow -- "2.82e-07" implies a half-width of 5e-10 -- and the recomputed p
+#: does NOT come from the same numbers the authors used: supplementary tables are deposited
+#: ROUNDED, typically to 2 decimal places. Re-running rounded data moves p by around 1%, which
+#: is scientifically nothing and arithmetically enormous next to 5e-10.
+#:
+#: MEASURED, 400 simulated papers that are entirely correct (full-precision analysis reported,
+#: data deposited rounded), false DISCREPANT rate by floor and deposit precision:
+#:
+#:      floor    2 dp     3 dp     4 dp
+#:      0.00    82.5%    30.5%     3.8%      <- no floor: the fix accuses most honest papers
+#:      0.02    13.2%     0.0%     0.0%
+#:      0.05     0.2%     0.0%     0.0%
+#:      0.10     0.0%     0.0%     0.0%
+#:
+#: and at EVERY one of those floors all six real defects are still caught, because their errors
+#: are 47x to 10^88x, not 10%. 0.10 is the smallest round value that reaches zero at 2 dp with
+#: margin. It is PROVISIONAL, like DEFAULT_REL_TOL, and belongs in the B1 pre-registration.
+#:
+#: Deliberately NOT applied to `consistency_core.classify`: that recomputes p from the paper's
+#: OWN reported statistic, so there is no independent re-analysis and no deposited-data noise.
+#: Measured there too -- 0/400 honest papers falsely flagged without any floor -- because the
+#: statistic's own rounding interval is wide enough to absorb the narrow p interval.
+REANALYSIS_P_REL_FLOOR = 0.10
 
-def _decimals(token) -> Optional[int]:
-    """Decimal places implied by a reported numeric token (for the rounding interval)."""
-    if token is None:
-        return None
-    s = str(token).strip().lstrip("<>=").replace("−", "-")
-    if not s or "e" in s.lower():
-        return None
-    return len(s.split(".", 1)[1]) if "." in s else 0
+
+def _decimals(token, is_p: bool = False) -> Optional[int]:
+    """Decimal places implied by a reported numeric token (for the rounding interval).
+
+    Delegates to ``consistency_core.decimals_from_token``. There is ONE rule for how a reported
+    number's precision is read, and it must live in one place: this module had its own copy, the
+    two drifted, and the copy here silently returned None for scientific notation -- sending
+    ``p_matches`` to a flat +/-0.005 window in which ``p = 2.83e-91`` against a recomputed .004
+    was a MATCH, i.e. VERIFIED. The neighbouring module had the same hole. Fixing one and not
+    the other is how this repo produced two answers to one question; importing removes the
+    possibility rather than the instance.
+
+    ``is_p`` selects the p-value reading (a bare "0" keeps a decimal, because no real p is
+    exactly zero and a +/-0.5 window would mask a gross error).
+    """
+    from .consistency_core import decimals_from_token   # local: both are pure, no cycle
+    return decimals_from_token(token, is_p)
 
 
 def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
@@ -46,7 +83,7 @@ def statistic_matches(claimed: Optional[float], recomputed: Optional[float],
         return None
     c = abs(claimed) if symmetric else claimed
     r = abs(recomputed) if symmetric else recomputed
-    dec = _decimals(claimed_raw)
+    dec = _decimals(claimed_raw, is_p=False)
     if dec is not None:
         half = 0.5 * (10.0 ** (-dec))
         if abs(r - c) <= half + 1e-12:
@@ -91,14 +128,27 @@ def p_matches(claimed_p: Optional[float], recomputed_p: Optional[float],
     # additive +/-tolerance swamped tiny p-intervals ... hiding genuine small-p reporting
     # errors", audit 2026-06-04 F-06); the same trap applies to inequalities. At ".001" the
     # rounding half-width is .0005, so the bound is satisfied only below .0015.
-    dec = _decimals(claimed_p_raw)
+    dec = _decimals(claimed_p_raw, is_p=True)
     half = 0.5 * (10.0 ** (-dec)) if dec is not None else tolerance
 
+    # ...and never narrower than REANALYSIS_P_REL_FLOOR of the reported p. The recomputed value
+    # comes from re-running DEPOSITED data, which is rounded; without this floor, reading
+    # e-notation at its true precision turns 82.5% of entirely correct papers into DISCREPANT.
+    # See the constant for the measurement. This is the fallback `statistic_matches` always had.
+    half = max(half, REANALYSIS_P_REL_FLOOR * claimed_p)
+
+    # Float-noise guard, PROPORTIONAL to the slack rather than a flat 1e-12. A flat absolute
+    # epsilon makes every pair of p-values below it compare equal, so at omics scale the whole
+    # comparison went inert: executed, a claimed 1e-50 against a recomputed 1e-20 -- wrong by
+    # 10^30 -- returned True. That is the regime scientific notation is USED in, so a flat
+    # epsilon would have left this fix doing nothing precisely where it was needed.
+    eps = half * 1e-9
+
     if p_comparison == "less_than":
-        return recomputed_p <= claimed_p + half + 1e-12
+        return recomputed_p <= claimed_p + half + eps
     if p_comparison == "greater_than":
-        return recomputed_p >= claimed_p - half - 1e-12
-    return abs(recomputed_p - claimed_p) <= half + 1e-12
+        return recomputed_p >= claimed_p - half - eps
+    return abs(recomputed_p - claimed_p) <= half + eps
 
 
 def expected_degrees_of_freedom(intended_test: Optional[str], spec) -> Optional[tuple]:

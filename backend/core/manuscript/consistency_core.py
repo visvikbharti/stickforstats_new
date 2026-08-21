@@ -65,7 +65,22 @@ def decimals_from_token(token, is_p: bool) -> Optional[int]:
     stripped fraction (".049" captured as "049" -> 3), EXCEPT the bare integers
     "0"/"1", which are real point p-values with zero decimals (e.g. ANCOVA
     ``p = 1``). For a general statistic a token with no "." is an integer (0).
-    Scientific notation -> ``None`` (treated as effectively exact).
+
+    SCIENTIFIC NOTATION is read by significant digits, not treated as unknown.
+    Returning ``None`` here used to send the caller to a flat +/-0.005 window, which
+    for a tiny p is not a tolerance but an amnesty: executed against this module at
+    v1.2.0, a paper reporting ``p = 2.83e-91`` where the statistic implies p = .004
+    -- wrong by 88 orders of magnitude -- came back CONSISTENT, while the SAME
+    magnitude written as "0.0000000001" was correctly flagged 'major'. Only the
+    notation differed. That is exactly the F-06 defect this module already records
+    for its exact branch, surviving in the one input shape the guard did not cover
+    -- and e-notation is how the genomics/omics literature writes small p by default.
+
+    The reading is the mantissa's precision shifted by the exponent: "2.83e-91"
+    states three significant digits, so its rounding interval is
+    [2.825e-91, 2.835e-91], i.e. a half-width of 0.5e-93 -> 93 decimal places.
+    A positive exponent yields a NEGATIVE result, which is correct and intended:
+    "2.83e5" is 283000 known to 3 significant digits, half-width 500.
     """
     if token is None:
         return None
@@ -73,7 +88,17 @@ def decimals_from_token(token, is_p: bool) -> Optional[int]:
     if not s:
         return None
     if "e" in s or "E" in s:
-        return None
+        mantissa, _, exponent = s.replace("E", "e").partition("e")
+        try:
+            exp = int(exponent)
+        except ValueError:
+            return None            # not a number we can read -> no opinion
+        # Beyond this the float arithmetic in the callers (10.0 ** -dec) is either
+        # 0.0 or an OverflowError, and no real p is reported at that precision.
+        if abs(exp) > 300:
+            return None
+        mantissa_decimals = len(mantissa.split(".", 1)[1]) if "." in mantissa else 0
+        return mantissa_decimals - exp
     if "." in s:
         return len(s.split(".", 1)[1])
     if not is_p:
@@ -227,19 +252,29 @@ def classify(
     computed_sig = computed_p < alpha
     decision_consistent = reported_sig == computed_sig
 
+    # The reported p's own rounding half-width, used by BOTH branches below. The exact branch
+    # already read it; the inequality branch used a flat `tolerance` and so inherited precisely
+    # the defect the exact branch's comment (F-06) warns about. Executed at v1.2.0: a paper
+    # claiming "p < .0001" whose statistic implies p = .004 -- a 40x overclaim, and the classic
+    # starred-significance error -- was reported CONSISTENT, because .004 <= .0001 + .005. The
+    # bound must be judged at the precision the AUTHORS stated it to: at ".0001" the rounding
+    # half-width is .00005, so the claim is satisfied only below .00015.
+    p_dec = decimals_from_token(p_value_raw, is_p=True)
+    p_half = 0.5 * (10.0 ** (-p_dec)) if p_dec is not None else tolerance
+
     # --- Inequality: judged by satisfaction, not exact match ---
     if p_comparison in ("less_than", "greater_than"):
         if p_comparison == "less_than":
-            consistent = p_lo <= p_value + tolerance
+            consistent = p_lo <= p_value + p_half
         else:
-            consistent = p_hi >= p_value - tolerance
+            consistent = p_hi >= p_value - p_half
     else:
         # --- Exact: overlap of reported-p rounding interval with recomputed interval ---
-        p_dec = decimals_from_token(p_value_raw, is_p=True)
-        # Half-width of the reported p's rounding interval at its stated precision
-        # (e.g. p=.002 -> +/-.0005). If precision is unknown, fall back to a small
-        # symmetric window.
-        p_half = 0.5 * (10.0 ** (-p_dec)) if p_dec is not None else tolerance
+        # `p_half` above is the reported p's rounding interval at its stated precision
+        # (e.g. p=.002 -> +/-.0005); if precision is unknown it falls back to a small
+        # symmetric window. It is computed once and shared with the inequality branch --
+        # this line used to recompute the identical expression, which is the "one rule, two
+        # places" shape that produced the very defect this module is being fixed for.
         rep_lo, rep_hi = p_value - p_half, p_value + p_half
         # Two intervals are consistent iff they overlap, using ONLY the rounding
         # intervals. The previous flat additive +/-tolerance (0.005) swamped tiny
