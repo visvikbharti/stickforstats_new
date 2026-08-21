@@ -10,7 +10,15 @@ alone as a record of what was believed at the time.
 
 ---
 
-## Read these first — current as of **2026-08-05**
+## Read these first — current as of **2026-08-21**
+
+> 🔧 **[`STATUS_2026-08-21.md`](STATUS_2026-08-21.md) is the newest document.** It covers the
+> verifier/Guardian arc on `feat/appropriateness-v2` (10 commits, **nothing deployed**, `main`
+> untouched at `51f58d7`), including two false clean bills that are live in the released v1.2.0,
+> the corrected census figure (11.1% → 11.8%), and the single architectural cause behind six
+> sessions of defects. The submission facts below are unchanged and still current.
+
+## Submission state — current as of **2026-08-05**
 
 > ✅ **SUBMITTED to BMC Bioinformatics on 2026-08-05** — submission
 > `64da7fba-9eef-454c-bf56-30e2d1afd762`, at technical check. Read
@@ -26,7 +34,8 @@ alone as a record of what was believed at the time.
 
 | order | document | what you get |
 |---|---|---|
-| 0 | [`STATUS_2026-08-05.md`](STATUS_2026-08-05.md) | **start here.** Submission state, what was fixed to get there, the two post-submission obligations, and what is genuinely still open |
+| — | [`STATUS_2026-08-21.md`](STATUS_2026-08-21.md) | **newest.** The verifier/Guardian arc: what is on the unmerged branch, what is live-broken in v1.2.0, the corrected corpus numbers, and the architectural cause |
+| 0 | [`STATUS_2026-08-05.md`](STATUS_2026-08-05.md) | **submission state.** Submission state, what was fixed to get there, the two post-submission obligations, and what is genuinely still open |
 | 1 | [`BMC_SUBMISSION_VERIFICATION_2026-08-04.md`](BMC_SUBMISSION_VERIFICATION_2026-08-04.md) | the full audit ledger — every manuscript number re-executed, four rounds, each finding adversarially re-checked. **Also records the mistakes I made and corrected** |
 | 2 | [`STATUS_2026-07-14.md`](STATUS_2026-07-14.md) | superseded, but still the best description of the codebase itself |
 | 3 | [`TODO_2026-07-14.md`](TODO_2026-07-14.md) | the work queue, ordered by risk to a user's scientific conclusion |

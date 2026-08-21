@@ -4,10 +4,24 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
 
 ## DONE (committed under `paper/replication/verification/`)
 - ✅ Descriptive census over **10,103** PMC OA biomedical papers (JATS-XML → regex extraction → statcheck-style recompute).
-- ✅ Headline numbers: ~3.5% report an in-text recomputable stat; 3,005 checkable claims; **11.1%** raw inconsistent, **1.7%** decision-changing; FP-validation → single-digit genuine rate.
+- ✅ Headline numbers: ~3.5% report an in-text recomputable stat; 3,005 checkable claims;
+  **11.8%** raw inconsistent (355/3,005), **1.7%** decision-changing (52/3,005, UNCHANGED);
+  FP-validation → single-digit genuine rate.
+  - ⚠️ **CORRECTED 2026-08-21 — was 11.1% (333/3,005).** The v1.2.0 p-reader had two holes, both
+    since fixed on `feat/appropriateness-v2` (`f979b89`): scientific notation was read as
+    "precision unknown" (falling back to a flat ±0.005 window, an amnesty at small p), and the
+    INEQUALITY branch used that flat window regardless of stated precision, so `p < .0001`
+    against a recomputed `.004` was scored consistent. Re-scored against the full corpus with
+    the OLD reader as a control (it reproduces 3,005/333/52 exactly), then with the corrected
+    one. 22 claims flipped, ALL consistent→inconsistent; none the other way.
+  - The direction is a former UNDER-count, and the fix removes an internal inconsistency rather
+    than imposing a new standard: for **12 of 13** e-notation flips the old reader gave a
+    different verdict for the identical numeric value depending only on whether it was written
+    `9.04e-8` or `0.0000000904`.
+  - Paper-level rate also moves: **129/341 (37.8%) → 136/341 (39.9%)**.
 - ✅ Robustness: IPW re-estimate (≤0.6 pp shift) + independent general-OA frame (5.6%, directional).
 - ✅ Extractor false-positive fix (mis-extraction 157 → 0).
-- ✅ statcheck head-to-head: recall 97.7% / precision 98.1%.
+- ✅ statcheck head-to-head: recall 97.7% / precision 98.1% (**re-verified unchanged 2026-08-21** — these are EXTRACTION metrics and the p-reader correction does not touch them).
 - ✅ Figures (`figures/fig1`–`fig7`) + reports (`CENSUS_REPORT_LARGE`, `FP_VALIDATION_REPORT`, `CENSUS_IPW_REPORT`, `CENSUS_OA_PILOT_REPORT`).
 - ✅ Draft skeleton (`DRAFT.md`) with abstract, outline, and all numbers traced to source files.
 - ✅ **Full descriptive manuscript** (`manuscript.md`) — Route A: submittable now as a descriptive
@@ -25,6 +39,12 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
 - ✅ **`CODEBOOK.md`** — frozen 4-category coder rules (genuine / one_tailed / p_bound / mis_extraction) + examples.
 - ✅ **`build_gold_set.py`** — already drew the blinded **`gold_set_coding_sheet.csv`** (150 flagged claims,
   stratified, seed 20260627) + a separate `gold_set_key.csv` (tool verdicts, held back for blinding).
+  - ⚠️ **REDRAW BEFORE FILING (2026-08-21).** That draw sampled `flagged_inconsistencies.jsonl`,
+    which holds exactly **333** rows — the pre-correction flag set. The frame is now **355**, so
+    the 22 new flags currently have zero probability of selection. This is FREE to fix today
+    (the pre-reg is final but NOT filed, and no coding has started); it becomes a protocol
+    deviation only if discovered afterwards. Regenerate the flagged file from the corrected
+    reader, re-run `build_gold_set.py` with the same seed, and re-archive both CSVs.
 - ✅ **`compute_kappa.py`** — Cohen's κ between coders + tool sensitivity/specificity/PPV (math verified).
 
 ## NEEDED before submission — only the irreducibly-human / external steps remain
