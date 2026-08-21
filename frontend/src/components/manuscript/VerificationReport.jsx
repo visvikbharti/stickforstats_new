@@ -689,6 +689,74 @@ function ClaimsTable({ claims, theme }) {
                       {claim.test_failure_reason}
                     </Typography>
                   )}
+                  {/*
+                    Methodological appropriateness findings. These are ADVISORY and never move a
+                    verdict — a verdict answers "do these numbers reproduce", a finding answers
+                    "was this the right test" — so they render beside the claim rather than as
+                    part of its verdict chip. Until now they reached the API and the database and
+                    stopped there, which for a finding addressed to an author is the same as not
+                    existing.
+                  */}
+                  {(claim.appropriateness || []).map((finding, i) => (
+                    <Tooltip
+                      key={i}
+                      arrow
+                      title={
+                        <>
+                          <div>{finding.description}</div>
+                          {finding.evidence ? <div><em>“{finding.evidence}”</em></div> : null}
+                          <div>{finding.recommendation}</div>
+                          <div style={{ opacity: 0.8 }}>{finding.citation}</div>
+                        </>
+                      }
+                    >
+                      <Chip
+                        size="small"
+                        icon={<Gavel fontSize="inherit" />}
+                        label={finding.title}
+                        color="warning"
+                        variant="outlined"
+                        sx={{ mt: 0.5, maxWidth: '100%' }}
+                      />
+                    </Tooltip>
+                  ))}
+                  {/*
+                    Coverage, keyed on there being something to SAY: a non-empty
+                    `not_evaluated` list. A claim reading "assumptions satisfied" while a
+                    quarter of them were never looked at is the exact shape this whole arc was
+                    about.
+
+                    This deliberately does NOT also require `assumptions.checked`. That guard
+                    was in the first version and mutation testing killed it: a report where
+                    Guardian examined NOTHING has `checked: false` with a non-empty
+                    `not_evaluated` (the cox_regression / survival / iv / psm shape), so the
+                    guard hid the caption in precisely the case coverage matters most. Claims
+                    that never reached Guardian have an empty list and stay quiet anyway.
+                  */}
+                  {claim.assumptions &&
+                    (claim.assumptions.not_evaluated || []).length > 0 && (
+                      <Tooltip
+                        arrow
+                        title={
+                          `Not examined on this data: ` +
+                          `${(claim.assumptions.not_evaluated || []).join(', ').replace(/_/g, ' ')}. ` +
+                          `Unverified is not the same as satisfied.`
+                        }
+                      >
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: 'block', mt: 0.25 }}
+                        >
+                          <HelpOutline fontSize="inherit" sx={{ verticalAlign: 'text-bottom' }} />{' '}
+                          assumption coverage{' '}
+                          {claim.assumptions.coverage != null
+                            ? `${Math.round(claim.assumptions.coverage * 100)}%`
+                            : '—'}{' '}
+                          ({(claim.assumptions.not_evaluated || []).length} not examined)
+                        </Typography>
+                      </Tooltip>
+                    )}
                 </TableCell>
                 <TableCell>{formatP(claim.claimed && claim.claimed.p_value)}</TableCell>
                 <TableCell>

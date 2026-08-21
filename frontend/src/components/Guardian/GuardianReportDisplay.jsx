@@ -44,6 +44,7 @@ import {
   Shield as ShieldIcon,
   Lightbulb as LightbulbIcon,
   Science as ScienceIcon,
+  HelpOutline as HelpOutlineIcon,
 } from '@mui/icons-material';
 
 import ConfidenceGauge from './ConfidenceGauge';
@@ -55,6 +56,8 @@ import ViolationCard from './ViolationCard';
 const GuardianReportDisplay = ({
   guardianReport,
   assumptionsChecked = [],
+  assumptionsNotEvaluated = [],
+  assumptionCoverage = null,
   violations = [],
   confidenceScore = 0,
   canProceed = true,
@@ -256,6 +259,34 @@ const GuardianReportDisplay = ({
               Result Confidence
             </Typography>
             <ConfidenceGauge score={confidenceScore} />
+            {/*
+              Confidence grades how BAD the findings were; it is severity-weighted and says
+              nothing about how much was examined. Shown together they answer different
+              questions, and the pair is the point: on identical data, `pearson` returns
+              confidence 1.0 at coverage 1.00 while `mann_whitney` returns confidence 1.0 at
+              coverage 0.50. Reading confidence alone, those are indistinguishable.
+            */}
+            {assumptionCoverage !== null && (
+              <Tooltip
+                arrow
+                title={
+                  `Assumption coverage: ${assumptionsChecked.length} of ` +
+                  `${assumptionsChecked.length + assumptionsNotEvaluated.length} required ` +
+                  `assumptions were actually examined on this data. Confidence grades what was ` +
+                  `FOUND; coverage says how much was LOOKED AT. A high confidence over low ` +
+                  `coverage is a clean report on a small part of the question.`
+                }
+              >
+                <Typography
+                  variant="caption"
+                  sx={{ display: 'block', mt: 0.5, color: theme.palette.text.secondary }}
+                >
+                  Assumption coverage: {Math.round(assumptionCoverage * 100)}%{' '}
+                  ({assumptionsChecked.length} of{' '}
+                  {assumptionsChecked.length + assumptionsNotEvaluated.length} examined)
+                </Typography>
+              </Tooltip>
+            )}
           </Box>
 
           {/* Assumptions Checked */}
@@ -287,6 +318,56 @@ const GuardianReportDisplay = ({
               })}
             </Stack>
           </Box>
+
+          {/*
+            Assumptions the test REQUIRES that were not examined on this data.
+
+            Without this block the panel is silently narrower than the truth: the backend used
+            to list every requirement as "checked" (independence on 22 of 25 test types, while
+            the audit trail recorded not_applicable), and now lists only what actually ran. Show
+            only the checked chips and a reader cannot tell "this test needs three things" from
+            "it needs four and we did three".
+
+            Styled deliberately unlike the checked chips -- neutral, dashed, a help icon rather
+            than a tick or a warning. It is not a violation (we found nothing wrong) and it is
+            not a pass (we did not look). It is the third state the UI never had.
+          */}
+          {assumptionsNotEvaluated.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Required but NOT evaluated ({assumptionsNotEvaluated.length})
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                {assumptionsNotEvaluated.map((assumption, idx) => (
+                  <Tooltip
+                    key={idx}
+                    arrow
+                    title={
+                      `This test requires ${assumption.replace(/_/g, ' ')}, but it could not be ` +
+                      `examined on this data — so it is UNVERIFIED, not satisfied. ` +
+                      (assumption === 'independence'
+                        ? 'The lag-1 autocorrelation check runs only when the rows are declared ' +
+                          'to be in a meaningful order; pass observation_order="sequential" if ' +
+                          'they are.'
+                        : 'Absence of evidence is not evidence of absence.')
+                    }
+                  >
+                    <Chip
+                      size="small"
+                      icon={<HelpOutlineIcon fontSize="small" />}
+                      label={assumption.replace(/_/g, ' ')}
+                      variant="outlined"
+                      sx={{
+                        borderStyle: 'dashed',
+                        color: theme.palette.text.secondary,
+                        borderColor: theme.palette.divider,
+                      }}
+                    />
+                  </Tooltip>
+                ))}
+              </Stack>
+            </Box>
+          )}
 
           {/* Violations */}
           {violations.length > 0 && (

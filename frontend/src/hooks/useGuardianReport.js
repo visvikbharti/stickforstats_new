@@ -64,6 +64,15 @@ const useGuardianReport = (response) => {
       ? {
           guardianReport: response.guardian_report || null,
           assumptionsChecked: response.assumptions_checked || [],
+          // Required by the test but NOT examined on this data, and how much of the
+          // requirement set that leaves. `assumptions_checked` used to be the requirements
+          // list itself, so it named checks nothing had performed -- independence on 22 of 25
+          // test types. Now that it is truthful it is also NARROWER, and without these two the
+          // UI would silently drop a requirement rather than report it as unexamined.
+          assumptionsNotEvaluated: response.assumptions_not_evaluated || [],
+          // null (not 0) when the backend does not supply it: 0.0 is a real, meaningful
+          // coverage value ("nothing was examined") and must not be confused with "unknown".
+          assumptionCoverage: response.assumption_coverage ?? null,
           violations: response.violations || [],
           confidenceScore: response.confidence_score ?? 0,
           canProceed: response.can_proceed ?? true,

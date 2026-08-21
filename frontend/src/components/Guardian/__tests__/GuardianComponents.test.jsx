@@ -371,3 +371,93 @@ describe('Design Contract Compliance - Components', () => {
     ).toBeInTheDocument();
   });
 });
+
+/**
+ * "Required but NOT evaluated" — the third state the UI never had.
+ *
+ * `assumptions_checked` used to be the backend's REQUIREMENTS list, published as though it
+ * described what had been performed: 22 of 25 test types listed `independence` as checked while
+ * the audit trail recorded `not_applicable`. The backend now reports only what actually ran,
+ * which makes it truthful and ALSO NARROWER — so without this section the panel silently drops a
+ * requirement instead of reporting it as unexamined, and a reader cannot tell "this test needs
+ * three things" from "it needs four and we did three".
+ *
+ * Every test names the mutation that must break it.
+ */
+describe('GuardianReportDisplay — unexamined assumptions and coverage', () => {
+  const theme2 = createTheme();
+  const wrap = (ui) => render(<ThemeProvider theme={theme2}>{ui}</ThemeProvider>);
+
+  const partial = {
+    guardianReport: { test_type: 't_test' },
+    assumptionsChecked: ['normality', 'variance_homogeneity', 'outliers'],
+    assumptionsNotEvaluated: ['independence'],
+    assumptionCoverage: 0.75,
+    violations: [],
+    confidenceScore: 100,
+    canProceed: true,
+    alternativeTests: [],
+    expertModeOverride: false,
+  };
+
+  it('names the assumption that was required but never examined', () => {
+    // MUTATION: delete the assumptionsNotEvaluated block from GuardianReportDisplay -> fails.
+    wrap(<GuardianReportDisplay {...partial} />);
+    expect(screen.getByText(/Required but NOT evaluated \(1\)/i)).toBeInTheDocument();
+    expect(screen.getByText('independence')).toBeInTheDocument();
+  });
+
+  it('shows coverage alongside confidence, because they answer different questions', () => {
+    // A clean t-test returns confidence 1.0 at coverage 0.75. Reading confidence alone, that is
+    // indistinguishable from a report that examined everything.
+    // MUTATION: drop the coverage caption, or derive it from confidenceScore -> fails.
+    wrap(<GuardianReportDisplay {...partial} />);
+    expect(screen.getByText(/Assumption coverage: 75%/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 of 4 examined/i)).toBeInTheDocument();
+  });
+
+  it('renders 0% coverage rather than treating it as absent', () => {
+    // THE FALSY TRAP. Coverage 0.0 is a real and important value -- "we examined NOTHING", which
+    // is exactly what cox_regression/survival/iv/psm return. Mapping it with `|| 0`-style falsy
+    // logic, or gating the caption on a truthiness check, silently hides the worst case.
+    // MUTATION: `assumptionCoverage ?? null` -> `assumptionCoverage || null` in the hook, or
+    // `{assumptionCoverage && (...)}` in the component -> the caption disappears and this fails.
+    wrap(
+      <GuardianReportDisplay
+        {...partial}
+        assumptionsChecked={[]}
+        assumptionsNotEvaluated={['independence']}
+        assumptionCoverage={0}
+      />
+    );
+    expect(screen.getByText(/Assumption coverage: 0%/i)).toBeInTheDocument();
+    expect(screen.getByText(/0 of 1 examined/i)).toBeInTheDocument();
+  });
+
+  it('says nothing when every required assumption WAS examined', () => {
+    // The silence control: a fully-covered report must not grow an empty scolding section.
+    // MUTATION: render the block unconditionally -> "Required but NOT evaluated (0)" appears
+    // on a perfectly clean report and this fails.
+    wrap(
+      <GuardianReportDisplay
+        {...partial}
+        assumptionsChecked={['normality', 'linearity', 'outliers']}
+        assumptionsNotEvaluated={[]}
+        assumptionCoverage={1}
+      />
+    );
+    expect(screen.queryByText(/Required but NOT evaluated/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Assumption coverage: 100%/i)).toBeInTheDocument();
+  });
+
+  it('keeps unexamined assumptions visually distinct from violations', () => {
+    // Unexamined is neither a pass nor a failure: we did not look. If it rendered as a
+    // violation the tool would be accusing on no evidence; as a pass, it would be certifying
+    // on no evidence. Both are the failure modes this whole arc was about.
+    // MUTATION: move `independence` into the assumptionsChecked list -> it renders as a
+    // success chip and this fails.
+    wrap(<GuardianReportDisplay {...partial} />);
+    expect(screen.getByText(/Assumptions Checked \(3\)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Violations/i)).not.toBeInTheDocument();
+  });
+});

@@ -255,6 +255,8 @@ def verify_claim(request: ClaimVerificationRequest) -> ClaimVerdict:
         # place (a read-only property on GuardianReport), so this surface cannot disagree with
         # the endpoint's.
         assumption_coverage=(res.guardian_report or {}).get("assumption_coverage"),
+        assumptions_not_evaluated=list(
+            (res.guardian_report or {}).get("assumptions_not_evaluated") or []),
         # ...and with nothing examined there is no opinion to give. `assign_verdict` only acts
         # on `assumptions_ok is False`, so None neither blocks VERIFIED nor forges a clean bill;
         # it stops the verdict asserting that assumptions hold on the strength of no evidence.

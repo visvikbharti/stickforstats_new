@@ -274,3 +274,114 @@ describe('VerificationReport rendering', () => {
     expect(screen.getByText(/No verifiable statistical claims were extracted/i)).toBeInTheDocument();
   });
 });
+
+/**
+ * Appropriateness findings and assumption coverage, in the claims table.
+ *
+ * Both reached the API response and the database and stopped there. For a finding addressed to
+ * an author, and for a coverage figure whose entire purpose is to be seen, that is the same as
+ * not existing. Every test names the mutation that must break it.
+ */
+describe('VerificationReport — appropriateness findings and coverage', () => {
+  const FINDING = {
+    rule_id: 'SMALL_N_PARAMETRIC_UNDISCLOSED',
+    severity: 'moderate',
+    title: 'Small sample, parametric test, no normality check reported',
+    description:
+      'This claim reports n = 12, below 20, and the manuscript does not report checking normality.',
+    evidence: 'n = 12 reported with this claim',
+    recommendation: 'State how normality was assessed (Shapiro-Wilk, a Q-Q plot).',
+    citation: 'Ghasemi & Zahediasl (2012), Int J Endocrinol Metab 10(2):486-9',
+    grade: 'arithmetic',
+    claim_id: 'C001',
+    section: 'methods',
+  };
+
+  it('renders a methodological finding against the claim it belongs to', () => {
+    // MUTATION: delete the claim.appropriateness map from the Claim cell -> fails.
+    const c = makeClaim({ appropriateness: [FINDING] });
+    wrap(<VerificationReport report={makeReport({ claims: [c] })} />);
+    expect(screen.getByText(FINDING.title)).toBeInTheDocument();
+  });
+
+  it('shows no finding chip when the engine had nothing to say', () => {
+    // The silence control. The engine is silent on most claims by design, and a table that
+    // grows empty warning chips on correct papers is the failure mode this project keeps
+    // shipping.
+    // MUTATION: render the chip unconditionally -> fails.
+    wrap(<VerificationReport report={makeReport({ claims: [makeClaim()] })} />);
+    expect(
+      screen.queryByText(/Small sample, parametric test/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it('tolerates a claim payload with no appropriateness key at all', () => {
+    // Older persisted runs (VerificationRun.profile_data) predate the field entirely, and the
+    // report endpoint serves them back verbatim. A stored report from last week must not crash
+    // the page.
+    // MUTATION: `claim.appropriateness.map(...)` without the `|| []` guard -> TypeError, fails.
+    const c = makeClaim();
+    delete c.appropriateness;
+    expect(() => wrap(<VerificationReport report={makeReport({ claims: [c] })} />)).not.toThrow();
+  });
+
+  it('reports assumption coverage on a re-analysed claim, naming what was skipped', () => {
+    // A claim can read "assumptions checked: yes, satisfied: yes" while a quarter of them were
+    // never examined. Coverage without the NAME is a number with no referent -- a reader shown
+    // "75%" cannot tell whether the missing quarter is one they care about.
+    // MUTATION: drop the coverage caption, or stop passing assumptions_not_evaluated through
+    // ClaimVerdict.to_dict -> fails.
+    const c = makeClaim({
+      verdict: 'VERIFIED',
+      assumptions: {
+        checked: true,
+        coverage: 0.75,
+        not_evaluated: ['independence'],
+        satisfied: true,
+        violations: [],
+        reported_in_text: false,
+      },
+    });
+    wrap(<VerificationReport report={makeReport({ claims: [c] })} />);
+    expect(screen.getByText(/assumption coverage 75%/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 not examined/i)).toBeInTheDocument();
+  });
+
+  it('stays quiet about coverage when nothing was re-analysed', () => {
+    // Most claims never reach Guardian at all (INSUFFICIENT_DATA is the honest, expected
+    // outcome for most papers). Printing "coverage —" on every one of them would be noise that
+    // buries the cases where coverage is genuinely informative.
+    // MUTATION: drop the `claim.assumptions.checked` guard -> the caption appears on every
+    // unlinked claim and this fails.
+    const c = makeClaim({
+      assumptions: { checked: false, coverage: null, not_evaluated: [], satisfied: null,
+                     violations: [], reported_in_text: null },
+    });
+    wrap(<VerificationReport report={makeReport({ claims: [c] })} />);
+    expect(screen.queryByText(/assumption coverage/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('VerificationReport — the report that examined nothing', () => {
+  it('shows coverage when Guardian examined NOTHING, which is when it matters most', () => {
+    // `assumptions.checked` is false here, because Guardian evaluated zero assumptions -- the
+    // cox_regression / survival / iv / psm shape, where the report is an absence of evidence
+    // rather than a clean bill. The first version of the caption ALSO required
+    // `assumptions.checked`, so it hid this exact case; mutation testing killed that guard.
+    // MUTATION: re-add `claim.assumptions.checked &&` to the caption condition -> fails.
+    const c = makeClaim({
+      verdict: 'VERIFIED',
+      assumptions: {
+        checked: false,
+        coverage: 0,
+        not_evaluated: ['independence'],
+        satisfied: null,
+        violations: [],
+        reported_in_text: null,
+      },
+    });
+    wrap(<VerificationReport report={makeReport({ claims: [c] })} />);
+    expect(screen.getByText(/assumption coverage 0%/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 not examined/i)).toBeInTheDocument();
+  });
+});

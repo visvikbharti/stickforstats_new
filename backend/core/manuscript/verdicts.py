@@ -186,6 +186,10 @@ class ClaimVerdict:
     #: this says how much we looked at. Reporting the first without the second is how a claim
     #: came to read "assumptions checked: yes, satisfied: yes" on an evaluation of nothing.
     assumption_coverage: Optional[float] = None
+    #: WHICH required assumptions were not examined. Without this the coverage figure is a
+    #: number with no referent -- a reader shown "0.75" cannot act on it, and cannot tell
+    #: whether the missing quarter is one they care about.
+    assumptions_not_evaluated: List[str] = field(default_factory=list)
     assumptions_satisfied: Optional[bool] = None
     assumption_violations: List[str] = field(default_factory=list)
     assumptions_reported_in_text: Optional[bool] = None   # A5(i) text detection
@@ -264,6 +268,7 @@ class ClaimVerdict:
             "assumptions": {
                 "checked": self.assumptions_checked,
                 "coverage": self.assumption_coverage,
+                "not_evaluated": list(self.assumptions_not_evaluated),
                 "satisfied": self.assumptions_satisfied,
                 "violations": self.assumption_violations,
                 "reported_in_text": self.assumptions_reported_in_text,

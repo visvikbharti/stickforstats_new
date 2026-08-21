@@ -82,6 +82,8 @@ describe('useGuardianReport Hook', () => {
         _guardian_context: true,
         guardian_report: { test_type: 't_test' },
         assumptions_checked: ['normality', 'homogeneity'],
+        assumptions_not_evaluated: ['independence'],
+        assumption_coverage: 0.667,
         violations: [{ severity: 'warning', assumption: 'normality' }],
         confidence_score: 75.5,
         can_proceed: true,
@@ -94,6 +96,12 @@ describe('useGuardianReport Hook', () => {
       expect(result.current.guardianProps).toEqual({
         guardianReport: { test_type: 't_test' },
         assumptionsChecked: ['normality', 'homogeneity'],
+        // Required but NOT examined, plus how much of the requirement set that leaves.
+        // `assumptions_checked` used to be the REQUIREMENTS list, so it named checks nothing
+        // had performed; now that it is truthful it is also narrower, and these two are what
+        // stop the UI silently dropping a requirement instead of reporting it as unexamined.
+        assumptionsNotEvaluated: ['independence'],
+        assumptionCoverage: 0.667,
         violations: [{ severity: 'warning', assumption: 'normality' }],
         confidenceScore: 75.5,
         canProceed: true,
@@ -359,5 +367,40 @@ describe('Design Contract Compliance', () => {
 
     expect(compliantResult.current.hasGuardianContext).toBe(true);
     expect(compliantResult.current.guardianProps).not.toBeNull();
+  });
+});
+
+describe('useGuardianReport — unexamined assumptions and coverage', () => {
+  it('preserves a coverage of 0 instead of collapsing it to "unknown"', () => {
+    // THE FALSY TRAP, at the mapping layer. Coverage 0.0 is a real and important value --
+    // "we examined NOTHING" -- and it is exactly what cox_regression, survival, iv, psm,
+    // propensity_score, did, difference_in_differences and bayesian_correlation return.
+    // `??` keeps it; `||` would turn the single worst case into the same value as "the backend
+    // did not tell us", which the UI then hides.
+    // MUTATION: `response.assumption_coverage ?? null` -> `|| null` -> this returns null and fails.
+    const { result } = renderHook(() =>
+      useGuardianReport({
+        _guardian_context: true,
+        assumptions_checked: [],
+        assumptions_not_evaluated: ['independence'],
+        assumption_coverage: 0,
+        confidence_score: 44.4,
+      })
+    );
+    expect(result.current.guardianProps.assumptionCoverage).toBe(0);
+    expect(result.current.guardianProps.assumptionsNotEvaluated).toEqual(['independence']);
+  });
+
+  it('defaults to an empty list and an unknown coverage when the backend omits them', () => {
+    // A response from an older backend (or a cached one) must not crash the panel, and must
+    // not claim coverage it was never told about.
+    // MUTATION: default assumptionCoverage to 0 instead of null -> a report with no coverage
+    // information renders as "0% examined", which is a lie in the damaging direction, and this
+    // fails.
+    const { result } = renderHook(() =>
+      useGuardianReport({ _guardian_context: true, assumptions_checked: ['normality'] })
+    );
+    expect(result.current.guardianProps.assumptionsNotEvaluated).toEqual([]);
+    expect(result.current.guardianProps.assumptionCoverage).toBeNull();
   });
 });

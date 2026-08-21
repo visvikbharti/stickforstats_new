@@ -356,3 +356,8 @@ class CoverageReachesTheSurfacesTests(TestCase):
         assumptions = verdict.to_dict()["assumptions"]
         self.assertIs(assumptions["satisfied"], True)
         self.assertEqual(assumptions["coverage"], 0.75)
+        # ...and WHICH quarter. Coverage without the name is a number with no referent: a
+        # reader shown "75%" cannot tell whether the missing part is one they care about.
+        # MUTATION: stop passing assumptions_not_evaluated in reanalysis_engine, or drop
+        # "not_evaluated" from ClaimVerdict.to_dict -> fails.
+        self.assertEqual(assumptions["not_evaluated"], ["independence"])
