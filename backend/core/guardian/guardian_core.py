@@ -2571,6 +2571,28 @@ class LinearityValidator:
         # Calculate improvement in R² with polynomial fit
         r2_improvement = r2_poly - r2_linear
 
+        # An exact fit is direct positive evidence of linearity -- the line reproduces y to
+        # the last representable bit -- and it must be read BEFORE the runs test, because the
+        # runs test applied to rounding dust is what produced the defect. Measured on the
+        # deployed build: 61.8% of perfectly linear datasets came back "Linearity violated"
+        # at severity CRITICAL, under a message reading "R^2 improvement with polynomial:
+        # 0.000". The R^2 comparison was right and said 0.000; the runs test was reading the
+        # sign pattern of 1e-14 residuals (p = 6.1e-07 on y = x/3 + 1/7).
+        #
+        # Unlike HomoscedasticityValidator, which reports NOT EVALUATED for the same input,
+        # this is a genuine pass: R^2 = 1 answers the linearity question outright, and more
+        # strongly than the runs test could.
+        if _fit_is_exact(y, residuals):
+            return {
+                "violated": False,
+                "test_name": "Linearity Check (Residual Analysis)",
+                "message": (
+                    "Linearity assumption satisfied: the linear fit reproduces y exactly to "
+                    "within floating-point precision (R² = 1). The residual runs test is not "
+                    "meaningful on residuals this size and was not used."
+                ),
+            }
+
         # Runs test on residuals to detect patterns
         runs_test_result = self._runs_test(residuals)
 
@@ -2746,6 +2768,43 @@ class LinearityValidator:
         }
 
 
+#: How close an OLS fit must be to y before its RESIDUALS are treated as carrying no
+#: information, in units of machine epsilon relative to the data scale.
+#:
+#: Measured, not chosen. Over n in 10..20,000 and four x-distributions (arange, uniform,
+#: offset-uniform, and a badly conditioned lognormal), the worst observed dust ratio
+#: max|resid| / max|y| for an exactly linear y was 21.9 ULPs. The tightest fit anyone would
+#: call a regression -- residual sd at 1e-6 of the data scale -- sits at ~7e9 ULPs. 1000 ULPs
+#: is 46x above the former and roughly 7 million times below the latter, so the two
+#: populations are separated by six orders of magnitude in either direction.
+_EXACT_FIT_ULPS = 1000
+
+
+def _fit_is_exact(y: np.ndarray, residuals: np.ndarray) -> bool:
+    """True when an OLS fit reproduces *y* to within floating-point representation error.
+
+    When it does, the residuals are rounding dust rather than measurement error, and every
+    residual-based diagnostic downstream is reading that dust as scientific structure.
+    Measured on the deployed v1.2.0 build, over 500 perfect lines y = ax + b (random a, b,
+    n = 50):
+
+      * Breusch-Pagan reported heteroscedasticity for **78.2%** of them, mostly "critical"
+        (y = x/3 + 1/7 -> p = 7.4e-06, variance ratio 8.08, confidence 0.167);
+      * the runs test reported a **critical** linearity violation for **61.8%** of them, under
+        a message reading "R^2 improvement with polynomial: 0.000" -- the message contradicting
+        its own verdict, because the runs test, not the R^2 comparison, is what fired.
+
+    This is those TESTS being undefined on this input, not a defect in our implementation of
+    them: statsmodels' ``het_breuschpagan`` agrees with our Breusch-Pagan to every digit on the
+    dust case and returns nan when the residuals are exactly zero.
+
+    ONE predicate, used by both validators. The two defects above are the same defect in two
+    places, and they were found one at a time.
+    """
+    scale = float(np.max(np.abs(y))) if y.size else 0.0
+    return float(np.max(np.abs(residuals))) <= _EXACT_FIT_ULPS * float(np.finfo(float).eps) * scale
+
+
 class HomoscedasticityValidator:
     """
     Validates homoscedasticity (constant variance) assumption for regression
@@ -2777,6 +2836,29 @@ class HomoscedasticityValidator:
         model.fit(X, y)
         y_pred = model.predict(X)
         residuals = y - y_pred
+
+        # Breusch-Pagan is undefined when the fit is EXACT -- see _fit_is_exact for the
+        # measurement. The `var_ratio is None` branch below is a SYMPTOM of this condition,
+        # not a separate one, which is why fixing only that branch's message (e442b84)
+        # converted a crash into a confident false accusation instead of removing one.
+        #
+        # NOT EVALUATED rather than "pass", and the asymmetry with LinearityValidator (which
+        # does pass here) is deliberate: an exact fit is direct positive evidence that the
+        # relationship IS linear, but it is not evidence that variance is constant -- there is
+        # no residual variance to be constant. Passing would be a vacuous certification, the
+        # false clean bill this validator exists to prevent.
+        if _fit_is_exact(y, residuals):
+            return {
+                "violated": False,
+                "not_applicable": True,
+                "test_name": "Breusch-Pagan Test",
+                "details": (
+                    "The regression reproduces y exactly to within floating-point precision, so "
+                    "the residuals carry no information and the Breusch-Pagan test is undefined. "
+                    "Residual variance is constant (zero) by construction; heteroscedasticity was "
+                    "not evaluated."
+                ),
+            }
 
         # Breusch-Pagan test
         # Regress squared residuals on X to test for heteroscedasticity
