@@ -617,20 +617,53 @@ class StatisticalClaimExtractor:
         Parameters
         ----------
         sections : list
-            Each element is expected to have ``.name`` (str) and
-            ``.text`` (str) attributes, as produced by
-            ``backend.core.manuscript.parser.parse_manuscript``.
+            Each element is a ``parser.ManuscriptSection`` — ``.section_type`` and
+            ``.content``. Objects exposing ``.name``/``.text`` are also accepted.
 
         Returns
         -------
         List[StatisticalClaim]
             All claims across all sections, with unique sequential IDs.
+
+        Notes
+        -----
+        This read used to be ``getattr(sec, "name", "unknown")`` and
+        ``getattr(sec, "text", "")`` — attributes ``ManuscriptSection`` does not have. It
+        exposes ``section_type`` and ``content``. The forgiving default turned every section
+        into the empty string, ``if not text: continue`` skipped all of them, and the method
+        returned ZERO claims for every manuscript ever passed to it.
+
+        Nothing raised, so nothing surfaced. ``ManuscriptGuardian`` has a fallback and silently
+        degraded to Results-only extraction, losing Methods and Discussion claims and their
+        section labels. The two v1 endpoints have NO fallback: executed against a manuscript
+        containing four claims, ``POST /api/v1/manuscript/claims/`` returned HTTP 200 with
+        ``total_claims: 0``, and ``POST /api/v1/manuscript/consistency/`` returned
+        ``total_checked: 0, inconsistent: 0, gross_errors: 0`` — a clean consistency summary
+        produced by checking nothing.
+
+        So the attribute is now read WITHOUT a default. A section object exposing neither pair
+        raises, naming what it does have. A silent empty result is the one outcome this must
+        never produce again: it is indistinguishable from a manuscript that genuinely reports
+        no statistics.
         """
         all_claims: List[StatisticalClaim] = []
 
         for sec in sections:
-            name = getattr(sec, "name", "unknown")
-            text = getattr(sec, "text", "")
+            name = (getattr(sec, "section_type", None)
+                    or getattr(sec, "name", None)
+                    or "unknown")
+            if hasattr(sec, "content"):
+                text = sec.content
+            elif hasattr(sec, "text"):
+                text = sec.text
+            else:
+                raise TypeError(
+                    f"extract_from_sections: section object of type "
+                    f"{type(sec).__name__} exposes neither `.content` nor `.text`; it has "
+                    f"{sorted(a for a in dir(sec) if not a.startswith('_'))[:12]}. Returning "
+                    f"no claims here would be indistinguishable from a manuscript that "
+                    f"reports no statistics."
+                )
             if not text:
                 continue
             sec_claims = self.extract(text, section=name)
