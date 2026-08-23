@@ -1,0 +1,12 @@
+{
+  "frame_file": "flagged_inconsistencies_corrected.jsonl",
+  "frame_rows": 355,
+  "frame_sha256": "7613bb7d9beae2e4fec0456bb73658ce90f04c70464923e414fad5688fd9dd95",
+  "n_drawn": 150,
+  "seed": 20260627,
+  "tool_category_distribution": {
+    "genuine": 115,
+    "one_tailed": 21,
+    "p_bound": 14
+  }
+}

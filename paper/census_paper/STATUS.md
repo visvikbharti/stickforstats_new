@@ -19,6 +19,28 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
     different verdict for the identical numeric value depending only on whether it was written
     `9.04e-8` or `0.0000000904`.
   - Paper-level rate also moves: **129/341 (37.8%) → 136/341 (39.9%)**.
+- ⚠️ **`manuscript.md` and `DRAFT.md` STILL CARRY THE OLD 11.1% / 333 NUMBERS** — only this
+  STATUS.md was corrected on 2026-08-21. The stale figures appear in the abstract, Results, the
+  adjudication paragraph and five figure captions. **Not corrected here on purpose:** the IPW
+  re-estimate, the independent-OA frame and every figure are regenerated from the drive, which is
+  not mounted, so a partial edit would leave a half-corrected manuscript — worse than a
+  consistently old one with this note. What IS recomputable from the local corrected frame, ready
+  for that pass (control: the same code reproduces every published figure exactly):
+
+  | | published (333) | corrected (355) |
+  |---|---|---|
+  | raw inconsistent | 333/3,005 = **11.08%** | 355/3,005 = **11.81%** |
+  | TRUE_LIKELY | 262 (79% of flags) = **8.72%** of checkable | 274 (77%) = **9.12%** |
+  | REVIEW_P_BOUND | 25 (8%) | 33 (9%) |
+  | FP_ONE_TAILED | 46 (14%) | 48 (14%) |
+  | FP_MISEXTRACTION | 0 | **0** — but 13 *without* the e-notation fix above |
+  | papers with ≥1 | 129/341 (37.8%) | 136/341 (39.9%) |
+  | decision-changing | 52 (1.73%) | 52 (**unchanged**) |
+
+  The headline conclusion is unaffected: the adjudicated genuine rate stays single-digit
+  (8.7% → 9.1%). Note the last row of the table: without the scientific-notation fix, the
+  manuscript's own claim that mis-extraction was *"eliminated (157 → 0)"* would have become false
+  on the corrected frame.
 - ✅ Robustness: IPW re-estimate (≤0.6 pp shift) + independent general-OA frame (5.6%, directional).
 - ✅ Extractor false-positive fix (mis-extraction 157 → 0).
 - ✅ statcheck head-to-head: recall 97.7% / precision 98.1% (**re-verified unchanged 2026-08-21** — these are EXTRACTION metrics and the p-reader correction does not touch them).
@@ -37,14 +59,36 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   D7 gold set 150 flagged + 50-paper extraction; D9 standalone; D10 Existing-Data template). Scoped to the
   internal-consistency census (matches `manuscript.md`).
 - ✅ **`CODEBOOK.md`** — frozen 4-category coder rules (genuine / one_tailed / p_bound / mis_extraction) + examples.
-- ✅ **`build_gold_set.py`** — already drew the blinded **`gold_set_coding_sheet.csv`** (150 flagged claims,
+- ✅ **`build_gold_set.py`** — drew the blinded **`gold_set_coding_sheet.csv`** (150 flagged claims,
   stratified, seed 20260627) + a separate `gold_set_key.csv` (tool verdicts, held back for blinding).
-  - ⚠️ **REDRAW BEFORE FILING (2026-08-21).** That draw sampled `flagged_inconsistencies.jsonl`,
-    which holds exactly **333** rows — the pre-correction flag set. The frame is now **355**, so
-    the 22 new flags currently have zero probability of selection. This is FREE to fix today
-    (the pre-reg is final but NOT filed, and no coding has started); it becomes a protocol
-    deviation only if discovered afterwards. Regenerate the flagged file from the corrected
-    reader, re-run `build_gold_set.py` with the same seed, and re-archive both CSVs.
+  - ✅ **REDRAWN 2026-08-24 from the corrected 355-row frame.** The previous draw sampled the
+    333-row pre-correction flag set, so the 22 corrected-in claims had zero probability of
+    selection. `_CANDIDATES` now prefers `flagged_inconsistencies_corrected.jsonl`; the seed is
+    unchanged (20260627). New draw: 150 of 355 — genuine 115 / one_tailed 21 / p_bound 14;
+    82 of the previous 150 carry over, 10 of the 21 claims new to the frame are included.
+  - ✅ **Provenance recorded.** The frame file lives under the gitignored `osf_deposit/` tree, so
+    the two CSVs were archivable but their INPUT was not — a seed alone does not identify a
+    sample. `gold_set_provenance.json` now records the frame filename, its **sha256**, its row
+    count, the seed and the drawn distribution (PREREGISTRATION.md §7).
+  - 🚨 **A defect found while redrawing: the adjudicator could not read a p in scientific
+    notation.** `adjudicate_inconsistencies.classify` decides `FP_MISEXTRACTION` — *"no p-value in
+    the claim's own text"* — from `\b[pP]\s*[=<>]\s*0?\.\d`, which does not match `P = 9.04e-8`
+    or `p = 6E−04`. On the published 333-row frame this hit **0** rows, so **no published number
+    changes** (verified: re-running the draw against the old frame with the fix in place
+    reproduces both committed CSVs byte-for-byte). On the corrected 355-row frame it hit **13, and
+    all 13 were e-notation claims** — precisely the population the p-reader fix added. Six of them
+    had landed in the redraw labelled `mis_extraction` in the held-back key. The rule now accepts
+    e-notation (and U+2212 minus); `p = 5` still does not match. Mutation-checked: restoring the
+    old pattern brings the 6 back.
+  - 🚨 **The rule existed in THREE places** — `adjudicate_inconsistencies.py`,
+    `make_census_figures.py` and `build_gold_set.py` — each with a comment asserting parity with
+    the others, and the fix landed in one of them. The two derivatives now **import** the
+    canonical `classify` instead of restating it. (Proof the import is live, not a stale copy:
+    mutating only `adjudicate_inconsistencies.py` changed `build_gold_set.py`'s output.)
+  - ⚠️ **The bundled copy under `osf_deposit/scripts/` is stale** — it is a build artifact of
+    `prepare_osf_deposit.py`, which needs the drive. Regenerate the bundle (and its MANIFEST md5s)
+    before any OSF upload. `prepare_osf_deposit.py`'s `DERIVED` list also still names the
+    **333-row** `flagged_inconsistencies.jsonl`.
 - ✅ **`compute_kappa.py`** — Cohen's κ between coders + tool sensitivity/specificity/PPV (math verified).
 
 ## NEEDED before submission — only the irreducibly-human / external steps remain

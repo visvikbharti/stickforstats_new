@@ -19,35 +19,46 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import random
-import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+# The CORRECTED frame comes first. `flagged_inconsistencies.jsonl` is the pre-2026-08-21
+# frame of 333 claims, produced by a p-reader with two holes (scientific notation read as
+# "precision unknown", and the inequality branch using a flat +/-0.005 window regardless of
+# stated precision -- both fixed in f979b89). Re-scoring the corpus moved the frame to 355.
+# Drawing the gold set from the 333-row file gives the 22 corrected-in claims ZERO probability
+# of selection, so the older file is kept only as a last-resort fallback.
 _CANDIDATES = [
+    Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/flagged_inconsistencies_corrected.jsonl"),
+    HERE / "osf_deposit" / "data" / "flagged_inconsistencies_corrected.jsonl",
     Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/flagged_inconsistencies.jsonl"),
     HERE / "osf_deposit" / "data" / "flagged_inconsistencies.jsonl",
 ]
 SEED = 20260627  # frozen with the pre-registration
 
-# tool adjudication — identical precedence to adjudicate_inconsistencies.classify (matches the
-# published TRUE_LIKELY/REVIEW_P_BOUND/FP_ONE_TAILED/FP_MISEXTRACTION counts).
-_P_IN_TEXT = re.compile(r"\b[pP]\s*[=<>]\s*0?\.\d", re.I)
+# Tool adjudication. The rule is IMPORTED from the canonical adjudicator rather than restated
+# here; this file used to carry its own copy under a comment promising "identical precedence to
+# adjudicate_inconsistencies.classify", and on 2026-08-24 they had drifted -- the scientific-
+# notation fix landed in one of them. Only the CODEBOOK's category names are local.
+sys.path.insert(0, str(HERE.parent / "replication" / "verification"))
+from adjudicate_inconsistencies import classify as _classify  # noqa: E402
+
+# CODEBOOK.md names <- the adjudicator's names. Coders never see either; this is the held-back key.
+_CATEGORY = {
+    "FP_MISEXTRACTION": "mis_extraction",
+    "FP_ONE_TAILED": "one_tailed",
+    "REVIEW_P_BOUND": "p_bound",
+    "TRUE_LIKELY": "genuine",
+}
 
 
 def tool_category(x: dict) -> str:
-    raw = x.get("raw_text", "") or ""
-    rep, rec = x.get("reported_p"), x.get("recomputed_p")
-    comp = (x.get("p_comparison") or "").lower()
-    if not _P_IN_TEXT.search(raw):
-        return "mis_extraction"
-    if rep and rec and rep > 0 and abs(rec - 2.0 * rep) <= 0.25 * rec:
-        return "one_tailed"
-    if "less" in comp or "greater" in comp:
-        return "p_bound"
-    return "genuine"
+    return _CATEGORY[_classify(x)[0]]
 
 
 def _find_input(arg: str | None) -> Path:
@@ -113,12 +124,30 @@ def main() -> int:
         for i, r in enumerate(sample):
             w.writerow([i, r.get("claim_id") or f"F{i:04d}", r["_tool"]])
 
+    # Provenance. The frame file itself is a build artifact under the gitignored
+    # `osf_deposit/` tree, so the two CSVs above are archivable but their INPUT is not.
+    # Recording the frame's digest and row count is what makes the draw checkable later:
+    # PREREGISTRATION.md §7 promises the seed is archived, and a seed without the frame it
+    # was applied to does not identify a sample.
     from collections import Counter
     dist = Counter(r["_tool"] for r in sample)
+    digest = hashlib.sha256(src.read_bytes()).hexdigest()
+    prov = HERE / "gold_set_provenance.json"
+    prov.write_text(json.dumps({
+        "frame_file": src.name,
+        "frame_sha256": digest,
+        "frame_rows": len(rows),
+        "seed": SEED,
+        "n_drawn": len(sample),
+        "tool_category_distribution": dict(dist),
+    }, indent=2, sort_keys=True) + "\n")
+
     print(f"Drew {len(sample)} of {len(rows)} flagged claims (seed {SEED}, source {src.name}).")
+    print(f"  frame sha256: {digest}")
     print("Tool-category distribution in the gold set:", dict(dist))
     print(f"  blinded coding sheet -> {sheet}")
     print(f"  tool key (keep separate) -> {key}")
+    print(f"  provenance -> {prov}")
     print("\nNext: give gold_set_coding_sheet.csv to the two coders with CODEBOOK.md; they fill "
           "coder1_category/coder2_category. Then run compute_kappa.py.")
     return 0

@@ -21,8 +21,8 @@ Run:
 from __future__ import annotations
 
 import json
-import re
 from collections import Counter
+import sys as _sys
 from pathlib import Path
 
 import matplotlib
@@ -69,22 +69,17 @@ LABELS = {
     "FP_MISEXTRACTION": "False positive\n(mis-extraction)",
 }
 
-_P_IN_TEXT = re.compile(r"\b[pP]\s*[=<>]\s*0?\.\d", re.I)
+# The adjudication rules are IMPORTED, not restated. This file used to carry its own copy under
+# a docstring promising it was "identical rules to adjudicate_inconsistencies.classify" -- and on
+# 2026-08-24 the two had in fact drifted, because the scientific-notation fix landed in one of
+# them. A comment asserting parity is not parity.
+_sys.path.insert(0, str(Path(__file__).resolve().parent))
+from adjudicate_inconsistencies import classify as _classify_with_reason  # noqa: E402
 
 
 def classify(x: dict) -> str:
-    """Identical rules to adjudicate_inconsistencies.classify (category only)."""
-    raw = x.get("raw_text", "") or ""
-    rep = x.get("reported_p")
-    rec = x.get("recomputed_p")
-    comp = (x.get("p_comparison") or "").lower()
-    if not _P_IN_TEXT.search(raw):
-        return "FP_MISEXTRACTION"
-    if rep and rec and rep > 0 and abs(rec - 2.0 * rep) <= 0.25 * rec:
-        return "FP_ONE_TAILED"
-    if "less" in comp or "greater" in comp:
-        return "REVIEW_P_BOUND"
-    return "TRUE_LIKELY"
+    """The adjudication category only (the canonical rule also returns its reason)."""
+    return _classify_with_reason(x)[0]
 
 
 def is_decision_changing(x: dict) -> bool:

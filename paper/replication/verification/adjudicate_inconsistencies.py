@@ -29,8 +29,31 @@ OUT_DIR = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
 FLAGGED = OUT_DIR / "flagged_inconsistencies.jsonl"
 REPORT = ROOT / "paper/replication/verification/FP_VALIDATION_REPORT_2026-06-25.md"
 
-# a p-value stated in the claim's OWN text (e.g. "p = 0.0057", "P<0.001", "p = .03")
-_P_IN_TEXT = re.compile(r"\b[pP]\s*[=<>]\s*0?\.\d", re.I)
+# A p-value stated in the claim's OWN text (e.g. "p = 0.0057", "P<0.001", "p = .03",
+# "P = 9.04e-8", "p = 6E-04").
+#
+# The scientific-notation alternative is NOT cosmetic. Until 2026-08-24 this pattern was
+# `\b[pP]\s*[=<>]\s*0?\.\d` -- a p written in e-notation did not match, so the claim was
+# classified FP_MISEXTRACTION with the reason "no p-value in the claim's own text", which is
+# simply false: the p IS in the text, it is just not written with a leading decimal point.
+#
+# It was harmless on the 333-claim frame (0 rows affected, measured) and became load-bearing the
+# moment the p-reader was corrected in f979b89: on the re-scored 355-claim frame, 13 rows matched
+# FP_MISEXTRACTION and ALL 13 were e-notation claims, none a real mis-extraction. Those are the
+# very claims the p-reader fix added, so the adjudicator would have discarded the correction.
+# Same shape as the defect it mirrors: a rule learned in one module, not carried to the next.
+#
+# `−` (U+2212) is included because papers write "6E−04" with a real minus sign, and `\s` already
+# matches the U+2009 thin spaces that JATS extraction leaves behind.
+# An integer right-hand side ("p = 5") deliberately does NOT match -- it is not a p-value.
+_P_IN_TEXT = re.compile(
+    r"\b[pP]\s*[=<>≤≥]\s*"
+    r"(?:"
+    r"\d*\.\d+(?:\s*[eE]\s*[-+−]?\d+)?"   # .012   0.012   2.30e-03   1.843e-8
+    r"|"
+    r"\d+\s*[eE]\s*[-+−]?\d+"              # 6E-04  1e-5  (integer mantissa)
+    r")",
+)
 
 
 def classify(x: dict) -> tuple:
