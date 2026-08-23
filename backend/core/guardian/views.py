@@ -99,40 +99,22 @@ class GuardianCheckView(APIView):
             return Response({"error": f"Guardian check failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _serialize_report(self, report: GuardianReport) -> Dict[str, Any]:
-        """Convert GuardianReport to JSON-serializable dictionary"""
+        """Convert GuardianReport to JSON-serializable dictionary.
+
+        The shared core comes from the canonical `GuardianReport.to_dict()`; this endpoint adds
+        the three things only an interactive UI needs. Previously the whole shape was written
+        out here, and it drifted from the other two surfaces every time a field was added.
+        """
         return {
-            "test_type": report.test_type,
+            **report.to_dict(),
             "data_summary": report.data_summary,
-            "assumptions_checked": report.assumptions_checked,
-            # What the test REQUIRES but we could not examine on this data. `assumptions_checked`
-            # used to be the requirements list itself, so this endpoint reported assumptions as
-            # checked that nothing had looked at -- independence on 22 of 25 test types. The two
-            # lists are now disjoint and together they reconstruct the requirements.
-            "assumptions_not_evaluated": report.assumptions_not_evaluated,
-            # The headline this endpoint was missing. `confidence_score` grades how bad the
-            # findings were; it does not say how much was examined, and a caller reading only
-            # that number cannot tell a thorough clean report from an empty one.
-            "assumption_coverage": report.assumption_coverage,
-            # An explicit refusal, not a pass. See GuardianCore.UNVALIDATED_TEST_TYPES.
-            "validated": report.validated,
-            "unvalidated_reason": report.unvalidated_reason,
-            "violations": [
-                {
-                    "assumption": v.assumption,
-                    "test_name": v.test_name,
-                    "severity": v.severity,
-                    "p_value": v.p_value,
-                    "statistic": v.statistic,
-                    "message": v.message,
-                    "recommendation": v.recommendation,
-                    "visual_evidence": v.visual_evidence,
-                }
-                for v in report.violations
-            ],
-            "can_proceed": report.can_proceed,
-            "alternative_tests": report.alternative_tests,
-            "confidence_score": report.confidence_score,
             "visual_evidence": report.visual_evidence,
+            # Per-violation plots are heavy and only this surface renders them, so they are
+            # re-attached here rather than carried in the canonical shape.
+            "violations": [
+                {**v, "visual_evidence": original.visual_evidence}
+                for v, original in zip(report.to_dict()["violations"], report.violations)
+            ],
             "guardian_status": self._get_status_message(report),
         }
 

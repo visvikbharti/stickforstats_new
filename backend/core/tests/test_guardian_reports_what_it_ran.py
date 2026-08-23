@@ -561,3 +561,71 @@ class TheLiveAnalysisEndpointsCarryTheRefusalTests(SimpleTestCase):
         self.assertEqual(report["assumption_coverage"], 1.0)
         self.assertEqual(report["assumptions_checked"],
                          ["normality", "linearity", "outliers"])
+
+
+class OneSerialiserNotThreeTests(SimpleTestCase):
+    """There were THREE hand-written GuardianReport -> dict functions, and they had drifted.
+
+    `cascade_engine._report_to_dict` omitted `statistic` and `test_name` from every violation,
+    so a cascade consumer could not see which test produced one or what value it found. And
+    when `assumptions_not_evaluated`, `assumption_coverage` and `validated` were added over
+    three successive commits, two of the three surfaces were updated and the third was missed
+    each time -- the third being the one the LIVE analysis endpoints use.
+
+    All three now start from `GuardianReport.to_dict()` and add only their own extras.
+    """
+
+    def _surfaces(self, report, data):
+        from core.api_views import _create_guardian_enriched_response
+        from core.guardian.views import GuardianCheckView
+        return {
+            "guardian/views": GuardianCheckView()._serialize_report(report),
+            "cascade_engine": AutonomousCascadeEngine()._report_to_dict(report),
+            "api_views": _create_guardian_enriched_response(
+                {}, data, report.test_type, False)["guardian_report"],
+        }
+
+    def test_every_surface_carries_the_whole_canonical_core(self):
+        """THE INVARIANT. Add a field to `to_dict()` and it reaches all three at once; add one
+        to a single surface by hand and this fails.
+
+        MUTATION: delete any key from any surface's spread of `to_dict()` -> fails.
+        """
+        data = _two_groups()
+        report = GuardianCore().check(data, "t_test")
+        canonical = set(report.to_dict())
+        self.assertGreaterEqual(len(canonical), 10)
+        for name, payload in self._surfaces(report, data).items():
+            self.assertEqual(canonical - set(payload), set(), f"{name} is missing core keys")
+
+    def test_the_surfaces_agree_on_every_shared_value(self):
+        """Same report, same answers. Supersets are fine -- disagreement is not.
+
+        MUTATION: have any surface recompute a core value instead of spreading to_dict()
+        (e.g. `"assumptions_checked": report.assumptions_checked + ["independence"]`) -> fails.
+        """
+        data = _two_groups()
+        report = GuardianCore().check(data, "t_test")
+        canonical = report.to_dict()
+        for name, payload in self._surfaces(report, data).items():
+            for key, value in canonical.items():
+                if key == "violations":
+                    continue        # views re-attaches per-violation plots; checked below
+                self.assertEqual(payload[key], value, f"{name} disagrees on {key!r}")
+
+    def test_violations_carry_which_test_found_them_everywhere(self):
+        """`statistic` and `test_name` were absent from the cascade's violations. A violation
+        that cannot say which test produced it, or what value it found, is not actionable.
+
+        MUTATION: drop either key from `_violation_to_dict` -> fails on all three surfaces.
+        """
+        import numpy as np
+        rng = np.random.default_rng(2)
+        data = [rng.normal(0, 1, 40).tolist(), rng.normal(0, 10, 40).tolist()]
+        report = GuardianCore().check(data, "t_test")
+        self.assertTrue(report.violations, "fixture no longer produces a violation")
+        required = {"assumption", "test_name", "severity", "p_value", "statistic",
+                    "message", "recommendation"}
+        for name, payload in self._surfaces(report, data).items():
+            for violation in payload["violations"]:
+                self.assertEqual(required - set(violation), set(), f"{name} violation shape")

@@ -640,34 +640,12 @@ def _create_guardian_enriched_response(
         **statistical_result,
         # GUARDIAN CONTEXT (DESIGN CONTRACT REQUIREMENT)
         "guardian_report": {
-            "test_type": guardian_report.test_type,
+            # Canonical shape (GuardianReport.to_dict) plus the data summary this surface
+            # shows. Hand-written here until now, and it was the copy that got MISSED when
+            # assumptions_not_evaluated / assumption_coverage / validated were added -- which
+            # is why a /causal/did/ caller saw an unexplained empty assumptions_checked.
+            **guardian_report.to_dict(),
             "data_summary": guardian_report.data_summary,
-            "assumptions_checked": guardian_report.assumptions_checked,
-            # This is the THIRD place a GuardianReport is turned into a dict (the others are
-            # guardian/views._serialize_report and cascade_engine._report_to_dict), and it is
-            # the one the live analysis endpoints use. Without these four fields a caller of
-            # /causal/did/ or /causal/psm/ sees `assumptions_checked: []` and no explanation --
-            # which reads as "we checked and found nothing wrong" rather than "Guardian has no
-            # validator for parallel trends and did not look".
-            "assumptions_not_evaluated": guardian_report.assumptions_not_evaluated,
-            "assumption_coverage": guardian_report.assumption_coverage,
-            "validated": guardian_report.validated,
-            "unvalidated_reason": guardian_report.unvalidated_reason,
-            "violations": [
-                {
-                    "assumption": v.assumption,
-                    "test_name": v.test_name,
-                    "severity": v.severity,
-                    "p_value": v.p_value,
-                    "statistic": v.statistic,
-                    "message": v.message,
-                    "recommendation": v.recommendation,
-                }
-                for v in guardian_report.violations
-            ],
-            "can_proceed": guardian_report.can_proceed,
-            "alternative_tests": guardian_report.alternative_tests,
-            "confidence_score": guardian_report.confidence_score,
         },
         "assumptions_checked": guardian_report.assumptions_checked,
         "violations": [

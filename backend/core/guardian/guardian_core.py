@@ -191,6 +191,24 @@ class AssumptionViolation:
     visual_evidence: Optional[Dict[str, Any]] = None
 
 
+def _violation_to_dict(violation) -> Dict[str, Any]:
+    """The canonical wire shape for one violation.
+
+    Three call sites used to build this by hand and had already drifted: the cascade engine
+    omitted `statistic` and `test_name`, so a consumer reading a cascade report could not see
+    WHICH test produced a violation or what value it found.
+    """
+    return {
+        "assumption": violation.assumption,
+        "test_name": violation.test_name,
+        "severity": violation.severity,
+        "p_value": violation.p_value,
+        "statistic": violation.statistic,
+        "message": violation.message,
+        "recommendation": violation.recommendation,
+    }
+
+
 @dataclass
 class GuardianReport:
     """Complete Guardian assessment report"""
@@ -242,6 +260,36 @@ class GuardianReport:
         if not total:
             return None
         return round(len(self.assumptions_checked) / total, 3)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """The canonical wire shape. Every surface that serialises a report starts here.
+
+        There were THREE hand-written versions of this -- `guardian/views._serialize_report`,
+        `cascade_engine._report_to_dict` and `api_views._create_guardian_enriched_response` --
+        and keeping them in step was left to whoever remembered. They did not stay in step:
+        the cascade dropped `statistic` and `test_name` from every violation, and when
+        `assumptions_not_evaluated`, `assumption_coverage` and `validated` were added over the
+        last three commits, two of the three were updated and the third was missed. The one
+        missed was the one the LIVE analysis endpoints use, so a caller of /causal/did/ saw
+        `assumptions_checked: []` with nothing to explain it.
+
+        Callers add their own extras on top (`data_summary`, `visual_evidence`,
+        `guardian_status`); what they may no longer do is re-derive the shared core. A field
+        added here reaches all three at once, which is the only version of "one rule, one
+        place" that survives contact with a deadline.
+        """
+        return {
+            "test_type": self.test_type,
+            "assumptions_checked": list(self.assumptions_checked),
+            "assumptions_not_evaluated": list(self.assumptions_not_evaluated),
+            "assumption_coverage": self.assumption_coverage,
+            "validated": self.validated,
+            "unvalidated_reason": self.unvalidated_reason,
+            "violations": [_violation_to_dict(v) for v in self.violations],
+            "can_proceed": self.can_proceed,
+            "alternative_tests": list(self.alternative_tests),
+            "confidence_score": self.confidence_score,
+        }
 
 
 class ContextualSeverityAdjuster:

@@ -632,36 +632,10 @@ class AutonomousCascadeEngine:
         )
 
     def _report_to_dict(self, report: GuardianReport) -> Dict[str, Any]:
-        """Convert GuardianReport to serializable dict."""
-        return {
-            "test_type": report.test_type,
-            "can_proceed": report.can_proceed,
-            "confidence_score": report.confidence_score,
-            "assumptions_checked": report.assumptions_checked,
-            # Required but NOT examined on this data. Without it the dict cannot express the
-            # difference between "checked and clean" and "nothing ran", and every downstream
-            # consumer -- reanalysis_engine sets `assumptions_checked=True` on the mere
-            # existence of this dict -- was forced to guess. The audit trail itself stays out:
-            # it is unbounded and per-claim, and this is the only bit of it callers act on.
-            "assumptions_not_evaluated": list(report.assumptions_not_evaluated or []),
-            # How much of what this test requires did we actually look at? Distinct from
-            # confidence_score, which grades the SEVERITY of what was found and is happily
-            # 1.000 on a report that examined one assumption of four.
-            "assumption_coverage": report.assumption_coverage,
-            # False when Guardian recognises the test but has no validators for it. A
-            # consumer that reads only `violations` would see one warning and could take it
-            # for a near-clean result; this says plainly that nothing was assessed.
-            "validated": report.validated,
-            "unvalidated_reason": report.unvalidated_reason,
-            "violations": [
-                {
-                    "assumption": v.assumption,
-                    "severity": v.severity,
-                    "message": v.message,
-                    "recommendation": v.recommendation,
-                    "p_value": v.p_value,
-                }
-                for v in report.violations
-            ],
-            "alternative_tests": report.alternative_tests,
-        }
+        """Convert GuardianReport to serializable dict.
+
+        Delegates to the canonical `GuardianReport.to_dict()`. This used to be a hand-written
+        copy and had drifted: it omitted `statistic` and `test_name` from every violation, so a
+        cascade consumer could not see which test produced one or what value it found.
+        """
+        return report.to_dict()
