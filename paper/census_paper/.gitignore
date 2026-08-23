@@ -1,2 +1,5 @@
+# osf_deposit/ is a build artifact: prepare_osf_deposit.py rebuilds it from the external
+# drive and its first act is to delete the whole tree. Nothing irreplaceable may live in it;
+# see data/ for the derived inputs that are tracked instead.
 osf_deposit/
 KAPPA_REPORT.md

@@ -29,8 +29,12 @@ OUT = ROOT / "paper/census_paper/osf_deposit"
 # DERIVED data (small) that reproduces the paper's numbers. Re-fetchable raw corpus is excluded.
 DERIVED = [
     DRIVE / "census_census_corpus_v2_2026-06-25.jsonl",     # per-paper ledger (10,103 rows)
-    DRIVE / "flagged_inconsistencies.jsonl",                # the 333 flagged claims
+    DRIVE / "flagged_inconsistencies.jsonl",                # the 333 flagged claims (v1.2.0 reader)
     Path("/Volumes/My_Passport/stickforstats_corpus/census_corpus_v2_2026-06-25/fetch_stats.json"),
+    # The 355-row re-score under the corrected p-reader (f979b89). Sourced from the tracked
+    # copy in the repo, NOT from the drive -- the drive holds only the superseded 333-row file,
+    # and this frame is the input whose sha256 gold_set_provenance.json records.
+    ROOT / "paper/census_paper/data/flagged_inconsistencies_corrected.jsonl",
 ]
 SCRIPTS = ["census_jats.py", "census_ipw.py", "oa_pilot.py", "large_census.py",
            "adjudicate_inconsistencies.py", "inspect_inconsistencies.py", "make_census_figures.py",
@@ -58,7 +62,91 @@ def _copy(src: Path, dst_dir: Path, rows: list, missing: list):
     rows.append((dst.relative_to(OUT).as_posix(), src.stat().st_size, _md5(dst)))
 
 
+def _expected_filenames() -> set:
+    """Every basename a run of this script will write into OUT."""
+    names = {src.name for src in DERIVED} | set(SCRIPTS) | set(REPORTS) | {"MANIFEST.md"}
+    figdir = VERIF / "figures"
+    if figdir.exists():
+        names |= {f.name for f in figdir.glob("*.png")} | {f.name for f in figdir.glob("*.svg")}
+    return names
+
+
+def _refuse_to_destroy_what_we_cannot_rebuild() -> list:
+    """Abort the rebuild if OUT holds a file this script would not put back.
+
+    `main` used to open with an unconditional `shutil.rmtree(OUT)`. OUT is gitignored, so
+    anything in it that is NOT in DERIVED/SCRIPTS/REPORTS/figures exists in exactly one place
+    on disk and in no commit -- and the rmtree deletes it with nothing to restore it from.
+
+    This is not hypothetical. `flagged_inconsistencies_corrected.jsonl` -- the 355-row frame
+    produced by the 2026-08-21 corpus re-score, the input whose sha256 `gold_set_provenance.json`
+    records, and the frame the committed gold set was drawn from -- lived only here. DERIVED
+    names the superseded 333-row file from the drive, so a rebuild would have destroyed the
+    corrected one and replaced it with its predecessor. It is now tracked in git as well, but
+    the trap that let it happen is what this guard closes.
+    """
+    if not OUT.exists():
+        return []
+    expected = _expected_filenames()
+    # Genuinely disposable bytes are excluded, so the guard does not cry wolf. A guard that
+    # fires on __pycache__ every run is a guard people learn to bypass.
+    return sorted(
+        str(f.relative_to(OUT)) for f in OUT.rglob("*")
+        if f.is_file()
+        and f.name not in expected
+        and "__pycache__" not in f.parts
+        and f.name != ".DS_Store"
+    )
+
+
+def _would_trade_a_present_file_for_a_missing_source() -> list:
+    """Files OUT already holds whose SOURCE is currently unreadable.
+
+    The first version of this guard checked only whether the script KNEW a file's name, and
+    that is not the same as being able to get it back. Executed with the drive unmounted, it
+    passed -- every file in OUT was named in DERIVED -- and the rebuild then deleted the
+    ledger, fetch_stats.json and the 333-row frame and could restore none of them, because
+    every DERIVED path points at /Volumes/My_Passport. The run reported "3 item(s) missing"
+    AFTER destroying them.
+
+    So the real question is not "do I know this file?" but "can I actually obtain it?".
+    """
+    if not OUT.exists():
+        return []
+    lost = []
+    for src in DERIVED:
+        if not src.exists() and (OUT / "data" / src.name).exists():
+            lost.append(f"data/{src.name}  (source unreadable: {src})")
+    for name in SCRIPTS:
+        if not (VERIF / name).exists() and (OUT / "scripts" / name).exists():
+            lost.append(f"scripts/{name}  (source unreadable: {VERIF / name})")
+    for name in REPORTS:
+        if not (VERIF / name).exists() and (OUT / "reports" / name).exists():
+            lost.append(f"reports/{name}  (source unreadable: {VERIF / name})")
+    return sorted(lost)
+
+
 def main() -> int:
+    unrebuildable = _refuse_to_destroy_what_we_cannot_rebuild()
+    if unrebuildable:
+        print(f"REFUSING to rebuild {OUT}: it holds {len(unrebuildable)} file(s) this script "
+              f"does not know how to put back.\n")
+        for rel in unrebuildable:
+            print(f"  {rel}")
+        print("\nMove them somewhere durable (or add them to DERIVED) and re-run. Nothing was "
+              "deleted.")
+        return 1
+
+    would_lose = _would_trade_a_present_file_for_a_missing_source()
+    if would_lose:
+        print(f"REFUSING to rebuild {OUT}: {len(would_lose)} file(s) are present now and their "
+              f"sources are not readable, so the rebuild would DELETE them and put nothing "
+              f"back.\n")
+        for rel in would_lose:
+            print(f"  {rel}")
+        print("\nMount the drive (or fix the paths) and re-run. Nothing was deleted.")
+        return 1
+
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)

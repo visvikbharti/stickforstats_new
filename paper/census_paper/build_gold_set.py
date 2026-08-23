@@ -35,7 +35,9 @@ HERE = Path(__file__).resolve().parent
 # of selection, so the older file is kept only as a last-resort fallback.
 _CANDIDATES = [
     Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/flagged_inconsistencies_corrected.jsonl"),
-    HERE / "osf_deposit" / "data" / "flagged_inconsistencies_corrected.jsonl",
+    # Tracked, and deliberately NOT under osf_deposit/ -- that tree is rebuilt by
+    # prepare_osf_deposit.py, whose first act is to delete it.
+    HERE / "data" / "flagged_inconsistencies_corrected.jsonl",
     Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/flagged_inconsistencies.jsonl"),
     HERE / "osf_deposit" / "data" / "flagged_inconsistencies.jsonl",
 ]
