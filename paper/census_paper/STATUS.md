@@ -69,6 +69,16 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   The bundle is a regenerable build artifact (gitignored); the raw 3.2 GB corpus is NOT included
   (re-fetchable from PMC).
 
+- ✅ **INDEPENDENT-EXTRACTOR CHECK DONE 2026-08-25** (`JATSDECODER_HEADTOHEAD_2026-08-25.md`).
+  JATSdecoder `get.stats()` v1.3.0 run over a stratified 800-paper sample (760 retrieved) of the
+  same corpus. **It recovers 3.96% [3.15, 4.94] against our 3.38% — difference +0.58 pp,
+  95% CI [−0.23, +1.57], not distinguishable from zero.** Both sit ~10× below Böschen's 39.9% for
+  psychology, so **the 3.4% is a property of the literature, not of our regexes** — this closes
+  the single most attackable number in the paper. Control: our pipeline reproduces the ledger's
+  per-paper count on **760/760** re-fetched files. Disagreements run both ways (we find 37 of 200
+  that JATSdecoder misses; it finds 7 we miss, of which 1 is abstract-only and **6 are genuine
+  recall gaps = 1.1%** — subscripted statistic, p-before-statistic, interposed fit indices).
+
 ## Route B chosen — confirmatory, pre-registered version. Infrastructure built this session:
 - ✅ **`PREREGISTRATION.md`** — FINALIZED and file-ready. All 10 decisions resolved (D1 2018–2025; D2 broad
   biomedical w/ strata; D3 N=10,000 equal-probability frame; D5 frozen flagging+adjudication rules; D6 κ≥0.6;

@@ -41,7 +41,9 @@ within papers, we report the adjudicated genuine rate with a paper-clustered boo
 weighting shifts it by ≤0.5 percentage points, and a small independent general-Open-Access frame is
 directionally consistent (5.6%, from 108 checkable claims in 5 papers). Against statcheck on the
 same articles our extractor reaches 97.7% recall and 98.1%
-precision. The biomedical literature is, for the most part, not written in a form that allows automatic
+precision, and the verifiability denominator is tool-independent: an independent extractor
+(JATSdecoder's `get.stats()`, which reads the same JATS markup) recovers 3.96% [95% CI 3.15, 4.94]
+on a stratified sample of the same corpus, a difference from our 3.38% of +0.58 pp [−0.23, +1.57]. The biomedical literature is, for the most part, not written in a form that allows automatic
 statistical verification—a transparency gap that is itself a target for reform.
 
 ## Author summary
@@ -257,6 +259,43 @@ Benchmarked against statcheck 1.5.0 on a labelled article set, the extractor ach
 underlying the census therefore extracts and recomputes inline statistics at parity with the established
 tool, while the adjudication layer adds the false-positive accounting that turns a raw flag rate into a
 defensible genuine rate.
+
+### The 3.4% denominator is tool-independent
+
+The verifiability denominator is the paper's most attackable number, because a low value could
+equally reflect a narrow extractor. We therefore re-measured it with an independent tool that reads
+the same input format: JATSdecoder's `get.stats()` [14], which is on CRAN, parses NISO-JATS
+natively, and whose author has argued that statcheck-class extraction is too narrow to be relied
+upon [15].
+
+A stratified sample of 800 papers (seed 20260824; 200 of the 341 with a checkable claim, 600 of the
+9,760 without) was re-fetched from PMC; 760 were retrievable. As a control, re-running our own
+pipeline over the re-fetched files reproduced the census ledger's per-paper checkable count for
+**760 of 760 papers with zero disagreements**, so what follows compares tools rather than corpora.
+Both tools were run on the raw JATS and, separately, on our extracted body text, in order to
+separate an extractor difference from a text-scope one. "Checkable" follows Böschen's definition: a
+result carrying both a reported and a recomputable p.
+
+Reweighted to the full corpus (paired stratified bootstrap, 10,000 replicates), JATSdecoder
+recovers **3.96% [95% CI 3.15, 4.94]** against our **3.38%** — a difference of **+0.58 percentage
+points, 95% CI [−0.23, +1.57]**, which is not distinguishable from zero. Two independently written
+extractors converge on the same biomedical denominator, and both sit roughly an order of magnitude
+below the 39.9% Böschen reports for native-XML psychology articles [14]. **The scarcity of
+machine-checkable statistics in biomedicine is therefore a property of the literature, not an
+artifact of our patterns**, and the contrast with psychology is disciplinary: inline APA triples
+versus effect estimates and intervals in tables.
+
+The disagreements run in both directions and bound our own recall honestly. Paper-level agreement
+is 94.5% (718/760). In 37 papers—18.5% of the stratum where we found a claim—our extractor found a
+checkable result and JATSdecoder did not. In 7 papers the reverse held; re-running JATSdecoder on
+our body-only text shows 1 of those is abstract-only, a deliberate scope difference rather than a
+miss, leaving **6 genuine recall gaps (1.1% of the 560 sampled papers we scored as
+non-checkable)**. Each is a reporting form our patterns do not cover: a subscripted statistic
+(`F age(3,16)=18.47`), the p stated before the statistic (`p=0.0597, t=2.003, df=19`), and fit
+indices interposed between the statistic and its p (`chi2(270)=1061.13, p<.001, RMSEA=.05`). Across
+the 760 papers JATSdecoder extracted 1,900 checkable claims to our 1,661 (1.14×). We therefore do
+not claim exhaustive recall: like Böschen's, and for the same reason—both tools ignore results
+reported inside tables—our denominator is a lower bound on what is actually reported.
 
 ## Discussion
 
