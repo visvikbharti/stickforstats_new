@@ -31,9 +31,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
-DATA_DIR = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
+
+# The 3.2 GB raw corpus lives on an external drive, but the DERIVED files these figures need
+# (the 10,103-row ledger and the flagged-claim frame) are only ~2 MB and are kept in-tree. Prefer
+# the drive when it is mounted, fall back to the local copies otherwise -- the figures must be
+# regenerable without the drive, or a correction to the numbers cannot be carried into the plots.
+_DRIVE = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
+_LOCAL = ROOT / "paper/census_paper/osf_deposit/data"
+DATA_DIR = _DRIVE if (_DRIVE / "census_census_corpus_v2_2026-06-25.jsonl").exists() else _LOCAL
 CENSUS = DATA_DIR / "census_census_corpus_v2_2026-06-25.jsonl"
-FLAGGED = DATA_DIR / "flagged_inconsistencies.jsonl"
+
+# The CORRECTED frame (355 rows) is the tracked one and is the published input from 2026-08-24
+# onward; the 333-row pre-correction frame is kept beside it so the re-score has a control.
+_CORRECTED = ROOT / "paper/census_paper/data/flagged_inconsistencies_corrected.jsonl"
+FLAGGED = _CORRECTED if _CORRECTED.exists() else (DATA_DIR / "flagged_inconsistencies.jsonl")
 FIG_DIR = ROOT / "paper/replication/verification/figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -54,7 +65,9 @@ plt.rcParams.update({
 C = {
     "TRUE_LIKELY": "#d62728",       # red  — genuine inconsistency
     "REVIEW_P_BOUND": "#ff7f0e",    # orange — ambiguous (p-bound)
-    "FP_ONE_TAILED": "#7f7f7f",     # gray — known non-error (one-sided p)
+    # Was #7f7f7f, the same grey the "of which decision-changing" overlay renders as
+    # (black at alpha 0.55), so in Fig 3 a category bar and a legend series were the same colour.
+    "FP_ONE_TAILED": "#0097a7",     # teal — known non-error (one-sided p)
     "FP_MISEXTRACTION": "#c7c7c7",  # light gray — extractor artifact (now 0)
     "consistent": "#2e7d32",        # green
     "inconsistent": "#d62728",
@@ -87,6 +100,55 @@ def is_decision_changing(x: dict) -> bool:
     return sev in ("gross_error", "gross", "decision_changing")
 
 
+def _clustered_ci(papers, flagged, only_true_likely=False, reps=10000, seed=20260627):
+    """Percentile bootstrap CI resampling PAPERS, not claims.
+
+    Claims are not independent: they nest within papers, and the ten most claim-dense papers
+    contribute ~30% of all flagged claims, so a claim-level interval understates the uncertainty
+    badly. This is the inference PREREGISTRATION.md sec 3.4/5.4 pre-specifies.
+    """
+    per_paper: dict = {}
+    for x in flagged:
+        if only_true_likely and x.get("cat") != "TRUE_LIKELY":
+            continue
+        per_paper[x["pmcid"]] = per_paper.get(x["pmcid"], 0) + 1
+    clusters = [(r["pmcid"], r.get("n_checkable") or 0)
+                for r in papers if (r.get("n_checkable") or 0) > 0]
+    rng = np.random.default_rng(seed)
+    idx = np.arange(len(clusters))
+    out = np.empty(reps)
+    for b in range(reps):
+        pick = rng.choice(idx, size=len(clusters), replace=True)
+        num = sum(per_paper.get(clusters[i][0], 0) for i in pick)
+        den = sum(clusters[i][1] for i in pick)
+        out[b] = 100.0 * num / den if den else np.nan
+    return tuple(np.percentile(out, [2.5, 97.5]))
+
+
+def _ipw_inconsistent_rate(papers, flagged) -> float:
+    """Inverse-probability-weighted inconsistent-claim rate, recomputed from the same inputs.
+
+    Was a hardcoded 10.5 sitting next to computed bars. The weights are the recorded per-paper
+    day volumes (IPW for a 1/V inclusion probability); papers with no recorded weight fall back
+    to w = 1. Control: run against the 333-row frame and this returns the published 10.52%.
+    """
+    stats_path = DATA_DIR / "fetch_stats.json"
+    if not stats_path.exists():
+        raise FileNotFoundError(f"IPW weights not found at {stats_path}")
+    weights = json.loads(stats_path.read_text()).get("day_volume_per_paper", {})
+    per_paper: dict = {}
+    for x in flagged:
+        per_paper[x["pmcid"]] = per_paper.get(x["pmcid"], 0) + 1
+    num = den = 0.0
+    for r in papers:
+        if not (r.get("status") == "parsed_body" or "coverage" in r):
+            continue
+        w = float(weights.get(r.get("pmcid")) or 1.0)
+        den += w * (r.get("n_checkable") or 0)
+        num += w * per_paper.get(r.get("pmcid"), 0)
+    return 100.0 * num / den if den else 0.0
+
+
 def saveall(fig, name: str):
     for ext in ("png", "svg"):
         fig.savefig(FIG_DIR / f"{name}.{ext}", bbox_inches="tight", facecolor="white")
@@ -96,7 +158,8 @@ def saveall(fig, name: str):
 
 def main() -> int:
     if not CENSUS.exists():
-        print(f"!! census file not found: {CENSUS}\n   Mount /Volumes/My_Passport first.")
+        print(f"!! census file not found: {CENSUS}\n"
+              f"   Tried the drive and {_LOCAL}.")
         return 1
 
     papers = [json.loads(l) for l in CENSUS.read_text().splitlines() if l.strip()]
@@ -110,10 +173,19 @@ def main() -> int:
     n_readable = sum(1 for p in papers if p.get("coverage") is not None or p.get("n_test_claims", 0) > 0)
     n_with_test = sum(1 for p in papers if (p.get("n_test_claims") or 0) > 0)
     n_with_checkable = sum(1 for p in papers if (p.get("n_checkable") or 0) > 0)
-    n_with_incons = sum(1 for p in papers if (p.get("n_inconsistent") or 0) > 0)
+    # DERIVED FROM THE FRAME, NOT THE LEDGER. The ledger's per-paper `n_inconsistent` was
+    # written by the ORIGINAL scoring run and still says 333 / 129 papers; the frame loaded above
+    # is the corrected 355-row one. Reading the count from the ledger while reading the
+    # categories from the frame produced a half-corrected figure -- new adjudication bars under
+    # an old headline rate -- which is exactly the failure this correction exists to prevent.
+    # The frame is the single source of truth for "which claims are flagged".
+    _flag_per_paper: dict = {}
+    for _x in flagged:
+        _flag_per_paper[_x["pmcid"]] = _flag_per_paper.get(_x["pmcid"], 0) + 1
+    n_with_incons = len(_flag_per_paper)
     tot_test = sum(p.get("n_test_claims") or 0 for p in papers)
     tot_checkable = sum(p.get("n_checkable") or 0 for p in papers)
-    tot_incons = sum(p.get("n_inconsistent") or 0 for p in papers)
+    tot_incons = len(flagged)
     tot_decision = sum(p.get("n_decision_changing") or 0 for p in papers)
     cats = Counter(x["cat"] for x in flagged)
     dch = Counter(x["cat"] for x in flagged if is_decision_changing(x))
@@ -121,6 +193,11 @@ def main() -> int:
     print("=== aggregates (cross-check vs reports) ===")
     print(f"papers={n_papers} body={n_body} with_test={n_with_test} "
           f"with_checkable={n_with_checkable} with_incons={n_with_incons}")
+    _ledger_incons = sum(p.get("n_inconsistent") or 0 for p in papers)
+    if _ledger_incons != len(flagged):
+        print(f"   note: ledger records {_ledger_incons} inconsistent claims, frame carries "
+              f"{len(flagged)} -- using the FRAME. (Expected after the 2026-08-24 p-reader "
+              f"re-score: 333 -> 355.)")
     print(f"test_claims={tot_test} checkable={tot_checkable} "
           f"inconsistent={tot_incons} decision_changing={tot_decision}")
     print(f"flagged_loaded={len(flagged)} categories={dict(cats)} decision_changing_in_flagged={sum(dch.values())}")
@@ -193,12 +270,15 @@ def main() -> int:
     decs = [dch.get(c, 0) for c in ORDER]
     ax.bar(xs, totals, color=[C[c] for c in ORDER], alpha=0.9, width=0.62,
            label="all flagged")
-    ax.bar(xs, decs, color="black", alpha=0.55, width=0.30, label="of which decision-changing")
+    ax.bar(xs, decs, color="#212121", alpha=0.85, width=0.30,
+           label="of which decision-changing")
     for x, t in zip(xs, totals):
         ax.text(x, t + 4, str(t), ha="center", fontsize=10, fontweight="bold")
     ax.set_xticks(xs)
     ax.set_xticklabels([LABELS[c] for c in ORDER], fontsize=9)
-    ax.set_ylabel("flagged claims (n = 333)")
+    # Was a hardcoded "n = 333" sitting above bars that sum to whatever the frame holds. After
+    # the re-score they summed to 355 under a label reading 333.
+    ax.set_ylabel(f"flagged claims (n = {len(flagged)})")
     ax.set_title("False-positive validation of flagged inconsistencies")
     ax.legend(frameon=False, fontsize=9, loc="upper right")
     ax.set_ylim(0, max(totals) * 1.2)
@@ -238,7 +318,9 @@ def main() -> int:
     ax.set_xlim(*lims); ax.set_ylim(*lims)
     ax.set_xlabel("reported p")
     ax.set_ylabel("recomputed p (two-tailed)")
-    ax.set_title("Reported vs recomputed p — 333 flagged claims\n(★ = decision-changing)")
+    # Was a hardcoded "333" beside a plot of however many claims the frame actually holds.
+    ax.set_title(f"Reported vs recomputed p — {len(flagged)} flagged claims"
+                 "\n(★ = decision-changing)")
     ax.legend(frameon=False, fontsize=7.6, loc="lower right")
     ax.grid(alpha=0.25)
     ax.set_aspect("equal")
@@ -270,21 +352,55 @@ def main() -> int:
     # FIG 6 — robustness / convergence of the rate
     # =========================================================================
     true_likely = cats.get("TRUE_LIKELY", 0)
+
+    # EVERY label and height below is DERIVED. They used to be hardcoded as "333/3005",
+    # "262/3005" and 10.5 while the bar heights beside them were computed, so re-running this
+    # script after a correction redrew new bars under the old labels -- the figure was being
+    # produced from the specification rather than from the execution, which is the same defect
+    # class this project keeps finding. The one number that cannot be derived here is the
+    # independent-OA arm, which needs a corpus this script does not read; it is named as a
+    # constant, with its provenance, so it cannot masquerade as a computed value.
+    ipw_rate = _ipw_inconsistent_rate(papers, flagged)
+
+    #: Independent general-OA frame: 6 inconsistencies among 108 checkable claims, from only 5
+    #: papers (CENSUS_OA_PILOT_REPORT_2026-06-26.md). NOT recomputed here -- it needs the
+    #: separate OA pilot corpus. Directional only, and reported as such in the manuscript.
+    OA_PILOT_RATE, OA_PILOT_NUM, OA_PILOT_DEN = 5.6, 6, 108
+
     bars6 = [
-        ("Raw flagged\n(333/3005)", rate, C["inconsistent"]),
-        ("IPW-weighted\n(equal-prob.)", 10.5, "#ef6c00"),
-        ("Likely-true only\n(262/3005)", 100 * true_likely / tot_checkable, "#8e24aa"),
-        ("Independent OA\nframe (6/108)", 5.6, C["consistent"]),
+        (f"Raw flagged\n({len(flagged)}/{tot_checkable})", rate, C["inconsistent"]),
+        ("IPW-weighted\n(equal-prob.)", ipw_rate, "#ef6c00"),
+        (f"Likely-true only\n({true_likely}/{tot_checkable})",
+         100 * true_likely / tot_checkable, "#8e24aa"),
+        (f"Independent OA\nframe ({OA_PILOT_NUM}/{OA_PILOT_DEN})", OA_PILOT_RATE, C["consistent"]),
     ]
+    # Claims nest within papers -- the ten most claim-dense papers carry ~30% of all flags -- so
+    # a claim-level interval would be far too narrow. Resample PAPERS, which is the inference the
+    # pre-registration specifies.
+    lo, hi = _clustered_ci(papers, flagged, only_true_likely=True)
+    yerr = np.zeros((2, len(bars6)))
+    likely_idx = 2
+    yerr[0, likely_idx] = max(0.0, bars6[likely_idx][1] - lo)
+    yerr[1, likely_idx] = max(0.0, hi - bars6[likely_idx][1])
+
     fig, ax = plt.subplots(figsize=(7.6, 4.4))
     xs = np.arange(len(bars6))
-    ax.bar(xs, [b[1] for b in bars6], color=[b[2] for b in bars6], alpha=0.9, width=0.6)
+    ax.bar(xs, [b[1] for b in bars6], color=[b[2] for b in bars6], alpha=0.9, width=0.6,
+           yerr=yerr, capsize=6, error_kw={"ecolor": "#222", "elinewidth": 1.4})
     for x, b in zip(xs, bars6):
-        ax.text(x, b[1] + 0.15, f"{b[1]:.1f}%", ha="center", fontsize=10, fontweight="bold")
+        off = yerr[1, x] + 0.25 if x == likely_idx else 0.15
+        ax.text(x, b[1] + off, f"{b[1]:.1f}%", ha="center", fontsize=10, fontweight="bold")
+    ax.axhline(10.0, color="#888", lw=0.9, ls=":", zorder=0)
+    ax.text(len(bars6) - 0.45, 10.15, "10%", fontsize=8, color="#666", ha="right")
     ax.set_xticks(xs); ax.set_xticklabels([b[0] for b in bars6], fontsize=8.8)
     ax.set_ylabel("inconsistent among checkable claims (%)")
     ax.set_ylim(0, max(b[1] for b in bars6) * 1.25)
-    ax.set_title("Inconsistency rate is robust & single-digit across frames")
+    # The title used to assert "robust & single-digit". After the 2026-08-24 re-score three of
+    # these four bars are double-digit, and the paper-clustered interval on the likely-true bar
+    # crosses 10%, so the old title asserted precisely the claim the data no longer supports.
+    # A title is a claim; it has to be derived from the bars like everything else.
+    ax.set_title("Inconsistency rate across frames\n"
+                 "(likely-true bar: 95% CI, papers as clusters)")
     ax.grid(axis="x", visible=False)
     saveall(fig, "fig6_rate_robustness")
 

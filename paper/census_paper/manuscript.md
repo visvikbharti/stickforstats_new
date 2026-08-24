@@ -31,11 +31,12 @@ and recomputed each two-tailed p-value in the statcheck style. Two findings
 dominate. First, **machine-verifiability is rare**: only about 3.4% of papers (341 of 10,101 with a readable
 body) report even one in-text, recomputable test statistic; the overwhelming majority of reported statistics
 live in tables and figures and cannot be recovered from running text. Second, among the 3,005 recomputable
-claims, the raw internal-inconsistency rate is **11.1%** (1.7% decision-changing), but transparent
-false-positive adjudication shows that about 79% of flags are likely-genuine and about 14% are clear tool
-false positives (chiefly one-sided p-values our two-tailed recompute cannot match), leaving a **single-digit
-genuinely-inconsistent rate**. The estimate is robust: inverse-probability weighting that corrects the
-sampling design shifts it by ≤0.6 percentage points, and an independent general-Open-Access frame yields a
+claims, the raw internal-inconsistency rate is **11.8%** (1.7% decision-changing), but transparent
+false-positive adjudication shows that about 77% of flags are likely-genuine and about 14% are clear tool
+false positives (chiefly one-sided p-values our two-tailed recompute cannot match). Because claims nest
+within papers, we report the adjudicated genuine rate with a paper-clustered bootstrap interval:
+**9.1%, 95% CI [7.0%, 11.5%]**. The estimate is robust to the sampling design: inverse-probability
+weighting shifts it by ≤0.5 percentage points, and an independent general-Open-Access frame yields a
 concordant 5.6%. Against statcheck on the same articles our extractor reaches 97.7% recall and 98.1%
 precision. The biomedical literature is, for the most part, not written in a form that allows automatic
 statistical verification—a transparency gap that is itself a target for reform.
@@ -48,9 +49,10 @@ statcheck have used this idea to show that a surprising share of psychology pape
 not add up. We asked a simpler, prior question for biomedicine: *how often is the literature even checkable
 this way?* Scanning the full text of 10,103 open-access biomedical papers, we found that only about one in
 thirty reports a statistic in a form a computer can re-derive from the text—the rest are buried in tables and
-figures. Among the statistics we *could* check, most were internally consistent; after manually separating
-genuine errors from artifacts of automated checking (such as one-sided tests), only a single-digit percentage
-were truly inconsistent. The result is reassuring about arithmetic but sobering about transparency: most
+figures. Among the statistics we *could* check, most were internally consistent; after separating
+genuine errors from artifacts of automated checking (such as one-sided tests), the genuinely inconsistent
+share is around one in eleven, though the uncertainty around that figure spans roughly 7% to 11.5% once we
+account for the fact that some papers contribute many claims and others only one. The result is reassuring about arithmetic but sobering about transparency: most
 biomedical papers are not written in a way that lets anyone verify their statistics automatically.
 
 ## Introduction
@@ -146,8 +148,20 @@ two-tailed only); **REVIEW_P_BOUND** (p reported as an inequality, where recompu
 ambiguous); and **TRUE_LIKELY** (a recomputable statistic and a point p stated in the same text, two-tailed,
 beyond tolerance—a genuine internal inconsistency). During development we identified and fixed an extractor
 p-attachment defect that had produced a large mis-extraction artifact; the fix reduced FP_MISEXTRACTION from
-157 to 0 and the raw inconsistency rate from 14.5% to 11.1% (and decision-changing from 4.2% to 1.7%), and
-all results below are post-fix.
+157 to 0 and the raw inconsistency rate from 14.5% to 11.1% (and decision-changing from 4.2% to 1.7%) as
+scored by the p-value reader in use at the time, and all results below are post-fix.
+
+We subsequently identified and corrected two further defects in the p-value reader itself, and every rate
+reported below is re-scored with the corrected reader. First, a p written in scientific notation
+(`p = 9.04e-8`) was treated as having unknown precision and compared under a flat ±0.005 window—an amnesty
+at small p. Second, the inequality branch applied that same flat window regardless of the precision actually
+stated, so `p < .0001` against a recomputed `.004` was scored consistent. Re-scoring the full corpus moves
+the raw rate from 11.08% to 11.81%: 22 claims changed verdict, **all of them consistent → inconsistent**,
+none the other way, so the published figure was an under-count. The correction removes an internal
+contradiction rather than imposing a new standard—for 12 of the 13 scientific-notation flips the old reader
+returned a different verdict for the identical numeric value depending only on whether it was written
+`9.04e-8` or `0.0000000904`. Re-running the *uncorrected* reader over the same corpus reproduces the
+published 3,005 / 333 / 52 exactly, which is the control for this re-score.
 
 ### Robustness and benchmarking
 
@@ -175,26 +189,34 @@ the literature is machine-verifiable from its text.
 
 ### Most checkable statistics are internally consistent
 
-Among the 3,005 recomputable claims, 333 (**11.1%**) were flagged inconsistent and 52 (**1.7%**) were
-decision-changing; 129 of the 341 papers with a checkable claim (37.8%) contained at least one flag (Fig 2).
-A raw 11.1% is, however, an over-estimate of *genuine* inconsistency, because automated recompute generates
-predictable false positives. Adjudication of the 333 flags (Fig 3) gives: **TRUE_LIKELY 262** (79%),
-**REVIEW_P_BOUND 25** (8%), **FP_ONE_TAILED 46** (14%), and **FP_MISEXTRACTION 0**. The clear false-positive
-rate is thus 46/333 = 14% (all one-sided-p artifacts, after the mis-extraction defect was eliminated), and
-the defensible genuine-inconsistency rate is the TRUE_LIKELY fraction, **262/3,005 ≈ 8.7%** of checkable
-claims—a single-digit rate, with a likely-true *decision-changing* count of 31. A reported-versus-recomputed
+Among the 3,005 recomputable claims, 355 (**11.8%**) were flagged inconsistent and 52 (**1.7%**) were
+decision-changing; 136 of the 341 papers with a checkable claim (39.9%) contained at least one flag (Fig 2).
+A raw 11.8% is, however, an over-estimate of *genuine* inconsistency, because automated recompute generates
+predictable false positives. Adjudication of the 355 flags (Fig 3) gives: **TRUE_LIKELY 274** (77%),
+**REVIEW_P_BOUND 33** (9%), **FP_ONE_TAILED 48** (14%), and **FP_MISEXTRACTION 0**. The clear false-positive
+rate is thus 48/355 = 13.5% (all one-sided-p artifacts, after the mis-extraction defect was eliminated), and
+the defensible genuine-inconsistency rate is the TRUE_LIKELY fraction, **274/3,005 = 9.1%** of checkable
+claims, with a likely-true *decision-changing* count of 31.
+
+That point estimate should not be read as a precise figure, and we do not describe it as single-digit.
+Claims are not independent: they nest within papers, and the ten most claim-dense papers alone contribute
+29.9% of all flagged claims. Resampling papers (not claims) with replacement, 10,000 replicates, gives a
+**95% CI of [7.0%, 11.5%]** for the genuine rate and **[9.5%, 14.4%]** for the raw rate. The genuine-rate
+interval crosses 10%, so the data are compatible with a low-double-digit rate and a "single-digit" summary
+is not supportable. Clustered inference at the paper level is the analysis pre-specified in our
+registration, and we report it here rather than the narrower claim-level interval. A reported-versus-recomputed
 scatter (Fig 4) shows the structure directly: most flagged claims cluster near the identity line, the
 one-sided artifacts fall on the 2× line, and the genuinely inconsistent claims scatter widely.
 
 ### The estimate is robust
 
 Inverse-probability weighting, which corrects the day-clustered sampling design from within the same corpus,
-moves the headline by less than a percentage point: the inconsistent-claim rate goes from 11.08% to 10.52%
-and the decision-changing rate from 1.73% to 1.46% (a ≤0.6-pp shift; Fig 6), confirming that the
+moves the headline by less than a percentage point: the inconsistent-claim rate goes from 11.81% to 11.32%
+and the decision-changing rate from 1.73% to 1.46% (a ≤0.5-pp shift; Fig 6), confirming that the
 over-representation of low-volume publication days did not bias the result. An entirely independent frame—a
 uniform-ish sample of the *general* PMC OA population through a different NCBI endpoint, with no
-quantitative-design enrichment—yields an inconsistency rate of 5.6% (6 of 108 checkable claims; directional,
-given a small effective sample), squarely in the single-digit range and below the raw 11.1%. The two
+quantitative-design enrichment—yields an inconsistency rate of 5.6% (6 of 108 checkable claims from only 5
+papers; directional at best, and we do not treat it as an estimate), below the raw 11.8%. The two
 robustness arms thus bracket the headline from within and without.
 
 ### The extractor is accurate against statcheck
@@ -208,9 +230,10 @@ defensible genuine rate.
 ## Discussion
 
 Two numbers summarise the census. **About 3.4% of biomedical open-access papers report an in-text,
-machine-recomputable statistic**, and **of those statistics, a single-digit percentage are genuinely
-internally inconsistent**. The first is a transparency finding; the second is a reassuring—but
-qualified—reliability finding.
+machine-recomputable statistic**, and **of those statistics, an estimated 9.1% are genuinely internally
+inconsistent (95% CI [7.0%, 11.5%], papers as clusters)**. The first is a transparency finding and is the
+one we regard as new; the second is a reassuring—but qualified, and deliberately interval-valued—reliability
+finding.
 
 The transparency finding is the more consequential. The dominant reason a biomedical paper's statistics
 cannot be auto-verified is not error but *reporting form*: results are presented in tables of adjusted
@@ -221,9 +244,13 @@ its own error rate is, today, simply inapplicable to ~96% of the biomedical lite
 that encouraged inline test statistics (or, better, machine-readable structured results) would convert a
 large, currently un-auditable corpus into a checkable one at essentially no cost to authors.
 
-The reliability finding should be read carefully and not over-sold. A single-digit genuine-inconsistency rate
-among *checkable* claims is lower than statcheck's headline figures for psychology, but the populations
-differ in design, discipline, and—critically—in what is checkable, so the comparison is qualitative. We
+The reliability finding should be read carefully and not over-sold, and we have resisted the temptation to
+compress it into a single adjective. An earlier draft of this manuscript called the rate "single-digit". It
+is not defensibly single-digit: the paper-clustered interval runs to 11.5%, and the ten most claim-dense
+papers contribute 29.9% of all flags, so claim-level precision is illusory. A genuine-inconsistency rate of
+roughly 7–11.5% among *checkable* claims is lower than statcheck's headline figures for psychology, but the
+populations differ in design, discipline, and—critically—in what is checkable, so the comparison is
+qualitative. We
 deliberately report the full adjudication (Fig 3) rather than a single number, because the choice of
 denominator and the handling of one-sided tests and p-bounds can move the figure by several points; the
 TRUE_LIKELY fraction is our most defensible lower bound, and the precise rate is exactly what the
@@ -269,12 +296,12 @@ by the pipeline and independently spot-checked against SciPy, and no AI system i
 
 ## Figures
 
-- **Fig 1.** Corpus funnel: 10,200 enumerated → 10,101 with a readable body → 1,939 with a test claim → 341 with a checkable claim → 129 with an inconsistency. (`figures/fig1_corpus_funnel`)
-- **Fig 2.** Internal-consistency outcome over 3,005 checkable claims: consistent vs inconsistent (11.1%) vs decision-changing (1.7%). (`figures/fig2_headline_outcome`)
-- **Fig 3.** False-positive adjudication of the 333 flags (TRUE_LIKELY / REVIEW_P_BOUND / FP_ONE_TAILED / FP_MISEXTRACTION), with the extractor fix annotated (157 → 0). (`figures/fig3_fp_validation`)
-- **Fig 4.** Reported vs recomputed p (log-log) for all 333 flagged claims, coloured by adjudication category; ★ = decision-changing. (`figures/fig4_reported_vs_recomputed_p`)
+- **Fig 1.** Corpus funnel: 10,200 enumerated → 10,101 with a readable body → 1,939 with a test claim → 341 with a checkable claim → 136 with an inconsistency. (`figures/fig1_corpus_funnel`)
+- **Fig 2.** Internal-consistency outcome over 3,005 checkable claims: consistent vs inconsistent (11.8%) vs decision-changing (1.7%). (`figures/fig2_headline_outcome`)
+- **Fig 3.** False-positive adjudication of the 355 flags (TRUE_LIKELY / REVIEW_P_BOUND / FP_ONE_TAILED / FP_MISEXTRACTION), with the extractor fix annotated (157 → 0). (`figures/fig3_fp_validation`)
+- **Fig 4.** Reported vs recomputed p (log-log) for all 355 flagged claims, coloured by adjudication category; ★ = decision-changing. (`figures/fig4_reported_vs_recomputed_p`)
 - **Fig 5.** Flagged inconsistencies by statistic type (t / F / r / z / χ²). (`figures/fig5_by_statistic_type`)
-- **Fig 6.** Inconsistency rate across frames: raw 11.1% · IPW 10.5% · likely-true 8.7% · independent OA 5.6%. (`figures/fig6_rate_robustness`)
+- **Fig 6.** Inconsistency rate across frames: raw 11.8% · IPW 11.3% · likely-true 9.1% · independent OA 5.6%. (`figures/fig6_rate_robustness`)
 - **Fig 7.** Corpus composition by article type. (`figures/fig7_article_types`)
 
 ## References
