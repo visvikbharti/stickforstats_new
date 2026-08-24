@@ -36,8 +36,9 @@ false-positive adjudication shows that about 77% of flags are likely-genuine and
 false positives (chiefly one-sided p-values our two-tailed recompute cannot match). Because claims nest
 within papers, we report the adjudicated genuine rate with a paper-clustered bootstrap interval:
 **9.1%, 95% CI [7.0%, 11.5%]**. The estimate is robust to the sampling design: inverse-probability
-weighting shifts it by ≤0.5 percentage points, and an independent general-Open-Access frame yields a
-concordant 5.6%. Against statcheck on the same articles our extractor reaches 97.7% recall and 98.1%
+weighting shifts it by ≤0.5 percentage points, and a small independent general-Open-Access frame is
+directionally consistent (5.6%, from 108 checkable claims in 5 papers). Against statcheck on the
+same articles our extractor reaches 97.7% recall and 98.1%
 precision. The biomedical literature is, for the most part, not written in a form that allows automatic
 statistical verification—a transparency gap that is itself a target for reform.
 
