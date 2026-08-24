@@ -113,31 +113,36 @@ To force a full rebuild (after an engine change), move the ledger aside first:
 `mv .../census_2026-06-25/census_census_corpus_v2_2026-06-25.jsonl{,.bak}` then re-run (kill-safe:
 the ledger is flushed atomically every 1000 papers, so a reaped run resumes).
 
-**Expected headline (10,103 papers, post-fix):** report `CENSUS_REPORT_LARGE_2026-06-25.md`
-- **3.5%** of papers report an in-text recomputable NHST statistic (341 checkable-claim papers).
-- of **3,005 checkable claims, 11.1% inconsistent (raw)**; **1.7% decision-changing**; 37.8% of
-  checkable-claim papers have ≥1 inconsistency.
+**Expected headline (10,103 papers, corrected p-reader):** report `CENSUS_REPORT_LARGE_2026-06-25.md`
+carries the ORIGINAL scoring and is headed with a correction banner; the numbers below are current.
+- **3.4%** of papers report an in-text recomputable NHST statistic (341 of 10,101 readable bodies).
+- of **3,005 checkable claims, 11.81% inconsistent (raw)**; **1.73% decision-changing**; 39.9% of
+  checkable-claim papers (136/341) have ≥1 inconsistency.
+- CONTROL: re-run with the UNCORRECTED p-reader and you must reproduce 333 / 52 / 129 exactly.
 
 ### 3.3 Dump every flagged claim with context
 ```bash
 cd backend && DJANGO_DEBUG=True ../.venv-django/bin/python ../paper/replication/verification/inspect_inconsistencies.py
 ```
 → `/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/flagged_inconsistencies.jsonl`
-(333 flagged claims, 52 decision-changing, post-fix).
+(333 flagged claims, 52 decision-changing, as originally scored). The re-scored frame — the
+published input from 2026-08-24 — is tracked in-tree at
+`paper/census_paper/data/flagged_inconsistencies_corrected.jsonl` (355 rows,
+sha256 7613bb7d…dd95), and the scripts below prefer it automatically.
 
 ### 3.4 Adjudicate false positives (TRUE vs FP categories)
 ```bash
 cd backend && DJANGO_DEBUG=True ../.venv-django/bin/python ../paper/replication/verification/adjudicate_inconsistencies.py
 ```
-→ `FP_VALIDATION_REPORT_2026-06-25.md`. **Expected (post-fix): 333 flagged → TRUE_LIKELY 79%,
-FP_MISEXTRACTION 0, FP_ONE_TAILED 14%, REVIEW_P_BOUND ~8%; clear-false-positive rate 14%.**
+→ `FP_VALIDATION_REPORT_2026-08-24.md`. **Expected (corrected frame): 355 flagged → TRUE_LIKELY 77%,
+FP_MISEXTRACTION 0, FP_ONE_TAILED 14%, REVIEW_P_BOUND ~9%; clear-false-positive rate 13.5%.**
 (Pre-fix it was 450 flagged, 45% clear-FP, FP_MISEXTRACTION 157 — see §4.)
 
 ### 3.5 Robustness — inverse-probability weighting (equal-probability, same population, no fetch)
 ```bash
 cd backend && DJANGO_DEBUG=True ../.venv-django/bin/python ../paper/replication/verification/census_ipw.py
 ```
-→ `CENSUS_IPW_REPORT_2026-06-26.md`. Re-weights every paper by its recorded day volume to recover the
+→ `CENSUS_IPW_REPORT_2026-08-24.md`. Re-weights every paper by its recorded day volume to recover the
 equal-probability estimand. **Expected: the headline barely moves** — inconsistent 11.08%→10.52%
 (0.56 pp), recomputable 3.38%→3.39%, decision-changing 1.73%→1.46%. The day-clustering did not bias
 the rate.
@@ -196,8 +201,8 @@ engine) · `verification_service.py` (Django persist, T22) · `genomics_linker.p
 `large_census.py` (census) · `inspect_inconsistencies.py` + `adjudicate_inconsistencies.py` (FP
 validation) · `census_ipw.py` (robustness) · `oa_pilot.py` (independent frame) · `demo_*` ·
 `scale_genomics_verify.py` + `geo_autolink_rate.py` (genomics).
-**Reports (all regenerable):** `CENSUS_REPORT_LARGE_2026-06-25.md`, `FP_VALIDATION_REPORT_2026-06-25.md`,
-`CENSUS_IPW_REPORT_2026-06-26.md`, `SCALE_REPORT_2026-06-25.md`, `GEO_AUTOLINK_REPORT_2026-06-25.md`.
+**Reports (all regenerable):** `CENSUS_REPORT_LARGE_2026-06-25.md`, `FP_VALIDATION_REPORT_2026-08-24.md`,
+`CENSUS_IPW_REPORT_2026-08-24.md`, `SCALE_REPORT_2026-06-25.md`, `GEO_AUTOLINK_REPORT_2026-06-25.md`.
 **Diagram:** `workflow.dot` → `WORKFLOW.svg` / `WORKFLOW.png`.
 
 ---
@@ -212,5 +217,7 @@ validation) · `census_ipw.py` (robustness) · `oa_pilot.py` (independent frame)
 - **Descriptive vs confirmatory.** This is the DESCRIPTIVE census. The pre-specified hypotheses and
   human double-coding for κ are OSF-pre-registered separately
   (`docs/MANUSCRIPT_VERIFY_OSF_PREREG_DRAFT_2026-06-25.md`, 10 [PI DECISION] items, not yet filed).
-- **FP-validated true rate ≈ 6–8%** of checkable claims; the raw 11.1% still includes one-sided-p and
-  some rounding-level flags. Full double-coding is the pre-registered study.
+- **FP-validated genuine rate 9.12%, 95% CI [6.95%, 11.49%]** (paper-clustered bootstrap, 10,000
+  replicates, seed 20260627) of checkable claims; the raw 11.81% still includes one-sided-p and some
+  rounding-level flags. The interval crosses 10%, so this is NOT described as a single-digit rate.
+  Full double-coding is the pre-registered study.

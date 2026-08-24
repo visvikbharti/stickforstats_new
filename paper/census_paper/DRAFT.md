@@ -128,7 +128,7 @@ not written in a way that lets anyone verify its statistics automatically.
     flags, so a claim-level interval would be far too narrow).
     Figure: `figures/fig3_fp_validation.{png,svg}`.
 - **Robustness.**
-  - IPW (Table — `CENSUS_IPW_REPORT_2026-06-26.md`): recomputable-paper rate 3.38%→3.39%; inconsistent
+  - IPW (Table — `CENSUS_IPW_REPORT_2026-08-24.md`): recomputable-paper rate 3.38%→3.39%; inconsistent
     11.81%→11.32%; decision-changing 1.73%→1.46% — all shifts ≤0.5 pp; day-clustering did not bias.
     Figure: `figures/fig6_rate_robustness.{png,svg}`.
   - Independent OA frame (Table — `CENSUS_OA_PILOT_REPORT_2026-06-26.md`): 5.6% inconsistent (6/108,
@@ -215,8 +215,8 @@ File a pre-registration on OSF fixing, in advance, the following ten items (curr
 | Item | Status | Artifact |
 |---|---|---|
 | 10,103-paper JATS census | DONE | `CENSUS_REPORT_LARGE_2026-06-25.md` |
-| FP-adjudication of all flags | DONE | `FP_VALIDATION_REPORT_2026-06-25.md` |
-| IPW (same-population) robustness | DONE | `CENSUS_IPW_REPORT_2026-06-26.md` |
+| FP-adjudication of all flags | DONE | `FP_VALIDATION_REPORT_2026-08-24.md` |
+| IPW (same-population) robustness | DONE | `CENSUS_IPW_REPORT_2026-08-24.md` |
 | Independent OA-frame replication | DONE (directional) | `CENSUS_OA_PILOT_REPORT_2026-06-26.md` |
 | Engine vs statcheck (97.7/98.1) | DONE | `eval_vs_statcheck.py` |
 | Figures fig1–fig7 | DONE | `figures/` |
@@ -250,8 +250,8 @@ or PLOS ONE registered-report track), with this descriptive census cited as the 
 ## 7. Source-of-truth file map (for drafting)
 
 - Census headline: `paper/replication/verification/CENSUS_REPORT_LARGE_2026-06-25.md`
-- FP adjudication: `paper/replication/verification/FP_VALIDATION_REPORT_2026-06-25.md`
-- IPW robustness: `paper/replication/verification/CENSUS_IPW_REPORT_2026-06-26.md`
+- FP adjudication: `paper/replication/verification/FP_VALIDATION_REPORT_2026-08-24.md`
+- IPW robustness: `paper/replication/verification/CENSUS_IPW_REPORT_2026-08-24.md`
 - Independent OA frame: `paper/replication/verification/CENSUS_OA_PILOT_REPORT_2026-06-26.md`
 - Engine vs statcheck: `paper/replication/verification/eval_vs_statcheck.py`
 - Pipeline scripts: `census_jats.py`, `census_ipw.py`, `oa_pilot.py`, `adjudicate_inconsistencies.py`,

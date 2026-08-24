@@ -1,3 +1,29 @@
+> ## ⚠️ SUPERSEDED IN PART — read this first (added 2026-08-24)
+>
+> This file is a **dated record of what was measured on 2026-06-26** and is kept unedited below.
+> Two of its headline numbers were later found to be **under-counts** and must not be quoted as
+> current. The corpus, parse funnel and denominators below are all still correct; only the
+> *inconsistency* counts moved.
+>
+> The p-value reader had two defects (fixed in `f979b89`): a p written in scientific notation was
+> treated as having unknown precision and compared under a flat ±0.005 window, and the inequality
+> branch applied that same flat window regardless of the precision actually stated. Re-scoring the
+> same corpus flipped **22 claims, all consistent → inconsistent**, none the other way.
+>
+> | | this file (2026-06-26) | corrected (2026-08-24) |
+> |---|---|---|
+> | papers with ≥1 inconsistency | 129 (37.8% of 341) | **136 (39.9% of 341)** |
+> | inconsistent claims | 333 = 11.1% of 3,005 | **355 = 11.81% of 3,005** |
+> | decision-changing | 52 (1.7%) | **52 (1.73%) — UNCHANGED** |
+>
+> Adjudicated genuine rate: **9.12%, 95% CI [6.95%, 11.49%]** (paper-clustered bootstrap, 10,000
+> replicates, seed 20260627). The interval crosses 10%, so the earlier "single-digit" framing is
+> **retired**.
+>
+> Current companions: `FP_VALIDATION_REPORT_2026-08-24.md`, `CENSUS_IPW_REPORT_2026-08-24.md`.
+> Control: re-running the pipeline against the 333-row frame reproduces every number in this file
+> exactly.
+
 # Consistency census (no-data tier) over a JATS-XML corpus
 
 _Generated 2026-06-26 by `census_jats.py` over `census_corpus_v2_2026-06-25` (0s)._

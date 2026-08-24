@@ -24,11 +24,29 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+
+ROOT = Path(__file__).resolve().parents[3]
+
+# The 3.2 GB raw corpus lives on an external drive, but the DERIVED inputs this script needs are
+# ~2 MB and kept in-tree. Prefer the drive when mounted, fall back to the local copies otherwise.
+# A generator that can ONLY run with the drive attached is a generator a correction cannot reach:
+# the reports it writes then drift from the manuscript and nothing notices.
+_DRIVE = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
+_LOCAL = ROOT / "paper/census_paper/osf_deposit/data"
 CORPUS = Path("/Volumes/My_Passport/stickforstats_corpus/census_corpus_v2_2026-06-25")
-LEDGER = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/"
-              "census_census_corpus_v2_2026-06-25.jsonl")
+if not CORPUS.exists():
+    CORPUS = _LOCAL
+LEDGER = (_DRIVE / "census_census_corpus_v2_2026-06-25.jsonl")
+if not LEDGER.exists():
+    LEDGER = _LOCAL / "census_census_corpus_v2_2026-06-25.jsonl"
+
+# The ledger's per-paper `n_inconsistent` was written by the ORIGINAL scoring run and still
+# says 333. The FRAME is the source of truth for which claims are flagged -- reading the count
+# from the ledger while the rest of the paper uses the frame is what produced a half-corrected
+# figure set on 2026-08-24.
+_CORRECTED_FRAME = ROOT / "paper/census_paper/data/flagged_inconsistencies_corrected.jsonl"
 WEIGHTS = CORPUS / "fetch_stats.json"
-REPORT = Path(__file__).resolve().parent / "CENSUS_IPW_REPORT_2026-06-26.md"
+REPORT = Path(__file__).resolve().parent / "CENSUS_IPW_REPORT_2026-08-24.md"
 
 
 def _ratio(num: float, den: float) -> float:
@@ -46,15 +64,29 @@ def main() -> int:
     # Per-paper arrays; weight = day volume V (IPW for 1/V inclusion). Papers with no recorded
     # weight (older sampler) fall back to w=1 and are reported as a coverage caveat.
     n_no_weight = sum(1 for r in body if r.get("pmcid") not in weights)
+    # Per-paper flagged counts come from the FRAME, not from the ledger's stale n_inconsistent.
+    frame_counts: dict = {}
+    if _CORRECTED_FRAME.exists():
+        for line in _CORRECTED_FRAME.read_text().splitlines():
+            if line.strip():
+                pid = json.loads(line)["pmcid"]
+                frame_counts[pid] = frame_counts.get(pid, 0) + 1
+        _ledger_total = sum(r.get("n_inconsistent") or 0 for r in body)
+        if _ledger_total != sum(frame_counts.values()):
+            print(f"note: ledger records {_ledger_total} inconsistent claims, frame carries "
+                  f"{sum(frame_counts.values())} -- using the FRAME.")
+
     rows = []
     for r in body:
         V = weights.get(r.get("pmcid"))
         w = float(V) if V else 1.0
+        n_inc = (frame_counts.get(r.get("pmcid"), 0) if frame_counts
+                 else (r.get("n_inconsistent") or 0))
         rows.append((
             w,
             1 if (r.get("n_checkable") or 0) > 0 else 0,   # has >=1 checkable claim
             (r.get("n_checkable") or 0),
-            (r.get("n_inconsistent") or 0),
+            n_inc,
             (r.get("n_decision_changing") or 0),
         ))
 

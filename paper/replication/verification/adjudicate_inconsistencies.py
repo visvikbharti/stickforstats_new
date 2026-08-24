@@ -25,9 +25,20 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT_DIR = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
-FLAGGED = OUT_DIR / "flagged_inconsistencies.jsonl"
-REPORT = ROOT / "paper/replication/verification/FP_VALIDATION_REPORT_2026-06-25.md"
+
+# The 3.2 GB raw corpus lives on an external drive, but the DERIVED inputs this script needs are
+# ~2 MB and kept in-tree. Prefer the drive when mounted, fall back to the local copies otherwise.
+# A generator that can ONLY run with the drive attached is a generator a correction cannot reach:
+# the reports it writes then drift from the manuscript and nothing notices.
+_DRIVE = Path("/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25")
+_LOCAL = ROOT / "paper/census_paper/osf_deposit/data"
+OUT_DIR = _DRIVE if _DRIVE.exists() else _LOCAL
+
+# The CORRECTED 355-row frame is the published input from 2026-08-24 onward. The 333-row
+# pre-correction frame is kept beside it so the re-score keeps a control.
+_CORRECTED = ROOT / "paper/census_paper/data/flagged_inconsistencies_corrected.jsonl"
+FLAGGED = _CORRECTED if _CORRECTED.exists() else (OUT_DIR / "flagged_inconsistencies.jsonl")
+REPORT = ROOT / "paper/replication/verification/FP_VALIDATION_REPORT_2026-08-24.md"
 
 # A p-value stated in the claim's OWN text (e.g. "p = 0.0057", "P<0.001", "p = .03",
 # "P = 9.04e-8", "p = 6E-04").
