@@ -5,6 +5,7 @@ Automatic assumption validation system that helps prevent statistical errors.
 Validates assumptions before analysis and provides actionable recommendations.
 """
 
+import math
 import numpy as np
 from scipy import stats
 from typing import Dict, List, Optional, Any
@@ -207,6 +208,21 @@ def _violation_to_dict(violation) -> Dict[str, Any]:
         "message": violation.message,
         "recommendation": violation.recommendation,
     }
+
+
+def _finite_or_none(value) -> Optional[float]:
+    """float(value), or None when it is nan/inf.
+
+    Non-finite floats are not representable in JSON; letting one reach the renderer turns an
+    otherwise successful assumption check into an HTTP 500. This is the same defect class as
+    e442b84 (an unguarded value on a path the maths legitimately takes), and the third instance
+    found in this file.
+    """
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
 
 
 @dataclass
@@ -1234,15 +1250,28 @@ class GuardianCore:
                     result = validator.validate(analysis_arrays, alpha)
 
                 if result["violated"]:
+                    # Every field here was an unguarded dict access. A validator that reports a
+                    # violation without one of `severity`, `message` or `recommendation` raised
+                    # KeyError straight out of check() and became a non-200 -- the SAME class of
+                    # defect as e442b84 (an unguarded read on a path a validator can legitimately
+                    # take), one call site to the left, and still live in v1.2.0. Found while
+                    # mutation-testing something else. A missing field must degrade the report,
+                    # never fail the request: an assumption violation the caller never sees is
+                    # strictly worse than one described in slightly less detail.
                     violations.append(
                         AssumptionViolation(
                             assumption=req,
-                            test_name=result["test_name"],
-                            severity=result["severity"],
+                            test_name=result.get("test_name", req),
+                            severity=result.get("severity", "warning"),
                             p_value=result.get("p_value"),
                             statistic=result.get("statistic"),
-                            message=result["message"],
-                            recommendation=result["recommendation"],
+                            message=result.get(
+                                "message", f"{req} assumption violated."
+                            ),
+                            recommendation=result.get(
+                                "recommendation",
+                                "Review this assumption before interpreting the result.",
+                            ),
                             visual_evidence=result.get("visual_data"),
                         )
                     )
@@ -1251,9 +1280,9 @@ class GuardianCore:
                         GuardianAuditEntry(
                             timestamp=now_iso,
                             assumption=req,
-                            test_performed=result["test_name"],
+                            test_performed=result.get("test_name", req),
                             result="violation",
-                            severity=result["severity"],
+                            severity=result.get("severity", "warning"),
                             p_value=result.get("p_value"),
                             citation=self._get_citation_for_assumption(req),
                         )
@@ -1520,8 +1549,15 @@ class GuardianCore:
                     "median": float(np.median(flat)),
                     "min": float(np.min(flat)),
                     "max": float(np.max(flat)),
-                    "skewness": float(stats.skew(flat)),
-                    "kurtosis": float(stats.kurtosis(flat)),
+                    # scipy returns nan for skew/kurtosis of a CONSTANT column (0/0), and nan
+                    # is not JSON -- DRF's renderer raises "Out of range float values are not
+                    # JSON compliant" and the whole check becomes a 500. A control group with
+                    # no variation is ordinary data, not a client error. MEASURED: a constant
+                    # y 500'd this endpoint on v1.2.0 and on this branch. None serialises as
+                    # null and says the right thing -- the shape of a distribution with no
+                    # spread is undefined, not zero.
+                    "skewness": _finite_or_none(stats.skew(flat)),
+                    "kurtosis": _finite_or_none(stats.kurtosis(flat)),
                 }
             except (TypeError, ValueError) as exc:
                 summary[key] = {
@@ -2583,13 +2619,31 @@ class LinearityValidator:
         # this is a genuine pass: R^2 = 1 answers the linearity question outright, and more
         # strongly than the runs test could.
         if _fit_is_exact(y, residuals):
+            # The fit LOOKS exact. Whether that is a fact about the data or only about float64
+            # spacing is decided here, and ONLY here. NESTING MATTERS: applied before the
+            # exactness test this gate also swallowed data with real signal left to evaluate
+            # (measured -- the growing-variance case at offset 1e9, whose noise is four orders
+            # of magnitude above the spacing, went from correctly CRITICAL to "not evaluated").
+            #
+            # MEASURED: on genuinely quadratic data (y = x + 4e-5(x-30)^2, true R^2 = 0.9999996)
+            # carrying a 1e12 offset, the branch below returned a PASS asserting "reproduces y
+            # exactly ... (R^2 = 1)" -- an affirmative claim about the data that is false, which
+            # is worse than the false accusation it replaced.
+            if not _variation_is_resolvable(y):
+                return {
+                    "violated": False,
+                    "not_applicable": True,
+                    "test_name": "Linearity Check (Residual Analysis)",
+                    "message": "Linearity was not evaluated. " + _PRECISION_EXHAUSTED_DETAIL,
+                }
             return {
                 "violated": False,
                 "test_name": "Linearity Check (Residual Analysis)",
                 "message": (
-                    "Linearity assumption satisfied: the linear fit reproduces y exactly to "
-                    "within floating-point precision (R² = 1). The residual runs test is not "
-                    "meaningful on residuals this size and was not used."
+                    "Linearity assumption satisfied: the linear fit reproduces y to within "
+                    "floating-point representation error, so the fitted line accounts for the "
+                    "data exactly. The residual runs test is not meaningful on residuals this "
+                    "size and was not used."
                 ),
             }
 
@@ -2768,16 +2822,65 @@ class LinearityValidator:
         }
 
 
-#: How close an OLS fit must be to y before its RESIDUALS are treated as carrying no
-#: information, in units of machine epsilon relative to the data scale.
+#: How far an OLS fit's residuals may sit above the floating-point REPRESENTATION floor and
+#: still be treated as carrying no information, in units of machine epsilon relative to
+#: max|y|. The spacing of float64 near a value v is eps*|v|, so eps*max|y| is the absolute
+#: size of the rounding dust an exactly linear y unavoidably carries.
 #:
-#: Measured, not chosen. Over n in 10..20,000 and four x-distributions (arange, uniform,
-#: offset-uniform, and a badly conditioned lognormal), the worst observed dust ratio
-#: max|resid| / max|y| for an exactly linear y was 21.9 ULPs. The tightest fit anyone would
-#: call a regression -- residual sd at 1e-6 of the data scale -- sits at ~7e9 ULPs. 1000 ULPs
-#: is 46x above the former and roughly 7 million times below the latter, so the two
-#: populations are separated by six orders of magnitude in either direction.
-_EXACT_FIT_ULPS = 1000
+#: MEASURED, and the earlier figure in this file was wrong. Over n in 10..20,000 and five
+#: x-distributions (arange, uniform, linspace, a badly conditioned lognormal(0,8), and a
+#: single-leverage-point design), the worst observed dust for an exactly linear y is
+#: **696.6 ULPs**, not the 21.9 ULPs previously recorded here -- the old sweep never reached
+#: the ill-conditioned corner, so the constant it justified (1000) sat 1.4x above true
+#: worst-case dust rather than the 46x claimed. 5000 is 7.2x above the measured worst case.
+_EXACT_FIT_ULPS = 5000
+
+#: How large the representation floor may be RELATIVE TO THE VARIATION in y before the phrase
+#: "the fit is exact" stops meaning anything.
+#:
+#: This is the shift-invariance condition, and it is the one that was missing. _EXACT_FIT_ULPS
+#: alone compares residuals to the MAGNITUDE of y; both diagnostics ask about its VARIATION.
+#: Adding a constant to y changes no regression diagnostic but multiplies the first quantity,
+#: so a large offset silently raised the bar until genuine findings fell under it. MEASURED on
+#: main + e442b84 + 5c87d00, textbook growing variance (n=60, sd 0.002->0.045, 23.5x fan), with
+#: R^2 identical to ten decimal places at every offset:
+#:
+#:     offset 0 .. 1e11  -> confidence 0.306, can_proceed False, homoscedasticity CRITICAL
+#:     offset 1e12, 1e13 -> confidence 0.444, can_proceed TRUE,  homoscedasticity ABSENT
+#:
+#: and on genuinely quadratic data (true R^2 = 0.9999996) at offset 1e12 the linearity check
+#: returned a PASS reading "reproduces y exactly ... (R^2 = 1)" -- an affirmative statement
+#: about the data that is false.
+#:
+#: MEASURED separation: legitimate exact fits reach floor/ptp(y) = 6.97e-12 at worst (80
+#: samples); the signal cases being wrongly silenced sit at 1.64e-05 (epoch-nanosecond
+#: timestamps) and 9.41e-04 (the growing-variance case above). 1e-9 is 143x above the former
+#: and 16,000x below the latter.
+_RESOLVABLE_VARIATION_RATIO = 1e-9
+
+
+def _residual_information_floor(y: np.ndarray) -> float:
+    """Absolute residual size below which residuals cannot be told from rounding error."""
+    scale = float(np.max(np.abs(y))) if y.size else 0.0
+    return _EXACT_FIT_ULPS * float(np.finfo(float).eps) * scale
+
+
+def _variation_is_resolvable(y: np.ndarray) -> bool:
+    """True when the representation floor is negligible against the variation in *y*.
+
+    When it is FALSE, y carries a constant offset (or a spread) so large that floating-point
+    spacing has eaten a non-trivial fraction of the signal, and neither "the fit is exact" nor
+    "the residuals show structure" can be asserted from this data. The honest answer there is
+    that we cannot evaluate it -- and that centring y makes it evaluable again.
+
+    Deliberately NOT shift-invariant: np.ptp is unchanged by adding a constant while the floor
+    is not, and that asymmetry is exactly what this predicate exists to detect.
+    """
+    spread = float(np.ptp(y)) if y.size else 0.0
+    if spread == 0.0:
+        # A constant y has no variation to explain. R^2 is 0/0, not 1.
+        return False
+    return _residual_information_floor(y) < _RESOLVABLE_VARIATION_RATIO * spread
 
 
 def _fit_is_exact(y: np.ndarray, residuals: np.ndarray) -> bool:
@@ -2786,23 +2889,39 @@ def _fit_is_exact(y: np.ndarray, residuals: np.ndarray) -> bool:
     When it does, the residuals are rounding dust rather than measurement error, and every
     residual-based diagnostic downstream is reading that dust as scientific structure.
     Measured on the deployed v1.2.0 build, over 500 perfect lines y = ax + b (random a, b,
-    n = 50):
-
-      * Breusch-Pagan reported heteroscedasticity for **78.2%** of them, mostly "critical"
-        (y = x/3 + 1/7 -> p = 7.4e-06, variance ratio 8.08, confidence 0.167);
-      * the runs test reported a **critical** linearity violation for **61.8%** of them, under
-        a message reading "R^2 improvement with polynomial: 0.000" -- the message contradicting
-        its own verdict, because the runs test, not the R^2 comparison, is what fired.
+    n = 50): Breusch-Pagan reported heteroscedasticity for ~77% of them, mostly "critical",
+    and the runs test reported a critical linearity violation for ~62%, under a message
+    reading "R^2 improvement with polynomial: 0.000" -- the message contradicting its own
+    verdict, because the runs test, not the R^2 comparison, is what fired.
 
     This is those TESTS being undefined on this input, not a defect in our implementation of
-    them: statsmodels' ``het_breuschpagan`` agrees with our Breusch-Pagan to every digit on the
-    dust case and returns nan when the residuals are exactly zero.
+    them: statsmodels' ``het_breuschpagan`` also declares a perfect line heteroscedastic
+    (LM = 30.4127, p = 3.49e-08 on y = 1.023602x + 0.384822 over x = arange(50)) and returns
+    nan when the residuals are exactly zero. NOTE: an earlier version of this docstring claimed
+    statsmodels agreed with our Breusch-Pagan "to every digit". That did NOT reproduce -- the
+    two fit routines produce different dust vectors (1.27e-14 vs 7.1e-15) and disagree on the
+    p-value. The conclusion is unchanged and stronger: an independent mature implementation
+    fails the same way, so the test itself is undefined here.
 
-    ONE predicate, used by both validators. The two defects above are the same defect in two
-    places, and they were found one at a time.
+    ONE predicate, used by both validators. The two defects were the same defect in two places,
+    and they were found one at a time.
+
+    This answers ONLY "are the residuals at the representation floor". It deliberately does NOT
+    answer "is that floor meaningful" -- see :func:`_variation_is_resolvable`, which callers
+    must consult INSIDE this branch. Splitting them is what makes the guard shift-invariant.
     """
-    scale = float(np.max(np.abs(y))) if y.size else 0.0
-    return float(np.max(np.abs(residuals))) <= _EXACT_FIT_ULPS * float(np.finfo(float).eps) * scale
+    if not y.size:
+        return False
+    return float(np.max(np.abs(residuals))) <= _residual_information_floor(y)
+
+
+#: Shared wording for the case where floating-point precision, not the data, decides the answer.
+_PRECISION_EXHAUSTED_DETAIL = (
+    "The values in y are so large relative to how much they vary that floating-point "
+    "precision has consumed a meaningful fraction of the signal, so the residuals cannot be "
+    "separated from rounding error. This assumption was NOT evaluated. Subtracting a constant "
+    "from y (centring it) does not change any regression result and makes this checkable."
+)
 
 
 class HomoscedasticityValidator:
@@ -2848,15 +2967,29 @@ class HomoscedasticityValidator:
         # no residual variance to be constant. Passing would be a vacuous certification, the
         # false clean bill this validator exists to prevent.
         if _fit_is_exact(y, residuals):
+            # See LinearityValidator for why this gate is nested rather than leading. MEASURED
+            # on main + e442b84 + 5c87d00: textbook growing variance, 23.5x fan, R^2 identical
+            # to ten decimal places at every offset -- the branch below silenced a genuine
+            # CRITICAL finding and flipped can_proceed False -> True purely because y carried a
+            # 1e12 offset.
+            if not _variation_is_resolvable(y):
+                return {
+                    "violated": False,
+                    "not_applicable": True,
+                    "test_name": "Breusch-Pagan Test",
+                    "details": (
+                        "Homoscedasticity was not evaluated. " + _PRECISION_EXHAUSTED_DETAIL
+                    ),
+                }
             return {
                 "violated": False,
                 "not_applicable": True,
                 "test_name": "Breusch-Pagan Test",
                 "details": (
-                    "The regression reproduces y exactly to within floating-point precision, so "
-                    "the residuals carry no information and the Breusch-Pagan test is undefined. "
-                    "Residual variance is constant (zero) by construction; heteroscedasticity was "
-                    "not evaluated."
+                    "The regression reproduces y to within floating-point representation error, "
+                    "so the residuals carry no information and the Breusch-Pagan test is "
+                    "undefined. There is no residual variance for the test to find structure in; "
+                    "heteroscedasticity was not evaluated."
                 ),
             }
 
