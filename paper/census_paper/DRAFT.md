@@ -30,9 +30,10 @@ in-text null-hypothesis significance-testing (NHST) statistic with a regex pipel
 two-tailed p-value statcheck-style. Two findings dominate. First, **verifiability is rare**: only ~3.5%
 (341/10,101) of papers report even one in-text, machine-recomputable test statistic; most reported
 statistics live in tables or figures and cannot be recovered from running text. Second, among the 3,005
-recomputable claims, the raw internal-inconsistency rate is **11.1%** (1.7% decision-changing), but
-false-positive adjudication shows ~79% of flags are likely-true and ~14% are clear false positives
-(chiefly one-sided p-values), yielding a **single-digit genuine inconsistency rate**. The estimate is
+recomputable claims, the raw internal-inconsistency rate is **11.8%** (1.7% decision-changing), but
+false-positive adjudication shows ~77% of flags are likely-true and ~14% are clear false positives
+(chiefly one-sided p-values), yielding a genuine inconsistency rate of **9.1%, 95% CI [7.0%, 11.5%]**
+(paper-clustered bootstrap, the inference the pre-registration specifies). The estimate is
 robust: inverse-probability weighting moves it ≤0.6 pp, and an independent general-OA frame gives 5.6%.
 Against statcheck on a labelled set the engine reaches 97.7% recall / 98.1% precision. A pre-registered
 confirmatory census with human double-coding is planned.
@@ -49,7 +50,8 @@ literature even checkable this way?* Scanning the full text of 10,103 open-acces
 found that only about one in thirty reports a statistic in a form a computer can re-derive from the text
 — the rest are buried in tables and figures. Among the statistics we could check, most were internally
 consistent; after manually separating genuine errors from artifacts of automated checking (such as
-one-sided tests), only a single-digit percentage were truly inconsistent. The result is reassuring about
+one-sided tests), roughly one in eleven were truly inconsistent — with an interval running from about
+7% to 11.5% once we account for claims clustering within papers. The result is reassuring about
 arithmetic consistency but sobering about transparency: the biomedical literature is, for the most part,
 not written in a way that lets anyone verify its statistics automatically.
 
@@ -92,7 +94,7 @@ not written in a way that lets anyone verify its statistics automatically.
   p-values (`p < .05`) and the p = .05 boundary handled per documented rules. A claim is "inconsistent"
   if the reported p and recomputed p fall on opposite sides of significance bands per the consistency
   rules; "decision-changing" (gross) if the significance verdict flips at α = .05.
-- **False-positive adjudication.** Transparent rule-based triage of all 333 flags into TRUE_LIKELY /
+- **False-positive adjudication.** Transparent rule-based triage of all 355 flags into TRUE_LIKELY /
   REVIEW_P_BOUND / FP_ONE_TAILED / FP_MISEXTRACTION (`adjudicate_inconsistencies.py`). Report the
   categories rather than only the raw rate.
 - **Robustness — same population (IPW).** Inverse-probability weighting by recorded per-paper day volume
@@ -111,23 +113,30 @@ not written in a way that lets anyone verify its statistics automatically.
   statistics and the key transparency finding.
   - Figure: corpus funnel → `figures/fig1_corpus_funnel.{png,svg}`.
   - Figure: article-type composition → `figures/fig7_article_types.{png,svg}`.
-- **Headline 2 — among checkable claims, genuine inconsistency is single-digit.**
-  - Raw: 11.1% (333/3,005) inconsistent; 1.7% (52) decision-changing.
+- **Headline 2 — among checkable claims, genuine inconsistency is around 9%, CI [7.0%, 11.5%].**
+  - NOTE: this headline is a REPLICATION, not a discovery — Damen 2023 (PMID 36470577) measured
+    statistical discrepancies across 163,129 RCTs. Headline 1 (the verifiability denominator) is
+    the finding that survives as new. Present Headline 2 as a replication in biomedicine-wide
+    PMC OA from JATS.
+  - Raw: 11.8% (355/3,005) inconsistent; 1.7% (52) decision-changing.
     Figure: `figures/fig2_headline_outcome.{png,svg}`; reported-vs-recomputed scatter
     `figures/fig4_reported_vs_recomputed_p.{png,svg}`; by-statistic-type
     `figures/fig5_by_statistic_type.{png,svg}`.
-  - FP-adjudicated (Table — from `FP_VALIDATION_REPORT_2026-06-25.md`): TRUE_LIKELY 262 (79%),
-    REVIEW_P_BOUND 25, FP_ONE_TAILED 46 (clear FP), FP_MISEXTRACTION 0 → clear-FP 14%, likely-true 79%
-    → **single-digit true inconsistency rate.** Figure: `figures/fig3_fp_validation.{png,svg}`.
+  - FP-adjudicated: TRUE_LIKELY 274 (77%), REVIEW_P_BOUND 33, FP_ONE_TAILED 48 (clear FP),
+    FP_MISEXTRACTION 0 → clear-FP 13.5%, likely-true 77% → **9.1% of checkable claims,
+    95% CI [7.0%, 11.5%]**, resampling papers not claims (the top 10 papers hold 29.9% of all
+    flags, so a claim-level interval would be far too narrow).
+    Figure: `figures/fig3_fp_validation.{png,svg}`.
 - **Robustness.**
   - IPW (Table — `CENSUS_IPW_REPORT_2026-06-26.md`): recomputable-paper rate 3.38%→3.39%; inconsistent
-    11.08%→10.52%; decision-changing 1.73%→1.46% — all shifts ≤0.6 pp; day-clustering did not bias.
+    11.81%→11.32%; decision-changing 1.73%→1.46% — all shifts ≤0.5 pp; day-clustering did not bias.
     Figure: `figures/fig6_rate_robustness.{png,svg}`.
   - Independent OA frame (Table — `CENSUS_OA_PILOT_REPORT_2026-06-26.md`): 5.6% inconsistent (6/108,
     5 papers; directional, wide CI), recomputable-paper rate 2.2% — lands in the FP-validated true range
     and below the raw rate.
 - **Extractor-fix transparency.** The 2026-06-26 fix eliminated FP_MISEXTRACTION (157→0); raw rate fell
-  14.5%→11.1% and decision-changing 4.2%→1.7%. Report this openly as a methods-validity result, not a
+  14.5%→11.1% and decision-changing 4.2%→1.7% (as scored by the p-reader in use at the time; the
+  corrected reader puts the post-fix raw rate at 11.8%). Report this openly as a methods-validity result, not a
   silent correction.
 - **Engine vs statcheck.** Recall 97.7% / precision 98.1% on the labelled set.
 
@@ -136,7 +145,7 @@ not written in a way that lets anyone verify its statistics automatically.
 *Figures already rendered:* fig1–fig7 in `paper/replication/verification/figures/`.
 
 ### 4.4 Discussion
-- **Two complementary messages.** Reassuring on arithmetic (genuine inconsistency single-digit, lower
+- **Two complementary messages.** Reassuring on arithmetic (genuine inconsistency ~9%, CI [7.0%, 11.5%], lower
   than psychology's ~13% gross-error figure under a like-for-like reading) but sobering on transparency
   (only ~3.5% checkable from text). The denominator is the story.
 - **Why so little is checkable.** Biomedical reporting conventions push statistics into tables/figures;
@@ -155,7 +164,7 @@ not written in a way that lets anyone verify its statistics automatically.
 ### 4.5 Limitations
 - **Descriptive, not confirmatory.** No pre-registered hypotheses here; exploratory measurement.
 - **Two-tailed recompute only.** One-sided tests inflate raw flags (the FP_ONE_TAILED bucket = 46);
-  partly the gap between 11.1% raw and the single-digit adjudicated rate.
+  partly the gap between 11.8% raw and the ~9.1% adjudicated rate.
 - **Table/figure statistics not read.** In-text-only; the 3.5% is a lower bound; table-embedded values
   split across cells may not re-form a checkable triple.
 - **Population is a design-query subset**, not literature-wide; rates are conditional on inclusion.
@@ -170,7 +179,7 @@ not written in a way that lets anyone verify its statistics automatically.
   census is **pre-registered on OSF** with the decisions listed in *Gates before submission*.
 - Describe the planned **two-coder kappa double-coding**: ~150-paper gold set, two blinded human coders
   independently labelling each flagged claim as genuinely inconsistent vs false positive, Cohen's
-  kappa ≥ 0.6 target, used to *calibrate the tool's precision* and convert the single-digit range into a
+  kappa ≥ 0.6 target, used to *calibrate the tool's precision* and convert the adjudicated range into a
   point estimate with a CI.
 
 ---
@@ -197,7 +206,7 @@ File a pre-registration on OSF fixing, in advance, the following ten items (curr
 ### 5.2 Kappa double-coding (tool-accuracy calibration)
 - Two **blinded** coders independently adjudicate a **~150-paper gold set** of flagged claims.
 - Compute **Cohen's kappa**; require **≥ 0.6**.
-- Use the human-validated labels to (a) convert the ~79% likely-true / single-digit range into a
+- Use the human-validated labels to (a) convert the ~77% likely-true / [7.0%, 11.5%] range into a
   calibrated true-inconsistency **point estimate + CI**, and (b) report tool precision/recall against
   human ground truth alongside the statcheck head-to-head.
 

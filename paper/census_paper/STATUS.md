@@ -19,13 +19,29 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
     different verdict for the identical numeric value depending only on whether it was written
     `9.04e-8` or `0.0000000904`.
   - Paper-level rate also moves: **129/341 (37.8%) → 136/341 (39.9%)**.
-- ⚠️ **`manuscript.md` and `DRAFT.md` STILL CARRY THE OLD 11.1% / 333 NUMBERS** — only this
-  STATUS.md was corrected on 2026-08-21. The stale figures appear in the abstract, Results, the
-  adjudication paragraph and five figure captions. **Not corrected here on purpose:** the IPW
-  re-estimate, the independent-OA frame and every figure are regenerated from the drive, which is
-  not mounted, so a partial edit would leave a half-corrected manuscript — worse than a
-  consistently old one with this note. What IS recomputable from the local corrected frame, ready
-  for that pass (control: the same code reproduces every published figure exactly):
+- ✅ **CORRECTED 2026-08-24 (`2baeccb`).** `manuscript.md`, `DRAFT.md` and all seven figures now
+  carry the 355-claim numbers. The earlier note here said the pass was blocked on the external
+  drive; **that was wrong** — the IPW arm needs only the ledger and `fetch_stats.json`, both ~2 MB
+  and in-tree, and it was recomputed (11.81% → 11.32%, a −0.50 pp shift; control: the same helper
+  returns the published 10.52% on the 333-row frame). Only the independent-OA arm (5.6%) still
+  needs the drive.
+  - 🚨 **The figures were HALF-corrected on the first regeneration and the script could not have
+    said so.** `make_census_figures.py` read the flagged-claim CATEGORIES from the frame but the
+    RATE from the ledger's per-paper `n_inconsistent`, which is still the original scoring run —
+    it printed `flagged_loaded=355` and `inconsistent rate=11.1%` in the same block. Behind that,
+    four hardcoded literals sat beside computed values: Fig 6's bar labels `333/3005` and
+    `262/3005` and its IPW height `10.5`; Fig 6's title asserting *"robust & single-digit"*
+    (three of its four bars are now double-digit); Fig 4's title `333 flagged claims`; and Fig 3's
+    y-axis `n = 333` above bars summing to 355. All derived now.
+  - 🚨 **"Single-digit" is RETIRED.** Paper-clustered bootstrap (10,000 reps, papers resampled,
+    seed 20260627): genuine **9.12%, 95% CI [6.95%, 11.49%]** — it crosses 10%. Raw 11.81%,
+    CI [9.48%, 14.38%]. The top 10 papers hold 29.9% of all flags, so claim-level precision was
+    illusory. `PREREGISTRATION.md` §3.4/§5.4 already specified clustered CIs, so the registered
+    method contradicted the old headline.
+  - Still open: the abstract's *"largely uncharted"* and the introduction's *"is unknown"*, both
+    contradicted by **Damen 2023 (PMID 36470577)**; and the OA arm.
+
+  The numbers, all re-executed (control: the same code reproduces every published figure exactly):
 
   | | published (333) | corrected (355) |
   |---|---|---|
