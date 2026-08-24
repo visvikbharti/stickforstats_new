@@ -22,8 +22,10 @@ ORCID: Vishal Bharti https://orcid.org/0009-0003-1431-4457; Debojyoti Chakrabort
 ## Abstract
 
 Independent re-computation of reported statistics—the approach popularised by *statcheck*—has exposed
-widespread internal inconsistencies in the psychology literature, but the verifiability of the biomedical
-literature at scale is largely uncharted. We assembled a census of 10,103 PubMed Central Open-Access
+widespread internal inconsistencies in the psychology literature. In biomedicine the same question has been
+approached once at scale, by Damen and colleagues across 163,129 randomized controlled trials, but the
+fraction of the literature that is machine-checkable at all was reported there as data attrition rather than
+as a finding, and only for trials, only from PDF-derived text, and only through 2017. We assembled a census of 10,103 PubMed Central Open-Access
 biomedical articles (2018–2025) matching a classical quantitative-design query, parsed their JATS-XML full
 text, extracted every in-text null-hypothesis significance-testing (NHST) statistic with a deterministic,
 open-source verification engine (StickForStats; regular-expression extraction, no language-model component),
@@ -66,8 +68,36 @@ contained at least one inconsistency and about one in eight an inconsistency tha
 decision [1]. That result reshaped how a field thinks about its own error rate, and it did so without any
 access to the underlying data—purely from the redundancy already printed in the text.
 
-Whether the same picture holds in biomedicine is unknown, and the reason it is unknown is itself
-informative. Biomedical results are frequently reported not as inline `t(df) = …, p = …` triples but as
+Whether the same picture holds in biomedicine has been addressed once at comparable scale. Damen et al.
+assembled 163,129 randomized controlled trials published 1996–2017, converted publisher PDFs to text with
+GROBID, and applied statcheck together with a confidence-interval-based recomputation [13]. Their reported
+outcome is a *statistical discrepancy* rate—an inconsistency large enough to cross α = 0.05—of 1.7% (370 of
+21,230 trials). The quantity this paper is about appears in their work too, but as attrition: of the 163,129
+included trials, only **21,230 (13.0%, our calculation from their Figure 1; the percentage is not stated in
+their paper)** contained "a combination of P value and test statistic" that could be recomputed at all, a
+loss they list among their limitations rather than analysing.
+
+Two things follow, and both shape what we report. First, **the verifiability question is not uncharted, but
+it has not been treated as a finding**, nor measured outside randomized trials, nor from publisher-native
+markup, nor after 2017. Second, **their headline 1.7% is not comparable to a raw inconsistency rate**, and
+comparing the two would be a category error. Damen et al. deposited their per-article results under CC BY;
+re-running their published inclusion criteria over that dataset reproduces their funnel exactly (183,927
+full texts → 163,129 included → 21,230 checkable → 370 discrepancies) and recovers the raw rates their paper
+does not report: **20.15% of checkable trials (4,278/21,230) contain at least one statcheck inconsistency,
+and 7.30% of individual checked results (7,374/100,970) are inconsistent.** It is the latter figure, not
+1.7%, that is the counterpart to the per-claim rate we report below.
+
+A second strand measures the denominator directly but outside biomedicine. Böschen benchmarked JATSdecoder's
+`get.stats()` against statcheck over 56,005 psychology documents, including 42,474 in NISO-JATS—our exact
+input format—and found at least one checkable in-text result in 39.9% of the native-XML articles [14]. That
+is an order of magnitude above what we report for biomedicine, and the gap is the substance of our first
+finding rather than a discrepancy to be explained away: psychology reports inline APA-style test triples,
+biomedicine reports effect estimates with confidence intervals in tables. Böschen has separately argued that
+statcheck-class extraction is too narrow to be relied upon [15]; Nuijten disputes this [16]. We take no side,
+and our adjudication step below is a direct response to the precision half of that dispute.
+
+The reason biomedicine is hard to check is itself informative. Biomedical results are frequently reported not
+as inline `t(df) = …, p = …` triples but as
 tables of estimates, confidence intervals, and adjusted p-values, or as annotations on figures—forms from
 which the recompute redundancy cannot be recovered automatically. Before one can ask "how often are
 biomedical statistics internally inconsistent?", one must first ask "how often are they reported in a form
@@ -232,9 +262,11 @@ defensible genuine rate.
 
 Two numbers summarise the census. **About 3.4% of biomedical open-access papers report an in-text,
 machine-recomputable statistic**, and **of those statistics, an estimated 9.1% are genuinely internally
-inconsistent (95% CI [7.0%, 11.5%], papers as clusters)**. The first is a transparency finding and is the
-one we regard as new; the second is a reassuring—but qualified, and deliberately interval-valued—reliability
-finding.
+inconsistent (95% CI [7.0%, 11.5%], papers as clusters)**. The first is a transparency finding; it is not
+unprecedented—Damen et al. report the same quantity as attrition for randomized trials [13], and Böschen
+measures it directly for psychology [14]—but treating it as the object of study, across biomedicine, from
+publisher-native JATS, is what this census contributes. The second is a reassuring—but qualified, and
+deliberately interval-valued—reliability finding, and it is best read as a replication.
 
 The transparency finding is the more consequential. The dominant reason a biomedical paper's statistics
 cannot be auto-verified is not error but *reporting form*: results are presented in tables of adjusted
@@ -251,7 +283,18 @@ is not defensibly single-digit: the paper-clustered interval runs to 11.5%, and 
 papers contribute 29.9% of all flags, so claim-level precision is illusory. A genuine-inconsistency rate of
 roughly 7–11.5% among *checkable* claims is lower than statcheck's headline figures for psychology, but the
 populations differ in design, discipline, and—critically—in what is checkable, so the comparison is
-qualitative. We
+qualitative.
+
+Two external anchors are worth stating precisely, because both are easy to misuse. Nuijten et al.'s synthesis
+of seven prior studies gives a median inconsistent-*results* rate of 11.1% (range 4.3–14.3%) [1]; our raw
+11.8% sits essentially on that median, which is the appropriate comparison for a raw per-claim rate. And the
+per-result rate recoverable from Damen et al.'s deposited data—7.30%—falls in the same band, from an entirely
+different corpus (randomized trials), a different input format (PDF via GROBID), and a different era
+(1996–2017). Their *published* 1.7% must not be read as the counterpart to our 11.8%: it counts only
+discrepancies that cross α = 0.05, and it is bounded further by a ≥0.01 absolute-difference gate their
+methods apply before flagging anything. The comparable decision-crossing quantity in our data is 1.7% of
+checkable claims, which coincides with their figure by arithmetic rather than by construction, and we draw no
+inference from that coincidence. We
 deliberately report the full adjudication (Fig 3) rather than a single number, because the choice of
 denominator and the handling of one-sided tests and p-bounds can move the figure by several points; the
 TRUE_LIKELY fraction is our most defensible lower bound, and the precise rate is exactly what the
@@ -319,3 +362,7 @@ by the pipeline and independently spot-checked against SciPy, and no AI system i
 10. Brown NJL, Heathers JAE. The GRIM test: A simple technique detects numerous anomalies in the reporting of results in psychology. Soc Psychol Personal Sci. 2017;8(4):363–369.
 11. The NCBI PubMed Central Open Access Subset. National Library of Medicine. https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/
 12. Virtanen P, Gommers R, Oliphant TE, et al. SciPy 1.0: fundamental algorithms for scientific computing in Python. Nat Methods. 2020;17(3):261–272.
+13. Damen JA, Heus P, Lamberink HJ, Tijdink JK, Bouter L, Glasziou P, et al. Indicators of questionable research practices were identified in 163,129 randomized controlled trials. J Clin Epidemiol. 2023;154:23–32. doi:10.1016/j.jclinepi.2022.11.020. Data: https://github.com/wmotte/RCTQuality
+14. Böschen I. Evaluation of JATSdecoder as an automated text extraction tool for statistical results in scientific reports. Sci Rep. 2021;11:19525. doi:10.1038/s41598-021-98782-3.
+15. Böschen I. statcheck is flawed by design and no valid spell checker for statistical results. arXiv:2408.07948. 2024.
+16. Nuijten MB. Statcheck does what it is designed to do: a reply to Böschen (2024). PsyArXiv. 2025. doi:10.31234/osf.io/xyfjz.
