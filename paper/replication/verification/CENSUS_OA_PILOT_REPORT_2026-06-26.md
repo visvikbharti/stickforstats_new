@@ -1,5 +1,12 @@
 # Independent-frame pilot: general PMC Open-Access (OA web service)
 
+> ⚠️ **CORRECTION BANNER (added 2026-08-25).** This is a dated snapshot and is left otherwise
+> unedited. Its own pilot numbers (2.2%, 5.6% = 6/108) stand, but **every census comparator in the
+> table below is pre-correction**: read 3.5% (341/10,101) as **3.38%**, 11.1% raw as **11.81%**,
+> 10.5% IPW as **11.32%**, and "~6–8% FP-validated" as **9.12%, 95% CI [6.95%, 11.49%]**
+> (paper-clustered). The pilot arm itself has not yet been re-run on the corrected p-reader.
+
+
 _Generated 2026-06-26 by `oa_pilot.py` + `census_jats.py` over a uniform-ish sample of the GENERAL PMC
 Open-Access population (NCBI `oa.fcgi`, date-based enumeration). This is an INDEPENDENT external
 replication of the census inconsistency rate, NOT the same-population robustness result (that is the

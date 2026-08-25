@@ -286,7 +286,7 @@ artifact of our patterns**, and the contrast with psychology is disciplinary: in
 versus effect estimates and intervals in tables.
 
 The disagreements run in both directions and bound our own recall honestly. Paper-level agreement
-is 94.5% (718/760). In 37 papers—18.5% of the stratum where we found a claim—our extractor found a
+is 94.2% (716/760) on the raw-JATS arm reported above. In 37 papers—18.5% of the stratum where we found a claim—our extractor found a
 checkable result and JATSdecoder did not. In 7 papers the reverse held; re-running JATSdecoder on
 our body-only text shows 1 of those is abstract-only, a deliberate scope difference rather than a
 miss, leaving **6 genuine recall gaps (1.1% of the 560 sampled papers we scored as

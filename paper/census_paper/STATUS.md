@@ -4,7 +4,7 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
 
 ## DONE (committed under `paper/replication/verification/`)
 - ✅ Descriptive census over **10,103** PMC OA biomedical papers (JATS-XML → regex extraction → statcheck-style recompute).
-- ✅ Headline numbers: ~3.5% report an in-text recomputable stat; 3,005 checkable claims;
+- ✅ Headline numbers: ~3.4% report an in-text recomputable stat (341/10,101 = 3.38%); 3,005 checkable claims;
   **11.8%** raw inconsistent (355/3,005), **1.7%** decision-changing (52/3,005, UNCHANGED);
   FP-validation → single-digit genuine rate.
   - ⚠️ **CORRECTED 2026-08-21 — was 11.1% (333/3,005).** The v1.2.0 p-reader had two holes, both

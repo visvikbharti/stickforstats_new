@@ -63,7 +63,12 @@ biomedicine reports effect estimates with confidence intervals, in tables.
 
 ## Where the two tools disagree, and it runs both ways
 
-On the 760 papers, paper-level agreement is **94.5%** (718/760).
+On the 760 papers, paper-level agreement is **94.2%** (716/760) on the raw-JATS arm — the arm
+the 3.96% denominator is measured on, and the arm the two counts below come from
+(760 − 37 − 7 = 716). The body-text arm gives 94.5% (718/760), with its own split of 36 / 6.
+Both are derived by `jatsdecoder_agreement.py` from the two tracked artifacts; an earlier
+version of this line quoted the body-text agreement beside the raw-JATS split, which do not
+sum to 760.
 
 - **37 papers (18.5% of stratum A): we found a checkable result and JATSdecoder did not.** Our
   extractor is not uniformly the weaker one on biomedical text.
