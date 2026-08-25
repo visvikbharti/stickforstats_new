@@ -158,6 +158,25 @@ retired `oa_file_list.csv`; `oa.fcgi` is the current date-based enumeration endp
 PAPER rate is lower here — no enrichment — so a bounded pilot has a wider CI; the same-population
 robustness result is §3.5.)
 
+To re-score an already-fetched OA corpus, move the ledger aside first or `run_census` will reuse the
+stored per-paper records and "reproduce" the old numbers by construction rather than by control:
+```bash
+mv .../census_2026-06-25/census_oa_pilot_2026-06-26.jsonl{,.bak}
+cd backend && DJANGO_DEBUG=True ../.venv-django/bin/python -c "
+from pathlib import Path; import sys; sys.path.insert(0,'../paper/replication/verification')
+import census_jats; census_jats.run_census(
+    Path('/Volumes/My_Passport/stickforstats_corpus/oa_pilot_2026-06-26'),
+    summary_path=Path('/tmp/oa.md'))"
+```
+**Expected (corrected p-reader, 2026-08-25):** 246 XML / 230 readable bodies; **5 papers (2.2%)** with a
+checkable claim; 354 test claims, **108 checkable**; **7 inconsistent = 6.5%**; **0 decision-changing**;
+4 of the 5 checkable papers carry a flag. Report: `CENSUS_OA_PILOT_REPORT_2026-08-25.md`.
+- **CONTROL:** check out the pre-fix reader
+  (`git checkout f979b89^ -- backend/core/manuscript/consistency_core.py backend/core/manuscript/verdict_decision.py`),
+  move the ledger aside, re-run, and you must reproduce **6/108 = 5.6%** and 0 decision-changing exactly.
+  Restore with `git checkout HEAD -- <those two paths>` and confirm `git status` is clean before doing
+  anything else.
+
 ---
 
 ## 4. The 2026-06-26 extractor false-positive fix (what changed and why it matters)

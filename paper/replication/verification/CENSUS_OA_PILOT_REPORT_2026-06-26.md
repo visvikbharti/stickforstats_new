@@ -4,7 +4,10 @@
 > unedited. Its own pilot numbers (2.2%, 5.6% = 6/108) stand, but **every census comparator in the
 > table below is pre-correction**: read 3.5% (341/10,101) as **3.38%**, 11.1% raw as **11.81%**,
 > 10.5% IPW as **11.32%**, and "~6–8% FP-validated" as **9.12%, 95% CI [6.95%, 11.49%]**
-> (paper-clustered). The pilot arm itself has not yet been re-run on the corrected p-reader.
+> (paper-clustered). **The pilot arm itself has now been re-run on the corrected p-reader —
+> see `CENSUS_OA_PILOT_REPORT_2026-08-25.md`, which supersedes this file: 5.6% (6/108) →
+> 6.5% (7/108). This file's numbers are the CONTROL, and the uncorrected reader reproduces
+> them exactly.**
 
 
 _Generated 2026-06-26 by `oa_pilot.py` + `census_jats.py` over a uniform-ish sample of the GENERAL PMC

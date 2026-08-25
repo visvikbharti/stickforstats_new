@@ -39,7 +39,7 @@ false positives (chiefly one-sided p-values our two-tailed recompute cannot matc
 within papers, we report the adjudicated genuine rate with a paper-clustered bootstrap interval:
 **9.1%, 95% CI [7.0%, 11.5%]**. The estimate is robust to the sampling design: inverse-probability
 weighting shifts it by ≤0.5 percentage points, and a small independent general-Open-Access frame is
-directionally consistent (5.6%, from 108 checkable claims in 5 papers). Against statcheck on the
+directionally consistent (6.5%, from 108 checkable claims in 5 papers). Against statcheck on the
 same articles our extractor reaches 97.7% recall and 98.1%
 precision, and the verifiability denominator is tool-independent: an independent extractor
 (JATSdecoder's `get.stats()`, which reads the same JATS markup) recovers 3.96% [95% CI 3.15, 4.94]
@@ -248,7 +248,7 @@ moves the headline by less than a percentage point: the inconsistent-claim rate 
 and the decision-changing rate from 1.73% to 1.46% (a ≤0.5-pp shift; Fig 6), confirming that the
 over-representation of low-volume publication days did not bias the result. An entirely independent frame—a
 uniform-ish sample of the *general* PMC OA population through a different NCBI endpoint, with no
-quantitative-design enrichment—yields an inconsistency rate of 5.6% (6 of 108 checkable claims from only 5
+quantitative-design enrichment—yields an inconsistency rate of 6.5% (7 of 108 checkable claims from only 5
 papers; directional at best, and we do not treat it as an estimate), below the raw 11.8%. The two
 robustness arms thus bracket the headline from within and without.
 
@@ -384,7 +384,7 @@ by the pipeline and independently spot-checked against SciPy, and no AI system i
 - **Fig 3.** False-positive adjudication of the 355 flags (TRUE_LIKELY / REVIEW_P_BOUND / FP_ONE_TAILED / FP_MISEXTRACTION), with the extractor fix annotated (157 → 0). (`figures/fig3_fp_validation`)
 - **Fig 4.** Reported vs recomputed p (log-log) for all 355 flagged claims, coloured by adjudication category; ★ = decision-changing. (`figures/fig4_reported_vs_recomputed_p`)
 - **Fig 5.** Flagged inconsistencies by statistic type (t / F / r / z / χ²). (`figures/fig5_by_statistic_type`)
-- **Fig 6.** Inconsistency rate across frames: raw 11.8% · IPW 11.3% · likely-true 9.1% · independent OA 5.6%. (`figures/fig6_rate_robustness`)
+- **Fig 6.** Inconsistency rate across frames: raw 11.8% · IPW 11.3% · likely-true 9.1% · independent OA 6.5%. (`figures/fig6_rate_robustness`)
 - **Fig 7.** Corpus composition by article type. (`figures/fig7_article_types`)
 
 ## References

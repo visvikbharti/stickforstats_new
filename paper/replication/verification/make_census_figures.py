@@ -43,8 +43,17 @@ CENSUS = DATA_DIR / "census_census_corpus_v2_2026-06-25.jsonl"
 
 # The CORRECTED frame (355 rows) is the tracked one and is the published input from 2026-08-24
 # onward; the 333-row pre-correction frame is kept beside it so the re-score has a control.
-_CORRECTED = ROOT / "paper/census_paper/data/flagged_inconsistencies_corrected.jsonl"
+_IN_TREE_DATA = ROOT / "paper/census_paper/data"
+_CORRECTED = _IN_TREE_DATA / "flagged_inconsistencies_corrected.jsonl"
 FLAGGED = _CORRECTED if _CORRECTED.exists() else (DATA_DIR / "flagged_inconsistencies.jsonl")
+# fetch_stats.json is written next to the corpus on the drive, and shipped next to the
+# ledger in-tree. Try every place it is known to live, in preference order.
+_FETCH_STATS_CANDIDATES = (
+    _DRIVE / "fetch_stats.json",
+    Path("/Volumes/My_Passport/stickforstats_corpus/census_corpus_v2_2026-06-25/fetch_stats.json"),
+    _LOCAL / "fetch_stats.json",
+)
+
 FIG_DIR = ROOT / "paper/replication/verification/figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -100,6 +109,36 @@ def is_decision_changing(x: dict) -> bool:
     return sev in ("gross_error", "gross", "decision_changing")
 
 
+def _oa_pilot_counts() -> tuple[int, int]:
+    """(inconsistent, checkable) for the independent general-OA frame.
+
+    Prefers the ledger on the corpus drive; falls back to the tracked summary so this
+    script still runs -- and still carries a correction -- with the drive unmounted. The
+    two are cross-checked when both are present, and a disagreement is printed rather
+    than silently resolved in favour of either.
+    """
+    tracked = _IN_TREE_DATA / "oa_pilot_2026-08-25.json"
+    summary = json.loads(tracked.read_text())
+    counts = (summary["inconsistent"], summary["checkable"])
+
+    ledger = _DRIVE / "census_oa_pilot_2026-06-26.jsonl"
+    if ledger.exists():
+        recs = [json.loads(line) for line in ledger.read_text().splitlines() if line.strip()]
+        body = [r for r in recs if r.get("status") == "parsed_body" or "coverage" in r]
+        live = (
+            sum((r.get("n_inconsistent") or 0) for r in body),
+            sum((r.get("n_checkable") or 0) for r in body),
+        )
+        if live != counts:
+            print(
+                f"  NOTE: OA ledger on the drive says {live[0]}/{live[1]} but the tracked "
+                f"summary says {counts[0]}/{counts[1]} -- using the LEDGER. Re-run the OA "
+                f"arm's summary writer; one of them is stale."
+            )
+            return live
+    return counts
+
+
 def _clustered_ci(papers, flagged, only_true_likely=False, reps=10000, seed=20260627):
     """Percentile bootstrap CI resampling PAPERS, not claims.
 
@@ -132,9 +171,21 @@ def _ipw_inconsistent_rate(papers, flagged) -> float:
     day volumes (IPW for a 1/V inclusion probability); papers with no recorded weight fall back
     to w = 1. Control: run against the 333-row frame and this returns the published 10.52%.
     """
-    stats_path = DATA_DIR / "fetch_stats.json"
-    if not stats_path.exists():
-        raise FileNotFoundError(f"IPW weights not found at {stats_path}")
+    # Resolve this input on its own rather than trusting DATA_DIR. DATA_DIR flips to the
+    # drive as a whole when the census ledger is there, but fetch_stats.json lives beside
+    # the CORPUS on the drive and beside the ledger in-tree -- so a single directory choice
+    # is wrong for one of them either way. With the drive mounted this raised
+    # FileNotFoundError and no figure past fig5 was written: the same "a generator cannot
+    # run in the other environment" defect as 17ff8ac, with the environments swapped.
+    stats_path = next(
+        (c for c in _FETCH_STATS_CANDIDATES if c.exists()),
+        None,
+    )
+    if stats_path is None:
+        raise FileNotFoundError(
+            "IPW weights (fetch_stats.json) not found in any of: "
+            + ", ".join(str(c) for c in _FETCH_STATS_CANDIDATES)
+        )
     weights = json.loads(stats_path.read_text()).get("day_volume_per_paper", {})
     per_paper: dict = {}
     for x in flagged:
@@ -362,10 +413,13 @@ def main() -> int:
     # constant, with its provenance, so it cannot masquerade as a computed value.
     ipw_rate = _ipw_inconsistent_rate(papers, flagged)
 
-    #: Independent general-OA frame: 6 inconsistencies among 108 checkable claims, from only 5
-    #: papers (CENSUS_OA_PILOT_REPORT_2026-06-26.md). NOT recomputed here -- it needs the
-    #: separate OA pilot corpus. Directional only, and reported as such in the manuscript.
-    OA_PILOT_RATE, OA_PILOT_NUM, OA_PILOT_DEN = 5.6, 6, 108
+    # Independent general-OA frame. This used to be a hardcoded 5.6/6/108 -- the last literal
+    # in the figure -- and it went stale the moment the arm was re-scored on the corrected
+    # p-reader. It is now DERIVED: from the OA ledger when the corpus drive is attached, and
+    # otherwise from the small tracked summary written beside it, so a correction reaches the
+    # figure with or without the drive. Directional only, and reported as such in the manuscript.
+    OA_PILOT_NUM, OA_PILOT_DEN = _oa_pilot_counts()
+    OA_PILOT_RATE = 100 * OA_PILOT_NUM / OA_PILOT_DEN
 
     bars6 = [
         (f"Raw flagged\n({len(flagged)}/{tot_checkable})", rate, C["inconsistent"]),

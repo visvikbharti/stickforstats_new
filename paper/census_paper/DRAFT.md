@@ -37,7 +37,7 @@ recomputable claims, the raw internal-inconsistency rate is **11.8%** (1.7% deci
 false-positive adjudication shows ~77% of flags are likely-true and ~14% are clear false positives
 (chiefly one-sided p-values), yielding a genuine inconsistency rate of **9.1%, 95% CI [7.0%, 11.5%]**
 (paper-clustered bootstrap, the inference the pre-registration specifies). The estimate is
-robust: inverse-probability weighting moves it ≤0.6 pp, and an independent general-OA frame gives 5.6%.
+robust: inverse-probability weighting moves it ≤0.6 pp, and an independent general-OA frame gives 6.5%.
 Against statcheck on a labelled set the engine reaches 97.7% recall / 98.1% precision, and the
 denominator is tool-independent: an independent extractor reading the same markup recovers 3.96%
 [3.15, 4.94] against our 3.38%, a difference of +0.58 pp [−0.23, +1.57]. A pre-registered
@@ -143,9 +143,10 @@ not written in a way that lets anyone verify its statistics automatically.
   - IPW (Table — `CENSUS_IPW_REPORT_2026-08-24.md`): recomputable-paper rate 3.38%→3.39%; inconsistent
     11.81%→11.32%; decision-changing 1.73%→1.46% — all shifts ≤0.5 pp; day-clustering did not bias.
     Figure: `figures/fig6_rate_robustness.{png,svg}`.
-  - Independent OA frame (Table — `CENSUS_OA_PILOT_REPORT_2026-06-26.md`): 5.6% inconsistent (6/108,
-    5 papers; directional, wide CI), recomputable-paper rate 2.2% — lands in the FP-validated true range
-    and below the raw rate.
+  - Independent OA frame (Table — `CENSUS_OA_PILOT_REPORT_2026-08-25.md`): 6.5% inconsistent (7/108,
+    5 papers; directional, wide CI), recomputable-paper rate 2.2% (5/230) — below the raw rate. Re-scored
+    on the corrected p-reader 2026-08-25; the uncorrected reader reproduces the published 5.6% (6/108)
+    exactly, which is the control.
 - **Extractor-fix transparency.** The 2026-06-26 fix eliminated FP_MISEXTRACTION (157→0); raw rate fell
   14.5%→11.1% and decision-changing 4.2%→1.7% (as scored by the p-reader in use at the time; the
   corrected reader puts the post-fix raw rate at 11.8%). Report this openly as a methods-validity result, not a

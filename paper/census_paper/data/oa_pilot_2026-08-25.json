@@ -1,0 +1,27 @@
+{
+  "_note": "Independent general-OA frame, re-scored on the CORRECTED p-reader 2026-08-25. Tracked in-tree so the figure and report generators can carry a correction without the corpus drive attached; the drive ledger is preferred when present.",
+  "source_ledger": "/Volumes/My_Passport/stickforstats_corpus/census_2026-06-25/census_oa_pilot_2026-06-26.jsonl",
+  "source_ledger_sha256": "f9d57b304cc5a79f59791ccc3eb081ccbeda62e6a30443e3b4db0075a6a400a9",
+  "corpus_dir": "/Volumes/My_Passport/stickforstats_corpus/oa_pilot_2026-06-26",
+  "scored_with": "corrected p-reader (f979b89 present)",
+  "control": {
+    "reader": "uncorrected (f979b89^ checked out into the tree, then restored)",
+    "reproduces_published": true,
+    "checkable": 108,
+    "inconsistent": 6,
+    "rate_pct": 5.6,
+    "decision_changing": 0,
+    "papers_with_checkable": 5,
+    "papers_with_inconsistency": 3
+  },
+  "xml_files": 246,
+  "with_body": 230,
+  "papers_with_checkable": 5,
+  "papers_with_inconsistency": 4,
+  "test_claims": 354,
+  "checkable": 108,
+  "inconsistent": 7,
+  "decision_changing": 0,
+  "rate_pct": 6.4815,
+  "paper_rate_pct": 2.1739
+}

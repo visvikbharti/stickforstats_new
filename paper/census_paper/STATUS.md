@@ -23,8 +23,9 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   carry the 355-claim numbers. The earlier note here said the pass was blocked on the external
   drive; **that was wrong** — the IPW arm needs only the ledger and `fetch_stats.json`, both ~2 MB
   and in-tree, and it was recomputed (11.81% → 11.32%, a −0.50 pp shift; control: the same helper
-  returns the published 10.52% on the 333-row frame). Only the independent-OA arm (5.6%) still
-  needs the drive.
+  returns the published 10.52% on the 333-row frame). The independent-OA arm was the last one
+  still needing the drive; it was re-scored on the corrected reader 2026-08-25 — **5.6% → 6.5%**
+  (6/108 → 7/108), one claim flipped, same direction as the main corpus.
   - 🚨 **The figures were HALF-corrected on the first regeneration and the script could not have
     said so.** `make_census_figures.py` read the flagged-claim CATEGORIES from the frame but the
     RATE from the ledger's per-paper `n_inconsistent`, which is still the original scoring run —
@@ -60,7 +61,8 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   (8.7% → 9.1%). Note the last row of the table: without the scientific-notation fix, the
   manuscript's own claim that mis-extraction was *"eliminated (157 → 0)"* would have become false
   on the corrected frame.
-- ✅ Robustness: IPW re-estimate (≤0.6 pp shift) + independent general-OA frame (5.6%, directional).
+- ✅ Robustness: IPW re-estimate (≤0.6 pp shift) + independent general-OA frame (**6.5%**, 7/108,
+  directional; was 5.6% before the p-reader correction — re-scored 2026-08-25).
 - ✅ Extractor false-positive fix (mis-extraction 157 → 0).
 - ✅ statcheck head-to-head: recall 97.7% / precision 98.1% (**re-verified unchanged 2026-08-21** — these are EXTRACTION metrics and the p-reader correction does not touch them).
 - ✅ Figures (`figures/fig1`–`fig7`) + reports (`CENSUS_REPORT_LARGE`, `FP_VALIDATION_REPORT`, `CENSUS_IPW_REPORT`, `CENSUS_OA_PILOT_REPORT`).
