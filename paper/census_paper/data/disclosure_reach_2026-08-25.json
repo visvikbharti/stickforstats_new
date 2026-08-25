@@ -1,0 +1,45 @@
+{
+  "population_readable_body": 10101,
+  "papers_with_any_test_claim": 1939,
+  "recomputation_reach": 341,
+  "reach_a_evaluable": 385,
+  "reach_b_verdict": 160,
+  "reach_b_beyond_recomputation": 69,
+  "reach_b_and_recomputable": 91,
+  "recomputable_only": 250,
+  "claims_total": 13703,
+  "claims_evaluable": 1651,
+  "claims_with_verdict": 588,
+  "reasons_not_evaluable": {
+    "design not stated; resolver defaulted (interlock: silence)": 7071,
+    "test not resolved": 4981,
+    "evaluable but nothing conventionally reported (rank test)": 1063
+  },
+  "test_keys_evaluable": {
+    "kruskal_wallis": 406,
+    "spearman": 393,
+    "mann_whitney_u": 249,
+    "chi_square_independence": 230,
+    "pearson": 139,
+    "one_way_anova": 94,
+    "welch_t": 50,
+    "paired_t": 46,
+    "independent_t": 17,
+    "kendall": 15,
+    "one_sample_t": 12
+  },
+  "per_assumption": {
+    "normality:unreported": 283,
+    "expected_frequencies:unreported": 208,
+    "linearity:unreported": 137,
+    "variance_homogeneity:unreported": 93,
+    "normality:reported": 75,
+    "expected_frequencies:reported": 22,
+    "variance_homogeneity:reported": 18,
+    "linearity:reported": 2
+  },
+  "control_papers_compared": 10101,
+  "control_ledger_mismatches": 0,
+  "control_mismatch_examples": [],
+  "corpus_dir": "/Volumes/My_Passport/stickforstats_corpus/census_corpus_v2_2026-06-25"
+}

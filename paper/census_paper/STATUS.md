@@ -74,6 +74,23 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
   The bundle is a regenerable build artifact (gitignored); the raw 3.2 GB corpus is NOT included
   (re-fetchable from PMC).
 
+- ✅ **DISCLOSURE-AUDIT REACH MEASURED 2026-08-25** (`DISCLOSURE_REACH_2026-08-25.md`).
+  The premise was that a disclosure audit ("the paper says it ran test T — does it say it checked
+  what T requires?") asks a weaker question than recomputation and therefore reaches more papers.
+  **It reaches fewer: 160 papers (1.58%) against recomputation's 341 (3.38%), and only 69 papers
+  (0.68%) that recomputation cannot touch.** 250 recomputable papers are outside its reach entirely.
+  The cause is not a missing feature — it is the interlock that refuses to build a finding on a
+  guess: **51.6% of all 13,703 claims are silenced because the paper never states its design.**
+  Above that sit two ceilings: the audit is gated on claim extraction, so it can never exceed the
+  1,939 papers (19.2%) with an in-text statistic even though its question applies to any paper that
+  names a method in Methods; and rank-based tests (64% of the evaluable set) require nothing that is
+  conventionally reported. **Widening this arm means a Methods-only test detector and papers stating
+  their designs, not better regexes.** Control: per-paper extracted-claim counts match the census
+  ledger on all 10,101 papers and total 13,703 exactly; the control was mutation-tested (truncating
+  the input produced 33 mismatches over 200 papers). ▶ **Open decision: whether this belongs in the
+  census manuscript's Discussion**, which currently asserts that automated verification has limited
+  reach without quantifying a second modality.
+
 - ✅ **INDEPENDENT-EXTRACTOR CHECK DONE 2026-08-25** (`JATSDECODER_HEADTOHEAD_2026-08-25.md`).
   JATSdecoder `get.stats()` v1.3.0 run over a stratified 800-paper sample (760 retrieved) of the
   same corpus. **It recovers 3.96% [3.15, 4.94] against our 3.38% — difference +0.58 pp,
