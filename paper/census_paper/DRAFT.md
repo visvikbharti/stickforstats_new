@@ -20,14 +20,17 @@
 
 ---
 
-## 2. Abstract (DRAFT, ~180 words)
+## 2. Abstract (DRAFT, 254 words — over most venue caps; trim against `manuscript.md`, which is the abstract that ships)
 
 Independent re-computation of reported statistics (the statcheck paradigm) has exposed widespread
-internal inconsistencies in psychology, but the verifiability of the biomedical literature at scale is
-largely uncharted. We assembled a census of 10,103 PMC Open-Access biomedical articles (2018–2025)
-matching a classical quantitative-design query, ingested their JATS-XML full text, and extracted every
+internal inconsistencies in psychology. In biomedicine the question has been approached once at
+comparable scale (Damen et al., 163,129 randomized trials), but the fraction of the literature that is
+machine-checkable at all was reported there as data attrition rather than as a finding, and only for
+trials, only from PDF-derived text, and only through 2017. We assembled a census of 10,103 PMC
+Open-Access biomedical articles (2018–2025) matching a classical quantitative-design query, ingested
+their JATS-XML full text, and extracted every
 in-text null-hypothesis significance-testing (NHST) statistic with a regex pipeline, recomputing each
-two-tailed p-value statcheck-style. Two findings dominate. First, **verifiability is rare**: only ~3.5%
+two-tailed p-value statcheck-style. Two findings dominate. First, **verifiability is rare**: only ~3.4%
 (341/10,101) of papers report even one in-text, machine-recomputable test statistic; most reported
 statistics live in tables or figures and cannot be recovered from running text. Second, among the 3,005
 recomputable claims, the raw internal-inconsistency rate is **11.8%** (1.7% decision-changing), but
@@ -35,7 +38,9 @@ false-positive adjudication shows ~77% of flags are likely-true and ~14% are cle
 (chiefly one-sided p-values), yielding a genuine inconsistency rate of **9.1%, 95% CI [7.0%, 11.5%]**
 (paper-clustered bootstrap, the inference the pre-registration specifies). The estimate is
 robust: inverse-probability weighting moves it ≤0.6 pp, and an independent general-OA frame gives 5.6%.
-Against statcheck on a labelled set the engine reaches 97.7% recall / 98.1% precision. A pre-registered
+Against statcheck on a labelled set the engine reaches 97.7% recall / 98.1% precision, and the
+denominator is tool-independent: an independent extractor reading the same markup recovers 3.96%
+[3.15, 4.94] against our 3.38%, a difference of +0.58 pp [−0.23, +1.57]. A pre-registered
 confirmatory census with human double-coding is planned.
 
 ---
@@ -66,14 +71,21 @@ not written in a way that lets anyone verify its statistics automatically.
   the method we extend.
 - **The unstated precondition.** statcheck-style checking only works on statistics reported *in text* in
   a recomputable form (test statistic + df + p). Before asking "how *correct* is the literature?" we must
-  ask "how much of it is even *checkable*?" — a question rarely quantified at biomedical scale.
+  ask "how much of it is even *checkable*?" — a question measured once at biomedical scale, by Damen
+  et al., but reported there as attrition rather than analysed, and only for trials, only from
+  PDF-derived text, and only through 2017.
 - **This paper's contribution.** A descriptive census over 10,103 PMC OA biomedical papers answering
   two questions: (Q1) what fraction report an in-text recomputable NHST statistic? (Q2) among those, what
   fraction are internally inconsistent — raw, and after false-positive adjudication and robustness checks?
 - Position relative to prior work: psychology (statcheck), p-value distributions / p-curve, GRIM/SPRITE
-  consistency checks, data-availability audits. Our novelty = *biomedical scope + a verifiability
-  (denominator) headline + transparent FP-adjudication + design-based robustness*, not a new checking
-  algorithm.
+  consistency checks, data-availability audits, and — the two that bound what we may claim —
+  **Damen 2023** (163,129 RCTs; a *decision-crossing* rate of 1.7%, not comparable to a raw rate, and
+  the verifiability denominator present only as attrition) and **Böschen 2021** (a checkable in-text
+  result in 39.9% of 42,474 native-markup psychology articles — our exact quantity from our exact input
+  format, an order of magnitude above biomedicine, and the comparison a reviewer will run first).
+  Our contribution = *biomedical scope + the verifiability denominator treated as a finding and shown
+  tool-independent + transparent FP-adjudication + design-based robustness*, not a new checking
+  algorithm. Headline 2 is a replication and is labelled as one.
 - State plainly: this is the **descriptive** arm; the **confirmatory** arm is pre-registered separately.
 
 ### 4.2 Methods — *the census pipeline*
@@ -108,8 +120,8 @@ not written in a way that lets anyone verify its statistics automatically.
   `workflow.dot` / `WORKFLOW.svg` (pipeline diagram), and the per-paper JSONL record.
 
 ### 4.3 Results — *the two headlines*
-- **Headline 1 — verifiability is rare.** 3.5% (341/10,101) of papers report ≥1 in-text recomputable
-  NHST statistic. Most statistics are in tables/figures → this 3.5% is a *lower bound* on reportable
+- **Headline 1 — verifiability is rare.** 3.4% (341/10,101) of papers report ≥1 in-text recomputable
+  NHST statistic. Most statistics are in tables/figures → this 3.4% is a *lower bound* on reportable
   statistics and the key transparency finding.
   - Figure: corpus funnel → `figures/fig1_corpus_funnel.{png,svg}`.
   - Figure: article-type composition → `figures/fig7_article_types.{png,svg}`.
@@ -147,7 +159,7 @@ not written in a way that lets anyone verify its statistics automatically.
 ### 4.4 Discussion
 - **Two complementary messages.** Reassuring on arithmetic (genuine inconsistency ~9%, CI [7.0%, 11.5%], lower
   than psychology's ~13% gross-error figure under a like-for-like reading) but sobering on transparency
-  (only ~3.5% checkable from text). The denominator is the story.
+  (only ~3.4% checkable from text). The denominator is the story.
 - **Why so little is checkable.** Biomedical reporting conventions push statistics into tables/figures;
   effect sizes + CIs (not test-stat + df + p) increasingly preferred; reporting heterogeneity across
   fields. Implication: automated post-publication verification has limited reach unless reporting norms
@@ -165,7 +177,7 @@ not written in a way that lets anyone verify its statistics automatically.
 - **Descriptive, not confirmatory.** No pre-registered hypotheses here; exploratory measurement.
 - **Two-tailed recompute only.** One-sided tests inflate raw flags (the FP_ONE_TAILED bucket = 46);
   partly the gap between 11.8% raw and the ~9.1% adjudicated rate.
-- **Table/figure statistics not read.** In-text-only; the 3.5% is a lower bound; table-embedded values
+- **Table/figure statistics not read.** In-text-only; the 3.4% is a lower bound; table-embedded values
   split across cells may not re-form a checkable triple.
 - **Population is a design-query subset**, not literature-wide; rates are conditional on inclusion.
 - **p-as-inequality and the p = .05 boundary** follow fixed rules (REVIEW_P_BOUND = 25 ambiguous flags).

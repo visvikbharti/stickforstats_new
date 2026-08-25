@@ -38,8 +38,11 @@ A crisp tracker for the **second paper** (the meta-research census). The prose d
     CI [9.48%, 14.38%]. The top 10 papers hold 29.9% of all flags, so claim-level precision was
     illusory. `PREREGISTRATION.md` §3.4/§5.4 already specified clustered CIs, so the registered
     method contradicted the old headline.
-  - Still open: the abstract's *"largely uncharted"* and the introduction's *"is unknown"*, both
-    contradicted by **Damen 2023 (PMID 36470577)**; and the OA arm.
+  - ✅ **DONE 2026-08-25.** The abstract's *"largely uncharted"* and the introduction's *"is unknown"*
+    were retired in `manuscript.md` by `cc5ffc0`, but **`DRAFT.md` still carried both** — its abstract
+    said "largely uncharted" and its Introduction outline said the denominator was "rarely quantified
+    at biomedical scale", and its prior-work bullet named neither Damen nor Böschen. Now corrected,
+    together with five stale `3.5%` denominators that should read `3.4%`. Still open: the OA arm.
 
   The numbers, all re-executed (control: the same code reproduces every published figure exactly):
 
