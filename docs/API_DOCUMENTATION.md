@@ -1173,7 +1173,7 @@ POST /api/v1/platform/api-keys/
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/api/v1/licensing/tiers/` | List institutional license tiers | Session |
-| POST | `/api/v1/licensing/create/` | Create institutional license | Session |
+| POST | `/api/v1/licensing/create/` | Create institutional license | Staff |
 | POST | `/api/v1/licensing/verify/` | Verify user eligibility under a license | Session |
 | GET | `/api/v1/licensing/usage/` | Usage statistics for a license (key in the `X-License-Key` header) | Session |
 | GET | `/api/v1/licensing/report/` | Generate usage report (key in the `X-License-Key` header) | Session |
@@ -1205,7 +1205,7 @@ POST /api/v1/platform/api-keys/
 
 ### POST `/api/v1/licensing/create/`
 
-**Auth**: Session required.
+**Auth**: staff only (a signed-in user whose account has `is_staff`).
 
 **Request**:
 ```json

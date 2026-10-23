@@ -43,8 +43,8 @@ class LicenseKeyNotLoggedTest(TestCase):
             self.addCleanup(logger.setLevel, old_level)
             self.addCleanup(logger.removeHandler, self.capture)
         user = get_user_model().objects.create_user(
-            username="admin@testu.edu", email="admin@testu.edu", password="unused-here"
-        )
+            username="admin@testu.edu", email="admin@testu.edu", password="unused-here", is_staff=True
+        )  # staff: only staff can create a licence
         self.client = APIClient()
         self.client.force_authenticate(user)
 

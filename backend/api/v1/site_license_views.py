@@ -7,7 +7,7 @@ REST endpoints for university/institutional site license management.
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,11 @@ class SiteLicenseTiersView(APIView):
 class SiteLicenseCreateView(APIView):
     """
     POST /api/v1/licensing/create/
-    Create a new institutional site license.
+    Create a new institutional site license. Staff only: it was open to any signed-in user,
+    and anyone can register.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         from core.services.site_license_service import SiteLicenseService

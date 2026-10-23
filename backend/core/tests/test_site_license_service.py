@@ -253,6 +253,8 @@ class TestSiteLicenseViewsEndToEnd(TestCase):
 
     def setUp(self):
         self.user = _make_user("view_user")
+        self.user.is_staff = True  # creating a licence needs staff (tests/test_license_creation_staff_only.py)
+        self.user.save()
         from rest_framework.test import APIClient
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
