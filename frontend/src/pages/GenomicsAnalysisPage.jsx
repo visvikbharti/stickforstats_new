@@ -259,8 +259,9 @@ const GenomicsAnalysisPage = () => {
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Upload a gene expression matrix. Guardian validates assumptions per gene and
-          automatically applies BH-FDR correction. Genes failing normality are tested with
-          Mann-Whitney U instead of t-test.
+          automatically applies BH-FDR correction. Instead of Student's t-test, genes failing
+          normality are tested with Mann-Whitney U, and genes failing only the equal-variance
+          check with Welch's t-test.
         </Typography>
       </Box>
 
@@ -487,10 +488,25 @@ const GenomicsAnalysisPage = () => {
                 <Typography variant="h6">{(result.guardian_summary.min_confidence * 100).toFixed(1)}%</Typography>
               </Grid>
             </Grid>
+            {/* cascade_rate counts EVERY switch away from Student's t-test, Welch's included, so
+                the alert counts each destination rather than calling them all non-normal. */}
             {result.guardian_summary.cascade_rate > 0.5 && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Over 50% of genes failed normality checks. Guardian automatically used Mann-Whitney U
-                test for these genes, providing more reliable p-values for non-normal expression data.
+              <Alert severity="info" sx={{ mt: 2 }} data-testid="cascade-alert">
+                Guardian switched {result.summary.n_cascaded} of {result.summary.n_genes} genes away
+                from Student's t-test:{' '}
+                {[
+                  ['mann_whitney', 'to Mann-Whitney U (nonparametric), because normality was rejected or could not be checked'],
+                  ['welch_t_test', "to Welch's t-test (unequal variances), because the equal-variance check failed or could not be computed"],
+                  ['kruskal_wallis', 'to Kruskal-Wallis (nonparametric)'],
+                ]
+                  .map(([test, why]) => [
+                    result.gene_results.filter((g) => g.test_used === test).length,
+                    why,
+                  ])
+                  .filter(([count]) => count > 0)
+                  .map(([count, why]) => `${count} ${why}`)
+                  .join('; ')}
+                .
               </Alert>
             )}
           </Paper>
