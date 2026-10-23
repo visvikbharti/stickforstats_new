@@ -98,8 +98,20 @@ const ProfessionalLanding = ({ onEnter }) => {
             {/* Critical Alert */}
             <div className="critical-alert">
               <span className="alert-badge">CRITICAL</span>
+              {/* Nature's 2016 survey asked whether respondents had EVER tried and failed to
+                  reproduce someone else's experiment -- not whether researchers fail to reproduce
+                  published findings, which is what this banner used to say. */}
               <span className="alert-text">
-                Over 70% of researchers fail to reproduce published findings
+                More than 70% of 1,576 researchers in a <em>Nature</em> survey said they had tried
+                and failed to reproduce another scientist's experiments{' '}
+                (<a
+                  href="https://doi.org/10.1038/533452a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Baker M. 1,500 scientists lift the lid on reproducibility. Nature 533, 452–454 (2016). doi:10.1038/533452a"
+                >
+                  Baker 2016, <em>Nature</em> 533:452–454
+                </a>)
               </span>
             </div>
 

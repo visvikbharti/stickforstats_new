@@ -191,6 +191,12 @@ body:not(.dark-mode) .professional-landing .primary-cta:hover,
   color: var(--landing-text);
 }
 
+/* The citation link: no other anchor rule reaches inside the alert box. */
+.alert-text a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 /* Main Headline */
 .main-headline {
   font-size: clamp(3rem, 8vw, 5.5rem);
