@@ -20,7 +20,11 @@ import {
   Select,
   MenuItem,
   FormControl,
+  FormControlLabel,
+  FormLabel,
   InputLabel,
+  Radio,
+  RadioGroup,
   Tooltip,
   LinearProgress,
   Card,
@@ -46,8 +50,91 @@ import {
   Cell,
 } from 'recharts';
 import { formatPValue, compareWithMissingLast } from '../utils/formatStats';
+import {
+  INPUT_SCALE_AUTO,
+  INPUT_SCALE_LINEAR,
+  INPUT_SCALE_LOG2,
+  detectInputScale,
+  expressionValuesFromCsv,
+  resolveInputScale,
+} from '../utils/inputScale';
 
 const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api') + '/v1';
+
+// The scale the values are on decides what the fold change IS: the log2 of a ratio of group means
+// on a linear scale, the difference of group means on a log2 one. The backend computes both, but
+// only if it is told which; this page used to never say, so the API's "linear" default was applied
+// to log2 uploads, giving log2 of a ratio of log-scale means -- not a fold change (issue #31).
+const SCALE_LABELS = {
+  [INPUT_SCALE_LINEAR]: 'linear values (counts, CPM, TPM or intensities)',
+  [INPUT_SCALE_LOG2]: 'already log2-transformed values',
+};
+
+const foldChangeRule = (scale, group1, group2) =>
+  scale === INPUT_SCALE_LOG2
+    ? `log2 fold change = mean(${group2}) − mean(${group1})`
+    : `log2 fold change = log2(mean(${group2}) / mean(${group1}))`;
+
+const InputScaleChoice = ({ value, onChange }) => (
+  <FormControl component="fieldset">
+    <FormLabel component="legend" id="input-scale-label">
+      Scale of the expression values
+    </FormLabel>
+    <RadioGroup
+      name="input-scale"
+      aria-labelledby="input-scale-label"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <FormControlLabel
+        value={INPUT_SCALE_AUTO}
+        control={<Radio />}
+        label="Detect from the values (suggested)"
+      />
+      <FormControlLabel
+        value={INPUT_SCALE_LINEAR}
+        control={<Radio />}
+        label="Linear: counts, CPM, TPM or intensities"
+      />
+      <FormControlLabel
+        value={INPUT_SCALE_LOG2}
+        control={<Radio />}
+        label="Already log2-transformed, e.g. log2(TPM + 1)"
+      />
+    </RadioGroup>
+  </FormControl>
+);
+
+// What the analysis is about to assume about the scale, and why -- always visible before it runs.
+const InputScaleNote = ({ choice, detection, group1Name, group2Name }) => {
+  if (choice === INPUT_SCALE_AUTO) {
+    if (!detection || !detection.scale) {
+      return (
+        <Alert severity="warning" sx={{ mt: 2 }} data-testid="input-scale-note">
+          The scale could not be detected{detection ? `: ${detection.reason}` : ''}. Choose linear
+          or log2 above before running the analysis.
+        </Alert>
+      );
+    }
+    return (
+      <Alert severity="info" sx={{ mt: 2 }} data-testid="input-scale-note">
+        <strong>Assumed: {SCALE_LABELS[detection.scale]}</strong>, detected from your data
+        because {detection.reason}. So {foldChangeRule(detection.scale, group1Name, group2Name)}.
+        If that is wrong, choose the scale above.
+      </Alert>
+    );
+  }
+  const disagrees = Boolean(detection && detection.scale && detection.scale !== choice);
+  return (
+    <Alert severity={disagrees ? 'warning' : 'info'} sx={{ mt: 2 }} data-testid="input-scale-note">
+      <strong>Assumed: {SCALE_LABELS[choice]}</strong>, as you chose.
+      {' '}So {foldChangeRule(choice, group1Name, group2Name)}.
+      {disagrees &&
+        ` Check this choice: the values look like ${SCALE_LABELS[detection.scale]}, because ` +
+          `${detection.reason}.`}
+    </Alert>
+  );
+};
 
 const GenomicsAnalysisPage = () => {
   const [file, setFile] = useState(null);
@@ -62,6 +149,11 @@ const GenomicsAnalysisPage = () => {
   const [sortField, setSortField] = useState('adjusted_p_value');
   const [sortDir, setSortDir] = useState('asc');
   const [step, setStep] = useState('upload'); // upload | configure | results
+  const [inputScaleChoice, setInputScaleChoice] = useState(INPUT_SCALE_AUTO);
+  const [scaleDetection, setScaleDetection] = useState(null);
+  // The scale the last request sent, and whether it was detected or chosen, for the results note.
+  const [analysedScale, setAnalysedScale] = useState(null);
+  const inputScale = resolveInputScale(inputScaleChoice, scaleDetection);
 
   // Handle file upload
   const handleFileUpload = useCallback((e) => {
@@ -73,6 +165,7 @@ const GenomicsAnalysisPage = () => {
     reader.onload = (event) => {
       const text = event.target.result;
       setCsvData(text);
+      setScaleDetection(detectInputScale(expressionValuesFromCsv(text)));
 
       // Parse header to get sample names
       const lines = text.trim().split('\n');
@@ -109,6 +202,8 @@ const GenomicsAnalysisPage = () => {
           group1_name: group1Name,
           group2_name: group2Name,
           alpha,
+          // Always sent: left out, the API assumes "linear", which is wrong for log2 uploads.
+          input_scale: inputScale,
         }),
       });
 
@@ -119,6 +214,15 @@ const GenomicsAnalysisPage = () => {
 
       const data = await response.json();
       setResult(data);
+      setAnalysedScale({
+        sent: inputScale,
+        source: inputScaleChoice === INPUT_SCALE_AUTO ? 'detected' : 'chosen',
+        // A choice the detector disagreed with stays flagged on the results, not just before.
+        detectedOtherwise:
+          scaleDetection && scaleDetection.scale && scaleDetection.scale !== inputScale
+            ? scaleDetection.scale
+            : null,
+      });
       setStep('results');
     } catch (err) {
       setError(err.message);
@@ -170,6 +274,16 @@ const GenomicsAnalysisPage = () => {
             CSV format: first column = gene names, remaining columns = sample expression values.
             First row = header with sample names.
           </Typography>
+          <Box sx={{ maxWidth: 600, mx: 'auto', textAlign: 'left', mb: 3 }}>
+            <InputScaleChoice value={inputScaleChoice} onChange={setInputScaleChoice} />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              The scale decides how the fold change is computed: on linear values it is the log2 of
+              the ratio of the group means; on log2 values it is the difference of the group means.
+              The scale assumed is shown, with the reason, before you run the analysis. Values on
+              another log scale (natural log, log10) must be converted to log2 first: the base
+              cannot be detected.
+            </Typography>
+          </Box>
           <Button variant="contained" component="label" size="large">
             Choose CSV File
             <input type="file" hidden accept=".csv,.tsv,.txt" onChange={handleFileUpload} />
@@ -218,6 +332,16 @@ const GenomicsAnalysisPage = () => {
             </Grid>
           </Grid>
 
+          <Box sx={{ mb: 3 }}>
+            <InputScaleChoice value={inputScaleChoice} onChange={setInputScaleChoice} />
+            <InputScaleNote
+              choice={inputScaleChoice}
+              detection={scaleDetection}
+              group1Name={group1Name}
+              group2Name={group2Name}
+            />
+          </Box>
+
           <Typography variant="subtitle2" gutterBottom>
             Assign samples to groups:
           </Typography>
@@ -257,7 +381,7 @@ const GenomicsAnalysisPage = () => {
             <Button
               variant="contained"
               onClick={handleAnalyze}
-              disabled={loading || sampleGroups.some((g) => !g)}
+              disabled={loading || sampleGroups.some((g) => !g) || !inputScale}
               startIcon={loading ? <CircularProgress size={20} /> : <ScienceIcon />}
             >
               {loading ? 'Analyzing...' : 'Run Differential Expression'}
@@ -276,6 +400,30 @@ const GenomicsAnalysisPage = () => {
       {/* Step 3: Results */}
       {step === 'results' && result && (
         <Box>
+          {/* The scale the backend says it computed on (echoed in its response), not the one this
+              page asked for -- if the two ever differ, the note must describe what was done. */}
+          {SCALE_LABELS[result.summary.input_scale] && (
+            <Alert
+              severity={
+                result.summary.input_scale === analysedScale?.sent && !analysedScale?.detectedOtherwise
+                  ? 'info'
+                  : 'warning'
+              }
+              sx={{ mb: 3 }}
+              data-testid="results-input-scale"
+            >
+              Fold changes were computed for {SCALE_LABELS[result.summary.input_scale]}
+              {result.summary.input_scale !== analysedScale?.sent
+                ? `, not the ${SCALE_LABELS[analysedScale?.sent]} this page sent`
+                : analysedScale.source === 'detected'
+                ? ', detected from your data'
+                : analysedScale.detectedOtherwise
+                ? `, as you chose, although the values looked like ${SCALE_LABELS[analysedScale.detectedOtherwise]}`
+                : ', as you chose'}
+              : {foldChangeRule(result.summary.input_scale, group1Name, group2Name)}.
+            </Alert>
+          )}
+
           {/* Summary Cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={6} md={3}>
@@ -518,7 +666,20 @@ const GenomicsAnalysisPage = () => {
 
           {/* Actions */}
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button variant="outlined" onClick={() => { setResult(null); setStep('upload'); }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                // A new file starts from detection again: a scale chosen for the last file must not
+                // carry over to the next one unnoticed.
+                setResult(null);
+                setFile(null);
+                setScaleDetection(null);
+                setInputScaleChoice(INPUT_SCALE_AUTO);
+                setAnalysedScale(null);
+                setError(null);
+                setStep('upload');
+              }}
+            >
               New Analysis
             </Button>
             <Button
