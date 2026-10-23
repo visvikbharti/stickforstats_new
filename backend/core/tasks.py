@@ -375,24 +375,32 @@ def sync_usage_aggregates():
 @shared_task
 def cleanup_expired_sessions():
     """
-    Clean up expired analysis sessions and temporary data.
-    Runs daily via Celery Beat.
+    Delete expired browser sessions, and count analysis sessions older than 30 days.
+    Runs daily via Celery Beat (03:00).
+
+    A browser session (django_session row) expires SESSION_COOKIE_AGE (14 days) after it
+    was last saved. Django never deletes expired rows by itself, so before this task did,
+    they stayed in the database for good. Old analysis sessions are only counted.
     """
     try:
         from core.models import AnalysisSession
+        from django.contrib.sessions.models import Session
         from django.utils import timezone
         from datetime import timedelta
 
-        cutoff = timezone.now() - timedelta(days=30)
+        expired_deleted, _ = Session.objects.filter(expire_date__lt=timezone.now()).delete()
 
-        # Archive old sessions
+        cutoff = timezone.now() - timedelta(days=30)
         old_sessions = AnalysisSession.objects.filter(
             created_at__lt=cutoff,
         )
         count = old_sessions.count()
 
-        logger.info(f"Session cleanup: {count} sessions older than 30 days")
-        return {"sessions_found": count}
+        logger.info(
+            f"Session cleanup: deleted {expired_deleted} expired browser sessions; "
+            f"{count} analysis sessions older than 30 days"
+        )
+        return {"expired_sessions_deleted": expired_deleted, "sessions_found": count}
 
     except Exception as exc:
         logger.error(f"Session cleanup failed: {exc}")

@@ -100,7 +100,14 @@ test('says the cache holds IP addresses, and how long a backup can outlive a del
 test('no longer lists report or experiment-design storage: those routes were removed', () => {
   renderPage();
   expect(text()).not.toMatch(/report records|experiment-design storage/);
-  expect(text()).toMatch(/One programming-interface \(API\) endpoint that no\s+screen uses yet, for data import/);
+});
+
+test('says the data import keeps nothing, and what became of the tables it used to keep', () => {
+  renderPage();
+  const t = text();
+  expect(t).toMatch(/it reads your file, sends back a\s+summary and keeps nothing/);
+  expect(t).toMatch(/Those copies are deleted\s+when this version is installed, but backups made before then can hold them for up to 32\s+days/);
+  expect(t).not.toMatch(/does keep what is sent to it/);
 });
 
 test('says the consent switches are not acted on yet', () => {

@@ -511,10 +511,9 @@ class DataImportView(APIView):
                 "preview": df.head(10).to_dict("records"),
             }
 
-            # Store data in session or cache for subsequent analysis
-            request.session["imported_data"] = df.to_json()
-            request.session["data_summary"] = summary
-
+            # Nothing is kept: the import ends with this response. It used to save the whole
+            # table and this summary in the visitor's session, which nothing ever read back and
+            # nothing deleted; migration core 0016 deletes the copies already stored.
             return Response(
                 {"status": "success", "summary": summary, "message": f"Successfully imported {file_name}"},
                 status=status.HTTP_200_OK,

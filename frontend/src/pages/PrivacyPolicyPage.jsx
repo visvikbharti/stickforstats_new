@@ -9,7 +9,8 @@ const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 //                                                  docker-compose.yml (redis --appendonly yes, --save)
 //   IP addresses in the cache                      core/middleware/rate_limit_middleware.py (60 s),
 //                                                  api/v1/verify_views.py (VERIFY_THROTTLES, 1 hour)
-//   API endpoint that keeps what it is sent        api/v1/views.py (data import)
+//   data import keeps nothing                      api/v1/views.py (DataImportView),
+//                                                  core/migrations/0016_purge_imported_tables_from_sessions.py
 //   manuscript review record                       backend/api/v1/manuscript_views.py (ManuscriptSubmission)
 //   data verifier records                          backend/core/manuscript/verification_service.py
 //   receipts, and their public lookup              backend/core/services/receipt_service.py
@@ -56,9 +57,12 @@ const PrivacyPolicyPage = () => (
       <Box component="ul" sx={{ pl: 3, m: 0 }}>
         <Item>
           <strong>Most tools keep nothing.</strong> The data you send and the result exist only
-          while your request is being processed. One programming-interface (API) endpoint that no
-          screen uses yet, for data import, does keep what is sent to it, so please don&rsquo;t
-          send it personal data.
+          while your request is being processed. That includes the data-import endpoint of our
+          programming interface (API), which no screen uses yet: it reads your file, sends back a
+          summary and keeps nothing. Earlier versions also saved the whole table on our server, in
+          a session record linked to your browser, and never deleted it. Those copies are deleted
+          when this version is installed, but backups made before then can hold them for up to 32
+          days.
         </Item>
         <Item>
           <strong>Cached results, up to one hour.</strong> The t-test, ANOVA and regression tools

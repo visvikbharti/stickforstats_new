@@ -17,7 +17,8 @@ Never hand-roll the deploy, and never `git pull` on the host (see `docs/DEPLOYME
   - The nginx container bind-mounts that file from the host checkout (`./nginx/nginx.conf:/etc/nginx/nginx.conf:ro` in `docker-compose.yml`).
   - So the gate is removed when `deploy.sh` checks out the new commit and restarts nginx. No separate edit on the server is needed.
   - The password file `nginx/ssl/.htpasswd` stays on the host, unused. Keep it until you're sure you won't need rollback B below.
-- **Unchanged:** no database migrations, no `.env` or `docker-compose.yml` changes. The beta banner and the optional login stay.
+- **Database:** one data migration, `core.0016_purge_imported_tables_from_sessions` (step 2g). It deletes the uploaded tables that earlier versions kept in visitors' sessions, and expired sessions. No table changes.
+- **Unchanged:** no `.env` or `docker-compose.yml` changes. The beta banner and the optional login stay.
 - **BMC review:** reviewers who open the live site will see this release, not v1.2.0, and won't be asked for a password. The archived v1.2.0 (Zenodo `10.5281/zenodo.21797621`) that the manuscript cites is unchanged.
 
 **Why the script on the host can't be used as is.** The copy of `scripts/deploy.sh` on the host predates this release. It refuses any target without the gate ("If opening the beta is intentional, do it deliberately — not via this script"). The new script reads which gate state the target declares and verifies that state on the live edge. It requires `CONFIRM_PUBLIC=1` for the one deploy that removes the gate. So step 2 runs the script from the release commit itself.
@@ -116,18 +117,29 @@ What a good run prints:
 
 If anything fails mid-way, or the live checks fail, the script reverts by itself. It restores the checkout, the pre-deploy `nginx.conf` from its backup, `.env` and the images, then waits for the edge and checks it again. Look for `verified: edge is gated after revert`. While reverting it ignores Ctrl-C; if the revert itself hangs, stop it with `kill` from a second pane.
 
-**2f. Confirm nothing else is pending.**
+**2f. Confirm every container runs the release.**
 
 ```bash
-docker inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' stickforstats-frontend   # = $SHA
-docker compose exec -T backend python manage.py migrate --plan < /dev/null                              # no planned operations
+docker inspect -f '{{.Name}} {{index .Config.Labels "org.opencontainers.image.revision"}}' \
+  stickforstats-frontend stickforstats-celery stickforstats-celery-beat   # each = $SHA
 ```
 
-The script checks only the backend's revision, hence the first line. Skip `collectstatic`: it fails on the root-owned `backend-static` volume and isn't needed.
+The script checks only the backend's revision. The worker and the scheduler run the backend image too; the scheduler runs the daily clean-up of expired sessions (§5). Skip `collectstatic`: it fails on the root-owned `backend-static` volume and isn't needed.
+
+**2g. Apply the data migration.** It changes no tables, only deletes session rows, so it is safe while the site is live.
+
+```bash
+docker compose exec -T backend python manage.py migrate --plan < /dev/null   # Planned operations: core.0016_purge_imported_tables_from_sessions
+docker compose exec -T backend python manage.py migrate < /dev/null          # Applying core.0016_purge_imported_tables_from_sessions... OK
+docker compose exec -T backend python manage.py migrate --plan < /dev/null   # No planned migration operations.
+```
+
+- If the first command lists anything else, stop and read it: before this release production should be at `core.0015`.
+- It deletes every session holding a table from the old data import, and every expired session. A visitor signed in through such a session is signed out; the site's own sign-in uses tokens, not sessions.
 
 ## 3. Check the live site
 
-These come from any machine, with no credentials. For checks 3–8, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
+These come from any machine, with no credentials. For checks 3–9, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
 
 The backend allows 20 API requests a minute per IP address to anonymous visitors, so run the checks in one go rather than repeatedly.
 
@@ -171,6 +183,11 @@ curl -s -D - -o /dev/null "$B/api/v1/privacy/info/" | grep -i '^x-ratelimit-limi
 # 8. Saved reports and DOE designs are no longer routed. Expect 404 on both lines.
 for p in /api/v1/reports/ /api/v1/doe-analysis/experiment-designs/; do
   curl -s -o /dev/null -w '%{http_code}\n' "$B$p"; done
+
+# 9. The data import keeps nothing, so it sets no session cookie (v1.2.0's did). Expect 200, then 0.
+printf 'a,b\n1,2\n3,4\n' > /tmp/sfs-check.csv
+curl -s -D /tmp/sfs-check.hdr -o /dev/null -w '%{http_code}\n' -F file=@/tmp/sfs-check.csv "$B/api/v1/data/import/"
+grep -ci '^set-cookie: sessionid' /tmp/sfs-check.hdr
 ```
 
 In a private browser window (hard-refresh if you see the old app; it has a service worker):
@@ -219,7 +236,7 @@ ls -l nginx/ssl/.htpasswd                    # must exist, or the gated site sta
 
 - After B, the checkout's own `scripts/deploy.sh` is v1.2.0's gate-only script again. To re-release later, repeat step 2c.
 
-**Database.** This release has no migrations, so a rollback leaves the database as it is. The pre-release backup from 2b is in the `postgres-backup` volume. Restore steps are in `docs/DEPLOYMENT_RUNBOOK.md` §5 "Backups".
+**Database.** This release's one migration changes no tables, so nothing needs undoing: v1.2.0's code runs on the migrated database (checked: `migrate --plan` reports no planned operations and `check` finds no issues). The deleted sessions don't come back, but v1.2.0's data import saves uploaded tables in sessions again. Re-releasing doesn't delete those, because the migration counts as applied. So after a later re-release, run it again: `docker compose exec -T backend python manage.py migrate core 0015 < /dev/null` (unapplying it changes nothing), then `... migrate core 0016 < /dev/null`. The pre-release backup from 2b is in the `postgres-backup` volume. Restore steps are in `docs/DEPLOYMENT_RUNBOOK.md` §5 "Backups".
 
 ## 5. Afterwards
 
@@ -229,6 +246,9 @@ ls -l nginx/ssl/.htpasswd                    # must exist, or the gated site sta
   - The backend allows 20 API requests a minute per IP to anonymous visitors. It reads the address from the first `X-Forwarded-For` entry, which nginx now sets to the address it saw (`$remote_addr`). Before this release nginx appended to the client's own header, so a forged first entry escaped the limit (executed: 0 of 25 requests limited).
   - Request bodies are capped at 50 MB at the edge. Django rejects JSON and form bodies over 25 MB, and the manuscript tools reject files over 25 MB.
   - For the first days, watch `docker logs --since 1h stickforstats-nginx | grep -cE '" (429|503) '`. The backend's limiter answers 429; nginx's own answers 503.
+- **Expired sessions.** `cleanup_expired_sessions` now deletes them every day at 03:00 UTC; before this release nothing did.
+  - celery-beat runs the task in its own process: `CELERY_TASK_ALWAYS_EAGER` is unset in its container, and the settings default it to True. Don't change that on its own: the task is routed to the `default` queue, which the worker, started without `-Q`, doesn't consume.
+  - The day after the release, check that it ran: `docker logs --since 26h stickforstats-celery-beat 2>&1 | grep 'Session cleanup'` should show `Session cleanup: deleted <n> expired browser sessions; ...`. If nothing shows, check that the scheduler runs: `docker compose ps celery-beat`.
 - **Internal ports.** `docker-compose.yml` publishes the backend (8000), Postgres (5432), Redis (6379), Prometheus (9090) and Grafana (3000) on all interfaces unless `.env` binds them to `127.0.0.1` (`docs/DEPLOYMENT_RUNBOOK.md` §3.5). A directly reachable backend port bypasses nginx and its limits. Check from your own machine, before or right after the release; every line should fail or time out:
 
   ```bash
