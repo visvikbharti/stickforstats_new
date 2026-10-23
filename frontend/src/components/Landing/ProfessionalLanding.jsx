@@ -124,7 +124,7 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Value Proposition */}
             <p className="value-proposition">
-              The first statistical analysis platform with built-in Guardian protection
+              A statistical analysis platform with built-in Guardian protection
               that guards against Type I errors before they happen. Trusted by researchers
               who value scientific integrity over p-hacking.
             </p>
