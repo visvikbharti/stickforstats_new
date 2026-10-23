@@ -127,7 +127,7 @@ The script checks only the backend's revision, hence the first line. Skip `colle
 
 ## 3. Check the live site
 
-These come from any machine, with no credentials. For checks 3–7, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
+These come from any machine, with no credentials. For checks 3–8, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
 
 The backend allows 20 API requests a minute per IP address to anonymous visitors, so run the checks in one go rather than repeatedly.
 
@@ -167,6 +167,10 @@ curl -s -X POST "$B/api/v1/genomics/differential-expression/" -H 'Content-Type: 
 #    Expect: "Not stored by most tools", then "X-RateLimit-Limit: 20".
 curl -s "$B/api/v1/privacy/info/" | python3 -c 'import json,sys; print(json.load(sys.stdin)["purposes"][0]["retention"][:24])'
 curl -s -D - -o /dev/null "$B/api/v1/privacy/info/" | grep -i '^x-ratelimit-limit'
+
+# 8. Saved reports and DOE designs are no longer routed. Expect 404 on both lines.
+for p in /api/v1/reports/ /api/v1/doe-analysis/experiment-designs/; do
+  curl -s -o /dev/null -w '%{http_code}\n' "$B$p"; done
 ```
 
 In a private browser window (hard-refresh if you see the old app; it has a service worker):

@@ -97,6 +97,12 @@ test('says the cache holds IP addresses, and how long a backup can outlive a del
   expect(text()).toMatch(/can remain in a backup for up to 32 days/);
 });
 
+test('no longer lists report or experiment-design storage: those routes were removed', () => {
+  renderPage();
+  expect(text()).not.toMatch(/report records|experiment-design storage/);
+  expect(text()).toMatch(/One programming-interface \(API\) endpoint that no\s+screen uses yet, for data import/);
+});
+
 test('says the consent switches are not acted on yet', () => {
   renderPage();
   expect(text()).toMatch(/consent switches in Privacy settings are recorded, but the software does not\s+yet act on them/);

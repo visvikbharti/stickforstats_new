@@ -109,7 +109,6 @@ from .meta_analysis_views import (
     sensitivity_analysis as meta_sensitivity_analysis,
     subgroup_analysis,
 )
-from .report_views import ReportListView, ReportDetailView, generate_report, export_report
 from .sqs_views import (
     SQSAnalyzeView,
     SQSAnalyzeTextView,
@@ -367,11 +366,8 @@ urlpatterns = [
     path("meta-analysis/publication-bias/", publication_bias_test, name="meta-publication-bias"),
     path("meta-analysis/sensitivity/", meta_sensitivity_analysis, name="meta-sensitivity"),
     path("meta-analysis/subgroup/", subgroup_analysis, name="meta-subgroup"),
-    # Report Management endpoints
-    path("reports/", ReportListView.as_view(), name="report-list"),
-    path("reports/generate/", generate_report, name="report-generate"),
-    path("reports/<uuid:report_id>/", ReportDetailView.as_view(), name="report-detail"),
-    path("reports/<uuid:report_id>/export/", export_report, name="report-export"),
+    # No report routes: report_views.py let anyone list, read, edit and delete every saved
+    # record, and no screen used it. Route it again only behind sign-in, scoped to the owner.
     # Statistical Quality Score (SQS) endpoints
     path("sqs/analyze/", SQSAnalyzeView.as_view(), name="sqs-analyze"),
     path("sqs/analyze-text/", SQSAnalyzeTextView.as_view(), name="sqs-analyze-text"),

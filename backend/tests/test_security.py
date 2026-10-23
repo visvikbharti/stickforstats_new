@@ -47,11 +47,10 @@ class UnauthenticatedAccessTests(TestCase):
         response = self.client.get("/api/v1/audit/summary/")
         self.assertIn(response.status_code, [401, 403])
 
-    def test_report_list_access(self):
-        """Reports endpoint may or may not require auth depending on configuration."""
+    def test_report_list_is_not_routed(self):
+        """It listed every saved record to anyone (see tests/test_removed_record_routes.py)."""
         response = self.client.get("/api/v1/reports/")
-        # The endpoint may allow public access or require auth
-        self.assertIn(response.status_code, [200, 401, 403])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, DEBUG=True)

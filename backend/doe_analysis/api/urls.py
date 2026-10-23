@@ -1,27 +1,12 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ExperimentDesignViewSet, ModelAnalysisViewSet, OptimizationAnalysisViewSet
-from ..views import (
-    GenerateDesignView,
-    AnalyzeExperimentView,
-    OptimizeResponseView,
-    GenerateReportView,
-    ScreeningAnalysisView,
-    DOEExamplesView,
-)
+from django.urls import path
+from ..views import DOEExamplesView
 
-router = DefaultRouter()
-router.register(r"experiment-designs", ExperimentDesignViewSet, basename="experiment-design")
-router.register(r"model-analyses", ModelAnalysisViewSet)
-router.register(r"optimization-analyses", OptimizationAnalysisViewSet)
-
+# Only the static examples are routed. The experiment-design, model-analysis and
+# optimization-analysis viewsets (api/views.py), and the generate-design, analyze-experiment,
+# optimize-response, generate-report and screening-analysis views (../views.py), stored DOE
+# records or read them back by ID with no sign-in and no owner, so anyone could list, read,
+# edit or delete every design. No screen used them. Route them again only behind sign-in,
+# scoped to the owner.
 urlpatterns = [
-    path("", include(router.urls)),
-    # Simplified API endpoints (no project requirement)
-    path("generate-design/", GenerateDesignView.as_view(), name="doe-generate-design"),
-    path("analyze-experiment/", AnalyzeExperimentView.as_view(), name="doe-analyze-experiment"),
-    path("optimize-response/", OptimizeResponseView.as_view(), name="doe-optimize-response"),
-    path("generate-report/", GenerateReportView.as_view(), name="doe-generate-report"),
-    path("screening-analysis/", ScreeningAnalysisView.as_view(), name="doe-screening-analysis"),
     path("examples/", DOEExamplesView.as_view(), name="doe-examples"),
 ]

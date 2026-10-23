@@ -1603,15 +1603,6 @@ Compares current period with the equivalent previous period, including percentag
 | GET | `/api/v1/audit/metrics/<metric_type>/` | Get audit metrics |
 | GET | `/api/v1/audit/health/` | Audit subsystem health |
 
-### Report Management
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/reports/` | List reports |
-| POST | `/api/v1/reports/generate/` | Generate a new report |
-| GET | `/api/v1/reports/<uuid:report_id>/` | Get report details |
-| POST | `/api/v1/reports/<uuid:report_id>/export/` | Export report (PDF, HTML, DOCX, LaTeX) |
-
 ### SSO / OIDC
 
 | Method | Endpoint | Description | Auth |
@@ -1696,12 +1687,10 @@ REST framework router-based endpoints with ViewSet CRUD operations:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `generate-design/` | Generate experimental design |
-| POST | `analyze-experiment/` | Analyze experimental data |
-| POST | `optimize-response/` | Response surface optimization |
-| POST | `generate-report/` | Generate DOE report |
-| POST | `screening-analysis/` | Screening design analysis |
 | GET | `examples/` | DOE examples |
+
+The endpoints that stored DOE designs and analyses, or read them back by ID, are not routed:
+they had no sign-in or owner check, and no screen used them.
 
 #### PCA Analysis (`/api/v1/pca-analysis/`)
 

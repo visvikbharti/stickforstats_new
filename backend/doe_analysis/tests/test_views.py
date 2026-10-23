@@ -1,14 +1,22 @@
 from django.test import TestCase, override_settings
-from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIRequestFactory, force_authenticate
 from django.contrib.auth import get_user_model
 import io
 
 from core.models import AnalysisSession
+from ..api.views import ExperimentDesignViewSet, ModelAnalysisViewSet
 from ..models import ExperimentDesign, FactorDefinition, ResponseDefinition, ModelAnalysis, ExperimentRun
 
 User = get_user_model()
+
+
+def call(viewset, actions, method, user, data=None, fmt="json", **kwargs):
+    """Call a viewset action directly. These viewsets are no longer routed (see
+    doe_analysis/api/urls.py and tests/test_removed_record_routes.py); this keeps their logic tested."""
+    request = getattr(APIRequestFactory(), method)("/", data, format=fmt)
+    force_authenticate(request, user=user)
+    return viewset.as_view(actions)(request, **kwargs)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -16,11 +24,8 @@ class ExperimentDesignViewSetTests(TestCase):
     """Test cases for the ExperimentDesign API endpoints"""
 
     def setUp(self):
-        self.client = APIClient()
-
         # Create a test user
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpassword")
-        self.client.force_authenticate(user=self.user)
 
         # Create AnalysisSession first (required FK for ExperimentDesign)
         self.session = AnalysisSession.objects.create(user=self.user, name="Test DOE Session", analysis_type="DOE")
@@ -71,7 +76,6 @@ class ExperimentDesignViewSetTests(TestCase):
 
     def test_create_experiment_design(self):
         """Test creating a new experiment design"""
-        url = reverse("experiment-design-list")
         data = {
             "name": "New Experiment",
             "description": "A new experiment design",
@@ -80,15 +84,14 @@ class ExperimentDesignViewSetTests(TestCase):
             "num_runs": 4,
         }
 
-        response = self.client.post(url, data, format="json")
+        response = call(ExperimentDesignViewSet, {"post": "create"}, "post", self.user, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExperimentDesign.objects.count(), 2)
         self.assertEqual(response.data["name"], "New Experiment")
 
     def test_retrieve_experiment_design(self):
         """Test retrieving an experiment design"""
-        url = reverse("experiment-design-detail", args=[self.experiment.id])
-        response = self.client.get(url)
+        response = call(ExperimentDesignViewSet, {"get": "retrieve"}, "get", self.user, pk=self.experiment.id)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "Test Experiment")
@@ -97,7 +100,6 @@ class ExperimentDesignViewSetTests(TestCase):
 
     def test_generate_design(self):
         """Test generating a new design"""
-        url = reverse("experiment-design-generate-design")
         data = {
             "name": "Generated Design",
             "description": "A generated design",
@@ -120,7 +122,7 @@ class ExperimentDesignViewSetTests(TestCase):
             "design_params": {"center_points": 0},
         }
 
-        response = self.client.post(url, data, format="json")
+        response = call(ExperimentDesignViewSet, {"post": "generate_design"}, "post", self.user, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check that a new experiment design was created
@@ -150,8 +152,15 @@ class ExperimentDesignViewSetTests(TestCase):
         csv_file = io.BytesIO(csv_data.encode("utf-8"))
         csv_file.name = "data.csv"
 
-        url = reverse("experiment-design-upload-design-data", args=[self.experiment.id])
-        response = self.client.post(url, {"file": csv_file}, format="multipart")
+        response = call(
+            ExperimentDesignViewSet,
+            {"post": "upload_design_data"},
+            "post",
+            self.user,
+            {"file": csv_file},
+            fmt="multipart",
+            pk=self.experiment.id,
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -168,11 +177,8 @@ class ModelAnalysisViewSetTests(TestCase):
     """Test cases for the ModelAnalysis API endpoints"""
 
     def setUp(self):
-        self.client = APIClient()
-
         # Create a test user
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpassword")
-        self.client.force_authenticate(user=self.user)
 
         # Create AnalysisSession first (required FK for ExperimentDesign)
         self.session = AnalysisSession.objects.create(user=self.user, name="Test DOE Session", analysis_type="DOE")
@@ -236,7 +242,6 @@ class ModelAnalysisViewSetTests(TestCase):
 
     def test_create_model_analysis(self):
         """Test creating a new model analysis"""
-        url = reverse("modelanalysis-list")
         data = {
             "name": "Test Analysis",
             "description": "A test model analysis",
@@ -246,14 +251,13 @@ class ModelAnalysisViewSetTests(TestCase):
             "responses": ["Yield"],
         }
 
-        response = self.client.post(url, data, format="json")
+        response = call(ModelAnalysisViewSet, {"post": "create"}, "post", self.user, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ModelAnalysis.objects.count(), 1)
         self.assertEqual(response.data["name"], "Test Analysis")
 
     def test_run_analysis(self):
         """Test running a model analysis"""
-        url = reverse("modelanalysis-run-analysis")
         data = {
             "name": "Run Analysis",
             "description": "A model analysis run",
@@ -262,7 +266,7 @@ class ModelAnalysisViewSetTests(TestCase):
             "responses": ["Yield"],
         }
 
-        response = self.client.post(url, data, format="json")
+        response = call(ModelAnalysisViewSet, {"post": "run_analysis"}, "post", self.user, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check that a new model analysis was created

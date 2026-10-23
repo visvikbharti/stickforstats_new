@@ -539,25 +539,6 @@ COMPONENT_SCHEMAS = {
             "recommendations": {"type": "array", "items": {"type": "string"}},
         },
     },
-    # -- reports --------------------------------------------------------
-    "ReportGenerateRequest": {
-        "type": "object",
-        "required": ["analysis_type", "results"],
-        "properties": {
-            "analysis_type": {"type": "string", "example": "ttest"},
-            "results": {"type": "object", "additionalProperties": True},
-            "format": {"type": "string", "enum": ["pdf", "html", "docx"], "default": "pdf"},
-        },
-    },
-    "ReportSummary": {
-        "type": "object",
-        "properties": {
-            "id": {"type": "string", "format": "uuid"},
-            "analysis_type": {"type": "string"},
-            "created_at": {"type": "string", "format": "date-time"},
-            "format": {"type": "string"},
-        },
-    },
     # -- audit ----------------------------------------------------------
     "AuditSummary": {
         "type": "object",
@@ -1936,86 +1917,6 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
         }
 
     # ====================================================================
-    # Reports
-    # ====================================================================
-    _tag = "Reports"
-
-    paths["/reports/"] = {
-        "get": {
-            "tags": [_tag],
-            "operationId": "listReports",
-            "summary": "List generated reports",
-            "responses": {
-                "200": _json_response(
-                    {
-                        "type": "array",
-                        "items": _ref("ReportSummary"),
-                    }
-                ),
-                **_error_responses(),
-            },
-        },
-    }
-
-    paths["/reports/generate/"] = {
-        "post": {
-            "tags": [_tag],
-            "operationId": "generateReport",
-            "summary": "Generate a new report from analysis results",
-            "requestBody": _json_body(_ref("ReportGenerateRequest")),
-            "responses": {"201": _json_response(_ref("ReportSummary"), "Report created"), **_error_responses()},
-        },
-    }
-
-    paths["/reports/{report_id}/"] = {
-        "get": {
-            "tags": [_tag],
-            "operationId": "getReport",
-            "summary": "Retrieve a specific report",
-            "parameters": [
-                {
-                    "name": "report_id",
-                    "in": "path",
-                    "required": True,
-                    "schema": {"type": "string", "format": "uuid"},
-                }
-            ],
-            "responses": {
-                "200": _json_response({"type": "object", "additionalProperties": True}),
-                **_error_responses(),
-            },
-        },
-    }
-
-    paths["/reports/{report_id}/export/"] = {
-        "get": {
-            "tags": [_tag],
-            "operationId": "exportReport",
-            "summary": "Export report as PDF / HTML / DOCX",
-            "parameters": [
-                {
-                    "name": "report_id",
-                    "in": "path",
-                    "required": True,
-                    "schema": {"type": "string", "format": "uuid"},
-                },
-                {
-                    "name": "format",
-                    "in": "query",
-                    "schema": {"type": "string", "enum": ["pdf", "html", "docx"], "default": "pdf"},
-                },
-            ],
-            "responses": {
-                "200": {
-                    "description": "Report file download",
-                    "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}},
-                },
-                **_error_responses(),
-            },
-        },
-    }
-
-    # ====================================================================
     # Audit
     # ====================================================================
     _tag = "Audit"
@@ -2191,7 +2092,6 @@ def build_openapi_spec() -> dict:
                 "description": "Automated manuscript review: parsing, claim extraction, consistency checking",
             },
             {"name": "Platform", "description": "Organisations, members, usage, billing, API keys, subscription tiers"},
-            {"name": "Reports", "description": "Generate, list, retrieve, and export analysis reports"},
             {"name": "Audit", "description": "Audit trail: summary, event recording, and metrics"},
         ],
         "paths": _build_paths(),

@@ -9,7 +9,7 @@ const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 //                                                  docker-compose.yml (redis --appendonly yes, --save)
 //   IP addresses in the cache                      core/middleware/rate_limit_middleware.py (60 s),
 //                                                  api/v1/verify_views.py (VERIFY_THROTTLES, 1 hour)
-//   API endpoints that keep what they are sent     api/v1/report_views.py, doe_analysis/, api/v1/views.py (data import)
+//   API endpoint that keeps what it is sent        api/v1/views.py (data import)
 //   manuscript review record                       backend/api/v1/manuscript_views.py (ManuscriptSubmission)
 //   data verifier records                          backend/core/manuscript/verification_service.py
 //   receipts, and their public lookup              backend/core/services/receipt_service.py
@@ -40,7 +40,7 @@ const PrivacyPolicyPage = () => (
     <Typography variant="body2" color="text.secondary" paragraph>
       StickForStats is in beta and open to everyone: no account or password is needed to use most
       of the tools. This page says what happens to the data you give it, as the software works
-      today (23 October 2026).
+      today (24 October 2026).
     </Typography>
 
     <Section title="Your data is processed on our server">
@@ -56,9 +56,9 @@ const PrivacyPolicyPage = () => (
       <Box component="ul" sx={{ pl: 3, m: 0 }}>
         <Item>
           <strong>Most tools keep nothing.</strong> The data you send and the result exist only
-          while your request is being processed. A few programming-interface (API) endpoints that
-          no screen uses yet, for report records, experiment-design storage and data import, do
-          keep what is sent to them, so please don&rsquo;t send them personal data.
+          while your request is being processed. One programming-interface (API) endpoint that no
+          screen uses yet, for data import, does keep what is sent to it, so please don&rsquo;t
+          send it personal data.
         </Item>
         <Item>
           <strong>Cached results, up to one hour.</strong> The t-test, ANOVA and regression tools
