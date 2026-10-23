@@ -282,8 +282,11 @@ cut -d: -f1 nginx/ssl/.htpasswd              # beta and bmc-reviewer only (see "
 - **Expired sessions.** `cleanup_expired_sessions` now deletes them every day at 03:00 UTC; before this release nothing did.
   - celery-beat runs the task in its own process: `CELERY_TASK_ALWAYS_EAGER` is unset in its container, and the settings default it to True. Don't change that on its own: the task is routed to the `default` queue, which the worker, started without `-Q`, doesn't consume.
   - The day after the release, check that it ran: `docker logs --since 26h stickforstats-celery-beat 2>&1 | grep 'Session cleanup'` should show `Session cleanup: deleted <n> expired browser sessions; ...`. If nothing shows, check that the scheduler runs: `docker compose ps celery-beat`.
-- **Internal ports.** `docker-compose.yml` publishes the backend (8000), Postgres (5432), Redis (6379), Prometheus (9090) and Grafana (3000) on all interfaces unless `.env` binds them to `127.0.0.1` (`docs/DEPLOYMENT_RUNBOOK.md` §3.5). A directly reachable backend port bypasses nginx and its limits. Check from your own machine, before or right after the release; every line should fail or time out:
+- **Internal ports.** `docker-compose.yml` publishes the backend (8000), Postgres (5432), Redis (6379), Prometheus (9090) and Grafana (3000) on all interfaces unless `.env` binds them to `127.0.0.1` (`docs/DEPLOYMENT_RUNBOOK.md` §3.5). A directly reachable backend port would bypass nginx and its limits.
+  - **Checked from outside on 23 October 2026:** the Hetzner firewall allows only 22, 80 and 443 inbound, and 3000, 5432, 6379, 8000 and 8080 timed out. (8080 is Kong's, in the compose file's `enterprise` profile.)
+  - 9090 (Prometheus) was not in that check; the firewall rule covers it.
+  - To check again, for example after a firewall change; every line should time out. On macOS add `-G 3`, since there `-w` doesn't limit the time to connect:
 
-  ```bash
-  for p in 8000 5432 6379 9090 3000; do nc -vz -w 3 stickforstats.com "$p"; done
-  ```
+    ```bash
+    for p in 3000 5432 6379 8000 8080 9090; do nc -vz -w 3 stickforstats.com "$p"; done
+    ```
