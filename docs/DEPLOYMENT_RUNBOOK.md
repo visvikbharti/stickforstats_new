@@ -2,6 +2,9 @@
 
 Created: 2026-06-01
 
+> **Update:** the site is no longer a closed beta. The release after v1.2.0 removed the password
+> gate; [`DEPLOY.md`](../DEPLOY.md) is the procedure for that release and for its rollback.
+
 > Scope: deploy StickForStats for a **closed / invite-only beta** on a **single Linux host** using Docker Compose and the pre-built GHCR images. This document is the concrete, current single-host procedure. For enterprise/Kubernetes/compliance reference material see [`docs/DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) (largely aspirational / stale — do not treat as authoritative). For the go/no-go gate and beta-shape decisions see [`docs/BETA_DEPLOYMENT_CHECKLIST.md`](./BETA_DEPLOYMENT_CHECKLIST.md), which this runbook operationalizes.
 
 ---
@@ -282,7 +285,7 @@ curl -fsS https://beta.example.com/health && echo                 # frontend hea
 
 Before inviting users, apply the four **§0 beta-shape** items from [`docs/BETA_DEPLOYMENT_CHECKLIST.md`](./BETA_DEPLOYMENT_CHECKLIST.md) (Go/No-Go, lines 159-163). These are product gates, not infra:
 
-1. **Access model = invite-only.** Require login OR gate behind an invite token. The manuscript-report endpoints already use per-submission share tokens — extend that pattern to the rest of the beta surface. Do not leave the app open to the public internet.
+1. **Access model = invite-only.** Require login OR gate behind an invite token. The manuscript-report endpoints already use per-submission share tokens — extend that pattern to the rest of the beta surface. Do not leave the app open to the public internet. *(Superseded: the site was opened to everyone, deliberately, in the release after v1.2.0 — see [`DEPLOY.md`](../DEPLOY.md).)*
 2. **Beta banner.** Every page shows a persistent notice: *"Beta — results may change; please report issues."*
 3. **Feedback channel.** One monitored route (email alias, form, or a GitHub issue template) that you actually watch.
 4. **Data / privacy notice.** State what is stored and the erasure path. GDPR erase is real (commit `0705cc4`), so the notice can truthfully promise deletion on request.
@@ -353,9 +356,13 @@ DRY_RUN=1 ./scripts/deploy.sh                    # 2. see exactly what would hap
 ```
 
 The script syncs the **checkout** and the **images** to the same commit, validates
-before applying, and verifies afterwards. It aborts if the closed-beta auth gate is
-missing from the target tree, if the images for that commit were never published, or
-if a tracked path would overwrite the host's secrets.
+before applying, and verifies afterwards. It aborts if the target's nginx.conf
+half-gates the site, if the target would remove the password gate without
+`CONFIRM_PUBLIC=1`, if the images for that commit were never published, or if a
+tracked path would overwrite the host's secrets. After reload it verifies the gate
+state the deployed nginx.conf declares on the live edge: 401 everywhere when gated,
+200 without a password when open. (The site went public in the release after
+v1.2.0; see [`DEPLOY.md`](../DEPLOY.md).)
 
 > ### ⚠ Why the old procedure was wrong — read this once
 >
@@ -380,11 +387,11 @@ if a tracked path would overwrite the host's secrets.
 > CI publishes images on merge but does **not** deploy ("Deploy to Staging" is a placeholder
 > echo) — deployment is always this manual operator step.
 
-**After the script finishes**, apply migrations if the release has any:
+**After the script finishes**, apply migrations if the release has any. Skip `collectstatic`: it
+fails on the root-owned `backend-static` volume, and the image already carries its static files.
 
 ```bash
 docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py collectstatic --noinput
 ```
 
 ### What "which commit is live?" means now
@@ -465,7 +472,7 @@ Infra / deploy gates:
 
 Beta-shape gates (§0):
 
-- [ ] Access is invite-only (login or invite token); app not open to the public.
+- [ ] ~~Access is invite-only (login or invite token); app not open to the public.~~ Superseded: the site is public since the release after v1.2.0 (see [`DEPLOY.md`](../DEPLOY.md)).
 - [ ] Persistent "Beta — results may change; please report issues" banner on every page.
 - [ ] Monitored feedback channel live.
 - [ ] Data/privacy + erasure notice published.

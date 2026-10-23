@@ -18,20 +18,36 @@
 # So: this script deploys a COMMIT, not just an image. Config and images move
 # together, or not at all.
 #
+# THE PASSWORD GATE. Through v1.2.0 the whole site sat behind an nginx Basic-Auth
+# realm. The release after v1.2.0 removed it and made the site public. This script
+# reads which state the target nginx.conf declares (gated or open), refuses a
+# half-gated config, and then verifies THAT state on the live edge: gated means
+# every probed path answers 401, open means the site serves without a password.
+# Replacing a gated config with an open one publishes the site, so that one
+# transition needs CONFIRM_PUBLIC=1.
+#
 # USAGE
 #   ./scripts/deploy.sh                 # deploy origin/main
 #   ./scripts/deploy.sh <git-sha>       # deploy a specific commit
-#   ./scripts/deploy.sh --rollback      # go back to the previous deploy
+#   CONFIRM_PUBLIC=1 ./scripts/deploy.sh <git-sha>
+#                                       # same, when the deploy removes the gate
+#   ./scripts/deploy.sh --rollback      # go back to the previous deploy's images
 #   DRY_RUN=1 ./scripts/deploy.sh       # print what would happen, change nothing
 #
 # Run it ON the production host, from the repo root.
 #
 set -euo pipefail
+# An SSH hangup must not kill a half-done deploy: bash 5.2 can skip the EXIT trap
+# when SIGHUP lands inside a command substitution, which strands the host with new
+# config on disk and old containers running. (Run it in tmux anyway; see DEPLOY.md.)
+trap '' HUP
 
 APP_DIR="${APP_DIR:-/opt/stickforstats_new}"
 REGISTRY="ghcr.io/visvikbharti/stickforstats_new"
 EDGE_URL="${EDGE_URL:-https://stickforstats.com}"
 DRY_RUN="${DRY_RUN:-0}"
+CONFIRM_PUBLIC="${CONFIRM_PUBLIC:-0}"
+BACKUP_ROOT="${BACKUP_ROOT:-/root}"   # where deploy-backup-<stamp>/ directories go
 
 RED=$'\033[31m'; GRN=$'\033[32m'; YLW=$'\033[33m'; BLD=$'\033[1m'; RST=$'\033[0m'
 step() { printf '\n%s==> %s%s\n' "$BLD" "$1" "$RST"; }
@@ -40,12 +56,46 @@ warn() { printf '    %s!%s %s\n' "$YLW" "$RST" "$1"; }
 die()  { printf '\n%s✗ ABORT:%s %s\n\n' "$RED" "$RST" "$1" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = "1" ]; then printf '    [dry-run] %s\n' "$*"; else "$@"; fi; }
 
+# What an nginx.conf (passed as text) declares about the password gate, read
+# statically. Anchored regexes, so a commented-out directive does not count.
+#   gated   - an ENABLED realm (a quoted string; `auth_basic off;` has none) and a
+#             user file, both at SERVER scope of the 443 server (before its first
+#             `location`), and no `auth_basic off` anywhere.
+#   open    - no active auth_basic / auth_basic_user_file directive anywhere.
+#   partial - anything else: a realm inside a `location` block, `auth_basic off`,
+#             a realm without a user file. That narrows the gate without removing
+#             it (some paths public, others prompting), and is never deployed.
+#   missing - no config text at all (so an absent file never reads as "open").
+# A static read cannot be authoritative; the live probes below are.
+gate_state() {
+  local conf="$1" head realm file off any
+  if [ -z "$conf" ]; then echo missing; return 0; fi
+  head="$(printf '%s\n' "$conf" | awk '
+    /listen[[:space:]]+443/ {inserver=1}
+    inserver && /location[[:space:]]/ {exit}
+    inserver {print}')"
+  # nginx treats the realm "off" (bare or quoted) as disabling the gate.
+  local q="'" off_re
+  off_re="^[[:space:]]*auth_basic[[:space:]]+(off|\"off\"|${q}off${q})[[:space:]]*;"
+  realm="$(printf '%s\n' "$head" | grep -E "^[[:space:]]*auth_basic[[:space:]]+[\"$q]" | grep -cvE "$off_re" || true)"
+  file="$(printf '%s\n' "$head"  | grep -cE '^[[:space:]]*auth_basic_user_file[[:space:]]' || true)"
+  off="$(printf '%s\n' "$conf"   | grep -cE "$off_re" || true)"
+  any="$(printf '%s\n' "$conf"   | grep -cE '^[[:space:]]*auth_basic' || true)"
+  if [ "$realm" -ge 1 ] && [ "$file" -ge 1 ] && [ "$off" -eq 0 ]; then
+    echo gated
+  elif [ "$any" -eq 0 ]; then
+    echo open
+  else
+    echo partial
+  fi
+}
+
 # Probe the LIVE edge and require Basic Auth on every path that matters. This is
 # the real security property — is auth actually enforced? — as opposed to a
 # substring count in nginx.conf, which is blind to scope (auth_basic moved into a
 # `location` block), to `auth_basic off;`, and to commented-out lines. A 200 on
-# ANY of these means that surface is PUBLIC. Used post-reload on both the forward
-# deploy and the rollback path.
+# ANY of these means that surface is PUBLIC. Used post-reload, whenever the
+# config being run declares the gate.
 assert_edge_gated() {
   local bad=0 code
   for p in / /api/ /api/v1/health/ /static/js/ /modules/multiplicity; do
@@ -58,6 +108,59 @@ assert_edge_gated() {
     fi
   done
   return "$bad"
+}
+
+# Probe the LIVE edge anonymously and require that the public site actually
+# serves: the SPA shell, an app route, the API health endpoint, and the JS bundle
+# the shell names. Each must be a 200 without a password. Positive matches only:
+# a dead edge yields no 200, so it fails here rather than passing by omission.
+assert_edge_open() {
+  local bad=0 code bundle
+  for p in / /modules/multiplicity /api/v1/health/; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${EDGE_URL}${p}" || echo 000)"
+    if [ "$code" = "200" ]; then
+      ok "edge open: ${p} -> 200"
+    else
+      printf '    %s✗%s edge not serving: %s -> HTTP %s (expected 200 without a password)\n' "$RED" "$RST" "$p" "$code"
+      bad=1
+    fi
+  done
+  bundle="$(curl -s "${EDGE_URL}/" 2>/dev/null | grep -oE '/static/js/main\.[0-9a-f]+\.js' | head -1 || true)"
+  if [ -z "$bundle" ]; then
+    printf '    %s✗%s edge: / names no /static/js/main.*.js bundle\n' "$RED" "$RST"
+    bad=1
+  else
+    code="$(curl -s -o /dev/null -w '%{http_code}' "${EDGE_URL}${bundle}" || echo 000)"
+    if [ "$code" = "200" ]; then
+      ok "edge open: ${bundle} -> 200"
+    else
+      printf '    %s✗%s edge not serving: %s -> HTTP %s (expected 200 without a password)\n' "$RED" "$RST" "$bundle" "$code"
+      bad=1
+    fi
+  fi
+  return "$bad"
+}
+
+# Verify the live edge is in the state an nginx.conf declares ($1 = gated|open).
+assert_edge_state() {
+  case "$1" in
+    gated) assert_edge_gated ;;
+    open)  assert_edge_open ;;
+    *)     printf '    %s✗%s nginx.conf declares a %s gate — neither gated nor open\n' "$RED" "$RST" "$1"; return 1 ;;
+  esac
+}
+
+# The same check, after giving recreated containers time to come up. A gated edge
+# answers 401 from nginx alone, but an open one needs the app: right after
+# `docker compose up -d` the backend can take a while, and probing too early reads a
+# healthy release as broken. Retries quietly for up to ~60 s, then reports.
+wait_for_edge_state() {
+  local _
+  for _ in $(seq 1 30); do
+    if assert_edge_state "$1" >/dev/null 2>&1; then break; fi
+    sleep 2
+  done
+  assert_edge_state "$1"
 }
 
 cd "$APP_DIR" || die "cannot cd to $APP_DIR"
@@ -77,26 +180,30 @@ if [ "${1:-}" = "--rollback" ]; then
   run docker compose up -d --no-build
   run docker compose restart nginx
   if [ "$DRY_RUN" != "1" ]; then
-    sleep 5
-    # Rollback reverts IMAGES only, not the on-disk nginx.conf. If a bad forward
-    # deploy left an ungated config on disk, restarting nginx here would keep the
-    # site public. Verify the live surface and refuse to exit 0 on an open site.
-    step "Verify rollback did not leave the site public"
-    if assert_edge_gated; then
-      ok "edge still gated after rollback"
+    # Rollback reverts IMAGES only, not the on-disk nginx.conf, so the edge keeps
+    # whatever gate state that file declares. Verify the live surface matches it
+    # (waiting for the recreated containers first), and refuse to exit 0 on a
+    # half-gated config or an edge that disagrees.
+    ON_DISK_CONF="$(cat nginx/nginx.conf)" || die "no nginx/nginx.conf on disk in $APP_DIR"
+    ON_DISK_GATE="$(gate_state "$ON_DISK_CONF")"
+    step "Verify the edge matches the on-disk nginx.conf (declares: $ON_DISK_GATE)"
+    if wait_for_edge_state "$ON_DISK_GATE"; then
+      ok "edge is $ON_DISK_GATE after rollback, as nginx.conf declares"
     else
-      die "ROLLBACK LEFT THE SITE PUBLIC. The on-disk nginx.conf is not gating.
-    Rollback reverts images, NOT config. Restore a gated nginx.conf now:
-      git checkout -f <a-sha-whose-nginx.conf-has-the-gate> -- nginx/nginx.conf
+      die "AFTER ROLLBACK THE EDGE DOES NOT MATCH nginx.conf (declares: $ON_DISK_GATE).
+    Rollback reverts images, NOT config. Check the stack first (docker compose ps,
+    docker compose logs --tail=50 backend nginx). To restore the config of a previous
+    deploy instead:
+      cp -a $BACKUP_ROOT/deploy-backup-<stamp>/nginx.conf nginx/nginx.conf
       docker compose restart nginx
     (Do NOT 'git checkout -f 900296a' — that commit predates the committed gate
     and its nginx.conf has ZERO auth_basic lines.)"
     fi
   fi
-  warn "Images rolled back. This did NOT revert the git checkout — if the bad"
-  warn "deploy also changed compose/nginx/monitoring config, revert the checkout"
-  warn "to a KNOWN-GATED commit (check /root/deploy-backup-*/git-head.txt), NOT"
-  warn "blindly to the host's previous HEAD."
+  warn "Images rolled back. This did NOT revert the git checkout or nginx.conf —"
+  warn "the site stays $(gate_state "$(cat nginx/nginx.conf)"). If the bad deploy also changed"
+  warn "compose/nginx/monitoring config, redeploy the previous commit with this"
+  warn "script (its SHA is in $BACKUP_ROOT/deploy-backup-*/git-head.txt), NOT a blind checkout."
   exit 0
 fi
 
@@ -118,33 +225,60 @@ ok "current: ${CURRENT:0:7}"
 # ---------------------------------------------------------------------------
 step "Pre-flight"
 
-# 1. The closed-beta gate MUST be in the target tree. If it is not, deploying
-#    would publish the site the moment nginx reloads.
+# 1. The target's password-gate state, and whether this deploy changes it.
 #
-#    This is a STATIC pre-check on the file — it cannot be authoritative, because
-#    a file grep is blind to nginx scope (auth_basic inside a `location` block
-#    leaves other locations open). It is a fast fail to catch the obvious cases;
-#    the AUTHORITATIVE check is assert_edge_gated() against the running site after
-#    reload, below. Here we require the two directives to be ACTIVE (anchored, so
-#    a commented-out gate does not count), an ENABLED realm (a quoted string —
-#    `auth_basic off;` has no quote), and present at server scope, i.e. BEFORE the
-#    first `location` block. Same active-directive regex as CI's beta-gate job.
-GATE_CONF="$(git show "$SHA:nginx/nginx.conf")"
-# Everything from the 443 server's opening brace up to its first `location`:
-SERVER_HEAD="$(printf '%s\n' "$GATE_CONF" | awk '
-  /listen[[:space:]]+443/ {inserver=1}
-  inserver && /location[[:space:]]/ {exit}
-  inserver {print}')"
-GATE_REALM="$(printf '%s\n' "$SERVER_HEAD" | grep -cE '^[[:space:]]*auth_basic[[:space:]]+"' || true)"
-GATE_FILE="$(printf '%s\n' "$SERVER_HEAD"  | grep -cE '^[[:space:]]*auth_basic_user_file[[:space:]]' || true)"
-GATE_OFF="$(printf '%s\n' "$GATE_CONF"     | grep -cE '^[[:space:]]*auth_basic[[:space:]]+off' || true)"
-{ [ "$GATE_REALM" -ge 1 ] && [ "$GATE_FILE" -ge 1 ] && [ "$GATE_OFF" -eq 0 ]; } || \
-  die "target $SHORT does not gate at SERVER scope with an ENABLED Basic Auth realm
-    (server-scope enabled realm: $GATE_REALM, user_file: $GATE_FILE, 'auth_basic off': $GATE_OFF).
-    Deploying it could REMOVE OR NARROW THE CLOSED-BETA GATE and expose the site.
-    If opening the beta is intentional, do it deliberately — not via this script.
-    NOTE: this is a static check; the live edge is verified after reload regardless."
-ok "closed-beta gate present at server scope in target tree (live edge verified after reload)"
+#    This is a STATIC read of the file — it cannot be authoritative, because a
+#    file grep is blind to how nginx actually applies it. It is a fast fail for the
+#    obvious cases; the AUTHORITATIVE check is assert_edge_state() against the
+#    running site after reload, below. A half-gated target (a realm inside a
+#    `location`, `auth_basic off`, a realm without a user file) is refused outright:
+#    it leaves some paths public while others still prompt. Removing the gate
+#    publishes the site the moment nginx reloads, so that transition must be
+#    confirmed explicitly with CONFIRM_PUBLIC=1.
+# Read each file into a variable FIRST, so a failed read aborts here (set -e)
+# instead of reaching gate_state as an empty string.
+TARGET_CONF="$(git show "$SHA:nginx/nginx.conf")" || die "target $SHORT has no nginx/nginx.conf"
+LIVE_CONF="$(cat nginx/nginx.conf)" || die "no nginx/nginx.conf on disk in $APP_DIR — cannot tell what is live"
+TARGET_GATE="$(gate_state "$TARGET_CONF")"
+LIVE_GATE="$(gate_state "$LIVE_CONF")"
+case "$TARGET_GATE" in
+  gated|open) ;;
+  partial) die "target $SHORT HALF-GATES the site: its nginx.conf has auth_basic directives, but not
+    an enabled realm and user file at SERVER scope of the 443 server (or it has
+    'auth_basic off'). That leaves some paths public while others prompt.
+    Gate at server scope, or remove every auth_basic line." ;;
+  *) die "target $SHORT nginx/nginx.conf is empty (gate state: $TARGET_GATE)" ;;
+esac
+if [ "$TARGET_GATE" = "open" ] && [ "$LIVE_GATE" != "open" ] && [ "$CONFIRM_PUBLIC" != "1" ]; then
+  die "target $SHORT has NO password gate, and the on-disk nginx.conf does (declares: $LIVE_GATE).
+    Deploying it PUBLISHES THE SITE the moment nginx reloads: no password for any page or API.
+    If that is the intent, rerun with CONFIRM_PUBLIC=1 (see DEPLOY.md)."
+fi
+# Both the guard above and the abort trap's restore take nginx.conf ON DISK as the
+# truth about what is live. After an interrupted deploy, a hand checkout or a
+# different mount, nginx may be running something else. Ask the live edge: a 401
+# on / means it is gated, anything else that it is not. If the edge cannot be
+# reached at all, the file is the only evidence; say so and go on, so that a
+# deploy can still repair a site that is down.
+EDGE_CODE="$(curl -s -o /dev/null -w '%{http_code}' "${EDGE_URL}/" || true)"
+case "$EDGE_CODE" in
+  ''|000*)
+    warn "edge unreachable (HTTP ${EDGE_CODE:-none}): cannot confirm nginx runs the on-disk config; trusting the file" ;;
+  401)
+    [ "$LIVE_GATE" = "gated" ] || die "the live edge asks for a password (HTTP 401 on /), but nginx.conf on disk declares '$LIVE_GATE'.
+    nginx is not running the file on disk (an interrupted deploy, a hand checkout or
+    another mount). Make them agree first: restore the config nginx is running, e.g.
+      cp -a $BACKUP_ROOT/deploy-backup-<stamp>/nginx.conf nginx/nginx.conf
+    or restart nginx deliberately with the file on disk; then rerun." ;;
+  *)
+    [ "$LIVE_GATE" != "gated" ] || die "nginx.conf on disk declares the password gate, but the live edge answers HTTP $EDGE_CODE on / without one.
+    The site may already be public. nginx is not running the file on disk; find out
+    why (docker inspect stickforstats-nginx, its mounts and its logs) before deploying." ;;
+esac
+ok "password gate: on disk now $LIVE_GATE, target $TARGET_GATE, live edge / -> ${EDGE_CODE:-none} (verified again after reload)"
+if [ "$TARGET_GATE" = "open" ] && [ "$LIVE_GATE" != "open" ]; then
+  warn "this deploy REMOVES the password gate (CONFIRM_PUBLIC=1 given)"
+fi
 
 # 2. Images for this exact commit must already exist. Syncing config to a commit
 #    whose images were never built leaves config and code out of step — the very
@@ -174,14 +308,13 @@ DIRTY="$(git status --porcelain --untracked-files=no | wc -l | tr -d ' ')"
 #    But if anyone ever commits a `.env` or a `secrets/` file, this same command
 #    would silently OVERWRITE the production secrets with the repo's version.
 #    So do not trust that it stays true — check it, every deploy.
-TRACKED_IN_TARGET="$(git ls-tree -r "$SHA" --name-only)"
-COLLISION=""
-for p in .env secrets nginx/ssl docker-compose.override.yml; do
-  if printf '%s\n' "$TRACKED_IN_TARGET" | grep -qE "^${p}(/|$)"; then
-    COLLISION="$COLLISION $p"
-  fi
-done
-[ -z "$COLLISION" ] || die "target $SHORT TRACKS host-only secret path(s):$COLLISION
+#
+#    Ask git for exactly those paths rather than piping the whole tree listing into
+#    `grep -q`: grep stops at its first match, printf then dies of SIGPIPE, and
+#    pipefail turned that into "no match" once the listing passed ~70-128 KiB (this
+#    repo's is ~130 KB), so a tracked .env sailed through.
+COLLISION="$(git ls-tree -r --name-only "$SHA" -- .env secrets nginx/ssl docker-compose.override.yml | tr '\n' ' ')"
+[ -z "$COLLISION" ] || die "target $SHORT TRACKS host-only secret path(s): $COLLISION
     'git checkout -f' would OVERWRITE the production copy with the repo's version —
     destroying the TLS key / .htpasswd / .env, which exist nowhere else.
     Remove those paths from git (and add them to .gitignore) before deploying."
@@ -193,7 +326,7 @@ ok "pre-flight passed"
 # Backup. Host-only material must survive: it exists nowhere else.
 # ---------------------------------------------------------------------------
 step "Backup host-only state"
-BK="/root/deploy-backup-$(date +%Y%m%d-%H%M%S)"
+BK="$BACKUP_ROOT/deploy-backup-$(date +%Y%m%d-%H%M%S)"
 run mkdir -p "$BK"
 if [ "$DRY_RUN" != "1" ]; then
   # This backup is the ONLY safety net in front of `git checkout -f` against a
@@ -261,36 +394,59 @@ if [ "$DRY_RUN" != "1" ]; then
   rollback_on_abort() {
     local rc=$?
     [ "$DEPLOY_COMMITTED" = "1" ] && exit "$rc"
+    # Finish the revert whatever happens to the terminal: a Ctrl-C, SIGTERM or SSH
+    # hangup kills a `| tee` too, and the first write to that dead pipe used to kill
+    # this trap before it reverted anything (measured: 0 of 8 runs reverted). Ignore
+    # those signals here, and keep going past any single failed step.
+    trap '' PIPE HUP INT TERM
+    set +e
     printf '\n%s✗ deploy aborted mid-flight (exit %s) — reverting to the previous release%s\n' "$RED" "$rc" "$RST" >&2
     git checkout -f "$PREV_SHA" >/dev/null 2>&1 && echo "    tree reverted to ${PREV_SHA:0:7}" >&2 \
       || echo "    ${RED}could not revert tree${RST}" >&2
 
-    # CRITICAL: $PREV_SHA may be a commit that PREDATES the committed auth gate
-    # (the production host's HEAD was 900296a, whose nginx.conf has ZERO
-    # auth_basic lines). Reverting the tree to it and restarting nginx would
-    # PUBLISH the site. So always restore the gated nginx.conf from the backup —
-    # which was captured from the live, gated config at the start of this run,
-    # and is guaranteed to carry the gate — rather than trusting the reverted
-    # tree. This is the fix for the exact incident that first exercised this trap.
-    if [ -f "$BK/nginx.conf" ] && grep -qE '^[[:space:]]*auth_basic[[:space:]]+"' "$BK/nginx.conf"; then
+    # CRITICAL: the reverted tree's nginx.conf is not necessarily what was live.
+    # $PREV_SHA can predate the committed gate (the production host's HEAD was once
+    # 900296a, whose nginx.conf has ZERO auth_basic lines), so trusting it once
+    # PUBLISHED the site mid-revert. Restore the backup instead: it was captured
+    # from the on-disk config at the start of this run, so the edge goes back to
+    # exactly the gate state it had before (gated or open). This is the fix for the
+    # exact incident that first exercised this trap.
+    if [ -s "$BK/nginx.conf" ]; then
       cp -a "$BK/nginx.conf" nginx/nginx.conf
-      echo "    restored the GATED nginx.conf from backup" >&2
+      echo "    restored the pre-deploy nginx.conf from backup (declares: $(gate_state "$(cat nginx/nginx.conf)"))" >&2
     else
-      echo "    ${RED}backup nginx.conf missing or ungated — check the gate BY HAND now${RST}" >&2
+      echo "    ${RED}backup nginx.conf missing — check nginx/nginx.conf BY HAND now${RST}" >&2
+    fi
+    # The reverted checkout must not have taken .env with it (a target that tracked
+    # .env would have overwritten it, and reverting from such a target deletes it).
+    if [ -s "$BK/env" ] && ! cmp -s "$BK/env" .env 2>/dev/null; then
+      cp -a "$BK/env" .env && echo "    restored .env from backup" >&2
     fi
 
     for img in backend frontend; do
       docker image inspect "stickforstats/$img:rollback-prev" >/dev/null 2>&1 \
         && docker tag "stickforstats/$img:rollback-prev" "stickforstats/$img:1.0.0" >/dev/null 2>&1
     done
-    docker compose up -d --no-build >/dev/null 2>&1 && docker compose restart nginx >/dev/null 2>&1 \
-      && echo "    images reverted and stack restarted on the previous release" >&2 \
-      || echo "    ${RED}stack revert failed — run: ./scripts/deploy.sh --rollback${RST}" >&2
+    # Restart nginx even when `up` fails: that restart is what puts the restored
+    # nginx.conf (and so the previous gate state) back on the live edge.
+    local stack_ok=1
+    docker compose up -d --no-build >/dev/null 2>&1 || stack_ok=0
+    docker compose restart nginx >/dev/null 2>&1 || stack_ok=0
+    if [ "$stack_ok" = 1 ]; then
+      echo "    images reverted and stack restarted on the previous release" >&2
+    else
+      echo "    ${RED}stack revert failed — run: ./scripts/deploy.sh --rollback${RST}" >&2
+    fi
 
-    # Do not exit on a public site. Verify the gate held; if not, say so loudly.
-    sleep 3
-    if assert_edge_gated >/dev/null 2>&1; then
-      echo "    ${GRN}verified: edge still requires Basic Auth after revert${RST}" >&2
+    # Do not exit quietly on an edge that disagrees with the restored config: a
+    # gated config that does not gate is a public site, and an open config that
+    # does not serve is an outage. Verify (after giving the containers time to come
+    # up), and say so loudly if it does not hold.
+    RESTORED_GATE="$(gate_state "$(cat nginx/nginx.conf)")"
+    if wait_for_edge_state "$RESTORED_GATE" >/dev/null 2>&1; then
+      echo "    ${GRN}verified: edge is $RESTORED_GATE after revert, as the restored nginx.conf declares${RST}" >&2
+    elif [ "$RESTORED_GATE" = "open" ]; then
+      printf '    %s*** THE SITE IS NOT SERVING after revert — check nginx and the stack NOW ***%s\n' "$RED" "$RST" >&2
     else
       printf '    %s*** THE SITE MAY BE PUBLIC — restore a gated nginx.conf and reload nginx NOW ***%s\n' "$RED" "$RST" >&2
     fi
@@ -310,13 +466,16 @@ if [ "$DRY_RUN" != "1" ]; then
 
   # Post-checkout assertions. The trap handles reverting; these just fail loudly.
   restore_and_die() { die "$1"; }
-  # Anchored, as in the pre-flight: a commented-out gate must NOT count as present.
-  [ "$(grep -cE '^[[:space:]]*auth_basic' nginx/nginx.conf || true)" -eq 2 ] \
-    || restore_and_die "auth gate MISSING from nginx.conf after checkout — refusing to continue"
+  # The file on disk must declare exactly what the pre-flight read from the target.
+  CHECKED_OUT_GATE="$(gate_state "$(cat nginx/nginx.conf 2>/dev/null || true)")"
+  [ "$CHECKED_OUT_GATE" = "$TARGET_GATE" ] \
+    || restore_and_die "nginx.conf after checkout declares '$CHECKED_OUT_GATE', target declared '$TARGET_GATE' — refusing to continue"
   [ -f .env ]                 || restore_and_die ".env vanished during checkout"
-  [ -f nginx/ssl/.htpasswd ]  || restore_and_die "nginx/ssl/.htpasswd vanished — the beta gate has no password file"
+  if [ "$TARGET_GATE" = "gated" ]; then
+    [ -f nginx/ssl/.htpasswd ] || restore_and_die "nginx/ssl/.htpasswd vanished — the password gate has no password file"
+  fi
   [ -f nginx/ssl/cert.pem ]   || restore_and_die "nginx/ssl/cert.pem vanished — TLS would fail"
-  ok "auth gate, .env, .htpasswd and TLS material all intact"
+  ok "nginx.conf ($TARGET_GATE), .env and TLS material all intact"
 fi
 
 # ---------------------------------------------------------------------------
@@ -334,7 +493,7 @@ done
 # ---------------------------------------------------------------------------
 step "Validate config"
 run docker compose config --quiet
-ok "docker compose config is valid"
+[ "$DRY_RUN" = "1" ] || ok "docker compose config is valid"
 if [ "$DRY_RUN" != "1" ]; then
   # Validate nginx.conf inside the RUNNING nginx container, which is on the
   # compose network. A throwaway `docker run nginx:alpine` is NOT on that network,
@@ -440,12 +599,13 @@ if [ "$DRY_RUN" != "1" ]; then
     *)                             check "receipt key is a stable, configured key" PASS ;;
   esac
 
-  # THE SECURITY CHECK, and the authoritative one for the gate. Probe the LIVE
-  # edge on every path that matters — /, /api/, the health endpoint, the JS
-  # bundle, an app route. A 200 on ANY means that surface is PUBLIC. This catches
-  # what a file grep cannot: a gate mis-scoped into a `location` block, or
-  # `auth_basic off;`, because it tests the running server, not the text.
-  if assert_edge_gated; then :; else FAILED=1; fi
+  # THE EDGE CHECK, and the authoritative one for the gate. Probe the LIVE edge
+  # and require the state the deployed nginx.conf declares. Gated: 401 on every
+  # path that matters — /, /api/, the health endpoint, the JS bundle, an app
+  # route — which catches what a file grep cannot (a gate mis-scoped into a
+  # `location` block, `auth_basic off;`). Open: 200 without a password on the
+  # shell, an app route, the API health endpoint and the bundle.
+  if wait_for_edge_state "$TARGET_GATE"; then :; else FAILED=1; fi
 
   # Nothing is crash-looping. Assert positively that we could read the state list.
   PS="$(docker ps --format '{{.Names}} {{.Status}}' 2>/dev/null || true)"
@@ -483,13 +643,14 @@ fi
 
 if [ "$FAILED" -ne 0 ]; then
   printf '\n%s✗ DEPLOY VERIFICATION FAILED.%s The stack is up but WRONG.\n' "$RED" "$RST"
-  printf '  The site may be public or the wrong code may be live. Roll back NOW:\n'
-  printf '    cd %s && ./scripts/deploy.sh --rollback\n' "$APP_DIR"
-  printf '  and if config changed, revert the checkout to the previous release:\n'
-  printf '    git checkout -f %s\n\n' "${PREV_SHA:0:12}"
+  printf '  The edge may not match nginx.conf (gate state: %s) or the wrong code may be live.\n' "$TARGET_GATE"
+  printf '  This script now reverts by itself (checkout, nginx.conf from %s, images) and\n' "$BK"
+  printf '  checks the edge; read its report below. Only if that report says the revert\n'
+  printf '  failed: cd %s && ./scripts/deploy.sh --rollback\n\n' "$APP_DIR"
   # The trap is still armed (DEPLOY_COMMITTED=0), so exiting non-zero here AUTO-
-  # reverts tree + images to the previous release. The banner above is guidance
-  # for the operator in case the auto-revert itself hits trouble.
+  # reverts tree + images to the previous release. Do not suggest a hand
+  # `git checkout -f` here: it would discard the host-edited nginx.conf the trap
+  # restores from the backup.
   exit 1
 fi
 
@@ -497,6 +658,10 @@ fi
 DEPLOY_COMMITTED=1
 trap - EXIT
 
+if [ "$DRY_RUN" = "1" ]; then
+  step "Dry run finished for $SHORT: nothing was changed (pre-flight only; nothing was validated, applied or verified)"
+  exit 0
+fi
 step "Deployed $SHORT"
 ok "config and images are both at $SHORT — they can no longer drift apart"
 ok "rollback: ./scripts/deploy.sh --rollback   (backup: $BK)"

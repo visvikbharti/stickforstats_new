@@ -87,6 +87,8 @@ label was evidence of the bug, not of the fix. Assert what the software *does* (
 - the t-test returns `ci_lower`, `ci_upper`, `effect_size`, `mean_difference`
 - an unknown `test_type` is refused with **400**, not certified
 - anonymous access is still **401** — a deploy must never open the closed beta
+  *(true for v1.2.0; the release after it opened the site deliberately, so anonymous access
+  is now **200** — see [`DEPLOY.md`](../DEPLOY.md))*
 
 ---
 
