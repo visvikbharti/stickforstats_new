@@ -1172,11 +1172,11 @@ POST /api/v1/platform/api-keys/
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/licensing/tiers/` | List institutional license tiers | None (public) |
+| GET | `/api/v1/licensing/tiers/` | List institutional license tiers | Session |
 | POST | `/api/v1/licensing/create/` | Create institutional license | Session |
-| POST | `/api/v1/licensing/verify/` | Verify user eligibility under a license | None |
-| GET | `/api/v1/licensing/usage/<license_key>/` | Usage statistics for a license | Session |
-| GET | `/api/v1/licensing/report/<license_key>/` | Generate usage report | Session |
+| POST | `/api/v1/licensing/verify/` | Verify user eligibility under a license | Session |
+| GET | `/api/v1/licensing/usage/` | Usage statistics for a license (key in the `X-License-Key` header) | Session |
+| GET | `/api/v1/licensing/report/` | Generate usage report (key in the `X-License-Key` header) | Session |
 
 ### GET `/api/v1/licensing/tiers/`
 
@@ -1251,9 +1251,10 @@ POST /api/v1/platform/api-keys/
 }
 ```
 
-### GET `/api/v1/licensing/usage/<license_key>/`
+### GET `/api/v1/licensing/usage/`
 
-**Auth**: Session required.
+**Auth**: Session required. Send the license key in the `X-License-Key` header, never in the URL:
+the web server and the application log every URL.
 
 **Query params**: `?period=monthly` (default) or `?period=weekly`
 

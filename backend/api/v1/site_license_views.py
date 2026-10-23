@@ -11,6 +11,18 @@ from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
+LICENSE_KEY_HEADER = "X-License-Key"
+MISSING_KEY = {"error": f"Send the license key in the {LICENSE_KEY_HEADER} header"}
+
+
+def _license_key(request):
+    """The license key, from the X-License-Key header.
+
+    Never from the URL: nginx's access log and the application's request log record every
+    URL, so a key in the path was written to the logs each time it was used.
+    """
+    return request.headers.get(LICENSE_KEY_HEADER, "").strip()
+
 
 class SiteLicenseTiersView(APIView):
     """
@@ -96,15 +108,18 @@ class SiteLicenseVerifyView(APIView):
 
 class SiteLicenseUsageView(APIView):
     """
-    GET /api/v1/licensing/usage/<license_key>/
+    GET /api/v1/licensing/usage/  (key in the X-License-Key header)
     Get usage statistics for a site license.
     """
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, license_key):
+    def get(self, request):
         from core.services.site_license_service import SiteLicenseService
 
+        license_key = _license_key(request)
+        if not license_key:
+            return Response(MISSING_KEY, status=400)
         validation = SiteLicenseService.validate_license_key(license_key)
         if not validation.get("valid"):
             return Response(validation, status=404)
@@ -115,15 +130,18 @@ class SiteLicenseUsageView(APIView):
 
 class SiteLicenseReportView(APIView):
     """
-    GET /api/v1/licensing/report/<license_key>/
+    GET /api/v1/licensing/report/  (key in the X-License-Key header)
     Generate a usage report for institutional administrators.
     """
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, license_key):
+    def get(self, request):
         from core.services.site_license_service import SiteLicenseService
 
+        license_key = _license_key(request)
+        if not license_key:
+            return Response(MISSING_KEY, status=400)
         period = request.query_params.get("period", "monthly")
         report = SiteLicenseService.generate_usage_report(license_key, period)
         return Response(report)

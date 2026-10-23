@@ -1251,7 +1251,8 @@ class SiteLicense(models.Model):
         indexes = [models.Index(fields=["domain"])]
 
     def __str__(self) -> str:  # pragma: no cover
-        return f"{self.license_key} ({self.institution_name}, {self.tier})"
+        # Not the key: str() is what logs, tracebacks and admin pages show of an object.
+        return f"Site license {self.pk}: {self.institution_name} ({self.tier})"
 
     def is_currently_active(self) -> bool:
         if self.status != "active":

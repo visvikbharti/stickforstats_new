@@ -512,10 +512,9 @@ urlpatterns = [
     path("licensing/tiers/", site_license_views.SiteLicenseTiersView.as_view(), name="license-tiers"),
     path("licensing/create/", site_license_views.SiteLicenseCreateView.as_view(), name="license-create"),
     path("licensing/verify/", site_license_views.SiteLicenseVerifyView.as_view(), name="license-verify"),
-    path("licensing/usage/<str:license_key>/", site_license_views.SiteLicenseUsageView.as_view(), name="license-usage"),
-    path(
-        "licensing/report/<str:license_key>/", site_license_views.SiteLicenseReportView.as_view(), name="license-report"
-    ),
+    # The key goes in the X-License-Key header, never in the URL: URLs are logged.
+    path("licensing/usage/", site_license_views.SiteLicenseUsageView.as_view(), name="license-usage"),
+    path("licensing/report/", site_license_views.SiteLicenseReportView.as_view(), name="license-report"),
     # ── Plugin Runtime ──────────────────────────────────────
     path(
         "marketplace/plugins/<slug:plugin_slug>/execute/",
