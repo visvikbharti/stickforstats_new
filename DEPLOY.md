@@ -16,12 +16,40 @@ Never hand-roll the deploy, and never `git pull` on the host (see `docs/DEPLOYME
 - **The password gate:** it lived in two `auth_basic` lines in `nginx/nginx.conf`.
   - The nginx container bind-mounts that file from the host checkout (`./nginx/nginx.conf:/etc/nginx/nginx.conf:ro` in `docker-compose.yml`).
   - So the gate is removed when `deploy.sh` checks out the new commit and restarts nginx. No separate edit on the server is needed.
-  - The password file `nginx/ssl/.htpasswd` stays on the host, unused. Keep it until you're sure you won't need rollback B below.
+  - The password file `nginx/ssl/.htpasswd` stays on the host, unused, with two accounts once you have deleted the shared login (next section). Keep it until you're sure you won't need rollback B below.
 - **Database:** one data migration, `core.0016_purge_imported_tables_from_sessions` (step 2g). It deletes the uploaded tables that earlier versions kept in visitors' sessions, and expired sessions. No table changes.
 - **Unchanged:** no `.env` or `docker-compose.yml` changes. The beta banner and the optional login stay.
 - **BMC review:** reviewers who open the live site will see this release, not v1.2.0, and won't be asked for a password. The archived v1.2.0 (Zenodo `10.5281/zenodo.21797621`) that the manuscript cites is unchanged.
 
 **Why the script on the host can't be used as is.** The copy of `scripts/deploy.sh` on the host predates this release. It refuses any target without the gate ("If opening the beta is intentional, do it deliberately — not via this script"). The new script reads which gate state the target declares and verifies that state on the live edge. It requires `CONFIRM_PUBLIC=1` for the one deploy that removes the gate. So step 2 runs the script from the release commit itself.
+
+## Before you start: delete the shared login (on the host)
+
+The password file has three accounts: `beta`, `bmc-reviewer` and `vishal`, the login shared with collaborators. Delete `vishal` before anything else, before pushing too. The open site doesn't need it, and rollback B below brings the gate back with this same file, so any account still in it would work again. Collaborators who used it lose access until the deploy opens the site.
+
+```bash
+ssh root@91.98.93.98
+cd /opt/stickforstats_new
+cut -d: -f1 nginx/ssl/.htpasswd                        # beta, bmc-reviewer, vishal
+htpasswd -D nginx/ssl/.htpasswd vishal                 # Deleting password for user vishal
+cut -d: -f1 nginx/ssl/.htpasswd                        # beta, bmc-reviewer
+grep -l '^vishal:' nginx/ssl/.htpasswd* 2>/dev/null    # no output: no copy beside it holds the account
+```
+
+- **No reload is needed:** nginx reads the file on every request. Measured locally with nginx 1.31.2: after `htpasswd -D` the deleted login got 401 at once, the other two still got 200, and the file kept its inode and permissions.
+- **Check it on the live site,** while the gate is still up. Try the deleted login with any password, then read nginx's reason:
+
+  ```bash
+  curl -s -o /dev/null -w '%{http_code}\n' -u vishal:x https://stickforstats.com/          # 401
+  docker logs --since 5m stickforstats-nginx 2>&1 | grep -c 'user "vishal" was not found'  # 1 or more
+  ```
+
+  Before the deletion, nginx logs `user "vishal": password mismatch` for the same request.
+- **Copies in deploy backups.** Every deploy by `deploy.sh` (not a dry run or `--rollback`) saves `nginx/ssl` to `/root/deploy-backup-<stamp>/nginx-ssl.tgz`, so backups made since the account was added still hold it. The deploy in step 2e makes a new one without it. If you ever restore `nginx/ssl` from an older backup, run the `htpasswd -D` line again. To list the backups that hold it:
+
+  ```bash
+  for t in /root/deploy-backup-*/nginx-ssl.tgz; do tar xzOf "$t" nginx/ssl/.htpasswd 2>/dev/null | grep -q '^vishal:' && echo "$t"; done
+  ```
 
 ## 1. Merge and wait for the images (your machine)
 
@@ -224,6 +252,7 @@ PREV=$(awk '$1=="/stickforstats-backend"{print $2}' /root/pre-release-head.txt) 
 echo "$PREV"                                 # expect b7834e3..., the v1.2.0 code commit
 docker manifest inspect "ghcr.io/visvikbharti/stickforstats_new/backend:${PREV}" > /dev/null && echo "images exist"
 ls -l nginx/ssl/.htpasswd                    # must exist, or the gated site starts but nobody can sign in
+cut -d: -f1 nginx/ssl/.htpasswd              # beta and bmc-reviewer only (see "Before you start")
 ./scripts/deploy.sh "$PREV" < /dev/null > "/root/rollback-${PREV:0:7}.log" 2>&1; echo "exit: $?"
 ```
 
@@ -244,7 +273,7 @@ ls -l nginx/ssl/.htpasswd                    # must exist, or the gated site sta
 
 ## 5. Afterwards
 
-- **The password file and accounts.** `nginx/ssl/.htpasswd`, its three accounts (`beta`, `bmc-reviewer`, and the shared account) and `/root/stickforstats-beta-access.txt` no longer protect anything. Archive them off the server once rollback B is no longer needed. Revoking `bmc-reviewer` is moot.
+- **The password file and accounts.** `nginx/ssl/.htpasswd`, its two remaining accounts (`beta` and `bmc-reviewer`) and `/root/stickforstats-beta-access.txt` no longer protect anything. Archive them off the server once rollback B is no longer needed, with the older `/root/deploy-backup-*/nginx-ssl.tgz` copies that still hold the shared login. Revoking `bmc-reviewer` is moot.
 - **Abuse limits.** Before this release, a password stood in front of every request. Now only the limits stand:
   - nginx allows 100 requests a second per IP to `/api/`, with a burst of 50.
   - The backend allows 20 API requests a minute per IP to anonymous visitors. It reads the address from the first `X-Forwarded-For` entry, which nginx now sets to the address it saw (`$remote_addr`). Before this release nginx appended to the client's own header, so a forged first entry escaped the limit (executed: 0 of 25 requests limited).
