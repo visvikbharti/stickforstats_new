@@ -110,6 +110,14 @@ test('says the data import keeps nothing, and what became of the tables it used 
   expect(t).not.toMatch(/does keep what is sent to it/);
 });
 
+test('says an AI conversation is tied to the browser, and how long its session cookie lasts', () => {
+  renderPage();
+  const t = text();
+  expect(t).toMatch(/Only your browser can read it back,\s+continue it or clear it/);
+  expect(t).toMatch(/its ID\s+alone is not enough/);
+  expect(t).toMatch(/The cookie lasts 14 days/);
+});
+
 test('says the consent switches are not acted on yet', () => {
   renderPage();
   expect(text()).toMatch(/consent switches in Privacy settings are recorded, but the software does not\s+yet act on them/);

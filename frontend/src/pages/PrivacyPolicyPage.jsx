@@ -24,6 +24,8 @@ const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 //                                                  (troika fonts from jsdelivr), ai_advisor/services/ai_service.py
 //   account export and erase                       backend/core/services/gdpr_service.py
 //   browser storage                                context/AuthContext.js, context/SearchContext.js, DarkModeContext.jsx
+//   AI conversation owner and session cookie       api/v1/ai_advisor_views.py (conversation_owner), Django's
+//                                                  SESSION_COOKIE_AGE, core/tasks.py (cleanup_expired_sessions)
 const Section = ({ title, children }) => (
   <>
     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>{title}</Typography>
@@ -122,7 +124,11 @@ const PrivacyPolicyPage = () => (
         <Item>
           <strong>In your browser.</strong> Your browser keeps your settings, your search history
           and, if you sign in, your sign-in tokens in this site&rsquo;s local storage. Clearing
-          the site&rsquo;s data in your browser removes them.
+          the site&rsquo;s data in your browser removes them. If you chat with the AI assistant
+          while it is switched on, the site also sets a session cookie, so that only your browser
+          can read the conversation back. The cookie lasts 14 days. Our server keeps the matching
+          session record, which holds nothing else, for those 14 days, and the next daily
+          clean-up deletes it.
         </Item>
       </Box>
     </Section>
@@ -148,7 +154,9 @@ const PrivacyPolicyPage = () => (
           description, variable names, types and roles, and the tests you enter. Our server keeps
           the conversation in its memory for at least 24 hours after your last message; it is
           removed the next time the assistant is used after that, when you clear the
-          conversation, or when the server restarts.
+          conversation, or when the server restarts. Only your browser can read it back,
+          continue it or clear it: it is tied to your browser&rsquo;s session cookie, and its ID
+          alone is not enough.
         </Item>
       </Box>
     </Section>

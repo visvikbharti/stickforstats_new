@@ -63,6 +63,11 @@ class RetentionPeriodsMatchTheCodeTest(SimpleTestCase):
         source = (REPO / "scripts" / "backup.sh").read_text(encoding="utf-8")
         self.assertRegex(source, r"RETENTION_DAYS=\$\{BACKUP_RETENTION_DAYS:-30\}")
 
+    def test_the_session_cookie_lasts_fourteen_days(self):
+        # The AI assistant's session cookie and record (api/v1/ai_advisor_views.py).
+        self.assertEqual(settings.SESSION_COOKIE_AGE, 14 * 24 * 3600)
+        self.assertIn("The cookie lasts 14 days", PRIVACY_PAGE.read_text(encoding="utf-8"))
+
     def test_the_privacy_page_states_the_same_periods(self):
         page = PRIVACY_PAGE.read_text(encoding="utf-8")
         self.assertIn("cache for up to one hour", page)
