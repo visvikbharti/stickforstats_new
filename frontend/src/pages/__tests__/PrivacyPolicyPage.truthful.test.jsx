@@ -82,7 +82,8 @@ test('names the third parties every page contacts, not only the Paper Parser\'s'
   renderPage();
   const t = text();
   expect(t).toMatch(/every page after the opening screen\s+loads the MathJax formula renderer from cdnjs\.cloudflare\.com/);
-  expect(t).toMatch(/the 3-D plot in PCA loads font files\s+from cdn\.jsdelivr\.net/);
+  // PCA's 3-D plot (troika fonts from cdn.jsdelivr.net) is no longer on any page: PCAAnalysisPage.jsx.
+  expect(t).not.toMatch(/jsdelivr/);
 });
 
 test('says closing an account keeps the email address, because it is the username', () => {

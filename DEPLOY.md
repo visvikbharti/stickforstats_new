@@ -195,6 +195,7 @@ In a private browser window (hard-refresh if you see the old app; it has a servi
 - **Landing page:** `https://stickforstats.com` opens with no password dialog. The beta banner is there, and the page says "9 assumption validators". Its Data Privacy note links to the Privacy & data page.
 - **Privacy & data page:** `/privacy` starts "StickForStats is in beta and open to everyone".
 - **`/modules/anova`:** on the Analysis tab, enter three groups. The Guardian chip shows a percentage such as 72% or 100%, not 1%.
+- **`/pca-analysis`:** an information notice, "Running PCA on your own data isn't available yet", above the introduction, and no upload step. Its button opens the PCA learning hub (`/pca-learn`).
 - **Optional login:** if you have an account, sign in and open `/privacy-settings`.
 
 ## 4. Roll back to v1.2.0

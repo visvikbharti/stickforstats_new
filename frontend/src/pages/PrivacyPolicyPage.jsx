@@ -22,8 +22,9 @@ const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 //   daily backups kept 30 days (find -mtime +30)   scripts/backup.sh, docker-compose.yml (postgres-backup)
 //   accounts                                       authentication/serializers.py (email = username), gdpr_views.py
 //   third parties                                  frontend/public/index.html, Providers.jsx (MathJaxContext's default
-//                                                  cdnjs src), paper-parser/utils/pdfParser.js, pca ScatterPlot3D.jsx
-//                                                  (troika fonts from jsdelivr), ai_advisor/services/ai_service.py
+//                                                  cdnjs src), paper-parser/utils/pdfParser.js,
+//                                                  ai_advisor/services/ai_service.py (PCA's 3-D plot, with troika
+//                                                  fonts from jsdelivr, is on no page: PCAAnalysisPage.jsx)
 //   account export and erase                       backend/core/services/gdpr_service.py
 //   browser storage                                context/AuthContext.js, context/SearchContext.js, DarkModeContext.jsx
 //   AI conversation owner and session cookie       api/v1/ai_advisor_views.py (conversation_owner), Django's
@@ -146,9 +147,8 @@ const PrivacyPolicyPage = () => (
         <Item>
           Every page loads its fonts from Google Fonts, and every page after the opening screen
           loads the MathJax formula renderer from cdnjs.cloudflare.com. The Paper Parser also
-          loads its PDF reader from cdnjs.cloudflare.com, and the 3-D plot in PCA loads font files
-          from cdn.jsdelivr.net. Those services see your IP address, your browser and our
-          site&rsquo;s address, not your data. The Paper Parser reads the PDF in your browser and
+          loads its PDF reader from cdnjs.cloudflare.com. Those services see your IP address,
+          your browser and our site&rsquo;s address, not your data. The Paper Parser reads the PDF in your browser and
           sends us only the extracted text.
         </Item>
         <Item>

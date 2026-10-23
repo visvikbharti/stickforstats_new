@@ -1431,17 +1431,22 @@ const PcaIntroduction = ({ onNext }) => {
         </TabPanel>
       </Box>
       
-      <Divider sx={{ my: 4 }} />
-      
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={onNext}
-        >
-          Continue to Data Upload
-        </Button>
-      </Box>
+      {/* Only where a data-upload step follows: PCAAnalysisPage has none at present. */}
+      {onNext && (
+        <>
+          <Divider sx={{ my: 4 }} />
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onNext}
+            >
+              Continue to Data Upload
+            </Button>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };
