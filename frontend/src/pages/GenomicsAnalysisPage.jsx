@@ -49,6 +49,7 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
+import { describeTestUsed } from '../utils/genomicsTestUsed';
 import { formatPValue, compareWithMissingLast } from '../utils/formatStats';
 import {
   INPUT_SCALE_AUTO,
@@ -627,7 +628,7 @@ const GenomicsAnalysisPage = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Tooltip title={gene.cascaded ? 'Guardian cascaded to nonparametric' : 'Parametric test'}>
+                        <Tooltip title={describeTestUsed(gene)}>
                           <Chip
                             size="small"
                             label={gene.test_used}
