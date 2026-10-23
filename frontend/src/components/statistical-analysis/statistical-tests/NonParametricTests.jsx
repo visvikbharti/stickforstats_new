@@ -767,9 +767,6 @@ const NonParametricTests = ({ data }) => {
           <Typography variant="body2">
             <strong>Backend API Error:</strong> {backendError}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Falling back to frontend calculation. Check that the backend server is running on port 8000.
-          </Typography>
         </Alert>
       )}
 
