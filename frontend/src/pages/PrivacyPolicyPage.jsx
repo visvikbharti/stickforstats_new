@@ -7,6 +7,8 @@ const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 // Sources, so the page can be re-checked when the code changes:
 //   result cache (1 hour; ANOVA keeps the groups)  backend/api/v1/cache_utils.py, views.py (visualization_data),
 //                                                  docker-compose.yml (redis --appendonly yes, --save)
+//   Test Recommender upload (1 hour, whole table)  backend/core/api_views.py (DataUploadView; read back by
+//                                                  AssumptionCheckView, TestRecommendationView, TestExecutionView)
 //   IP addresses in the cache                      core/middleware/rate_limit_middleware.py (60 s),
 //                                                  api/v1/verify_views.py (VERIFY_THROTTLES, 1 hour)
 //   data import keeps nothing                      api/v1/views.py (DataImportView),
@@ -70,7 +72,9 @@ const PrivacyPolicyPage = () => (
           <strong>Cached results, up to one hour.</strong> The t-test, ANOVA and regression tools
           keep their result in a cache for up to one hour, so that an identical request can be
           answered without recomputing it. For ANOVA the cached result can include the group
-          values you sent. The cache is also written to disk, where an expired entry can remain,
+          values you sent. The Test Recommender, which needs an account, keeps the whole table you
+          upload in the same cache for up to one hour, so that its later steps can use it. The
+          cache is also written to disk, where an expired entry can remain,
           for no fixed time, until the cache file is next rewritten. The cache also holds your IP
           address: for a minute after each request, to limit request rates, and for an hour,
           with the time of each check, when you use the data verifier.

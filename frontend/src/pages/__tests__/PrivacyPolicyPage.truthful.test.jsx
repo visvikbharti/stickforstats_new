@@ -118,6 +118,11 @@ test('says an AI conversation is tied to the browser, and how long its session c
   expect(t).toMatch(/The cookie lasts 14 days/);
 });
 
+test('says the Test Recommender keeps an uploaded table in the cache for up to an hour', () => {
+  renderPage();
+  expect(text()).toMatch(/The Test Recommender, which needs an account, keeps the whole table you\s+upload in the same cache for up to one hour/);
+});
+
 test('says the consent switches are not acted on yet', () => {
   renderPage();
   expect(text()).toMatch(/consent switches in Privacy settings are recorded, but the software does not\s+yet act on them/);

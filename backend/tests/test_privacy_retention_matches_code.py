@@ -63,6 +63,13 @@ class RetentionPeriodsMatchTheCodeTest(SimpleTestCase):
         source = (REPO / "scripts" / "backup.sh").read_text(encoding="utf-8")
         self.assertRegex(source, r"RETENTION_DAYS=\$\{BACKUP_RETENTION_DAYS:-30\}")
 
+    def test_the_test_recommender_keeps_the_uploaded_table_one_hour(self):
+        # Signed-in users only (IsAuthenticated); its later steps read the table back.
+        source = (BACKEND / "core" / "api_views.py").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r'cache\.set\(f"data_\{data_id\}", df\.to_json\(\), timeout=(\d+)\)', source), ["3600"])
+        page = PRIVACY_PAGE.read_text(encoding="utf-8")
+        self.assertRegex(page, r"keeps the whole table you\s+upload in the same cache for up to one hour")
+
     def test_the_session_cookie_lasts_fourteen_days(self):
         # The AI assistant's session cookie and record (api/v1/ai_advisor_views.py).
         self.assertEqual(settings.SESSION_COOKIE_AGE, 14 * 24 * 3600)
