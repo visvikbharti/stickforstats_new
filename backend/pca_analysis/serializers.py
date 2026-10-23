@@ -36,6 +36,16 @@ class SampleSerializer(serializers.ModelSerializer):
         model = Sample
         fields = ["id", "name", "group", "group_name", "replicate_id"]
 
+    def get_fields(self):
+        fields = super().get_fields()
+        # A sample's group can only be one of its own project's groups. Any other group ID,
+        # including another user's, is refused exactly like an ID that does not exist.
+        if isinstance(self.instance, Sample):
+            fields["group"].queryset = SampleGroup.objects.filter(project_id=self.instance.project_id)
+        else:
+            fields["group"].queryset = SampleGroup.objects.none()
+        return fields
+
     def get_group_name(self, obj):
         return obj.group.name if obj.group else None
 
@@ -146,6 +156,9 @@ class PCAProjectSerializer(serializers.ModelSerializer):
             "results_count",
             "latest_result",
         ]
+        # The owner is always the signed-in user (views.py perform_create); a project must not
+        # be movable into someone else's account.
+        read_only_fields = ["user"]
 
     def get_sample_count(self, obj):
         return Sample.objects.filter(project=obj).count()

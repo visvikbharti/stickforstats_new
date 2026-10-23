@@ -139,7 +139,7 @@ docker compose exec -T backend python manage.py migrate --plan < /dev/null   # N
 
 ## 3. Check the live site
 
-These come from any machine, with no credentials. For checks 3–9, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
+These come from any machine, with no credentials. For checks 3–10, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
 
 The backend allows 20 API requests a minute per IP address to anonymous visitors, so run the checks in one go rather than repeatedly.
 
@@ -188,6 +188,9 @@ for p in /api/v1/reports/ /api/v1/doe-analysis/experiment-designs/; do
 printf 'a,b\n1,2\n3,4\n' > /tmp/sfs-check.csv
 curl -s -D /tmp/sfs-check.hdr -o /dev/null -w '%{http_code}\n' -F file=@/tmp/sfs-check.csv "$B/api/v1/data/import/"
 grep -ci '^set-cookie: sessionid' /tmp/sfs-check.hdr
+
+# 10. PCA projects and their records need sign-in (v1.2.0 answered 500). Expect 401.
+curl -s -o /dev/null -w '%{http_code}\n' "$B/api/v1/pca-analysis/projects/"
 ```
 
 In a private browser window (hard-refresh if you see the old app; it has a service worker):
