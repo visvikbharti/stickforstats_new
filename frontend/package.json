@@ -62,7 +62,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings 1064"
+    "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings 1056"
   },
   "eslintConfig": {
     "extends": [

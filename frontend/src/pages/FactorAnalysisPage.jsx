@@ -1,262 +1,28 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import {
   Container,
   Typography,
   Paper,
-  Stepper,
-  Step,
-  StepLabel,
-  Button,
   Box,
   CircularProgress,
   Alert,
-  Snackbar
+  AlertTitle
 } from '@mui/material';
-import { useParams, useNavigate } from 'react-router-dom';
 
-// Eagerly load essential components
-import DataUploader from '../components/pca/DataUploader';
-import EducationalBanner from '../components/education/EducationalBanner';
-
-// Lazy load large components
 const FactorIntroduction = lazy(() => import('../components/factor/FactorIntroduction'));
-const FactorAdequacy = lazy(() => import('../components/factor/FactorAdequacy'));
-const FactorConfiguration = lazy(() => import('../components/factor/FactorConfiguration'));
-const FactorVisualization = lazy(() => import('../components/factor/FactorVisualization'));
-const FactorInterpretation = lazy(() => import('../components/factor/FactorInterpretation'));
-const FactorReportGenerator = lazy(() => import('../components/factor/FactorReportGenerator'));
 
-const steps = [
-  'Introduction',
-  'Upload Data',
-  'Test Adequacy',
-  'Configure Analysis',
-  'Visualization',
-  'Interpretation',
-  'Generate Report'
-];
-
+// Factor Analysis cannot run an analysis in this release, so the page says so instead of
+// faking success. What it did (2026-10-24), signed in or not:
+// - Its upload step was PCA's uploader (components/pca/DataUploader.jsx), which asks for gene
+//   expression data and posts it to the PCA project API. That API answers 401 (500 before the
+//   PCA record routes needed sign-in), and the uploader then said "Data uploaded successfully!"
+//   or "Demo project created successfully (Offline Mode)!" about a project that did not exist.
+// - Nothing went further: this page passed onDatasetUpload, but the uploader calls
+//   onDataUploaded, so the steps that call /api/v1/factor/ were never reached.
+// Until the flow is rebuilt the page shows the introduction and sends nothing to the server.
+// The old steps are still in components/factor/. (Its EducationalBanner showed PCA's lessons:
+// the banner has no factor-analysis entry.)
 function FactorAnalysisPage() {
-  const { sessionId } = useParams();
-  const navigate = useNavigate();
-
-  // State
-  const [activeStep, setActiveStep] = useState(0);
-  const [dataset, setDataset] = useState(null);
-  const [adequacyResults, setAdequacyResults] = useState(null);
-  const [configuration, setConfiguration] = useState({
-    nFactors: null, // Auto-determined if null
-    rotation: 'varimax', // 'varimax' | 'promax' | 'oblimin' | 'quartimax'
-    method: 'minres', // 'minres' | 'ml' | 'principal'
-    factorSelectionMethods: ['kaiser', 'scree', 'parallel']
-  });
-  const [results, setResults] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
-
-  // Navigation handlers
-  const handleNext = () => setActiveStep((prevStep) => prevStep + 1);
-  const handleBack = () => setActiveStep((prevStep) => prevStep - 1);
-
-  // Handle dataset upload
-  const handleDatasetUpload = (uploadedDataset) => {
-    setDataset(uploadedDataset);
-    setNotification({
-      open: true,
-      message: 'Dataset uploaded successfully! Testing data adequacy...',
-      severity: 'success'
-    });
-    // Automatically test adequacy
-    testAdequacy(uploadedDataset);
-    handleNext();
-  };
-
-  // Test data adequacy (Bartlett's test, KMO)
-  const testAdequacy = async (datasetToTest) => {
-    try {
-      setIsLoading(true);
-
-      const response = await fetch('/api/v1/factor/adequacy/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: datasetToTest.data,
-          column_names: datasetToTest.columns
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Adequacy test failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setAdequacyResults(result.results);
-
-      if (result.results.adequacy_status === 'poor') {
-        setNotification({
-          open: true,
-          message: 'Warning: Data may not be suitable for factor analysis. Check adequacy results.',
-          severity: 'warning'
-        });
-      }
-    } catch (err) {
-      setError(`Error testing adequacy: ${err.message}`);
-      setNotification({
-        open: true,
-        message: `Error: ${err.message}`,
-        severity: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle configuration changes
-  const handleConfigurationChange = (newConfig) => {
-    setConfiguration(prev => ({
-      ...prev,
-      ...newConfig
-    }));
-  };
-
-  // Handle running factor analysis
-  const handleRunAnalysis = async () => {
-    try {
-      setIsLoading(true);
-
-      const requestBody = {
-        data: dataset.data,
-        column_names: dataset.columns,
-        n_factors: configuration.nFactors,
-        rotation: configuration.rotation,
-        method: configuration.method
-      };
-
-      const response = await fetch('/api/v1/factor/efa/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setResults(result.results);
-
-      setNotification({
-        open: true,
-        message: 'Factor analysis completed successfully!',
-        severity: 'success'
-      });
-
-      handleNext();
-    } catch (err) {
-      setError(`Error running factor analysis: ${err.message}`);
-      setNotification({
-        open: true,
-        message: `Error: ${err.message}`,
-        severity: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle report generation
-  const handleGenerateReport = (reportConfig) => {
-    setNotification({
-      open: true,
-      message: 'Report generated successfully!',
-      severity: 'success'
-    });
-  };
-
-  // Close notification
-  const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
-  };
-
-  // Loading component
-  const StepLoadingComponent = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-      <CircularProgress />
-    </Box>
-  );
-
-  // Render step content
-  const getStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorIntroduction onContinue={handleNext} />
-          </Suspense>
-        );
-      case 1:
-        return <DataUploader onDatasetUpload={handleDatasetUpload} />;
-      case 2:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorAdequacy
-              adequacyResults={adequacyResults}
-              onContinue={handleNext}
-              onBack={handleBack}
-            />
-          </Suspense>
-        );
-      case 3:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorConfiguration
-              dataset={dataset}
-              adequacyResults={adequacyResults}
-              configuration={configuration}
-              onChange={handleConfigurationChange}
-              onRunAnalysis={handleRunAnalysis}
-              isRunning={isLoading}
-            />
-          </Suspense>
-        );
-      case 4:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorVisualization
-              results={results}
-              configuration={configuration}
-            />
-          </Suspense>
-        );
-      case 5:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorInterpretation
-              results={results}
-              configuration={configuration}
-              dataset={dataset}
-              onContinue={handleNext}
-            />
-          </Suspense>
-        );
-      case 6:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <FactorReportGenerator
-              results={results}
-              dataset={dataset}
-              configuration={configuration}
-              adequacyResults={adequacyResults}
-              onGenerateReport={handleGenerateReport}
-            />
-          </Suspense>
-        );
-      default:
-        return 'Unknown step';
-    }
-  };
-
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Paper elevation={0} sx={{ p: 3, bgcolor: 'transparent' }}>
@@ -268,79 +34,24 @@ function FactorAnalysisPage() {
         </Typography>
       </Paper>
 
-      {/* Educational Banner */}
-      {activeStep === 0 && (
-        <EducationalBanner module="factor" variant="default" dismissible={true} />
-      )}
+      <Alert severity="info" sx={{ mb: 4 }}>
+        <AlertTitle>Running factor analysis on your own data isn&rsquo;t available yet</AlertTitle>
+        Uploading a data set here has faults we haven&rsquo;t fixed yet, so this page
+        doesn&rsquo;t offer the analysis, and it doesn&rsquo;t upload anything. The introduction
+        below explains factor analysis.
+      </Alert>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 4 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Stepper */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Paper>
-
-      {/* Main Content */}
-      <Paper elevation={2} sx={{ p: 3, minHeight: '60vh' }}>
-        {isLoading && activeStep !== 2 && activeStep < 4 ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          getStepContent(activeStep)
-        )}
-      </Paper>
-
-      {/* Navigation Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-        {activeStep > 0 && activeStep < 4 && activeStep !== 2 && (
-          <Button
-            variant="outlined"
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-            disabled={isLoading}
-          >
-            Back
-          </Button>
-        )}
-
-        {activeStep === 0 && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleNext}
-          >
-            Start Analysis
-          </Button>
-        )}
-      </Box>
-
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseNotification}
-          severity={notification.severity}
-          variant="filled"
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Suspense
+          fallback={
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          }
         >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+          <FactorIntroduction />
+        </Suspense>
+      </Paper>
     </Container>
   );
 }
