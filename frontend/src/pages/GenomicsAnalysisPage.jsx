@@ -656,7 +656,11 @@ const GenomicsAnalysisPage = () => {
                           variant="body2"
                           color={gene.log2_fold_change > 0 ? 'error.main' : 'primary.main'}
                         >
-                          {gene.log2_fold_change > 0 ? '+' : ''}{gene.log2_fold_change.toFixed(2)}
+                          {/* Null-safe: on a linear scale the fold change does not exist when a
+                              group mean is 0, and the backend says so with null. */}
+                          {gene.log2_fold_change == null
+                            ? '—'
+                            : `${gene.log2_fold_change > 0 ? '+' : ''}${gene.log2_fold_change.toFixed(2)}`}
                         </Typography>
                       </TableCell>
                       <TableCell>
