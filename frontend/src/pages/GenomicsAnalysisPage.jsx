@@ -39,6 +39,12 @@ import {
   Shield as ShieldIcon,
 } from '@mui/icons-material';
 import {
+  CONFIDENCE_DEFINITION,
+  GUARDIAN_COLUMN_DEFINITION,
+  MEAN_CONFIDENCE_DEFINITION,
+  MIN_CONFIDENCE_DEFINITION,
+} from '../utils/genomicsConfidence';
+import {
   ScatterChart,
   Scatter,
   XAxis,
@@ -459,6 +465,9 @@ const GenomicsAnalysisPage = () => {
                   <Typography variant="h4">
                     {(result.guardian_summary.mean_confidence * 100).toFixed(1)}%
                   </Typography>
+                  <Typography variant="caption" color="text.secondary" data-testid="mean-confidence-definition">
+                    {MEAN_CONFIDENCE_DEFINITION}
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
@@ -469,6 +478,9 @@ const GenomicsAnalysisPage = () => {
             <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <ShieldIcon color="primary" />
               Guardian Summary
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }} data-testid="confidence-definition">
+              {CONFIDENCE_DEFINITION}
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6} md={3}>
@@ -486,6 +498,9 @@ const GenomicsAnalysisPage = () => {
               <Grid item xs={6} md={3}>
                 <Typography variant="body2" color="text.secondary">Min Confidence</Typography>
                 <Typography variant="h6">{(result.guardian_summary.min_confidence * 100).toFixed(1)}%</Typography>
+                <Typography variant="caption" color="text.secondary" data-testid="min-confidence-definition">
+                  {MIN_CONFIDENCE_DEFINITION}
+                </Typography>
               </Grid>
             </Grid>
             {/* cascade_rate counts EVERY switch away from Student's t-test, Welch's included, so
@@ -583,6 +598,15 @@ const GenomicsAnalysisPage = () => {
             <Typography variant="h6" gutterBottom>
               Gene Results ({sortedGenes.length} genes)
             </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              component="p"
+              sx={{ mb: 1 }}
+              data-testid="guardian-column-definition"
+            >
+              {GUARDIAN_COLUMN_DEFINITION}
+            </Typography>
             <TableContainer sx={{ maxHeight: 500 }}>
               <Table stickyHeader size="small">
                 <TableHead>
@@ -654,7 +678,11 @@ const GenomicsAnalysisPage = () => {
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <Tooltip title={`Confidence: ${(gene.guardian_confidence * 100).toFixed(0)}%`}>
+                        <Tooltip
+                          // Short on purpose: MUI copies a string title into the cell's aria-label,
+                          // and the full definition is already on the page, above the table.
+                          title={`Confidence ${(gene.guardian_confidence * 100).toFixed(0)}%: Guardian's assumption-check score, not a probability (defined under Guardian Summary)`}
+                        >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             {gene.guardian_confidence >= 0.8 ? (
                               <CheckIcon fontSize="small" color="success" />
