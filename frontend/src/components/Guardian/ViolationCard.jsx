@@ -59,6 +59,23 @@ const SEVERITY_CONFIG = {
 /**
  * ViolationCard Component
  */
+// Guardian sends p_value and statistic as null when a check has none (the outlier check, for
+// one), and visual_evidence as plot data: an object such as {group_1: {qq_plot: ...}, ...}.
+// `!== undefined` let null through to `.toFixed` (a TypeError), `null < 0.001` labelled a
+// missing p-value "<.001", and rendering the object threw "Objects are not valid as a React
+// child". Each of those crashed the whole report as soon as it showed a real violation.
+const isNumber = (value) => typeof value === 'number' && Number.isFinite(value);
+
+const describeVisualEvidence = (evidence) => {
+  if (typeof evidence === 'string' || typeof evidence === 'number') return String(evidence);
+  if (Array.isArray(evidence)) return `plot data (${evidence.length} values)`;
+  if (typeof evidence === 'object') {
+    const keys = Object.keys(evidence);
+    return keys.length ? `plot data for ${keys.map((k) => k.replace(/_/g, ' ')).join(', ')}` : 'none';
+  }
+  return 'none';
+};
+
 const ViolationCard = ({ violation }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
@@ -118,7 +135,7 @@ const ViolationCard = ({ violation }) => {
 
         {/* Stats */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          {p_value !== undefined && (
+          {isNumber(p_value) && (
             <Tooltip title="p-value">
               <Chip
                 size="small"
@@ -128,7 +145,7 @@ const ViolationCard = ({ violation }) => {
               />
             </Tooltip>
           )}
-          {statistic !== undefined && (
+          {isNumber(statistic) && (
             <Tooltip title="Test statistic">
               <Chip
                 size="small"
@@ -192,10 +209,10 @@ const ViolationCard = ({ violation }) => {
           )}
 
           {/* Visual Evidence */}
-          {visual_evidence && (
+          {visual_evidence != null && (
             <Box sx={{ mt: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                <strong>Visual Evidence:</strong> {visual_evidence}
+                <strong>Visual Evidence:</strong> {describeVisualEvidence(visual_evidence)}
               </Typography>
             </Box>
           )}
