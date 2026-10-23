@@ -126,7 +126,7 @@ class VerifyAnalyzeAPITest(APITestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class VerifyAccessControlTest(APITestCase):
-    """Access policy for the verification endpoints: open behind the beta gateway by
+    """Access policy for the verification endpoints: open (no account needed) by
     default, switchable to auth-required via VERIFY_REQUIRE_AUTH, and rate-limited."""
 
     ANALYZE = "/api/v1/verify/analyze/"

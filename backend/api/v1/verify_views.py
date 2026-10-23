@@ -54,11 +54,10 @@ logger = logging.getLogger(__name__)
 class VerifyAccessPermission(BasePermission):
     """Access policy for the verification endpoints.
 
-    Open by default: the closed beta gates the whole site at the reverse proxy
-    (Basic-Auth), so these endpoints are reachable without per-request auth in that
-    context. Setting ``VERIFY_REQUIRE_AUTH=True`` (Django setting / env var) flips
-    them to require an authenticated user — the switch to throw before a public
-    launch, with no code change.
+    Open by default: the site is public, so these endpoints are reachable without
+    per-request auth (they are rate-limited by VERIFY_THROTTLES below either way). Setting ``VERIFY_REQUIRE_AUTH=True`` (Django
+    setting / env var) flips them to require an authenticated user, with no code
+    change.
     """
 
     message = "Authentication is required to use the verification API."

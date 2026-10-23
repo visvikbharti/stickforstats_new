@@ -197,10 +197,11 @@ SIMPLE_JWT = {
 }
 
 # Manuscript verification API access (api/v1/verify_views).
-# The closed beta gates the whole site at the reverse proxy (Basic-Auth), so the
-# /verify/* endpoints are open by default. Set VERIFY_REQUIRE_AUTH=True to require an
-# authenticated user before a public launch — a config flip, no code change. The
-# endpoints are rate-limited regardless (per-IP for anon, per-user for authenticated).
+# The site is public (there is no longer a Basic-Auth gate at the reverse proxy), and
+# the /verify/* endpoints are open by default so the verifier needs no account. Set
+# VERIFY_REQUIRE_AUTH=True to require an authenticated user — a config flip, no code
+# change. The endpoints are rate-limited regardless (per-IP for anon, per-user for
+# authenticated).
 VERIFY_REQUIRE_AUTH = os.environ.get("VERIFY_REQUIRE_AUTH", "false").lower() == "true"
 
 # CORS settings
