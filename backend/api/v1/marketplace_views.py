@@ -13,6 +13,28 @@ from rest_framework.permissions import AllowAny
 logger = logging.getLogger(__name__)
 
 
+def member_organization(request):
+    """The organization the request acts for, but only if the signed-in user is an active member.
+
+    request.organization comes from the tenant middleware (X-Organization or X-API-Key), which
+    resolves it only while STICKFORSTATS_TIER_ENFORCEMENT is on. The middleware never requires
+    membership, and it runs before DRF's token authentication, so it cannot see token users. So
+    every view that acts for an organization, or shows what it has installed, checks membership
+    here, whatever that setting.
+    """
+    org = getattr(request, "organization", None)
+    if org is None or not request.user.is_authenticated:
+        return None
+    from core.models import OrganizationMembership
+
+    if OrganizationMembership.objects.filter(organization=org, user=request.user, is_active=True).exists():
+        return org
+    return None
+
+
+NOT_A_MEMBER = {"error": "Only members of this organization can do this"}
+
+
 class MarketplaceListView(APIView):
     """
     GET /api/v1/marketplace/plugins/
@@ -53,8 +75,8 @@ class MarketplaceListView(APIView):
         elif sort == "name":
             plugins = plugins.order_by("name")
 
-        # Check installed status for current org
-        org = getattr(request, "organization", None)
+        # Check installed status for current org (members only: it shows what the org installed)
+        org = member_organization(request)
         installed_ids = set()
         if org:
             from core.models import PluginInstallation
@@ -115,8 +137,8 @@ class PluginDetailView(APIView):
         # Get reviews
         reviews = p.reviews.select_related("user")[:20]
 
-        # Check install status
-        org = getattr(request, "organization", None)
+        # Check install status (members only)
+        org = member_organization(request)
         is_installed = False
         if org:
             from core.models import PluginInstallation
@@ -179,6 +201,8 @@ class PluginInstallView(APIView):
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
+        if member_organization(request) is None:
+            return Response(NOT_A_MEMBER, status=403)
 
         from core.models import Plugin, PluginInstallation
 
@@ -223,6 +247,8 @@ class PluginInstallView(APIView):
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
+        if member_organization(request) is None:
+            return Response(NOT_A_MEMBER, status=403)
 
         from core.models import PluginInstallation
 
@@ -308,6 +334,9 @@ class InstalledPluginsView(APIView):
         org = getattr(request, "organization", None)
         if not org:
             return Response({"plugins": [], "message": "No organization context"})
+        if member_organization(request) is None:
+            # The list includes each plugin's configuration and who installed it.
+            return Response(NOT_A_MEMBER, status=403)
 
         from core.models import PluginInstallation
 

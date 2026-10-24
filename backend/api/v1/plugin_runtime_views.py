@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from .marketplace_views import NOT_A_MEMBER, member_organization
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,8 @@ class PluginExecuteView(APIView):
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
+        if member_organization(request) is None:
+            return Response(NOT_A_MEMBER, status=403)
 
         from core.models import Plugin, PluginInstallation
 
@@ -63,6 +67,8 @@ class PluginConfigUpdateView(APIView):
         org = getattr(request, "organization", None)
         if not org:
             return Response({"error": "Organization context required"}, status=400)
+        if member_organization(request) is None:
+            return Response(NOT_A_MEMBER, status=403)
 
         from core.models import PluginInstallation
 
