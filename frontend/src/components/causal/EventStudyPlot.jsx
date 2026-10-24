@@ -40,6 +40,7 @@ import {
   ErrorBar,
   Scatter
 } from 'recharts';
+import { formatPValue } from '../../utils/formatStats';
 
 // Custom error bar component for confidence intervals
 const CustomErrorBar = ({ x, y, width, height, ciLower, ciUpper, stroke }) => {
@@ -136,7 +137,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             variant="body2"
             color={data.significant ? 'success.main' : 'text.secondary'}
           >
-            {data.pValue?.toFixed(4)}
+            {formatPValue(data.pValue)}
             {data.significant && ' *'}
           </Typography>
         </Box>

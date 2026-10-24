@@ -25,7 +25,7 @@ import { getApiUrl, endpoints } from '../config/apiConfig';
 // "No statistical result may exist without an explicit, traceable assumption context."
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
-import { isSignificant } from '../utils/formatStats';
+import { isSignificant, formatPValue } from '../utils/formatStats';
 
 /**
  * "N decimal places" for a 50-digit decimal STRING from the backend -- and an em dash when there
@@ -213,7 +213,7 @@ const TTestRealBackend = () => {
                     P-Value
                   </Typography>
                   <Typography variant="h6" sx={{ fontFamily: 'monospace' }}>
-                    {results.p_value ?? '\u2014'}
+                    {formatPValue(results.p_value)}
                   </Typography>
                   <Chip
                     label={significanceLabel(results.p_value)}
@@ -292,14 +292,12 @@ const TTestRealBackend = () => {
     // read .normality.passed / .equal_variance.passed / .independence.passed --
     // none of which exist -- so every run showed "⚠️ Violated" (and printed the
     // real high equal-variance p-value right next to a "Violated" label).
-    const fmtP = (v) =>
-      v === null || v === undefined || Number.isNaN(Number(v)) ? 'N/A' : Number(v).toFixed(4);
     const norm1 = assumptions.normality_data1;
     const norm2 = assumptions.normality_data2;
     const normalityMet = norm1 ? norm1.is_met && (norm2 ? norm2.is_met : true) : undefined;
     const normalityP = norm2
-      ? `${fmtP(norm1?.p_value)}, ${fmtP(norm2?.p_value)}`
-      : fmtP(norm1?.p_value);
+      ? `${formatPValue(norm1?.p_value)}, ${formatPValue(norm2?.p_value)}`
+      : formatPValue(norm1?.p_value);
     const eqVar = assumptions.equal_variance;
 
     return (
@@ -329,7 +327,7 @@ const TTestRealBackend = () => {
                     <strong>Equal Variance:</strong> {eqVar.is_met ? "✅ Met" : "⚠️ Violated"}
                   </Typography>
                   <Typography variant="caption">
-                    p-value: {fmtP(eqVar.p_value)}
+                    p-value: {formatPValue(eqVar.p_value)}
                   </Typography>
                 </Alert>
               </Grid>

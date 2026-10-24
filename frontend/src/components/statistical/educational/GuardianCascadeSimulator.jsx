@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 
 import guardianService from '../../../services/GuardianService';
+import { formatPClause } from '../../../utils/formatStats';
 
 /**
  * GuardianCascadeSimulator
@@ -1431,13 +1432,13 @@ const GuardianCascadeSimulator = () => {
             {anchor.normalityP != null && (
               <>
                 {' '}
-                Backend normality p={anchor.normalityP.toFixed(4)}.
+                Backend normality {formatPClause(anchor.normalityP)}.
               </>
             )}
             {anchor.varianceP != null && (
               <>
                 {' '}
-                Levene p={anchor.varianceP.toFixed(4)}.
+                Levene {formatPClause(anchor.varianceP)}.
               </>
             )}
             {!anchor.match && (

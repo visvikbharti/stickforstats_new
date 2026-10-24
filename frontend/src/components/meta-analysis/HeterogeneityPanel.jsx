@@ -25,7 +25,7 @@ import {
   TableRow,
   Alert,
 } from '@mui/material';
-import { formatPValue, formatNumber } from '../../utils/formatStats';
+import { formatPValue, formatNumber, formatPClause } from '../../utils/formatStats';
 
 /**
  * `null < 0.05` is true in JavaScript -- null coerces to 0. So a subgroup whose p-value the
@@ -126,7 +126,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                   <Typography variant="body2" color="text.secondary">Q Statistic</Typography>
                   <Typography variant="h6">{formatNumber(heterogeneity.q, 2)}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    df = {heterogeneity.q_df}, p = {formatPValue(heterogeneity.q_p)}
+                    df = {heterogeneity.q_df}, {formatPClause(heterogeneity.q_p)}
                   </Typography>
                 </Grid>
 
@@ -232,7 +232,7 @@ const HeterogeneityPanel = ({ heterogeneity, subgroupAnalysis }) => {
                     </Typography>
                     <Typography variant="body1">
                       Q = {formatNumber(subgroupAnalysis.q_between, 2)}, df = {subgroupAnalysis.df_between},
-                      p = {formatPValue(subgroupAnalysis.p_between)}
+                      {formatPClause(subgroupAnalysis.p_between)}
                     </Typography>
                   </Box>
                   <Chip

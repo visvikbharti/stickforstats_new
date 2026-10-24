@@ -15,6 +15,7 @@ import warnings
 
 # Import visualization and effect size modules
 from .visualization_generator import VisualizationGenerator
+from .p_values import p_clause
 from .effect_size_calculator import EffectSizeCalculator
 
 # Set precision for high-accuracy calculations
@@ -1562,13 +1563,16 @@ class NormalityValidator:
             # non-normal group to a mere 'warning' whenever any co-group was
             # normal, letting can_proceed stay True on grossly non-normal data.
             severity = "critical" if any(r["p_value"] < alpha / 10 for r in violations) else "warning"
+            # The message cites the reported p-value, the smallest; it used to cite the first
+            # violating group's, which could differ from the p_value field beside it.
+            min_p = min(r["p_value"] for r in violations)
             return {
                 "violated": True,
                 "test_name": violations[0]["test_name"],
                 "severity": severity,
-                "p_value": min(r["p_value"] for r in violations),
+                "p_value": min_p,
                 "statistic": violations[0]["statistic"],
-                "message": f'Normality assumption violated (p={violations[0]["p_value"]:.4f})',
+                "message": f"Normality assumption violated ({p_clause(min_p)})",
                 "recommendation": "Consider transformation (log, sqrt) or use non-parametric tests",
                 "visual_data": self._generate_visual_data(data_arrays),
             }
@@ -1632,7 +1636,7 @@ class VarianceHomogeneityValidator:
                 "severity": severity,
                 "p_value": p_value,
                 "statistic": stat,
-                "message": f"Variance homogeneity violated (ratio={ratio:.2f}, p={p_value:.4f})",
+                "message": f"Variance homogeneity violated (ratio={ratio:.2f}, {p_clause(p_value)})",
                 "recommendation": "Use Welch's t-test or non-parametric alternatives",
                 "visual_data": self._generate_visual_data(data_arrays),
             }
@@ -2002,7 +2006,7 @@ class IndependenceValidator:
                     "p_value": p_value,
                     "message": (
                         f"Independence assumption violated "
-                        f"(lag-1 r={autocorr:.3f}, p={p_value:.4f}). "
+                        f"(lag-1 r={autocorr:.3f}, {p_clause(p_value)}). "
                         "NOTE: assumes rows are in time/sequence order; "
                         "ignore if data are cross-sectional."
                     ),
@@ -2475,7 +2479,7 @@ class HomoscedasticityValidator:
                 "severity": severity,
                 "p_value": float(p_value),
                 "statistic": float(bp_statistic),
-                "message": f"Homoscedasticity violated (BP test p={p_value:.4f}, variance ratio={var_ratio:.2f})",
+                "message": f"Homoscedasticity violated (BP test {p_clause(p_value)}, variance ratio={var_ratio:.2f})",
                 "recommendation": "Consider weighted least squares, robust regression, or transformation",
                 "visual_data": {
                     "fitted_values": y_pred.tolist(),

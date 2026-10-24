@@ -55,7 +55,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
 import { pearsonCorrelation, spearmanCorrelation } from '../utils/statisticalUtils';
 import { runCorrelation } from '../utils/hubTestService';
-import { formatPValue, formatNumber } from '../../../utils/formatStats';
+import { formatPValue, formatNumber, formatPClause } from '../../../utils/formatStats';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
@@ -711,12 +711,12 @@ const CorrelationTests = ({ data }) => {
                     <>
                       There is a <strong>{getCorrelationStrength(pairwiseCorrelation.coefficient).toLowerCase()}</strong>{' '}
                       <strong>{getCorrelationDirection(pairwiseCorrelation.coefficient).toLowerCase()}</strong> correlation
-                      between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, p = {formatPValue(pairwiseCorrelation.pValue)} {'<'} {alpha}).
+                      between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, {formatPClause(pairwiseCorrelation.pValue)} {'<'} {alpha}).
                       The correlation explains {rSquared === null ? '\u2014' : `${(rSquared * 100).toFixed(1)}%`} of the variance (R²).
                     </>
                   ) : (
                     <>
-                      There is no significant correlation between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, p = {formatPValue(pairwiseCorrelation.pValue)} {'>='} {alpha}).
+                      There is no significant correlation between {xColumn} and {yColumn} (r = {formatNumber(pairwiseCorrelation.coefficient, 3)}, {formatPClause(pairwiseCorrelation.pValue)} {'>='} {alpha}).
                     </>
                   )}
                 </Typography>

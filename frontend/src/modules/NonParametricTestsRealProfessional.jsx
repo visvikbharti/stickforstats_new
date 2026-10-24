@@ -76,7 +76,7 @@ import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 // Interactive "why non-parametric routing matters" lecture demo, backend-anchored
 // to the real Guardian engine (reproduces the Fig 8 cascade calibration benchmark).
 import { GuardianCascadeSimulator } from '../components/statistical/educational';
-import { isSignificant } from '../utils/formatStats';
+import { isSignificant, formatPValue } from '../utils/formatStats';
 
 const NonParametricTestsRealProfessional = () => {
   // State management
@@ -625,7 +625,7 @@ const NonParametricTestsRealProfessional = () => {
                         Statistical Significance
                       </Typography>
                       <Typography variant="body1">
-                        p-value: <strong>{formatNumber(results.p_value, 8)}</strong>
+                        p-value: <strong>{formatPValue(results.p_value)}</strong>
                       </Typography>
                       <Alert
                         severity={isSignificant(results.p_value) ? 'success' : 'info'}
@@ -805,8 +805,8 @@ const NonParametricTestsRealProfessional = () => {
                               <TableCell sx={{ textTransform: 'capitalize' }}>{c.label}</TableCell>
                               <TableCell align="right">{formatNumber(c.mean_rank_diff, 2)}</TableCell>
                               <TableCell align="right">{formatNumber(c.z_statistic, 3)}</TableCell>
-                              <TableCell align="right">{formatNumber(c.p_value, 4)}</TableCell>
-                              <TableCell align="right">{formatNumber(c.adjusted_p_value, 4)}</TableCell>
+                              <TableCell align="right">{formatPValue(c.p_value)}</TableCell>
+                              <TableCell align="right">{formatPValue(c.adjusted_p_value)}</TableCell>
                               <TableCell align="center">
                                 {c.significant
                                   ? <Chip size="small" color="success" label="Yes" />

@@ -223,7 +223,7 @@ curl -s -o /dev/null -w '%{http_code}\n' "$B/api/v1/pca-analysis/projects/"
 
 In a private browser window (hard-refresh if you see the old app; it has a service worker):
 
-- **Landing page:** `https://stickforstats.com` opens with no password dialog. The beta banner is there, and the page says "9 assumption validators". Its Data Privacy note links to the Privacy & data page.
+- **Landing page:** `https://stickforstats.com` opens with no password dialog. The page says "9 assumption validators", and its Data Privacy note links to the Privacy & data page. The beta banner isn't on the landing page; it shows on every other page, for example `/privacy` (as in v1.2.0).
 - **Privacy & data page:** `/privacy` starts "StickForStats is in beta and open to everyone".
 - **`/modules/anova`:** on the Analysis tab, enter three groups. The Guardian chip shows a percentage such as 72% or 100%, not 1%.
 - **`/pca-analysis`:** an information notice, "Running PCA on your own data isn't available yet", above the introduction, and no upload step. Its button opens the PCA learning hub (`/pca-learn`).

@@ -5,6 +5,7 @@ import {
   adaptTwoWayResponse,
   buildTwoWayCells,
   formatPValue,
+  formatPClause,
   formatStat,
 } from '../anovaResultAdapter';
 
@@ -179,8 +180,15 @@ describe('formatPValue', () => {
     expect(formatPValue(1, 4)).toBe('1.0000');
   });
 
-  it('renders an exact zero as zero, not as a threshold', () => {
-    expect(formatPValue(0, 4)).toBe('0.0000');
+  it('renders an exact zero as below the threshold, not as 0.0000', () => {
+    // The backend sends 0 only when the tail underflows; "0.0000" read as exactly zero.
+    expect(formatPValue(0, 4)).toBe('< 0.0001');
+  });
+
+  it('writes a clause for running text, with the bound as a bound', () => {
+    expect(formatPClause(0.0435, 4)).toBe('p = 0.0435');
+    expect(formatPClause(5.9e-8, 4)).toBe('p < 0.0001');
+    expect(formatPClause(0, 4)).toBe('p < 0.0001');
   });
 
   it('renders a missing value as an em dash', () => {

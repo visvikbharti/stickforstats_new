@@ -41,7 +41,7 @@ import {
   ZAxis
 } from 'recharts';
 import { pearsonCorrelation, linearRegression } from '../utils/statisticalUtils';
-import { formatPValue, formatNumber } from '../../../utils/formatStats';
+import { formatPValue, formatNumber, formatPClause } from '../../../utils/formatStats';
 
 /**
  * Relationship Analysis Component
@@ -647,12 +647,12 @@ const RelationshipAnalysis = ({ data }) => {
                 <>
                   There is a <strong>{Math.abs(correlation.coefficient) > 0.7 ? 'strong' : Math.abs(correlation.coefficient) > 0.5 ? 'moderate' : 'weak'}</strong>{' '}
                   <strong>{correlation.coefficient > 0 ? 'positive' : 'negative'}</strong> correlation
-                  between {xColumn} and {yColumn} (r = {formatNumber(correlation.coefficient, 3)}, p = {formatPValue(correlation.pValue)}).
+                  between {xColumn} and {yColumn} (r = {formatNumber(correlation.coefficient, 3)}, {formatPClause(correlation.pValue)}).
                 </>
               ) : (
                 <>
                   No statistically significant correlation detected between {xColumn} and {yColumn}
-                  (r = {formatNumber(correlation.coefficient, 3)}, p = {formatPValue(correlation.pValue)}).
+                  (r = {formatNumber(correlation.coefficient, 3)}, {formatPClause(correlation.pValue)}).
                 </>
               )}
             </Typography>

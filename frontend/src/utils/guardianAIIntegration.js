@@ -9,6 +9,8 @@
  * @version 1.0.0
  */
 
+import { formatPValue } from './formatStats';
+
 /**
  * Severity levels for Guardian warnings
  */
@@ -250,7 +252,7 @@ export function generateGuardianPromptContext(guardianContext) {
     parts.push('**VIOLATIONS (Action Required):**');
     guardianContext.violations.forEach(v => {
       parts.push(`- ${v.name}: VIOLATED`);
-      if (v.pValue !== null) parts.push(`  Test p-value: ${v.pValue.toFixed(4)}`);
+      if (v.pValue !== null) parts.push(`  Test p-value: ${formatPValue(v.pValue)}`);
       if (v.message) parts.push(`  Details: ${v.message}`);
       if (v.recommendation) parts.push(`  Recommendation: ${v.recommendation}`);
     });
@@ -262,7 +264,7 @@ export function generateGuardianPromptContext(guardianContext) {
     parts.push('**WARNINGS (Proceed with Caution):**');
     guardianContext.warnings.forEach(w => {
       parts.push(`- ${w.name}: WARNING`);
-      if (w.pValue !== null) parts.push(`  Test p-value: ${w.pValue.toFixed(4)}`);
+      if (w.pValue !== null) parts.push(`  Test p-value: ${formatPValue(w.pValue)}`);
       if (w.message) parts.push(`  Details: ${w.message}`);
     });
     parts.push('');

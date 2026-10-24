@@ -32,6 +32,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
+import { formatPValue, formatPClause } from '../../utils/formatStats';
 
 // Styled components
 const DiagramContainer = styled(Box)(({ theme }) => ({
@@ -361,7 +362,7 @@ const MediationPathDiagram = ({
                   title={
                     showConfidenceIntervals && effects.ci?.a
                       ? `95% CI: [${effects.ci.a[0]?.toFixed(3)}, ${effects.ci.a[1]?.toFixed(3)}]`
-                      : `p = ${effects.pValues?.a?.toFixed(4) || 'N/A'}`
+                      : formatPClause(effects.pValues?.a)
                   }
                 >
                   <PathLabel
@@ -387,7 +388,7 @@ const MediationPathDiagram = ({
                   title={
                     showConfidenceIntervals && effects.ci?.b
                       ? `95% CI: [${effects.ci.b[0]?.toFixed(3)}, ${effects.ci.b[1]?.toFixed(3)}]`
-                      : `p = ${effects.pValues?.b?.toFixed(4) || 'N/A'}`
+                      : formatPClause(effects.pValues?.b)
                   }
                 >
                   <PathLabel
@@ -412,7 +413,7 @@ const MediationPathDiagram = ({
                   title={
                     showConfidenceIntervals && effects.ci?.direct
                       ? `95% CI: [${effects.ci.direct[0]?.toFixed(3)}, ${effects.ci.direct[1]?.toFixed(3)}]`
-                      : `p = ${effects.pValues?.direct?.toFixed(4) || 'N/A'}`
+                      : formatPClause(effects.pValues?.direct)
                   }
                 >
                   <PathLabel
@@ -462,7 +463,7 @@ const MediationPathDiagram = ({
                     }
                   </TableCell>
                   <TableCell align="right">
-                    {effects.pValues?.total?.toFixed(4) || '-'}
+                    {formatPValue(effects.pValues?.total)}
                   </TableCell>
                   <TableCell align="center">
                     {effects.pValues?.total < 0.05 && (
@@ -483,7 +484,7 @@ const MediationPathDiagram = ({
                     }
                   </TableCell>
                   <TableCell align="right">
-                    {effects.pValues?.direct?.toFixed(4) || '-'}
+                    {formatPValue(effects.pValues?.direct)}
                   </TableCell>
                   <TableCell align="center">
                     {effects.pValues?.direct < 0.05 && (
@@ -506,7 +507,7 @@ const MediationPathDiagram = ({
                     }
                   </TableCell>
                   <TableCell align="right">
-                    {effects.pValues?.indirect?.toFixed(4) || '-'}
+                    {formatPValue(effects.pValues?.indirect)}
                   </TableCell>
                   <TableCell align="center">
                     {(effects.pValues?.indirect < 0.05 ||

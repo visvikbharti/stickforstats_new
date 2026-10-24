@@ -57,7 +57,7 @@ import {
   calculateDescriptiveStats
 } from '../utils/statisticalUtils';
 import { runTTest, runOneWayAnova } from '../utils/hubTestService';
-import { formatPValue } from '../../../utils/formatStats';
+import { formatPValue, formatPClause } from '../../../utils/formatStats';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import {
@@ -911,8 +911,8 @@ const ParametricTests = ({ data }) => {
             <Alert severity={oneSampleResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {oneSampleResult.significant
-                  ? `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is significantly different from ${populationMean} (p = ${formatPValue(oneSampleResult.pValue)} < ${alpha}).`
-                  : `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is not significantly different from ${populationMean} (p = ${formatPValue(oneSampleResult.pValue)} >= ${alpha}).`}
+                  ? `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is significantly different from ${populationMean} (${formatPClause(oneSampleResult.pValue)} < ${alpha}).`
+                  : `The sample mean (${fmt(oneSampleResult.sampleMean, 2)}) is not significantly different from ${populationMean} (${formatPClause(oneSampleResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
           )}
@@ -1062,8 +1062,8 @@ const ParametricTests = ({ data }) => {
             <Alert severity={independentResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {independentResult.significant
-                  ? `The two groups have significantly different means (p = ${formatPValue(independentResult.pValue)} < ${alpha}).`
-                  : `The two groups do not have significantly different means (p = ${formatPValue(independentResult.pValue)} >= ${alpha}).`}
+                  ? `The two groups have significantly different means (${formatPClause(independentResult.pValue)} < ${alpha}).`
+                  : `The two groups do not have significantly different means (${formatPClause(independentResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
           )}
@@ -1210,8 +1210,8 @@ const ParametricTests = ({ data }) => {
             <Alert severity={pairedResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {pairedResult.significant
-                  ? `There is a significant difference between the paired measurements (p = ${formatPValue(pairedResult.pValue)} < ${alpha}).`
-                  : `There is no significant difference between the paired measurements (p = ${formatPValue(pairedResult.pValue)} >= ${alpha}).`}
+                  ? `There is a significant difference between the paired measurements (${formatPClause(pairedResult.pValue)} < ${alpha}).`
+                  : `There is no significant difference between the paired measurements (${formatPClause(pairedResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
           )}
@@ -1374,8 +1374,8 @@ const ParametricTests = ({ data }) => {
             <Alert severity={anovaResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
               <Typography variant="body2">
                 {anovaResult.significant
-                  ? `At least one group mean differs significantly from the others (p = ${formatPValue(anovaResult.pValue)} < ${alpha}). Effect size η² = ${fmt(anovaResult.etaSquared, 4)}.`
-                  : `All group means appear to be equal (p = ${formatPValue(anovaResult.pValue)} >= ${alpha}).`}
+                  ? `At least one group mean differs significantly from the others (${formatPClause(anovaResult.pValue)} < ${alpha}). Effect size η² = ${fmt(anovaResult.etaSquared, 4)}.`
+                  : `All group means appear to be equal (${formatPClause(anovaResult.pValue)} >= ${alpha}).`}
               </Typography>
             </Alert>
           )}

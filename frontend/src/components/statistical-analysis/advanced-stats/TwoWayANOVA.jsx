@@ -53,7 +53,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { useSettings } from '../../../context/SettingsContext';
-import { formatPValue, isSignificant } from '../../../utils/formatStats';
+import { formatPValue, isSignificant, formatPClause } from '../../../utils/formatStats';
 
 /**
  * Main Two-way ANOVA Component
@@ -589,7 +589,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.factorA.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {formatPValue(anovaResults.anova.factorA.pValue)}
+                    {formatPClause(anovaResults.anova.factorA.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.factorA.significant ? (
@@ -612,7 +612,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.factorB.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {formatPValue(anovaResults.anova.factorB.pValue)}
+                    {formatPClause(anovaResults.anova.factorB.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.factorB.significant ? (
@@ -635,7 +635,7 @@ const TwoWayANOVA = ({ data }) => {
                     F = {anovaResults.anova.interaction.F.toFixed(3)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    p = {formatPValue(anovaResults.anova.interaction.pValue)}
+                    {formatPClause(anovaResults.anova.interaction.pValue)}
                   </Typography>
                   <Box sx={{ mt: 1 }}>
                     {anovaResults.anova.interaction.significant ? (
@@ -726,19 +726,19 @@ const TwoWayANOVA = ({ data }) => {
                 <Typography variant="body2">
                   <strong>Main Effect of {factorA}:</strong> {anovaResults.anova.factorA.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.factorA.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.factorA.F.toFixed(2)},
-                  p = {formatPValue(anovaResults.anova.factorA.pValue)}).
+                  {formatPClause(anovaResults.anova.factorA.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.factorA.etaSquared)} (η² = {anovaResults.anova.factorA.etaSquared.toFixed(3)}).
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <strong>Main Effect of {factorB}:</strong> {anovaResults.anova.factorB.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.factorB.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.factorB.F.toFixed(2)},
-                  p = {formatPValue(anovaResults.anova.factorB.pValue)}).
+                  {formatPClause(anovaResults.anova.factorB.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.factorB.etaSquared)} (η² = {anovaResults.anova.factorB.etaSquared.toFixed(3)}).
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <strong>Interaction Effect ({factorA} × {factorB}):</strong> {anovaResults.anova.interaction.significant ? 'Significant' : 'Not significant'}
                   (F({anovaResults.anova.interaction.df}, {anovaResults.anova.error.df}) = {anovaResults.anova.interaction.F.toFixed(2)},
-                  p = {formatPValue(anovaResults.anova.interaction.pValue)}).
+                  {formatPClause(anovaResults.anova.interaction.pValue)}).
                   Effect size: {getEffectSizeInterpretation(anovaResults.anova.interaction.etaSquared)} (η² = {anovaResults.anova.interaction.etaSquared.toFixed(3)}).
                 </Typography>
                 {anovaResults.anova.interaction.significant && (

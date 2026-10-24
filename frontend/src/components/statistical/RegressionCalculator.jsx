@@ -19,7 +19,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 
 // Import settings context for Expert Mode
 import { useSettings } from '../../context/SettingsContext';
-import { significanceStars } from '../../utils/formatStats';
+import { significanceStars, formatPValue, formatPClause } from '../../utils/formatStats';
 import {
   Box,
   Card,
@@ -549,7 +549,7 @@ const RegressionCalculator = () => {
           formatNumber(coef.value, 6),
           formatNumber(coef.std_error, 6),
           formatNumber(coef.t_statistic, 4),
-          formatNumber(coef.p_value, 6)
+          formatPValue(coef.p_value)
         ]);
 
         doc.autoTable({
@@ -573,7 +573,7 @@ const RegressionCalculator = () => {
       yPosition += 5;
       doc.text(`F-statistic: ${formatNumber(results.f_statistic, 4)}`, 25, yPosition);
       yPosition += 5;
-      doc.text(`p-value: ${formatNumber(results.f_p_value, 6)}`, 25, yPosition);
+      doc.text(`p-value: ${formatPValue(results.f_p_value)}`, 25, yPosition);
       yPosition += 5;
       doc.text(`RMSE: ${formatNumber(results.rmse, 6)}`, 25, yPosition);
 
@@ -587,7 +587,7 @@ const RegressionCalculator = () => {
         const anovaData = [
           ['Regression', formatNumber(results.anova_table.ss_regression, 4),
            results.anova_table.df_regression, formatNumber(results.anova_table.ms_regression, 4),
-           formatNumber(results.anova_table.f_statistic, 4), formatNumber(results.anova_table.p_value, 6)],
+           formatNumber(results.anova_table.f_statistic, 4), formatPValue(results.anova_table.p_value)],
           ['Residual', formatNumber(results.anova_table.ss_residual, 4),
            results.anova_table.df_residual, formatNumber(results.anova_table.ms_residual, 4), '', ''],
           ['Total', formatNumber(results.anova_table.ss_total, 4),
@@ -1012,7 +1012,7 @@ const RegressionCalculator = () => {
                       <ListItem>
                         <ListItemText
                           primary="F-statistic"
-                          secondary={`${formatNumber(results.f_statistic)} (p = ${formatNumber(results.f_p_value)})`}
+                          secondary={`${formatNumber(results.f_statistic)} (${formatPClause(results.f_p_value)})`}
                         />
                       </ListItem>
                     </List>
@@ -1117,7 +1117,7 @@ const RegressionCalculator = () => {
                       <TableCell align="right">{formatNumber(coef.value)}</TableCell>
                       <TableCell align="right">{formatNumber(coef.std_error)}</TableCell>
                       <TableCell align="right">{formatNumber(coef.t_statistic)}</TableCell>
-                      <TableCell align="right">{formatNumber(coef.p_value)}</TableCell>
+                      <TableCell align="right">{formatPValue(coef.p_value)}</TableCell>
                       <TableCell align="right">{formatNumber(coef.confidence_interval[0])}</TableCell>
                       <TableCell align="right">{formatNumber(coef.confidence_interval[1])}</TableCell>
                       {/* `null < 0.001` is TRUE in JavaScript, so a coefficient with NO p-value
@@ -1157,7 +1157,7 @@ const RegressionCalculator = () => {
                     <TableCell align="right">{results.anova_table.df_regression}</TableCell>
                     <TableCell align="right">{formatNumber(results.anova_table.ms_regression)}</TableCell>
                     <TableCell align="right">{formatNumber(results.anova_table.f_statistic)}</TableCell>
-                    <TableCell align="right">{formatNumber(results.anova_table.p_value)}</TableCell>
+                    <TableCell align="right">{formatPValue(results.anova_table.p_value)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Residual</TableCell>
@@ -1206,7 +1206,7 @@ const RegressionCalculator = () => {
                               Shapiro-Wilk Test: W = {formatNumber(results.assumptions.normality.statistic, 4)}
                             </Typography>
                             <Typography variant="body2">
-                              p-value = {formatNumber(results.assumptions.normality.p_value, 6)}
+                              {formatPClause(results.assumptions.normality.p_value, 'p-value')}
                             </Typography>
                             <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                               {results.assumptions.normality.p_value > 0.05
@@ -1232,7 +1232,7 @@ const RegressionCalculator = () => {
                               Breusch-Pagan Test: χ² = {formatNumber(results.assumptions.homoscedasticity.statistic, 4)}
                             </Typography>
                             <Typography variant="body2">
-                              p-value = {formatNumber(results.assumptions.homoscedasticity.p_value, 6)}
+                              {formatPClause(results.assumptions.homoscedasticity.p_value, 'p-value')}
                             </Typography>
                             <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                               {results.assumptions.homoscedasticity.p_value > 0.05

@@ -23,6 +23,7 @@ import ProfessionalContainer from '../components/common/ProfessionalContainer';
 // "No statistical result may exist without an explicit, traceable assumption context."
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
+import { formatPValue } from '../utils/formatStats';
 
 const ANOVARealBackend = () => {
   // Get dark mode state from local storage
@@ -161,7 +162,7 @@ const ANOVARealBackend = () => {
                       Normality: {value.is_met ? '✅ Met' : '⚠️ Violated'}
                     </Typography>
                     <Typography variant="caption">
-                      p-value: {value.p_value?.toFixed(4)}
+                      p-value: {formatPValue(value.p_value)}
                     </Typography>
                   </Alert>
                 </Grid>
@@ -178,7 +179,7 @@ const ANOVARealBackend = () => {
                     {assumptions.homogeneity.is_met ? '✅ Equal variances' : '⚠️ Unequal variances'}
                   </Typography>
                   <Typography variant="caption">
-                    p-value: {assumptions.homogeneity.p_value?.toFixed(4)}
+                    p-value: {formatPValue(assumptions.homogeneity.p_value)}
                   </Typography>
                 </Alert>
               </Grid>

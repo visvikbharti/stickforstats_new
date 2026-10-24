@@ -10,6 +10,7 @@
  */
 
 import jstat from 'jstat';
+import { formatPValue } from '../../../utils/formatStats';
 
 /**
  * Main debugging analysis function
@@ -116,7 +117,7 @@ function analyzePValue(results, alpha = 0.05) {
     analysis.warnings.push({
       type: 'borderline_significance',
       severity: 'warning',
-      message: `P-value (${results.pValue.toFixed(4)}) is very close to alpha (${alpha})`,
+      message: `P-value (${formatPValue(results.pValue)}) is very close to alpha (${alpha})`,
       explanation: 'Results this close to the significance threshold should be interpreted with caution. Small changes in data or analysis could flip the conclusion.',
       details: {
         pValue: results.pValue,
@@ -155,7 +156,7 @@ function analyzePValue(results, alpha = 0.05) {
     analysis.warnings.push({
       type: 'marginal_trend',
       severity: 'info',
-      message: `P-value (${results.pValue.toFixed(4)}) shows a trend (p < 0.10) but is not significant at α = ${alpha}`,
+      message: `P-value (${formatPValue(results.pValue)}) shows a trend (p < 0.10) but is not significant at α = ${alpha}`,
       explanation: 'This result may warrant further investigation with a larger sample size, but should not be reported as significant.'
     });
   } else {

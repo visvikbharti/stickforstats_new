@@ -58,6 +58,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import InfoIcon from '@mui/icons-material/Info';
 
 import TransformationService from '../../services/TransformationService';
+import { formatPValue, formatPClause } from '../../utils/formatStats';
 
 /**
  * Transformation Wizard Component
@@ -468,12 +469,12 @@ const TransformationWizard = ({
                 sx={{ mr: 1 }}
               />
               <Chip
-                label={`Current p-value: ${suggestion.current_p_value}`}
+                label={`Current p-value: ${formatPValue(suggestion.current_p_value)}`}
                 color="warning"
                 sx={{ mr: 1 }}
               />
               <Chip
-                label={`Estimated p-value: ${suggestion.estimated_p_value}`}
+                label={`Estimated p-value: ${formatPValue(suggestion.estimated_p_value)}`}
                 color="info"
               />
             </Paper>
@@ -602,7 +603,7 @@ const TransformationWizard = ({
                 </ScatterChart>
               </ResponsiveContainer>
               <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-                Shapiro-Wilk p = {validation.original_p_value}
+                Shapiro-Wilk {formatPClause(validation.original_p_value)}
               </Typography>
             </Paper>
           </Grid>
@@ -629,7 +630,7 @@ const TransformationWizard = ({
                 </ScatterChart>
               </ResponsiveContainer>
               <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-                Shapiro-Wilk p = {validation.transformed_p_value}
+                Shapiro-Wilk {formatPClause(validation.transformed_p_value)}
               </Typography>
             </Paper>
           </Grid>
@@ -648,8 +649,8 @@ const TransformationWizard = ({
                 <TableBody>
                   <TableRow>
                     <TableCell>Shapiro-Wilk p-value</TableCell>
-                    <TableCell align="right">{validation.original_p_value}</TableCell>
-                    <TableCell align="right">{validation.transformed_p_value}</TableCell>
+                    <TableCell align="right">{formatPValue(validation.original_p_value)}</TableCell>
+                    <TableCell align="right">{formatPValue(validation.transformed_p_value)}</TableCell>
                     <TableCell align="right" sx={{ color: validation.improvement ? 'green' : 'orange' }}>
                       {validation.improvement ? '✓ Improved' : '⚠ Check'}
                     </TableCell>

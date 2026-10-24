@@ -52,6 +52,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 // Guardian Integration - Step 1: Import Dependencies
 import GuardianService from '../../services/GuardianService';
 import GuardianWarning from '../Guardian/GuardianWarning';
+import { formatPValue } from '../../utils/formatStats';
 
 const AdvancedStatisticalTests = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -641,7 +642,7 @@ const AdvancedStatisticalTests = () => {
                           <TableCell>p-value</TableCell>
                           <TableCell align="right">
                             <Chip 
-                              label={testResults.pValue?.toFixed(4)} 
+                              label={formatPValue(testResults.pValue)} 
                               color={testResults.pValue < alpha ? 'error' : 'success'}
                               size="small"
                             />
@@ -811,8 +812,8 @@ const AdvancedStatisticalTests = () => {
                         {multipleTests.map((test, index) => (
                           <TableRow key={index}>
                             <TableCell>{test.name}</TableCell>
-                            <TableCell>{test.pValue.toFixed(4)}</TableCell>
-                            <TableCell>{adjustedResults.adjustedPValues[index].toFixed(4)}</TableCell>
+                            <TableCell>{formatPValue(test.pValue)}</TableCell>
+                            <TableCell>{formatPValue(adjustedResults.adjustedPValues[index])}</TableCell>
                             <TableCell>
                               <Chip
                                 label={adjustedResults.rejected[index] ? 'Yes' : 'No'}

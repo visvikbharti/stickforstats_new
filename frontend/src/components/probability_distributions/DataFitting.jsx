@@ -38,6 +38,7 @@ import Papa from 'papaparse';
 import { Line } from 'react-chartjs-2';
 
 import { fitDistribution } from '../../api/probabilityDistributionsApi';
+import { formatPValue } from '../../utils/formatStats';
 
 // Define the distributions to fit
 const DISTRIBUTIONS_TO_FIT = [
@@ -426,7 +427,7 @@ const DataFitting = ({ projectId }) => {
       aic: metrics.aic ? metrics.aic.toFixed(2) : 'N/A',
       bic: metrics.bic ? metrics.bic.toFixed(2) : 'N/A',
       ksDist: metrics.ks_distance ? metrics.ks_distance.toFixed(4) : 'N/A',
-      ksPvalue: metrics.ks_pvalue ? metrics.ks_pvalue.toFixed(4) : 'N/A'
+      ksPvalue: metrics.ks_pvalue != null ? formatPValue(metrics.ks_pvalue) : 'N/A'
     };
   };
   

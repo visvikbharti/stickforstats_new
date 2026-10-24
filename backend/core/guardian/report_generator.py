@@ -19,6 +19,8 @@ import html
 import io
 from typing import Dict, Any, List
 
+from .p_values import format_p
+
 from .guardian_core import GuardianReport
 
 
@@ -366,7 +368,7 @@ class GuardianReportGenerator:
             if violation:
                 status = "❌ Violated"
                 stat = f"{violation.statistic:.4f}" if violation.statistic else "N/A"
-                pval = f"{violation.p_value:.4f}" if violation.p_value else "N/A"
+                pval = format_p(violation.p_value) if violation.p_value is not None else "N/A"
                 severity = violation.severity.upper()
             elif outcome in ("not_applicable", "skipped"):
                 status = "➖ Not tested"
@@ -551,7 +553,7 @@ class GuardianReportGenerator:
 
             # Violation details - format numbers properly
             test_stat_str = f"{violation.statistic:.4f}" if violation.statistic is not None else "N/A"
-            p_value_str = f"{violation.p_value:.4f}" if violation.p_value is not None else "N/A"
+            p_value_str = format_p(violation.p_value) if violation.p_value is not None else "N/A"
 
             # Escape every validator-authored string. reportlab parses a
             # Paragraph as mini-XML, so a bare '<' or '&' in a message,
@@ -575,7 +577,7 @@ class GuardianReportGenerator:
             <b>Test Used:</b> {esc(violation.test_name)}<br/>
             <b>Severity:</b> {esc(violation.severity.upper())}<br/>
             <b>Test Statistic:</b> {test_stat_str}<br/>
-            <b>P-value:</b> {p_value_str}<br/><br/>
+            <b>P-value:</b> {esc(p_value_str)}<br/><br/>
             <b>Issue:</b> {esc(violation.message)}<br/><br/>
             <b>Recommendation:</b> {esc(violation.recommendation)}
             """

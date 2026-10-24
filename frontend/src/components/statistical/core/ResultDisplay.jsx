@@ -30,6 +30,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
+import { formatPValue, formatPClause } from '../../../utils/formatStats';
 
 const ResultDisplay = ({
   results = null,
@@ -113,7 +114,7 @@ const ResultDisplay = ({
       text += `Test Statistic: ${formatValue(results.test_statistic)}\n`;
     }
     if (results.p_value !== undefined) {
-      text += `P-Value: ${formatValue(results.p_value)}\n`;
+      text += `P-Value: ${formatPValue(results.p_value)}\n`;
       text += `Significance: ${getSignificanceLabel(results.p_value)}\n`;
     }
     if (results.degrees_of_freedom !== undefined) {
@@ -188,7 +189,7 @@ const ResultDisplay = ({
               </Typography>
             </Box>
             <Typography variant="h3">
-              p = {formatValue(results.p_value)}
+              {formatPClause(results.p_value)}
             </Typography>
             <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
               {results.p_value < 0.05
@@ -337,9 +338,9 @@ const ResultDisplay = ({
         <AlertTitle>Statistical Interpretation</AlertTitle>
         <Typography variant="body2" paragraph>
           {results.p_value < 0.05
-            ? `The test is statistically significant (p = ${formatValue(results.p_value)} < 0.05).
+            ? `The test is statistically significant (${formatPClause(results.p_value)} < 0.05).
                There is strong evidence against the null hypothesis.`
-            : `The test is not statistically significant (p = ${formatValue(results.p_value)} ≥ 0.05).
+            : `The test is not statistically significant (${formatPClause(results.p_value)} ≥ 0.05).
                There is insufficient evidence to reject the null hypothesis.`}
         </Typography>
         {results.effect_size !== undefined && (

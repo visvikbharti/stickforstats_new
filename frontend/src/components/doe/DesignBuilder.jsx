@@ -44,7 +44,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
 import { generateDesign, uploadExperimentData, runModelAnalysis, optimizeResponse } from '../../services/doeService';
-import { formatNumber } from '../../utils/formatStats';
+import { formatNumber, formatPValue } from '../../utils/formatStats';
 
 /**
  * DesignBuilder - Interactive tool for creating and analyzing experimental designs
@@ -1306,7 +1306,7 @@ function DesignBuilder() {
                                   rendered "no result" as the most significant result possible.
                                   An absent p-value is an em dash, not zero. */}
                               {Number.isFinite(analysisResults.results.model_statistics[response].p_value)
-                                ? analysisResults.results.model_statistics[response].p_value.toFixed(4)
+                                ? formatPValue(analysisResults.results.model_statistics[response].p_value)
                                 : '—'}
                             </Typography>
                           </Grid>

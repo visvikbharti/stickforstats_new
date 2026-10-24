@@ -63,7 +63,7 @@ import mixedModelsService from '../services/MixedModelsService';
 // Guardian Design Contract compliance
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
-import { significanceStars, isSignificant } from '../utils/formatStats';
+import { significanceStars, isSignificant, formatPValue } from '../utils/formatStats';
 
 // Styled components
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -464,7 +464,7 @@ const MixedModelsModule = () => {
                   <Grid item xs={6} sm={3}>
                     <StatBox>
                       <Typography variant="h4" color={isSignificant(iccResults.p_value) ? 'success.main' : 'text.primary'}>
-                        {iccResults.p_value?.toFixed(4) || '-'}
+                        {formatPValue(iccResults.p_value)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         p-value
@@ -640,7 +640,7 @@ const MixedModelsModule = () => {
                               align="right"
                               sx={{ color: fe.p_value < 0.05 ? 'success.main' : 'inherit' }}
                             >
-                              {fe.p_value?.toFixed(4)}
+                              {formatPValue(fe.p_value)}
                               {significanceStars(fe.p_value)}
                             </TableCell>
                           </TableRow>

@@ -20,6 +20,7 @@ import {
   checkGuardianWarningStatus,
   mergeGuardianIntoContext
 } from '../../../utils/guardianAIIntegration';
+import { formatPValue, formatPClause } from '../../../utils/formatStats';
 
 // API endpoint - proxied through CRA dev server to Django backend
 const AI_API_ENDPOINT = '/api/v1/ai-advisor/chat/';
@@ -88,7 +89,7 @@ const mockAIResponse = async (message, context) => {
       response += `**Violations Detected:**\n`;
       violations.forEach(v => {
         response += `- **${v.name}**: ${v.message || 'Assumption not met'}\n`;
-        if (v.pValue !== null) response += `  - Test p-value: ${v.pValue.toFixed(4)}\n`;
+        if (v.pValue !== null) response += `  - Test p-value: ${formatPValue(v.pValue)}\n`;
         if (v.recommendation) response += `  - Recommendation: ${v.recommendation}\n`;
       });
       response += '\n';
@@ -593,7 +594,7 @@ export const useAIAdvisor = () => {
     if (violations.length > 0) {
       question += `Violations:\n`;
       violations.forEach(v => {
-        question += `- ${v.name}${v.pValue !== null ? ` (p = ${v.pValue.toFixed(4)})` : ''}\n`;
+        question += `- ${v.name}${v.pValue !== null ? ` (${formatPClause(v.pValue)})` : ''}\n`;
       });
     }
 

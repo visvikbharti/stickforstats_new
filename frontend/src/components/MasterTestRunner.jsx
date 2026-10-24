@@ -18,6 +18,7 @@ import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
 import TestSelectionDashboard from './TestSelectionDashboard';
 import GuardianWarning from './Guardian/GuardianWarning';
+import { formatPValue } from '../utils/formatStats';
 
 // Golden Ratio
 const PHI = 1.618;
@@ -385,7 +386,7 @@ const MasterTestRunner = () => {
                         <Typography variant="subtitle1" fontWeight="bold">
                           P-Value
                         </Typography>
-                        {formatPrecisionNumber(testResults.p_value || testResults.pvalue)}
+                        {formatPValue(testResults.p_value ?? testResults.pvalue)}
                       </Paper>
                     </Grid>
                     <Grid item xs={12}>

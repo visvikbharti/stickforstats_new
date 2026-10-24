@@ -147,7 +147,7 @@ describe('GuardianCascadeSimulator', () => {
 
     // Result alert renders once the promise resolves.
     await screen.findByText(/production Guardian routed to/i);
-    expect(screen.getByText(/Levene p=0.0120/i)).toBeInTheDocument();
+    expect(screen.getByText(/Levene p = 0\.0120/i)).toBeInTheDocument();
   });
 
   it('degrades gracefully when the Guardian endpoint is unreachable', async () => {

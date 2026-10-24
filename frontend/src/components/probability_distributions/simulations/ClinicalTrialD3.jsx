@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import jStat from 'jstat';
+import { formatPValue } from '../../../utils/formatStats';
 
 // Utility function to render LaTeX formula
 const renderLatex = (formula) => {
@@ -1613,7 +1614,7 @@ const ClinicalTrialD3 = ({ projectId, setLoading: setLoadingProp, setError: setE
                       </Typography>
                     </Typography>
                     <Typography variant="body2">
-                      <strong>p-value:</strong> {result.trialResults[0].testResults.pValue.toFixed(4)}
+                      <strong>p-value:</strong> {formatPValue(result.trialResults[0].testResults.pValue)}
                     </Typography>
                     <Typography variant="body2">
                       <strong>95% CI:</strong> ({(result.trialResults[0].testResults.confidenceInterval[0] * 100).toFixed(1)}%, {(result.trialResults[0].testResults.confidenceInterval[1] * 100).toFixed(1)}%)

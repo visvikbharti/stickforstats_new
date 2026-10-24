@@ -51,7 +51,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { useSettings } from '../../../context/SettingsContext';
-import { formatPValue } from '../../../utils/formatStats';
+import { formatPValue, capPValue } from '../../../utils/formatStats';
 
 /**
  * Main Post-hoc Tests Component
@@ -310,7 +310,7 @@ const PostHocTests = ({ data }) => {
           seDiff,
           tStat,
           criticalValue,
-          pValue: Math.min(pValue, 1), // Cap at 1
+          pValue: capPValue(pValue), // capped at 1; tukeyPValue's null (unresolved tail) stays null
           significant
         });
       }

@@ -166,9 +166,10 @@ class TransformationEngine:
 
         # Calculate expected improvement score (0-100)
         if recommended:
-            if current_p == 0:
-                current_p = 0.001  # Avoid division by zero
-            improvement = min(100, ((estimated_p - current_p) / (0.20 - current_p)) * 100)
+            # The score floors an exact 0 at 0.001, as before; the p-value reported below is the
+            # measured one (this used to overwrite current_p, so a p of 0 was reported as 0.001).
+            p_for_score = current_p if current_p != 0 else 0.001
+            improvement = min(100, ((estimated_p - p_for_score) / (0.20 - p_for_score)) * 100)
             improvement = max(0, improvement)  # Can't be negative
         else:
             improvement = 0
@@ -178,8 +179,8 @@ class TransformationEngine:
             "alternatives": alternatives,
             "reason": reason,
             "expected_improvement": round(improvement, 1),
-            "current_p_value": round(current_p, 4),
-            "estimated_p_value": round(estimated_p, 4),
+            "current_p_value": float(current_p),
+            "estimated_p_value": float(estimated_p),
             "current_skewness": round(skewness, 3),
             "current_kurtosis": round(kurtosis, 3),
             "has_negative": has_negative,
@@ -455,8 +456,8 @@ class TransformationEngine:
         improvement_score = max(0, min(100, (p_improvement + skew_improvement) / 2))
 
         return {
-            "original_p_value": round(orig_p, 4),
-            "transformed_p_value": round(trans_p, 4),
+            "original_p_value": float(orig_p),
+            "transformed_p_value": float(trans_p),
             "improvement": improved,
             "improvement_score": round(improvement_score, 1),
             "still_violated": still_violated,

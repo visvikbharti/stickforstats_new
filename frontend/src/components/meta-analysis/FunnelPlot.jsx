@@ -29,7 +29,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { isSignificant } from '../../utils/formatStats';
+import { isSignificant, formatPValue } from '../../utils/formatStats';
 
 const FunnelPlot = ({ data, publicationBias }) => {
   // Prepare scatter data for studies
@@ -261,7 +261,7 @@ const FunnelPlot = ({ data, publicationBias }) => {
                         color: isSignificant(publicationBias.eggers_test.p_value) ? 'error.main' : 'inherit'
                       }}
                     >
-                      {publicationBias.eggers_test.p_value?.toFixed(4)}
+                      {formatPValue(publicationBias.eggers_test.p_value)}
                     </Typography>
                   </Box>
                   <Chip
@@ -304,7 +304,7 @@ const FunnelPlot = ({ data, publicationBias }) => {
                         color: isSignificant(publicationBias.beggs_test.p_value) ? 'error.main' : 'inherit'
                       }}
                     >
-                      {publicationBias.beggs_test.p_value?.toFixed(4)}
+                      {formatPValue(publicationBias.beggs_test.p_value)}
                     </Typography>
                   </Box>
                   <Chip

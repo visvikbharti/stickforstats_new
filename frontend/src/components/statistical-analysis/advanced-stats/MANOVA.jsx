@@ -65,7 +65,7 @@ import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
-import { isSignificant } from '../../../utils/formatStats';
+import { isSignificant, formatPValue, formatPClause } from '../../../utils/formatStats';
 
 // Colors for different groups
 const GROUP_COLORS = [
@@ -625,7 +625,7 @@ const MANOVA = ({ data }) => {
                     F({results.df1}, {results.df2}) = {results.f_statistic?.toFixed(3)}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    p = {results.p_value?.toFixed(4)}
+                    {formatPClause(results.p_value)}
                   </Typography>
                   <Chip
                     label={results.significant ? 'Significant' : 'Not Significant'}
@@ -716,7 +716,7 @@ const MANOVA = ({ data }) => {
                         <TableCell align="right">{row.f_statistic?.toFixed(3)}</TableCell>
                         <TableCell align="right">{row.df_between}</TableCell>
                         <TableCell align="right">{row.df_within}</TableCell>
-                        <TableCell align="right">{row.p_value?.toFixed(4)}</TableCell>
+                        <TableCell align="right">{formatPValue(row.p_value)}</TableCell>
                         <TableCell align="right">{row.eta_squared?.toFixed(4)}</TableCell>
                         <TableCell align="center">
                           <Chip
@@ -841,7 +841,7 @@ const MANOVA = ({ data }) => {
                 of <em>{groupingVar}</em> on the combined dependent variables,
                 Λ = {results.test_statistics?.wilks_lambda?.toFixed(4)},
                 F({results.df1}, {results.df2}) = {results.f_statistic?.toFixed(3)},
-                p = {results.p_value?.toFixed(3)}.
+                {formatPClause(results.p_value)}.
                 The groups do not differ significantly across the dependent variable set.
               </Typography>
             )}
