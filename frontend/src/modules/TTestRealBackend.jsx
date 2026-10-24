@@ -25,7 +25,7 @@ import { getApiUrl, endpoints } from '../config/apiConfig';
 // "No statistical result may exist without an explicit, traceable assumption context."
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
-import { isSignificant } from '../utils/formatStats';
+import { isSignificant, formatPValue } from '../utils/formatStats';
 
 /**
  * "N decimal places" for a 50-digit decimal STRING from the backend -- and an em dash when there
@@ -213,7 +213,7 @@ const TTestRealBackend = () => {
                     P-Value
                   </Typography>
                   <Typography variant="h6" sx={{ fontFamily: 'monospace' }}>
-                    {results.p_value ?? '\u2014'}
+                    {formatPValue(results.p_value)}
                   </Typography>
                   <Chip
                     label={significanceLabel(results.p_value)}

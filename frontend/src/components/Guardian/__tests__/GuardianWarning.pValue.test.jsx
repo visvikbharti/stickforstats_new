@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import GuardianWarning from '../GuardianWarning';
 
 jest.mock('../../../services/GuardianService', () => ({ __esModule: true, default: {} }));
@@ -28,6 +28,18 @@ test.each([
 ])('a violation with p = %p reads "%s"', (pValue, text) => {
   render(<GuardianWarning guardianReport={report(pValue)} />);
   expect(screen.getByText(text)).toBeInTheDocument();
+});
+
+test.each([
+  [3.2e-9, '3.20e-9'],
+  [0, '< 2.2e-16'],
+])("the violation's detail dialog prints p = %p as %s", (pValue, text) => {
+  render(<GuardianWarning guardianReport={report(pValue)} />);
+  fireEvent.click(screen.getByText('normality'));
+  const dialog = screen.getByRole('dialog');
+  expect(within(dialog).getByText(text)).toBeInTheDocument();
+  // It printed the raw number, and `{0 && ...}` rendered a stray "0" for a p-value of 0.
+  expect(within(dialog).queryByText('0')).not.toBeInTheDocument();
 });
 
 test('a violation without a p-value has no p-value line', () => {

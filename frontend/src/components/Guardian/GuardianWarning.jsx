@@ -494,9 +494,9 @@ const GuardianWarning = ({
                 <Typography variant="body2" sx={{ mb: 2 }}>
                   <strong>Test Used:</strong> {selectedViolation.test_name}
                 </Typography>
-                {selectedViolation.p_value && (
+                {selectedViolation.p_value != null && (
                   <Typography variant="body2" sx={{ mb: 2 }}>
-                    <strong>P-value:</strong> {selectedViolation.p_value}
+                    <strong>P-value:</strong> {formatPValue(selectedViolation.p_value)}
                   </Typography>
                 )}
                 {selectedViolation.statistic && (
