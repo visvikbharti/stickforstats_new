@@ -47,7 +47,8 @@ import {
   adaptRepeatedMeasuresResponse,
   buildTwoWayCells,
   formatStat,
-  formatPValue
+  formatPValue,
+  formatPClause
 } from './anovaResultAdapter';
 
 // Import shared components
@@ -167,13 +168,13 @@ const TwoWayResults = ({ results, names }) => {
           <Alert severity={interaction.significant ? 'warning' : 'info'}>
             {interaction.significant ? (
               <>
-                <strong>The interaction is significant</strong> (p = {formatPValue(interaction.p_value)}). The
+                <strong>The interaction is significant</strong> ({formatPClause(interaction.p_value)}). The
                 effect of one factor depends on the level of the other, so the two main effects above should
                 not be interpreted on their own — look at the simple effects within each level instead.
               </>
             ) : (
               <>
-                <strong>No significant interaction</strong> (p = {formatPValue(interaction.p_value)}). The two
+                <strong>No significant interaction</strong> ({formatPClause(interaction.p_value)}). The two
                 main effects can be interpreted independently.
               </>
             )}
@@ -247,7 +248,7 @@ const RepeatedMeasuresResults = ({ results }) => {
         <Alert severity={spherical ? 'success' : 'warning'}>
           <strong>Mauchly’s test of sphericity: {spherical ? 'passed' : 'violated'}</strong>
           {typeof results.sphericity.p_value === 'number' && (
-            <> (W = {formatStat(results.sphericity.mauchly_w, 3)}, p = {formatPValue(results.sphericity.p_value)})</>
+            <> (W = {formatStat(results.sphericity.mauchly_w, 3)}, {formatPClause(results.sphericity.p_value)})</>
           )}
           .{' '}
           {spherical ? (

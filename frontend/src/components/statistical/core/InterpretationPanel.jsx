@@ -30,7 +30,7 @@ import {
   Psychology as PsychologyIcon,
   BookmarkBorder as BookmarkIcon
 } from '@mui/icons-material';
-import { isSignificant, formatPValue, formatNumber } from '../../../utils/formatStats';
+import { isSignificant, formatPValue, formatNumber, formatPClause } from '../../../utils/formatStats';
 
 const InterpretationPanel = ({
   results = null,
@@ -114,7 +114,7 @@ const InterpretationPanel = ({
       primary: verdict
         ? contextInterpretation.significant
         : contextInterpretation.nonSignificant,
-      pValue: `p = ${formatPValue(results.p_value)} ${verdict ? '< 0.05' : '≥ 0.05'}`,
+      pValue: `${formatPClause(results.p_value)} ${verdict ? '< 0.05' : '≥ 0.05'}`,
       // `results.effect_size ?` is a TRUTHINESS check: an effect size of exactly 0 -- a real,
       // measured finding of no effect -- is falsy, and was silently dropped from the report.
       effectSize:

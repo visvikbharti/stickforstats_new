@@ -15,14 +15,22 @@ export const formatStat = (value, decimals) =>
 
 // Post-hoc p-values are routinely smaller than the display precision (1e-8 is
 // common), and toFixed() would render them as a flat "0.0000" — which reads as
-// exactly zero. Report them as below the threshold instead.
+// exactly zero. Report them as below the threshold instead. An exact 0 too: the
+// backend sends 0 only when the tail underflows, so it is below the threshold.
 export const formatPValue = (value, decimals = 4) => {
   if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
 
   const smallest = 10 ** -decimals;
-  if (value > 0 && value < smallest) return `< ${smallest.toFixed(decimals)}`;
+  if (value >= 0 && value < smallest) return `< ${smallest.toFixed(decimals)}`;
 
   return value.toFixed(decimals);
+};
+
+// formatPValue as a clause for running text: "p = 0.0435", or "p < 0.0001" where
+// "p = < 0.0001" would not read.
+export const formatPClause = (value, decimals = 4) => {
+  const text = formatPValue(value, decimals);
+  return text.startsWith('<') ? `p ${text}` : `p = ${text}`;
 };
 
 /**

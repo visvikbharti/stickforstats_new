@@ -51,6 +51,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { useDarkMode } from '../context/DarkModeContext';
+import { formatPValue as formatPValueShared } from '../utils/formatStats';
 
 const ResultsDisplay = ({ results, testName = 'Statistical Analysis' }) => {
   const { darkMode } = useDarkMode();
@@ -95,6 +96,8 @@ const ResultsDisplay = ({ results, testName = 'Statistical Analysis' }) => {
 
     const p = typeof pValue === 'string' ? parseFloat(pValue) : pValue;
 
+    // An exact 0 is a tail that underflowed: say so as the shared formatter does, not "0.0000e+0".
+    if (p === 0) return `${formatPValueShared(0)} ***`;
     if (p < 0.001) {
       return `${p.toExponential(4)} ***`;
     } else if (p < 0.01) {
@@ -286,7 +289,7 @@ const ResultsDisplay = ({ results, testName = 'Statistical Analysis' }) => {
             <Typography variant="h6" fontWeight="bold">
               Primary Results
             </Typography>
-            {results.main_results.p_value && getSignificanceLabel(results.main_results.p_value)}
+            {results.main_results.p_value != null && getSignificanceLabel(results.main_results.p_value)}
           </Box>
 
           <TableContainer>

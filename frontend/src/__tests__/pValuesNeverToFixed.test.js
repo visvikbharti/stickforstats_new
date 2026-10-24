@@ -80,3 +80,16 @@ test('no p-value is formatted with toFixed', () => {
   const offenders = reachableFiles().flatMap(pValuesFormattedWithToFixed);
   expect(offenders).toEqual([]);
 });
+
+// Running text writes a p-value as a clause: formatPClause gives "p = 7.76e-8" or "p < 2.2e-16",
+// where "p = " followed by formatPValue gives "p = < 2.2e-16" for an exact 0.
+test('running text never writes "p = " before formatPValue', () => {
+  const offenders = reachableFiles().flatMap((file) =>
+    stripComments(fs.readFileSync(file, 'utf8'))
+      .split('\n')
+      .flatMap((line, i) =>
+        /\bp\s*=\s*\$?\{\s*formatPValue\(/.test(line) ? [`${path.relative(SRC, file)}:${i + 1}: ${line.trim()}`] : []
+      )
+  );
+  expect(offenders).toEqual([]);
+});

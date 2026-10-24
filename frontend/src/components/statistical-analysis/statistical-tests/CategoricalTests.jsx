@@ -59,7 +59,7 @@ import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
 import { useSettings } from '../../../context/SettingsContext';
 import { runChiSquareIndependence } from '../utils/hubTestService';
-import { formatPValue, formatNumber } from '../../../utils/formatStats';
+import { formatPValue, formatNumber, formatPClause } from '../../../utils/formatStats';
 
 // The chi-square upper tail used to be implemented right here, in the browser: a Lanczos
 // log-gamma plus a continued-fraction incomplete gamma, about 70 lines of it, carrying its own
@@ -672,13 +672,13 @@ const CategoricalTests = ({ data }) => {
                   {chiSquareResult.significant ? (
                     <>
                       There is a <strong>significant association</strong> between {variable1} and {variable2}
-                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, p = {formatPValue(chiSquareResult.pValue)} {'<'} {alpha}).
+                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, {formatPClause(chiSquareResult.pValue)} {'<'} {alpha}).
                       Effect size is <strong>{getEffectSize(chiSquareResult.cramersV).toLowerCase()}</strong> (V = {formatNumber(chiSquareResult.cramersV, 3)}).
                     </>
                   ) : (
                     <>
                       There is <strong>no significant association</strong> between {variable1} and {variable2}
-                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, p = {formatPValue(chiSquareResult.pValue)} {'>='} {alpha}).
+                      (χ² = {formatNumber(chiSquareResult.chiSquare, 2)}, df = {chiSquareResult.df}, {formatPClause(chiSquareResult.pValue)} {'>='} {alpha}).
                       The variables appear to be independent.
                     </>
                   )}
