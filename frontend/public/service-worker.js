@@ -12,7 +12,7 @@
  *    content hash, and because the shell is always fresh it references the
  *    correct hashes -- so cached assets can never be inconsistent with the shell.
  *  - **Other same-origin GETs: network-first** with a cache fallback.
- *  - **/api/**: never handled by the service worker.
+ *  - **API calls** (paths under /api/): never handled by the service worker.
  *
  * Bumping CACHE_VERSION purges older caches on activate, recovering users whose
  * previous service worker had cached a stale, internally inconsistent bundle.
