@@ -79,7 +79,7 @@ class ModelComparisonResult:
             result["likelihood_ratio_test"] = {
                 "statistic": round(self.lrt_statistic, 4),
                 "df": self.lrt_df,
-                "p_value": round(self.lrt_p_value, 6),
+                "p_value": float(self.lrt_p_value),
                 "significant": self.lrt_p_value < 0.05,
             }
 
@@ -245,7 +245,7 @@ def likelihood_ratio_test(model_null, model_alt, boundary_correction: bool = Tru
         "test": "Likelihood Ratio Test",
         "statistic": round(lrt, 4),
         "df": df,
-        "p_value": round(p_value, 6),
+        "p_value": float(p_value),
         "significance": sig_level,
         "conclusion": conclusion,
         "null_model": {"log_likelihood": round(ll_null, 4), "n_parameters": n_params_null},

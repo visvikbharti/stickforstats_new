@@ -437,7 +437,7 @@ def random_effects_qq_plot(lmm_result, effect: str = "intercept") -> Dict[str, A
         "normality_test": {
             "test": "Shapiro-Wilk",
             "statistic": round(shapiro_stat, 4) if shapiro_stat else None,
-            "p_value": round(shapiro_p, 4) if shapiro_p else None,
-            "normal": shapiro_p > 0.05 if shapiro_p else None,
+            "p_value": float(shapiro_p) if shapiro_p is not None else None,
+            "normal": bool(shapiro_p > 0.05) if shapiro_p is not None else None,
         },
     }

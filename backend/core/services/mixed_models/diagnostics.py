@@ -198,8 +198,8 @@ def residual_diagnostics(lmm_result, data=None, outcome_var: str = None) -> Dict
     normality_result = {
         "test": normality_test,
         "statistic": round(shapiro_stat, 4) if shapiro_stat else None,
-        "p_value": round(shapiro_p, 4) if shapiro_p else None,
-        "normal": shapiro_p > 0.05 if shapiro_p else None,
+        "p_value": float(shapiro_p) if shapiro_p is not None else None,
+        "normal": bool(shapiro_p > 0.05) if shapiro_p is not None else None,
         "skewness": round(skewness, 4),
         "kurtosis": round(kurtosis, 4),
         "interpretation": _interpret_normality(shapiro_p, skewness, kurtosis),
@@ -213,7 +213,7 @@ def residual_diagnostics(lmm_result, data=None, outcome_var: str = None) -> Dict
     homoscedasticity_result = {
         "test": "Residuals vs Fitted regression",
         "slope": round(slope, 6),
-        "p_value": round(p_value_het, 4),
+        "p_value": float(p_value_het),
         "heteroscedastic": p_value_het < 0.05,
         "r_squared": round(r_value**2, 4),
         "interpretation": (
@@ -409,7 +409,7 @@ def full_diagnostics(lmm_result, data=None, grouping_var: str = None) -> LMMDiag
             _, p = stats.shapiro(intercept_blups)
             re_normality = {
                 "test": "Shapiro-Wilk",
-                "p_value": round(p, 4),
+                "p_value": float(p),
                 "normal": p > 0.05,
                 "n_groups": len(intercept_blups),
             }

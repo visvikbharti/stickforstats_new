@@ -124,7 +124,7 @@ class ICCResult:
                 "f_value": round(self.f_value, 4),
                 "df_between": self.df_between,
                 "df_within": self.df_within,
-                "p_value": round(self.p_value, 6),
+                "p_value": float(self.p_value),
             },
             "variance_components": {
                 "between_groups": round(self.variance_between, 6),
