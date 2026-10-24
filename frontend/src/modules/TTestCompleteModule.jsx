@@ -25,6 +25,7 @@ import jStat from 'jstat';
 import { getApiUrl, endpoints } from '../config/apiConfig';
 import guardianService from '../services/GuardianService';
 import GuardianFallbackCard from '../components/Guardian/GuardianFallbackCard';
+import { formatPValue, formatPClause } from '../utils/formatStats';
 import {
   LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
@@ -65,6 +66,9 @@ const TTestCompleteModule = () => {
   const [alternative, setAlternative] = useState('two-sided');
   const [confidenceLevel, setConfidenceLevel] = useState(95);
   const [equalVariance, setEqualVariance] = useState(true);
+  // α as the user set it. (100 - 95) / 100 is the number that prints as 0.05; 1 - 95 / 100,
+  // used before, printed as 0.050000000000000044. (Not named `alpha`: that is MUI's colour helper.)
+  const significanceLevel = (100 - confidenceLevel) / 100;
 
   // Data management
   const [sample1, setSample1] = useState('');
@@ -74,6 +78,9 @@ const TTestCompleteModule = () => {
 
   // Results
   const [results, setResults] = useState(null);
+  // The α the shown results were judged at, so the table agrees with the interpretation even
+  // after the slider moves.
+  const [resultsAlpha, setResultsAlpha] = useState(null);
   const [assumptions, setAssumptions] = useState(null);
   const [interpretation, setInterpretation] = useState(null);
 
@@ -218,7 +225,7 @@ const TTestCompleteModule = () => {
       // Future tense, deliberately: this panel is populated before the request
       // is sent, and it deliberately survives a failed request (see the caller),
       // so "was used" would assert a result that may never have been computed.
-      const finding = `${assumptions.equalVariance.passed ? 'Variances appear equal' : 'Unequal variances detected'} (F=${fStat.toFixed(2)}, p=${fPValue.toFixed(4)})`;
+      const finding = `${assumptions.equalVariance.passed ? 'Variances appear equal' : 'Unequal variances detected'} (F=${fStat.toFixed(2)}, ${formatPClause(fPValue)})`;
       if (assumptions.equalVariance.passed) {
         assumptions.equalVariance.message = finding;
       } else if (equalVariance) {
@@ -309,7 +316,7 @@ const TTestCompleteModule = () => {
           ? data1.map((v, i) => v - data2[i])
           : { group1: data1, group2: data2 };
       guardianService
-        .checkAssumptions(guardianData, 't_test', 1 - confidenceLevel / 100)
+        .checkAssumptions(guardianData, 't_test', significanceLevel)
         .then(setGuardianReport)
         .catch(() => setGuardianReport(null));
     }
@@ -317,6 +324,7 @@ const TTestCompleteModule = () => {
     try {
       const response = await axios.post(getApiUrl(endpoint), payload);
       setResults(response.data);
+      setResultsAlpha(significanceLevel);
 
       // Generate interpretation
       generateInterpretation(response.data);
@@ -333,7 +341,7 @@ const TTestCompleteModule = () => {
   const generateInterpretation = (results) => {
     const rawP = results.high_precision_result?.p_value ?? results.p_value;
     const rawT = results.high_precision_result?.t_statistic ?? results.t_statistic;
-    const alpha = 1 - confidenceLevel / 100;
+    const alpha = significanceLevel;
 
     const interp = {
       summary: '',
@@ -366,12 +374,14 @@ const TTestCompleteModule = () => {
     const pValue = parseFloat(rawP);
     const tStat = Number.isFinite(parseFloat(rawT)) ? parseFloat(rawT) : 0;
 
-    // Statistical interpretation
+    // Statistical interpretation. rawP is the backend's high-precision string when it sends one:
+    // formatPValue reads it directly, so even a p-value below the range of a JavaScript number
+    // prints its size rather than 0 (toFixed(4) printed 7.76e-8 as "0.0000").
     if (pValue < alpha) {
-      interp.statistical = `The test is statistically significant (p = ${pValue.toFixed(4)} < α = ${alpha}). We reject the null hypothesis.`;
+      interp.statistical = `The test is statistically significant (${formatPClause(rawP)} < α = ${alpha}). We reject the null hypothesis.`;
       interp.summary = 'Significant difference detected';
     } else {
-      interp.statistical = `The test is not statistically significant (p = ${pValue.toFixed(4)} ≥ α = ${alpha}). We fail to reject the null hypothesis.`;
+      interp.statistical = `The test is not statistically significant (${formatPClause(rawP)} ≥ α = ${alpha}). We fail to reject the null hypothesis.`;
       interp.summary = 'No significant difference detected';
     }
 
@@ -917,10 +927,16 @@ const TTestCompleteModule = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell>P-Value</TableCell>
-                        <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                          {results.high_precision_result.p_value ?? '—'}
+                        {/* Three significant figures, with the full high-precision value on
+                            hover; significant at the α the analysis ran with, not a fixed 0.05. */}
+                        <TableCell
+                          align="right"
+                          sx={{ fontFamily: 'monospace' }}
+                          title={results.high_precision_result.p_value != null ? `Full precision: ${results.high_precision_result.p_value}` : undefined}
+                        >
+                          {formatPValue(results.high_precision_result.p_value)}
                           {Number.isFinite(parseFloat(results.high_precision_result.p_value)) &&
-                            parseFloat(results.high_precision_result.p_value) < 0.05 && (
+                            parseFloat(results.high_precision_result.p_value) < resultsAlpha && (
                             <Chip label="Significant" color="error" size="small" sx={{ ml: 1 }} />
                           )}
                         </TableCell>
