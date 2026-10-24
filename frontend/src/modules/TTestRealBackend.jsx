@@ -292,14 +292,12 @@ const TTestRealBackend = () => {
     // read .normality.passed / .equal_variance.passed / .independence.passed --
     // none of which exist -- so every run showed "⚠️ Violated" (and printed the
     // real high equal-variance p-value right next to a "Violated" label).
-    const fmtP = (v) =>
-      v === null || v === undefined || Number.isNaN(Number(v)) ? 'N/A' : Number(v).toFixed(4);
     const norm1 = assumptions.normality_data1;
     const norm2 = assumptions.normality_data2;
     const normalityMet = norm1 ? norm1.is_met && (norm2 ? norm2.is_met : true) : undefined;
     const normalityP = norm2
-      ? `${fmtP(norm1?.p_value)}, ${fmtP(norm2?.p_value)}`
-      : fmtP(norm1?.p_value);
+      ? `${formatPValue(norm1?.p_value)}, ${formatPValue(norm2?.p_value)}`
+      : formatPValue(norm1?.p_value);
     const eqVar = assumptions.equal_variance;
 
     return (
@@ -329,7 +327,7 @@ const TTestRealBackend = () => {
                     <strong>Equal Variance:</strong> {eqVar.is_met ? "✅ Met" : "⚠️ Violated"}
                   </Typography>
                   <Typography variant="caption">
-                    p-value: {fmtP(eqVar.p_value)}
+                    p-value: {formatPValue(eqVar.p_value)}
                   </Typography>
                 </Alert>
               </Grid>

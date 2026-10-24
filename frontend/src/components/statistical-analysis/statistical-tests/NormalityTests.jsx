@@ -54,6 +54,7 @@ import guardianService from '../../../services/GuardianService';
 import GuardianWarning from '../../Guardian/GuardianWarning';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
+import { formatPValue } from '../../../utils/formatStats';
 
 /**
  * A statistic the backend reports as null does not exist -- the test was not applicable to
@@ -62,16 +63,9 @@ import { DebuggerPanel } from '../../statistical-debugger';
  */
 const fmtStat = (value) => (Number.isFinite(value) ? value.toFixed(4) : '\u2014');
 
-/**
- * Very small p-values are real and are shown in scientific notation. The browser engine this
- * replaced printed them as "0.0000".
- */
-const fmtP = (value) => {
-  if (!Number.isFinite(value)) return '\u2014';
-  if (value === 0) return '< 1e-300';
-  if (value < 0.0001) return value.toExponential(2);
-  return value.toFixed(4);
-};
+// p-values use the shared formatter (utils/formatStats): significant figures below 0.001, and
+// "< 2.2e-16" for an exact 0. This file's own version printed an exact 0 as "< 1e-300", a claim
+// a tail computed as 1 - cdf cannot support.
 
 
 /**
@@ -563,7 +557,7 @@ const NormalityTests = ({ data }) => {
                     <TableRow>
                       <TableCell>Shapiro-Wilk</TableCell>
                       <TableCell align="right">{fmtStat(shapiroResult.statistic)}</TableCell>
-                      <TableCell align="right">{fmtP(shapiroResult.pValue)}</TableCell>
+                      <TableCell align="right">{formatPValue(shapiroResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {shapiroResult.isNormal ? (
                           <Chip
@@ -594,7 +588,7 @@ const NormalityTests = ({ data }) => {
                     <TableRow>
                       <TableCell>Anderson-Darling</TableCell>
                       <TableCell align="right">{fmtStat(andersonResult.statistic)}</TableCell>
-                      <TableCell align="right">{fmtP(andersonResult.pValue)}</TableCell>
+                      <TableCell align="right">{formatPValue(andersonResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {andersonResult.isNormal ? (
                           <Chip
@@ -625,7 +619,7 @@ const NormalityTests = ({ data }) => {
                     <TableRow>
                       <TableCell>D'Agostino K²</TableCell>
                       <TableCell align="right">{fmtStat(dAgostinoResult.statistic)}</TableCell>
-                      <TableCell align="right">{fmtP(dAgostinoResult.pValue)}</TableCell>
+                      <TableCell align="right">{formatPValue(dAgostinoResult.pValue)}</TableCell>
                       <TableCell align="center">
                         {dAgostinoResult.isNormal ? (
                           <Chip

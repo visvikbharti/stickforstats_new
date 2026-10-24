@@ -81,6 +81,21 @@ test('no p-value is formatted with toFixed', () => {
   expect(offenders).toEqual([]);
 });
 
+// The generic number formatters print a fixed number of decimals, so a p-value handed to one reads
+// as zero below the last decimal: ResultDisplay's formatValue printed "p = 0.0000" on the /modules/*
+// pages. The whole file is scanned, so a call split over lines counts too.
+const FIXED_DECIMAL_FORMATTER = /\b(formatNumber|formatValue|formatPrecisionNumber|formatStat|fmtP)\s*\(\s*([^,()]+)/g;
+
+test('no p-value goes through a generic fixed-decimal formatter', () => {
+  const offenders = reachableFiles().flatMap((file) => {
+    const src = stripComments(fs.readFileSync(file, 'utf8'));
+    return [...src.matchAll(FIXED_DECIMAL_FORMATTER)]
+      .filter((m) => (m[2].match(/[A-Za-z_$][\w$]*/g) || []).some(isPValueName))
+      .map((m) => `${path.relative(SRC, file)}:${src.slice(0, m.index).split('\n').length}: ${m[0].replace(/\s+/g, ' ')}`);
+  });
+  expect(offenders).toEqual([]);
+});
+
 // Running text writes a p-value as a clause: formatPClause gives "p = 7.76e-8" or "p < 2.2e-16",
 // where "p = " followed by formatPValue gives "p = < 2.2e-16" for an exact 0.
 test('running text never writes "p = " before formatPValue', () => {

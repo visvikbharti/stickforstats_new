@@ -18,7 +18,7 @@ import {
 } from '../../store/slices/multiplicityCorrectionSlice';
 import { getApiUrl } from '../../config/apiConfig';
 import './MultiplicityCorrectionPanel.scss';
-import { formatNumber, isSignificant } from '../../utils/formatStats';
+import { isSignificant, formatPValue, formatPClause } from '../../utils/formatStats';
 
 // This panel's method ids -> the backend's CorrectionMethod values.
 const BACKEND_METHOD = {
@@ -486,7 +486,7 @@ const MultiplicityCorrectionPanel = () => {
                       <td className="description-col">{hypothesis.description}</td>
                       <td className="test-col">{hypothesis.testName}</td>
                       <td className="numeric p-value-col">
-                        {formatNumber(hypothesis.pValue, 4)}
+                        {formatPValue(hypothesis.pValue)}
                       </td>
                       <td className="numeric effect-col">
                         {hypothesis.effectSize?.toFixed(3) || '—'}
@@ -573,10 +573,10 @@ const MultiplicityCorrectionPanel = () => {
                       <div className="hypothesis-desc">{result.description}</div>
                     </td>
                     <td className="numeric original-p">
-                      {formatNumber(result.pValue, 4)}
+                      {formatPValue(result.pValue)}
                     </td>
                     <td className="numeric adjusted-p">
-                      {formatNumber(result.adjustedP, 4)}
+                      {formatPValue(result.adjustedP)}
                       {isSignificant(result.adjustedP, 0.001) && ' ***'}
                       {isSignificant(result.adjustedP, 0.01) && result.adjustedP >= 0.001 && ' **'}
                       {isSignificant(result.adjustedP, 0.05) && result.adjustedP >= 0.01 && ' *'}
@@ -718,7 +718,7 @@ const MultiplicityCorrectionPanel = () => {
                   <div className="timeline-content">
                     <div className="test-name">{test.testName}</div>
                     <div className="test-result">
-                      p = {formatNumber(test.pValue, 4)}
+                      {formatPClause(test.pValue)}
                       {isSignificant(test.pValue, 0.05) && ' (significant)'}
                     </div>
                   </div>
@@ -785,8 +785,8 @@ const MultiplicityCorrectionPanel = () => {
                     <li key={result.id}>
                       <strong>{result.id}:</strong> {result.description}
                       <br />
-                      Original p = {formatNumber(result.pValue, 4)}, 
-                      Adjusted p = {formatNumber(result.adjustedP, 4)}
+                      Original {formatPClause(result.pValue)}, 
+                      {formatPClause(result.adjustedP, 'Adjusted p')}
                       {result.effectSize && `, Effect size = ${result.effectSize.toFixed(3)}`}
                     </li>
                   ))}

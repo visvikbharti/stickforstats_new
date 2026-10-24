@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import Decimal from 'decimal.js';
+import { formatPValue } from '../utils/formatStats';
 
 // Configure Decimal.js for high precision
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
@@ -221,9 +222,7 @@ class HighPrecisionStatisticalService {
       processed.display.f_statistic = this.formatPrecisionNumber(
         result.anova_table.f_statistic, 6
       );
-      processed.display.p_value = this.formatPrecisionNumber(
-        result.anova_table.p_value, 6
-      );
+      processed.display.p_value = formatPValue(result.anova_table.p_value);
     }
 
     // Format effect sizes
@@ -264,15 +263,11 @@ class HighPrecisionStatisticalService {
       processed.display.f_statistic_group = this.formatPrecisionNumber(
         result.ancova_result.f_statistic_group, 6
       );
-      processed.display.p_value_group = this.formatPrecisionNumber(
-        result.ancova_result.p_value_group, 6
-      );
+      processed.display.p_value_group = formatPValue(result.ancova_result.p_value_group);
       processed.display.f_statistic_covariate = this.formatPrecisionNumber(
         result.ancova_result.f_statistic_covariate, 6
       );
-      processed.display.p_value_covariate = this.formatPrecisionNumber(
-        result.ancova_result.p_value_covariate, 6
-      );
+      processed.display.p_value_covariate = formatPValue(result.ancova_result.p_value_covariate);
     }
 
     // Format adjusted means
@@ -297,9 +292,7 @@ class HighPrecisionStatisticalService {
 
     // Format homogeneity test
     if (result.homogeneity_test) {
-      processed.display.homogeneity_p_value = this.formatPrecisionNumber(
-        result.homogeneity_test.p_value, 6
-      );
+      processed.display.homogeneity_p_value = formatPValue(result.homogeneity_test.p_value);
     }
 
     // Process covariate effects
@@ -308,7 +301,7 @@ class HighPrecisionStatisticalService {
       for (const [cov, effects] of Object.entries(result.covariate_effects)) {
         processed.display.covariate_effects[cov] = {
           coefficient: this.formatPrecisionNumber(effects.coefficient, 6),
-          p_value: this.formatPrecisionNumber(effects.p_value, 6)
+          p_value: formatPValue(effects.p_value)
         };
       }
     }
@@ -332,7 +325,7 @@ class HighPrecisionStatisticalService {
         processed.display.test_statistics[test] = {
           statistic: this.formatPrecisionNumber(value.statistic, 6),
           f_statistic: this.formatPrecisionNumber(value.f_statistic, 6),
-          p_value: this.formatPrecisionNumber(value.p_value, 6),
+          p_value: formatPValue(value.p_value),
           effect_size: this.formatPrecisionNumber(value.effect_size, 4)
         };
       }
@@ -352,7 +345,7 @@ class HighPrecisionStatisticalService {
 
     if (result.correlation) {
       processed.display.correlation = this.formatPrecisionNumber(result.correlation, 6);
-      processed.display.p_value = this.formatPrecisionNumber(result.p_value, 6);
+      processed.display.p_value = formatPValue(result.p_value);
       processed.display.confidence_interval = [
         this.formatPrecisionNumber(result.ci_lower, 6),
         this.formatPrecisionNumber(result.ci_upper, 6)
@@ -371,9 +364,9 @@ class HighPrecisionStatisticalService {
     for (const [comparison, stats] of Object.entries(postHocData)) {
       processed[comparison] = {
         mean_difference: this.formatPrecisionNumber(stats.mean_difference, 6),
-        p_value: this.formatPrecisionNumber(stats.p_value, 6),
+        p_value: formatPValue(stats.p_value),
         adjusted_p_value: stats.adjusted_p_value ?
-          this.formatPrecisionNumber(stats.adjusted_p_value, 6) : null,
+          formatPValue(stats.adjusted_p_value) : null,
         significant: stats.significant,
         confidence_interval: stats.confidence_interval ? [
           this.formatPrecisionNumber(stats.confidence_interval[0], 6),
