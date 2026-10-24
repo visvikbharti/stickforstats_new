@@ -26,7 +26,7 @@ import {
 } from 'recharts';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
-import { isSignificant } from '../../../utils/formatStats';
+import { isSignificant, formatPValue } from '../../../utils/formatStats';
 
 /**
  * InteractionPlot component for visualizing factor interactions in DOE analysis
@@ -174,7 +174,7 @@ function InteractionPlot({ data, options = {} }) {
         </ResponsiveContainer>
         {interactionData.pValue && (
           <Typography variant="caption" color="text.secondary">
-            P-value: {interactionData.pValue.toFixed(4)}
+            P-value: {formatPValue(interactionData.pValue)}
             {isSignificant(interactionData.pValue) ? ' (Significant)' : ' (Not significant)'}
           </Typography>
         )}

@@ -25,6 +25,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import guardianService from '../../services/GuardianService';
 import TransformationWizard from './TransformationWizard';
+import { formatPValue } from '../../utils/formatStats';
 
 // Golden Ratio for confidence calculations
 const PHI = 1.618033988749;
@@ -382,9 +383,9 @@ const GuardianWarning = ({
                       secondary={
                         <Box>
                           <Typography variant="body2">{violation.message}</Typography>
-                          {violation.p_value && (
+                          {violation.p_value != null && (
                             <Typography variant="caption" color="text.secondary">
-                              p-value: {violation.p_value.toFixed(4)} | Test: {violation.test_name}
+                              p-value: {formatPValue(violation.p_value)} | Test: {violation.test_name}
                             </Typography>
                           )}
                         </Box>

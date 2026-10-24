@@ -58,6 +58,7 @@ import {
 
 import { analyzeTestResults } from './utils/debuggerEngine';
 import { getPitfallsForTest, getChecklistForTest } from './utils/pitfallsDatabase';
+import { formatPValue } from '../../utils/formatStats';
 
 /**
  * Status badge colors
@@ -225,7 +226,7 @@ const DebuggerPanel = ({
                     P-Value
                   </Typography>
                   <Typography variant="h6">
-                    {results.pValue?.toFixed(4) || 'N/A'}
+                    {results.pValue != null ? formatPValue(results.pValue) : 'N/A'}
                   </Typography>
                   <Chip
                     size="small"

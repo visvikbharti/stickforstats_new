@@ -823,7 +823,7 @@ function generateRInterpretation(testType, results) {
 # ============================================================================
 
 alpha <- ${results.alpha || 0.05}
-p_value <- ${results.pValue ? results.pValue.toFixed(6) : 'test_result$p.value'}
+p_value <- ${results.pValue ? String(results.pValue) : 'test_result$p.value'}
 
 cat("\\n=== INTERPRETATION ===\\n")
 cat("Significance level (α):", alpha, "\\n")

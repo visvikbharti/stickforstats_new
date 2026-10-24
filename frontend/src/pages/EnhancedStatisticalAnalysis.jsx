@@ -31,6 +31,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
   Legend, ResponsiveContainer
 } from 'recharts';
+import { formatPClause } from '../utils/formatStats';
 
 const EnhancedStatisticalAnalysis = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -290,8 +291,8 @@ const EnhancedStatisticalAnalysis = () => {
                 <ListItemText
                   primary="Statistical Significance"
                   secondary={pValue < 0.05
-                    ? `With p-value = ${pValue.toFixed(4)}, there is strong evidence of a significant difference between the two groups.`
-                    : `With p-value = ${pValue.toFixed(4)}, there is insufficient evidence to conclude a significant difference between the groups.`}
+                    ? `With ${formatPClause(pValue, 'p-value')}, there is strong evidence of a significant difference between the two groups.`
+                    : `With ${formatPClause(pValue, 'p-value')}, there is insufficient evidence to conclude a significant difference between the groups.`}
                 />
               </ListItem>
               <ListItem>

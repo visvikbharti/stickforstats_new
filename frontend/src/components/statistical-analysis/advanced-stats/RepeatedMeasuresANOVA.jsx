@@ -69,7 +69,7 @@ import GuardianWarning from '../../Guardian/GuardianWarning';
 import VisualEvidence from '../../VisualEvidence';
 import { useSettings } from '../../../context/SettingsContext';
 import { fSf, tSfTwoSided } from '../../../utils/tails';
-import { isSignificant } from '../../../utils/formatStats';
+import { isSignificant, formatPValue, formatPClause } from '../../../utils/formatStats';
 
 const RepeatedMeasuresANOVA = ({ data }) => {
   const theme = useTheme();
@@ -765,7 +765,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
                     df = ({results.corrected_df?.conditions?.toFixed(2)}, {results.corrected_df?.error?.toFixed(2)})
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    p = {results.p_value?.toFixed(4)}
+                    {formatPClause(results.p_value)}
                   </Typography>
                   <Chip
                     label={results.significant ? 'Significant' : 'Not Significant'}
@@ -916,7 +916,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
                         <TableCell align="right">{row.mean_diff?.toFixed(3)}</TableCell>
                         <TableCell align="right">{row.se?.toFixed(3)}</TableCell>
                         <TableCell align="right">{row.t_statistic?.toFixed(3)}</TableCell>
-                        <TableCell align="right">{row.p_value?.toFixed(4)}</TableCell>
+                        <TableCell align="right">{formatPValue(row.p_value)}</TableCell>
                         <TableCell align="right">{row.p_adjusted?.toFixed(4)}</TableCell>
                         <TableCell align="center">
                           <Chip
@@ -951,7 +951,7 @@ const RepeatedMeasuresANOVA = ({ data }) => {
               <Typography variant="body2">
                 The repeated measures ANOVA did not reveal a statistically significant effect
                 of condition, F({results.corrected_df?.conditions?.toFixed(2)}, {results.corrected_df?.error?.toFixed(2)}) = {results.f_statistic?.toFixed(3)},
-                p = {results.p_value?.toFixed(3)}.
+                {formatPClause(results.p_value)}.
                 There are no significant differences across the {results.n_conditions} conditions.
               </Typography>
             )}

@@ -55,6 +55,8 @@ import {
 } from '@mui/icons-material';
 import { analyzeManuscript, issueReceipt, receiptDownloadUrl } from '../../services/ManuscriptService';
 import { DisciplineCompliancePanel } from './ReviewerReport';
+import { formatPValue } from '../../utils/formatStats';
+import { formatP } from './VerificationReport';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -547,10 +549,10 @@ function ConsistencyTable({ results, theme, sortConfig, onRequestSort }) {
                 </Tooltip>
               </TableCell>
               <TableCell>
-                {row.reported_p != null ? Number(row.reported_p).toFixed(4) : '-'}
+                {row.reported_p != null ? formatP(row.reported_p) : '-'}
               </TableCell>
               <TableCell>
-                {row.computed_p != null ? Number(row.computed_p).toFixed(4) : '-'}
+                {row.computed_p != null ? formatPValue(Number(row.computed_p)) : '-'}
               </TableCell>
               <TableCell>
                 {row.match === true ? (
