@@ -333,6 +333,7 @@ const TTestCompleteModule = () => {
     } catch (error) {
       console.error('Analysis error:', error);
       setResults(null);
+      setInterpretation(null); // not the previous run's
       enqueueSnackbar('Analysis failed', { variant: 'error' });
     }
   };
@@ -368,7 +369,10 @@ const TTestCompleteModule = () => {
       interp.practical =
         'Every observation within a group is identical. A t-test needs within-group variation to place the difference between groups on a sampling distribution.';
       interp.recommendations.push('Check the data — a group with no variation is usually a data-entry or export error.');
-      return interp;
+      // This branch built its interpretation and returned it, but the caller ignores the return
+      // value, so the previous run's interpretation stayed on screen.
+      setInterpretation(interp);
+      return;
     }
 
     const pValue = parseFloat(rawP);
