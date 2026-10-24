@@ -633,13 +633,17 @@ MS = Mean Square`}
           was |skewness| < 2 and whose "equal variances" test was a max/min variance ratio
           < 3. Neither is a statistical test, both were invented thresholds, and they could
           (and did) contradict the Guardian card directly below them on the same screen. */}
+      {/* /api/guardian/check/ reports confidence_score as a fraction in [0, 1];
+          GuardianReportDisplay and its gauge work in percent (0-100). Passed through as a
+          fraction, 0.722 and a clean 1.0 both read "1%", in red, and the gauge's tooltip
+          said "Critical - Results may be unreliable". */}
       {guardianReport && (
         <Grid item xs={12}>
           <GuardianReportDisplay
             guardianReport={guardianReport}
             assumptionsChecked={guardianReport.assumptions_checked || []}
             violations={guardianReport.violations || []}
-            confidenceScore={guardianReport.confidence_score ?? 0}
+            confidenceScore={(guardianReport.confidence_score ?? 0) * 100}
             canProceed={guardianReport.can_proceed ?? true}
             alternativeTests={guardianReport.alternative_tests || []}
           />

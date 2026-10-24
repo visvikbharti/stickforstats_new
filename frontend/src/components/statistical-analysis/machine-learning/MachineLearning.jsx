@@ -155,7 +155,7 @@ const MachineLearning = ({ data, setData, onComplete }) => {
               Machine Learning
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Train predictive models and discover patterns in your data—all in your browser
+              Train predictive models and discover patterns in your data, with models trained in your browser
             </Typography>
           </Box>
         </Box>
@@ -167,10 +167,14 @@ const MachineLearning = ({ data, setData, onComplete }) => {
           </Typography>
         </Alert>
 
-        <Alert severity="success" sx={{ mt: 2 }}>
+        {/* This used to promise "All ML training happens in your browser using TensorFlow.js. Your
+            data never leaves your computer". TensorFlow.js is not a dependency, and Linear
+            Regression sends the selected columns to the server for Guardian's checks (issue #31
+            item 5: the tools page must not contradict itself about where data goes). */}
+        <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            <strong>Privacy First:</strong> All ML training happens in your browser using TensorFlow.js.
-            Your data never leaves your computer, ensuring complete privacy and security.
+            <strong>Where it runs:</strong> Models are trained in your browser. Linear Regression also
+            sends the variables you select to our server, for Guardian's assumption checks.
           </Typography>
         </Alert>
       </Paper>

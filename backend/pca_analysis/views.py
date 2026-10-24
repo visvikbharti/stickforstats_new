@@ -6,7 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
@@ -59,11 +59,16 @@ logger = logging.getLogger(__name__)
 # ======================= ORIGINAL PROJECT-BASED VIEWS =======================
 
 
+# The six record viewsets below (projects, and their samples, genes, groups, results and
+# visualizations) need sign-in, and each lists only the signed-in user's records. They were
+# AllowAny: an anonymous visitor got 500 from the user filter (AnonymousUser is not a user),
+# and the nested ones filtered by the project or result ID alone, so anyone with that ID could
+# read, edit and delete another user's samples, genes, groups and visualizations.
 class PCAProjectViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA projects."""
 
     serializer_class = PCAProjectSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return PCAProject.objects.filter(user=self.request.user)
@@ -199,12 +204,12 @@ class SampleGroupViewSet(viewsets.ModelViewSet):
     """ViewSet for sample groups."""
 
     serializer_class = SampleGroupSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.kwargs.get("project_pk")
         if project_id:
-            return SampleGroup.objects.filter(project_id=project_id)
+            return SampleGroup.objects.filter(project_id=project_id, project__user=self.request.user)
         return SampleGroup.objects.none()
 
     def perform_create(self, serializer):
@@ -217,12 +222,12 @@ class SampleViewSet(viewsets.ModelViewSet):
     """ViewSet for samples."""
 
     serializer_class = SampleSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.kwargs.get("project_pk")
         if project_id:
-            return Sample.objects.filter(project_id=project_id)
+            return Sample.objects.filter(project_id=project_id, project__user=self.request.user)
         return Sample.objects.none()
 
 
@@ -230,12 +235,12 @@ class GeneViewSet(viewsets.ModelViewSet):
     """ViewSet for genes."""
 
     serializer_class = GeneSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.kwargs.get("project_pk")
         if project_id:
-            return Gene.objects.filter(project_id=project_id)
+            return Gene.objects.filter(project_id=project_id, project__user=self.request.user)
         return Gene.objects.none()
 
 
@@ -243,7 +248,7 @@ class PCAResultViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA results."""
 
     serializer_class = PCAResultSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     http_method_names = ["get", "head", "options"]  # Read-only
 
     def get_queryset(self):
@@ -345,12 +350,12 @@ class PCAVisualizationViewSet(viewsets.ModelViewSet):
     """ViewSet for PCA visualizations."""
 
     serializer_class = PCAVisualizationSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         result_id = self.kwargs.get("result_pk")
         if result_id:
-            return PCAVisualization.objects.filter(pca_result_id=result_id)
+            return PCAVisualization.objects.filter(pca_result_id=result_id, pca_result__user=self.request.user)
         return PCAVisualization.objects.none()
 
     def get_serializer_class(self):

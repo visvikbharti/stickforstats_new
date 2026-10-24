@@ -1,253 +1,32 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Paper, 
-  Stepper, 
-  Step, 
-  StepLabel, 
-  Button, 
-  Box, 
+import React, { lazy, Suspense } from 'react';
+import {
+  Container,
+  Typography,
+  Paper,
+  Button,
+  Box,
   CircularProgress,
-  Grid,
   Alert,
-  Snackbar
+  AlertTitle
 } from '@mui/material';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 
-// Eagerly load small, essential components
-import DataUploader from '../components/pca/DataUploader';
-import PcaProgressTracker from '../components/pca/PcaProgressTracker';
 import EducationalBanner from '../components/education/EducationalBanner';
-// Import hooks
-import { usePcaProgress } from '../hooks/usePcaProgress';
-// PCA API
-import { runPcaAnalysis, getPcaResults } from '../api/pcaApi';
 
-// Lazy load large components to reduce initial bundle size
 const PcaIntroduction = lazy(() => import('../components/pca/PcaIntroduction'));
-const PcaConfiguration = lazy(() => import('../components/pca/PcaConfiguration'));
-const PcaVisualization = lazy(() => import('../components/pca'));
-const PcaInterpretation = lazy(() => import('../components/pca/PcaInterpretation'));
-const PcaReportGenerator = lazy(() => import('../components/pca/PcaReportGenerator'));
-const SampleGroupManager = lazy(() => import('../components/pca/SampleGroupManager'));
 
-const steps = [
-  'Introduction',
-  'Upload Data',
-  'Configure Analysis',
-  'Visualization',
-  'Interpretation',
-  'Generate Report'
-];
-
+// PCA Analysis cannot run an analysis in this release, so the page says so instead of failing.
+// What it did (2026-10-24), signed in or not:
+// - Upload: api/pcaApi.js sends no sign-in token, so the backend saw an anonymous visitor and
+//   answered 500. DataUploader then said "Data uploaded successfully!" about a made-up project
+//   ("Demo project created successfully (Offline Mode)!" for a demo project), and nothing went
+//   further: this page passed onDatasetUpload, but the uploader calls onDataUploaded.
+// - Run: with a token, run_pca still answered 500 for a project with two or more sample groups,
+//   such as the demo project (pca_analysis/services/pca_service.py keys group distances by
+//   tuples, which JSON cannot store).
+// Until the flow is rebuilt the page shows the introduction, points to the learning hub, and
+// sends nothing to the server. The old steps are still in components/pca/.
 function PCAAnalysisPage() {
-  const { sessionId } = useParams();
-  const navigate = useNavigate();
-  
-  // State
-  const [activeStep, setActiveStep] = useState(0);
-  const [dataset, setDataset] = useState(null);
-  const [configuration, setConfiguration] = useState({
-    numComponents: 2,
-    scalingMethod: 'standard',
-    excludeColumns: [],
-    groupingColumn: '',
-  });
-  const [results, setResults] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
-  
-  // Hook for tracking PCA analysis progress
-  const { progress, currentTask, startTracking, stopTracking } = usePcaProgress(sessionId);
-  
-  // Load existing session if sessionId is provided
-  useEffect(() => {
-    if (sessionId) {
-      setIsLoading(true);
-      getPcaResults(sessionId)
-        .then(data => {
-          if (data) {
-            setDataset(data.dataset);
-            setConfiguration(data.configuration);
-            setResults(data.results);
-            setActiveStep(3); // Set to visualization step
-          }
-        })
-        .catch(err => {
-          setError(`Error loading PCA session: ${err.message}`);
-          setNotification({
-            open: true,
-            message: `Error loading session: ${err.message}`,
-            severity: 'error'
-          });
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
-  }, [sessionId]);
-  
-  // Handle next step
-  const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
-  };
-  
-  // Handle back step
-  const handleBack = () => {
-    setActiveStep((prevStep) => prevStep - 1);
-  };
-  
-  // Handle dataset upload
-  const handleDatasetUpload = (uploadedDataset) => {
-    setDataset(uploadedDataset);
-    setNotification({
-      open: true,
-      message: 'Dataset uploaded successfully!',
-      severity: 'success'
-    });
-    handleNext();
-  };
-  
-  // Handle configuration changes
-  const handleConfigurationChange = (newConfig) => {
-    setConfiguration(prev => ({
-      ...prev,
-      ...newConfig
-    }));
-  };
-  
-  // Handle running PCA analysis
-  const handleRunAnalysis = async () => {
-    try {
-      setIsLoading(true);
-      startTracking();
-      
-      const result = await runPcaAnalysis({
-        datasetId: dataset.id,
-        configuration
-      });
-      
-      setResults(result);
-      
-      // Update URL with session ID for sharing
-      navigate(`/pca-analysis/${result.sessionId}`, { replace: true });
-      
-      setNotification({
-        open: true,
-        message: 'PCA analysis completed successfully!',
-        severity: 'success'
-      });
-      
-      handleNext();
-    } catch (err) {
-      setError(`Error running PCA analysis: ${err.message}`);
-      setNotification({
-        open: true,
-        message: `Error running analysis: ${err.message}`,
-        severity: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-      stopTracking();
-    }
-  };
-  
-  // Handle report generation
-  const handleGenerateReport = (reportConfig) => {
-    // Implementation would call an API endpoint to generate a report
-    setNotification({
-      open: true,
-      message: 'Report generated and downloaded successfully!',
-      severity: 'success'
-    });
-    // In a real implementation, this would trigger a file download
-  };
-  
-  // Close notification
-  const handleCloseNotification = () => {
-    setNotification(prev => ({
-      ...prev,
-      open: false
-    }));
-  };
-  
-  // Loading component for step-based code splitting
-  const StepLoadingComponent = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-      <CircularProgress />
-    </Box>
-  );
-
-  // Render step content with code splitting
-  const getStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <PcaIntroduction onContinue={handleNext} />
-          </Suspense>
-        );
-      case 1:
-        // DataUploader is loaded eagerly as it's small and essential
-        return <DataUploader onDatasetUpload={handleDatasetUpload} />;
-      case 2:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <PcaConfiguration
-              dataset={dataset}
-              configuration={configuration}
-              onChange={handleConfigurationChange}
-              onRunAnalysis={handleRunAnalysis}
-              isRunning={isLoading}
-            />
-          </Suspense>
-        );
-      case 3:
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Suspense fallback={<StepLoadingComponent />}>
-                <PcaVisualization results={results} />
-              </Suspense>
-            </Grid>
-            <Grid item xs={12}>
-              <Suspense fallback={<StepLoadingComponent />}>
-                <SampleGroupManager 
-                  results={results} 
-                  groupingColumn={configuration.groupingColumn}
-                />
-              </Suspense>
-            </Grid>
-          </Grid>
-        );
-      case 4:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <PcaInterpretation
-              results={results}
-              configuration={configuration}
-              onContinue={handleNext}
-            />
-          </Suspense>
-        );
-      case 5:
-        return (
-          <Suspense fallback={<StepLoadingComponent />}>
-            <PcaReportGenerator
-              results={results}
-              dataset={dataset}
-              configuration={configuration}
-              onGenerateReport={handleGenerateReport}
-            />
-          </Suspense>
-        );
-      default:
-        return 'Unknown step';
-    }
-  };
-  
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Paper elevation={0} sx={{ p: 3, bgcolor: 'transparent' }}>
@@ -259,89 +38,32 @@ function PCAAnalysisPage() {
         </Typography>
       </Paper>
 
-      {/* Educational Banner - Show on Introduction step */}
-      {activeStep === 0 && (
-        <EducationalBanner module="pca" variant="default" dismissible={true} />
-      )}
-
-      {/* Progress Tracking */}
-      {isLoading && (
-        <Box sx={{ mb: 4 }}>
-          <PcaProgressTracker
-            progress={progress}
-            currentTask={currentTask}
-          />
+      <Alert severity="info" sx={{ mb: 4 }}>
+        <AlertTitle>Running PCA on your own data isn&rsquo;t available yet</AlertTitle>
+        Uploading a data set and running the analysis both have faults we haven&rsquo;t fixed
+        yet, so this page doesn&rsquo;t offer them, and it doesn&rsquo;t upload anything. The
+        introduction below explains PCA, and the PCA learning hub lets you explore it on example
+        data.
+        <Box sx={{ mt: 1.5 }}>
+          <Button variant="outlined" component={RouterLink} to="/pca-learn">
+            Open the PCA learning hub
+          </Button>
         </Box>
-      )}
-      
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 4 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-      
-      {/* Stepper */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Paper>
-      
-      {/* Main Content */}
-      <Paper elevation={2} sx={{ p: 3, minHeight: '60vh' }}>
-        {isLoading && activeStep < 3 ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          getStepContent(activeStep)
-        )}
-      </Paper>
-      
-      {/* Navigation Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-        {activeStep > 0 && activeStep < 3 && (
-          <Button
-            variant="outlined"
-            onClick={handleBack}
-            sx={{ mr: 1 }}
-            disabled={isLoading}
-          >
-            Back
-          </Button>
-        )}
-        
-        {activeStep === 0 && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleNext}
-          >
-            Start Analysis
-          </Button>
-        )}
-      </Box>
-      
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseNotification} 
-          severity={notification.severity}
-          variant="filled"
+      </Alert>
+
+      <EducationalBanner module="pca" variant="default" dismissible={true} />
+
+      <Paper elevation={2} sx={{ p: 3, mt: 2 }}>
+        <Suspense
+          fallback={
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          }
         >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+          <PcaIntroduction />
+        </Suspense>
+      </Paper>
     </Container>
   );
 }

@@ -65,6 +65,9 @@ class Conversation:
     """Manages a single conversation thread."""
 
     conversation_id: str
+    # Who started it: "user:<id>" or "session:<key>" (api/v1/ai_advisor_views.py). Only the
+    # same owner can continue, read or clear it; the conversation ID alone is not enough.
+    owner: str
     messages: List[Message] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
     last_activity: datetime = field(default_factory=datetime.now)
@@ -148,20 +151,43 @@ class ConversationManager:
         self.conversation_ttl = timedelta(hours=conversation_ttl_hours)
         self.lock = threading.Lock()
 
-    def get_or_create(self, conversation_id: str) -> Conversation:
-        """Get existing conversation or create new one."""
+    def get_or_create(self, conversation_id: str, owner: str) -> Optional[Conversation]:
+        """Get the owner's conversation, or start one. None if the ID is someone else's."""
+        if not owner:
+            raise ValueError("a conversation needs an owner")
         with self.lock:
             self._cleanup_old_conversations()
 
-            if conversation_id not in self.conversations:
-                if len(self.conversations) >= self.max_conversations:
-                    # Remove oldest conversation
-                    oldest_id = min(self.conversations.keys(), key=lambda k: self.conversations[k].last_activity)
-                    del self.conversations[oldest_id]
+            if conversation_id in self.conversations:
+                conversation = self.conversations[conversation_id]
+                return conversation if conversation.owner == owner else None
 
-                self.conversations[conversation_id] = Conversation(conversation_id=conversation_id)
+            if len(self.conversations) >= self.max_conversations:
+                # Remove oldest conversation
+                oldest_id = min(self.conversations.keys(), key=lambda k: self.conversations[k].last_activity)
+                del self.conversations[oldest_id]
 
+            self.conversations[conversation_id] = Conversation(conversation_id=conversation_id, owner=owner)
             return self.conversations[conversation_id]
+
+    def discard_failed_turn(self, conversation: Conversation, message: Message) -> None:
+        """Take back a message the model never answered, and drop the conversation if that
+        leaves it empty. A failed first message then leaves nothing behind: the 5xx response
+        carries no session cookie, so a conversation kept under the new session could never
+        be reached again, by a retry or by "clear"."""
+        with self.lock:
+            if conversation.messages and conversation.messages[-1] is message:
+                conversation.messages.pop()
+            if not conversation.messages and self.conversations.get(conversation.conversation_id) is conversation:
+                del self.conversations[conversation.conversation_id]
+
+    def get_owned(self, conversation_id: str, owner: str) -> Optional[Conversation]:
+        """The conversation, if it exists and belongs to owner; else None."""
+        with self.lock:
+            conversation = self.conversations.get(conversation_id)
+            if conversation is not None and owner and conversation.owner == owner:
+                return conversation
+            return None
 
     def _cleanup_old_conversations(self):
         """Remove conversations older than TTL."""
@@ -294,13 +320,17 @@ class AIAdvisorService:
         """Check if AI service is available."""
         return self.client is not None
 
-    def chat(self, message: str, conversation_id: str, data_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def chat(
+        self, message: str, conversation_id: str, owner: str, data_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Send a message and get AI response.
 
         Args:
             message: User's message
             conversation_id: Unique conversation identifier
+            owner: Who is asking ("user:<id>" or "session:<key>"); an existing conversation
+                started by anyone else is answered as not found
             data_context: Optional data context (variables, sample sizes, etc.)
 
         Returns:
@@ -316,7 +346,9 @@ class AIAdvisorService:
             return {"success": False, "error": error_msg, "error_type": "rate_limit", "retry_after_seconds": 60}
 
         # Get or create conversation
-        conversation = self.conversation_manager.get_or_create(conversation_id)
+        conversation = self.conversation_manager.get_or_create(conversation_id, owner)
+        if conversation is None:
+            return {"success": False, "error": "Conversation not found", "error_type": "not_found"}
 
         # Update data context if provided
         if data_context:
@@ -326,7 +358,7 @@ class AIAdvisorService:
         enriched_message = self._build_enriched_message(message, conversation.data_context)
 
         # Add user message to conversation
-        conversation.add_message(MessageRole.USER, enriched_message)
+        user_message = conversation.add_message(MessageRole.USER, enriched_message)
 
         try:
             # Call Claude API
@@ -385,14 +417,14 @@ class AIAdvisorService:
 
         except anthropic.APIConnectionError as e:
             logger.error(f"API Connection Error: {e}")
-            return {
+            failure = {
                 "success": False,
                 "error": "Unable to connect to AI service. Please check your internet connection.",
                 "error_type": "connection",
             }
         except anthropic.RateLimitError as e:
             logger.error(f"Rate Limit Error: {e}")
-            return {
+            failure = {
                 "success": False,
                 "error": "AI service rate limit reached. Please try again in a few minutes.",
                 "error_type": "rate_limit",
@@ -400,14 +432,16 @@ class AIAdvisorService:
             }
         except anthropic.APIStatusError as e:
             logger.error(f"API Status Error: {e}")
-            return {"success": False, "error": f"AI service error: {e.message}", "error_type": "api_error"}
+            failure = {"success": False, "error": f"AI service error: {e.message}", "error_type": "api_error"}
         except Exception as e:
             logger.exception(f"Unexpected error in AI chat: {e}")
-            return {
+            failure = {
                 "success": False,
                 "error": "An unexpected error occurred. Please try again.",
                 "error_type": "unknown",
             }
+        self.conversation_manager.discard_failed_turn(conversation, user_message)
+        return failure
 
     def _build_enriched_message(self, message: str, data_context: Optional[Dict[str, Any]]) -> str:
         """Build message with data context if available."""
@@ -570,17 +604,18 @@ class AIAdvisorService:
 - Consult our assumption checking tools""",
         }
 
-    def get_conversation_history(self, conversation_id: str) -> Optional[Dict[str, Any]]:
-        """Get conversation history."""
-        conversation = self.conversation_manager.conversations.get(conversation_id)
+    def get_conversation_history(self, conversation_id: str, owner: str) -> Optional[Dict[str, Any]]:
+        """Get conversation history; None unless it exists and belongs to owner."""
+        conversation = self.conversation_manager.get_owned(conversation_id, owner)
         if conversation:
             return conversation.to_dict()
         return None
 
-    def clear_conversation(self, conversation_id: str) -> bool:
-        """Clear a conversation."""
+    def clear_conversation(self, conversation_id: str, owner: str) -> bool:
+        """Clear a conversation; False unless it exists and belongs to owner."""
         with self.conversation_manager.lock:
-            if conversation_id in self.conversation_manager.conversations:
+            conversation = self.conversation_manager.conversations.get(conversation_id)
+            if conversation is not None and owner and conversation.owner == owner:
                 del self.conversation_manager.conversations[conversation_id]
                 return True
         return False

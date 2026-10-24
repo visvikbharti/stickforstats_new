@@ -98,8 +98,20 @@ const ProfessionalLanding = ({ onEnter }) => {
             {/* Critical Alert */}
             <div className="critical-alert">
               <span className="alert-badge">CRITICAL</span>
+              {/* Nature's 2016 survey asked whether respondents had EVER tried and failed to
+                  reproduce someone else's experiment -- not whether researchers fail to reproduce
+                  published findings, which is what this banner used to say. */}
               <span className="alert-text">
-                Over 70% of researchers fail to reproduce published findings
+                More than 70% of 1,576 researchers in a <em>Nature</em> survey said they had tried
+                and failed to reproduce another scientist's experiments{' '}
+                (<a
+                  href="https://doi.org/10.1038/533452a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Baker M. 1,500 scientists lift the lid on reproducibility. Nature 533, 452–454 (2016). doi:10.1038/533452a"
+                >
+                  Baker 2016, <em>Nature</em> 533:452–454
+                </a>)
               </span>
             </div>
 
@@ -112,7 +124,7 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Value Proposition */}
             <p className="value-proposition">
-              The first statistical analysis platform with built-in Guardian protection
+              A statistical analysis platform with built-in Guardian protection
               that guards against Type I errors before they happen. Trusted by researchers
               who value scientific integrity over p-hacking.
             </p>
@@ -123,7 +135,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <div className="feature-icon guardian-icon">🛡️</div>
                 <div className="feature-content">
                   <h3>Guardian System</h3>
-                  <p>8 assumption validators guard against false positives</p>
+                  <p>9 assumption validators; each test runs the ones that apply to it</p>
                 </div>
               </div>
               <div className="feature-item">
@@ -164,7 +176,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <span className="trust-label">Decimal Precision</span>
               </div>
               <div className="trust-item">
-                <span className="trust-number">8</span>
+                <span className="trust-number">9</span>
                 <span className="trust-label">Guardian Validators</span>
               </div>
             </div>
@@ -210,27 +222,27 @@ const ProfessionalLanding = ({ onEnter }) => {
             <div className="guardian-features">
               <div className="guardian-feature">
                 <h4>Normality Check</h4>
-                <p>Shapiro-Wilk, Anderson-Darling, Q-Q plots</p>
+                <p>Shapiro-Wilk or Anderson-Darling; Q-Q plots in the PDF report</p>
               </div>
               <div className="guardian-feature">
                 <h4>Variance Homogeneity</h4>
-                <p>Levene's, Bartlett's, F-test validation</p>
+                <p>Levene's test, median-centred</p>
               </div>
               <div className="guardian-feature">
                 <h4>Independence Test</h4>
-                <p>Durbin-Watson, autocorrelation detection</p>
+                <p>Lag-1 autocorrelation, run only when a request declares its data time-ordered (no screen does yet)</p>
               </div>
               <div className="guardian-feature">
                 <h4>Outlier Detection</h4>
-                <p>IQR, Z-score, Isolation Forest methods</p>
+                <p>IQR fences and z-scores</p>
               </div>
               <div className="guardian-feature">
                 <h4>Sample Size Adequacy</h4>
-                <p>Power analysis, effect size calculation</p>
+                <p>Minimum group size: a warning below 20, critical below 3 (factor analysis and PCA)</p>
               </div>
               <div className="guardian-feature">
-                <h4>Modality Detection</h4>
-                <p>Hartigan's dip test, kernel density</p>
+                <h4>Similar Group Shapes</h4>
+                <p>Kolmogorov-Smirnov on median-centred groups, before a rank test</p>
               </div>
             </div>
           </motion.div>
@@ -295,19 +307,25 @@ const ProfessionalLanding = ({ onEnter }) => {
                   Guardian validates statistical assumptions BEFORE running tests, guarding
                   against the Type I errors and false positives that plague published research.
                 </p>
-                <h4>8 Validators</h4>
+                <h4>9 Validators</h4>
                 <ul className="doc-list">
-                  <li><strong>Normality:</strong> Shapiro-Wilk test with visual diagnostics</li>
-                  <li><strong>Sample Size:</strong> Power analysis and minimum n requirements</li>
+                  <li><strong>Normality:</strong> Shapiro-Wilk (Anderson-Darling above 5,000 observations); Q-Q plots in the PDF report</li>
+                  <li><strong>Sample Size:</strong> Minimum group size requirements (factor analysis and PCA)</li>
                   <li><strong>Homogeneity:</strong> Levene's test for equal variances</li>
-                  <li><strong>Independence:</strong> Durbin-Watson autocorrelation check</li>
+                  <li><strong>Independence:</strong> Lag-1 autocorrelation, when a request declares its data time-ordered</li>
                   <li><strong>Outliers:</strong> IQR and Z-score detection methods</li>
-                  <li><strong>Linearity:</strong> Correlation and residual analysis</li>
+                  <li><strong>Modality:</strong> Peaks in a kernel density estimate (implemented, but no test uses it yet)</li>
+                  <li><strong>Linearity:</strong> Runs test on the residuals, and a linear versus quadratic fit</li>
+                  <li><strong>Homoscedasticity:</strong> Breusch-Pagan test on regression residuals</li>
+                  <li><strong>Similar shapes:</strong> Kolmogorov-Smirnov on median-centred groups, for rank tests</li>
                 </ul>
                 <h4>Confidence Scoring</h4>
                 <p>
-                  Each test receives a confidence score (0-100%) indicating reliability.
-                  Scores below 70% trigger warnings with alternative test recommendations.
+                  Each check reports a severity (minor, warning or critical); a critical violation
+                  stops the test unless you override it in expert mode, and alternatives are suggested
+                  according to which assumption failed. The confidence score summarises the average
+                  severity: 100% with no violations (also when a check could not run), 72% if all are
+                  minor, 44% for warnings and 17% for critical ones.
                 </p>
               </div>
             </div>
@@ -329,7 +347,7 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <p>40+ tests: normality, t-tests, ANOVA, correlation, chi-square, non-parametric</p>
 
                 <h4>Module 5: Advanced Statistics</h4>
-                <p>Two-way ANOVA, MANOVA, repeated measures, post-hoc tests, effect sizes</p>
+                <p>Two-way ANOVA, repeated measures, post-hoc tests, effect sizes</p>
 
                 <h4>Module 6: Machine Learning</h4>
                 <p>Regression, classification, clustering with cross-validation and metrics</p>
@@ -351,7 +369,6 @@ const ProfessionalLanding = ({ onEnter }) => {
                   <li>One-way ANOVA</li>
                   <li>Two-way ANOVA</li>
                   <li>Repeated measures ANOVA</li>
-                  <li>MANOVA (multivariate)</li>
                 </ul>
                 <h4>Non-Parametric Tests</h4>
                 <ul className="doc-list">
@@ -359,7 +376,6 @@ const ProfessionalLanding = ({ onEnter }) => {
                   <li>Wilcoxon signed-rank test</li>
                   <li>Kruskal-Wallis H test</li>
                   <li>Friedman test</li>
-                  <li>Sign test</li>
                 </ul>
                 <h4>Correlation & Association</h4>
                 <ul className="doc-list">
@@ -367,7 +383,6 @@ const ProfessionalLanding = ({ onEnter }) => {
                   <li>Spearman rank correlation</li>
                   <li>Kendall's tau</li>
                   <li>Chi-square test of independence</li>
-                  <li>Fisher's exact test</li>
                 </ul>
               </div>
             </div>
@@ -379,16 +394,18 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <h4>Architecture</h4>
                 <ul className="doc-list">
                   <li>Frontend: React 18 + Material-UI 5</li>
-                  <li>Backend: Django REST Framework + Python 3.9</li>
+                  <li>Backend: Django REST Framework + Python 3.11</li>
                   <li>Statistical Computing: NumPy, SciPy, Statsmodels</li>
                   <li>Precision: mpmath / Python Decimal, 50 significant digits on the core tests</li>
                   <li>Real-time: WebSocket support for long computations</li>
                 </ul>
                 <h4>Data Privacy</h4>
                 <ul className="doc-list">
-                  <li>All data processed locally on your machine</li>
-                  <li>No cloud storage or external uploads</li>
-                  <li>Complete GDPR and HIPAA compliance</li>
+                  <li>
+                    Analyses run on our server, so the data you upload is sent there; a few
+                    calculations run in your browser instead. What is kept, and for how long, is on
+                    the <a href="/privacy">Privacy &amp; data</a> page
+                  </li>
                   <li>Open source for transparency and auditability</li>
                 </ul>
               </div>
@@ -459,11 +476,11 @@ const ProfessionalLanding = ({ onEnter }) => {
             </div>
             <div className="spec-item">
               <h4>Validation</h4>
-              <p>Every test validated against R, SPSS, and SAS outputs</p>
+              <p>The core tests are checked against reference calculations in R and SciPy</p>
             </div>
             <div className="spec-item">
               <h4>Performance</h4>
-              <p>Sub-second response for datasets up to 1M observations</p>
+              <p>Guardian&rsquo;s checks take under 4 s on a million observations per group (measured on a laptop)</p>
             </div>
           </div>
         </div>

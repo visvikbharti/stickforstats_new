@@ -140,9 +140,10 @@ class SiteLicenseService:
             status="active",
             notes=notes,
         )
+        # Never log the key itself: it is the credential for this licence's usage reports.
         logger.info(
-            "Site license created: %s for %s (tier=%s, expires=%s)",
-            license_key, institution_name, tier_id, end.isoformat(),
+            "Site license created: id %s for %s (tier=%s, expires=%s)",
+            license_obj.pk, institution_name, tier_id, end.isoformat(),
         )
         return cls._serialize(license_obj)
 

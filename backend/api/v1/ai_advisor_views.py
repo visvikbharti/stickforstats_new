@@ -34,6 +34,29 @@ from ai_advisor.services.nlp_enhanced import (
 logger = logging.getLogger(__name__)
 
 
+def conversation_owner(request, start=False):
+    """Who a conversation belongs to: the signed-in user, otherwise this browser's session.
+
+    Only the owner can continue, read or clear a conversation, so its ID alone is not enough.
+    The site's AI screens send no sign-in token, so in a browser the owner is the session.
+    With start=True, a visitor without a session is given one (its cookie is sent with the
+    response); otherwise None is returned and they own nothing.
+    """
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        return f"user:{user.pk}"
+    session = request.session
+    session.get("_")  # load it, so a cookie naming no stored session counts as no session
+    if session.session_key is None:
+        if not start:
+            return None
+        session.save()
+    return f"session:{session.session_key}"
+
+
+NOT_FOUND = {"success": False, "error": "Conversation not found", "error_type": "not_found"}
+
+
 class AIAdvisorChatView(APIView):
     """Allow public access for AI advisor (rate limited by service)"""
 
@@ -85,14 +108,22 @@ class AIAdvisorChatView(APIView):
 
             # Get AI service and send message
             service = get_ai_advisor_service()
-            result = service.chat(message=message, conversation_id=conversation_id, data_context=data_context)
+            result = service.chat(
+                message=message,
+                conversation_id=conversation_id,
+                # No session is started while the assistant is off: chat() then stores nothing.
+                owner=conversation_owner(request, start=service.is_available),
+                data_context=data_context,
+            )
 
             # Return appropriate status based on result
             if result.get("success"):
                 return Response(result, status=status.HTTP_200_OK)
             else:
                 error_type = result.get("error_type", "unknown")
-                if error_type == "rate_limit":
+                if error_type == "not_found":
+                    return Response(result, status=status.HTTP_404_NOT_FOUND)
+                elif error_type == "rate_limit":
                     return Response(result, status=status.HTTP_429_TOO_MANY_REQUESTS)
                 elif error_type == "configuration":
                     return Response(result, status=status.HTTP_503_SERVICE_UNAVAILABLE)
@@ -143,10 +174,10 @@ class AIAdvisorConversationView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, conversation_id):
-        """Get conversation history."""
+        """Get conversation history (only its owner's)."""
         try:
             service = get_ai_advisor_service()
-            history = service.get_conversation_history(conversation_id)
+            history = service.get_conversation_history(conversation_id, conversation_owner(request))
 
             if history:
                 return Response({"success": True, "conversation": history}, status=status.HTTP_200_OK)
@@ -160,10 +191,10 @@ class AIAdvisorConversationView(APIView):
             )
 
     def delete(self, request, conversation_id):
-        """Clear a conversation."""
+        """Clear a conversation (only its owner's)."""
         try:
             service = get_ai_advisor_service()
-            success = service.clear_conversation(conversation_id)
+            success = service.clear_conversation(conversation_id, conversation_owner(request))
 
             if success:
                 return Response({"success": True, "message": "Conversation cleared"}, status=status.HTTP_200_OK)
@@ -224,13 +255,13 @@ Please provide:
 4. Recommended effect size measure"""
 
         # Use a temporary conversation for this request
-        temp_conversation_id = f"quick-{uuid.uuid4()}"
+        temp_conversation_id = f"quick-{uuid.uuid4()}"  # one-shot: owned by itself, cleared below
 
         service = get_ai_advisor_service()
-        result = service.chat(message=prompt, conversation_id=temp_conversation_id)
+        result = service.chat(message=prompt, conversation_id=temp_conversation_id, owner=temp_conversation_id)
 
         # Clean up temporary conversation
-        service.clear_conversation(temp_conversation_id)
+        service.clear_conversation(temp_conversation_id, temp_conversation_id)
 
         return Response(
             result, status=status.HTTP_200_OK if result.get("success") else status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -324,13 +355,13 @@ def interpret_results(request):
         prompt = "\n".join(prompt_parts)
 
         # Use a temporary conversation
-        temp_conversation_id = f"interpret-{uuid.uuid4()}"
+        temp_conversation_id = f"interpret-{uuid.uuid4()}"  # one-shot: owned by itself, cleared below
 
         service = get_ai_advisor_service()
-        result = service.chat(message=prompt, conversation_id=temp_conversation_id)
+        result = service.chat(message=prompt, conversation_id=temp_conversation_id, owner=temp_conversation_id)
 
         # Clean up
-        service.clear_conversation(temp_conversation_id)
+        service.clear_conversation(temp_conversation_id, temp_conversation_id)
 
         return Response(
             result, status=status.HTTP_200_OK if result.get("success") else status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -426,13 +457,13 @@ def generate_methods_section(request):
         prompt = "\n".join(prompt_parts)
 
         # Use temporary conversation
-        temp_conversation_id = f"methods-{uuid.uuid4()}"
+        temp_conversation_id = f"methods-{uuid.uuid4()}"  # one-shot: owned by itself, cleared below
 
         service = get_ai_advisor_service()
-        result = service.chat(message=prompt, conversation_id=temp_conversation_id)
+        result = service.chat(message=prompt, conversation_id=temp_conversation_id, owner=temp_conversation_id)
 
         # Clean up
-        service.clear_conversation(temp_conversation_id)
+        service.clear_conversation(temp_conversation_id, temp_conversation_id)
 
         return Response(
             result, status=status.HTTP_200_OK if result.get("success") else status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -515,13 +546,13 @@ def assumption_guidance(request):
         prompt = "\n".join(prompt_parts)
 
         # Use temporary conversation
-        temp_conversation_id = f"assumption-{uuid.uuid4()}"
+        temp_conversation_id = f"assumption-{uuid.uuid4()}"  # one-shot: owned by itself, cleared below
 
         service = get_ai_advisor_service()
-        result = service.chat(message=prompt, conversation_id=temp_conversation_id)
+        result = service.chat(message=prompt, conversation_id=temp_conversation_id, owner=temp_conversation_id)
 
         # Clean up
-        service.clear_conversation(temp_conversation_id)
+        service.clear_conversation(temp_conversation_id, temp_conversation_id)
 
         return Response(
             result, status=status.HTTP_200_OK if result.get("success") else status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -789,7 +820,14 @@ def enhanced_chat(request):
 
         # Also get AI response
         service = get_ai_advisor_service()
-        ai_result = service.chat(message=message, conversation_id=conversation_id, data_context=data_context)
+        ai_result = service.chat(
+            message=message,
+            conversation_id=conversation_id,
+            owner=conversation_owner(request, start=service.is_available),
+            data_context=data_context,
+        )
+        if ai_result.get("error_type") == "not_found":
+            return Response(NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
         if ai_result.get("success"):
             response_data["ai_response"] = ai_result.get("content")

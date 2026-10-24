@@ -298,21 +298,42 @@ const StatisticalAnalysisHub = () => {
             JavaScript implementations of standard statistical methods. No data leaves your browser,
             ensuring complete privacy."
 
-            Both halves are now false, and the second one was a PRIVACY promise. The inferential
-            tests on this page run on the server -- which is precisely why they are now correct; the
-            browser implementations they replaced computed p = 0.0000 for every strongly significant
-            result, a Shapiro-Wilk that could not return p < 0.001 for any sample however non-normal,
-            and power analyses that were wrong by a factor of three. A promise about where your data
-            goes has to be true, so it is stated accurately here instead of flatteringly.
+            Both halves are now false, and the second one was a PRIVACY promise. The Statistical
+            Tests module and power analysis run on the server -- which is precisely why they are now
+            correct; the browser implementations they replaced computed p = 0.0000 for every strongly
+            significant result, a Shapiro-Wilk that could not return p < 0.001 for any sample however
+            non-normal, and power analyses that were wrong by a factor of three. A promise about where
+            your data goes has to be true, so it is stated accurately here instead of flatteringly.
+
+            Issue #31 item 5: the Key Features list then said BOTH "Every test on this page is
+            computed by the backend" and "All computations in-browser, zero backend dependencies", and
+            the footer said "No Server Required". None of the three was true. Where each screen
+            computes, which this paragraph must keep matching:
+              server  - statistical-tests/{Normality,Parametric,NonParametric,Categorical}Tests.jsx,
+                        CorrelationTests.jsx in pairwise mode, the normality test in
+                        visualizations/DistributionAnalysis.jsx, and every power calculation;
+              browser - advanced-stats/TwoWayANOVA.jsx and PostHocTests.jsx; MANOVA.jsx and
+                        RepeatedMeasuresANOVA.jsx (they call the server, which rejects their payload,
+                        and fall back); CorrelationTests.jsx in matrix mode; the Visualization module's
+                        RelationshipAnalysis.jsx; effect sizes in EffectSizePower.jsx; machine
+                        learning; biophysics.
+            Guardian itself runs on the server, on every screen that calls GuardianService.
           */}
           <Typography variant="body2" paragraph sx={{ maxWidth: '800px', color: 'text.secondary' }}>
             <strong>How this works:</strong> Descriptive statistics, plots and data exploration run in
-            your browser. Inferential tests — t-tests, ANOVA, correlation, non-parametric tests, power
-            analysis — are computed on our server, against the exact distributions, and the values you
-            enter for them are sent there to be analysed. The platform includes the{' '}
+            your browser. The tests in the Statistical Tests module (normality, t-tests, one-way ANOVA,
+            non-parametric tests, pairwise correlation and chi-square), the normality test in the
+            Visualization module's distribution view, and every power calculation are computed on our
+            server, and the values you enter for them are sent there to be analysed.
+            Two-way, repeated-measures and multivariate ANOVA, post-hoc tests, the correlation matrix,
+            the correlations in the Visualization module, effect sizes, machine learning and the
+            biophysics fits are computed in your browser; repeated-measures and multivariate ANOVA
+            first send the uploaded table to our server, which currently rejects it. The platform
+            includes the{' '}
             <strong>Guardian Statistical Protection System</strong>, which checks statistical
             assumptions before running a test (normality, sample size, homogeneity of variance) and
-            warns you when they are violated.
+            warns you when they are violated. Guardian's checks run on our server, so a screen that
+            uses Guardian sends your data there even when its test is computed in your browser.
           </Typography>
 
           <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
@@ -321,11 +342,7 @@ const StatisticalAnalysisHub = () => {
             </Typography>
             <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
               <li><strong>10 Comprehensive Modules:</strong> From basic profiling to power analysis, machine learning, biophysics, and study design</li>
-              <li><strong>Guardian Protection System:</strong> Real-time assumption validation with 77.3% coverage</li>
-              <li><strong>Server-side statistics:</strong> Every test on this page is computed by the
-                backend, which carries the core test statistics at 50 significant digits &mdash; so a
-                p-value of 1e-300 is reported as 1e-300, not rounded to zero.</li>
-              <li><strong>Client-Side Processing:</strong> All computations in-browser, zero backend dependencies</li>
+              <li><strong>Guardian Protection System:</strong> Checks a test's assumptions against your data and warns you when one is violated</li>
               <li><strong>Interactive Visualizations:</strong> Real-time charts, distributions, and diagnostic plots</li>
               <li><strong>CSV Import/Export:</strong> Easy data upload and preprocessed data download</li>
             </ul>
@@ -496,9 +513,6 @@ const StatisticalAnalysisHub = () => {
           </Typography>
           <Typography variant="body2" paragraph>
             • <strong>Comprehensive Toolkit:</strong> Everything from basic descriptive statistics to advanced machine learning
-          </Typography>
-          <Typography variant="body2" paragraph>
-            • <strong>No Server Required:</strong> All calculations run in your browser for speed and privacy
           </Typography>
           <Typography variant="body2" paragraph>
             • <strong>Interactive Visualizations:</strong> Explore your data with responsive charts and plots

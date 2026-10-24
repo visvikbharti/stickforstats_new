@@ -9,7 +9,8 @@ Workflow:
     1. Parse gene expression matrix (genes x samples)
     2. For each gene, Guardian validates assumptions (normality, variance homogeneity)
     3. If assumptions met: t-test / ANOVA
-    4. If violated: cascade to Mann-Whitney / Kruskal-Wallis
+    4. If violated, switch: two groups go to Welch's t-test when only equal variances fail and to
+       Mann-Whitney U when normality fails; three or more groups go to Kruskal-Wallis
     5. Apply BH-FDR correction across all raw p-values
     6. Return significant genes with fold changes, adjusted p-values, Guardian summary
 
@@ -41,7 +42,7 @@ class GeneResult:
     §P1-12 (silent exception swallows).
     """
     gene_name: str
-    test_used: str  # 't_test', 'mann_whitney', 'anova', 'kruskal_wallis'
+    test_used: str  # 't_test', 'welch_t_test', 'mann_whitney', 'anova', 'kruskal_wallis'
     statistic: float
     raw_p_value: float
     adjusted_p_value: float = 1.0  # Set after FDR correction
@@ -61,7 +62,9 @@ class GeneResult:
     mean_group2: Optional[float] = None
     guardian_confidence: float = 1.0
     assumptions_passed: bool = True
-    cascaded: bool = False  # True if Guardian triggered nonparametric cascade
+    # True if Guardian switched away from Student's t-test / one-way ANOVA -- to Welch's t-test
+    # (parametric), Mann-Whitney U or Kruskal-Wallis. Not a synonym for "nonparametric".
+    cascaded: bool = False
     violations: List[str] = field(default_factory=list)
     test_failed: bool = False
     test_failure_reason: str = ""
@@ -176,7 +179,8 @@ class DifferentialExpressionService:
     - Checks normality (Shapiro-Wilk) for each group
     - Checks variance homogeneity (Levene's test)
     - If both pass: independent t-test (2 groups) or ANOVA (3+ groups)
-    - If either fails: Mann-Whitney U (2 groups) or Kruskal-Wallis (3+ groups)
+    - If normality fails: Mann-Whitney U (2 groups) or Kruskal-Wallis (3+ groups)
+    - If only variance homogeneity fails: Welch's t-test (2 groups) or Kruskal-Wallis (3+ groups)
     - Records Guardian confidence score per gene
 
     After all genes tested:

@@ -335,8 +335,9 @@ const PrivacyDashboardPage = () => {
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Download a complete copy of all personal data we hold about you in machine-readable JSON
-            format. This fulfills your right of access (Art. 15) and data portability (Art. 20).
+            Download your account details, consents, memberships, the last 90 days of usage records
+            and your latest 100 audit entries as JSON. It does not yet include saved projects,
+            manuscript checks or receipts; see the Privacy &amp; data page for what else we hold.
           </Typography>
           <Button
             variant="outlined"
@@ -369,8 +370,9 @@ const PrivacyDashboardPage = () => {
             </Typography>
           </Box>
           <Alert severity="warning" sx={{ mb: 2 }} icon={<WarningAmberIcon />}>
-            This action is <strong>irreversible</strong>. All your personal data will be permanently
-            deleted or anonymized. Your account will be deactivated.
+            This action is <strong>irreversible</strong>. It deactivates your account and deletes or
+            anonymises the data listed on the Privacy &amp; data page. Your email address is kept as
+            your username, and saved projects and receipts are not deleted.
           </Alert>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Exercise your right to erasure (Art. 17). Anonymized aggregate statistics may be

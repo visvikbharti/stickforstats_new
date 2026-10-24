@@ -250,17 +250,39 @@ class GDPRService:
         return {
             "controller": "StickForStats",
             "purposes": [
+                # The two retention values below used to read "Duration of account + 30 days"
+                # and "365 days". Neither is implemented: most uploads are never stored, and
+                # nothing deletes logs or records on a schedule. They now say what the code
+                # does; the Privacy & data page (frontend/src/pages/PrivacyPolicyPage.jsx) has
+                # the detail and its sources.
                 {
                     "purpose": "Statistical analysis services",
                     "legal_basis": "Contract performance (Art. 6(1)(b))",
                     "data_categories": ["Uploaded datasets", "Analysis parameters"],
-                    "retention": "Duration of account + 30 days",
+                    "retention": (
+                        "Not stored by most tools. t-test, ANOVA and regression results are cached "
+                        "for up to 1 hour (an expired entry can remain in the cache's disk file until "
+                        "it is rewritten). Manuscript-check records (no files, no data values from your "
+                        "data files, but the statistics quoted in the manuscript and recomputed from "
+                        "your data) are kept until deleted on request. Cox-regression and "
+                        "factor-analysis model files are kept until the next software update. Daily "
+                        "database backups are kept 30 days, plus up to two days until the nightly "
+                        "clean-up. Details: the Privacy & data page (/privacy)."
+                    ),
                 },
                 {
-                    "purpose": "Platform usage analytics",
+                    # Was "Platform usage analytics" / "API call logs", "Feature usage": nothing
+                    # collects feature usage (usage metering is off unless the operator sets
+                    # STICKFORSTATS_USAGE_METERING), and the Privacy & data page says no analytics
+                    # are used. What exists is the web server's and the application's logs.
+                    "purpose": "Request and error logs",
                     "legal_basis": "Legitimate interest (Art. 6(1)(f))",
-                    "data_categories": ["API call logs", "Feature usage"],
-                    "retention": "365 days",
+                    "data_categories": ["Web server logs", "Application logs"],
+                    "retention": (
+                        "No fixed retention period is set in the software for server and "
+                        "application logs, and nothing in it deletes them; one error file is kept "
+                        "across updates. Details: the Privacy & data page (/privacy)."
+                    ),
                 },
                 {
                     "purpose": "Service improvement",

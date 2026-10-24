@@ -22,31 +22,16 @@ concurrency:
 
 jobs:
   # ── Stage 1: Lint (parallel, required) ──────────────────────────────
-  # The site is a CLOSED BETA. Its only gate is two auth_basic lines in
-  # nginx/nginx.conf. Until 2026-07-14 those lines lived ONLY as an uncommitted
-  # edit on the production host — a clean checkout there would have published the
-  # site silently. They are committed now; this job makes their removal loud.
-  #
-  # It is a real gate, not a decoration: delete either line and this job fails.
-  # When the beta genuinely opens, delete this job in the same reviewed commit.
-  beta-gate:
-    name: Closed-beta gate present
+  # The site is public: the closed-beta Basic-Auth gate in nginx/nginx.conf was
+  # removed deliberately, and with it this job's check that the gate was present.
+  # What stays is the check that host-only secrets are never committed. nginx/ssl/
+  # on the production host holds the TLS private key (and, through v1.2.0, the
+  # beta password file), and the repo is public and archived on Zenodo.
+  host-secrets:
+    name: Host secrets not tracked
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: nginx.conf must still gate the site behind Basic Auth
-        run: |
-          set -euo pipefail
-          missing=0
-          grep -qE '^\s*auth_basic\s+"' nginx/nginx.conf || { echo "::error file=nginx/nginx.conf::auth_basic directive is GONE — the closed beta would be PUBLIC"; missing=1; }
-          grep -qE '^\s*auth_basic_user_file\s+/etc/nginx/ssl/\.htpasswd;' nginx/nginx.conf || { echo "::error file=nginx/nginx.conf::auth_basic_user_file is GONE or repointed — the closed beta would be PUBLIC"; missing=1; }
-          if [ "$missing" -ne 0 ]; then
-            echo "The closed-beta access gate has been removed from nginx/nginx.conf."
-            echo "If that was deliberate (the beta is opening), delete the 'beta-gate' job in the same commit."
-            exit 1
-          fi
-          echo "OK: closed-beta Basic Auth gate is present in nginx/nginx.conf."
 
       - name: the password file and TLS key must never be committed
         run: |
@@ -311,10 +296,10 @@ jobs:
     # lint could not stop an image push — which made it decorative. It gates now
     # that frontend lint actually looks at .jsx and reports 0 errors.
     #
-    # beta-gate is here for the same reason: a check that cannot stop a ship is
-    # not a check. If the closed-beta auth gate is ever removed from nginx.conf,
-    # nothing should be published until a human has said that was deliberate.
-    needs: [backend-test, frontend-test, backend-lint, frontend-lint, beta-gate]
+    # host-secrets is here for the same reason: a check that cannot stop a ship is
+    # not a check. No image is published from a commit that tracks a TLS key,
+    # receipt key or password file.
+    needs: [backend-test, frontend-test, backend-lint, frontend-lint, host-secrets]
     runs-on: ubuntu-latest
     strategy:
       matrix:

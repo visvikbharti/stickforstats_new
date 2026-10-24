@@ -3,7 +3,7 @@ import { Box, Typography, Link } from '@mui/material';
 
 const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 
-// Persistent closed-beta notice shown on every page. Sets expectations (results may
+// Persistent beta notice shown on every page. Sets expectations (results may
 // change) and points at the monitored feedback channel (GitHub issues) + privacy notice.
 function BetaBanner() {
   return (

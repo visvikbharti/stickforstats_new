@@ -640,7 +640,7 @@ const PowerAnalysisTool = ({ data, setData, onComplete }) => {
               Statistical Power Analysis
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Client-side calculations validated against G*Power 3.1.9.7
+              Computed on our server, against the exact non-central t, F and chi-square distributions
             </Typography>
           </Box>
         </Box>

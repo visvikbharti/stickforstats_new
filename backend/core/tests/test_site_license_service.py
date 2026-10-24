@@ -253,6 +253,8 @@ class TestSiteLicenseViewsEndToEnd(TestCase):
 
     def setUp(self):
         self.user = _make_user("view_user")
+        self.user.is_staff = True  # creating a licence needs staff (tests/test_license_creation_staff_only.py)
+        self.user.save()
         from rest_framework.test import APIClient
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -318,12 +320,12 @@ class TestSiteLicenseViewsEndToEnd(TestCase):
         )
         license_key = resp.json()["license_key"]
         # Get usage (will be all zeros, but for a real license)
-        resp = self.client.get(f"/api/v1/licensing/usage/{license_key}/")
+        resp = self.client.get("/api/v1/licensing/usage/", HTTP_X_LICENSE_KEY=license_key)
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["license_key"], license_key)
         self.assertEqual(body["active_users"], 0)
 
     def test_usage_endpoint_unknown_key_404(self):
-        resp = self.client.get("/api/v1/licensing/usage/SFS-INST-PHANTOMKEY1234/")
+        resp = self.client.get("/api/v1/licensing/usage/", HTTP_X_LICENSE_KEY="SFS-INST-PHANTOMKEY1234")
         self.assertEqual(resp.status_code, 404)

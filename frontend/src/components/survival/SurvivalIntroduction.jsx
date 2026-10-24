@@ -54,15 +54,18 @@ function SurvivalIntroduction({ onContinue }) {
         </Typography>
       </Paper>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={onContinue}
-        >
-          Get Started
-        </Button>
-      </Box>
+      {/* Only where an analysis step follows: SurvivalAnalysisPage has none at present. */}
+      {onContinue && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={onContinue}
+          >
+            Get Started
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }

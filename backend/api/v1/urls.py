@@ -109,7 +109,6 @@ from .meta_analysis_views import (
     sensitivity_analysis as meta_sensitivity_analysis,
     subgroup_analysis,
 )
-from .report_views import ReportListView, ReportDetailView, generate_report, export_report
 from .sqs_views import (
     SQSAnalyzeView,
     SQSAnalyzeTextView,
@@ -367,11 +366,8 @@ urlpatterns = [
     path("meta-analysis/publication-bias/", publication_bias_test, name="meta-publication-bias"),
     path("meta-analysis/sensitivity/", meta_sensitivity_analysis, name="meta-sensitivity"),
     path("meta-analysis/subgroup/", subgroup_analysis, name="meta-subgroup"),
-    # Report Management endpoints
-    path("reports/", ReportListView.as_view(), name="report-list"),
-    path("reports/generate/", generate_report, name="report-generate"),
-    path("reports/<uuid:report_id>/", ReportDetailView.as_view(), name="report-detail"),
-    path("reports/<uuid:report_id>/export/", export_report, name="report-export"),
+    # No report routes: report_views.py let anyone list, read, edit and delete every saved
+    # record, and no screen used it. Route it again only behind sign-in, scoped to the owner.
     # Statistical Quality Score (SQS) endpoints
     path("sqs/analyze/", SQSAnalyzeView.as_view(), name="sqs-analyze"),
     path("sqs/analyze-text/", SQSAnalyzeTextView.as_view(), name="sqs-analyze-text"),
@@ -516,10 +512,9 @@ urlpatterns = [
     path("licensing/tiers/", site_license_views.SiteLicenseTiersView.as_view(), name="license-tiers"),
     path("licensing/create/", site_license_views.SiteLicenseCreateView.as_view(), name="license-create"),
     path("licensing/verify/", site_license_views.SiteLicenseVerifyView.as_view(), name="license-verify"),
-    path("licensing/usage/<str:license_key>/", site_license_views.SiteLicenseUsageView.as_view(), name="license-usage"),
-    path(
-        "licensing/report/<str:license_key>/", site_license_views.SiteLicenseReportView.as_view(), name="license-report"
-    ),
+    # The key goes in the X-License-Key header, never in the URL: URLs are logged.
+    path("licensing/usage/", site_license_views.SiteLicenseUsageView.as_view(), name="license-usage"),
+    path("licensing/report/", site_license_views.SiteLicenseReportView.as_view(), name="license-report"),
     # ── Plugin Runtime ──────────────────────────────────────
     path(
         "marketplace/plugins/<slug:plugin_slug>/execute/",

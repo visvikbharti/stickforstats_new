@@ -1172,11 +1172,11 @@ POST /api/v1/platform/api-keys/
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/api/v1/licensing/tiers/` | List institutional license tiers | None (public) |
-| POST | `/api/v1/licensing/create/` | Create institutional license | Session |
-| POST | `/api/v1/licensing/verify/` | Verify user eligibility under a license | None |
-| GET | `/api/v1/licensing/usage/<license_key>/` | Usage statistics for a license | Session |
-| GET | `/api/v1/licensing/report/<license_key>/` | Generate usage report | Session |
+| GET | `/api/v1/licensing/tiers/` | List institutional license tiers | Session |
+| POST | `/api/v1/licensing/create/` | Create institutional license | Staff |
+| POST | `/api/v1/licensing/verify/` | Verify user eligibility under a license | Session |
+| GET | `/api/v1/licensing/usage/` | Usage statistics for a license (key in the `X-License-Key` header) | Session |
+| GET | `/api/v1/licensing/report/` | Generate usage report (key in the `X-License-Key` header) | Session |
 
 ### GET `/api/v1/licensing/tiers/`
 
@@ -1205,7 +1205,7 @@ POST /api/v1/platform/api-keys/
 
 ### POST `/api/v1/licensing/create/`
 
-**Auth**: Session required.
+**Auth**: staff only (a signed-in user whose account has `is_staff`).
 
 **Request**:
 ```json
@@ -1251,9 +1251,10 @@ POST /api/v1/platform/api-keys/
 }
 ```
 
-### GET `/api/v1/licensing/usage/<license_key>/`
+### GET `/api/v1/licensing/usage/`
 
-**Auth**: Session required.
+**Auth**: Session required. Send the license key in the `X-License-Key` header, never in the URL:
+the web server and the application log every URL.
 
 **Query params**: `?period=monthly` (default) or `?period=weekly`
 
@@ -1603,15 +1604,6 @@ Compares current period with the equivalent previous period, including percentag
 | GET | `/api/v1/audit/metrics/<metric_type>/` | Get audit metrics |
 | GET | `/api/v1/audit/health/` | Audit subsystem health |
 
-### Report Management
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/reports/` | List reports |
-| POST | `/api/v1/reports/generate/` | Generate a new report |
-| GET | `/api/v1/reports/<uuid:report_id>/` | Get report details |
-| POST | `/api/v1/reports/<uuid:report_id>/export/` | Export report (PDF, HTML, DOCX, LaTeX) |
-
 ### SSO / OIDC
 
 | Method | Endpoint | Description | Auth |
@@ -1696,12 +1688,10 @@ REST framework router-based endpoints with ViewSet CRUD operations:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `generate-design/` | Generate experimental design |
-| POST | `analyze-experiment/` | Analyze experimental data |
-| POST | `optimize-response/` | Response surface optimization |
-| POST | `generate-report/` | Generate DOE report |
-| POST | `screening-analysis/` | Screening design analysis |
 | GET | `examples/` | DOE examples |
+
+The endpoints that stored DOE designs and analyses, or read them back by ID, are not routed:
+they had no sign-in or owner check, and no screen used them.
 
 #### PCA Analysis (`/api/v1/pca-analysis/`)
 
