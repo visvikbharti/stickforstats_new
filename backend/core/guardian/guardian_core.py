@@ -637,9 +637,6 @@ class GuardianCore:
         "fisher_exact_test": "chi_square",
     }
 
-    # Welch's t-test: the independent t-test's checks without equal variances.
-    _WELCH_TEST_TYPES = {"welch", "welch_t", "welch_t_test", "welchs_t_test"}
-
     # When an alias names the DESIGN as well as the test (e.g. "paired_t",
     # "repeated_measures"), carry that design through so the collapsed
     # canonical test_type does not lose it. Only used when the caller did not
@@ -785,6 +782,7 @@ class GuardianCore:
         alpha: float = 0.05,
         observation_order: Optional[str] = None,
         design: Optional[str] = None,
+        welch: bool = False,
     ) -> GuardianReport:
         """
         Main Guardian check - validates all assumptions for a given test
@@ -807,6 +805,11 @@ class GuardianCore:
             cross-sectional or omics data) and independence is referred to
             study design rather than tested by lag-1 autocorrelation, since
             that statistic is otherwise an artifact of sample arrangement.
+        welch : bool
+            Check a t-test that is run as Welch's: equal variances is not an
+            assumption, so the variance check goes to ``information`` and is
+            never a violation. Off by default, so callers that name "welch_t"
+            for other purposes (the cascade engine) are unchanged.
 
         Returns:
         --------
@@ -886,12 +889,9 @@ class GuardianCore:
             requirements.remove("variance_homogeneity")
 
         # Welch's t-test does not assume equal variances: that is what it is for. A Welch
-        # request keeps the independent t-test's other checks (normality within each group,
+        # check keeps the independent t-test's other checks (normality within each group,
         # outliers); the variance check runs below as information, never as a violation.
-        welch = (
-            str(test_type).strip().lower().replace(" ", "_").replace("-", "_")
-            in self._WELCH_TEST_TYPES
-        )
+        welch = welch and canonical_test_type == "t_test"
         if welch and "variance_homogeneity" in requirements:
             requirements.remove("variance_homogeneity")
 

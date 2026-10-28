@@ -68,11 +68,13 @@ class GuardianCheckView(APIView):
             # Initialize Guardian
             guardian = GuardianCore()
 
-            # Perform check
+            # Perform check. "welch_t_test" is the hub's Welch's t-test (the id Guardian
+            # recommends): its variance check is information, not an assumption.
             report = guardian.check(
                 data, test_type, alpha,
                 observation_order=observation_order,
                 design=design,
+                welch=str(test_type).strip().lower() == "welch_t_test",
             )
 
             # Convert report to JSON-serializable format

@@ -20,6 +20,8 @@ from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from scipy import stats
 
+from core.guardian.guardian_core import GuardianCore
+
 FIXTURE = Path(__file__).parent / "fixtures" / "guardian_demo_long.csv"
 TTEST_URL = "/api/v1/stats/ttest/"
 GUARDIAN_URL = "/api/guardian/check/"
@@ -116,6 +118,14 @@ class WelchOnTheDemoFileTests(TestCase):
         self.assertAlmostEqual(
             stats.levene(self.treatment, self.control, center="mean").pvalue, 4.67e-05, delta=0.01e-05
         )
+
+    def test_direct_callers_of_guardian_are_unchanged(self):
+        """The cascade engine calls GuardianCore directly and can name welch_t_test
+        (one of Guardian's own alternatives). Only the check endpoint asks for Welch's."""
+        report = GuardianCore().check(self.groups, "welch_t_test", 0.05, design="independent")
+        self.assertIn("variance_homogeneity", report.assumptions_checked)
+        self.assertFalse(report.can_proceed)
+        self.assertEqual(report.information, [])
 
     def test_guardian_still_blocks_the_independent_t_test(self):
         report = self._guardian("t_test")
