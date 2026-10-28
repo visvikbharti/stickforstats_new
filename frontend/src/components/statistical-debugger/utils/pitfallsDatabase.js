@@ -395,6 +395,18 @@ export const PITFALLS_BY_TEST = {
   }
 };
 
+// Welch's t-test reuses the independent-samples content, less the advice to switch to Welch's.
+PITFALLS_BY_TEST.welch_t_test = {
+  ...PITFALLS_BY_TEST.independent_t_test,
+  name: "Welch's t-Test",
+  commonPitfalls: PITFALLS_BY_TEST.independent_t_test.commonPitfalls.filter(
+    (pitfall) => pitfall.id !== 'unequal_variances'
+  ),
+  checklist: PITFALLS_BY_TEST.independent_t_test.checklist.filter(
+    (item) => !item.startsWith('Variances are approximately equal')
+  ),
+};
+
 /**
  * General statistical pitfalls (apply to multiple tests)
  */

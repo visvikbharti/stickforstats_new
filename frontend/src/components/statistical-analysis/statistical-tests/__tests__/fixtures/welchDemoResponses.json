@@ -1,0 +1,143 @@
+{
+  "_source": "Real responses of /api/v1/stats/ttest/ and /api/guardian/check/ for guardian_demo_long.csv (visual evidence removed), captured from the backend on branch feat/welch-t-test.",
+  "ttest_welch": {
+    "test_type": "two_sample",
+    "high_precision_result": {
+      "t_statistic": "-1.3449342576123502701033015181138391686909855366853",
+      "p_value": "0.20970724632473053578307413208602016389806991671015",
+      "df": "9.552084387001631",
+      "alternative": "two-sided",
+      "mean_diff": "-7.3425",
+      "se": "5.4593746560036878105938697628621229725446757246637",
+      "ci_lower": "-19.584507448504444301951187637027888675394540074119",
+      "ci_upper": "4.899507448504444301951187637027888675394540074119",
+      "ci_level": 0.95,
+      "mean1": "91.63",
+      "mean2": "98.9725",
+      "n1": "10",
+      "n2": "40"
+    }
+  },
+  "ttest_student": {
+    "test_type": "two_sample",
+    "high_precision_result": {
+      "t_statistic": "-2.2830177080130063928061426894218838034225111858666",
+      "p_value": "0.026898653180642537406089010757604338823269232418165",
+      "df": "48",
+      "alternative": "two-sided",
+      "mean_diff": "-7.3425",
+      "se": "3.2161379976287812682546564222192379493327918213920",
+      "ci_lower": "-13.808978843348428187935680047402391043138154403158",
+      "ci_upper": "-0.8760211566515718120643199525976089568618455968417",
+      "ci_level": 0.95,
+      "mean1": "91.63",
+      "mean2": "98.9725",
+      "n1": "10",
+      "n2": "40"
+    }
+  },
+  "guardian_welch_t_test": {
+    "test_type": "welch_t_test",
+    "data_summary": {
+      "group_1": {
+        "n": 10,
+        "mean": 91.63000000000001,
+        "std": 17.008105910614113,
+        "median": 92.4,
+        "min": 62.1,
+        "max": 122.0,
+        "skewness": 0.02121672617147608,
+        "kurtosis": -0.3976948042402344
+      },
+      "group_2": {
+        "n": 40,
+        "mean": 98.9725,
+        "std": 5.923529245133236,
+        "median": 99.75,
+        "min": 87.8,
+        "max": 110.1,
+        "skewness": -0.20961448068677968,
+        "kurtosis": -0.6083479111620966
+      }
+    },
+    "assumptions_checked": [
+      "normality",
+      "independence",
+      "outliers"
+    ],
+    "violations": [],
+    "can_proceed": true,
+    "alternative_tests": [],
+    "confidence_score": 1.0,
+    "visual_evidence": {},
+    "information": [
+      {
+        "assumption": "variance_homogeneity",
+        "test_name": "Levene's Test",
+        "p_value": 5.524478007306764e-05,
+        "statistic": 19.58428758840987,
+        "message": "Welch's test does not assume equal variances"
+      }
+    ],
+    "guardian_status": {
+      "level": "success",
+      "message": "\u2705 All assumptions satisfied. Safe to proceed with analysis.",
+      "emoji": "\ud83d\udee1\ufe0f"
+    }
+  },
+  "guardian_t_test": {
+    "test_type": "t_test",
+    "data_summary": {
+      "group_1": {
+        "n": 10,
+        "mean": 91.63000000000001,
+        "std": 17.008105910614113,
+        "median": 92.4,
+        "min": 62.1,
+        "max": 122.0,
+        "skewness": 0.02121672617147608,
+        "kurtosis": -0.3976948042402344
+      },
+      "group_2": {
+        "n": 40,
+        "mean": 98.9725,
+        "std": 5.923529245133236,
+        "median": 99.75,
+        "min": 87.8,
+        "max": 110.1,
+        "skewness": -0.20961448068677968,
+        "kurtosis": -0.6083479111620966
+      }
+    },
+    "assumptions_checked": [
+      "normality",
+      "variance_homogeneity",
+      "independence",
+      "outliers"
+    ],
+    "violations": [
+      {
+        "assumption": "variance_homogeneity",
+        "test_name": "Levene's Test",
+        "severity": "critical",
+        "p_value": 5.524478007306764e-05,
+        "statistic": 19.58428758840987,
+        "message": "Variance homogeneity violated (ratio=8.24, p = 5.52e-5)",
+        "recommendation": "Use Welch's t-test or non-parametric alternatives",
+        "visual_evidence": null
+      }
+    ],
+    "can_proceed": false,
+    "alternative_tests": [
+      "welch_t_test"
+    ],
+    "confidence_score": 0.167,
+    "visual_evidence": {},
+    "information": [],
+    "guardian_status": {
+      "level": "danger",
+      "message": "\ud83d\udeab Critical assumption violations detected. Analysis results may be invalid.",
+      "emoji": "\u26d4"
+    }
+  }
+}

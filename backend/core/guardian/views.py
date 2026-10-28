@@ -121,6 +121,7 @@ class GuardianCheckView(APIView):
             "alternative_tests": report.alternative_tests,
             "confidence_score": report.confidence_score,
             "visual_evidence": report.visual_evidence,
+            "information": report.information,
             "guardian_status": self._get_status_message(report),
         }
 
