@@ -207,6 +207,8 @@ class GuardianReport:
     effect_size_report: Optional[Dict[str, Any]] = None
     audit_trail: List[GuardianAuditEntry] = field(default_factory=list)
     context_adjustments_applied: bool = False
+    # Checks reported for information only, never as violations (Welch's variance check).
+    information: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class ContextualSeverityAdjuster:
@@ -780,6 +782,7 @@ class GuardianCore:
         alpha: float = 0.05,
         observation_order: Optional[str] = None,
         design: Optional[str] = None,
+        welch: bool = False,
     ) -> GuardianReport:
         """
         Main Guardian check - validates all assumptions for a given test
@@ -802,6 +805,11 @@ class GuardianCore:
             cross-sectional or omics data) and independence is referred to
             study design rather than tested by lag-1 autocorrelation, since
             that statistic is otherwise an artifact of sample arrangement.
+        welch : bool
+            Check a t-test that is run as Welch's: equal variances is not an
+            assumption, so the variance check goes to ``information`` and is
+            never a violation. Off by default, so callers that name "welch_t"
+            for other purposes (the cascade engine) are unchanged.
 
         Returns:
         --------
@@ -880,6 +888,13 @@ class GuardianCore:
         if design in ("one_sample", "paired") and "variance_homogeneity" in requirements:
             requirements.remove("variance_homogeneity")
 
+        # Welch's t-test does not assume equal variances: that is what it is for. A Welch
+        # check keeps the independent t-test's other checks (normality within each group,
+        # outliers); the variance check runs below as information, never as a violation.
+        welch = welch and canonical_test_type == "t_test"
+        if welch and "variance_homogeneity" in requirements:
+            requirements.remove("variance_homogeneity")
+
         # The same reasoning applies to shape similarity, and for the same
         # reason it must be dropped rather than left to no-op. A paired design
         # collapses analysis_arrays to the single array of differences below, so
@@ -909,6 +924,22 @@ class GuardianCore:
         if design == "paired" and len(data_arrays) >= 2:
             n = min(len(data_arrays[0]), len(data_arrays[1]))
             analysis_arrays = [np.asarray(data_arrays[0][:n]) - np.asarray(data_arrays[1][:n])]
+
+        information = []
+        if welch and len(analysis_arrays) >= 2:
+            variance = self.validators["variance_homogeneity"].validate(analysis_arrays, alpha)
+
+            def finite(value):
+                # Levene's p is NaN when a group is constant; JSON has no NaN.
+                return float(value) if value is not None and np.isfinite(value) else None
+
+            information.append({
+                "assumption": "variance_homogeneity",
+                "test_name": variance.get("test_name", "Levene's Test"),
+                "p_value": finite(variance.get("p_value")),
+                "statistic": finite(variance.get("statistic")),
+                "message": "Welch's test does not assume equal variances",
+            })
 
         # Gate for the independence validator: only run the lag-1
         # autocorrelation test when the caller declares the row order is
@@ -1137,6 +1168,7 @@ class GuardianCore:
             effect_size_report=effect_size_report,
             audit_trail=audit_trail,
             context_adjustments_applied=context_adjusted,
+            information=information,
         )
 
     def _prepare_data(self, data) -> List[np.ndarray]:

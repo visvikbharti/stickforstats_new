@@ -89,6 +89,7 @@ export const runNormalityTests = async (data, alpha = 0.05) => {
 const T_TEST_TYPES = {
   'one-sample': 'one_sample',
   independent: 'two_sample',
+  welch_t_test: 'two_sample',
   paired: 'paired',
 };
 
@@ -100,6 +101,8 @@ export const runTTest = async ({ testType, data1, data2, populationMean = 0, alt
     parameters: { mu: populationMean },
   };
   if (testType !== 'one-sample') body.data2 = data2;
+  // Welch's t-test: the backend's two-sample test with Welch-Satterthwaite df.
+  if (testType === 'welch_t_test') body.equal_variance = false;
 
   const response = await post(endpoints.stats.ttest, body);
   const hp = response.high_precision_result || {};
@@ -114,6 +117,9 @@ export const runTTest = async ({ testType, data1, data2, populationMean = 0, alt
     alternative: hp.alternative || alternative,
     meanDifference: num(hp.mean_diff),
     standardError: num(hp.se),
+    ciLower: num(hp.ci_lower),
+    ciUpper: num(hp.ci_upper),
+    ciLevel: num(hp.ci_level),
     mean1: num(hp.mean1),
     mean2: num(hp.mean2),
     n1: num(hp.n1),

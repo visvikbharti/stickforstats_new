@@ -4,6 +4,7 @@
  * Classical hypothesis tests assuming normal distribution:
  * - One-Sample t-test (compare mean to population value)
  * - Independent Samples t-test (compare two groups)
+ * - Welch's t-test (compare two groups without assuming equal variances)
  * - Paired Samples t-test (compare before/after measurements)
  * - One-way ANOVA (compare three or more groups)
  */
@@ -80,6 +81,9 @@ import { useSettings } from '../../../context/SettingsContext';
  */
 const fmt = (value, digits = 4) =>
   Number.isFinite(value) ? value.toFixed(digits) : '\u2014';
+
+/** The two two-group designs: same inputs, same group order. */
+const isTwoGroupTest = (testType) => testType === 'independent' || testType === 'welch_t_test';
 
 /**
  * Main Parametric Tests Component
@@ -192,7 +196,7 @@ const ParametricTests = ({ data }) => {
 
     const ready =
       (testType === 'one-sample' && columnData.length >= 2) ||
-      (testType === 'independent' &&
+      (isTwoGroupTest(testType) &&
         groups.length === 2 &&
         groups[0].length >= 2 &&
         groups[1].length >= 2) ||
@@ -212,8 +216,8 @@ const ParametricTests = ({ data }) => {
         ? runOneWayAnova(groups)
         : runTTest({
             testType,
-            data1: testType === 'independent' ? groups[0] : columnData,
-            data2: testType === 'independent' ? groups[1] : columnData2,
+            data1: isTwoGroupTest(testType) ? groups[0] : columnData,
+            data2: isTwoGroupTest(testType) ? groups[1] : columnData2,
             populationMean,
           });
 
@@ -279,6 +283,36 @@ const ParametricTests = ({ data }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testResult, alpha]);
 
+  /**
+   * Welch's t-test. t, its Welch-Satterthwaite df (fractional), p and the CI come from the
+   * server; n, mean and SD per group, and Cohen's d*, from the same groups in the order sent.
+   */
+  const welchResult = useMemo(() => {
+    const r = forType('welch_t_test');
+    if (!r) return null;
+    const groups = Object.entries(groupedData).map(([name, values]) => {
+      const stats = calculateDescriptiveStats(values);
+      return { name, n: stats.count, mean: stats.mean, sd: stats.std };
+    });
+    const [g1, g2] = groups;
+    return {
+      groups,
+      meanDifference: r.meanDifference,
+      ciLower: r.ciLower,
+      ciUpper: r.ciUpper,
+      ciLevel: r.ciLevel,
+      standardError: r.standardError,
+      statistic: r.statistic,
+      df: r.df,
+      pValue: r.pValue,
+      // d* = (m1 - m2) / sqrt((s1^2 + s2^2) / 2): the variances are averaged, not pooled.
+      dStar: g1 && g2 ? (g1.mean - g2.mean) / Math.sqrt((g1.sd ** 2 + g2.sd ** 2) / 2) : null,
+      significant: isSignificant(r.pValue),
+      interpretation: r.interpretation,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testResult, alpha, groupedData]);
+
   const pairedResult = useMemo(() => {
     const r = forType('paired');
     if (!r) return null;
@@ -337,7 +371,7 @@ const ParametricTests = ({ data }) => {
       ];
     }
 
-    if ((testType === 'independent' || testType === 'anova') && Object.keys(groupedData).length > 0) {
+    if ((isTwoGroupTest(testType) || testType === 'anova') && Object.keys(groupedData).length > 0) {
       return Object.entries(groupedData).map(([group, values]) => {
         const stats = calculateDescriptiveStats(values);
         const se = stats.std / Math.sqrt(stats.count);
@@ -413,12 +447,13 @@ const ParametricTests = ({ data }) => {
           dataToCheck = columnData;
           backendTestType = 't_test';
           design = 'one_sample';
-        } else if (testType === 'independent') {
+        } else if (isTwoGroupTest(testType)) {
           if (Object.keys(groupedData).length !== 2) return;
           const groups = Object.values(groupedData);
           if (groups[0].length < 2 || groups[1].length < 2) return;
           dataToCheck = groupedData;
-          backendTestType = 't_test';
+          // Welch's is checked as itself, so its variance check comes back as information.
+          backendTestType = testType === 'welch_t_test' ? 'welch_t_test' : 't_test';
           design = 'independent';
         } else if (testType === 'paired') {
           if (columnData.length < 2 || columnData2.length < 2) return;
@@ -485,10 +520,17 @@ const ParametricTests = ({ data }) => {
    *
    * The one rank test that suits this design is run for real: we hand the user's
    * data to the non-parametric module and let it execute against the backend.
-   * The remaining suggestions (permutation, bootstrap, Welch) are sound advice
-   * that this app cannot yet run, so they say so inline rather than pretending.
+   * Welch's t-test runs on this screen: it switches the test type and keeps the
+   * selected columns. The remaining suggestions (permutation, bootstrap) are sound
+   * advice that this app cannot yet run, so they say so inline rather than pretending.
    */
   const handleSelectAlternative = (alternativeTest) => {
+    if (alternativeTest === 'welch_t_test' && testType === 'independent') {
+      setAlternativeNotice(null);
+      setTestType('welch_t_test');
+      return;
+    }
+
     const fallback = NP_FALLBACK_BY_DESIGN[testType];
     const displayName = displayNameFor(alternativeTest);
 
@@ -587,6 +629,7 @@ const ParametricTests = ({ data }) => {
                 <MenuItem value=""><em>Choose a test...</em></MenuItem>
                 <MenuItem value="one-sample">One-Sample t-test</MenuItem>
                 <MenuItem value="independent">Independent Samples t-test</MenuItem>
+                <MenuItem value="welch_t_test">Welch's t-test (unequal variances)</MenuItem>
                 <MenuItem value="paired">Paired Samples t-test</MenuItem>
                 <MenuItem value="anova">One-way ANOVA</MenuItem>
               </Select>
@@ -640,8 +683,8 @@ const ParametricTests = ({ data }) => {
             </>
           )}
 
-          {/* Independent t-test fields */}
-          {testType === 'independent' && (
+          {/* Independent and Welch's t-test fields */}
+          {isTwoGroupTest(testType) && (
             <>
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
@@ -786,6 +829,17 @@ const ParametricTests = ({ data }) => {
           educationalMode={true}
         />
       )}
+
+      {/* Welch's test does not assume equal variances: its variance check is information only */}
+      {guardianReportForDisplay && testType === 'welch_t_test' &&
+        (guardianReport.information || []).map((info) => (
+          <Alert key={info.assumption} severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Variance check (information only):</strong> {info.message}.
+              {info.p_value != null && ` ${info.test_name}: ${formatPClause(info.p_value)}.`}
+            </Typography>
+          </Alert>
+        ))}
 
       {/* An alternative Guardian recommends but this app cannot run for you */}
       {alternativeNotice && (
@@ -1128,6 +1182,197 @@ const ParametricTests = ({ data }) => {
               meanDifference: independentResult.meanDifference,
               standardError: independentResult.standardError,
               significant: independentResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+        </>
+      )}
+
+      {/* Welch's t-test Results */}
+      {welchResult && !isTestBlocked && (
+        <>
+          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Welch's t-test Results
+            </Typography>
+            <Typography variant="caption" color="text.secondary" paragraph>
+              H₀: μ₁ = μ₂ vs H₁: μ₁ ≠ μ₂, without assuming equal variances
+            </Typography>
+
+            <TableContainer sx={{ mb: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
+                    <TableCell><strong>Group</strong></TableCell>
+                    <TableCell align="right"><strong>n</strong></TableCell>
+                    <TableCell align="right"><strong>Mean</strong></TableCell>
+                    <TableCell align="right"><strong>SD</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {welchResult.groups.map((group) => (
+                    <TableRow key={group.name}>
+                      <TableCell>{group.name}</TableCell>
+                      <TableCell align="right">{group.n}</TableCell>
+                      <TableCell align="right">{fmt(group.mean, 4)}</TableCell>
+                      <TableCell align="right">{fmt(group.sd, 4)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: theme.palette.grey[isDarkMode ? 800 : 100] }}>
+                    <TableCell><strong>Statistic</strong></TableCell>
+                    <TableCell align="right"><strong>Value</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      Mean Difference ({welchResult.groups[0]?.name} − {welchResult.groups[1]?.name})
+                    </TableCell>
+                    <TableCell align="right">{fmt(welchResult.meanDifference, 4)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      {Number.isFinite(welchResult.ciLevel) ? Math.round(welchResult.ciLevel * 100) : 95}% CI of the Difference
+                    </TableCell>
+                    <TableCell align="right">
+                      [{fmt(welchResult.ciLower, 3)}, {fmt(welchResult.ciUpper, 3)}]
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Standard Error</TableCell>
+                    <TableCell align="right">{fmt(welchResult.standardError, 4)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>t-statistic</TableCell>
+                    <TableCell align="right">{fmt(welchResult.statistic, 4)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Degrees of Freedom (Welch–Satterthwaite)</TableCell>
+                    <TableCell align="right">{fmt(welchResult.df, 4)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>p-value</TableCell>
+                    <TableCell align="right">{formatPValue(welchResult.pValue)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Cohen's d*</TableCell>
+                    <TableCell align="right">{fmt(welchResult.dStar, 3)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell><strong>Result (α = {alpha})</strong></TableCell>
+                    <TableCell align="right">
+                      {welchResult.significant === null ? '—' : welchResult.significant ? (
+                        <Chip icon={<CancelOutlinedIcon />} label="Reject H₀" color="error" size="small" />
+                      ) : (
+                        <Chip icon={<CheckCircleOutlineIcon />} label="Fail to Reject H₀" color="success" size="small" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              {`Welch's t-test: t(${fmt(welchResult.df, 2)}) = ${fmt(welchResult.statistic, 2)}, ${formatPClause(welchResult.pValue)}`}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block">
+              d* = (m₁ − m₂) / √((s₁² + s₂²) / 2): the variances are averaged, not pooled.
+            </Typography>
+
+            {welchResult.significant === null && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Welch's t-test is undefined for these data.</strong>{' '}
+                  {welchResult.interpretation ||
+                    'The test statistic could not be computed, so there is no p-value and no conclusion to draw.'}
+                </Typography>
+              </Alert>
+            )}
+
+            {welchResult.significant !== null && (
+              <Alert severity={welchResult.significant ? "warning" : "info"} sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  {welchResult.significant
+                    ? `The two groups have significantly different means (${formatPClause(welchResult.pValue)} < ${alpha}).`
+                    : `The two groups do not have significantly different means (${formatPClause(welchResult.pValue)} >= ${alpha}).`}
+                </Typography>
+              </Alert>
+            )}
+          </Paper>
+
+          {/* Visualization */}
+          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Group Means with 95% Confidence Intervals
+            </Typography>
+            <Box sx={{ width: '100%', height: 400 }}>
+              <ResponsiveContainer>
+                <BarChart data={vizData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis label={{ value: 'Mean', angle: -90, position: 'insideLeft' }} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#8884d8" name="Mean">
+                    <ErrorBar dataKey="error" width={4} strokeWidth={2} stroke="#f44336" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Paper>
+
+          {/* R/Python Code Export */}
+          <CodeExportPanel
+            testType="welch_t_test"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: welchResult.statistic,
+              pValue: welchResult.pValue,
+              df: welchResult.df,
+              meanDifference: welchResult.meanDifference,
+              standardError: welchResult.standardError,
+              ciLower: welchResult.ciLower,
+              ciUpper: welchResult.ciUpper,
+              dStar: welchResult.dStar,
+              significant: welchResult.significant
+            }}
+            assumptions={guardianReport || {}}
+            options={{
+              alpha,
+              alternative: 'two-sided'
+            }}
+          />
+
+          {/* Statistical Debugger */}
+          <DebuggerPanel
+            testType="welch_t_test"
+            data={{
+              groups: groupedData,
+              columnName: selectedColumn,
+              groupColumn: groupColumn
+            }}
+            results={{
+              statistic: welchResult.statistic,
+              pValue: welchResult.pValue,
+              df: welchResult.df,
+              meanDifference: welchResult.meanDifference,
+              standardError: welchResult.standardError,
+              significant: welchResult.significant
             }}
             assumptions={guardianReport || {}}
             options={{

@@ -48,6 +48,11 @@ export const NP_FALLBACK_BY_DESIGN = {
     moduleTest: 'mann-whitney',
     sourceLabel: 'independent-samples t-test',
   },
+  welch_t_test: {
+    suggestionId: 'mann_whitney',
+    moduleTest: 'mann-whitney',
+    sourceLabel: "Welch's t-test",
+  },
   paired: {
     suggestionId: 'wilcoxon',
     moduleTest: 'wilcoxon',
@@ -141,7 +146,7 @@ export function buildNonParametricHandoff({
     values: [...values],
   }));
 
-  if (testType === 'independent' && dataGroups.length !== 2) return null;
+  if ((testType === 'independent' || testType === 'welch_t_test') && dataGroups.length !== 2) return null;
   if (testType === 'anova' && dataGroups.length < 2) return null;
   if (dataGroups.some((group) => group.values.length < 2)) return null;
 
