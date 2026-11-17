@@ -444,3 +444,41 @@ class AnEmptyEntryInATextColumnTest(APITestCase):
         message = self.refusal(in_covariate)
         self.assertIn("Covariate age has an empty entry at position 5", message)
         self.assertIn("Remove that observation from its group and from every covariate.", message)
+
+
+@override_settings(RATE_LIMIT_ENABLED=False)
+class TheControlChartNumbersTheRowsOfTheTableTest(APITestCase):
+    """An individuals and moving-range chart reports the rows whose moving range is out of control. The rows were
+    counted along the moving ranges that exist, so one missing measurement moved every later signal two rows up:
+    a jump in row 18 was reported in rows 16 and 17."""
+
+    URL = "/api/v1/sqc-analysis/quick-control-chart/"
+
+    @staticmethod
+    def series():
+        values = [10.0 + 0.1 * (i % 3) for i in range(24)]
+        values[18] = 14.0                    # one jump up, and down again in row 19
+        return values
+
+    def moving_range_signals(self, measurements):
+        response = self.client.post(self.URL, {"measurements": measurements, "chart_type": "i_mr"}, format="json",
+                                    HTTP_X_FORWARDED_PROTO="https")
+        self.assertEqual(response.status_code, 200, response.content)
+        violations = response.json()["data"]["results"]["violations"]
+        return sorted(v["index"] for v in violations if v["type"] == "Out of control (mr)")
+
+    def test_the_jump_is_reported_in_its_own_rows(self):
+        self.assertEqual(self.moving_range_signals(self.series()), [18, 19])
+
+    def test_a_missing_measurement_before_the_jump_does_not_move_it(self):
+        for missing in (5, 0, 12):
+            with self.subTest(missing=missing):
+                series = [None if i == missing else v for i, v in enumerate(self.series())]
+                self.assertEqual(self.moving_range_signals(series), [18, 19])
+
+    def test_the_service_reads_the_same_rows(self):
+        from sqc_analysis.services.control_chart_service import ControlChartService
+
+        series = [np.nan if i == 5 else v for i, v in enumerate(self.series())]
+        result = ControlChartService().analyze_control_chart(pd.DataFrame({"Measurement": series}), chart_type="imr")
+        self.assertEqual(result["out_of_control"], {"individuals": [18], "mr": [18, 19]})

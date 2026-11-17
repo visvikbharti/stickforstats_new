@@ -147,9 +147,13 @@ class ControlChartService:
                     out_of_control_i.append(i)
 
             out_of_control_mr = []
-            for i, value in enumerate(df["MovingRange"].dropna()):
+            # The number reported is the row of the table. The moving range is missing in the first row
+            # and next to a missing measurement, so the series is read with its own positions: counting
+            # only the ranges that exist moved every signal after a missing measurement to an earlier row.
+            # (A missing range compares false with both limits.)
+            for i, value in enumerate(df["MovingRange"]):
                 if value > limits["mr"]["ucl"] or value < limits["mr"]["lcl"]:
-                    out_of_control_mr.append(i + 1)  # +1 because first MR is at index 1
+                    out_of_control_mr.append(i)
 
             out_of_control = {"individuals": out_of_control_i, "mr": out_of_control_mr}
 
@@ -279,9 +283,13 @@ class ControlChartService:
                     out_of_control_i.append(i)
 
             out_of_control_mr = []
-            for i, value in enumerate(df["MovingRange"].dropna()):
+            # The number reported is the row of the table. The moving range is missing in the first row
+            # and next to a missing measurement, so the series is read with its own positions: counting
+            # only the ranges that exist moved every signal after a missing measurement to an earlier row.
+            # (A missing range compares false with both limits.)
+            for i, value in enumerate(df["MovingRange"]):
                 if value > limits["mr"]["ucl"] or value < limits["mr"]["lcl"]:
-                    out_of_control_mr.append(i + 1)  # +1 because first MR is at index 1
+                    out_of_control_mr.append(i)
 
             out_of_control = {"individuals": out_of_control_i, "mr": out_of_control_mr}
 
