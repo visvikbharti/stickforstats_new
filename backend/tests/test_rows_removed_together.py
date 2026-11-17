@@ -357,3 +357,90 @@ class TheTestRecommenderPreparesPairsTest(SimpleTestCase):
                 first, second = TestExecutionView()._prepare_guardian_data(df, test_type, "dose", ["response"])
                 self.assertEqual(set(zip(first, second)), rows_of(df, "dose", "response"))
                 self.assertEqual((len(first), len(second)), (38, 38))
+
+
+@override_settings(RATE_LIMIT_ENABLED=False)
+class AnEmptyEntryInATextColumnTest(APITestCase):
+    """A column may be sent as comma-separated text, and an empty entry in it ("5.1,,4.9") is skipped. Where the
+    position says which unit a value belongs to, skipping it moved every later value one position up: with one
+    empty entry in each column, in different places, the paired t-test, the repeated-measures ANOVA and the ANCOVA
+    answered from values of different units. Those requests are now refused. A null in a list already was."""
+
+    A, B, C = "5.1,4.9,6.0,5.5,5.8", "4.8,5.0,5.5,5.2,5.9", "6.1,5.2,6.6,5.9,6.4"
+    A_GAP, B_GAP, C_GAP = "5.1,,4.9,6.0,5.5,5.8", "4.8,5.0,,5.5,5.2,5.9", "6.1,5.2,6.6,,5.9,6.4"
+
+    def post(self, url, body):
+        return self.client.post(url, body, format="json", HTTP_X_FORWARDED_PROTO="https")
+
+    def refusal(self, response):
+        self.assertEqual(response.status_code, 400, response.content)
+        return " ".join(response.json()["details"]["non_field_errors"])
+
+    def test_the_positions_of_empty_entries(self):
+        from api.v1.serializers import empty_entries
+
+        self.assertEqual(empty_entries("5.1,,4.9, ,6.0"), [2, 4])
+        self.assertEqual(empty_entries(",5.1"), [1])
+        self.assertEqual(empty_entries("5.1,4.9,"), [])            # a trailing separator
+        self.assertEqual(empty_entries("5.1,4.9,, "), [])
+        self.assertEqual(empty_entries("5.1,4.9"), [])
+        self.assertEqual(empty_entries([5.1, None, 4.9]), [])      # not text: the field itself refuses a null
+
+    def test_a_paired_t_test_refuses_an_empty_entry_and_says_where(self):
+        for body, where in (({"data1": self.A_GAP, "data2": self.B_GAP}, "data1 has an empty entry at position 2"),
+                            ({"data1": self.A, "data2": self.B_GAP}, "data2 has an empty entry at position 3")):
+            with self.subTest(where=where):
+                message = self.refusal(self.post("/api/v1/stats/ttest/", {"test_type": "paired", **body}))
+                self.assertIn(where, message)
+                self.assertIn("Remove that pair from both columns.", message)
+
+    def test_a_paired_t_test_on_complete_text_columns_is_unchanged(self):
+        with_text = self.post("/api/v1/stats/ttest/", {"test_type": "paired", "data1": self.A, "data2": self.B})
+        with_lists = self.post("/api/v1/stats/ttest/", {"test_type": "paired",
+                                                        "data1": [float(v) for v in self.A.split(",")],
+                                                        "data2": [float(v) for v in self.B.split(",")]})
+        trailing = self.post("/api/v1/stats/ttest/", {"test_type": "paired", "data1": self.A + ",", "data2": self.B})
+        for response in (with_text, with_lists, trailing):
+            self.assertEqual(response.status_code, 200, response.content)
+        expected = with_lists.json()["high_precision_result"]["t_statistic"]
+        self.assertEqual(with_text.json()["high_precision_result"]["t_statistic"], expected)
+        self.assertEqual(trailing.json()["high_precision_result"]["t_statistic"], expected)
+
+    def test_two_separate_samples_may_still_have_an_empty_entry(self):
+        response = self.post("/api/v1/stats/ttest/", {"test_type": "two_sample", "data1": self.A_GAP, "data2": self.B})
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def test_a_repeated_measures_anova_refuses_an_empty_entry_under_every_name_and_address(self):
+        conditions = [{"name": "week1", "data": self.A}, {"name": "week2", "data": self.B_GAP}, {"name": "week3", "data": self.C_GAP}]
+        for url in ("/api/v1/stats/anova/", "/api/v1/anova/repeated-measures/"):
+            for key in ("groups", "data"):
+                for kind in ({"anova_type": "repeated_measures"}, {"anova_type": "rm"}, {"anova_type": "repeated-measures"}):
+                    with self.subTest(url=url, key=key, kind=kind):
+                        message = self.refusal(self.post(url, {**kind, key: conditions}))
+                        self.assertIn("Condition week2 has an empty entry at position 3", message)
+                        self.assertIn("Remove that subject from every condition.", message)
+
+    def test_a_repeated_measures_anova_on_complete_text_columns_runs(self):
+        conditions = [{"name": "week1", "data": self.A}, {"name": "week2", "data": self.B}, {"name": "week3", "data": self.C}]
+        response = self.post("/api/v1/stats/anova/", {"anova_type": "repeated_measures", "groups": conditions})
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertIsNotNone(response.json()["high_precision_result"]["f_statistic"])
+
+    def test_a_one_way_anova_may_still_have_an_empty_entry(self):
+        groups = [{"name": "a", "data": self.A_GAP}, {"name": "b", "data": self.B_GAP}, {"name": "c", "data": self.C}]
+        response = self.post("/api/v1/stats/anova/", {"anova_type": "one_way", "groups": groups})
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def test_an_ancova_refuses_an_empty_entry_in_a_group_or_in_a_covariate(self):
+        groups = [{"name": "a", "data": self.A}, {"name": "b", "data": self.B}]
+        age = {"name": "age", "data": "30,31,32,33,34,35,36,37,38,39"}
+        complete = self.post("/api/v1/stats/ancova/", {"groups": groups, "covariates": [age]})
+        self.assertEqual(complete.status_code, 200, complete.content)
+        in_group = self.post("/api/v1/stats/ancova/", {"groups": [{"name": "a", "data": self.A_GAP}, groups[1]],
+                                                       "covariates": [{"name": "age", "data": "30,31,32,33,34,35,,36,37,38,39"}]})
+        self.assertIn("Group a has an empty entry at position 2", self.refusal(in_group))
+        in_covariate = self.post("/api/v1/stats/ancova/", {"groups": groups,
+                                                           "covariates": [{"name": "age", "data": "30,31,32,33,,34,35,36,37,38,39"}]})
+        message = self.refusal(in_covariate)
+        self.assertIn("Covariate age has an empty entry at position 5", message)
+        self.assertIn("Remove that observation from its group and from every covariate.", message)
