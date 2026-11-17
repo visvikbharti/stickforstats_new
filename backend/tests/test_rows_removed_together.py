@@ -232,3 +232,128 @@ class TheManuscriptCheckLinksRowsTest(SimpleTestCase):
         spec = link.data_spec
         self.assertEqual(spec.groups, [[1.0, 3.0, 4.0], [5.0, 6.0, 7.0]])
         self.assertEqual((spec.n, spec.missing_note), (6, None))
+
+
+def paired_columns():
+    """The 40-row example as two measurements of the same 40 units."""
+    df = forty_rows()
+    return df["dose"].to_numpy(), df["response"].to_numpy()
+
+
+def with_nulls(values):
+    return [None if np.isnan(v) else float(v) for v in values]
+
+
+@override_settings(RATE_LIMIT_ENABLED=False)
+class ThePairedConfidenceIntervalTest(APITestCase):
+    """POST /api/v1/confidence-intervals/calculate/compare/ with "paired": true removed missing values array by
+    array and subtracted what was left. On the 40-row example it answered a mean difference of -0.0332 from 39
+    "pairs"; the 38 complete pairs give 0.0093."""
+
+    URL = "/api/v1/confidence-intervals/calculate/compare/"
+
+    def setUp(self):
+        self.first, self.second = paired_columns()
+        self.complete = np.isfinite(self.first) & np.isfinite(self.second)
+        self.expected = float(np.mean(self.first[self.complete] - self.second[self.complete]))
+
+    def post(self, **body):
+        return self.client.post(self.URL, body, format="json", HTTP_X_FORWARDED_PROTO="https")
+
+    def test_the_example_is_the_one_described(self):
+        self.assertEqual(round(self.expected, 4), 0.0093)
+        by_array = np.mean(self.first[np.isfinite(self.first)] - self.second[np.isfinite(self.second)])
+        self.assertEqual(round(float(by_array), 4), -0.0332)
+
+    def test_a_pair_with_a_missing_value_is_left_out_as_a_pair(self):
+        response = self.post(group1=with_nulls(self.first), group2=with_nulls(self.second), paired=True)
+        self.assertEqual(response.status_code, 200, response.content)
+        body = response.json()
+        self.assertAlmostEqual(body["mean_difference"], self.expected, places=12)
+        self.assertEqual((body["sample_size"], body["pairs_left_out"]), (38, 2))
+        self.assertAlmostEqual(body["group1_mean"], float(np.mean(self.first[self.complete])), places=12)
+
+    def test_nothing_missing_nothing_left_out(self):
+        first, second = self.first[self.complete], self.second[self.complete]
+        body = self.post(group1=first.tolist(), group2=second.tolist(), paired=True).json()
+        self.assertEqual((body["sample_size"], body["pairs_left_out"]), (38, 0))
+        self.assertAlmostEqual(body["mean_difference"], self.expected, places=12)
+
+    def test_arrays_of_different_length_are_refused_as_supplied(self):
+        # 40 values with one missing, and 39 values: removed array by array, both would hold 39
+        shorter = self.second[np.isfinite(self.second)].tolist()
+        self.assertEqual((len(shorter), int(np.isfinite(self.first).sum())), (39, 39))
+        response = self.post(group1=with_nulls(self.first), group2=shorter, paired=True)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn("Paired samples must have equal sizes", response.json()["error"])
+
+    def test_independent_groups_are_cleaned_array_by_array(self):
+        body = self.post(group1=with_nulls(self.first), group2=with_nulls(self.second)[:-5], paired=False).json()
+        self.assertNotIn("pairs_left_out", body)
+        self.assertAlmostEqual(body["group1_mean"], float(np.nanmean(self.first)), places=12)
+        self.assertAlmostEqual(body["group2_mean"], float(np.nanmean(self.second[:-5])), places=12)
+
+
+@override_settings(RATE_LIMIT_ENABLED=False)
+class ThePairedDesignInTheGuardianCheckTest(APITestCase):
+    """A paired design was checked on `first[:n] - second[:n]` with n the shorter length: columns of different
+    length were cut and subtracted, and a missing value made a missing difference."""
+
+    URL = "/api/guardian/check/"
+
+    def setUp(self):
+        self.first, self.second = paired_columns()
+
+    def post(self, first, second):
+        return self.client.post(self.URL, {"data": [first, second], "test_type": "paired_t", "design": "paired"},
+                                format="json", HTTP_X_FORWARDED_PROTO="https")
+
+    def test_columns_of_different_length_are_refused(self):
+        complete = np.isfinite(self.first) & np.isfinite(self.second)
+        response = self.post(self.first[np.isfinite(self.first)].tolist(), self.second[complete].tolist())
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn("A paired design needs two columns of the same length", response.json()["error"])
+        self.assertIn("The columns hold 39 and 38 values.", response.json()["error"])
+
+    def test_the_checks_run_on_the_differences_of_the_complete_pairs_and_the_report_says_so(self):
+        from unittest import mock
+
+        from core.guardian.guardian_core import GuardianCore
+
+        guardian = GuardianCore()
+        seen = []
+        real = guardian.validators["normality"].validate
+        with mock.patch.object(guardian.validators["normality"], "validate",
+                               side_effect=lambda arrays, alpha: (seen.append([np.asarray(a) for a in arrays]),
+                                                                  real(arrays, alpha))[1]):
+            report = guardian.check(data=[self.first, self.second], test_type="paired_t", design="paired")
+        complete = np.isfinite(self.first) & np.isfinite(self.second)
+        self.assertEqual(len(seen), 1)
+        (differences,) = seen[0]
+        self.assertEqual(differences.tolist(), (self.first[complete] - self.second[complete]).tolist())
+        self.assertEqual([i["message"] for i in report.information if i["assumption"] == "paired_design"],
+                         ["2 of 40 pairs have a missing value and were left out as pairs; the checks were run on the "
+                          "differences of the complete pairs."])
+
+    def test_complete_columns_carry_no_such_note(self):
+        complete = np.isfinite(self.first) & np.isfinite(self.second)
+        response = self.post(self.first[complete].tolist(), self.second[complete].tolist())
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertNotIn("paired_design", response.content.decode())
+
+    def test_too_few_complete_pairs_are_refused(self):
+        response = self.post([1.0, None, 3.0, None], [None, 2.0, 3.5, None])
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn("1 of the 4 pairs have a value in both columns", response.json()["error"])
+
+
+class TheTestRecommenderPreparesPairsTest(SimpleTestCase):
+    def test_a_paired_request_is_prepared_from_complete_rows(self):
+        from core.api_views import TestExecutionView
+
+        df = forty_rows()
+        for test_type in ("paired", "Paired T-Test", "wilcoxon signed-rank"):
+            with self.subTest(test_type=test_type):
+                first, second = TestExecutionView()._prepare_guardian_data(df, test_type, "dose", ["response"])
+                self.assertEqual(set(zip(first, second)), rows_of(df, "dose", "response"))
+                self.assertEqual((len(first), len(second)), (38, 38))

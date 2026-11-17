@@ -391,16 +391,24 @@ class ConfidenceIntervalCalculator:
         # Convert to arrays and clean
         group1 = np.array(group1, dtype=float)
         group2 = np.array(group2, dtype=float)
-        group1 = group1[~np.isnan(group1)]
-        group2 = group2[~np.isnan(group2)]
+        pairs_left_out = 0
+        if paired:
+            # Position i of one array is the same unit as position i of the other. The lengths are
+            # therefore judged as supplied, and a pair with a missing value is left out as a pair.
+            # Removing missing values array by array and subtracting what is left subtracts values
+            # of different units; with one value missing in each array it did so without a word.
+            if len(group1) != len(group2):
+                raise ValueError("Paired samples must have equal sizes")
+            complete = ~(np.isnan(group1) | np.isnan(group2))
+            pairs_left_out = int((~complete).sum())
+            group1, group2 = group1[complete], group2[complete]
+        else:
+            group1 = group1[~np.isnan(group1)]
+            group2 = group2[~np.isnan(group2)]
 
         n1, n2 = len(group1), len(group2)
 
         if paired:
-            # Paired samples
-            if n1 != n2:
-                raise ValueError("Paired samples must have equal sizes")
-
             differences = group1 - group2
             result = self.calculate_mean_ci(differences, confidence_level)
 
@@ -409,6 +417,7 @@ class ConfidenceIntervalCalculator:
             result["mean_difference"] = result["point_estimate"]
             result["group1_mean"] = np.mean(group1)
             result["group2_mean"] = np.mean(group2)
+            result["pairs_left_out"] = pairs_left_out
 
         else:
             # Independent samples

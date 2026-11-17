@@ -441,7 +441,9 @@ class TestExecutionView(APIView):
         # Paired comparisons
         elif "paired" in test_type_lower or "wilcoxon" in test_type_lower:
             if independent_vars and len(independent_vars) > 0:
-                return [df[dependent_var].dropna().values, df[independent_vars[0]].dropna().values]
+                # the two columns are two measurements of the same rows: complete rows only
+                pair = df[[dependent_var, independent_vars[0]]].dropna()
+                return [pair.iloc[:, 0].values, pair.iloc[:, 1].values]
 
         # ANOVA / Kruskal-Wallis (multiple groups)
         elif any(t in test_type_lower for t in ["anova", "kruskal"]):

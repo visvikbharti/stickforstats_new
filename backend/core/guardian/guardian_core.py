@@ -921,11 +921,37 @@ class GuardianCore:
         # the raw columns. Build the analysis arrays accordingly; independent
         # and one-sample designs analyse the arrays as given.
         analysis_arrays = data_arrays
+        pairs_left_out = None
         if design == "paired" and len(data_arrays) >= 2:
-            n = min(len(data_arrays[0]), len(data_arrays[1]))
-            analysis_arrays = [np.asarray(data_arrays[0][:n]) - np.asarray(data_arrays[1][:n])]
+            # Position i of one column is the same unit as position i of the other. Columns of
+            # different length were cut to the shorter one and subtracted, which pairs different
+            # units without a word; they are refused. A pair with a missing value is left out as a pair.
+            first = np.asarray(data_arrays[0], dtype=float).ravel()
+            second = np.asarray(data_arrays[1], dtype=float).ravel()
+            if first.size != second.size:
+                raise GuardianInputError(
+                    "A paired design needs two columns of the same length: position i of one column is the same "
+                    f"unit as position i of the other. The columns hold {first.size} and {second.size} values."
+                )
+            complete = np.isfinite(first) & np.isfinite(second)
+            if int(complete.sum()) < self._MIN_OBSERVATIONS:
+                raise GuardianInputError(
+                    f"A paired design needs at least {self._MIN_OBSERVATIONS} complete pairs; "
+                    f"{int(complete.sum())} of the {first.size} pairs have a value in both columns."
+                )
+            pairs_left_out = (int((~complete).sum()), int(first.size))
+            analysis_arrays = [first[complete] - second[complete]]
 
         information = []
+        if pairs_left_out is not None and pairs_left_out[0]:
+            information.append({
+                "assumption": "paired_design",
+                "test_name": "Complete pairs",
+                "p_value": None,
+                "statistic": None,
+                "message": (f"{pairs_left_out[0]} of {pairs_left_out[1]} pairs have a missing value and were left out "
+                            "as pairs; the checks were run on the differences of the complete pairs."),
+            })
         if welch and len(analysis_arrays) >= 2:
             variance = self.validators["variance_homogeneity"].validate(analysis_arrays, alpha)
 
