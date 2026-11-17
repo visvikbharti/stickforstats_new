@@ -308,6 +308,7 @@ class GDPRService:
                 "Right to data portability (Art. 20)",
                 "Right to object (Art. 21)",
             ],
-            "data_protection_officer": "dpo@stickforstats.org",
+            # No officer and no contact address: the address that stood here was on a domain that does
+            # not belong to the project, and nobody holds that role.
             "supervisory_authority": "Contact your national data protection authority",
         }

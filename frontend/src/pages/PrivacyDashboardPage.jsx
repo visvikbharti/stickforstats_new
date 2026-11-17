@@ -194,7 +194,7 @@ const PrivacyDashboardPage = () => {
     } catch (err) {
       setAlert({
         severity: 'error',
-        message: 'Failed to process erasure request. Please contact the DPO.',
+        message: 'Failed to process the erasure request. Please try again.',
       });
     } finally {
       setErasing(false);
@@ -459,13 +459,7 @@ const PrivacyDashboardPage = () => {
             <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
               Contact
             </Typography>
-            <Typography variant="body2">
-              Data Protection Officer:{' '}
-              <a href={`mailto:${privacyInfo.data_protection_officer}`}>
-                {privacyInfo.data_protection_officer}
-              </a>
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">
               {privacyInfo.supervisory_authority}
             </Typography>
           </CardContent>

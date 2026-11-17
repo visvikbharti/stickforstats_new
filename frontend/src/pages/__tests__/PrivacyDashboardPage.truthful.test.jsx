@@ -37,6 +37,28 @@ test('the export is described as what it contains, not as everything', async () 
   expect(pageText()).toMatch(/the last 90 days of usage records\s+and your latest 100 audit entries/);
 });
 
+test('no officer and no mail link are shown, even when the server still sends one', async () => {
+  apiClient.get.mockImplementation((url) =>
+    url.endsWith('/info/')
+      ? Promise.resolve({
+          data: {
+            controller: 'StickForStats',
+            purposes: [],
+            rights: [],
+            data_protection_officer: 'dpo@stickforstats.org',
+            supervisory_authority: 'Contact your national data protection authority',
+          },
+        })
+      : Promise.resolve({ data: { consents: {} } })
+  );
+  render(<PrivacyDashboardPage />);
+  expect(await screen.findByText('Contact your national data protection authority')).toBeInTheDocument();
+  expect(pageText()).not.toMatch(/Data Protection Officer|\bDPO\b/i);
+  expect(pageText()).not.toMatch(/stickforstats\.org/);
+  const mailLinks = screen.queryAllByRole('link').filter((a) => (a.getAttribute('href') || '').startsWith('mailto:'));
+  expect(mailLinks).toHaveLength(0);
+});
+
 test('erasure is described as what it does, including what it keeps', async () => {
   render(<PrivacyDashboardPage />);
   expect(await screen.findByText('Delete Your Data')).toBeInTheDocument();
