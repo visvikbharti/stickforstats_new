@@ -68,17 +68,24 @@ class GDPRService:
         if consent_type not in valid_types:
             return {"error": f"Invalid consent type. Valid: {valid_types}"}
 
+        now = timezone.now()
+        defaults = {
+            "granted": granted,
+            "ip_address": ip_address,
+            "user_agent": user_agent or "",
+            "version": "1.0",
+        }
+        if granted:
+            defaults.update(granted_at=now, revoked_at=None)
+        else:
+            # granted_at is left as it is: the column does not accept NULL (writing None into it made
+            # every withdrawal fail), and the time at which consent was given stays on record. For a
+            # record created by a refusal it holds the model's default, the time of creation.
+            defaults["revoked_at"] = now
         record, created = ConsentRecord.objects.update_or_create(
             user=user,
             consent_type=consent_type,
-            defaults={
-                "granted": granted,
-                "ip_address": ip_address,
-                "user_agent": user_agent or "",
-                "granted_at": timezone.now() if granted else None,
-                "revoked_at": timezone.now() if not granted else None,
-                "version": "1.0",
-            },
+            defaults=defaults,
         )
 
         action = "granted" if granted else "revoked"
