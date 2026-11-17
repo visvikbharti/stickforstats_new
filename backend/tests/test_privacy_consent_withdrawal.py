@@ -8,7 +8,8 @@ as it was. The page told the user "You can withdraw consent at any time".
 The column now accepts NULL and has no default (migration 0017). A withdrawal keeps the time at
 which consent was given. A record that a refusal creates has no grant time, and the data export
 prints "never granted" for it: a "no" stored with a grant time would be a record of a consent
-that nobody gave.
+that nobody gave. It has no revocation time either: the settings page shows a consent with a
+revocation time as "Revoked on" that day, and nothing was revoked.
 """
 
 import importlib
@@ -73,10 +74,20 @@ class ConsentCanBeWithdrawnTest(APITestCase):
         record = self.record("cookies")
         self.assertIs(record.granted, False)
         self.assertIsNone(record.granted_at)
-        self.assertIsNotNone(record.revoked_at)
-        # refused again: still no grant time
+        self.assertIsNone(record.revoked_at)
+        # refused again: still neither time
         self.assertEqual(self.post("cookies", False).status_code, 200)
-        self.assertIsNone(self.record("cookies").granted_at)
+        record = self.record("cookies")
+        self.assertEqual((record.granted, record.granted_at, record.revoked_at), (False, None, None))
+        self.assertEqual(ConsentRecord.objects.filter(user=self.user, consent_type="cookies").count(), 1)
+
+    def test_a_second_no_keeps_the_time_of_the_withdrawal(self):
+        times = [datetime(2026, 4, day, 7, 0, tzinfo=dt_timezone.utc) for day in (1, 2, 3)]
+        for granted, when in zip((True, False, False), times):
+            with mock.patch("core.services.gdpr_service.timezone.now", return_value=when):
+                self.assertEqual(self.post("analytics", granted).status_code, 200)
+        record = self.record("analytics")
+        self.assertEqual((record.granted, record.granted_at, record.revoked_at), (False, times[0], times[1]))
 
     def test_the_column_takes_no_grant_time_and_has_no_default(self):
         field = ConsentRecord._meta.get_field("granted_at")
@@ -111,11 +122,10 @@ class ConsentCanBeWithdrawnTest(APITestCase):
         self.assertIsNone(shown["granted_at"])
         self.assertIsNotNone(shown["revoked_at"])
 
-    def test_the_status_of_a_first_refusal_has_no_time_of_consent(self):
+    def test_the_status_of_a_first_refusal_has_no_time_of_consent_and_none_of_revocation(self):
         self.post("cookies", False)
         shown = self.client.get(CONSENT_URL).json()["consents"]["cookies"]
-        self.assertEqual((shown["granted"], shown["granted_at"]), (False, None))
-        self.assertIsNotNone(shown["revoked_at"])
+        self.assertEqual((shown["granted"], shown["granted_at"], shown["revoked_at"]), (False, None, None))
 
     def test_the_status_does_not_fail_on_a_granted_record_without_a_grant_time(self):
         # Not written by the service; a record edited by hand can look like this.
@@ -137,7 +147,7 @@ class ConsentCanBeWithdrawnTest(APITestCase):
         self.assertEqual(set(exported), {"analytics", "data_processing", "cookies"})
         self.assertEqual(exported["cookies"]["granted_at"], "never granted")
         self.assertIs(exported["cookies"]["granted"], False)
-        self.assertEqual(exported["cookies"]["revoked_at"], withdrawn_at.isoformat())
+        self.assertIsNone(exported["cookies"]["revoked_at"])
         self.assertEqual(exported["analytics"]["granted_at"], given_at.isoformat())
         self.assertEqual(exported["analytics"]["revoked_at"], withdrawn_at.isoformat())
         self.assertIs(exported["analytics"]["granted"], False)

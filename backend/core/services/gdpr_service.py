@@ -7,6 +7,7 @@ consent management, and data export per GDPR Articles 15-20.
 
 import logging
 from datetime import timedelta
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
@@ -72,25 +73,24 @@ class GDPRService:
             return {"error": f"Invalid consent type. Valid: {valid_types}"}
 
         now = timezone.now()
-        defaults = {
-            "granted": granted,
-            "ip_address": ip_address,
-            "user_agent": user_agent or "",
-            "version": "1.0",
-        }
-        if granted:
-            defaults.update(granted_at=now, revoked_at=None)
-        else:
-            # granted_at is not touched. After a withdrawal the time at which consent was given stays
-            # on record; a record that this refusal creates has none, because none was ever given.
-            defaults["revoked_at"] = now
-        record, created = ConsentRecord.objects.update_or_create(
-            user=user,
-            consent_type=consent_type,
-            defaults=defaults,
-        )
+        with transaction.atomic():
+            record, _ = ConsentRecord.objects.select_for_update().get_or_create(user=user, consent_type=consent_type)
+            was_given = record.granted
+            record.granted = granted
+            record.ip_address = ip_address
+            record.user_agent = user_agent or ""
+            record.version = "1.0"
+            if granted:
+                record.granted_at, record.revoked_at = now, None
+            elif was_given:
+                # A withdrawal. The time at which consent was given stays on record.
+                record.revoked_at = now
+            # A "no" to a consent that is not in force changes neither time. A record that a refusal
+            # creates has no grant time and no revocation time: nothing was given, so nothing was
+            # revoked, and the settings page would otherwise show it as "Revoked on" that day.
+            record.save()
 
-        action = "granted" if granted else "revoked"
+        action = "granted" if granted else "withdrew" if was_given else "refused"
         logger.info(f"GDPR: User {user.username} {action} consent for {consent_type}")
 
         return {

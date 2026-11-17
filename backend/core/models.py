@@ -1065,7 +1065,8 @@ class ConsentRecord(models.Model):
     # Empty until consent is given for the first time: a record that a refusal created holds no
     # grant time. A withdrawal leaves the time at which consent was given in place.
     granted_at = models.DateTimeField(blank=True, null=True)
-    # The time of the latest "no": a withdrawal, or a refusal of a consent that was never given.
+    # The time at which a consent that was given was withdrawn. Empty while the consent is in force,
+    # and for a consent that was refused and never given.
     revoked_at = models.DateTimeField(blank=True, null=True)
     version = models.CharField(max_length=20, default="1.0", help_text="Privacy policy version when consent was given")
 
