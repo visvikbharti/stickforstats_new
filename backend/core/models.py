@@ -1062,7 +1062,10 @@ class ConsentRecord(models.Model):
     granted = models.BooleanField(default=False)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.CharField(max_length=500, blank=True)
-    granted_at = models.DateTimeField(default=timezone.now)
+    # Empty until consent is given for the first time: a record that a refusal created holds no
+    # grant time. A withdrawal leaves the time at which consent was given in place.
+    granted_at = models.DateTimeField(blank=True, null=True)
+    # The time of the latest "no": a withdrawal, or a refusal of a consent that was never given.
     revoked_at = models.DateTimeField(blank=True, null=True)
     version = models.CharField(max_length=20, default="1.0", help_text="Privacy policy version when consent was given")
 

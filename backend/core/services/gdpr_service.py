@@ -13,6 +13,9 @@ from django.contrib.auth import get_user_model
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+# What a data export prints as the grant time of a consent that was refused and never given.
+NEVER_GRANTED = "never granted"
+
 
 class GDPRService:
     """GDPR compliance operations for user data."""
@@ -45,7 +48,7 @@ class GDPRService:
                 consents[consent_type] = {
                     "label": label,
                     "granted": record.granted,
-                    "granted_at": record.granted_at.isoformat() if record.granted else None,
+                    "granted_at": record.granted_at.isoformat() if record.granted and record.granted_at else None,
                     "revoked_at": record.revoked_at.isoformat() if record.revoked_at else None,
                     "version": record.version,
                 }
@@ -78,9 +81,8 @@ class GDPRService:
         if granted:
             defaults.update(granted_at=now, revoked_at=None)
         else:
-            # granted_at is left as it is: the column does not accept NULL (writing None into it made
-            # every withdrawal fail), and the time at which consent was given stays on record. For a
-            # record created by a refusal it holds the model's default, the time of creation.
+            # granted_at is not touched. After a withdrawal the time at which consent was given stays
+            # on record; a record that this refusal creates has none, because none was ever given.
             defaults["revoked_at"] = now
         record, created = ConsentRecord.objects.update_or_create(
             user=user,
@@ -133,7 +135,7 @@ class GDPRService:
                 {
                     "type": record.consent_type,
                     "granted": record.granted,
-                    "granted_at": record.granted_at.isoformat() if record.granted_at else None,
+                    "granted_at": record.granted_at.isoformat() if record.granted_at else NEVER_GRANTED,
                     "revoked_at": record.revoked_at.isoformat() if record.revoked_at else None,
                     "version": record.version,
                 }
