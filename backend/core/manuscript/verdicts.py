@@ -100,6 +100,9 @@ class ClaimDataSpec:
 
     variable_names: List[str] = field(default_factory=list)
     n: Optional[int] = None
+    #: what the linker left out because a value is missing, as a sentence for the claim's notes
+    #: (None when nothing was left out). Rows that belong together are left out together.
+    missing_note: Optional[str] = None
     #: T14 gate: only honour order-dependent checks (independence/autocorr) when
     #: rows are genuinely sequential/time-ordered/repeated-measures.
     rows_sequential: bool = False

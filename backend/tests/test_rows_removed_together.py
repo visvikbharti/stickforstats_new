@@ -161,3 +161,74 @@ class EveryKindOfRequestTest(SimpleTestCase):
         class Profile:
             inferred_questions = []
         return Profile()
+
+
+class TheManuscriptCheckLinksRowsTest(SimpleTestCase):
+    """The manuscript check re-runs a reported test on the authors' table (core/manuscript).
+
+    Its linker dropped missing values from the two variables of a correlation one by one. On the 40-row
+    table the sentence "r(36) = .96", which is right, was recomputed as 0.4768 and reported DISCREPANT.
+    """
+
+    SENTENCE = "Dose and response were strongly correlated, r(36) = .96, p < .001."
+
+    @staticmethod
+    def claim(claim_type, test_name, raw_text):
+        from types import SimpleNamespace
+        return SimpleNamespace(claim_type=claim_type, test_name=test_name, raw_text=raw_text)
+
+    def test_a_reported_correlation_is_recomputed_on_the_complete_rows_and_verified(self):
+        from core.manuscript.verify_pipeline import verify_manuscript
+        profile = verify_manuscript(self.SENTENCE, dataframe=forty_rows())
+        (verdict,) = profile.claim_verdicts
+        self.assertEqual(verdict.verdict.name, "VERIFIED")
+        self.assertEqual(round(verdict.recomputed_statistic, 4), 0.9586)
+        self.assertIn("data: 2 of 40 rows have a missing value in 'dose' or 'response' and were left out of both "
+                      "columns; 38 complete rows were tested", verdict.notes)
+
+    def test_without_missing_values_the_check_says_nothing_about_rows(self):
+        from core.manuscript.verify_pipeline import verify_manuscript
+        profile = verify_manuscript(self.SENTENCE, dataframe=forty_rows().dropna())
+        (verdict,) = profile.claim_verdicts
+        self.assertEqual(verdict.verdict.name, "VERIFIED")
+        self.assertEqual([n for n in verdict.notes if n.startswith("data:")], [])
+
+    def test_the_linker_hands_over_rows_for_every_correlation(self):
+        from core.manuscript.claim_data_linker import link_claim_to_table
+        df = forty_rows()
+        for name in ("Pearson correlation", "Spearman correlation", "Kendall tau"):
+            with self.subTest(name=name):
+                link = link_claim_to_table(self.claim("r_value", name, "dose and response were correlated"), df)
+                self.assertEqual(link.status, "linked")
+                spec = link.data_spec
+                self.assertEqual(set(zip(spec.x, spec.y)), rows_of(df, "dose", "response"))
+                self.assertEqual((len(spec.x), len(spec.y), spec.n), (38, 38, 38))
+
+    def test_a_paired_test_on_a_long_table_leaves_out_pairs_not_values(self):
+        from core.manuscript.claim_data_linker import link_claim_to_table
+        before = [10.0, 11.0, np.nan, 13.0, 14.0, 15.0]
+        after = [10.5, 11.5, 12.5, np.nan, 14.5, 15.5]
+        df = pd.DataFrame({"time": ["before"] * 6 + ["after"] * 6, "score": before + after})
+        link = link_claim_to_table(self.claim("t_statistic", "paired t-test", "score differed by time"), df)
+        self.assertEqual(link.status, "linked")
+        spec = link.data_spec
+        self.assertEqual(spec.groups, [[10.0, 11.0, 14.0, 15.0], [10.5, 11.5, 14.5, 15.5]])
+        self.assertEqual(spec.n, 4)
+        self.assertEqual(spec.missing_note, "data: 2 of 6 pairs of 'score' have a missing value and were left out as pairs; "
+                                            "4 complete pairs were tested")
+
+    def test_a_paired_test_with_levels_of_different_size_is_not_linked(self):
+        from core.manuscript.claim_data_linker import link_claim_to_table
+        df = pd.DataFrame({"time": ["before"] * 6 + ["after"] * 5, "score": [float(i) for i in range(11)]})
+        link = link_claim_to_table(self.claim("t_statistic", "paired t-test", "score differed by time"), df)
+        self.assertEqual(link.status, "ambiguous")
+        self.assertIn("(6 and 5 found)", link.reason)
+        self.assertIsNone(link.data_spec)
+
+    def test_independent_groups_on_a_long_table_are_still_cleaned_level_by_level(self):
+        from core.manuscript.claim_data_linker import link_claim_to_table
+        df = pd.DataFrame({"arm": ["a"] * 4 + ["b"] * 4, "score": [1.0, np.nan, 3.0, 4.0, 5.0, 6.0, 7.0, np.nan]})
+        link = link_claim_to_table(self.claim("t_statistic", "independent-samples t-test", "score differed by arm"), df)
+        spec = link.data_spec
+        self.assertEqual(spec.groups, [[1.0, 3.0, 4.0], [5.0, 6.0, 7.0]])
+        self.assertEqual((spec.n, spec.missing_note), (6, None))

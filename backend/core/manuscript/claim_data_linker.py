@@ -84,10 +84,29 @@ def link_claim_to_table(claim, df: pd.DataFrame, context_text: Optional[str] = N
         grp = _pick([c for c in groups2 if _mentions(text, c)], groups2)
         if val and grp:
             levels = list(pd.Series(df[grp].dropna().unique()))[:2]
-            arrays = [df.loc[df[grp] == lv, val].dropna().astype(float).tolist() for lv in levels]
+            missing_note = None
+            if tr.intended_test == "paired_t":
+                # The pairs are the rows of the two levels in the order of the table: the i-th row of
+                # one level belongs to the i-th row of the other. A pair with a missing value is left
+                # out as a pair. Dropping missing values level by level would shift every later pair.
+                first, second = (df.loc[df[grp] == lv, val].astype(float).tolist() for lv in levels)
+                if len(first) != len(second):
+                    return LinkResult("ambiguous", confidence=0.3,
+                                      reason=(f"a paired test needs the same number of rows in both levels of '{grp}' "
+                                              f"({len(first)} and {len(second)} found); the pairs cannot be told from this table"),
+                                      candidates={"numeric": numeric, "two_level_groups": groups2})
+                pairs = [(a, b) for a, b in zip(first, second) if a == a and b == b]      # NaN != NaN
+                arrays = [[a for a, _ in pairs], [b for _, b in pairs]]
+                n = len(pairs)
+                if n < len(first):
+                    missing_note = (f"data: {len(first) - n} of {len(first)} pairs of '{val}' have a missing value "
+                                    f"and were left out as pairs; {n} complete pairs were tested")
+            else:
+                arrays = [df.loc[df[grp] == lv, val].dropna().astype(float).tolist() for lv in levels]
+                n = int(df[val].notna().sum())
             spec = ClaimDataSpec(intended_test=tr.intended_test, design_type="two_group",
                                  groups=arrays, variable_names=[val, grp, *map(str, levels)],
-                                 n=int(df[val].notna().sum()), auto_linked=True)
+                                 n=n, missing_note=missing_note, auto_linked=True)
             conf = 0.9 if (_mentions(text, val) and _mentions(text, grp)) else 0.55
             return LinkResult("linked", spec, conf,
                               f"value '{val}' x group '{grp}' levels {list(map(str, levels))}")
@@ -101,10 +120,19 @@ def link_claim_to_table(claim, df: pd.DataFrame, context_text: Optional[str] = N
         pair = ment[:2] if len(ment) >= 2 else (numeric[:2] if len(numeric) == 2 else None)
         if pair:
             x, y = pair
+            # The two variables belong to the same rows: a row with a missing value in either is left
+            # out of both. Dropping missing values column by column pairs values from different rows.
+            complete = df[[x, y]].dropna()
+            left_out = int(len(df) - len(complete))
+            missing_note = None
+            if left_out:
+                missing_note = (f"data: {left_out} of {len(df)} rows have a missing value in '{x}' or '{y}' and were "
+                                f"left out of both columns; {len(complete)} complete rows were tested")
             spec = ClaimDataSpec(intended_test=tr.intended_test, design_type="correlation",
-                                 x=df[x].dropna().astype(float).tolist(),
-                                 y=df[y].dropna().astype(float).tolist(),
-                                 variable_names=[x, y], auto_linked=True)
+                                 x=complete[x].astype(float).tolist(),
+                                 y=complete[y].astype(float).tolist(),
+                                 variable_names=[x, y], n=int(len(complete)), missing_note=missing_note,
+                                 auto_linked=True)
             return LinkResult("linked", spec, 0.9 if len(ment) >= 2 else 0.5,
                               f"correlation '{x}' x '{y}'")
         return LinkResult("ambiguous", confidence=0.3,
