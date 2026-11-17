@@ -20,7 +20,7 @@ from unittest import mock
 from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from django.db import connection
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APITestCase
 
 from core.models import ConsentRecord
@@ -30,11 +30,15 @@ CONSENT_URL = "/api/v1/privacy/consent/"
 EXPORT_URL = "/api/v1/privacy/export/"
 
 
+# The tests state the settings they need and send their requests as the site's proxy forwards them
+# (X-Forwarded-Proto: https), so that they pass with DJANGO_DEBUG "True" or "False".
+@override_settings(RATE_LIMIT_ENABLED=False)
 class ConsentCanBeWithdrawnTest(APITestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="withdraw@example.invalid",
                                                          email="withdraw@example.invalid", password="unused-pw-123")
         self.client.force_authenticate(user=self.user)
+        self.client.defaults["HTTP_X_FORWARDED_PROTO"] = "https"
 
     def record(self, consent_type):
         return ConsentRecord.objects.filter(user=self.user, consent_type=consent_type).first()
