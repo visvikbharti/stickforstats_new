@@ -18,6 +18,29 @@ import apiClient from './api';
 const AUTONOMOUS_BASE = '/v1/autonomous';
 
 /**
+ * The variables of a profile as the list the page shows.
+ *
+ * The server sends them as an object keyed by the variable's name, with the number of distinct
+ * values under `n_unique` and the result of its normality check under `is_normal`
+ * (backend/core/services/smart_profiler.py). The page lists them, and reads `unique_values` and
+ * `normality`. It called `.map` on the object and crashed as soon as a file had been profiled.
+ * Every field the server sends is kept.
+ */
+export const variableList = (variables) => {
+  if (Array.isArray(variables)) return variables;
+  if (!variables || typeof variables !== 'object') return [];
+  return Object.entries(variables).map(([name, summary]) => ({
+    ...summary,
+    name,
+    unique_values: summary.n_unique,
+    normality: summary.is_normal == null ? null : summary.is_normal ? 'normal' : 'not normal',
+  }));
+};
+
+const withVariableList = (profile) =>
+  profile && typeof profile === 'object' ? { ...profile, variables: variableList(profile.variables) } : profile;
+
+/**
  * Profile uploaded data — returns health card, inferred questions, recommendations.
  * @param {File|Object} dataSource - CSV/Excel File object, or {data: [...]} object
  * @param {string} [userHint] - Optional hint about research goal
@@ -33,14 +56,14 @@ export const profileData = async (dataSource, userHint = null) => {
       headers: {  },
       timeout: 60000, // 60s for large files
     });
-    return response.data;
+    return withVariableList(response.data);
   }
 
   // JSON data
   const payload = { data: dataSource };
   if (userHint) payload.user_hint = userHint;
   const response = await apiClient.post(`${AUTONOMOUS_BASE}/profile/`, payload);
-  return response.data;
+  return withVariableList(response.data);
 };
 
 /**
