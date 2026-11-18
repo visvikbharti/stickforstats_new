@@ -483,7 +483,7 @@ class TestGDPRService(TestCase):
         self.assertEqual(info["controller"], "StickForStats")
         self.assertGreater(len(info["purposes"]), 0)
         self.assertGreater(len(info["rights"]), 0)
-        self.assertIn("dpo@stickforstats.org", info["data_protection_officer"])
+        self.assertNotIn("data_protection_officer", info)
 
 
 # =============================================================================
