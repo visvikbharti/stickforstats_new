@@ -511,8 +511,14 @@ class HighPrecisionNonParametric:
         w_plus = self._to_decimal(np.sum(ranks[signs > 0]))
         w_minus = self._to_decimal(np.sum(ranks[signs < 0]))
 
-        # Test statistic is the smaller of W+ and W-
-        w_stat = min(w_plus, w_minus)
+        # Two-sided, the test statistic is the smaller of W+ and W-.
+        #
+        # A one-sided question is about a direction, and the smaller of the two sums has none: with
+        # it, "less" returned the small tail and "greater" the large one whichever sample was the
+        # larger. For ten pairs in which every value of x lies above its partner, "greater" got
+        # p = 1 and "less" got p = 0.00098. The sum of the positive ranks carries the direction:
+        # "greater" asks whether x tends to exceed y, and that is a large W+.
+        w_stat = min(w_plus, w_minus) if alternative == "two-sided" else w_plus
 
         # Calculate expected value and variance
         n_r = self._to_decimal(n_reduced)
