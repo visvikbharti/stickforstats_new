@@ -26,6 +26,7 @@ import { getApiUrl, endpoints } from '../config/apiConfig';
 import useGuardianReport from '../hooks/useGuardianReport';
 import { GuardianReportDisplay, GuardianBadge } from '../components/Guardian';
 import { isSignificant, formatPValue } from '../utils/formatStats';
+import { pairedRows, leftOutSentence } from './pairedRows';
 
 /**
  * "N decimal places" for a 50-digit decimal STRING from the backend -- and an em dash when there
@@ -56,6 +57,7 @@ const TTestRealBackend = () => {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [assumptions, setAssumptions] = useState(null);
+  const [rowsNote, setRowsNote] = useState(null);
   const [animationKey, setAnimationKey] = useState(0);
 
   // Get dark mode state from local storage
@@ -93,11 +95,18 @@ const TTestRealBackend = () => {
     setError(null);
     setResults(null);
     setAssumptions(null);
+    setRowsNote(null);
 
     try {
-      const data1 = parseData(sample1);
-      const data2 = parseData(sample2);
+      // A paired test is computed on rows: entry i of sample 1 with entry i of sample 2. A row
+      // with one value only is left out as a whole, and the page says how many were.
+      const paired = testType === 'paired' ? pairedRows(sample1, sample2) : null;
+      const data1 = paired ? paired.data1 : parseData(sample1);
+      const data2 = paired ? paired.data2 : parseData(sample2);
 
+      if (paired && paired.data1.length < 2) {
+        throw new Error('A paired test needs at least 2 complete pairs: rows in which both samples have a value.');
+      }
       if (!data1 || data1.length < 2) {
         throw new Error('Sample 1 must have at least 2 values');
       }
@@ -120,6 +129,7 @@ const TTestRealBackend = () => {
       // Extract high-precision results
       setResults(response.high_precision_result);
       setAssumptions(response.assumptions);
+      setRowsNote(paired ? leftOutSentence(paired) : null);
 
       // Show precision achieved
       // High precision results achieved
@@ -140,8 +150,8 @@ const TTestRealBackend = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          data1: parseData(sample1),
-          data2: parseData(sample2),
+          data1: testType === 'paired' ? pairedRows(sample1, sample2).data1 : parseData(sample1),
+          data2: testType === 'paired' ? pairedRows(sample1, sample2).data2 : parseData(sample2),
           test: 't-test'
         })
       });
@@ -448,6 +458,7 @@ const TTestRealBackend = () => {
                   setResults(null);
                   setError(null);
                   setAssumptions(null);
+                  setRowsNote(null);
                 }}
                 sx={{
                   borderWidth: 2,
@@ -475,6 +486,12 @@ const TTestRealBackend = () => {
         )}
 
         {/* Error display */}
+        {rowsNote && (
+          <Alert severity="info" sx={{ mt: 3 }}>
+            {rowsNote}
+          </Alert>
+        )}
+
         {error && (
           <Alert severity="error" sx={{ mt: 3 }}>
             {error}
