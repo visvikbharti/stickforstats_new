@@ -147,6 +147,18 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** a result obtained on such data was not checked by Guardian. Look at the
   group that does not vary before reading the result.
 
+## The API
+
+### A one-sided signed-rank request does not follow the direction of the data
+
+- **Where:** `POST /api/v1/nonparametric/wilcoxon/` with `"alternative": "less"` or `"greater"`,
+  and `wilcoxon(..., alternative=...)` of the Python client. No page sends a one-sided request.
+- **What happens:** "less" returns the small tail and "greater" the large one whichever sample is
+  the larger. For ten pairs in which every value of the first sample lies above its partner,
+  "greater" returns p = 1 and "less" returns p = 0.00098.
+- **Until it is fixed:** request "two-sided". When the direction was fixed before the data were
+  seen and the differences point that way, the one-sided p-value is half the two-sided one.
+
 ## Closing an account
 
 ### The e-mail address, the saved projects and the receipts are kept

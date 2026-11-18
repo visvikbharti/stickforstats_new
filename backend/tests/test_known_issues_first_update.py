@@ -47,6 +47,7 @@ ENTRIES = [
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
     "A group that does not vary ends the check in a server error",
+    "A one-sided signed-rank request does not follow the direction of the data",
     "The e-mail address, the saved projects and the receipts are kept",
 ]
 BEFORE = [5.1, 6.3, 4.4, 8.0, 5.5, 7.7, 5.9, 6.6]
@@ -252,6 +253,34 @@ class WhatTheServerAnswersTest(APITestCase):
         # every pair differs: the same answer whatever is done with zero differences
         x, y = [12.1, 14.3, 11.2, 15.8, 13.4, 16.9], [13.0, 14.1, 12.9, 17.4, 13.1, 19.5]
         self.assertEqual(answer(x, y), answer(x, y, zero_method="wilcox"))
+
+    def test_a_one_sided_signed_rank_request_does_not_follow_the_direction_of_the_data(self):
+        low = [10.1, 11.4, 9.8, 12.3, 10.9, 11.7, 9.5, 12.8, 10.4, 11.1]
+        high = [12.6, 13.9, 11.2, 15.1, 12.2, 14.4, 11.9, 15.6, 12.3, 13.7]       # each value above its partner in `low`
+        self.assertTrue(all(a > b for a, b in zip(high, low)))
+
+        def p_value(x, y, alternative):
+            response = self.client.post("/api/v1/nonparametric/wilcoxon/", {"x": x, "y": y, "alternative": alternative},
+                                        format="json", HTTP_X_FORWARDED_PROTO="https")
+            self.assertEqual(response.status_code, 200, response.content[:200])
+            return float(response.json()["high_precision_result"]["p_value"])
+
+        for first, second in ((high, low), (low, high)):               # the same two answers whichever sample is the larger
+            self.assertEqual(p_value(first, second, "greater"), 1.0)
+            self.assertEqual(f"{p_value(first, second, 'less'):.5f}", "0.00098")
+            # the way out the file names: half the two-sided value is the one-sided value in the direction of the data
+            self.assertEqual(p_value(first, second, "two-sided") / 2, 1 / 2 ** 10)
+        self.assertIn('"greater" returns p = 1 and "less" returns p = 0.00098.', one_line(read(FILE)))
+        # no page sends a one-sided request: the hub's tab and the rank-test page name "two-sided", and the third
+        # component, which offers the choice, is imported by no file
+        self.assertIn("        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
+        page = read(SRC / "modules/NonParametricTestsRealProfessional.jsx")
+        self.assertEqual(page.count("alternative:"), page.count("alternative: 'two-sided',"))
+        self.assertGreater(page.count("alternative: 'two-sided',"), 0)
+        importing = [str(path.relative_to(SRC)) for path in SRC.rglob("*.js*")
+                     if path != SRC / "components/statistical/NonParametricTests.jsx" and "__tests__" not in path.parts
+                     and "statistical/NonParametricTests" in read(path)]
+        self.assertEqual(importing, [])
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
