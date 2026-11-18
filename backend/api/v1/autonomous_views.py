@@ -315,17 +315,8 @@ class CascadeExecuteView(APIView):
                 }
                 for step in result.cascade_path
             ],
-            "result": {
-                "test_name": result.result.test_name,
-                "statistic": result.result.statistic,
-                "p_value": result.result.p_value,
-                "effect_size": result.result.effect_size,
-                "effect_size_name": result.result.effect_size_name,
-                "degrees_of_freedom": result.result.degrees_of_freedom,
-                "additional": result.result.additional,
-            }
-            if result.result
-            else None,
+            # Strict JSON: a statistic that is not a finite number is null, with the reason beside it.
+            "result": result.result.to_dict() if result.result else None,
             "guardian_report": result.guardian_report,
         }
 

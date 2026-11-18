@@ -9,6 +9,8 @@ Created: February 2026
 Version: 2.0.0
 """
 
+import math
+
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -38,6 +40,31 @@ class TestResult:
     confidence_interval: Optional[Tuple[float, float]] = None
     degrees_of_freedom: Optional[float] = None
     additional: Dict[str, Any] = field(default_factory=dict)
+    statistic_note: str = ""   # why the statistic is not a finite number, when it is not
+
+    def to_dict(self) -> Dict[str, Any]:
+        """The result as strict JSON, which has no infinity.
+
+        One statistic here can be infinite: the odds ratio of a 2 x 2 table with a zero cell. It is
+        written as null, and `statistic_note` says why. Written as it is, the response could not be
+        encoded, and the request ended in a server error."""
+
+        def written(value):
+            return None if value is None or not math.isfinite(value) else float(value)
+
+        note = self.statistic_note
+        if written(self.statistic) is None and not note:
+            note = "not a finite number"
+        return {
+            "test_name": self.test_name,
+            "statistic": written(self.statistic),
+            "statistic_note": note,
+            "p_value": float(self.p_value),
+            "effect_size": written(self.effect_size),
+            "effect_size_name": self.effect_size_name,
+            "degrees_of_freedom": written(self.degrees_of_freedom),
+            "additional": self.additional,
+        }
 
 
 @dataclass
@@ -589,12 +616,19 @@ class AutonomousCascadeEngine:
 
         if table.shape == (2, 2):
             odds_ratio, p = stats.fisher_exact(table)
+            if math.isfinite(odds_ratio):
+                why = ""
+            elif math.isnan(odds_ratio):
+                why = "not defined: a row or a column of the table is empty"
+            else:
+                why = "infinite: a cell of the table is zero"
             return TestResult(
                 test_name="Fisher's Exact Test",
                 statistic=float(odds_ratio),
                 p_value=float(p),
                 effect_size=float(odds_ratio),
                 effect_size_name="Odds Ratio",
+                statistic_note=why,
             )
 
         # Fisher's exact is only defined for 2x2 tables here; fall back to

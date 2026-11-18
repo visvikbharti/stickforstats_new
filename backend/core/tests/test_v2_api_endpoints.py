@@ -328,13 +328,12 @@ class TestCascadeExecuteEndpoint(SecureAPITestCase, UserMixin):
             mock_result.assumptions_satisfied = True
             mock_result.confidence_score = 0.92
             mock_result.cascade_path = []
-            mock_result.result.test_name = "Independent Samples t-test"
-            mock_result.result.statistic = -5.0
-            mock_result.result.p_value = 0.001
-            mock_result.result.effect_size = 2.5
-            mock_result.result.effect_size_name = "Cohen's d"
-            mock_result.result.degrees_of_freedom = 8
-            mock_result.result.additional = {}
+            # the engine's own result class: the view writes what its to_dict() returns
+            from core.services.cascade_engine import TestResult as EngineResult
+
+            mock_result.result = EngineResult(
+                test_name="Independent Samples t-test", statistic=-5.0, p_value=0.001, effect_size=2.5,
+                effect_size_name="Cohen's d", degrees_of_freedom=8, additional={})
             mock_result.guardian_report = {"confidence": 0.92}
             mock_instance.execute_with_cascade.return_value = mock_result
 
