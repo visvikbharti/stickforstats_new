@@ -84,18 +84,6 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** disregard the "CRITICAL" mark and the data-quality line of this panel for a
   paired test.
 
-### The Wilcoxon signed-rank test counts the pairs that do not differ
-
-- **Where:** "Wilcoxon Signed-Rank Test (paired samples)" on the Non-Parametric Tests tab, and
-  `POST /api/v1/nonparametric/wilcoxon/` when the request names no `zero_method`.
-- **What happens:** when some pairs have the same value in both columns, the p-value is too small.
-  The server ranks those pairs with the others and takes the p-value from the distribution for as
-  many ranks as there are pairs. Nine pairs that do not differ and five that rise get
-  p = 0.000122; the five pairs that differ cannot give less than 0.0625. Data in which every pair
-  differs are not affected.
-- **Until it is fixed:** take the rows in which the two columns are equal out of the file before
-  the test, or send `"zero_method": "wilcox"` with the request to the API.
-
 ## Statistical quality control (`/sqc-analysis`)
 
 ### The "Measurement Column" menu of a control chart is empty
@@ -136,28 +124,18 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   with four decimals. A p-value of exactly 0 is printed as "0".
 - **Until it is fixed:** read the reported p-value in the manuscript itself.
 
-## The Guardian check
-
-### A group that does not vary ends the check in a server error
-
-- **Where:** `POST /api/guardian/check/`, and every page that asks Guardian before a test, when one
-  group or one column of the data holds a single value repeated.
-- **What happens:** the server answers "Server Error (500)" instead of a report. The analysis hub
-  then shows that the check failed and runs the test without it.
-- **Until it is fixed:** a result obtained on such data was not checked by Guardian. Look at the
-  group that does not vary before reading the result.
-
 ## The API
 
-### A one-sided signed-rank request does not follow the direction of the data
+### The signed-rank route with `zero_method` "pratt" or "zsplit"
 
-- **Where:** `POST /api/v1/nonparametric/wilcoxon/` with `"alternative": "less"` or `"greater"`,
-  and `wilcoxon(..., alternative=...)` of the Python client. No page sends a one-sided request.
-- **What happens:** "less" returns the small tail and "greater" the large one whichever sample is
-  the larger. For ten pairs in which every value of the first sample lies above its partner,
-  "greater" returns p = 1 and "less" returns p = 0.00098.
-- **Until it is fixed:** request "two-sided". When the direction was fixed before the data were
-  seen and the differences point that way, the one-sided p-value is half the two-sided one.
+- **Where:** `POST /api/v1/nonparametric/wilcoxon/`, when the request names one of these two
+  methods for the pairs that do not differ. No page sends them.
+- **What happens:** the p-value is taken from the distribution for as many ranks as there are
+  pairs, the pairs that do not differ included. For nine pairs that do not differ and five that
+  rise the route returns 0.000122 with "pratt" and 0.0419 with "zsplit"; the five pairs that
+  differ cannot give less than 0.0625.
+- **Until it is fixed:** send no `zero_method`. The test is then computed on the pairs that
+  differ, and the route returns 0.0625 for these data.
 
 ## Closing an account
 

@@ -41,13 +41,11 @@ ENTRIES = [
     "The guidelines tell the reader to choose a test from a normality test",
     "The paired t-test shows no mean difference",
     "The debugger of a paired t-test says that it has no numeric data",
-    "The Wilcoxon signed-rank test counts the pairs that do not differ",
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
-    "A group that does not vary ends the check in a server error",
-    "A one-sided signed-rank request does not follow the direction of the data",
+    'The signed-rank route with `zero_method` "pratt" or "zsplit"',
     "The e-mail address, the saved projects and the receipts are kept",
 ]
 BEFORE = [5.1, 6.3, 4.4, 8.0, 5.5, 7.7, 5.9, 6.6]
@@ -152,10 +150,18 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertIn("<TableCell>{formatP(claim.claimed && claim.claimed.p_value)}</TableCell>", report)
         self.assertIn("<TableCell sx={{ fontWeight: 600 }}>Reported p</TableCell>", report)
 
-    def test_the_hub_runs_the_test_when_the_check_fails(self):
-        hub = read(HUB_PARAMETRIC)
-        self.assertIn("        // Don't block test if Guardian service fails\n        setIsTestBlocked(false);", hub)
-        self.assertIn("<strong>Guardian validation unavailable:</strong> {guardianError}", hub)
+    def test_no_page_names_a_method_for_the_pairs_that_do_not_differ(self):
+        naming = sorted(str(path.relative_to(SRC)) for path in SRC.rglob("*.js*")
+                        if "__tests__" not in path.parts and "zero_method" in read(path))
+        # the service sends "wilcox" unless it is handed another method, and nothing hands it one;
+        # the panel that offers the three methods belongs to a workbench that no file imports
+        self.assertEqual(naming, ["components/TestRecommender/TestSelectionPanel.jsx", "services/NonParametricTestsService.js"])
+        self.assertIn("        zero_method: options.zero_method || 'wilcox',", read(SRC / "services/NonParametricTestsService.js"))
+        importing = [str(path.relative_to(SRC)) for path in SRC.rglob("*.js*")
+                     if path.name != "TestRecommenderWorkbench.jsx" and "TestRecommenderWorkbench" in read(path)]
+        self.assertEqual(importing, [])
+        self.assertIn("      runBackendTest(endpoints.nonparametric.wilcoxon, {\n        x: pairedData.sample1,\n"
+                      "        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
 
     def test_closing_an_account_keeps_the_address_the_projects_and_the_receipts(self):
         erasure = read(ERASURE)
@@ -226,61 +232,25 @@ class WhatTheServerAnswersTest(APITestCase):
         panel = hub[hub.index('<DebuggerPanel\n            testType="paired_t_test"'):]
         self.assertIn("values1: pairs.first,\n              values2: pairs.second,", panel[:400])
 
-    def test_the_signed_rank_test_counts_the_pairs_that_do_not_differ(self):
-        # the hub's tab names no method for the pairs that do not differ
-        self.assertIn("      runBackendTest(endpoints.nonparametric.wilcoxon, {\n        x: pairedData.sample1,\n"
-                      "        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
-        same, rise = [3] * 9, ([1, 2, 3, 4, 5], [2, 4, 6, 8, 10])     # nine pairs that do not differ, five that rise
+    def test_the_signed_rank_route_with_a_named_method_for_the_pairs_that_do_not_differ(self):
+        x, y = [3] * 9 + [1, 2, 3, 4, 5], [3] * 9 + [2, 4, 6, 8, 10]      # nine pairs that do not differ, five that rise
 
-        def answer(x, y, **sent):
+        def answer(**sent):
             response = self.client.post("/api/v1/nonparametric/wilcoxon/", {"x": x, "y": y, "alternative": "two-sided", **sent},
                                         format="json", HTTP_X_FORWARDED_PROTO="https")
             self.assertEqual(response.status_code, 200, response.content[:200])
             return response.json()["high_precision_result"]
 
-        as_the_hub_asks = answer(same + rise[0], same + rise[1])
-        self.assertEqual(as_the_hub_asks["sample_sizes"], [14, 14])
-        self.assertEqual(f"{float(as_the_hub_asks['p_value']):.6f}", "0.000122")
-        self.assertAlmostEqual(float(as_the_hub_asks["p_value"]), 2 / 2 ** 14, places=15)
-        # the two ways out that the file names give the least that five differences can give
-        named = answer(same + rise[0], same + rise[1], zero_method="wilcox")
-        self.assertEqual(named["sample_sizes"], [14, 5])
-        without_the_rows = answer(*rise)
-        for way_out in (named, without_the_rows):
-            self.assertEqual(float(way_out["p_value"]), 0.0625)
-        self.assertIn("Nine pairs that do not differ and five that rise get p = 0.000122; the five pairs that differ cannot "
-                      "give less than 0.0625. Data in which every pair differs are not affected.", one_line(read(FILE)))
-        # every pair differs: the same answer whatever is done with zero differences
-        x, y = [12.1, 14.3, 11.2, 15.8, 13.4, 16.9], [13.0, 14.1, 12.9, 17.4, 13.1, 19.5]
-        self.assertEqual(answer(x, y), answer(x, y, zero_method="wilcox"))
-
-    def test_a_one_sided_signed_rank_request_does_not_follow_the_direction_of_the_data(self):
-        low = [10.1, 11.4, 9.8, 12.3, 10.9, 11.7, 9.5, 12.8, 10.4, 11.1]
-        high = [12.6, 13.9, 11.2, 15.1, 12.2, 14.4, 11.9, 15.6, 12.3, 13.7]       # each value above its partner in `low`
-        self.assertTrue(all(a > b for a, b in zip(high, low)))
-
-        def p_value(x, y, alternative):
-            response = self.client.post("/api/v1/nonparametric/wilcoxon/", {"x": x, "y": y, "alternative": alternative},
-                                        format="json", HTTP_X_FORWARDED_PROTO="https")
-            self.assertEqual(response.status_code, 200, response.content[:200])
-            return float(response.json()["high_precision_result"]["p_value"])
-
-        for first, second in ((high, low), (low, high)):               # the same two answers whichever sample is the larger
-            self.assertEqual(p_value(first, second, "greater"), 1.0)
-            self.assertEqual(f"{p_value(first, second, 'less'):.5f}", "0.00098")
-            # the way out the file names: half the two-sided value is the one-sided value in the direction of the data
-            self.assertEqual(p_value(first, second, "two-sided") / 2, 1 / 2 ** 10)
-        self.assertIn('"greater" returns p = 1 and "less" returns p = 0.00098.', one_line(read(FILE)))
-        # no page sends a one-sided request: the hub's tab and the rank-test page name "two-sided", and the third
-        # component, which offers the choice, is imported by no file
-        self.assertIn("        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
-        page = read(SRC / "modules/NonParametricTestsRealProfessional.jsx")
-        self.assertEqual(page.count("alternative:"), page.count("alternative: 'two-sided',"))
-        self.assertGreater(page.count("alternative: 'two-sided',"), 0)
-        importing = [str(path.relative_to(SRC)) for path in SRC.rglob("*.js*")
-                     if path != SRC / "components/statistical/NonParametricTests.jsx" and "__tests__" not in path.parts
-                     and "statistical/NonParametricTests" in read(path)]
-        self.assertEqual(importing, [])
+        self.assertEqual(f"{float(answer(zero_method='pratt')['p_value']):.6f}", "0.000122")
+        self.assertEqual(f"{float(answer(zero_method='zsplit')['p_value']):.4f}", "0.0419")
+        for method in ("pratt", "zsplit"):
+            self.assertEqual(answer(zero_method=method)["sample_sizes"], [14, 14])
+        without_a_method = answer()
+        self.assertEqual(without_a_method["sample_sizes"], [14, 5])
+        self.assertEqual(float(without_a_method["p_value"]), 0.0625)       # 2 / 2 ** 5
+        self.assertIn('the route returns 0.000122 with "pratt" and 0.0419 with "zsplit"; the five pairs that differ cannot give '
+                      "less than 0.0625.", one_line(read(FILE)))
+        self.assertIn("and the route returns 0.0625 for these data.", one_line(read(FILE)))
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
@@ -308,14 +278,3 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertEqual(len(seen), 1)
         self.assertEqual(len(seen[0]), 1)
         np.testing.assert_allclose(seen[0][0], np.array(BEFORE) - np.array(AFTER))
-
-    def test_a_group_that_does_not_vary(self):
-        self.client.raise_request_exception = False
-        for test_type, data in (("t_test", [[5.0, 5.0, 5.0, 5.0], [1.0, 2.0, 3.0, 4.5]]),
-                                ("mann_whitney", [[1.0, 2.0, 3.0, 4.5], [5.0, 5.0, 5.0, 5.0]]),
-                                ("anova", [[5.0, 5.0, 5.0, 5.0], [1.0, 2.0, 3.0, 4.5], [2.0, 2.5, 3.5, 9.0]])):
-            with self.subTest(test_type=test_type):
-                response = self.client.post("/api/guardian/check/", {"data": data, "test_type": test_type}, format="json",
-                                            HTTP_X_FORWARDED_PROTO="https")
-                self.assertEqual(response.status_code, 500)
-                self.assertIn(b"Server Error (500)", response.content)
