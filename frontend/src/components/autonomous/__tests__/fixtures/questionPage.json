@@ -30,10 +30,12 @@
      "r": 0.9586315386213835,
      "r_squared": 0.9189744268396011
     },
+    "degrees_of_freedom": 36.0,
     "effect_size": 0.9189744268396011,
     "effect_size_name": "R-squared",
     "p_value": 3.1139908431558163e-21,
     "statistic": 0.9586315386213835,
+    "statistic_note": "",
     "test_name": "Pearson Correlation"
    }
   },
