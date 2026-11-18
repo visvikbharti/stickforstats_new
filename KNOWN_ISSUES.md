@@ -23,13 +23,107 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** do not read the score as a statement about the design of the study. Judge
   the unit of analysis yourself.
 
+### Two columns of categories get "Test execution failed"
+
+- **Where:** a question about two columns that hold words, such as a treatment and an outcome
+  recorded as "improved" or "same".
+- **What happens:** no test is run. The answer reads "Test execution failed: could not convert
+  string to float", followed by the first word of the column.
+- **Until it is fixed:** count the rows of each combination and give the table of counts to the
+  chi-square test (`POST /api/v1/categorical/chi-square/independence/`).
+
+## The t-test page (`/modules/t-test-real`)
+
+### Mean difference, confidence interval and effect size read "N/A"
+
+- **Where:** the results of a paired test and of a one-sample test.
+- **What happens:** the three fields show "N/A". For these two tests the server answers with the
+  statistic, the degrees of freedom, the p-value and the standard error, and with no mean
+  difference, no confidence interval and no effect size. For two independent samples all three
+  are shown.
+- **Until it is fixed:** run the paired test in the analysis hub (`/statistical-analysis-tools`),
+  which shows the mean difference and its standard error.
+
+### Normality is checked on the two samples, not on their differences
+
+- **Where:** "Assumptions" under the result of a paired test.
+- **What happens:** the page reports a normality check for sample 1 and one for sample 2. A paired
+  t-test assumes that the differences are normally distributed; that is not checked here.
+- **Until it is fixed:** check the differences yourself, or run the paired test in the analysis
+  hub (`/statistical-analysis-tools`), where Guardian checks the differences.
+
+## The analysis hub (`/statistical-analysis-tools`)
+
+### The guidelines tell the reader to choose a test from a normality test
+
+- **Where:** "Guidelines for Statistical Testing" on the Statistical Tests page, before a category
+  of tests is chosen.
+- **What happens:** the text says "Use normality tests before parametric tests" and "Parametric
+  tests for normal data, non-parametric for others". Choosing between a test and its rank
+  counterpart from a normality test on the same data changes the error rate of the test that is
+  then run.
+- **Until it is fixed:** choose the test from the design of the study and the kind of outcome, and
+  read the assumption checks as a report on that test.
+
+## Statistical quality control (`/sqc-analysis`)
+
+### The "Measurement Column" menu of a control chart is empty
+
+- **Where:** step 2, "Configure Chart Parameters", after a file was uploaded or the example data
+  were loaded.
+- **What happens:** the menu offers no column, so no control chart can be asked for on this page.
+  The upload step records each column as numeric or categorical in one form, and the chart step
+  reads another.
+- **Until it is fixed:** ask for the chart through the API
+  (`POST /api/v1/sqc-analysis/quick-control-chart/`).
+
+## Confidence intervals (`/confidence-intervals/calculators`)
+
+### Every calculator asks for a project, and none can be made
+
+- **Where:** the Calculators tab.
+- **What happens:** each calculator shows "Please select or create a project to start
+  calculations." The Project menu is disabled, and the page has no way to create a project. The
+  "Differences" calculator would send its request to an address that the server does not have.
+- **Until it is fixed:** use the API: `POST /api/v1/confidence-intervals/calculate/mean/`,
+  `.../calculate/proportion/`, `.../calculate/compare/` or `.../calculate/bootstrap/`.
+
+## The manuscript check (`/manuscript-verifier`)
+
+### The report does not say that rows were left out
+
+- **Where:** the table of claims, for a test that was re-run on a data file with missing values.
+- **What happens:** the server re-runs the test on the complete rows and adds a note to the claim,
+  such as "2 of 40 rows have a missing value ... and were left out of both columns". The page
+  shows a claim's notes only when they report a conflict, so this note is not shown.
+- **Until it is fixed:** read the notes of each claim in the answer of the API (`claims[].notes`).
+
+### A reported "p < .001" is printed as "0.0010"
+
+- **Where:** the column "Reported p" of the table of claims.
+- **What happens:** the page prints the bound of an inequality as if it were the reported value,
+  with four decimals. A p-value of exactly 0 is printed as "0".
+- **Until it is fixed:** read the reported p-value in the manuscript itself.
+
+## The Guardian check
+
+### A group that does not vary ends the check in a server error
+
+- **Where:** `POST /api/guardian/check/`, and every page that asks Guardian before a test, when one
+  group or one column of the data holds a single value repeated.
+- **What happens:** the server answers "Server Error (500)" instead of a report. The analysis hub
+  then shows that the check failed and runs the test without it.
+- **Until it is fixed:** a result obtained on such data was not checked by Guardian. Look at the
+  group that does not vary before reading the result.
+
 ## Closing an account
 
-### The e-mail address is kept
+### The e-mail address, the saved projects and the receipts are kept
 
 - **Where:** "Close my account" on `/privacy-settings`.
 - **What happens:** the account is closed and its data are deleted or anonymised as the dialog
-  lists. The e-mail address stays in the database, because it is also the username. The dialog and
-  the Privacy & data page say so.
-- **Until it is fixed:** the software has no tool that removes the address. One is planned for
-  after version 1.3.0.
+  lists. Two things are kept, and the dialog and the Privacy & data page say so: the e-mail
+  address stays in the database, because it is also the username, and saved projects and receipts
+  are not deleted and stay linked to the deactivated account.
+- **Until it is fixed:** the software has no tool that removes the address, the projects or the
+  receipts. One is planned for after version 1.3.0.
