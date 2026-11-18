@@ -41,8 +41,8 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   statistic, the degrees of freedom, the p-value and the standard error, and with no mean
   difference, no confidence interval and no effect size. For two independent samples all three
   are shown.
-- **Until it is fixed:** run the paired test in the analysis hub (`/statistical-analysis-tools`),
-  which shows the mean difference and its standard error.
+- **Until it is fixed:** the answer of `POST /api/v1/stats/ttest/` holds the mean of the differences
+  of a paired test as `high_precision_result.mean`, next to its standard error (`se`).
 
 ### Normality is checked on the two samples, not on their differences
 
@@ -64,6 +64,25 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   then run.
 - **Until it is fixed:** choose the test from the design of the study and the kind of outcome, and
   read the assumption checks as a report on that test.
+
+### The paired t-test shows no mean difference
+
+- **Where:** "Paired Samples t-test Results" on the Parametric Tests tab.
+- **What happens:** the row "Mean Difference" shows a dash. The standard error, the t-statistic, the
+  degrees of freedom and the p-value are shown. The server sends the mean of the differences under
+  one name and the tab looks for it under another.
+- **Until it is fixed:** the mean difference is the t-statistic times the standard error, both of
+  which the table shows.
+
+### The debugger of a paired t-test says that it has no numeric data
+
+- **Where:** "Debug Analysis" under the result of a paired t-test.
+- **What happens:** the panel is marked "CRITICAL", shows "Data Quality POOR" and "n = N/A", and
+  lists the issue "No numeric data available for analysis". It is handed the two columns in a form
+  it does not read. Its other lines, on the smallest detectable effect and on the assumption
+  checks, do not depend on that.
+- **Until it is fixed:** disregard the "CRITICAL" mark and the data-quality line of this panel for a
+  paired test.
 
 ## Statistical quality control (`/sqc-analysis`)
 

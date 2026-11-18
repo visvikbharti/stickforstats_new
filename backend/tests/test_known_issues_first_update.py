@@ -23,6 +23,8 @@ HUB_TESTS = SRC / "components/statistical-analysis/statistical-tests/Statistical
 HUB_PARAMETRIC = SRC / "components/statistical-analysis/statistical-tests/ParametricTests.jsx"
 SQC_UPLOAD = SRC / "components/sqc/DataUploadStep.jsx"
 SQC_CHART = SRC / "components/sqc/ChartConfigurationStep.jsx"
+HUB_SERVICE = SRC / "components/statistical-analysis/utils/hubTestService.js"
+DEBUGGER = SRC / "components/statistical-debugger/utils/debuggerEngine.js"
 CI_PAGE = SRC / "components/confidence_intervals/ConfidenceIntervalsPage.jsx"
 CI_DASHBOARD = SRC / "components/confidence_intervals/calculators/CalculatorDashboard.jsx"
 CI_DIFFERENCES = SRC / "components/confidence_intervals/calculators/DifferenceCalculator.jsx"
@@ -36,6 +38,8 @@ ENTRIES = [
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
+    "The paired t-test shows no mean difference",
+    "The debugger of a paired t-test says that it has no numeric data",
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
     "The report does not say that rows were left out",
@@ -195,6 +199,29 @@ class WhatTheServerAnswersTest(APITestCase):
                 self.assertIsNotNone(result.get(shown), (test_type, shown))
         independent = self._t_test("two_sample")["high_precision_result"]
         self.assertEqual([name for name in reads if independent.get(name) is not None], list(reads))
+
+    def test_the_hub_looks_for_the_mean_difference_under_a_name_the_paired_answer_does_not_have(self):
+        self.assertIn("    meanDifference: num(hp.mean_diff),", read(HUB_SERVICE))
+        self.assertIn("<TableCell align=\"right\">{fmt(pairedResult.sampleMean, 4)}</TableCell>", read(HUB_PARAMETRIC))
+        result = self._t_test("paired")["high_precision_result"]
+        self.assertNotIn("mean_diff", result)
+        # the mean of the differences is there, under "mean", and it is the statistic times the standard error
+        mean, se, t = (float(result[name]) for name in ("mean", "se", "t_statistic"))
+        self.assertAlmostEqual(mean, sum(b - a for b, a in zip(BEFORE, AFTER)) / len(BEFORE), places=12)
+        self.assertAlmostEqual(mean, t * se, places=12)
+
+    def test_the_debugger_does_not_read_the_two_columns_it_is_handed(self):
+        engine = read(DEBUGGER)
+        extract = engine[engine.index("function extractNumericValues(data) {"):]
+        extract = extract[:extract.index("\n}\n") + 3]
+        for read_form in ("if (Array.isArray(data)) {", "if (data.values && Array.isArray(data.values)) {", "if (data.groups) {"):
+            self.assertIn(read_form, extract)
+        self.assertNotIn("values1", engine)
+        self.assertIn("message: 'No numeric data available for analysis',", engine)
+        # the paired result hands the debugger its two columns as values1 and values2
+        hub = read(HUB_PARAMETRIC)
+        panel = hub[hub.index('<DebuggerPanel\n            testType="paired_t_test"'):]
+        self.assertIn("values1: pairs.first,\n              values2: pairs.second,", panel[:400])
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
