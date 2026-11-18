@@ -84,6 +84,18 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** disregard the "CRITICAL" mark and the data-quality line of this panel for a
   paired test.
 
+### The Wilcoxon signed-rank test counts the pairs that do not differ
+
+- **Where:** "Wilcoxon Signed-Rank Test (paired samples)" on the Non-Parametric Tests tab, and
+  `POST /api/v1/nonparametric/wilcoxon/` when the request names no `zero_method`.
+- **What happens:** when some pairs have the same value in both columns, the p-value is too small.
+  The server ranks those pairs with the others and takes the p-value from the distribution for as
+  many ranks as there are pairs. Nine pairs that do not differ and five that rise get
+  p = 0.000122; the five pairs that differ cannot give less than 0.0625. Data in which every pair
+  differs are not affected.
+- **Until it is fixed:** take the rows in which the two columns are equal out of the file before
+  the test, or send `"zero_method": "wilcox"` with the request to the API.
+
 ## Statistical quality control (`/sqc-analysis`)
 
 ### The "Measurement Column" menu of a control chart is empty

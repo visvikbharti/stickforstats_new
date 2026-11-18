@@ -21,6 +21,7 @@ ERASURE = SRC / "pages/privacyErasure.js"
 T_TEST_PAGE = SRC / "modules/TTestRealBackend.jsx"
 HUB_TESTS = SRC / "components/statistical-analysis/statistical-tests/StatisticalTests.jsx"
 HUB_PARAMETRIC = SRC / "components/statistical-analysis/statistical-tests/ParametricTests.jsx"
+HUB_RANK_TESTS = SRC / "components/statistical-analysis/statistical-tests/NonParametricTests.jsx"
 SQC_UPLOAD = SRC / "components/sqc/DataUploadStep.jsx"
 SQC_CHART = SRC / "components/sqc/ChartConfigurationStep.jsx"
 HUB_SERVICE = SRC / "components/statistical-analysis/utils/hubTestService.js"
@@ -40,6 +41,7 @@ ENTRIES = [
     "The guidelines tell the reader to choose a test from a normality test",
     "The paired t-test shows no mean difference",
     "The debugger of a paired t-test says that it has no numeric data",
+    "The Wilcoxon signed-rank test counts the pairs that do not differ",
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
     "The report does not say that rows were left out",
@@ -222,6 +224,34 @@ class WhatTheServerAnswersTest(APITestCase):
         hub = read(HUB_PARAMETRIC)
         panel = hub[hub.index('<DebuggerPanel\n            testType="paired_t_test"'):]
         self.assertIn("values1: pairs.first,\n              values2: pairs.second,", panel[:400])
+
+    def test_the_signed_rank_test_counts_the_pairs_that_do_not_differ(self):
+        # the hub's tab names no method for the pairs that do not differ
+        self.assertIn("      runBackendTest(endpoints.nonparametric.wilcoxon, {\n        x: pairedData.sample1,\n"
+                      "        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
+        same, rise = [3] * 9, ([1, 2, 3, 4, 5], [2, 4, 6, 8, 10])     # nine pairs that do not differ, five that rise
+
+        def answer(x, y, **sent):
+            response = self.client.post("/api/v1/nonparametric/wilcoxon/", {"x": x, "y": y, "alternative": "two-sided", **sent},
+                                        format="json", HTTP_X_FORWARDED_PROTO="https")
+            self.assertEqual(response.status_code, 200, response.content[:200])
+            return response.json()["high_precision_result"]
+
+        as_the_hub_asks = answer(same + rise[0], same + rise[1])
+        self.assertEqual(as_the_hub_asks["sample_sizes"], [14, 14])
+        self.assertEqual(f"{float(as_the_hub_asks['p_value']):.6f}", "0.000122")
+        self.assertAlmostEqual(float(as_the_hub_asks["p_value"]), 2 / 2 ** 14, places=15)
+        # the two ways out that the file names give the least that five differences can give
+        named = answer(same + rise[0], same + rise[1], zero_method="wilcox")
+        self.assertEqual(named["sample_sizes"], [14, 5])
+        without_the_rows = answer(*rise)
+        for way_out in (named, without_the_rows):
+            self.assertEqual(float(way_out["p_value"]), 0.0625)
+        self.assertIn("Nine pairs that do not differ and five that rise get p = 0.000122; the five pairs that differ cannot "
+                      "give less than 0.0625. Data in which every pair differs are not affected.", one_line(read(FILE)))
+        # every pair differs: the same answer whatever is done with zero differences
+        x, y = [12.1, 14.3, 11.2, 15.8, 13.4, 16.9], [13.0, 14.1, 12.9, 17.4, 13.1, 19.5]
+        self.assertEqual(answer(x, y), answer(x, y, zero_method="wilcox"))
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
