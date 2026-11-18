@@ -210,6 +210,8 @@ def verify_segments(segments, dataframe=None, full_text: Optional[str] = None,
         cv = verify_claim(ClaimVerificationRequest(claim=claim, data_spec=spec, alpha=alpha))
         cv.claim_text = getattr(claim, "raw_text", "") or cv.claim_text
         cv.notes.extend(ref_notes)
+        if spec is not None and getattr(spec, "missing_note", None):
+            cv.notes.append(spec.missing_note)      # how many rows were left out for a missing value
 
         # surface how the data file was chosen, and citation-content conflicts (D4).
         if "reference-directed" in link_reason or "conflict" in link_reason:
