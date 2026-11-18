@@ -1197,6 +1197,13 @@ class GuardianCore:
                 flat = flat[np.isfinite(flat)]
                 if flat.size == 0:
                     raise ValueError("no finite numeric values")
+                # Skewness and kurtosis are not defined for values that do not vary: SciPy returns
+                # NaN for them. NaN is not JSON, so a check of data with one constant group ended in
+                # a server error instead of an answer.
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    shape = [float(stats.skew(flat)), float(stats.kurtosis(flat))]
+                skewness, kurtosis = (value if np.isfinite(value) else None for value in shape)
                 summary[key] = {
                     "n": int(flat.size),
                     "mean": float(np.mean(flat)),
@@ -1204,9 +1211,11 @@ class GuardianCore:
                     "median": float(np.median(flat)),
                     "min": float(np.min(flat)),
                     "max": float(np.max(flat)),
-                    "skewness": float(stats.skew(flat)),
-                    "kurtosis": float(stats.kurtosis(flat)),
+                    "skewness": skewness,
+                    "kurtosis": kurtosis,
                 }
+                if skewness is None or kurtosis is None:
+                    summary[key]["note"] = "skewness and kurtosis are not defined: the values do not vary"
             except (TypeError, ValueError) as exc:
                 summary[key] = {
                     "n": int(np.size(arr)),
@@ -1910,6 +1919,13 @@ class SimilarShapesValidator:
             "statistic": d_stat,
         }
 
+    @staticmethod
+    def _finite_or_none(value) -> Optional[float]:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            value = float(value)
+        return value if np.isfinite(value) else None
+
     def _generate_visual_data(
         self, cleaned: List[np.ndarray], results: List
     ) -> Dict:
@@ -1918,7 +1934,8 @@ class SimilarShapesValidator:
             "group_sizes": [int(a.size) for a in cleaned],
             "medians": [float(np.median(a)) for a in cleaned],
             "iqrs": [float(np.subtract(*np.percentile(a, [75, 25]))) for a in cleaned],
-            "skewness": [float(stats.skew(a)) for a in cleaned],
+            # not defined for a group that does not vary: null, since NaN is not JSON
+            "skewness": [self._finite_or_none(stats.skew(a)) for a in cleaned],
             "pairwise_ks": [
                 {"groups": [i + 1, j + 1], "D": d, "p_value": p}
                 for d, p, i, j in results
@@ -2511,7 +2528,11 @@ class HomoscedasticityValidator:
                 "severity": severity,
                 "p_value": float(p_value),
                 "statistic": float(bp_statistic),
-                "message": f"Homoscedasticity violated (BP test {p_clause(p_value)}, variance ratio={var_ratio:.2f})",
+                "message": (
+                    f"Homoscedasticity violated (BP test {p_clause(p_value)}, "
+                    + ("variance ratio not computed: one half of the fitted range has no residual variance)"
+                       if var_ratio is None else f"variance ratio={var_ratio:.2f})")
+                ),
                 "recommendation": "Consider weighted least squares, robust regression, or transformation",
                 "visual_data": {
                     "fitted_values": y_pred.tolist(),
