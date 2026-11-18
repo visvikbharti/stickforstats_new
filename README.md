@@ -286,7 +286,8 @@ STICKFORSTATS_CONTACT_EMAIL=you@your-institution.example
 ```
 
 It is empty by default, and then no address is sent: the request names the client only. No
-address is built into the code.
+address is built into the code. The four scripts under `paper/` that fetch from public archives
+for the paper's analyses read the same variable.
 
 ---
 
