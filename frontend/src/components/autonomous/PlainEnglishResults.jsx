@@ -151,6 +151,15 @@ const PlainEnglishTab = ({ translation }) => {
 };
 
 /**
+ * The interpretation of an effect size as text. The server sends it as an object with a category
+ * and a label ({category: 'very strong', label: 'Very strong'}, or {category: 'odds_ratio',
+ * label: 'OR = 6.40'}). The page put the object itself into the text, and stopped with an error
+ * as soon as an answer arrived.
+ */
+export const interpretationLabel = (interpretation) =>
+  interpretation && typeof interpretation === 'object' ? interpretation.label || '' : interpretation || '';
+
+/**
  * Researcher View Tab Content
  */
 const ResearcherTab = ({ cascadeResult }) => {
@@ -227,9 +236,14 @@ const APAFormatTab = ({ cascadeResult, translation }) => {
       parts.push(`The result was statistically ${r.p_value < 0.05 ? 'significant' : 'non-significant'}, ${r.test_name} ${dfStr} = ${stat}, p ${pStr}.`);
     }
 
-    if (r.effect_size != null && translation?.effect_size_interpretation) {
+    const magnitude = interpretationLabel(translation?.effect_size_interpretation);
+    if (r.effect_size != null && magnitude) {
+      // A magnitude ("very strong") is said in the sentence; a label that restates the number
+      // ("OR = 6.40") is put after it.
       parts.push(
-        `The effect size was ${r.effect_size.toFixed(2)}, indicating a ${translation.effect_size_interpretation} effect.`
+        magnitude.includes('=')
+          ? `The effect size was ${r.effect_size.toFixed(2)} (${magnitude}).`
+          : `The effect size was ${r.effect_size.toFixed(2)}, indicating a ${magnitude.toLowerCase()} effect.`
       );
     }
 
@@ -745,7 +759,7 @@ const PlainEnglishResults = ({ result, mode, onModeChange, onNextStep }) => {
   const isSignificant = translation?.is_significant ?? false;
   const confidenceScore = cascadeResult?.confidence_score;
   const effectSize = cascadeResult?.result?.effect_size;
-  const effectInterpretation = translation?.effect_size_interpretation;
+  const effectInterpretation = interpretationLabel(translation?.effect_size_interpretation);
 
   return (
     <Box>
