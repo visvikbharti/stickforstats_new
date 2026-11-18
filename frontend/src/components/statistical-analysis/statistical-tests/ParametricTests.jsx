@@ -68,6 +68,7 @@ import {
   correctAlternatives,
   displayNameFor,
 } from './guardianFallback';
+import { pairRows, rowsLeftOutSentence } from './pairedColumns';
 import VisualEvidence from '../../VisualEvidence';
 import { CodeExportPanel } from '../../common';
 import { DebuggerPanel } from '../../statistical-debugger';
@@ -155,6 +156,16 @@ const ParametricTests = ({ data }) => {
   }, [data, selectedColumn2]);
 
   /**
+   * The rows of a paired t-test: the rows in which both columns have a value. Read each by
+   * itself (columnData, columnData2), one blank moved every later value of its column one row
+   * up, and the test was run on values of different rows.
+   */
+  const pairs = useMemo(
+    () => pairRows(data, selectedColumn, selectedColumn2),
+    [data, selectedColumn, selectedColumn2]
+  );
+
+  /**
    * Get grouped data (for independent t-test or ANOVA)
    */
   const groupedData = useMemo(() => {
@@ -200,9 +211,7 @@ const ParametricTests = ({ data }) => {
         groups.length === 2 &&
         groups[0].length >= 2 &&
         groups[1].length >= 2) ||
-      (testType === 'paired' &&
-        columnData.length >= 2 &&
-        columnData.length === columnData2.length) ||
+      (testType === 'paired' && pairs.first.length >= 2) ||
       (testType === 'anova' && groups.length >= 2 && groups.every((g) => g.length >= 2));
 
     if (!ready) {
@@ -211,13 +220,14 @@ const ParametricTests = ({ data }) => {
       return undefined;
     }
 
+    const [column1, column2] = testType === 'paired' ? [pairs.first, pairs.second] : [columnData, columnData2];
     const request =
       testType === 'anova'
         ? runOneWayAnova(groups)
         : runTTest({
             testType,
-            data1: isTwoGroupTest(testType) ? groups[0] : columnData,
-            data2: isTwoGroupTest(testType) ? groups[1] : columnData2,
+            data1: isTwoGroupTest(testType) ? groups[0] : column1,
+            data2: isTwoGroupTest(testType) ? groups[1] : column2,
             populationMean,
           });
 
@@ -241,7 +251,7 @@ const ParametricTests = ({ data }) => {
     return () => {
       cancelled = true;
     };
-  }, [testType, columnData, columnData2, groupedData, populationMean]);
+  }, [testType, columnData, columnData2, pairs, groupedData, populationMean]);
 
   /**
    * `significant` is null -- not false -- when there is no p-value. A test whose statistic is
@@ -388,9 +398,9 @@ const ParametricTests = ({ data }) => {
       });
     }
 
-    if (testType === 'paired' && columnData.length > 0 && columnData2.length > 0) {
-      const stats1 = calculateDescriptiveStats(columnData);
-      const stats2 = calculateDescriptiveStats(columnData2);
+    if (testType === 'paired' && pairs.first.length > 0) {
+      const stats1 = calculateDescriptiveStats(pairs.first);
+      const stats2 = calculateDescriptiveStats(pairs.second);
       const se1 = stats1.std / Math.sqrt(stats1.count);
       const se2 = stats2.std / Math.sqrt(stats2.count);
       const margin1 = 1.96 * se1;
@@ -415,7 +425,7 @@ const ParametricTests = ({ data }) => {
     }
 
     return [];
-  }, [testType, columnData, columnData2, groupedData, populationMean, selectedColumn, selectedColumn2]);
+  }, [testType, columnData, pairs, groupedData, populationMean, selectedColumn, selectedColumn2]);
 
   /**
    * Guardian Integration: Check statistical assumptions
@@ -456,10 +466,10 @@ const ParametricTests = ({ data }) => {
           backendTestType = testType === 'welch_t_test' ? 'welch_t_test' : 't_test';
           design = 'independent';
         } else if (testType === 'paired') {
-          if (columnData.length < 2 || columnData2.length < 2) return;
-          if (columnData.length !== columnData2.length) return;
-          // Send BOTH columns so the backend can test the paired differences.
-          dataToCheck = [columnData, columnData2];
+          if (pairs.first.length < 2) return;
+          // Send BOTH columns so the backend can test the paired differences: the rows in
+          // which both columns have a value.
+          dataToCheck = [pairs.first, pairs.second];
           backendTestType = 't_test';
           design = 'paired';
         } else if (testType === 'anova') {
@@ -498,7 +508,7 @@ const ParametricTests = ({ data }) => {
     };
 
     checkGuardianAssumptions();
-  }, [testType, columnData, columnData2, groupedData, alpha, data, expertMode]);
+  }, [testType, columnData, columnData2, pairs, groupedData, alpha, data, expertMode]);
 
   /**
    * Guardian's alternative list, rewritten to fit the design the user chose.
@@ -535,7 +545,8 @@ const ParametricTests = ({ data }) => {
     const displayName = displayNameFor(alternativeTest);
 
     if (fallback && alternativeTest === fallback.suggestionId) {
-      const handoff = buildNonParametricHandoff({ testType, columnData, columnData2, groupedData });
+      const [column1, column2] = testType === 'paired' ? [pairs.first, pairs.second] : [columnData, columnData2];
+      const handoff = buildNonParametricHandoff({ testType, columnData: column1, columnData2: column2, groupedData });
       if (handoff) {
         setAlternativeNotice(null);
         navigate(NON_PARAMETRIC_ROUTE, { state: handoff });
@@ -752,6 +763,11 @@ const ParametricTests = ({ data }) => {
                   </Select>
                 </FormControl>
               </Grid>
+              {rowsLeftOutSentence(pairs) && (
+                <Grid item xs={12}>
+                  <Alert severity="info">{rowsLeftOutSentence(pairs)}</Alert>
+                </Grid>
+              )}
             </>
           )}
 
@@ -1487,11 +1503,11 @@ const ParametricTests = ({ data }) => {
           <CodeExportPanel
             testType="paired_t_test"
             data={{
-              values1: columnData,
-              values2: columnData2,
+              values1: pairs.first,
+              values2: pairs.second,
               column1Name: selectedColumn,
               column2Name: selectedColumn2,
-              n: columnData.length
+              n: pairs.first.length
             }}
             results={{
               statistic: pairedResult.statistic,
@@ -1512,11 +1528,11 @@ const ParametricTests = ({ data }) => {
           <DebuggerPanel
             testType="paired_t_test"
             data={{
-              values1: columnData,
-              values2: columnData2,
+              values1: pairs.first,
+              values2: pairs.second,
               column1Name: selectedColumn,
               column2Name: selectedColumn2,
-              n: columnData.length
+              n: pairs.first.length
             }}
             results={{
               statistic: pairedResult.statistic,
