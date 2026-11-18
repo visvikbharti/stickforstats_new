@@ -182,14 +182,7 @@ class AutonomousQueryHandler:
         # Step 6: Translate results
         translation = {}
         if cascade_result.result:
-            result_dict = {
-                "statistic": cascade_result.result.statistic,
-                "p_value": cascade_result.result.p_value,
-                "effect_size": cascade_result.result.effect_size,
-                "effect_size_name": cascade_result.result.effect_size_name,
-                "degrees_of_freedom": cascade_result.result.degrees_of_freedom,
-                "additional": cascade_result.result.additional,
-            }
+            result_dict = cascade_result.result.to_dict()
             translation = self.translator.translate(cascade_result.result.test_name, result_dict, mode, alpha)
         else:
             translation = {"summary": "Test execution produced no results.", "details": ""}
@@ -239,16 +232,7 @@ class AutonomousQueryHandler:
                     }
                     for step in cascade_result.cascade_path
                 ],
-                "result": {
-                    "test_name": cascade_result.result.test_name,
-                    "statistic": cascade_result.result.statistic,
-                    "p_value": cascade_result.result.p_value,
-                    "effect_size": cascade_result.result.effect_size,
-                    "effect_size_name": cascade_result.result.effect_size_name,
-                    "additional": cascade_result.result.additional,
-                }
-                if cascade_result.result
-                else None,
+                "result": cascade_result.result.to_dict() if cascade_result.result else None,
                 "guardian_report": cascade_result.guardian_report,
             }
 
