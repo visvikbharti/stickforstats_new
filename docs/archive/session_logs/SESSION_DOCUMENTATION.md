@@ -280,7 +280,7 @@ All tests currently **PASSING**.
 
 ```bash
 # Key commands used during session
-curl -X POST http://localhost:8000/api/auth/login/ -H "Content-Type: application/json" -d '{"username": "vishalvikashbharti@gmail.com", "password": "GODisone@123"}'
+curl -X POST http://localhost:8000/api/auth/login/ -H "Content-Type: application/json" -d '{"username": "<your email address>", "password": "<your password>"}'
 curl -X GET http://localhost:8000/api/auth/me/ -H "Authorization: Token {token}"
 python manage.py runserver
 npm start
