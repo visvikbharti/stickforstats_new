@@ -179,9 +179,12 @@ def wilcoxon_signed_rank_test(request):
         "x": [1.2, 2.3, 3.4, 4.5],
         "y": [1.5, 2.1, 3.6, 4.2],
         "alternative": "two-sided",
-        "zero_method": "pratt",
+        "zero_method": "wilcox",
         "correction": false
     }
+
+    zero_method says what happens to a pair that does not differ. Without it the test is computed
+    on the pairs that differ ("wilcox"), which is Wilcoxon's own method.
     """
     try:
         # For Wilcoxon, we need x/y specifically, so handle this specially
@@ -211,7 +214,12 @@ def wilcoxon_signed_rank_test(request):
         x = np.array(data.get("x"))
         y = data.get("y", None)
         alternative = pop_alternative(data)
-        zero_method = data.get("zero_method", "pratt")
+        # A pair that does not differ says nothing about the direction of a change, and Wilcoxon's
+        # test leaves it out. The default was "pratt": the function then ranks the zero differences
+        # with the others and reads the p-value from the distribution for as many untied ranks as
+        # there are pairs, so nine pairs without a difference and five that rise got p = 0.000122
+        # where five differences cannot give less than 0.0625.
+        zero_method = data.get("zero_method", "wilcox")
         correction = data.get("correction", False)
 
         if y is not None:
