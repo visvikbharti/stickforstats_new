@@ -45,6 +45,13 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import SaveIcon from '@mui/icons-material/Save';
 import { apiClient } from '../services/api';
+import {
+  ERASURE_ANONYMISES,
+  ERASURE_CHANGES_THE_ACCOUNT,
+  ERASURE_DELETES,
+  ERASURE_DONE,
+  ERASURE_KEEPS,
+} from './privacyErasure';
 
 const PRIVACY_BASE = '/v1/privacy';
 
@@ -184,8 +191,7 @@ const PrivacyDashboardPage = () => {
       setEraseConfirmText('');
       setAlert({
         severity: 'warning',
-        message:
-          'Your personal data has been erased. Your account has been deactivated. You will be logged out shortly.',
+        message: ERASURE_DONE,
       });
       // Log user out after a delay
       setTimeout(() => {
@@ -480,43 +486,47 @@ const PrivacyDashboardPage = () => {
           Confirm Data Erasure
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            This will permanently delete all your personal data including:
+          <DialogContentText sx={{ mb: 1 }}>
+            Closing your account does not delete everything. This is what it does.
           </DialogContentText>
-          <List dense>
-            <ListItem>
-              <ListItemIcon>
-                <DeleteForeverIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Account information (email, name)" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <DeleteForeverIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Consent records" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <DeleteForeverIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Organization memberships" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <DeleteForeverIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Usage records (anonymized, not deleted)" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <DeleteForeverIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Audit entries (anonymized, not deleted)" />
-            </ListItem>
+          <Typography variant="subtitle2" sx={{ mt: 1 }}>
+            Deleted
+          </Typography>
+          <List dense aria-label="Deleted">
+            {ERASURE_DELETES.map((line) => (
+              <ListItem key={line}>
+                <ListItemIcon>
+                  <DeleteForeverIcon color="error" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary={line} />
+              </ListItem>
+            ))}
+          </List>
+          <Typography variant="subtitle2">Anonymised or changed</Typography>
+          <List dense aria-label="Anonymised or changed">
+            {[...ERASURE_ANONYMISES, ERASURE_CHANGES_THE_ACCOUNT].map((line) => (
+              <ListItem key={line}>
+                <ListItemIcon>
+                  <WarningAmberIcon color="warning" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary={line} />
+              </ListItem>
+            ))}
+          </List>
+          <Typography variant="subtitle2">Kept</Typography>
+          <List dense aria-label="Kept">
+            {ERASURE_KEEPS.map((line) => (
+              <ListItem key={line}>
+                <ListItemIcon>
+                  <InfoOutlinedIcon color="info" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary={line} />
+              </ListItem>
+            ))}
           </List>
           <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-            This action cannot be undone. Your account will be permanently deactivated.
+            This action cannot be undone. Your account will be permanently deactivated. The
+            Privacy &amp; data page says how to ask us to remove what is kept.
           </Alert>
           <Typography variant="body2" sx={{ mb: 1 }}>
             Type <strong>DELETE MY DATA</strong> to confirm:
@@ -564,7 +574,7 @@ const PrivacyDashboardPage = () => {
             }
             onClick={handleEraseData}
           >
-            {erasing ? 'Erasing...' : 'Permanently Delete All Data'}
+            {erasing ? 'Erasing...' : 'Close my account'}
           </Button>
         </DialogActions>
       </Dialog>
