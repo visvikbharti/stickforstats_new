@@ -29,8 +29,10 @@ import urllib.request
 from pathlib import Path
 from typing import List, Optional
 
+from .contact import user_agent
+
 _BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-_UA = {"User-Agent": "stickforstats-census/1.0 (research; mailto:vishalvikashbharti@gmail.com)"}
+_CLIENT = "stickforstats-census/1.0"     # the contact address, if any, is the operator's setting (contact.py)
 _API_KEY = os.environ.get("NCBI_API_KEY", "")
 _PMCID = re.compile(rb'<article-id pub-id-type="pmcid">(PMC\d+)</article-id>')
 
@@ -40,7 +42,7 @@ def _get(url: str, timeout: int = 120, retries: int = 3) -> bytes:
     last = None
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=timeout) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=user_agent(_CLIENT)), timeout=timeout) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code < 500:

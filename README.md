@@ -275,6 +275,20 @@ The application will be available at `http://localhost:3000`.
 docker-compose up --build
 ```
 
+### A contact address for public archives (optional)
+
+Two of the manuscript tools download files from public archives (NCBI E-utilities and GEO).
+Those archives ask automated clients to give a contact address, so that they can reach whoever
+runs a client that misbehaves. Set it in the environment of the backend:
+
+```bash
+STICKFORSTATS_CONTACT_EMAIL=you@your-institution.example
+```
+
+It is empty by default, and then no address is sent: the request names the client only. No
+address is built into the code. The four scripts under `paper/` that fetch from public archives
+for the paper's analyses read the same variable.
+
 ---
 
 ## API Endpoints

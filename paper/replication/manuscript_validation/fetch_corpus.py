@@ -45,6 +45,7 @@ import argparse
 import hashlib
 import html
 import json
+import os
 import re
 import sys
 import time
@@ -54,7 +55,13 @@ from pathlib import Path
 
 ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 EFETCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-UA = {"User-Agent": "stickforstats-validation/2.0 (research; mailto:noreply@stickforstats.com)"}
+# NCBI asks an automated client for a contact address. It is the address of whoever runs this
+# script: set STICKFORSTATS_CONTACT_EMAIL. It is empty by default, and then none is sent. A value
+# that is not one address is not sent either.
+CONTACT_EMAIL = os.environ.get("STICKFORSTATS_CONTACT_EMAIL", "").strip()
+if not re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$", CONTACT_EMAIL):
+    CONTACT_EMAIL = ""
+UA = {"User-Agent": "stickforstats-validation/2.0 (research" + (f"; mailto:{CONTACT_EMAIL})" if CONTACT_EMAIL else ")")}
 
 HERE = Path(__file__).resolve().parent
 

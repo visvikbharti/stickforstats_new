@@ -74,6 +74,7 @@ import gzip
 import hashlib
 import json
 import logging
+import os
 import random
 import re
 import shutil
@@ -101,8 +102,14 @@ from tenacity import (
 # ---------------------------------------------------------------------------
 
 TOOL_NAME = "stickforstats_retraction_backtest"
-CONTACT_EMAIL = "vishalvikashbharti@gmail.com"
-USER_AGENT = f"{TOOL_NAME}/0.1 (+mailto:{CONTACT_EMAIL})"
+# The archives ask an automated client for a contact address. It is the address of whoever runs
+# this script: set STICKFORSTATS_CONTACT_EMAIL. It is empty by default, and then none is sent.
+# A value that is not one address is not sent either. (An address was written here, so every run
+# by anybody sent that one.)
+CONTACT_EMAIL = os.environ.get("STICKFORSTATS_CONTACT_EMAIL", "").strip()
+if not re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$", CONTACT_EMAIL):
+    CONTACT_EMAIL = ""
+USER_AGENT = f"{TOOL_NAME}/0.1 (+mailto:{CONTACT_EMAIL})" if CONTACT_EMAIL else f"{TOOL_NAME}/0.1"
 
 RW_REPO_URL = "https://gitlab.com/crossref/retraction-watch-data.git"
 RW_CSV_RAW_URL = (
@@ -605,7 +612,7 @@ def resolve_pmcid(doi: str, logger: logging.Logger) -> Optional[str]:
         "term": f"{doi}[DOI]",
         "retmode": "json",
         "tool": TOOL_NAME,
-        "email": CONTACT_EMAIL,
+        **({"email": CONTACT_EMAIL} if CONTACT_EMAIL else {}),
     }
     url = f"{NCBI_BASE}/esearch.fcgi?" + urllib.parse.urlencode(params)
     try:
@@ -738,7 +745,7 @@ def fetch_pubmed_meta(pmid: str, logger: logging.Logger) -> Optional[PubMedMeta]
         "id": pmid,
         "retmode": "xml",
         "tool": TOOL_NAME,
-        "email": CONTACT_EMAIL,
+        **({"email": CONTACT_EMAIL} if CONTACT_EMAIL else {}),
     }
     url = f"{NCBI_BASE}/efetch.fcgi?" + urllib.parse.urlencode(params)
     try:

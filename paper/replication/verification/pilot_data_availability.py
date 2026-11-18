@@ -47,8 +47,13 @@ da = importlib.import_module("core.manuscript.data_availability_extractor")
 
 ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 EFETCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-UA = {"User-Agent": "stickforstats-pilot/1.0 (research; mailto:vishalvikashbharti@gmail.com)"}
-TOOL = "&tool=stickforstats-pilot&email=vishalvikashbharti@gmail.com"
+# NCBI asks an automated client for a contact address. It is the address of whoever runs this
+# script: set STICKFORSTATS_CONTACT_EMAIL (read by core/manuscript/contact.py). It is empty by
+# default, and then no address is sent, in the header or in the request.
+_contact = importlib.import_module("core.manuscript.contact")
+CONTACT_EMAIL = _contact.contact_address()
+UA = _contact.user_agent("stickforstats-pilot/1.0")
+TOOL = "&tool=stickforstats-pilot" + (f"&email={urllib.parse.quote(CONTACT_EMAIL)}" if CONTACT_EMAIL else "")
 
 # Biomedical / comp-bio sample: where data deposition (GEO/SRA/...) is common — the
 # domain our verification tool actually targets.
