@@ -25,6 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from scipy import stats
 
+from core.utils.mann_whitney_method import mann_whitney_method
+
 logger = logging.getLogger(__name__)
 
 
@@ -482,7 +484,9 @@ class DifferentialExpressionService:
             test_used = "mann_whitney"
             cascaded = True
             try:
-                stat, p_val = stats.mannwhitneyu(group1, group2, alternative="two-sided")
+                stat, p_val = stats.mannwhitneyu(
+                    group1, group2, alternative="two-sided", method=mann_whitney_method(len(group1), len(group2))
+                )
                 test_failed_local = False
                 failure_reason = ""
             except ValueError as exc:
