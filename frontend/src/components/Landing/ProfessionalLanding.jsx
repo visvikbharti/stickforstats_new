@@ -284,9 +284,11 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <h4>Data Requirements</h4>
                 <ul className="doc-list">
                   <li>Format: CSV files with headers</li>
-                  <li>Size: Up to 1M observations supported</li>
                   <li>Columns: Numeric and categorical variables</li>
-                  <li>Missing values: Handled automatically with multiple imputation options</li>
+                  <li>
+                    Missing values: counted for every column; you choose whether to keep them, drop
+                    their rows, or fill them with the mean, median or mode
+                  </li>
                 </ul>
               </div>
             </div>

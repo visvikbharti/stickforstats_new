@@ -20,7 +20,14 @@
  *   that plague published research". It says what Guardian does, and that not every test has a check yet.
  * - Under the two buttons stood "50 Decimal Precision" and "9 Guardian Validators". Not every result is
  *   computed to 50 decimals, and one of the nine validators is run by no check: both stand without a number.
+ * - Under "Data Requirements" it said "Size: Up to 1M observations supported" and "Missing values: Handled
+ *   automatically with multiple imputation options". The module the page sends a visitor to (Data Profiling)
+ *   is replaced by the error screen for a file of 150,000 rows, so the page names no size. Nothing is done to
+ *   a missing value unless the visitor chooses it, and the choices are to drop the rows or to fill with the
+ *   mean, the median or the mode: the sentence says that.
  */
+import fs from 'fs';
+import path from 'path';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
@@ -82,6 +89,52 @@ test('the section on Guardian says what it does, and that not every test has a c
   expect(pageText()).not.toMatch(/guarding\s+against/i);
   expect(pageText()).not.toMatch(/BEFORE running tests/);
   expect(pageText()).not.toMatch(/that plague published research/i);
+});
+
+test('the data requirements name no size', () => {
+  renderPage();
+  expect(pageText()).not.toMatch(/1M/);
+  expect(pageText()).not.toMatch(/observations supported/i);
+  const items = screen.getAllByRole('listitem').map((item) => item.textContent.replace(/\s+/g, ' ').trim());
+  expect(items).toContain('Format: CSV files with headers');
+  expect(items).toContain('Columns: Numeric and categorical variables');
+  expect(items.filter((item) => /^Size:/.test(item))).toEqual([]);
+});
+
+const MISSING_VALUES =
+  'Missing values: counted for every column; you choose whether to keep them, drop their rows, or fill them with the mean, median or mode';
+
+test('missing values: the page says what the two modules do, and promises nothing automatic', () => {
+  renderPage();
+  const items = screen.getAllByRole('listitem').map((item) => item.textContent.replace(/\s+/g, ' ').trim());
+  expect(items).toContain(MISSING_VALUES);
+  expect(pageText()).not.toMatch(/Handled automatically/i);
+  expect(pageText()).not.toMatch(/multiple imputation/i);
+  expect(pageText()).not.toMatch(/imputation/i);
+});
+
+test('the choices the sentence names are the choices of the preprocessing module, and its default changes nothing', () => {
+  const source = (relative) =>
+    fs.readFileSync(path.join(__dirname, '../../statistical-analysis', relative), 'utf8');
+  const preprocessing = source('preprocessing/DataPreprocessing.jsx');
+  // one group of choices for missing values; it starts at "none"
+  expect(preprocessing).toContain("const [missingValueStrategy, setMissingValueStrategy] = useState('none');");
+  const group = preprocessing.slice(
+    preprocessing.indexOf('<RadioGroup value={missingValueStrategy}'),
+    preprocessing.indexOf('</RadioGroup>', preprocessing.indexOf('<RadioGroup value={missingValueStrategy}'))
+  );
+  expect(group.match(/value="[a-z]+"/g)).toEqual([
+    'value="none"',
+    'value="drop"',
+    'value="mean"',
+    'value="median"',
+    'value="mode"',
+  ]);
+  for (const label of ['None (Keep as-is)', 'Drop Rows', 'Fill with Mean', 'Fill with Median', 'Fill with Mode']) {
+    expect(group).toContain(`<Typography variant="body1">${label}</Typography>`);
+  }
+  // and the profiling module shows the count of each column
+  expect(source('data-profiling/DataProfiling.jsx')).toContain('label={`${analysis.missingCount} missing`}');
 });
 
 test('the one validator no test uses is marked as such', () => {
