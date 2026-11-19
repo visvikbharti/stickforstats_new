@@ -37,6 +37,17 @@ ENGINE = Path(settings.BASE_DIR) / "core/services/cascade_engine.py"
 GENOMICS = Path(settings.BASE_DIR) / "core/services/genomics/differential_expression.py"
 PINNED = Path(settings.BASE_DIR) / "requirements-pinned.txt"
 CONSTRAINTS = Path(settings.BASE_DIR) / "image/constraints-live.txt"
+NAVIGATION = SRC / "components/SimpleNavigation.jsx"
+ROUTES = SRC / "routes/routeConfig.js"
+CAUSAL_PAGE = SRC / "modules/CausalInferenceModule.jsx"
+CAUSAL_GRAPH = SRC / "components/causal/DAGBuilder.jsx"
+REGRESSION_MODULE = SRC / "components/statistical/RegressionCalculator.jsx"
+REGRESSION_SERVICE = SRC / "services/RegressionAnalysisService.js"
+GENOMICS_PAGE = SRC / "pages/GenomicsAnalysisPage.jsx"
+ADVISOR_PANEL = SRC / "components/ai-advisor/AIAdvisorHub.jsx"
+ADVISOR_HOOK = SRC / "components/ai-advisor/hooks/useAIAdvisor.js"
+METHODS_WRITER = SRC / "components/ai-advisor/MethodsSectionGenerator.jsx"
+ADVISOR_SERVICE = Path(settings.BASE_DIR) / "ai_advisor/services/ai_service.py"
 QUESTIONS = Path(settings.BASE_DIR) / "core/services/autonomous_query_handler.py"
 
 ENTRIES = [
@@ -52,11 +63,17 @@ ENTRIES = [
     'The result of every rank test is labelled "Normal approximation"',
     "A signed-rank result changes with the unit in which the data are typed",
     "Of the four rank tests, Guardian is asked about the Mann-Whitney test only",
+    'The regression module ends every run with "performLinearRegression is not a function"',
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
+    'A gene with the same value in every sample is listed as "NS"',
+    'A file with an empty cell is refused with "could not convert string to float"',
+    "Analysing a graph replaces the page with the error screen, and two boxes of a result stay empty",
+    "The advisor answers from fixed templates, and a key does not turn it on",
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
     'The signed-rank route with `zero_method` "pratt" or "zsplit"',
+    "The genomics routes report fold changes in the wrong direction when the two groups are not named",
     "The e-mail address, the saved projects and the receipts are kept",
 ]
 BEFORE = [5.1, 6.3, 4.4, 8.0, 5.5, 7.7, 5.9, 6.6]
@@ -74,6 +91,11 @@ EIGHT_LOWER = [1.1, 3.2, 6.3, 8.4, 12.5, 19.6, 27.7, 44.8]
 
 def series(n):
     return [round(0.097 * k + 0.013, 3) for k in range(1, n + 1)]
+
+
+# three genes over eight samples: higher in the first four, alike in both halves, and one value everywhere
+GENE_ROWS = [[20.1, 22.4, 19.8, 21.7, 10.3, 9.6, 11.1, 10.4], [5.2, 4.9, 5.4, 5.1, 5.0, 5.3, 4.8, 5.2], [7.0] * 8]
+GENE_NAMES = ["gene_up", "gene_flat", "gene_const"]
 
 
 def read(path):
@@ -271,6 +293,77 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertIn("with SciPy 1.17.1, the version in the image. With SciPy 1.11.3, the version that "
                       "`backend/requirements-pinned.txt` names,", self.flat)
 
+    def test_the_causal_page_has_no_link_and_reads_what_the_server_does_not_send(self):
+        self.assertNotIn("/modules/causal-inference", re.findall(r"path:\s*'([^']+)'", read(NAVIGATION)))
+        self.assertIn("{ path: '/modules/causal-inference', component: CausalInferenceModule,", read(ROUTES))
+        page = read(CAUSAL_PAGE)
+        self.assertIn("{dagAnalysis.adjustment_sets.map((set, i) => (", page)
+        self.assertIn("{analysisResults.adjustment_sets.map((set, i) => (", read(CAUSAL_GRAPH))
+        self.assertIn("{didResults.se?.toFixed(3)}", page)
+        self.assertIn("{didResults.t_stat?.toFixed(2)}", page)
+        for shown in ("{didResults.did_estimate?.toFixed(3)}", "{formatPValue(didResults.p_value)}",
+                      "95% CI: [{didResults.ci_lower?.toFixed(3)}, {didResults.ci_upper?.toFixed(3)}]"):
+            self.assertIn(shown, page)
+
+    def test_the_regression_module_calls_methods_its_service_does_not_have(self):
+        module, service = read(REGRESSION_MODULE), read(REGRESSION_SERVICE)
+        called = sorted(set(re.findall(r"regressionService\.(\w+)\(", module)))
+        self.assertEqual(called, ["makePrediction", "performElasticNetRegression", "performLassoRegression",
+                                  "performLinearRegression", "performLogisticRegression", "performPolynomialRegression",
+                                  "performRidgeRegression", "performRobustRegression"])
+        defined = set(re.findall(r"^  (?:async )?(\w+)\(", service, re.M))
+        self.assertEqual(set(called) & defined, set())
+        self.assertLessEqual({"linearRegression", "polynomialRegression", "ridgeRegression", "robustRegression"}, defined)
+        # the eight types of the menu, and what the module does with the error
+        self.assertEqual(re.findall(r"^    (\w+): \{\n      name: '", module, re.M),
+                         ["linear", "multiple", "polynomial", "logistic", "ridge", "lasso", "elasticnet", "robust"])
+        self.assertIn("    } catch (err) {\n      setError(err.message);\n      setResults(null);", module)
+        # the request of the service has no field `type`; and "Parse Data" asks the Guardian check
+        request = service[service.index("const requestData = {"):service.index("const response = await api.post('/regression/', requestData);")]
+        self.assertNotRegex(request, r"\btype\b")
+        self.assertIn("const result = await GuardianService.checkAssumptions(\n          formattedData,\n          'regression',", module)
+
+    def test_the_genomics_page_shows_the_error_of_the_server_and_a_chip_for_every_gene(self):
+        page = read(GENOMICS_PAGE)
+        self.assertIn("throw new Error(errData.error || 'Analysis failed');", page)
+        self.assertIn("{formatPValue(gene.adjusted_p_value)}", page)
+        self.assertIn('<Chip size="small" label="NS" variant="outlined" />', page)
+        # the page names both groups in every request, and its menu of groups has the two fixed labels
+        self.assertIn("group1_name: group1Name,\n          group2_name: group2Name,", page)
+        self.assertEqual(re.findall(r'<MenuItem value="(\w+)">\{group\dName\}</MenuItem>', page), ["control", "treatment"])
+        self.assertEqual(page.count("/genomics/"), 1)                        # one route; the volcano route is not called
+
+    def test_the_advisor_panel_answers_from_templates_and_the_server_asks_for_what_the_sdk_refuses(self):
+        panel = one_line(read(ADVISOR_PANEL))
+        self.assertIn("<strong>AI service unavailable —</strong> showing offline template responses based on Guardian context. "
+                      "Connect to the backend (set <code>ANTHROPIC_API_KEY</code> and restart the server) for live AI guidance.", panel)
+        hook = read(ADVISOR_HOOK)
+        self.assertIn("    if (response.status === 503) {\n      throw new Error('AI_UNAVAILABLE');", hook)
+        self.assertIn("if (apiError.message === 'AI_UNAVAILABLE' || apiError.name === 'TypeError') {", hook)
+        self.assertIn("const lowerMessage = message.toLowerCase();", hook)
+        self.assertGreater(hook.count("lowerMessage.includes("), 5)
+        self.assertIn("Based on your query, here are some things I can assist with:", hook)
+        self.assertEqual(read(METHODS_WRITER).count("setGeneratedMethods(generateLocalMethods());"), 2)
+        service = read(ADVISOR_SERVICE)
+        self.assertIn('    DEFAULT_MODEL = "claude-sonnet-4-20250514"\n', service)
+        self.assertIn("                model=self.DEFAULT_MODEL,\n                max_tokens=self.MAX_TOKENS,\n"
+                      "                temperature=self.TEMPERATURE,\n", service)
+        self.assertIn("\nanthropic==2.3.0\n", read(CONSTRAINTS))
+        self.assertIn("(`temperature` is not an argument of `messages.create` in anthropic 2.3.0), and it names the model "
+                      "`claude-sonnet-4-20250514`, which was retired on 15 June 2026.", self.flat)
+
+    def test_the_installed_sdk_refuses_the_request_the_server_makes(self):
+        import anthropic
+
+        pinned = re.search(r"^anthropic==(\S+)$", read(CONSTRAINTS), re.M).group(1)
+        if anthropic.__version__ != pinned:
+            self.skipTest(f"anthropic {anthropic.__version__} is installed here; the image is built with {pinned}")
+        # a made-up word in the place of a key: the call fails on its arguments, before anything is sent
+        client = anthropic.Anthropic(api_key="not-a-key", max_retries=0, timeout=0.01)
+        with self.assertRaisesRegex(TypeError, "unexpected keyword argument 'temperature'"):
+            client.messages.create(model="claude-sonnet-4-20250514", max_tokens=16, temperature=0.3, system="x",
+                                   messages=[{"role": "user", "content": "x"}])
+
     def test_closing_an_account_keeps_the_address_the_projects_and_the_receipts(self):
         erasure = read(ERASURE)
         self.assertIn("Your email address stays in our database, because it is also your username.", erasure)
@@ -458,6 +551,169 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertAlmostEqual(answered, approximate, places=12)
         self.assertEqual((f"{answered:.5f}", f"{exact:.5f}"), ("0.00086", "0.00036"))
         self.assertIn("Far in the tail the two differ more: 0.00086 against an exact 0.00036 in another example.", text)
+
+    def _post(self, url, body):
+        """Status and JSON body (None when the answer is not JSON) of a request whose failure is answered, not raised."""
+        from rest_framework.test import APIClient
+
+        response = APIClient(raise_request_exception=False).post(url, body, format="json", HTTP_X_FORWARDED_PROTO="https")
+        try:
+            return response.status_code, response.json()
+        except ValueError:
+            return response.status_code, None
+
+    def test_the_graph_analysis_sends_an_object_and_the_difference_in_differences_other_names(self):
+        status, answer = self._post("/api/v1/core/causal/dag/analyze/",
+                                    {"edges": [["z", "t"], ["z", "y"], ["t", "y"]], "treatment": "t", "outcome": "y"})
+        self.assertEqual(status, 200, answer)
+        sets = answer["results"]["adjustment_sets"]
+        self.assertIsInstance(sets, dict)
+        self.assertIn("valid_adjustment_sets", sets)
+        rows = [{"y": round(10.0 + 0.5 * unit + post + 1.6 * (unit < 4) * post + (0.1 if (unit + post) % 2 else -0.1), 2),
+                 "treated": int(unit < 4), "post": post} for unit in range(8) for post in (0, 1)]
+        status, answer = self._post("/api/v1/core/causal/did/", {"data": rows, "outcome": "y", "treatment": "treated", "post": "post"})
+        self.assertEqual(status, 200, answer)
+        for key in ("did_estimate", "std_error", "t_statistic", "p_value", "ci_lower", "ci_upper"):
+            self.assertIsInstance(answer["results"][key], float, key)
+        for key in ("se", "t_stat"):
+            self.assertNotIn(key, answer["results"])
+        text = one_line(read(FILE))
+        self.assertIn("with a message that ends \"adjustment_sets.map is not a function\": the page reads the adjustment sets "
+                      "as a list, and the server sends an object.", text)
+        self.assertIn("the page looks for `se` and `t_stat`, and the server sends `std_error` and `t_statistic`.", text)
+        self.assertIn("(the sets are under `results.adjustment_sets.valid_adjustment_sets`)", text)
+
+    def test_the_regression_route_answers_a_direct_request_and_refuses_the_one_of_the_page(self):
+        import numpy as np
+
+        x = [1, 2, 3, 4, 5, 6, 7, 8]
+        y = [7.9, 5.05, 12.1, 8.7, 14.95, 8.45, 12.95, 18.2]
+        status, answer = self._post("/api/v1/regression/", {"type": "simple_linear", "X": x, "y": y})
+        self.assertEqual(status, 200, answer)
+        slope, intercept = np.polyfit(x, y, 1)
+        self.assertAlmostEqual(float(answer["coefficients"]["X1"]), slope, places=9)
+        self.assertAlmostEqual(float(answer["intercept"]), intercept, places=9)
+        status, answer = self._post("/api/v1/regression/", {"data": {"X": x, "y": y, "feature_names": []}, "method": "linear",
+                                                            "parameters": {"confidence_level": 0.95}, "options": {}})
+        self.assertEqual(status, 400)
+        self.assertEqual(list(answer), ["type"])
+        # what "Parse Data" asks of the Guardian check for those eight rows
+        status, answer = self._post("/api/guardian/check/", {"data": [x, y], "test_type": "regression", "alpha": 0.05})
+        self.assertEqual(status, 200, answer)
+        self.assertTrue(answer["can_proceed"])
+        self.assertEqual(answer["violations"], [])
+        text = one_line(read(FILE))
+        self.assertIn("for each of its eight regression types and for a prediction; the service has them under other names. "
+                      "The request the service would send is refused by the server as well, because it lacks the field `type`.", text)
+        self.assertIn("(\"All assumptions satisfied. Safe to proceed with analysis.\" for eight rows of two columns)", text)
+        self.assertIn('`POST /api/v1/regression/` with `{"type": "simple_linear", "X": [...], "y": [...]}` answers with the '
+                      "coefficients.", text)
+
+    def _genes_as_a_file(self, rows):
+        head = "gene,ctrl_1,ctrl_2,ctrl_3,ctrl_4,treat_1,treat_2,treat_3,treat_4"
+        return head + "\n" + "\n".join(name + "," + ",".join("" if v is None else str(v) for v in row)
+                                       for name, row in zip(GENE_NAMES, rows))
+
+    def _as_the_page_sends(self, rows):
+        return {"csv_data": self._genes_as_a_file(rows), "sample_groups": ["control"] * 4 + ["treatment"] * 4,
+                "group1_name": "control", "group2_name": "treatment", "alpha": 0.05, "input_scale": "linear"}
+
+    def test_a_gene_that_does_not_vary_is_sent_without_a_test_and_without_a_word(self):
+        status, answer = self._post("/api/v1/genomics/differential-expression/", self._as_the_page_sends(GENE_ROWS))
+        self.assertEqual(status, 200, answer)
+        gene = next(g for g in answer["gene_results"] if g["gene_name"] == "gene_const")
+        self.assertIn(gene["test_used"], ("t_test", "welch_t_test"))
+        self.assertEqual([gene["statistic"], gene["raw_p_value"], gene["adjusted_p_value"]], [None, None, None])
+        self.assertEqual([gene["significant"], gene["test_failed"], gene["test_failure_reason"]], [False, False, ""])
+        point = next(p for p in answer["volcano_data"] if p["gene"] == "gene_const")
+        self.assertEqual((point["neg_log10_padj"], point["significant"]), (0, False))        # -log10(1) = 0
+        self.assertEqual([key for key in answer["summary"] if "fail" in key or "not_" in key], [])
+        self.assertEqual(answer["summary"]["n_genes"], 3)
+        self.assertIn("The server sends it under the name of a t-test, without a statistic and without a p-value, and does not "
+                      "say that the test failed.", one_line(read(FILE)))
+
+    def test_a_file_with_an_empty_cell_is_refused_without_a_place(self):
+        rows = [row[:] for row in GENE_ROWS]
+        rows[1][2] = None
+        status, answer = self._post("/api/v1/genomics/differential-expression/", self._as_the_page_sends(rows))
+        self.assertEqual(status, 400)
+        self.assertEqual(answer, {"error": "could not convert string to float: ''"})
+        self.assertIn("the analysis stops with the message \"could not convert string to float: ''\".", one_line(read(FILE)))
+
+    def test_what_a_caller_of_the_genomics_routes_meets(self):
+        route, volcano = "/api/v1/genomics/differential-expression/", "/api/v1/genomics/volcano-plot/"
+        treated = {"expression_matrix": GENE_ROWS, "gene_names": GENE_NAMES, "sample_groups": ["treated"] * 4 + ["untreated"] * 4}
+        # no group named: the treated samples are the reference, under the name "control"
+        status, answer = self._post(route, treated)
+        gene = answer["gene_results"][0]
+        self.assertEqual((status, gene["gene_name"], gene["mean_group1"], gene["mean_group2"]), (200, "gene_up", 21.0, 10.35))
+        self.assertEqual(f"{gene['log2_fold_change']:.2f}", "-1.02")
+        self.assertEqual((answer["summary"]["group1_name"], answer["summary"]["group2_name"]), ("control", "treatment"))
+        status, answer = self._post(route, dict(treated, group1_name="untreated", group2_name="treated"))
+        self.assertEqual(f"{answer['gene_results'][0]['log2_fold_change']:+.2f}", "+1.02")
+        # three requests that are answered 500
+        labels = ["control"] * 4 + ["treatment"] * 4
+        with_a_gap = [row[:] for row in GENE_ROWS]
+        with_a_gap[1][2] = None
+        for body in ({"expression_matrix": with_a_gap, "gene_names": GENE_NAMES, "sample_groups": labels},
+                     {"expression_matrix": GENE_ROWS[0], "gene_names": ["gene_up"], "sample_groups": labels},
+                     {"expression_matrix": GENE_ROWS, "gene_names": GENE_NAMES}):
+            self.assertEqual(self._post(route, body)[0], 500, list(body))
+        # alpha
+        status, answer = self._post(route, {"expression_matrix": GENE_ROWS, "gene_names": GENE_NAMES, "sample_groups": labels, "alpha": 5})
+        self.assertEqual((status, answer["summary"]["alpha"]), (200, 0.05))
+        # three groups
+        status, answer = self._post(route, {"expression_matrix": GENE_ROWS, "gene_names": GENE_NAMES,
+                                            "sample_groups": ["a", "a", "a", "b", "b", "b", "c", "c"]})
+        self.assertEqual(status, 200)
+        self.assertLessEqual({g["test_used"] for g in answer["gene_results"]}, {"anova", "kruskal_wallis"})
+        self.assertEqual((answer["summary"]["n_samples"], answer["summary"]["n_group1"], answer["summary"]["n_group2"]), (8, 3, 3))
+        # the volcano route: its threshold, and one group of samples
+        small = {"expression_matrix": [[10.0, 10.2, 9.9, 10.1, 10.7, 10.8, 10.6, 10.75], GENE_ROWS[1]],
+                 "gene_names": ["gene_small", "gene_flat"], "sample_groups": labels, "input_scale": "linear"}
+        status, answer = self._post(volcano, small)
+        point = answer["volcano_data"][0]
+        self.assertEqual((status, answer["thresholds"]["log2fc_threshold"], point["gene"], point["significant"]), (200, 1.0, "gene_small", True))
+        self.assertEqual(f"{point['log2fc']:.2f}", "0.09")
+        status, answer = self._post(route, dict(small, log2fc_threshold=1.0))
+        self.assertEqual([g["significant"] for g in answer["gene_results"]], [False, False])
+        one_group = {"expression_matrix": GENE_ROWS, "gene_names": GENE_NAMES, "sample_groups": ["control"] * 8}
+        self.assertEqual((self._post(route, one_group)[0], self._post(volcano, one_group)[0]), (400, 500))
+        text = one_line(read(FILE))
+        for sentence in (
+                "is reported with a log2 fold change of -1.02, and the summary calls the two groups \"control\" and \"treatment\". "
+                "With both groups named the same request gives +1.02.",
+                "a missing value (`null`) in the matrix, one gene sent as a plain list of numbers, and a matrix without "
+                "`sample_groups` are each answered with status 500.",
+                "`alpha` is not checked (5 is accepted), and the summary reports 0.05 whatever was sent.",
+                "Three groups of samples are compared by an analysis of variance and reported under the sizes of two groups.",
+                "The volcano route reports a fold-change threshold of 1.0 and does not apply it (a gene with a log2 fold change of "
+                "0.09 is marked significant), and it answers one group of samples with status 500 where the other route answers 400."):
+            self.assertIn(sentence, text)
+
+    def test_the_advisor_routes_without_a_key(self):
+        import os
+        from unittest import mock
+
+        from ai_advisor.services import ai_service
+
+        with mock.patch.dict(os.environ), mock.patch.object(ai_service, "_service_instance", None):
+            os.environ.pop("ANTHROPIC_API_KEY", None)
+            status, answer = self._post("/api/v1/ai-advisor/chat/", {"message": "How do I compare means between two groups?",
+                                                                     "conversation_id": "known-issues-test"})
+            self.assertEqual((status, answer["error_type"]), (503, "configuration"))
+            for name, body in (("quick-recommend", {"research_question": "Do two groups differ?"}),
+                               ("interpret", {"test_name": "t-test", "p_value": 0.03}),
+                               ("methods-section", {"design": "Between-subjects", "tests_used": [{"name": "t-test", "purpose": "two groups"}]}),
+                               ("assumption-guidance", {"test_name": "t-test", "assumption": "normality"})):
+                status, answer = self._post(f"/api/v1/ai-advisor/{name}/", body)
+                self.assertEqual(status, 500, name)
+                self.assertTrue(answer["error"].startswith("AI Advisor is not available."), answer)
+        text = one_line(read(FILE))
+        self.assertIn("The server answers a question with status 503, and the panel then shows a text of its own under the line "
+                      "\"AI service unavailable — showing offline template responses based on Guardian context.\"", text)
+        self.assertIn("The routes `quick-recommend/`, `interpret/`, `methods-section/` and `assumption-guidance/` answer with "
+                      "status 500 and the sentence \"AI Advisor is not available.\";", text)
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]

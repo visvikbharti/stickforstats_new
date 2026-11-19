@@ -140,6 +140,19 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** for these three tests the absence of a Guardian panel says nothing about
   their assumptions. Check them yourself.
 
+### The regression module ends every run with "performLinearRegression is not a function"
+
+- **Where:** Module 7, "Advanced Regression Analysis".
+- **What happens:** "Perform Regression" shows "Error" and a message that ends
+  "performLinearRegression is not a function", and nothing is sent to the server. The module calls
+  methods that its service does not have, for each of its eight regression types and for a
+  prediction; the service has them under other names. The request the service would send is
+  refused by the server as well, because it lacks the field `type`. Before that, "Parse Data"
+  shows a Guardian panel for the typed rows ("All assumptions satisfied. Safe to proceed with
+  analysis." for eight rows of two columns), although no regression follows.
+- **Until it is fixed:** ask the server directly. `POST /api/v1/regression/` with
+  `{"type": "simple_linear", "X": [...], "y": [...]}` answers with the coefficients.
+
 ## Statistical quality control (`/sqc-analysis`)
 
 ### The "Measurement Column" menu of a control chart is empty
@@ -162,6 +175,62 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   "Differences" calculator would send its request to an address that the server does not have.
 - **Until it is fixed:** use the API: `POST /api/v1/confidence-intervals/calculate/mean/`,
   `.../calculate/proportion/`, `.../calculate/compare/` or `.../calculate/bootstrap/`.
+
+## The genomics analysis (`/genomics-analysis`)
+
+### A gene with the same value in every sample is listed as "NS"
+
+- **Where:** the table and the volcano plot of a result.
+- **What happens:** no test can be computed for such a gene. The server sends it under the name
+  of a t-test, without a statistic and without a p-value, and does not say that the test failed.
+  The page shows a dash for the adjusted p-value and the chip "NS", and draws the gene at the
+  bottom of the volcano plot, where p = 1 lies. The summary does not count such genes.
+- **Until it is fixed:** read "NS" in a row whose adjusted p-value is a dash as "not tested", or
+  remove the genes that do not vary before the upload.
+
+### A file with an empty cell is refused with "could not convert string to float"
+
+- **Where:** "Run Differential Expression", for a file in which one value is missing.
+- **What happens:** the analysis stops with the message "could not convert string to float: ''".
+  It does not say which gene or which sample has the empty cell, and no gene is analysed.
+- **Until it is fixed:** remove the rows that have an empty cell before the upload.
+
+## The causal-inference page (`/modules/causal-inference`)
+
+### Analysing a graph replaces the page with the error screen, and two boxes of a result stay empty
+
+- **Where:** the page has no entry in the navigation; it answers at its address. Tab "DAG
+  Builder", and the result of the tab "Diff-in-Diff".
+- **What happens:** when a graph is analysed, the whole page is replaced by "Something went
+  wrong", with a message that ends "adjustment_sets.map is not a function": the page reads the
+  adjustment sets as a list, and the server sends an object. On the tab "Diff-in-Diff" the
+  estimate, its interval and its p-value are shown, and the boxes "Std. Error" and "t-statistic"
+  stay empty: the page looks for `se` and `t_stat`, and the server sends `std_error` and
+  `t_statistic`.
+- **Until it is fixed:** ask the server directly: `POST /api/v1/core/causal/dag/analyze/` for a
+  graph (the sets are under `results.adjustment_sets.valid_adjustment_sets`), and
+  `POST /api/v1/core/causal/did/` for the two missing numbers (`results.std_error`,
+  `results.t_statistic`).
+
+## The AI advisor (the button at the lower right of every page)
+
+### The advisor answers from fixed templates, and a key does not turn it on
+
+- **Where:** the panel "StickAI", and the routes under `/api/v1/ai-advisor/`.
+- **What happens:** no language model is connected. The server answers a question with status
+  503, and the panel then shows a text of its own under the line "AI service unavailable —
+  showing offline template responses based on Guardian context." The text is chosen by words of
+  the question and is not an answer to it: "How do I compare means between two groups?" got a
+  list of what the advisor can assist with. The same line tells the reader to set
+  `ANTHROPIC_API_KEY` and to restart the server. That does not turn the advisor on: the request
+  the server then makes is refused by the installed SDK before it is sent (`temperature` is not an
+  argument of `messages.create` in anthropic 2.3.0), and it names the model
+  `claude-sonnet-4-20250514`, which was retired on 15 June 2026. The routes `quick-recommend/`,
+  `interpret/`, `methods-section/` and `assumption-guidance/` answer with status 500 and the
+  sentence "AI Advisor is not available."; the tab "Methods Writer" then writes its text from a
+  template of its own.
+- **Until it is fixed:** read a text of the panel as a general note. It was not written for your
+  question or for your data.
 
 ## The manuscript check (`/manuscript-verifier`)
 
@@ -192,6 +261,28 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   differ cannot give less than 0.0625.
 - **Until it is fixed:** send no `zero_method`. The test is then computed on the pairs that
   differ, and the route returns 0.0625 for these data.
+
+### The genomics routes report fold changes in the wrong direction when the two groups are not named
+
+- **Where:** `POST /api/v1/genomics/differential-expression/` and
+  `POST /api/v1/genomics/volcano-plot/`, called directly. The page of the genomics analysis names
+  the two groups in every request and labels the samples "control" and "treatment"; the first
+  point does not reach it.
+- **What happens:** without `group1_name` and `group2_name` the route takes the labels of the
+  samples in alphabetical order and makes the first one the reference. For samples labelled
+  "treated" and "untreated" the treated samples become the reference: a gene that is about twice
+  as high in the treated samples is reported with a log2 fold change of -1.02, and the summary
+  calls the two groups "control" and "treatment". With both groups named the same request gives
+  +1.02. Further: a missing value (`null`) in the matrix, one gene sent as a plain list of
+  numbers, and a matrix without `sample_groups` are each answered with status 500. `alpha` is not
+  checked (5 is accepted), and the summary reports 0.05 whatever was sent. Three groups of samples
+  are compared by an analysis of variance and reported under the sizes of two groups. The volcano
+  route reports a fold-change threshold of 1.0 and does not apply it (a gene with a log2 fold
+  change of 0.09 is marked significant), and it answers one group of samples with status 500
+  where the other route answers 400.
+- **Until it is fixed:** name both groups in every request (`group1_name` is the reference), send
+  complete matrices of two groups, and apply the fold-change threshold to the answer of the
+  volcano route yourself.
 
 ## Closing an account
 
