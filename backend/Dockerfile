@@ -34,11 +34,14 @@ ENV PATH="/opt/venv/bin:$PATH"
 # pip installs under it, and fails if one of them cannot be installed. The check after it fails
 # the build if anything was installed that the file does not name, or in another version.
 # pip, setuptools and wheel have their versions in image/build-tools.txt, and the check
-# compares those three as well.
+# compares those three as well. Two of the libraries (factor-analyzer and autograd-gamma) come
+# as source and are built during the install, in a build environment of their own that the
+# constraints do not reach; --build-constraint holds the tools of that environment to the same
+# file.
 COPY requirements.txt .
 COPY image/ image/
 RUN pip install --upgrade -r image/build-tools.txt && \
-    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt && \
+    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt --build-constraint image/build-tools.txt && \
     python image/check_installed_versions.py image/constraints-live.txt --tools image/build-tools.txt
 
 # Stage 2: Production image
