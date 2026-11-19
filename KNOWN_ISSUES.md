@@ -32,6 +32,19 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** count the rows of each combination and give the table of counts to the
   chi-square test (`POST /api/v1/categorical/chi-square/independence/`).
 
+### A Mann-Whitney test of a few values against a very large group can outlast the server
+
+- **Where:** a question that is answered with a Mann-Whitney test, and
+  `POST /api/v1/autonomous/cascade/` with the test `mann_whitney_u`, when one group has at most
+  eight values, the other has many, and no value occurs twice.
+- **What happens:** the choice of the method is left to SciPy, and for such data SciPy counts the
+  exact distribution whatever the size of the larger group. Measured with SciPy 1.17.1: 1.3
+  seconds for 20,000 values in the larger group and 33 seconds for 100,000. With SciPy 1.11.3: 15
+  seconds for 1,000 values and 76 seconds for 2,000. The reverse proxy (`nginx/nginx.conf`) stops
+  waiting for an answer after 60 seconds, and the server goes on computing until it has one.
+- **Until it is fixed:** send such data to `POST /api/v1/nonparametric/mann-whitney/`, which uses
+  the normal approximation as soon as one group has 20 values or more.
+
 ## The t-test page (`/modules/t-test-real`)
 
 ### Mean difference, confidence interval and effect size read "N/A"
@@ -83,6 +96,30 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   checks, do not depend on that.
 - **Until it is fixed:** disregard the "CRITICAL" mark and the data-quality line of this panel for a
   paired test.
+
+### The result of every rank test is labelled "Normal approximation"
+
+- **Where:** the Non-Parametric Tests tab: the label under the name of the test, and the row
+  "p-value (normal approximation)" of the results.
+- **What happens:** both read the same for every result, because the page looks for a field that
+  the server never sends. The server reads the p-value of a Mann-Whitney test from the exact
+  distribution when both groups have fewer than 20 values and no value occurs twice, and the
+  p-value of a signed-rank test from the exact distribution of untied ranks when fewer than 25
+  pairs differ. The Kruskal-Wallis and the Friedman test use a chi-square approximation.
+- **Until it is fixed:** disregard the label. The sizes above say which method the server used.
+
+### A signed-rank result changes with the unit in which the data are typed
+
+- **Where:** the Wilcoxon signed-rank test of the Non-Parametric Tests tab, and
+  `POST /api/v1/nonparametric/wilcoxon/`.
+- **What happens:** differences that are equal on paper are not always equal in the machine: 5.4
+  minus 5.1 and 6.3 minus 6.0 differ in their last binary digit, and they then get different
+  ranks. For seven pairs in which five values rise by 0.3 and two fall by 0.3 the route returns
+  p = 0.156 for the data as typed and p = 0.375 for the same data in tenths. When differences are
+  tied, the p-value is still read from the distribution of untied ranks: the exact value for
+  these seven tied differences is 58/128 = 0.453.
+- **Until it is fixed:** enter the data as whole numbers (in tenths for one decimal), so that the
+  result does not depend on the unit, and read the p-value of tied differences as approximate.
 
 ## Statistical quality control (`/sqc-analysis`)
 

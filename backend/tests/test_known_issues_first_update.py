@@ -31,16 +31,23 @@ CI_DASHBOARD = SRC / "components/confidence_intervals/calculators/CalculatorDash
 CI_DIFFERENCES = SRC / "components/confidence_intervals/calculators/DifferenceCalculator.jsx"
 VERIFY_REPORT = SRC / "components/manuscript/VerificationReport.jsx"
 LINKER = Path(settings.BASE_DIR) / "core/manuscript/claim_data_linker.py"
+RANK_TESTS = Path(settings.BASE_DIR) / "core/hp_nonparametric_comprehensive.py"
+ENGINE = Path(settings.BASE_DIR) / "core/services/cascade_engine.py"
+QUESTIONS = Path(settings.BASE_DIR) / "core/services/autonomous_query_handler.py"
+PROXY = ROOT / "nginx/nginx.conf"
 
 ENTRIES = [
     'Degrees of freedom and the confidence interval read "N/A"',
     "A Guardian confidence score although nothing was said about the design",
     'Two columns of categories get "Test execution failed"',
+    "A Mann-Whitney test of a few values against a very large group can outlast the server",
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
     "The paired t-test shows no mean difference",
     "The debugger of a paired t-test says that it has no numeric data",
+    'The result of every rank test is labelled "Normal approximation"',
+    "A signed-rank result changes with the unit in which the data are typed",
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
     "The report does not say that rows were left out",
@@ -50,6 +57,12 @@ ENTRIES = [
 ]
 BEFORE = [5.1, 6.3, 4.4, 8.0, 5.5, 7.7, 5.9, 6.6]
 AFTER = [5.4, 6.0, 4.7, 8.3, 5.2, 8.1, 6.3, 6.5]
+# seven pairs typed with one decimal: five values rise by 0.3 and two fall by 0.3
+SEVEN_BEFORE = [5.1, 6.3, 7.2, 4.4, 8.0, 5.5, 6.1]
+SEVEN_AFTER = [5.4, 6.0, 7.5, 4.7, 8.3, 5.2, 6.4]
+# eight values against sixty, no value twice
+EIGHT = [3.1, 14.2, 27.3, 41.4, 55.5, 62.6, 78.7, 91.8]
+SIXTY = [round(1.37 * k + 0.05, 2) for k in range(1, 61)]
 
 
 def read(path):
@@ -163,6 +176,35 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertIn("      runBackendTest(endpoints.nonparametric.wilcoxon, {\n        x: pairedData.sample1,\n"
                       "        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
 
+    def test_the_hub_gives_every_rank_test_the_same_label(self):
+        tab, server = read(HUB_RANK_TESTS), read(RANK_TESTS)
+        self.assertIn("label={result.exact_p_value ? 'Exact p-value' : 'Normal approximation'}", tab)
+        self.assertIn("<strong>p-value {result.exact_p_value ? '(exact)' : '(normal approximation)'}</strong>", tab)
+        # the server has the field and gives it no value anywhere
+        self.assertIn("    exact_p_value: Optional[Decimal] = None\n", server)
+        self.assertEqual(re.findall(r"\bexact_p_value\s*=[^=]", server), [])
+        # where the server takes the exact distribution, and the approximation of the two other tests
+        self.assertIn('        if not ties["has_ties"] and n1 < 20 and n2 < 20:\n            p_method = "exact"\n', server)
+        self.assertIn("        if n_reduced < 25:\n            # Use exact p-value for small samples\n"
+                      "            p_value = self._wilcoxon_exact_p(w_stat, n_reduced, alternative)\n", server)
+        self.assertIn("p_value = self._to_decimal(stats.chi2.sf(float(h_stat), df))", server)
+        self.assertIn("p_value = self._to_decimal(stats.chi2.sf(float(chi_f), k - 1))", server)
+        self.assertIn("when both groups have fewer than 20 values and no value occurs twice, and the p-value of a "
+                      "signed-rank test from the exact distribution of untied ranks when fewer than 25 pairs differ.", self.flat)
+
+    def test_the_question_page_and_the_cascade_route_leave_the_method_to_scipy(self):
+        engine = read(ENGINE)
+        self.assertIn('        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative="two-sided")\n', engine)
+        self.assertEqual(engine.count("stats.mannwhitneyu("), 1)
+        self.assertIn("cascade_result = self.cascade_engine.execute_with_cascade(data_for_test, selected_test, alpha=alpha)",
+                      read(QUESTIONS))
+        # the proxy's limit for an answer of the API
+        api = read(PROXY)
+        api = api[api.index("location /api/"):]
+        self.assertIn("proxy_read_timeout 60s;", api[:api.index("}")])
+        resolve("/api/v1/autonomous/cascade/")
+        resolve("/api/v1/nonparametric/mann-whitney/")
+
     def test_closing_an_account_keeps_the_address_the_projects_and_the_receipts(self):
         erasure = read(ERASURE)
         self.assertIn("Your email address stays in our database, because it is also your username.", erasure)
@@ -251,6 +293,71 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertIn('the route returns 0.000122 with "pratt" and 0.0419 with "zsplit"; the five pairs that differ cannot give '
                       "less than 0.0625.", one_line(read(FILE)))
         self.assertIn("and the route returns 0.0625 for these data.", one_line(read(FILE)))
+
+    def _rank_test(self, name, body):
+        response = self.client.post(f"/api/v1/nonparametric/{name}/", body, format="json", HTTP_X_FORWARDED_PROTO="https")
+        self.assertEqual(response.status_code, 200, response.content[:200])
+        return response.json()["results"]
+
+    def test_the_server_does_not_say_which_method_a_rank_test_used(self):
+        from scipy import stats
+
+        x, y = [1.2, 3.4, 2.2, 5.1, 4.8, 0.9], [2.9, 6.3, 7.7, 5.6, 8.4, 6.9, 9.1]          # no value twice
+        mann_whitney = self._rank_test("mann-whitney", {"group1": x, "group2": y, "alternative": "two-sided",
+                                                        "use_continuity": True, "calculate_effect_size": True})
+        exact = float(stats.mannwhitneyu(x, y, alternative="two-sided", method="exact").pvalue)
+        approximate = float(stats.mannwhitneyu(x, y, alternative="two-sided", method="asymptotic").pvalue)
+        self.assertAlmostEqual(float(mann_whitney["p_value"]), exact, places=12)
+        self.assertGreater(abs(exact - approximate), 0.001)
+        signed_rank = self._rank_test("wilcoxon", {"x": BEFORE, "y": AFTER, "alternative": "two-sided"})
+        self.assertEqual(signed_rank["sample_sizes"], [8, 8])                               # fewer than 25 pairs differ
+        kruskal_wallis = self._rank_test("kruskal-wallis", {"groups": [x, y, [4.1, 9.9, 7.2, 3.3, 8.8]]})
+        friedman = self._rank_test("friedman", {"measurements": [[1.1, 2.4, 3.2], [2.0, 2.9, 3.7], [1.5, 3.1, 2.8],
+                                                                 [2.2, 2.6, 4.0], [1.9, 3.5, 3.3]]})
+        for answer in (mann_whitney, signed_rank, kruskal_wallis, friedman):
+            self.assertIn("p_value", answer)
+            self.assertNotIn("exact_p_value", answer)
+
+    def test_a_signed_rank_result_changes_with_the_unit(self):
+        from itertools import product
+
+        def p_value(x, y):
+            return float(self._rank_test("wilcoxon", {"x": x, "y": y, "alternative": "two-sided"})["p_value"])
+
+        differences = [b - a for a, b in zip(SEVEN_BEFORE, SEVEN_AFTER)]
+        self.assertEqual(sorted(f"{d:+.1f}" for d in differences), ["+0.3"] * 5 + ["-0.3"] * 2)      # equal on paper
+        self.assertGreater(len({abs(d) for d in differences}), 1)                                     # not in the machine
+        as_typed = p_value(SEVEN_BEFORE, SEVEN_AFTER)
+        in_tenths = p_value([round(10 * v) for v in SEVEN_BEFORE], [round(10 * v) for v in SEVEN_AFTER])
+        self.assertEqual((f"{as_typed:.3f}", f"{in_tenths:.3f}"), ("0.156", "0.375"))
+        # seven tied differences share the rank 4: the statistic is 4 times the number that fall, and every
+        # pattern of signs is as likely as any other
+        falls = [sum(signs) for signs in product((0, 1), repeat=7)]
+        exact = min(1.0, 2 * min(sum(f <= 2 for f in falls), sum(f >= 2 for f in falls)) / len(falls))
+        self.assertEqual(exact, 58 / 128)
+        self.assertNotAlmostEqual(as_typed, exact, places=2)
+        self.assertNotAlmostEqual(in_tenths, exact, places=2)
+        text = one_line(read(FILE))
+        self.assertIn("the route returns p = 0.156 for the data as typed and p = 0.375 for the same data in tenths.", text)
+        self.assertIn("the exact value for these seven tied differences is 58/128 = 0.453.", text)
+        self.assertEqual(f"{exact:.3f}", "0.453")
+
+    def test_eight_values_against_many_are_counted_exactly_by_the_engine_and_approximated_by_the_route(self):
+        from scipy import stats
+
+        self.assertEqual(len(set(EIGHT + SIXTY)), 68)                                         # no value twice
+        exact = float(stats.mannwhitneyu(EIGHT, SIXTY, alternative="two-sided", method="exact").pvalue)
+        approximate = float(stats.mannwhitneyu(EIGHT, SIXTY, alternative="two-sided", method="asymptotic").pvalue)
+        self.assertGreater(abs(exact - approximate), 1e-4)
+        response = self.client.post("/api/v1/autonomous/cascade/", {"test": "mann_whitney_u", "data": {"group1": EIGHT, "group2": SIXTY}},
+                                    format="json", HTTP_X_FORWARDED_PROTO="https")
+        self.assertEqual(response.status_code, 200, response.content[:200])
+        answer = response.json()
+        self.assertEqual(answer["final_test"], "mann_whitney_u")
+        self.assertAlmostEqual(answer["result"]["p_value"], exact, places=12)
+        # the other route names the method itself: the normal approximation from 20 values in a group
+        route = self._rank_test("mann-whitney", {"group1": EIGHT, "group2": SIXTY, "alternative": "two-sided"})
+        self.assertAlmostEqual(float(route["p_value"]), approximate, places=12)
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
