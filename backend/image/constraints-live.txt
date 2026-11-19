@@ -12,7 +12,7 @@
 #
 # To move to a newer version of a package: change its line here, build, run the tests in the
 # new image, and say so in the list of changes. pip, setuptools and wheel are not in this list
-# (`pip freeze` does not print them); the build takes the versions of its day for those three.
+# (`pip freeze` does not print them); their versions are in image/build-tools.txt.
 altair==6.3.0
 amqp==5.4.1
 annotated-types==0.8.0

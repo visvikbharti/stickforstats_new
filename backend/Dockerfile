@@ -33,11 +33,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 # with the application's code. image/constraints-live.txt holds the versions of the live image;
 # pip installs under it, and fails if one of them cannot be installed. The check after it fails
 # the build if anything was installed that the file does not name, or in another version.
+# pip, setuptools and wheel have their versions in image/build-tools.txt, and the check
+# compares those three as well.
 COPY requirements.txt .
 COPY image/ image/
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt -c image/constraints-live.txt && \
-    python image/check_installed_versions.py image/constraints-live.txt
+RUN pip install --upgrade -r image/build-tools.txt && \
+    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt && \
+    python image/check_installed_versions.py image/constraints-live.txt --tools image/build-tools.txt
 
 # Stage 2: Production image
 FROM python:3.11-slim-bookworm AS production
