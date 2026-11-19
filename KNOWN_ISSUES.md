@@ -87,15 +87,17 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** the mean difference is the t-statistic times the standard error, both of
   which the table shows.
 
-### The debugger of a paired t-test says that it has no numeric data
+### The debugger of a paired test says that it has no numeric data
 
-- **Where:** "Debug Analysis" under the result of a paired t-test.
+- **Where:** "Debug Analysis" under the result of a paired t-test, of a Wilcoxon signed-rank test
+  and of a Friedman test.
 - **What happens:** the panel is marked "CRITICAL", shows "Data Quality POOR" and "n = N/A", and
-  lists the issue "No numeric data available for analysis". It is handed the two columns in a form
-  it does not read. Its other lines, on the smallest detectable effect and on the assumption
-  checks, do not depend on that.
-- **Until it is fixed:** disregard the "CRITICAL" mark and the data-quality line of this panel for a
-  paired test.
+  lists the issue "No numeric data available for analysis". It is handed the columns in a form it
+  does not read. The word under "Effect Size" is chosen without regard to the sign: a negative
+  effect size reads "Small" whatever its size, so a signed-rank result with r = -1.000, the
+  largest there is, reads "Small".
+- **Until it is fixed:** disregard the "CRITICAL" mark, the data-quality line and the word under the
+  effect size of this panel for these tests.
 
 ### The result of every rank test is labelled "Normal approximation"
 
@@ -120,6 +122,15 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   these seven tied differences is 58/128 = 0.453.
 - **Until it is fixed:** enter the data as whole numbers (in tenths for one decimal), so that the
   result does not depend on the unit, and read the p-value of tied differences as approximate.
+
+### Of the four rank tests, Guardian is asked about the Mann-Whitney test only
+
+- **Where:** the Non-Parametric Tests tab.
+- **What happens:** a Guardian check is requested for the Mann-Whitney test. For the
+  Kruskal-Wallis, the Wilcoxon signed-rank and the Friedman test none is requested: no Guardian
+  panel appears, and the debugger under the result lists "No assumption checks were performed".
+- **Until it is fixed:** for these three tests the absence of a Guardian panel says nothing about
+  their assumptions. Check them yourself.
 
 ## Statistical quality control (`/sqc-analysis`)
 

@@ -26,6 +26,7 @@ SQC_UPLOAD = SRC / "components/sqc/DataUploadStep.jsx"
 SQC_CHART = SRC / "components/sqc/ChartConfigurationStep.jsx"
 HUB_SERVICE = SRC / "components/statistical-analysis/utils/hubTestService.js"
 DEBUGGER = SRC / "components/statistical-debugger/utils/debuggerEngine.js"
+DEBUGGER_PANEL = SRC / "components/statistical-debugger/DebuggerPanel.jsx"
 CI_PAGE = SRC / "components/confidence_intervals/ConfidenceIntervalsPage.jsx"
 CI_DASHBOARD = SRC / "components/confidence_intervals/calculators/CalculatorDashboard.jsx"
 CI_DIFFERENCES = SRC / "components/confidence_intervals/calculators/DifferenceCalculator.jsx"
@@ -45,9 +46,10 @@ ENTRIES = [
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
     "The paired t-test shows no mean difference",
-    "The debugger of a paired t-test says that it has no numeric data",
+    "The debugger of a paired test says that it has no numeric data",
     'The result of every rank test is labelled "Normal approximation"',
     "A signed-rank result changes with the unit in which the data are typed",
+    "Of the four rank tests, Guardian is asked about the Mann-Whitney test only",
     'The "Measurement Column" menu of a control chart is empty',
     "Every calculator asks for a project, and none can be made",
     "The report does not say that rows were left out",
@@ -175,6 +177,50 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertEqual(importing, [])
         self.assertIn("      runBackendTest(endpoints.nonparametric.wilcoxon, {\n        x: pairedData.sample1,\n"
                       "        y: pairedData.sample2,\n        alternative: 'two-sided'\n      });", read(HUB_RANK_TESTS))
+
+    def test_the_debugger_under_a_rank_test_without_a_group_column(self):
+        tab, panel, engine = read(HUB_RANK_TESTS), read(DEBUGGER_PANEL), read(DEBUGGER)
+        # one panel for the four tests of the tab; it is handed the groups, and there are none without a group column
+        self.assertEqual(tab.count("<DebuggerPanel"), 1)
+        hand_over = tab[tab.index("<DebuggerPanel"):]
+        self.assertIn("            data={{\n              groups: groupedData,\n", hand_over[:160])
+        self.assertIn("    if (!selectedColumn || !groupColumn || !data) return {};\n", tab)
+        # the signed-rank and the Friedman test take their columns from elsewhere
+        self.assertIn("    if (!selectedColumn || !selectedColumn2 || !data) return null;\n", tab)
+        self.assertIn("    } else if (testType === 'wilcoxon' && pairedData) {\n", tab)
+        self.assertIn("    } else if (testType === 'friedman' && friedmanData) {\n", tab)
+        self.assertIn("message: 'No numeric data available for analysis',", engine)
+        # the number under "Effect Size" is shown with its sign, and the word is chosen from the signed number
+        self.assertIn("{debugReport.powerAnalysis?.observedEffectSize?.toFixed(3) || 'N/A'}", panel)
+        self.assertIn("? (debugReport.powerAnalysis.observedEffectSize < 0.2 ? 'Small'", panel)
+        self.assertIn("  analysis.observedEffectSize = effectSize;\n", engine)
+        self.assertIn('a negative effect size reads "Small" whatever its size', self.flat)
+
+    def test_of_the_rank_tests_only_the_mann_whitney_test_gets_a_guardian_check(self):
+        tab, engine = read(HUB_RANK_TESTS), read(DEBUGGER)
+        check = tab[tab.index("      // Prepare data based on test type"):tab.index("        // Call Guardian service")]
+        self.assertEqual(one_line(check), one_line("""
+      // Prepare data based on test type
+      let dataToCheck = null;
+      let backendTestType = '';
+
+      try {
+        if (testType === 'mann-whitney') {
+          if (Object.keys(groupedData).length !== 2) return;
+          const groups = Object.values(groupedData);
+          if (groups[0].length < 2 || groups[1].length < 2) return;
+          dataToCheck = groupedData;
+          backendTestType = 'mann_whitney';
+        } else {
+          // For other non-parametric tests, we'll add support later
+          return;
+        }
+"""))
+        self.assertEqual(tab.count("guardianService.checkAssumptions("), 1)
+        # what the debugger then lists
+        self.assertIn("if (!assumptions || Object.keys(assumptions).length === 0) {", engine)
+        self.assertIn("message: 'No assumption checks were performed',", engine)
+        self.assertEqual(tab.count("assumptions={guardianReport || {}}"), 2)
 
     def test_the_hub_gives_every_rank_test_the_same_label(self):
         tab, server = read(HUB_RANK_TESTS), read(RANK_TESTS)
