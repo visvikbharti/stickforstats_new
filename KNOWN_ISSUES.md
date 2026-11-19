@@ -153,6 +153,21 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** ask the server directly. `POST /api/v1/regression/` with
   `{"type": "simple_linear", "X": [...], "y": [...]}` answers with the coefficients.
 
+### A file of 150,000 rows replaces the Data Profiling module with the error screen
+
+- **Where:** Module 1, "Data Profiling", after a file is chosen.
+- **What happens:** a file of 100,000 rows is profiled. A file of 150,000 rows or more replaces
+  the whole page with "Something went wrong", "Application Error", "RangeError: Maximum call
+  stack size exceeded". Tried in Chrome with files of two columns, a group and a number: 100,000
+  rows (1.05 MB) were profiled; 150,000 rows (1.27 MB), 200,000 rows (1.7 MB) and 1,000,000 rows
+  (8.5 MB) gave the error screen. The note under the button says "Max File Size: 10MB
+  (recommended for browser performance)". The reason: for the histogram of a numeric column the
+  page takes the smallest and the largest value with `Math.min(...data)` and `Math.max(...data)`,
+  which hand every value of the column to one call, and a browser accepts only so many; where
+  the limit lies differs from browser to browser.
+- **Until it is fixed:** profile a file of at most 100,000 rows, or a sample of the rows. After
+  the error screen, open the hub again; the file has to be chosen again.
+
 ## Statistical quality control (`/sqc-analysis`)
 
 ### The "Measurement Column" menu of a control chart is empty
@@ -164,6 +179,21 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   reads another.
 - **Until it is fixed:** ask for the chart through the API
   (`POST /api/v1/sqc-analysis/quick-control-chart/`).
+
+## The quality-control lessons (`/sqc-learn`)
+
+### In three lessons the button that asks the server ends in "is not a function"
+
+- **Where:** lesson 2, "Variables Control Charts", and lesson 3, "Attributes Control Charts", the
+  button "Perform Statistical Analysis"; lesson 6, "Acceptance Sampling", the button "Generate
+  Optimal Plan with Backend API".
+- **What happens:** a red box appears under the button: "Backend Error: ie is not a function" in
+  lessons 2 and 3, "H is not a function" in lesson 6. The letters before "is not a function" are
+  the short names of one build and can differ in the next. No request is sent. The lesson stays
+  on the page, with the chart and the numbers that the browser computes. The reason: the three
+  lessons take `quickControlChart` and `quickAcceptanceSampling` from a helper
+  (`useSQCAnalysisAPI.js`) that has no function of either name.
+- **Until it is fixed:** go on with the lesson without that button.
 
 ## Confidence intervals (`/confidence-intervals/calculators`)
 
@@ -248,6 +278,22 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **What happens:** the page prints the bound of an inequality as if it were the reported value,
   with four decimals. A p-value of exactly 0 is printed as "0".
 - **Until it is fixed:** read the reported p-value in the manuscript itself.
+
+### A figure image or a scanned PDF is not read
+
+- **Where:** a bundle that holds a figure as an image (PNG, JPEG, TIFF and the like), or a
+  manuscript that is a scan without a text layer.
+- **What happens:** the page asks for "figure images" and names "PNG / JPEG / TIFF". The server
+  image holds no program that reads text from a picture, so no picture is read. With a figure
+  among the files, the report is made from the other files. The line "Ingestion report" counts
+  "0 image", and the table under it, which is closed until it is clicked, lists the figure as
+  "skipped", with "no statistic could be extracted from the figure" and "OCR unavailable: the
+  tesseract binary / pytesseract is not installed." A statistic that is printed only in a figure
+  is therefore not among the claims of the report. A scanned PDF as the only manuscript is
+  refused with "No manuscript text could be extracted from the bundle (no readable manuscript or
+  OCR'able figure was found)."
+- **Until it is fixed:** give the manuscript as a file with a text layer (a PDF with text, DOCX,
+  LaTeX or JATS-XML), and check by hand the statistics that stand only in a figure.
 
 ## The API
 

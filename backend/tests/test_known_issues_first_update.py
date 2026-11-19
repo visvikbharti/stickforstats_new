@@ -6,8 +6,10 @@ the defects is repaired, its test here fails, and the entry goes in the same com
 import json
 import re
 from pathlib import Path
+from unittest import mock
 
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import Resolver404, resolve
 from rest_framework.test import APITestCase
@@ -49,6 +51,14 @@ ADVISOR_HOOK = SRC / "components/ai-advisor/hooks/useAIAdvisor.js"
 METHODS_WRITER = SRC / "components/ai-advisor/MethodsSectionGenerator.jsx"
 ADVISOR_SERVICE = Path(settings.BASE_DIR) / "ai_advisor/services/ai_service.py"
 QUESTIONS = Path(settings.BASE_DIR) / "core/services/autonomous_query_handler.py"
+HUB_PROFILING = SRC / "components/statistical-analysis/data-profiling/DataProfiling.jsx"
+HUB_UTILS = SRC / "components/statistical-analysis/utils/statisticalUtils.js"
+LANDING = SRC / "components/Landing/ProfessionalLanding.jsx"
+SQC_HELPER = SRC / "hooks/useSQCAnalysisAPI.js"
+SQC_LESSONS = SRC / "components/sqc/education/lessons"
+SQC_LESSON_HUB = SRC / "components/sqc/education/SQCEducationHub.jsx"
+BUNDLE_PAGE = SRC / "components/manuscript/BundleVerifier.jsx"
+OCR = Path(settings.BASE_DIR) / "core/manuscript/image_ocr.py"
 
 ENTRIES = [
     'Degrees of freedom and the confidence interval read "N/A"',
@@ -64,7 +74,9 @@ ENTRIES = [
     "A signed-rank result changes with the unit in which the data are typed",
     "Of the four rank tests, Guardian is asked about the Mann-Whitney test only",
     'The regression module ends every run with "performLinearRegression is not a function"',
+    "A file of 150,000 rows replaces the Data Profiling module with the error screen",
     'The "Measurement Column" menu of a control chart is empty',
+    'In three lessons the button that asks the server ends in "is not a function"',
     "Every calculator asks for a project, and none can be made",
     'A gene with the same value in every sample is listed as "NS"',
     'A file with an empty cell is refused with "could not convert string to float"',
@@ -72,6 +84,7 @@ ENTRIES = [
     "The advisor answers from fixed templates, and a key does not turn it on",
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
+    "A figure image or a scanned PDF is not read",
     'The signed-rank route with `zero_method` "pratt" or "zsplit"',
     "The genomics routes report fold changes in the wrong direction when the two groups are not named",
     "The e-mail address, the saved projects and the receipts are kept",
@@ -363,6 +376,58 @@ class KnownIssuesTest(SimpleTestCase):
         with self.assertRaisesRegex(TypeError, "unexpected keyword argument 'temperature'"):
             client.messages.create(model="claude-sonnet-4-20250514", max_tokens=16, temperature=0.3, system="x",
                                    messages=[{"role": "user", "content": "x"}])
+
+    def test_the_profiling_module_hands_a_whole_column_to_one_call(self):
+        utils = read(HUB_UTILS)
+        histogram = utils[utils.index("export const createHistogramBins = (data, numBins = 20) => {"):]
+        histogram = histogram[:histogram.index("\n};\n")]
+        self.assertIn("  const min = Math.min(...data);\n  const max = Math.max(...data);\n", histogram)
+        profiling = read(HUB_PROFILING)
+        # every numeric column goes to that function, whatever its length, and no file is refused for its size
+        self.assertIn("const numericData = columnData.filter(v => typeof v === 'number' && !isNaN(v));", profiling)
+        self.assertIn("const histogramBins = createHistogramBins(numericData, 20);", profiling)
+        self.assertNotIn("file.size", profiling)
+        self.assertIn("<strong>Max File Size:</strong> 10MB (recommended for browser performance)", profiling)
+        self.assertIn('"Max File Size: 10MB (recommended for browser performance)"', self.flat)
+        self.assertIn("`Math.min(...data)` and `Math.max(...data)`", self.flat)
+        # the landing page, which sends a visitor to this module, promises no size
+        self.assertNotIn("observations supported", read(LANDING))
+
+    def test_three_lessons_take_functions_their_helper_does_not_have(self):
+        helper = read(SQC_HELPER)
+        for name in ("quickControlChart", "quickAcceptanceSampling"):
+            self.assertNotIn(name, helper)
+            self.assertIn(f"`{name}`", self.flat)
+        taken = {"Lesson02_VariablesControlCharts.jsx": "quickControlChart", "Lesson03_AttributesControlCharts.jsx": "quickControlChart",
+                 "Lesson06_AcceptanceSampling.jsx": "quickAcceptanceSampling"}
+        for lesson, name in taken.items():
+            text = read(SQC_LESSONS / lesson)
+            self.assertIn(f"const {{ {name} }} = useSQCAnalysisAPI();", text)
+            self.assertIn(f"const response = await {name}({{", text)
+            # the call stands in a try, and what is caught is what the box shows
+            self.assertIn("setBackendError(error.message || 'Failed to connect to backend API');", text)
+            self.assertIn(f"import {lesson[:-4]} from './lessons/{lesson[:-4]}';", read(SQC_LESSON_HUB))
+        self.assertIn("<strong>Backend Error:</strong> {backendError}", read(SQC_LESSONS / "Lesson02_VariablesControlCharts.jsx"))
+        self.assertIn("<strong>Backend Error:</strong> {backendError}", read(SQC_LESSONS / "Lesson03_AttributesControlCharts.jsx"))
+        self.assertIn("📊 Perform Statistical Analysis", read(SQC_LESSONS / "Lesson02_VariablesControlCharts.jsx"))
+        self.assertIn("Generate Optimal Plan with Backend API", read(SQC_LESSONS / "Lesson06_AcceptanceSampling.jsx"))
+        # no other lesson of the hub takes anything from the helper
+        others = [path.name for path in sorted(SQC_LESSONS.glob("Lesson*.jsx")) if "useSQCAnalysisAPI" in read(path)]
+        self.assertEqual(others, sorted(taken))
+
+    def test_the_image_of_the_server_holds_no_program_that_reads_a_picture(self):
+        dockerfile = read(Path(settings.BASE_DIR) / "Dockerfile")
+        self.assertNotIn("tesseract", dockerfile.lower())
+        self.assertNotIn("poppler", dockerfile.lower())
+        self.assertIn('return "", ["OCR unavailable: the tesseract binary / pytesseract is not installed."]', read(OCR))
+        page = read(BUNDLE_PAGE)
+        self.assertIn("or click to browse — manuscript, supplements, raw-data tables, and figure images", page)
+        self.assertIn("PNG / JPEG / TIFF", page)
+        # the table of the files is closed in a report, until it is clicked
+        report = read(VERIFY_REPORT)
+        self.assertIn("export function IngestionReport({ ingestion, defaultExpanded = false }) {", report)
+        self.assertIn("<IngestionReport ingestion={report.ingestion} />", report)
+        self.assertIn("{ingestion.n_image_files} image", report)
 
     def test_closing_an_account_keeps_the_address_the_projects_and_the_receipts(self):
         erasure = read(ERASURE)
@@ -714,6 +779,35 @@ class WhatTheServerAnswersTest(APITestCase):
                       "\"AI service unavailable — showing offline template responses based on Guardian context.\"", text)
         self.assertIn("The routes `quick-recommend/`, `interpret/`, `methods-section/` and `assumption-guidance/` answer with "
                       "status 500 and the sentence \"AI Advisor is not available.\";", text)
+
+    def _bundle(self, files):
+        # the server of the test may hold the program; the image does not, and this is what it then answers
+        with mock.patch("core.manuscript.image_ocr.tesseract_available", return_value=False):
+            return self.client.post("/api/v1/verify/bundle/", {"files": files}, format="multipart", HTTP_X_FORWARDED_PROTO="https")
+
+    def test_a_figure_in_a_bundle_is_skipped_and_the_report_is_made_without_it(self):
+        manuscript = SimpleUploadedFile(
+            "manuscript.txt", b"Results\n\nThe treatment group scored higher than the control group, t(28) = 2.10, p = .045.\n")
+        figure = SimpleUploadedFile("figure.png", b"\x89PNG\r\n\x1a\n" + b"0" * 64)
+        response = self._bundle([manuscript, figure])
+        self.assertEqual(response.status_code, 200, response.content[:300])
+        answer = response.json()
+        ingestion = answer["ingestion"]
+        self.assertEqual((ingestion["n_files"], ingestion["n_manuscript_files"], ingestion["n_image_files"], ingestion["ocr_used"]),
+                         (2, 1, 0, False))
+        listed = ingestion["files"][1]
+        self.assertEqual((listed["name"], listed["kind"], listed["role"], listed["ok"]), ("figure.png", "image", "skipped", False))
+        self.assertEqual(listed["error"], "no statistic could be extracted from the figure")
+        self.assertEqual(listed["warnings"], ["OCR unavailable: the tesseract binary / pytesseract is not installed."])
+        # the one claim of the report is the sentence of the text
+        self.assertEqual(answer["n_claims"], 1)
+
+    def test_a_scan_as_the_only_manuscript_is_refused(self):
+        scan = SimpleUploadedFile("scan.pdf", b"%PDF-1.4\n%%EOF\n")
+        response = self._bundle([scan])
+        self.assertEqual(response.status_code, 400, response.content[:300])
+        self.assertEqual(response.json()["error"],
+                         "No manuscript text could be extracted from the bundle (no readable manuscript or OCR'able figure was found).")
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
