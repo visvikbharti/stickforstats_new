@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 import logging
 
+from ..utils.mann_whitney_method import mann_whitney_method
 from ..guardian.guardian_core import (
     GuardianCore,
     GuardianReport,
@@ -412,8 +413,10 @@ class AutonomousCascadeEngine:
         )
 
     def _exec_mann_whitney(self, arrays: List[np.ndarray], alpha: float) -> TestResult:
-        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative="two-sided")
         n1, n2 = len(arrays[0]), len(arrays[1])
+        # Against a very large group SciPy's own choice of method can count for minutes
+        # (core/utils/mann_whitney_method.py); there the normal approximation is asked for by name.
+        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative="two-sided", method=mann_whitney_method(n1, n2))
         r = 1 - (2 * stat) / (n1 * n2)  # rank-biserial correlation
         return TestResult(
             test_name="Mann-Whitney U test",
