@@ -128,7 +128,7 @@ const ShowcaseHomePage = () => {
           </Typography>
           <Typography variant="body1" sx={{ mt: 3, mb: 4, maxWidth: 800, mx: 'auto' }} align="center">
             An open-source statistical platform focused on accuracy and transparency.
-            Featuring 46+ statistical tests, Guardian assumption checking, and publication-quality visualizations.
+            Featuring statistical tests, Guardian assumption checking, and publication-quality visualizations.
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
             <Button
@@ -308,7 +308,7 @@ const ShowcaseHomePage = () => {
             Get Started
           </Typography>
           <Typography variant="body1" align="center" color="text.secondary" paragraph>
-            StickForStats provides 46+ statistical tests across multiple modules, with Guardian
+            StickForStats provides statistical tests across multiple modules, with Guardian
             assumption checking and publication-quality visualizations. Your feedback is welcome.
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
@@ -338,7 +338,7 @@ const ShowcaseHomePage = () => {
             For Manuscript Reviewers
           </Typography>
           <Typography variant="body2">
-            StickForStats is an open-source statistical platform featuring 46+ statistical tests,
+            StickForStats is an open-source statistical platform featuring statistical tests,
             8 education hubs, Guardian assumption checking, Publication Plot Builder, and more.
             All calculations are validated with focus on scientific accuracy
             and transparent, verifiable computations.

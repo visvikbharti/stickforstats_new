@@ -163,15 +163,14 @@ const ProfessionalLanding = ({ onEnter }) => {
               </button>
             </div>
 
-            {/* Trust Indicators */}
+            {/* Two things the platform has, without a number: not every result is computed to 50
+                decimals, and one of the nine validators is run by no check. */}
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-number">50</span>
-                <span className="trust-label">Decimal Precision</span>
+                <span className="trust-label">High-precision arithmetic</span>
               </div>
               <div className="trust-item">
-                <span className="trust-number">9</span>
-                <span className="trust-label">Guardian Validators</span>
+                <span className="trust-label">Guardian assumption checks</span>
               </div>
             </div>
           </motion.div>
@@ -298,8 +297,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="doc-content">
                 <h4>What It Does</h4>
                 <p>
-                  Guardian validates statistical assumptions BEFORE running tests, guarding
-                  against the Type I errors and false positives that plague published research.
+                  Guardian checks the assumptions of a test before it runs and reports what it
+                  finds. Not every test has such a check yet.
                 </p>
                 <h4>9 Validators</h4>
                 <ul className="doc-list">
