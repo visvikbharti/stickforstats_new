@@ -34,14 +34,16 @@ VERIFY_REPORT = SRC / "components/manuscript/VerificationReport.jsx"
 LINKER = Path(settings.BASE_DIR) / "core/manuscript/claim_data_linker.py"
 RANK_TESTS = Path(settings.BASE_DIR) / "core/hp_nonparametric_comprehensive.py"
 ENGINE = Path(settings.BASE_DIR) / "core/services/cascade_engine.py"
+GENOMICS = Path(settings.BASE_DIR) / "core/services/genomics/differential_expression.py"
+PINNED = Path(settings.BASE_DIR) / "requirements-pinned.txt"
+CONSTRAINTS = Path(settings.BASE_DIR) / "image/constraints-live.txt"
 QUESTIONS = Path(settings.BASE_DIR) / "core/services/autonomous_query_handler.py"
-PROXY = ROOT / "nginx/nginx.conf"
 
 ENTRIES = [
     'Degrees of freedom and the confidence interval read "N/A"',
     "A Guardian confidence score although nothing was said about the design",
     'Two columns of categories get "Test execution failed"',
-    "A Mann-Whitney test of a few values against a very large group can outlast the server",
+    "A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above",
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
@@ -65,6 +67,13 @@ SEVEN_AFTER = [5.4, 6.0, 7.5, 4.7, 8.3, 5.2, 6.4]
 # eight values against sixty, no value twice
 EIGHT = [3.1, 14.2, 27.3, 41.4, 55.5, 62.6, 78.7, 91.8]
 SIXTY = [round(1.37 * k + 0.05, 2) for k in range(1, 61)]
+# eight low values, and eight lower ones, against the first values of one long series; no value twice
+EIGHT_LOW = [3.1, 5.2, 9.3, 14.4, 21.5, 30.6, 47.7, 58.8]
+EIGHT_LOWER = [1.1, 3.2, 6.3, 8.4, 12.5, 19.6, 27.7, 44.8]
+
+
+def series(n):
+    return [round(0.097 * k + 0.013, 3) for k in range(1, n + 1)]
 
 
 def read(path):
@@ -238,18 +247,29 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertIn("when both groups have fewer than 20 values and no value occurs twice, and the p-value of a "
                       "signed-rank test from the exact distribution of untied ranks when fewer than 25 pairs differ.", self.flat)
 
-    def test_the_question_page_and_the_cascade_route_leave_the_method_to_scipy(self):
+    def test_the_engine_and_the_genomics_analysis_name_the_approximation_above_a_thousand_values(self):
+        from core.utils.mann_whitney_method import LARGEST_GROUP_LEFT_TO_SCIPY, mann_whitney_method
+
+        self.assertEqual(LARGEST_GROUP_LEFT_TO_SCIPY, 1000)
+        self.assertEqual([mann_whitney_method(8, 1000), mann_whitney_method(1000, 8), mann_whitney_method(8, 1001),
+                          mann_whitney_method(1001, 8)], ["auto", "auto", "asymptotic", "asymptotic"])
         engine = read(ENGINE)
-        self.assertIn('        stat, p = stats.mannwhitneyu(arrays[0], arrays[1], alternative="two-sided")\n', engine)
         self.assertEqual(engine.count("stats.mannwhitneyu("), 1)
+        self.assertEqual(engine.count("method=mann_whitney_method("), 1)
+        genomics = read(GENOMICS)
+        self.assertEqual(genomics.count("stats.mannwhitneyu("), 1)
+        self.assertIn("method=mann_whitney_method(len(group1), len(group2))", genomics)
         self.assertIn("cascade_result = self.cascade_engine.execute_with_cascade(data_for_test, selected_test, alpha=alpha)",
                       read(QUESTIONS))
-        # the proxy's limit for an answer of the API
-        api = read(PROXY)
-        api = api[api.index("location /api/"):]
-        self.assertIn("proxy_read_timeout 60s;", api[:api.index("}")])
         resolve("/api/v1/autonomous/cascade/")
         resolve("/api/v1/nonparametric/mann-whitney/")
+        self.assertIn("The server asks for the normal approximation when the larger group has more than 1,000 values and "
+                      "leaves the choice to SciPy otherwise; the answer does not say which was used.", self.flat)
+        # the two versions of SciPy that the entry names
+        self.assertIn("\nscipy==1.17.1\n", read(CONSTRAINTS))
+        self.assertIn("\nscipy==1.11.3\n", read(PINNED))
+        self.assertIn("with SciPy 1.17.1, the version in the image. With SciPy 1.11.3, the version that "
+                      "`backend/requirements-pinned.txt` names,", self.flat)
 
     def test_closing_an_account_keeps_the_address_the_projects_and_the_receipts(self):
         erasure = read(ERASURE)
@@ -404,6 +424,40 @@ class WhatTheServerAnswersTest(APITestCase):
         # the other route names the method itself: the normal approximation from 20 values in a group
         route = self._rank_test("mann-whitney", {"group1": EIGHT, "group2": SIXTY, "alternative": "two-sided"})
         self.assertAlmostEqual(float(route["p_value"]), approximate, places=12)
+        self.assertIn("has a rule of its own, the approximation as soon as one group has 20 values or more, so the same data "
+                      "can get two p-values on two pages.", one_line(read(FILE)))
+
+    def test_one_value_more_in_the_large_group_changes_the_method_and_the_answer_does_not_say_so(self):
+        from scipy import stats
+
+        def both(small, n):
+            many = series(n)
+            self.assertEqual(len(set(small + many)), 8 + n)                                   # no value twice
+            exact = float(stats.mannwhitneyu(small, many, alternative="two-sided", method="exact").pvalue)
+            approximate = float(stats.mannwhitneyu(small, many, alternative="two-sided", method="asymptotic").pvalue)
+            response = self.client.post("/api/v1/autonomous/cascade/",
+                                        {"test": "mann_whitney_u", "data": {"group1": small, "group2": many}},
+                                        format="json", HTTP_X_FORWARDED_PROTO="https")
+            self.assertEqual(response.status_code, 200, response.content[:200])
+            self.assertEqual(response.json()["final_test"], "mann_whitney_u")
+            said = json.dumps(response.json()).lower()
+            for word in ("exact", "asymptotic", "approximation", "method"):
+                self.assertNotIn(word, said)
+            return exact, approximate, response.json()["result"]["p_value"]
+
+        text = one_line(read(FILE))
+        exact, approximate, answered = both(EIGHT_LOW, 1000)
+        self.assertAlmostEqual(answered, exact, places=12)
+        self.assertEqual(f"{answered:.4f}", "0.0109")
+        exact, approximate, answered = both(EIGHT_LOW, 1001)
+        self.assertAlmostEqual(answered, approximate, places=12)
+        self.assertEqual((f"{answered:.4f}", f"{exact:.4f}"), ("0.0128", "0.0108"))
+        self.assertIn("Eight values against 1,000 got the exact p-value, 0.0109, in one example; with one value more in the "
+                      "large group the answer was the approximation, 0.0128, where the exact value is 0.0108.", text)
+        exact, approximate, answered = both(EIGHT_LOWER, 1001)
+        self.assertAlmostEqual(answered, approximate, places=12)
+        self.assertEqual((f"{answered:.5f}", f"{exact:.5f}"), ("0.00086", "0.00036"))
+        self.assertIn("Far in the tail the two differ more: 0.00086 against an exact 0.00036 in another example.", text)
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]

@@ -32,18 +32,26 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** count the rows of each combination and give the table of counts to the
   chi-square test (`POST /api/v1/categorical/chi-square/independence/`).
 
-### A Mann-Whitney test of a few values against a very large group can outlast the server
+### A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above
 
-- **Where:** a question that is answered with a Mann-Whitney test, and
-  `POST /api/v1/autonomous/cascade/` with the test `mann_whitney_u`, when one group has at most
-  eight values, the other has many, and no value occurs twice.
-- **What happens:** the choice of the method is left to SciPy, and for such data SciPy counts the
-  exact distribution whatever the size of the larger group. Measured with SciPy 1.17.1: 1.3
-  seconds for 20,000 values in the larger group and 33 seconds for 100,000. With SciPy 1.11.3: 15
-  seconds for 1,000 values and 76 seconds for 2,000. The reverse proxy (`nginx/nginx.conf`) stops
-  waiting for an answer after 60 seconds, and the server goes on computing until it has one.
-- **Until it is fixed:** send such data to `POST /api/v1/nonparametric/mann-whitney/`, which uses
-  the normal approximation as soon as one group has 20 values or more.
+- **Where:** a question that is answered with a Mann-Whitney test, `POST /api/v1/autonomous/cascade/`
+  with the test `mann_whitney_u`, and a gene that the genomics analysis sends to the rank test,
+  when one group has at most eight values and no value occurs twice.
+- **What happens:** for such data SciPy counts the exact distribution whatever the size of the
+  other group, and the count took 33 seconds for 100,000 values. The server asks for the normal
+  approximation when the larger group has more than 1,000 values and leaves the choice to SciPy
+  otherwise; the answer does not say which was used. Eight values against 1,000 got the exact
+  p-value, 0.0109, in one example; with one value more in the large group the answer was the
+  approximation, 0.0128, where the exact value is 0.0108. Far in the tail the two differ more:
+  0.00086 against an exact 0.00036 in another example. The tab of the analysis hub
+  (`POST /api/v1/nonparametric/mann-whitney/`) has a rule of its own, the approximation as soon as
+  one group has 20 values or more, so the same data can get two p-values on two pages.
+  What is left of the waiting: at 1,000 values one test took 0.01 seconds, and a genomics request
+  of 8 samples against 1,000 with 1,000 genes took 0.9 seconds, with SciPy 1.17.1, the version in
+  the image. With SciPy 1.11.3, the version that `backend/requirements-pinned.txt` names, one test
+  of 8 values against 1,000 took 15 seconds.
+- **Until it is fixed:** where a p-value near a threshold matters and one group is very small,
+  compute the exact one yourself, for example with SciPy's `mannwhitneyu(x, y, method="exact")`.
 
 ## The t-test page (`/modules/t-test-real`)
 
