@@ -10,6 +10,12 @@
  *   independence check is a lag-1 autocorrelation), Isolation Forest, Hartigan's dip test, and
  *   power analysis for sample size (the check is a minimum group size).
  * - It listed a sign test and Fisher's exact test, which no screen offers.
+ * - Its first paragraph said that Guardian "guards against Type I errors before they happen" and that the
+ *   platform is "Trusted by researchers who value scientific integrity over p-hacking". Guardian checks the
+ *   assumptions of a test and reports what it finds; it promises no error rate, and nothing shows who trusts
+ *   the platform.
+ * - It counted "46+ Statistical Tests" in two places. Nobody has counted that many tests that a visitor can
+ *   run from the navigation.
  */
 import React from 'react';
 import '@testing-library/jest-dom';
@@ -82,6 +88,32 @@ test('the methods Guardian does run are the ones named', () => {
   expect(text).toMatch(/Shapiro-Wilk \(Anderson-Darling above 5,000 observations\)/);
   expect(text).toMatch(/Breusch-Pagan test on regression residuals/);
   expect(text).toMatch(/Kolmogorov-Smirnov on median-centred groups/);
+});
+
+test('the first paragraph says what the platform is, and promises no error rate', () => {
+  renderPage();
+  expect(
+    screen.getByText('A statistical analysis platform with built-in assumption checks (Guardian).')
+  ).toBeInTheDocument();
+  expect(pageText()).not.toMatch(/before they happen/i);
+  expect(pageText()).not.toMatch(/built-in Guardian protection/i);
+});
+
+test('no sentence says who trusts the platform', () => {
+  renderPage();
+  expect(pageText()).not.toMatch(/Trusted by/i);
+  expect(pageText()).not.toMatch(/integrity over p-hacking/i);
+});
+
+test('the page does not count the statistical tests', () => {
+  renderPage();
+  expect(screen.getByRole('heading', { name: 'Statistical Tests' })).toBeInTheDocument();
+  expect(screen.getByText('With an educational mode')).toBeInTheDocument();
+  expect(pageText()).not.toMatch(/46/);
+  expect(pageText()).not.toMatch(/\d\+?\s*Statistical Tests/i);
+  expect(screen.queryByText(/Comprehensive suite with educational mode/i)).not.toBeInTheDocument();
+  // under the two buttons: the two numbers the page can show, and no count of tests before them
+  expect(pageText()).toMatch(/View Documentation\s*50Decimal Precision9Guardian Validators/);
 });
 
 test('the list of available tests names no test that no screen offers', () => {

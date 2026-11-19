@@ -124,9 +124,7 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Value Proposition */}
             <p className="value-proposition">
-              A statistical analysis platform with built-in Guardian protection
-              that guards against Type I errors before they happen. Trusted by researchers
-              who value scientific integrity over p-hacking.
+              A statistical analysis platform with built-in assumption checks (Guardian).
             </p>
 
             {/* Key Features Grid */}
@@ -148,8 +146,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="feature-item">
                 <div className="feature-icon tests-icon">📊</div>
                 <div className="feature-content">
-                  <h3>46+ Statistical Tests</h3>
-                  <p>Comprehensive suite with educational mode</p>
+                  <h3>Statistical Tests</h3>
+                  <p>With an educational mode</p>
                 </div>
               </div>
             </div>
@@ -167,10 +165,6 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Trust Indicators */}
             <div className="trust-indicators">
-              <div className="trust-item">
-                <span className="trust-number">46+</span>
-                <span className="trust-label">Statistical Tests</span>
-              </div>
               <div className="trust-item">
                 <span className="trust-number">50</span>
                 <span className="trust-label">Decimal Precision</span>

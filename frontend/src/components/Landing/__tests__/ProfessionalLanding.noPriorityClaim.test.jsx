@@ -10,7 +10,7 @@ import ProfessionalLanding from '../ProfessionalLanding';
 test('the value proposition makes no claim to be the first such platform', () => {
   render(<ProfessionalLanding onEnter={() => {}} />);
   expect(
-    screen.getByText(/A statistical analysis platform with built-in Guardian protection/)
+    screen.getByText(/A statistical analysis platform with built-in assumption checks \(Guardian\)\./)
   ).toBeInTheDocument();
   expect(screen.queryByText(/\bthe first\b/i)).not.toBeInTheDocument();
 });
