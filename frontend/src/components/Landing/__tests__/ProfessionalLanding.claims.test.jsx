@@ -134,7 +134,8 @@ test('the choices the sentence names are the choices of the preprocessing module
     expect(group).toContain(`<Typography variant="body1">${label}</Typography>`);
   }
   // and the profiling module shows the count of each column
-  expect(source('data-profiling/DataProfiling.jsx')).toContain('label={`${analysis.missingCount} missing`}');
+  const chip = ['label={`$', '{analysis.missingCount} missing`}'].join('');
+  expect(source('data-profiling/DataProfiling.jsx')).toContain(chip);
 });
 
 test('the one validator no test uses is marked as such', () => {
