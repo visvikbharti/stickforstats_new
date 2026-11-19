@@ -8,8 +8,21 @@
  */
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import TTestRealBackend from '../TTestRealBackend';
+
+// No assertion of this file races a clock. The request is answered by a promise that is already
+// resolved, so what the page shows next is there after one turn of the event loop: `settle` waits
+// for that turn, however long the machine takes over it, and the assertions then look once. The
+// file used to poll with the library's one-second deadline inside Jest's five-second budget, and
+// its first test, which also pays for the first render of the page, ran out of that budget once
+// on a busy machine.
+jest.setTimeout(10 * 60 * 1000);
+
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
 
 const mockRequests = [];
 
@@ -49,8 +62,9 @@ test('a paired test sends the complete rows and says how many it left out', asyn
   type('Sample 1 (comma-separated)', SAMPLE_1);
   type('Sample 2 (comma-separated)', SAMPLE_2);
   calculate();
+  await settle();
   expect(
-    await screen.findByText('2 rows were left out: in each, one of the two values is missing. The paired test uses the 8 complete pairs.')
+    screen.getByText('2 rows were left out: in each, one of the two values is missing. The paired test uses the 8 complete pairs.')
   ).toBeInTheDocument();
   expect(mockRequests).toHaveLength(1);
   expect(mockRequests[0].test_type).toBe('paired');
@@ -64,7 +78,8 @@ test('complete samples are sent as they are, with no such sentence', async () =>
   type('Sample 1 (comma-separated)', '1, 2, 3, 4');
   type('Sample 2 (comma-separated)', '2, 2.5, 3.9, 4.1');
   calculate();
-  await waitFor(() => expect(mockRequests).toHaveLength(1));
+  await settle();
+  expect(mockRequests).toHaveLength(1);
   expect(mockRequests[0].data1).toEqual([1, 2, 3, 4]);
   expect(mockRequests[0].data2).toEqual([2, 2.5, 3.9, 4.1]);
   expect(screen.queryByText(/left out/)).not.toBeInTheDocument();
@@ -76,8 +91,9 @@ test('fewer than two complete pairs: no request, and the page says why', async (
   type('Sample 1 (comma-separated)', '1, , 3');
   type('Sample 2 (comma-separated)', ' , 5, 6');
   calculate();
+  await settle();
   expect(
-    await screen.findByText('A paired test needs at least 2 complete pairs: rows in which both samples have a value.')
+    screen.getByText('A paired test needs at least 2 complete pairs: rows in which both samples have a value.')
   ).toBeInTheDocument();
   expect(mockRequests).toHaveLength(0);
 });
@@ -87,7 +103,8 @@ test('two independent samples are read each by itself, as before', async () => {
   type('Sample 1 (comma-separated)', SAMPLE_1);
   type('Sample 2 (comma-separated)', SAMPLE_2);
   calculate();
-  await waitFor(() => expect(mockRequests).toHaveLength(1));
+  await settle();
+  expect(mockRequests).toHaveLength(1);
   expect(mockRequests[0].test_type).toBe('two_sample');
   expect(mockRequests[0].data1).toHaveLength(9);
   expect(mockRequests[0].data2).toHaveLength(9);
