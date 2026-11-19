@@ -8,6 +8,10 @@
 #
 # and image/check_installed_versions.py compares them after the install, as it compares the
 # libraries. To see the three in a running container: `pip list --format=freeze`.
+#
+# The same file is given to the install of the libraries as --build-constraint, so that a
+# library that pip builds from source is built with these versions and not with those of the
+# day.
 pip==26.3
 setuptools==84.2.1
 wheel==0.48.0

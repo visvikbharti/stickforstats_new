@@ -90,13 +90,15 @@ class TheBuildTest(SimpleTestCase):
     def test_the_requirements_are_installed_under_the_constraints_and_then_compared_with_them(self):
         self.assertIn("COPY requirements.txt .\nCOPY image/ image/\n", self.dockerfile)
         self.assertIn("RUN pip install --upgrade -r image/build-tools.txt && \\\n"
-                      "    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt && \\\n"
+                      "    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt"
+                      " --build-constraint image/build-tools.txt && \\\n"
                       "    python image/check_installed_versions.py image/constraints-live.txt --tools image/build-tools.txt\n",
                       self.dockerfile)
         # and nowhere without them: every `pip install` of the file names a file of versions
         installs = re.findall(r"pip install [^\n]*", self.dockerfile)
         self.assertEqual(installs, ["pip install --upgrade -r image/build-tools.txt && \\",
-                                    "pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt && \\"])
+                                    "pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt"
+                                    " --build-constraint image/build-tools.txt && \\"])
 
     def test_the_tests_of_the_pipeline_run_under_the_same_versions(self):
         workflow = (BACKEND.parent / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
@@ -104,7 +106,8 @@ class TheBuildTest(SimpleTestCase):
         self.assertIn("working-directory: backend\n", job)
         installs = re.findall(r"pip install [^\n]*", job)
         self.assertEqual(installs, ["pip install --upgrade -r image/build-tools.txt",
-                                    "pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt"])
+                                    "pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt"
+                                    " --build-constraint image/build-tools.txt"])
         self.assertIn("            backend/image/constraints-live.txt\n            backend/image/build-tools.txt\n", job)
 
     def test_the_build_context_holds_the_two_files(self):

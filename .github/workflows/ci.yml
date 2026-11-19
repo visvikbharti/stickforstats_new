@@ -148,7 +148,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade -r image/build-tools.txt
-          pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt
+          pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt --build-constraint image/build-tools.txt
 
       - name: Run migrations
         run: python manage.py migrate --run-syncdb
