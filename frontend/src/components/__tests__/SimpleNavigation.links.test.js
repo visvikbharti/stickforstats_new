@@ -62,6 +62,17 @@ describe('SimpleNavigation', () => {
     expect(navPaths).toContain('/genomics-analysis');
   });
 
+  it('does not link the causal-inference page, which still answers at its address', () => {
+    // Analysing a graph on that page replaces it with the error screen. Until it is repaired the
+    // navigation does not lead a visitor there; the route stays, for whoever has the address.
+    expect(navPaths).not.toContain('/modules/causal-inference');
+    expect(navSource).not.toMatch(/name:\s*'Causal Inference/);
+    expect(declared.has('/modules/causal-inference')).toBe(true);
+    // its neighbours in the menu are still there
+    expect(navPaths).toContain('/modules/mixed-models');
+    expect(navPaths).toContain('/modules/multiplicity');
+  });
+
   it('never links a dev-only test harness', () => {
     [
       '/test-universe',

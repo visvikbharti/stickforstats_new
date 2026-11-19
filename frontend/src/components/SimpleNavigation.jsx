@@ -90,7 +90,9 @@ const NAV_CATEGORIES = [
     items: [
       { name: 'Power Analysis', path: '/modules/power-analysis-real', icon: <BoltIcon fontSize="small" /> },
       { name: 'Mixed Models (Preview)', path: '/modules/mixed-models', icon: <PsychologyIcon fontSize="small" /> },
-      { name: 'Causal Inference (Preview)', path: '/modules/causal-inference', icon: <AccountTreeIcon fontSize="small" /> },
+      // No entry for /modules/causal-inference. The page still answers at its address, but its first
+      // task, analysing a graph, replaces it with the error screen (KNOWN_ISSUES.md). A page of the
+      // navigation that does that is repaired or loses its link; this one is not repaired yet.
       { name: 'Multiple Testing', path: '/modules/multiplicity', icon: <FactCheckIcon fontSize="small" /> },
       { name: 'DOE Analysis', path: '/doe-analysis', icon: <PrecisionManufacturingIcon fontSize="small" /> },
       { name: 'SQC Analysis', path: '/sqc-analysis', icon: <TuneIcon fontSize="small" /> },
