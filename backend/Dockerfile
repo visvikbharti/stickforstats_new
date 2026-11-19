@@ -26,10 +26,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies
+# Install Python dependencies, in the versions of the image that is live.
+#
+# requirements.txt gives ranges. Installed by itself, it takes whatever versions pip resolves on
+# the day of the build, so every new image used to change the libraries under every page along
+# with the application's code. image/constraints-live.txt holds the versions of the live image;
+# pip installs under it, and fails if one of them cannot be installed. The check after it fails
+# the build if anything was installed that the file does not name, or in another version.
 COPY requirements.txt .
+COPY image/ image/
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt -c image/constraints-live.txt && \
+    python image/check_installed_versions.py image/constraints-live.txt
 
 # Stage 2: Production image
 FROM python:3.11-slim-bookworm AS production
