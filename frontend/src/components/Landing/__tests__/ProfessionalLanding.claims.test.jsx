@@ -16,6 +16,10 @@
  *   the platform.
  * - It counted "46+ Statistical Tests" in two places. Nobody has counted that many tests that a visitor can
  *   run from the navigation.
+ * - Further down, the section on Guardian said that it guards "against the Type I errors and false positives
+ *   that plague published research". It says what Guardian does, and that not every test has a check yet.
+ * - Under the two buttons stood "50 Decimal Precision" and "9 Guardian Validators". Not every result is
+ *   computed to 50 decimals, and one of the nine validators is run by no check: both stand without a number.
  */
 import React from 'react';
 import '@testing-library/jest-dom';
@@ -49,15 +53,35 @@ const VALIDATOR_ENTRIES = [
 test('every validator count on the page is 9, and the list under it has 9 entries', () => {
   renderPage();
   expect(screen.getByText('9 assumption validators; each test runs the ones that apply to it')).toBeInTheDocument();
-  // The trust indicator renders <span>9</span><span>Guardian Validators</span>.
-  expect(pageText()).toMatch(/(^|\D)9Guardian Validators/);
   expect(screen.getByRole('heading', { name: '9 Validators' })).toBeInTheDocument();
   const entries = screen
     .getAllByRole('listitem')
     .filter((item) => VALIDATOR_ENTRIES.some((name) => item.textContent.startsWith(name)));
   expect(entries).toHaveLength(9);
   expect(pageText()).not.toMatch(/\b8 (assumption )?validators/i);
-  expect(pageText()).not.toMatch(/\b8Guardian Validators/);
+});
+
+test('the two labels under the buttons carry no number', () => {
+  renderPage();
+  expect(pageText()).toMatch(/View Documentation\s*High-precision arithmeticGuardian assumption checks/);
+  expect(pageText()).not.toMatch(/\d\s*Decimal Precision/i);
+  expect(pageText()).not.toMatch(/Decimal Precision/);
+  expect(pageText()).not.toMatch(/\d\s*Guardian Validators/i);
+  expect(pageText()).not.toMatch(/Guardian Validators/);
+});
+
+test('the section on Guardian says what it does, and that not every test has a check yet', () => {
+  renderPage();
+  expect(
+    screen.getByText(
+      'Guardian checks the assumptions of a test before it runs and reports what it finds. Not every test has such a check yet.'
+    )
+  ).toBeInTheDocument();
+  // nothing on the page promises an error rate any more
+  expect(pageText()).not.toMatch(/Type I/);
+  expect(pageText()).not.toMatch(/guarding\s+against/i);
+  expect(pageText()).not.toMatch(/BEFORE running tests/);
+  expect(pageText()).not.toMatch(/that plague published research/i);
 });
 
 test('the one validator no test uses is marked as such', () => {
@@ -112,8 +136,8 @@ test('the page does not count the statistical tests', () => {
   expect(pageText()).not.toMatch(/46/);
   expect(pageText()).not.toMatch(/\d\+?\s*Statistical Tests/i);
   expect(screen.queryByText(/Comprehensive suite with educational mode/i)).not.toBeInTheDocument();
-  // under the two buttons: the two numbers the page can show, and no count of tests before them
-  expect(pageText()).toMatch(/View Documentation\s*50Decimal Precision9Guardian Validators/);
+  // under the two buttons: two labels, and no count of tests before them
+  expect(pageText()).toMatch(/View Documentation\s*High-precision arithmeticGuardian assumption checks/);
 });
 
 test('the list of available tests names no test that no screen offers', () => {
