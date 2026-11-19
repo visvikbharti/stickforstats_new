@@ -34,7 +34,7 @@ findings + 13 Guardian-spine findings (7 blockers + 6 majors).
 **Two open to-dos (next session):** (1) the **visual browser click-through** is
 still pending — it was blocked because the Claude-in-Chrome extension was not
 connected; (2) **rotate the beta Basic-Auth password** (currently the weak
-`qwerty121`, plaintext on the VPS).
+`<beta password>`, plaintext on the VPS).
 
 ---
 
@@ -48,7 +48,7 @@ connected; (2) **rotate the beta Basic-Auth password** (currently the weak
 | Live backend image | `sha256:d4aa340d…` (local tag `stickforstats/backend:1.0.0`) |
 | Live frontend image | `sha256:82c5b61e…` (local tag `stickforstats/frontend:1.0.0`), bundle `main.eb14b2f5.js` |
 | rollback-prev | backend `sha256:b357747a…`, frontend `sha256:84f5287a…` |
-| Beta gate | nginx HTTP Basic-Auth at the edge. **user `beta`, password in `/root/stickforstats-beta-access.txt`** (currently `qwerty121`). Django admin `/admin/`, creds in `/root/stickforstats-admin.txt`. |
+| Beta gate | nginx HTTP Basic-Auth at the edge. **user `beta`, password in `/root/stickforstats-beta-access.txt`** (currently `<beta password>`). Django admin `/admin/`, creds in `/root/stickforstats-admin.txt`. |
 
 ### Deploy procedure used (repeat for future deploys)
 ```bash
@@ -166,7 +166,7 @@ drop, Spearman-reuses-Pearson-SE. See §6 for the ones worth revisiting.
      log Chrome into claude.ai with the same account as Claude Code, restart
      Chrome). Confirm with `tabs_context_mcp`.
    - Walkthrough to record (GIF + screenshots), using
-     `https://beta:qwerty121@stickforstats.com/` to pass Basic-Auth **without**
+     `https://beta:<beta password>@stickforstats.com/` to pass Basic-Auth **without**
      triggering the blocking auth modal:
      a. Home loads.
      b. Guardian **block actually fires**: go to a t-test, paste clearly
@@ -178,7 +178,7 @@ drop, Spearman-reuses-Pearson-SE. See §6 for the ones worth revisiting.
         N/A), precision chip reads cleanly, unsupported test/mode combos show the
         gated notice instead of a 404.
      e. Categorical 2×2: p-value is sensible (not `0.0000` / not always "Significant").
-2. **Rotate the beta Basic-Auth password** — currently weak `qwerty121`, plaintext
+2. **Rotate the beta Basic-Auth password** — currently weak `<beta password>`, plaintext
    at `/root/stickforstats-beta-access.txt`. (Deferred to-do from
    `docs/NEXT_STEPS_2026-06-29.md`.) Regenerate `.htpasswd`, update the file,
    `docker compose restart nginx`.
