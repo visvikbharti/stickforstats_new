@@ -339,7 +339,7 @@ const ShowcaseHomePage = () => {
           </Typography>
           <Typography variant="body2">
             StickForStats is an open-source statistical platform featuring statistical tests,
-            8 education hubs, Guardian assumption checking, Publication Plot Builder, and more.
+            7 education hubs, Guardian assumption checking, Publication Plot Builder, and more.
             All calculations are validated with focus on scientific accuracy
             and transparent, verifiable computations.
           </Typography>
