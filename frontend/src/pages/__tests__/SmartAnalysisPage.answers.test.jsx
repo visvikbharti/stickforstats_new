@@ -1,13 +1,17 @@
 /**
- * The question page shows what the server sends: the profile of an uploaded file, and the answer
- * to a question about it.
+ * The question page shows what the server sends: the profile of an uploaded file, and, where the
+ * answer to a question would be, the one sentence with which the server answers every question in
+ * this version.
  *
- * The page was written for other shapes than the two endpoints send, and its tests replaced the
- * service with answers in those shapes. With the server's own answers the page crashed twice:
- * - after the upload: the profile's `variables` is an object keyed by the variable's name, and
- *   the page called `.map` on it ("t.map is not a function" in the built page);
- * - after the answer: `translation.effect_size_interpretation` is an object with a category and
- *   a label, and the page put the object itself into the text.
+ * The page was written for other shapes than the endpoints send, and its tests replaced the
+ * service with answers in those shapes. With the server's own profile the page crashed after the
+ * upload: `variables` is an object keyed by the variable's name, and the page called `.map` on it
+ * ("t.map is not a function" in the built page).
+ *
+ * The server cannot read a question (the part that would has never been loaded), and until this
+ * version it answered every question with the first test the file suggested. It now answers 501
+ * with one sentence. The page showed "Analysis failed" in place of whatever the server said; it
+ * shows the server's sentence now, where the answer would be.
  *
  * The answers used here are files saved from the two endpoints
  * (fixtures/questionPage.json; backend/tests/test_question_page_fixture.py checks the file against
@@ -19,7 +23,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { ThemeProvider } from '@mui/material/styles';
 import apiClient from '../../services/api';
 import { getTheme } from '../../theme';
-import SmartAnalysisPage from '../SmartAnalysisPage';
+import SmartAnalysisPage, { NO_QUESTION_IS_READ } from '../SmartAnalysisPage';
 import saved from '../../components/autonomous/__tests__/fixtures/questionPage.json';
 
 jest.mock('../../services/api', () => {
@@ -43,7 +47,12 @@ const upload = async () => {
 beforeEach(() => {
   apiClient.post.mockImplementation((url) => {
     if (url.endsWith('/profile/')) return Promise.resolve({ data: JSON.parse(JSON.stringify(saved.profile)) });
-    if (url.endsWith('/query/')) return Promise.resolve({ data: JSON.parse(JSON.stringify(saved.answer)) });
+    if (url.endsWith('/query/')) {
+      // what the HTTP client hands over for an answer with status 501
+      const refused = new Error('Request failed with status code 501');
+      refused.response = { status: saved.refusal.status, data: JSON.parse(JSON.stringify(saved.refusal.body)) };
+      return Promise.reject(refused);
+    }
     return Promise.reject(new Error(`unexpected request to ${url}`));
   });
 });
@@ -53,7 +62,25 @@ afterEach(() => jest.clearAllMocks());
 test('the saved profile has the shape the server sends: variables keyed by name', () => {
   expect(Array.isArray(saved.profile.variables)).toBe(false);
   expect(Object.keys(saved.profile.variables)).toEqual(['dose', 'response']);
-  expect(saved.answer.translation.effect_size_interpretation).toEqual({ category: 'very strong', label: 'Very strong' });
+});
+
+const SENTENCE = 'This version cannot read a question, so nothing was analysed. Run the test you want on its own page.';
+
+test('the saved answer to a question is the sentence of the server, with status 501', () => {
+  expect(saved.refusal).toEqual({ status: 501, body: { error: SENTENCE } });
+  expect(saved.answer).toBeUndefined();
+});
+
+test('before a file is uploaded the page says that no question is answered', () => {
+  renderPage();
+  expect(NO_QUESTION_IS_READ).toBe(
+    'This version cannot read a question, so no question is answered here. Run the test you want on its own page.'
+  );
+  expect(screen.getByText(NO_QUESTION_IS_READ)).toBeInTheDocument();
+  expect(screen.queryByText(/ask a question in plain English/i)).not.toBeInTheDocument();
+  // the upload is offered as before, and no request has been sent
+  expect(screen.getByText('Drag and drop your data file here')).toBeInTheDocument();
+  expect(apiClient.post).not.toHaveBeenCalled();
 });
 
 test('after an upload the page lists the variables of the file', async () => {
@@ -70,32 +97,50 @@ test('after an upload the page lists the variables of the file', async () => {
   expect(screen.getByPlaceholderText('Ask a question about your data...')).toBeEnabled();
 });
 
-test('after a question the page shows the answer', async () => {
-  renderPage();
-  await upload();
+const ask = async () => {
   const box = screen.getByPlaceholderText('Ask a question about your data...');
   fireEvent.change(box, { target: { value: saved.question } });
   fireEvent.click(screen.getByRole('button', { name: 'submit query' }));
   await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith(expect.stringMatching(/\/query\/$/), expect.anything(), expect.anything()));
-  expect(await screen.findAllByText(/There IS a very strong positive relationship between the variables/)).not.toHaveLength(0);
-  expect(screen.getByText('The correlation explains 91.9% of the variation.')).toBeInTheDocument();
-  // the interpretation of the effect size is the label the server sends, not the object
-  expect(screen.getByText('Very strong')).toBeInTheDocument();
-  expect(document.body.textContent).not.toMatch(/\[object Object\]/);
-  // the numbers of the answer, as the researcher view shows them
-  fireEvent.click(screen.getByRole('tab', { name: /researcher/i }));
-  await screen.findByText('Technical Results');
-  expect(screen.getByText('Pearson Correlation')).toBeInTheDocument();
-  expect(screen.getByText('0.9586')).toBeInTheDocument();      // the statistic, r
-  expect(screen.getByText('0.9190')).toBeInTheDocument();      // the effect size, r squared
-});
+  // the box is closed while the question is on its way, and open again when the server has answered
+  await waitFor(() => expect(screen.getByPlaceholderText('Ask a question about your data...')).toBeEnabled());
+};
 
-test('the sentence for a report names the magnitude, or gives the label after the number', async () => {
+test('after a question the page shows the sentence of the server where the answer would be', async () => {
   renderPage();
   await upload();
-  fireEvent.change(screen.getByPlaceholderText('Ask a question about your data...'), { target: { value: saved.question } });
-  fireEvent.click(screen.getByRole('button', { name: 'submit query' }));
-  await screen.findAllByText(/There IS a very strong positive relationship/);
-  fireEvent.click(screen.getByRole('tab', { name: /apa/i }));
-  expect(await screen.findByText(/The effect size was 0\.92, indicating a very strong effect\./)).toBeInTheDocument();
+  await ask();
+  const shown = await screen.findByText(SENTENCE);
+  expect(shown).toBeInTheDocument();
+  // in place of the answer: below the box for the question, and no result beside it
+  const box = screen.getByPlaceholderText('Ask a question about your data...');
+  expect(box.compareDocumentPosition(shown) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
+  expect(within(screen.getByRole('alert')).getByText(SENTENCE)).toBeInTheDocument();
+  for (const text of [/Analysis failed/, /Statistically Significant/i, /Guardian Confidence Score/i, /Why this test\?/i, /Suggested Next Steps/i]) {
+    expect(screen.queryByText(text)).not.toBeInTheDocument();
+  }
+  // the question was sent with the file, and nothing else was asked of the server
+  expect(apiClient.post).toHaveBeenCalledTimes(2);
+});
+
+test('the sentence can be closed', async () => {
+  renderPage();
+  await upload();
+  await ask();
+  await screen.findByText(SENTENCE);
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: /close/i }));
+  expect(screen.queryByText(SENTENCE)).not.toBeInTheDocument();
+});
+
+test('when no answer comes at all the page says so in the same place', async () => {
+  apiClient.post.mockImplementation((url) => {
+    if (url.endsWith('/profile/')) return Promise.resolve({ data: JSON.parse(JSON.stringify(saved.profile)) });
+    return Promise.reject(new Error('Network Error'));
+  });
+  renderPage();
+  await upload();
+  await ask();
+  expect(await screen.findByText('Network Error')).toBeInTheDocument();
+  expect(screen.queryByText(SENTENCE)).not.toBeInTheDocument();
 });

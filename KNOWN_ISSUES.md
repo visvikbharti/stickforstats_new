@@ -5,53 +5,27 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 
 ## The question page (`/smart-analysis`)
 
-### Degrees of freedom and the confidence interval read "N/A"
+### The question box answers no question: this version cannot read one
 
-- **Where:** the Researcher View of an answer.
-- **What happens:** the cards "Degrees of Freedom" and "Confidence Interval" show "N/A" for every
-  answer. The server sends the degrees of freedom as `degrees_of_freedom`; the page looks for them
-  under another name. The server sends no confidence interval with these answers.
-- **Until it is fixed:** take the degrees of freedom from the answer of
-  `POST /api/v1/autonomous/query/` (`cascade_result.result.degrees_of_freedom`).
-
-### A Guardian confidence score although nothing was said about the design
-
-- **Where:** "Guardian Confidence Score" under an answer.
-- **What happens:** a score is shown with every answer. The page sends the file and the question
-  and nothing else: it does not ask whether the rows are independent subjects or repeated
-  measurements of the same ones, and the score is computed without that information.
-- **Until it is fixed:** do not read the score as a statement about the design of the study. Judge
-  the unit of analysis yourself.
-
-### Two columns of categories get "Test execution failed"
-
-- **Where:** a question about two columns that hold words, such as a treatment and an outcome
-  recorded as "improved" or "same".
-- **What happens:** no test is run. The answer reads "Test execution failed: could not convert
-  string to float", followed by the first word of the column.
-- **Until it is fixed:** count the rows of each combination and give the table of counts to the
-  chi-square test (`POST /api/v1/categorical/chi-square/independence/`).
-
-### A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above
-
-- **Where:** a question that is answered with a Mann-Whitney test, `POST /api/v1/autonomous/cascade/`
-  with the test `mann_whitney_u`, and a gene that the genomics analysis sends to the rank test,
-  when one group has at most eight values and no value occurs twice.
-- **What happens:** for such data SciPy counts the exact distribution whatever the size of the
-  other group, and the count took 33 seconds for 100,000 values. The server asks for the normal
-  approximation when the larger group has more than 1,000 values and leaves the choice to SciPy
-  otherwise; the answer does not say which was used. Eight values against 1,000 got the exact
-  p-value, 0.0109, in one example; with one value more in the large group the answer was the
-  approximation, 0.0128, where the exact value is 0.0108. Far in the tail the two differ more:
-  0.00086 against an exact 0.00036 in another example. The tab of the analysis hub
-  (`POST /api/v1/nonparametric/mann-whitney/`) has a rule of its own, the approximation as soon as
-  one group has 20 values or more, so the same data can get two p-values on two pages.
-  What is left of the waiting: at 1,000 values one test took 0.01 seconds, and a genomics request
-  of 8 samples against 1,000 with 1,000 genes took 0.9 seconds, with SciPy 1.17.1, the version in
-  the image. With SciPy 1.11.3, the version that `backend/requirements-pinned.txt` names, one test
-  of 8 values against 1,000 took 15 seconds.
-- **Until it is fixed:** where a p-value near a threshold matters and one group is very small,
-  compute the exact one yourself, for example with SciPy's `mannwhitneyu(x, y, method="exact")`.
+- **Where:** `/smart-analysis` and its route, `POST /api/v1/autonomous/query/`.
+- **What happens:** a question is not read and nothing is analysed. The part of the server that
+  reads a question has never been loaded: it is imported by a path that does not exist, and the
+  failure is caught. Until this version the route went on without it and answered every question
+  with the first test that the profile of the file suggested. Four questions about one file with
+  a column of two groups and two columns of numbers, among them "Is there a relationship between
+  weight and height?" and "banana", were each answered with the same t-test of the two groups,
+  and the answer did not say which question it belonged to. The route now reads no file and runs
+  no test. It answers every request with status 501 and one sentence: "This version cannot read
+  a question, so nothing was analysed. Run the test you want on its own page." The page shows
+  that sentence where the answer would be, and says before a file is uploaded that no question
+  is answered. The upload and the summary of the variables work as before. While a question is
+  typed, the page still shows beside it the kind of question it finds in the words,
+  "Relationship" for example; the page finds that itself and does not send it. The README and
+  the documentation of the Python and R clients still describe a question in plain English as
+  read. Those two clients send the question under the name `question`, which the route never
+  read: they were answered 400, 'A "query" field is required.', and get the sentence now.
+- **Until it is fixed:** run the test you want on its own page, for example in the analysis hub
+  (`/statistical-analysis-tools`), or through the route of that test.
 
 ## The t-test page (`/modules/t-test-real`)
 
@@ -296,6 +270,27 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   LaTeX or JATS-XML), and check by hand the statistics that stand only in a figure.
 
 ## The API
+
+### A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above
+
+- **Where:** `POST /api/v1/autonomous/cascade/` with the test `mann_whitney_u`, and a gene that
+  the genomics analysis sends to the rank test, when one group has at most eight values and no
+  value occurs twice.
+- **What happens:** for such data SciPy counts the exact distribution whatever the size of the
+  other group, and the count took 33 seconds for 100,000 values. The server asks for the normal
+  approximation when the larger group has more than 1,000 values and leaves the choice to SciPy
+  otherwise; the answer does not say which was used. Eight values against 1,000 got the exact
+  p-value, 0.0109, in one example; with one value more in the large group the answer was the
+  approximation, 0.0128, where the exact value is 0.0108. Far in the tail the two differ more:
+  0.00086 against an exact 0.00036 in another example. The tab of the analysis hub
+  (`POST /api/v1/nonparametric/mann-whitney/`) has a rule of its own, the approximation as soon as
+  one group has 20 values or more, so the same data can get two p-values on two pages.
+  What is left of the waiting: at 1,000 values one test took 0.01 seconds, and a genomics request
+  of 8 samples against 1,000 with 1,000 genes took 0.9 seconds, with SciPy 1.17.1, the version in
+  the image. With SciPy 1.11.3, the version that `backend/requirements-pinned.txt` names, one test
+  of 8 values against 1,000 took 15 seconds.
+- **Until it is fixed:** where a p-value near a threshold matters and one group is very small,
+  compute the exact one yourself, for example with SciPy's `mannwhitneyu(x, y, method="exact")`.
 
 ### The signed-rank route with `zero_method` "pratt" or "zsplit"
 
