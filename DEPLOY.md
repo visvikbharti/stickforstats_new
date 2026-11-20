@@ -169,7 +169,7 @@ docker compose exec -T backend python manage.py migrate --plan < /dev/null   # N
 
 These come from any machine, with no credentials. For checks 3–10, each expected value was produced by running the same request against this release locally; checks 1–2 can only be run against the live site.
 
-The backend allows 20 API requests a minute per IP address to anonymous visitors, so run the checks in one go rather than repeatedly.
+The backend allows 600 API requests a minute per IP address to anonymous visitors, which the checks below do not come near.
 
 ```bash
 B=https://stickforstats.com
@@ -204,7 +204,7 @@ curl -s -X POST "$B/api/v1/genomics/differential-expression/" -H 'Content-Type: 
   | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["summary"]["input_scale"], {g["gene_name"]: g["log2_fold_change"] for g in d["gene_results"]})'
 
 # 7. The corrected privacy information, and the rate limiter.
-#    Expect: "Not stored by most tools", then "X-RateLimit-Limit: 20".
+#    Expect: "Not stored by most tools", then "X-RateLimit-Limit: 600".
 curl -s "$B/api/v1/privacy/info/" | python3 -c 'import json,sys; print(json.load(sys.stdin)["purposes"][0]["retention"][:24])'
 curl -s -D - -o /dev/null "$B/api/v1/privacy/info/" | grep -i '^x-ratelimit-limit'
 
@@ -277,7 +277,7 @@ cut -d: -f1 nginx/ssl/.htpasswd              # beta and bmc-reviewer only (see "
 - **The password file and accounts.** `nginx/ssl/.htpasswd`, its two remaining accounts (`beta` and `bmc-reviewer`) and `/root/stickforstats-beta-access.txt` no longer protect anything. Archive them off the server once rollback B is no longer needed, with the older `/root/deploy-backup-*/nginx-ssl.tgz` copies that still hold the shared login. Revoking `bmc-reviewer` is moot.
 - **Abuse limits.** Before this release, a password stood in front of every request. Now only the limits stand:
   - nginx allows 100 requests a second per IP to `/api/`, with a burst of 50.
-  - The backend allows 20 API requests a minute per IP to anonymous visitors. It reads the address from the first `X-Forwarded-For` entry, which nginx now sets to the address it saw (`$remote_addr`). Before this release nginx appended to the client's own header, so a forged first entry escaped the limit (executed: 0 of 25 requests limited).
+  - The backend allows 600 API requests a minute per IP to anonymous visitors. It reads the address from the first `X-Forwarded-For` entry, which nginx now sets to the address it saw (`$remote_addr`). Before this release nginx appended to the client's own header, so a forged first entry escaped the limit (executed: 0 of 25 requests limited).
   - Request bodies are capped at 50 MB at the edge. Django rejects JSON and form bodies over 25 MB, and the manuscript tools reject files over 25 MB.
   - For the first days, watch `docker logs --since 1h stickforstats-nginx | grep -cE '" (429|503) '`. The backend's limiter answers 429; nginx's own answers 503.
 - **Expired sessions.** `cleanup_expired_sessions` now deletes them every day at 03:00 UTC; before this release nothing did.
