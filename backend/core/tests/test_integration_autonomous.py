@@ -627,16 +627,10 @@ class TestAutonomousAPIIntegration(APITestCase):
             format="json",
         )
 
-        self.assertIn(
-            response.status_code,
-            [
-                http_status.HTTP_200_OK,
-                http_status.HTTP_201_CREATED,
-            ],
-        )
-        data = response.json()
-        # Should contain analysis result fields
-        self.assertTrue(
-            "translation" in data or "result" in data or "profile" in data,
-            f"Response missing expected keys: {list(data.keys())}",
+        # This version cannot read a question: the route analyses nothing and says so.
+        self.assertEqual(response.status_code, http_status.HTTP_501_NOT_IMPLEMENTED)
+        self.assertEqual(
+            response.json(),
+            {"error": "This version cannot read a question, so nothing was analysed. "
+                      "Run the test you want on its own page."},
         )

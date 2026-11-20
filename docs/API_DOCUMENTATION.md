@@ -333,7 +333,7 @@ POST /api/guardian/check/
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/api/v1/autonomous/profile/` | Smart data profiling with research question inference | None |
-| POST | `/api/v1/autonomous/query/` | Full autonomous query pipeline (NL question + data) | None |
+| POST | `/api/v1/autonomous/query/` | Answers 501: this version cannot read a question | None |
 | POST | `/api/v1/autonomous/cascade/` | Execute test with Guardian cascade protection | None |
 | POST | `/api/v1/autonomous/translate/` | Translate statistical results to plain English | None |
 | POST | `/api/v1/autonomous/next-step/` | Get recommended next steps for analysis | None |
@@ -400,42 +400,17 @@ Upload data and receive a complete profile with research question inference, tes
 
 ### POST `/api/v1/autonomous/query/`
 
-Send a natural language question with data. Returns the complete analysis pipeline: profiling, Guardian validation, test execution, and plain-language translation.
+This version cannot read a question. The route answers every request with status 501 and one
+sentence. It reads no file and runs no test.
 
-**Request**:
+**Response** (501):
 ```json
 {
-  "query": "Is there a difference in scores between groups?",
-  "data": [
-    {"score": 78, "group": "A"},
-    {"score": 85, "group": "B"}
-  ],
-  "mode": "plain_english",
-  "alpha": 0.05
+  "error": "This version cannot read a question, so nothing was analysed. Run the test you want on its own page."
 }
 ```
 
-**Modes**: `"plain_english"` (default), `"researcher"`, `"apa_format"`
-
-**Response** (200):
-```json
-{
-  "query": "Is there a difference in scores between groups?",
-  "parsed_intent": "two_group_comparison",
-  "profile_summary": {...},
-  "cascade_result": {
-    "original_test": "independent_t",
-    "final_test": "mann_whitney",
-    "n_cascades": 1,
-    "reason": "Normality assumption violated; cascaded to nonparametric alternative"
-  },
-  "translation": "There is no statistically significant difference between groups (p = 0.34). The effect size is small (r = 0.12).",
-  "inferred_questions": [...],
-  "suggested_next_steps": ["Check for confounding variables", "Increase sample size"],
-  "confidence": 0.85,
-  "warnings": ["Small sample size may limit statistical power"]
-}
-```
+To run a test, use the route of that test.
 
 ### POST `/api/v1/autonomous/cascade/`
 

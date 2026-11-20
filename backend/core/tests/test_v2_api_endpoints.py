@@ -250,12 +250,14 @@ class TestAutonomousProfileEndpoint(SecureAPITestCase, UserMixin):
 
 
 class TestAutonomousQueryEndpoint(SecureAPITestCase, UserMixin):
-    """Tests for POST /api/v1/autonomous/query/"""
+    """Tests for POST /api/v1/autonomous/query/: this version cannot read a question."""
 
     url = "/api/v1/autonomous/query/"
+    answer = {"error": "This version cannot read a question, so nothing was analysed. "
+                       "Run the test you want on its own page."}
 
-    def test_query_with_valid_data(self):
-        """POST query + data returns analysis result."""
+    def test_query_with_valid_data_is_not_analysed(self):
+        """POST query + data is answered 501 with the sentence; the handler is not built."""
         payload = {
             "query": "Is there a difference in scores between groups?",
             "data": [
@@ -268,42 +270,27 @@ class TestAutonomousQueryEndpoint(SecureAPITestCase, UserMixin):
             "alpha": 0.05,
         }
         with patch("api.v1.autonomous_views.AutonomousQueryHandler") as MockHandler:
-            mock_instance = MockHandler.return_value
-            mock_result = MagicMock()
-            mock_result.query = payload["query"]
-            mock_result.parsed_intent = "comparison"
-            mock_result.profile_summary = {"n_rows": 4}
-            mock_result.cascade_result = {"final_test": "independent_t"}
-            mock_result.translation = "There is a significant difference."
-            mock_result.inferred_questions = []
-            mock_result.suggested_next_steps = ["effect_size"]
-            mock_result.confidence = 0.85
-            mock_result.warnings = []
-            mock_instance.handle_query.return_value = mock_result
-
             response = self.client.post(self.url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()
-        self.assertEqual(data["query"], payload["query"])
-        self.assertIn("cascade_result", data)
-        self.assertIn("translation", data)
-        self.assertIn("confidence", data)
+        self.assertEqual(response.status_code, status.HTTP_501_NOT_IMPLEMENTED)
+        self.assertEqual(response.json(), self.answer)
+        MockHandler.assert_not_called()
 
-    def test_query_missing_query_field_returns_400(self):
-        """POST without 'query' field returns 400."""
+    def test_query_missing_query_field_gets_the_same_answer(self):
+        """POST without 'query' field: the same sentence, the request is not read."""
         payload = {
             "data": [{"x": 1}, {"x": 2}],
         }
         response = self.client.post(self.url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("query", response.json()["error"].lower())
+        self.assertEqual(response.status_code, status.HTTP_501_NOT_IMPLEMENTED)
+        self.assertEqual(response.json(), self.answer)
 
-    def test_query_missing_data_returns_400(self):
-        """POST without data returns 400."""
+    def test_query_missing_data_gets_the_same_answer(self):
+        """POST without data: the same sentence."""
         payload = {"query": "What is the mean?"}
         response = self.client.post(self.url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_501_NOT_IMPLEMENTED)
+        self.assertEqual(response.json(), self.answer)
 
 
 class TestCascadeExecuteEndpoint(SecureAPITestCase, UserMixin):

@@ -5,7 +5,7 @@ REST API endpoints for the autonomous analysis pipeline.
 
 Endpoints:
 - POST /api/v1/autonomous/profile/    — Smart data profiling
-- POST /api/v1/autonomous/query/      — Full autonomous query pipeline
+- POST /api/v1/autonomous/query/      — Answers 501: this version cannot read a question
 - POST /api/v1/autonomous/cascade/    — Guardian cascade execution
 - POST /api/v1/autonomous/translate/  — Plain language translation
 - POST /api/v1/autonomous/next-step/  — Next step recommendations
@@ -28,7 +28,6 @@ from core.services.smart_profiler import SmartProfiler
 from core.services.cascade_engine import AutonomousCascadeEngine
 from core.services.plain_language_translator import PlainLanguageTranslator, OutputMode
 from core.services.autonomous_query_handler import AutonomousQueryHandler
-from core.services.suggestions_engine import SuggestionsEngine
 from core.services.analysis_context import AnalysisContext
 from core.services.followup_resolver import FollowUpResolver
 
@@ -160,100 +159,35 @@ class SmartProfileView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
+# What POST /api/v1/autonomous/query/ answers.
+#
+# The part of the server that reads a question has never been loaded:
+# core/services/autonomous_query_handler.py imports it by a path that does not exist and catches
+# the failure. Without it the route profiled the file and ran the first test the profile suggested,
+# whatever had been asked, and the answer did not say which question that test answered. A question
+# about the relation of two columns was answered with a comparison of two groups.
+THE_QUESTION_IS_NOT_READ = (
+    "This version cannot read a question, so nothing was analysed. Run the test you want on its own page."
+)
+
+
 class AutonomousQueryView(APIView):
     """
     POST /api/v1/autonomous/query/
 
-    Send a natural language query + data → get full pipeline results
-    including Guardian-validated analysis and plain English translation.
+    Answers every request with status 501 and one sentence, under "error":
 
-    Body:
-    {
-        "query": "Is there a difference in scores between groups?",
-        "data": [...],  // or upload via file
-        "mode": "plain_english",  // or "researcher" or "apa_format"
-        "alpha": 0.05
-    }
+        {"error": "This version cannot read a question, so nothing was analysed. Run the test you
+                   want on its own page."}
+
+    It reads no file and runs no test. The body of the request is not parsed.
     """
 
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
-        try:
-            df = _parse_dataframe(request)
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        query_text = ""
-        mode = OutputMode.PLAIN_ENGLISH
-        alpha = 0.05
-
-        if isinstance(request.data, dict):
-            query_text = request.data.get("query", "")
-            mode = request.data.get("mode", OutputMode.PLAIN_ENGLISH)
-            try:
-                alpha = float(request.data.get("alpha", 0.05))
-            except (ValueError, TypeError):
-                alpha = 0.05
-
-        if not query_text:
-            return Response(
-                {"error": 'A "query" field is required.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            handler = AutonomousQueryHandler()
-            result = handler.handle_query(query_text, df, mode=mode, alpha=alpha)
-        except Exception as e:
-            logger.error(f"AutonomousQueryHandler failed: {e}", exc_info=True)
-            return Response(
-                {"error": f"Analysis failed: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        response_data = {
-            "query": result.query,
-            "parsed_intent": result.parsed_intent,
-            "profile_summary": result.profile_summary,
-            "cascade_result": result.cascade_result,
-            "translation": result.translation,
-            "inferred_questions": result.inferred_questions,
-            "suggested_next_steps": result.suggested_next_steps,
-            "confidence": result.confidence,
-            "warnings": result.warnings,
-        }
-
-        # Add smart suggestions based on the analysis results
-        try:
-            suggestions_input = {}
-            cascade = result.cascade_result
-            if cascade and isinstance(cascade, dict):
-                inner = cascade.get("result") or {}
-                suggestions_input["test_type"] = cascade.get(
-                    "final_test"
-                )
-                suggestions_input["p_value"] = inner.get("p_value")
-                suggestions_input["effect_size"] = inner.get(
-                    "effect_size"
-                )
-                report = cascade.get("guardian_report") or {}
-                violations = report.get("violations", [])
-                suggestions_input["guardian_violations"] = len(violations)
-
-            engine = SuggestionsEngine()
-            response_data["suggestions"] = engine.get_suggestions(
-                suggestions_input
-            )
-        except Exception as e:
-            logger.warning(f"Suggestions engine failed: {e}")
-            response_data["suggestions"] = []
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response({"error": THE_QUESTION_IS_NOT_READ}, status=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 class CascadeExecuteView(APIView):

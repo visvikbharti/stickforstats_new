@@ -1,10 +1,11 @@
 """The question page is tested with what the server sends.
 
 frontend/src/components/autonomous/__tests__/fixtures/questionPage.json holds a small data file, a question,
-and the answers of the two endpoints the page calls for them. The page's Jest tests render those answers. This
-test sends the same file and question to the endpoints and compares, so that the saved answers stay the
-endpoints' answers. (The page's earlier tests used answers written by hand, in shapes the server never sent:
-the page crashed on the server's own.)
+and what the two endpoints the page calls answer for them: the profile of the file, and the one sentence with
+which the question route answers every request. The page's Jest tests render those answers. This test sends the
+same file and question to the endpoints and compares, so that the saved answers stay the endpoints' answers.
+(The page's earlier tests used answers written by hand, in shapes the server never sent: the page crashed on the
+server's own.)
 """
 
 import json
@@ -48,15 +49,14 @@ class TheSavedAnswersAreTheEndpointsAnswersTest(SimpleTestCase):
         self.assertEqual(response.status_code, 200, response.content[:300])
         self._compare(self.saved["profile"], response.json())
 
-    def test_the_answer(self):
+    def test_what_the_question_route_answers(self):
         response = APIClient().post("/api/v1/autonomous/query/", {
             "file": self._upload(), "query": self.saved["question"], "mode": "plain_english", "alpha": "0.05"}, format="multipart")
-        self.assertEqual(response.status_code, 200, response.content[:300])
-        self._compare(self.saved["answer"], response.json())
+        self.assertEqual(response.status_code, self.saved["refusal"]["status"], response.content[:300])
+        self.assertEqual(response.json(), self.saved["refusal"]["body"])
+        self.assertEqual(sorted(self.saved), ["csv", "profile", "question", "refusal"])
 
-    def test_the_two_shapes_the_page_has_to_read(self):
-        # variables keyed by name, and the interpretation of the effect size as an object
+    def test_the_shape_the_page_has_to_read(self):
+        # variables keyed by name
         self.assertEqual(sorted(self.saved["profile"]["variables"]), ["dose", "response"])
         self.assertEqual(sorted(self.saved["profile"]["variables"]["dose"])[:4], ["has_outliers", "is_normal", "mean", "median"])
-        self.assertEqual(self.saved["answer"]["translation"]["effect_size_interpretation"],
-                         {"category": "very strong", "label": "Very strong"})

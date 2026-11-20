@@ -70,16 +70,16 @@ class TheFortyRowExampleTest(SimpleTestCase):
 
 @override_settings(RATE_LIMIT_ENABLED=False)
 class TheFortyRowExampleOverHttpTest(APITestCase):
-    def test_json_with_nulls_gives_the_correlation_of_the_complete_rows_and_says_what_was_left_out(self):
+    def test_the_route_of_the_question_path_analyses_nothing_in_this_version(self):
+        # The route answers every request with one sentence (tests/test_the_question_route_stops.py).
+        # What the question path does with rows that have a missing value is held above, at the
+        # handler the route used to call.
         df = forty_rows()
         columns = {name: [None if np.isnan(v) else float(v) for v in df[name]] for name in df.columns}
         response = self.client.post(QUERY_URL, {"query": "Is dose correlated with response?", "data": columns},
                                     format="json", HTTP_X_FORWARDED_PROTO="https")
-        self.assertEqual(response.status_code, 200, response.content)
-        body = response.json()
-        self.assertEqual(round(body["cascade_result"]["result"]["statistic"], 4), 0.9586)
-        self.assertTrue(any(w.startswith("2 of 40 rows have a missing value in 'dose' or 'response'")
-                            for w in body["warnings"]), body["warnings"])
+        self.assertEqual(response.status_code, 501, response.content)
+        self.assertEqual(list(response.json()), ["error"])
 
 
 class EveryKindOfRequestTest(SimpleTestCase):

@@ -4,8 +4,10 @@
  * The "/smart-analysis" route. Composes SmartUpload + NaturalLanguageBar +
  * PlainEnglishResults + GuidedWizard into a unified autonomous analysis experience.
  *
- * Two modes:
- * - "Quick Analysis": Upload data + ask a question in plain English
+ * Two tabs:
+ * - "Quick Analysis": upload a file and see the summary of its variables. The box for a question
+ *   is there, but this version cannot read a question: the server answers every question with one
+ *   sentence, and the page shows that sentence where the answer would be.
  * - "Guided": Step-by-step wizard for beginners
  *
  * Created: February 2026
@@ -33,6 +35,12 @@ import SmartUpload from '../components/autonomous/SmartUpload';
 import NaturalLanguageBar from '../components/autonomous/NaturalLanguageBar';
 import PlainEnglishResults from '../components/autonomous/PlainEnglishResults';
 import GuidedWizard from '../components/autonomous/GuidedWizard';
+
+// What the page says before a file is uploaded. The server's route for a question
+// (POST /api/v1/autonomous/query/) answers every request with a sentence of its own to the same
+// effect, and the page shows that sentence where the answer would be.
+export const NO_QUESTION_IS_READ =
+  'This version cannot read a question, so no question is answered here. Run the test you want on its own page.';
 
 function SmartAnalysisPage() {
   const theme = useTheme();
@@ -82,7 +90,11 @@ function SmartAnalysisPage() {
   }, []);
 
   const handleQueryError = useCallback((err) => {
-    setError(err?.response?.data?.error || err?.message || 'Analysis failed');
+    // The question bar hands over the body of the server's answer, or a text when no answer came.
+    // The server's own sentence is what the page shows; it used to read the body as if it were the
+    // error object of the HTTP client and showed "Analysis failed" in place of every sentence.
+    const said = typeof err === 'string' ? err : err?.error || err?.message;
+    setError(said || 'Analysis failed');
     setQueryResult(null);
   }, []);
 
@@ -120,8 +132,7 @@ function SmartAnalysisPage() {
           </Typography>
         </Box>
         <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          Upload your data and ask a question in plain English.
-          No statistical knowledge required.
+          {NO_QUESTION_IS_READ}
         </Typography>
       </Box>
 
@@ -147,13 +158,6 @@ function SmartAnalysisPage() {
           />
         </Tabs>
       </Paper>
-
-      {/* Error Display */}
-      {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
 
       {/* Quick Analysis Tab */}
       {activeTab === 0 && (
@@ -182,6 +186,16 @@ function SmartAnalysisPage() {
                   />
                 </Box>
               </Fade>
+            )}
+
+            {/* Step 3: where the answer would be, what the server said in place of one */}
+            {error && !queryResult && (
+              <Box sx={{ mt: 4 }}>
+                <Divider sx={{ mb: 3 }} />
+                <Alert severity="warning" onClose={() => setError(null)}>
+                  {error}
+                </Alert>
+              </Box>
             )}
 
             {/* Step 3: View Results */}

@@ -17,8 +17,8 @@ from rest_framework.test import APITestCase
 ROOT = Path(settings.BASE_DIR).parent
 SRC = ROOT / "frontend/src"
 FILE = ROOT / "KNOWN_ISSUES.md"
-RESULTS = SRC / "components/autonomous/PlainEnglishResults.jsx"
-SAVED = SRC / "components/autonomous/__tests__/fixtures/questionPage.json"
+QUESTION_PAGE = SRC / "pages/SmartAnalysisPage.jsx"
+QUESTION_BAR = SRC / "components/autonomous/NaturalLanguageBar.jsx"
 ERASURE = SRC / "pages/privacyErasure.js"
 T_TEST_PAGE = SRC / "modules/TTestRealBackend.jsx"
 HUB_TESTS = SRC / "components/statistical-analysis/statistical-tests/StatisticalTests.jsx"
@@ -61,10 +61,7 @@ BUNDLE_PAGE = SRC / "components/manuscript/BundleVerifier.jsx"
 OCR = Path(settings.BASE_DIR) / "core/manuscript/image_ocr.py"
 
 ENTRIES = [
-    'Degrees of freedom and the confidence interval read "N/A"',
-    "A Guardian confidence score although nothing was said about the design",
-    'Two columns of categories get "Test execution failed"',
-    "A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above",
+    "The question box answers no question: this version cannot read one",
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
@@ -85,10 +82,16 @@ ENTRIES = [
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
     "A figure image or a scanned PDF is not read",
+    "A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above",
     'The signed-rank route with `zero_method` "pratt" or "zsplit"',
     "The genomics routes report fold changes in the wrong direction when the two groups are not named",
     "The e-mail address, the saved projects and the receipts are kept",
 ]
+FOUR_QUESTIONS = ("Is weight different between the two groups?", "Is there a relationship between weight and height?",
+                  "Can height predict weight?", "banana")
+WEIGHT = [5.1, 4.8, 6.0, 5.5, 4.9, 5.7, 6.2, 5.0, 5.3, 5.8, 4.7, 6.1, 6.9, 7.4, 6.6, 7.8, 7.1, 6.8, 7.5, 7.0, 7.3, 6.7, 7.9, 7.2]
+TWO_GROUPS_AND_TWO_COLUMNS = [{"group": "a" if i < 12 else "b", "weight": w, "height": 150 + 2.1 * i + (3 if i % 2 else -3)}
+                              for i, w in enumerate(WEIGHT)]
 BEFORE = [5.1, 6.3, 4.4, 8.0, 5.5, 7.7, 5.9, 6.6]
 AFTER = [5.4, 6.0, 4.7, 8.3, 5.2, 8.1, 6.3, 6.5]
 # seven pairs typed with one decimal: five values rise by 0.3 and two fall by 0.3
@@ -125,9 +128,6 @@ class KnownIssuesTest(SimpleTestCase):
         super().setUpClass()
         cls.text = read(FILE)
         cls.flat = one_line(cls.text)
-        cls.page = read(RESULTS)
-        # what POST /api/v1/autonomous/query/ answers; tests/test_question_page_fixture.py keeps it true
-        cls.answer = json.loads(read(SAVED))["answer"]
 
     def test_the_entries_of_the_file(self):
         self.assertEqual(re.findall(r"^### (.+)$", self.text, re.M), ENTRIES)
@@ -135,29 +135,34 @@ class KnownIssuesTest(SimpleTestCase):
             for part in ("- **Where:**", "- **What happens:**", "- **Until it is fixed:**"):
                 self.assertEqual(entry.count(part), 1, entry[:40])
 
-    def test_the_page_looks_for_the_degrees_of_freedom_under_another_name(self):
-        result = self.answer["cascade_result"]["result"]
-        self.assertEqual(result["degrees_of_freedom"], 36.0)
-        self.assertNotIn("df", result)
-        self.assertNotIn("confidence_interval", result)
-        self.assertIn("{ label: 'Degrees of Freedom', value: r.df != null ? r.df : 'N/A' },", self.page)
-        self.assertIn("{ label: 'Confidence Interval', value: formatCI(r.confidence_interval) },", self.page)
-        self.assertNotIn("r.degrees_of_freedom", self.page)
-        self.assertIn("`cascade_result.result.degrees_of_freedom`", self.text)
+    def test_the_question_page_says_that_no_question_is_answered(self):
+        from api.v1.autonomous_views import THE_QUESTION_IS_NOT_READ
 
-    def test_a_score_is_shown_with_an_answer_to_a_request_that_declares_nothing(self):
-        cascade = self.answer["cascade_result"]
-        self.assertEqual(cascade["confidence_score"], 1.0)
-        # the component shows whatever score it is given
-        self.assertIn("const confidenceScore = cascadeResult?.confidence_score;", self.page)
-        self.assertIn("if (score == null) return null;", self.page)
-        # and the page's request holds the file (or the rows), the question, the mode and alpha
+        page = read(QUESTION_PAGE)
+        # before a file is uploaded, in the place of the line that invited a question
+        self.assertIn("'This version cannot read a question, so no question is answered here. Run the test you want on its own page.';", page)
+        self.assertEqual(page.count("{NO_QUESTION_IS_READ}"), 1)
+        self.assertNotIn("ask a question in plain English", page)
+        # where the answer would be: what the server said
+        self.assertIn("const said = typeof err === 'string' ? err : err?.error || err?.message;", page)
+        self.assertIn("{error && !queryResult && (", page)
+        self.assertNotIn(THE_QUESTION_IS_NOT_READ, page)
+        self.assertIn(f'It answers every request with status 501 and one sentence: "{THE_QUESTION_IS_NOT_READ}" The page shows '
+                      "that sentence where the answer would be, and says before a file is uploaded that no question is answered.",
+                      self.flat)
+        # the kind of question beside the box is found by the page and is not sent
+        bar = read(QUESTION_BAR)
+        self.assertIn("{ keywords: ['correlat', 'relationship'], label: 'Relationship', color: 'secondary' },", bar)
         service = read(SRC / "services/AutonomousService.js")
         ask = service[service.index("export const queryAnalysis"):service.index("export const executeCascade")]
         self.assertEqual(re.findall(r"formData\.append\('(\w+)'", ask), ["file", "query", "mode", "alpha"])
         self.assertIn("const payload = { query, data: dataSource, mode, alpha };", ask)
-        for declaration in ("unit_ids", "matched", "declared_independent", "outcome_type", "design"):
-            self.assertNotIn(declaration, ask)
+        self.assertNotIn("intent", ask)
+        # what the entry says still describes a question as read, and the page it sends the reader to
+        self.assertIn("ask a question in plain English", read(ROOT / "README.md"))
+        self.assertIn("client.autonomous.query(", read(ROOT / "sdk/python/README.md"))
+        self.assertIn("sfs_query(", read(ROOT / "sdk/r/README.md"))
+        self.assertIn("'/statistical-analysis-tools'", read(ROUTES))
 
     def test_the_guidelines_of_the_hub(self):
         hub = read(HUB_TESTS)
@@ -294,10 +299,12 @@ class KnownIssuesTest(SimpleTestCase):
         genomics = read(GENOMICS)
         self.assertEqual(genomics.count("stats.mannwhitneyu("), 1)
         self.assertIn("method=mann_whitney_method(len(group1), len(group2))", genomics)
-        self.assertIn("cascade_result = self.cascade_engine.execute_with_cascade(data_for_test, selected_test, alpha=alpha)",
-                      read(QUESTIONS))
         resolve("/api/v1/autonomous/cascade/")
         resolve("/api/v1/nonparametric/mann-whitney/")
+        # The question page no longer leads to this test: its route analyses nothing.
+        entry = self.text.split("### A Mann-Whitney test with one very small group", 1)[1].split("\n### ", 1)[0]
+        self.assertNotIn("question", entry)
+        self.assertIn("- **Where:** `POST /api/v1/autonomous/cascade/` with the test `mann_whitney_u`, and a gene that", entry)
         self.assertIn("The server asks for the normal approximation when the larger group has more than 1,000 values and "
                       "leaves the choice to SciPy otherwise; the answer does not say which was used.", self.flat)
         # the two versions of SciPy that the entry names
@@ -448,18 +455,32 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertEqual(response.status_code, 200, response.content[:200])
         return response.json()
 
-    def test_two_columns_of_categories(self):
-        rows = [{"treatment": t, "outcome": o} for t, o in (
-            ("drug", "improved"), ("drug", "improved"), ("drug", "same"), ("drug", "improved"), ("placebo", "same"),
-            ("placebo", "same"), ("placebo", "improved"), ("placebo", "same"), ("drug", "improved"), ("placebo", "same"),
-            ("drug", "same"), ("placebo", "same"))]
-        question = {"query": "Is the outcome related to the treatment?", "data": rows, "mode": "auto", "alpha": 0.05}
-        response = self.client.post("/api/v1/autonomous/query/", question, format="json", HTTP_X_FORWARDED_PROTO="https")
-        self.assertEqual(response.status_code, 200, response.content[:200])
-        answer = response.json()
-        self.assertEqual(answer["translation"]["summary"], "Test execution failed: could not convert string to float: 'drug'")
-        self.assertIsNone(answer["cascade_result"])
-        resolve("/api/v1/categorical/chi-square/independence/")
+    def test_the_question_route_reads_no_question(self):
+        import pandas as pd
+
+        from api.v1.autonomous_views import THE_QUESTION_IS_NOT_READ
+        from core.services import autonomous_query_handler as handler
+
+        # The reader of questions is not loaded, and this is the line that fails.
+        self.assertIs(handler.QUERY_PARSER_AVAILABLE, False)
+        self.assertIn("    from ...ai_advisor.services.nlp_enhanced.query_parser import QueryParser\n", read(QUESTIONS))
+        # What the route answered until this version, at the handler it called: four questions, one test.
+        frame = pd.DataFrame(TWO_GROUPS_AND_TWO_COLUMNS)
+        ran = [handler.AutonomousQueryHandler().handle_query(question, frame).cascade_result["final_test"]
+               for question in FOUR_QUESTIONS]
+        self.assertEqual(ran, ["independent_t"] * 4)
+        text = " ".join(read(FILE).split())
+        for question in FOUR_QUESTIONS[1::2]:
+            self.assertIn(f'"{question}"', text)
+        # What it answers now, to the page's request and to the request of the two clients.
+        for body in ({"query": FOUR_QUESTIONS[1], "data": TWO_GROUPS_AND_TWO_COLUMNS, "mode": "plain_english", "alpha": 0.05},
+                     {"question": FOUR_QUESTIONS[1], "data": TWO_GROUPS_AND_TWO_COLUMNS, "alpha": 0.05}):
+            response = self.client.post("/api/v1/autonomous/query/", body, format="json", HTTP_X_FORWARDED_PROTO="https")
+            self.assertEqual((response.status_code, response.json()), (501, {"error": THE_QUESTION_IS_NOT_READ}))
+        self.assertIn(f'It answers every request with status 501 and one sentence: "{THE_QUESTION_IS_NOT_READ}"', text)
+        self.assertIn('            "question": question,\n', read(ROOT / "sdk/python/src/stickforstats/autonomous.py"))
+        self.assertIn("        question = question,\n", read(ROOT / "sdk/r/R/client.R"))
+        self.assertIn("Those two clients send the question under the name `question`, which the route never read", text)
 
     def test_the_fields_the_t_test_page_reads(self):
         page = read(T_TEST_PAGE)
