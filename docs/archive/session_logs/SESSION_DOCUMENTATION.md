@@ -114,9 +114,9 @@ Tech Stack: Django 4.2.10, Django REST Framework, Token Authentication
 
 ### Test User Account
 ```
-Email: vishalvikashbharti@gmail.com
-Password: GODisone@123
-Token: 80f61666027e2d0b96161e18e7fdf5764d1c4251
+Email: <your email address>
+Password: <your password>
+Token: <your token>
 ```
 
 ---
