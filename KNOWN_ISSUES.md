@@ -27,6 +27,17 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** run the test you want on its own page, for example in the analysis hub
   (`/statistical-analysis-tools`), or through the route of that test.
 
+### The Guided Wizard runs no analysis
+
+- **Where:** the tab "Guided Wizard" of `/smart-analysis`.
+- **What happens:** the wizard asks for a goal, a file and the variables, names a test
+  ("Independent Samples t-test" for a comparison of two groups) and says "The Guardian system
+  will validate statistical assumptions before running the analysis." The button "Run Analysis"
+  sends nothing to the server and runs nothing. The next step, "Results", then says "No results
+  yet. Go back to the Analysis step and click "Run Analysis"."
+- **Until it is fixed:** run the test on its own page, for example in the analysis hub
+  (`/statistical-analysis-tools`).
+
 ## The t-test page (`/modules/t-test-real`)
 
 ### Mean difference, confidence interval and effect size read "N/A"
@@ -324,6 +335,30 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** name both groups in every request (`group1_name` is the reference), send
   complete matrices of two groups, and apply the fold-change threshold to the answer of the
   volcano route yourself.
+
+### The F test of a regression: a p-value of 0, and F = 0 with p = 1 for an exact fit
+
+- **Where:** `POST /api/v1/regression/`, the routes under it and `POST /api/v1/stats/regression/`,
+  for ordinary least squares (`"type": "simple_linear"` or `"multiple_linear"`); and the tab
+  "Regression" of `/modules/correlation-regression`.
+- **What happens:** the answer reports the F test of the whole model under `statistics`. Its
+  p-value, `f_p_value`, is computed as one minus the distribution function, in double precision.
+  A p-value below about 1e-16 is reported as 0: for x = 1, 2, ..., 12 and y = 2.1, 3.9, 6.2, 7.8,
+  10.1, 12.2, 13.8, 16.1, 18.0, 20.2, 22.1, 23.9 the answer gives F = 23212.0 with `f_p_value` 0,
+  where the p-value is 3.6e-18. Between about 1e-16 and 1e-10 it loses digits, the more the
+  smaller it is: 2.23265900e-10 was reported for 2.23265894e-10 in one example. The p-values of
+  the coefficients, under `p_values`, are computed another way and are right; with one predictor
+  the p-value of the slope is the p-value of the F test. When the response is an exact function
+  of two or more predictors, the answer says `f_statistic` 0 and `f_p_value` 1, with an R squared
+  of 1. An exact line with one predictor, a response that does not vary and a request of two rows
+  are answered with status 500 and an empty message. The page does not show the F test. For an
+  exact line it shows "Request failed with status code 500". For an exact fit with two predictors
+  it shows standard errors of 0.00000 and an AIC of -1339.50 in one example. It shows a dash for
+  the standard error and the p-value of the intercept, which the server sends.
+- **Until it is fixed:** with one predictor, read the p-value of the slope (`p_values.X1`) for the
+  test of the whole model. With several, compute the p-value from `f_statistic` and its degrees of
+  freedom, the number of predictors and the number of rows less that number less one. Do not read
+  a `f_p_value` of 0, or an F of 0 beside an R squared of 1, as a result.
 
 ## Closing an account
 

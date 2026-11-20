@@ -62,6 +62,7 @@ OCR = Path(settings.BASE_DIR) / "core/manuscript/image_ocr.py"
 
 ENTRIES = [
     "The question box answers no question: this version cannot read one",
+    "The Guided Wizard runs no analysis",
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
     "The guidelines tell the reader to choose a test from a normality test",
@@ -85,6 +86,7 @@ ENTRIES = [
     "A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above",
     'The signed-rank route with `zero_method` "pratt" or "zsplit"',
     "The genomics routes report fold changes in the wrong direction when the two groups are not named",
+    "The F test of a regression: a p-value of 0, and F = 0 with p = 1 for an exact fit",
     "The e-mail address, the saved projects and the receipts are kept",
 ]
 FOUR_QUESTIONS = ("Is weight different between the two groups?", "Is there a relationship between weight and height?",
@@ -163,6 +165,37 @@ class KnownIssuesTest(SimpleTestCase):
         self.assertIn("client.autonomous.query(", read(ROOT / "sdk/python/README.md"))
         self.assertIn("sfs_query(", read(ROOT / "sdk/r/README.md"))
         self.assertIn("'/statistical-analysis-tools'", read(ROUTES))
+
+    def test_the_wizard_of_the_question_page_runs_nothing(self):
+        page = read(QUESTION_PAGE)
+        # what the wizard calls to run an analysis: a function with no statement in it
+        self.assertIn("  const handleWizardRunAnalysis = useCallback((query, file) => {\n"
+                      "    // This will be handled by NaturalLanguageBar indirectly\n"
+                      "    // For now, set state so the query result flows through\n"
+                      "  }, []);\n", page)
+        self.assertIn("onRunAnalysis={handleWizardRunAnalysis}", page)
+        wizard = read(SRC / "components/autonomous/GuidedWizard.jsx")
+        self.assertIn("const result = await onRunAnalysis(query, dataFile);", wizard)
+        # it asks nothing of the server itself
+        self.assertNotIn("services/", wizard)
+        self.assertNotIn("apiClient", wizard)
+        said = one_line(wizard)
+        for shown in ("The Guardian system will validate statistical assumptions before running the analysis.",
+                      'No results yet. Go back to the Analysis step and click "Run Analysis".', "Run Analysis"):
+            self.assertIn(shown, said)
+        self.assertIn("Independent Samples t-test", wizard)
+        self.assertIn('The next step, "Results", then says "No results yet. Go back to the Analysis step and click "Run Analysis"."',
+                      self.flat)
+
+    def test_the_regression_page_shows_no_f_test(self):
+        page = read(SRC / "modules/CorrelationRegressionModuleReal.jsx")
+        # the two numbers are read from the answer and shown nowhere
+        self.assertEqual(page.count("fStatistic"), 1)
+        self.assertEqual(page.count("fPValue"), 1)
+        self.assertIn("fPValue: parseFloat(regression?.statistics?.f_p_value),", page)
+        self.assertIn("err.response?.data?.error || err.message || 'Could not fit the model.'", page)
+        self.assertIn("{ path: '/modules/correlation-regression', component: CorrelationRegressionModuleReal,", read(ROUTES))
+        self.assertIn('The page does not show the F test. For an exact line it shows "Request failed with status code 500".', self.flat)
 
     def test_the_guidelines_of_the_hub(self):
         hub = read(HUB_TESTS)
@@ -481,6 +514,53 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertIn('            "question": question,\n', read(ROOT / "sdk/python/src/stickforstats/autonomous.py"))
         self.assertIn("        question = question,\n", read(ROOT / "sdk/r/R/client.R"))
         self.assertIn("Those two clients send the question under the name `question`, which the route never read", text)
+
+    def test_the_f_test_of_a_regression(self):
+        from api.v1.regression_views import HighPrecisionRegressionView
+
+        text = " ".join(read(FILE).split())
+        url = "/api/v1/stats/regression/"
+
+        def ask(kind, X, y):
+            response = self.client.post(url, {"type": kind, "X": X, "y": y}, format="json", HTTP_X_FORWARDED_PROTO="https")
+            return response.status_code, response.json()
+
+        x = list(range(1, 13))
+        # a p-value below 1e-16 is reported as 0
+        status, answer = ask("simple_linear", x, [2.1, 3.9, 6.2, 7.8, 10.1, 12.2, 13.8, 16.1, 18.0, 20.2, 22.1, 23.9])
+        self.assertEqual(status, 200)
+        self.assertEqual(float(answer["statistics"]["f_p_value"]), 0.0)
+        self.assertEqual(f'{float(answer["statistics"]["f_statistic"]):.1f}', "23212.0")
+        self.assertEqual(f'{float(answer["p_values"]["X1"]):.1e}', "3.6e-18")
+        self.assertIn("y = 2.1, 3.9, 6.2, 7.8, 10.1, 12.2, 13.8, 16.1, 18.0, 20.2, 22.1, 23.9 the answer gives F = 23212.0 with "
+                      "`f_p_value` 0, where the p-value is 3.6e-18.", text)
+        # above that it loses digits
+        status, answer = ask("simple_linear", x, [2.9, 3.1, 7.0, 7.2, 10.9, 11.3, 14.8, 15.1, 18.9, 19.2, 22.8, 23.1])
+        self.assertEqual(status, 200)
+        self.assertEqual((f'{float(answer["statistics"]["f_p_value"]):.8e}', f'{float(answer["p_values"]["X1"]):.8e}'),
+                         ("2.23265900e-10", "2.23265894e-10"))
+        self.assertIn("2.23265900e-10 was reported for 2.23265894e-10 in one example.", text)
+        # an exact function of two predictors
+        rows = [[1, 2], [2, 1], [3, 5], [4, 3], [5, 8], [6, 2]]
+        status, answer = ask("multiple_linear", rows, [1 + 2 * a - b for a, b in rows])
+        self.assertEqual((status, answer["statistics"], answer["metrics"]["r_squared"]),
+                         (200, {"f_statistic": "0.0", "f_p_value": "1.0"}, "1.0"))
+        self.assertIn("the answer says `f_statistic` 0 and `f_p_value` 1, with an R squared of 1.", text)
+        self.assertIn("a request of two rows are answered with status 500 and an empty message.", text)
+        self.assertIn("It shows a dash for the standard error and the p-value of the intercept, which the server sends.", text)
+        # what the page shows of that answer: five decimals of the standard errors, two of the AIC
+        self.assertEqual([f'{float(answer["standard_errors"][name]):.5f}' for name in ("X1", "X2")], ["0.00000", "0.00000"])
+        self.assertEqual(f'{float(answer["metrics"]["aic"]):.2f}', "-1339.50")
+        self.assertIn("it shows standard errors of 0.00000 and an AIC of -1339.50 in one example", text)
+        # the server sends the standard error and the p-value of the intercept
+        self.assertIn("intercept", answer["standard_errors"])
+        self.assertIn("intercept", answer["p_values"])
+        # an exact line, a response that does not vary, two rows
+        for X, y in (([1, 2, 3, 4, 5, 6], [3, 5, 7, 9, 11, 13]), ([1, 2, 3, 4, 5, 6], [4, 4, 4, 4, 4, 4]), ([1, 2], [3, 5])):
+            self.assertEqual(ask("simple_linear", X, y), (500, {"error": ""}))
+        # the routes the entry names lead to one view
+        for path in ("/api/v1/regression/", "/api/v1/regression/linear/", "/api/v1/regression/multiple/", url):
+            self.assertIs(resolve(path).func.view_class, HighPrecisionRegressionView)
 
     def test_the_fields_the_t_test_page_reads(self):
         page = read(T_TEST_PAGE)
