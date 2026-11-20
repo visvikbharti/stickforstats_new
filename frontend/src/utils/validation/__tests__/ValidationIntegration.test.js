@@ -70,6 +70,10 @@ global.indexedDB = {
   })
 };
 
+// A duration belongs to the machine and to what else it is doing. It is asserted only with
+// ASSERT_DURATIONS=1, as in PerformanceTests.test.js, so that the pipeline does not fail on a clock.
+const onThisMachine = (measured) => (process.env.ASSERT_DURATIONS === '1' ? expect(measured) : { toBeLessThan() {} });
+
 describe('Validation System Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -837,12 +841,8 @@ describe('Validation System Integration Tests', () => {
 
       const duration = performance.now() - startTime;
 
-      // Validation should complete in reasonable time (< 1 second). A duration belongs to the
-      // machine and to what else it is doing: it is asserted only with ASSERT_DURATIONS=1, as in
-      // PerformanceTests.test.js, so that the pipeline does not fail on a clock.
-      if (process.env.ASSERT_DURATIONS === '1') {
-        expect(duration).toBeLessThan(1000);
-      }
+      // Validation should complete in reasonable time (< 1 second)
+      onThisMachine(duration).toBeLessThan(1000);
     });
 
     test('should handle validation caching', () => {
