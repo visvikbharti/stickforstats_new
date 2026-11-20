@@ -381,7 +381,7 @@ GUARDIAN_MIDDLEWARE = {
 RATE_LIMIT_ENABLED = (not TESTING) and (
     not DEBUG or os.environ.get("ENABLE_RATE_LIMITING", "false").lower() == "true"
 )
-RATE_LIMIT_DEFAULT_AUTHENTICATED = 60   # requests per minute (IP-based, logged-in users)
+RATE_LIMIT_DEFAULT_AUTHENTICATED = 600  # for a request with a session: not less than for one without. It was 60.
 # One counter for each address, by the minute of the clock. A visitor of the web interface is
 # counted against this limit whether signed in or not: the interface signs in with a token, and
 # the limiter runs before the token is read. Everybody behind one address shares the counter, so
