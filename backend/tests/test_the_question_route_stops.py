@@ -137,6 +137,7 @@ class WhatIsLeftTest(SimpleTestCase):
 
 
 class WhereTheRouteIsDescribedTest(SimpleTestCase):
+    @override_settings(RATE_LIMIT_ENABLED=False, SECURE_SSL_REDIRECT=False)     # the last lines send one request
     def test_the_four_documents_that_promise_a_question_say_that_it_is_not_read(self):
         # Each of these documents says in so many places that a question in plain English is read. The promise
         # stays where it stood, and one sentence stands beside it.
