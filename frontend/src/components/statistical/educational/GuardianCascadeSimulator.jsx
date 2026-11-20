@@ -441,7 +441,7 @@ const GUIDE_CONTROLS = [
   ],
   [
     'Fixed setup (n = 55 vs 36, α = 0.05)',
-    'Not adjustable — these are the manuscript’s benchmark conditions, which is why the live rates line up with the published numbers.',
+    'Not adjustable — these are the manuscript’s benchmark conditions, which is why the live rates line up with the submitted numbers.',
   ],
 ];
 
@@ -471,8 +471,8 @@ const GUIDE_READOUTS = [
     'A plain-language reading of the current scenario. It turns amber on S6 to flag the openly-disclosed limitation.',
   ],
   [
-    'Published-benchmark strip',
-    'The exact Fig. 7 numbers for the current scenario, so you can confirm the live simulation is converging to the published result.',
+    'Submitted-benchmark strip',
+    'The exact Fig. 7 numbers for the current scenario, so you can confirm the live simulation is converging to the submitted result.',
   ],
   [
     'Verify result alert',
@@ -506,7 +506,7 @@ const GUIDE_SCENARIOS = [
 
 const GUIDE_USES = [
   'Students: pick S2 and watch the naïve t-test’s false-positive rate double while Guardian holds ~0.06 — then read the routing bars to see why it happened.',
-  'Reviewers: press Run across S1–S6, confirm the live rates settle onto the published-benchmark strip, then press Verify to prove the sim matches the deployed engine.',
+  'Reviewers: press Run across S1–S6, confirm the live rates settle onto the submitted-benchmark strip, then press Verify to prove the sim matches the deployed engine.',
   'Instructors: step through the scenarios live, use New draw for sampling variability, and use Verify as a live “the classroom demo is faithful to production” moment.',
 ];
 
@@ -1351,7 +1351,7 @@ const GuardianCascadeSimulator = () => {
         </Typography>
       </Paper>
 
-      {/* Published-benchmark strip (Type I mode only) */}
+      {/* Submitted-benchmark strip (Type I mode only) */}
       {!isPower && (
         <Paper
           variant="outlined"
@@ -1364,7 +1364,7 @@ const GuardianCascadeSimulator = () => {
           }}
         >
           <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, display: 'block', mb: 0.5 }}>
-            COMPARED AGAINST THE PUBLISHED BENCHMARK (FIG. 7, PANEL A)
+            COMPARED AGAINST THE SUBMITTED BENCHMARK (FIG. 7, PANEL A)
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 18px' }}>
             <BenchStat k="Naïve, reported:" v={sc.paperNaive} monoFont={monoFont} />

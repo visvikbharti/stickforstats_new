@@ -75,7 +75,7 @@ test('the page of the demonstration and the demonstration call it Fig. 7', () =>
   expect(text).toContain('It reproduces the manuscript’s calibration benchmark (Fig. 7) right in your browser:');
   // of the demonstration, what is on the screen before anything is opened
   expect(text).toContain('benchmark (manuscript Fig. 7) within Monte-Carlo error');
-  expect(text).toContain('COMPARED AGAINST THE PUBLISHED BENCHMARK (FIG. 7, PANEL A)');
+  expect(text).toContain('COMPARED AGAINST THE SUBMITTED BENCHMARK (FIG. 7, PANEL A)');
   expect(text).toContain('This component is Fig. 7 of the manuscript, made interactive');
   expect(text).not.toMatch(/Fig(ure)?\.?\s*8/i);
   expect(screen.getByText(/Why one t-test isn/i)).toBeInTheDocument();
@@ -86,14 +86,21 @@ test('the eight sentences, in the files that hold them', () => {
   const sentences = [
     [source('pages/ShowcaseHomePage.jsx'), 'calibration benchmark (Fig.&nbsp;7), running right in your browser.'],
     [source('pages/WhyGuardianPage.jsx'), 'calibration benchmark (Fig.&nbsp;7) right in your browser:'],
-    [simulator, "'The exact Fig. 7 numbers for the current scenario, so you can confirm the live simulation is converging to the published result.',"],
+    [simulator, "'The exact Fig. 7 numbers for the current scenario, so you can confirm the live simulation is converging to the submitted result.',"],
     [simulator, 'benchmark</b> (manuscript Fig. 7) within Monte-Carlo error'],
-    [simulator, 'COMPARED AGAINST THE PUBLISHED BENCHMARK (FIG. 7, PANEL A)'],
+    [simulator, 'COMPARED AGAINST THE SUBMITTED BENCHMARK (FIG. 7, PANEL A)'],
     [simulator, 'This component is Fig. 7 of the manuscript, made interactive'],
     [simulator, 'This widget is <b>Fig. 7 of the manuscript, made interactive</b>.'],
     [simulator, 'StickForStats calibration benchmark (Fig. 7), seed'],
   ];
   expect(sentences).toHaveLength(8);
+  // The manuscript is under review, and the demonstration says "submitted" of its benchmark, in five places.
+  expect(simulator.match(/submitted/gi)).toHaveLength(6);          // the five, and the comment beside the strip
+  expect(simulator).not.toMatch(/published/i);
+  for (const words of ['line up with the submitted numbers.', "'Submitted-benchmark strip',", 'converging to the submitted result.',
+    'settle onto the submitted-benchmark strip,', 'COMPARED AGAINST THE SUBMITTED BENCHMARK (FIG. 7, PANEL A)']) {
+    expect(simulator).toContain(words);
+  }
   sentences.forEach(([text, sentence]) => expect(text.split(sentence)).toHaveLength(2));
 });
 

@@ -116,11 +116,14 @@ describe('GuardianCascadeSimulator', () => {
 
   it('switches measurement mode when the Power toggle is pressed', () => {
     renderSim();
+    // The strip of the submitted benchmark is on the screen in the mode the simulator opens in.
+    expect(screen.getByText(/COMPARED AGAINST THE SUBMITTED BENCHMARK/i)).toBeInTheDocument();
     const power = screen.getByRole('button', { name: /Power \(real effect\)/i });
     fireEvent.click(power);
     expect(power).toHaveAttribute('aria-pressed', 'true');
-    // In Power mode the published-benchmark strip is hidden.
-    expect(screen.queryByText(/COMPARED AGAINST THE PUBLISHED BENCHMARK/i)).not.toBeInTheDocument();
+    // In Power mode it is hidden.
+    expect(screen.queryByText(/COMPARED AGAINST THE SUBMITTED BENCHMARK/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PUBLISHED BENCHMARK/i)).not.toBeInTheDocument();
   });
 
   it('anchors the current draw to the production Guardian and reports the routing match', async () => {
