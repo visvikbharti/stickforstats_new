@@ -45,7 +45,6 @@ jest.mock('../../../../context/SettingsContext', () => ({
   useSettings: () => ({ expertMode: false, shouldBlockTest: () => true }),
 }));
 
-jest.setTimeout(20000);
 
 // ten rows; the third has no "before" and the seventh has no "after"
 const BEFORE = [5.1, 6.3, '', 4.4, 8.0, 5.5, 6.1, 7.7, 5.9, 6.6];
