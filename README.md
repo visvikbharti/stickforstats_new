@@ -12,7 +12,7 @@
 [![SQS Rules](https://img.shields.io/badge/SQS_rules-45-informational.svg)](#statistical-quality-score)
 [![Pages](https://img.shields.io/badge/frontend_pages-25-orange.svg)](#project-structure)
 
-StickForStats is an open-source statistical analysis platform that takes researchers from raw data to journal-ready results with automatic assumption validation, manuscript review, and multi-tenant collaboration. Upload your data, describe your research question in plain English, and receive validated results with Guardian-checked assumptions, plain-language interpretation, and publication-quality reports.
+StickForStats is an open-source statistical analysis platform that takes researchers from raw data to journal-ready results with automatic assumption validation, manuscript review, and multi-tenant collaboration. Upload your data, describe your research question in plain English, and receive validated results with Guardian-checked assumptions, plain-language interpretation, and publication-quality reports. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 
 ---
 
@@ -22,7 +22,7 @@ Most statistical tools force researchers to choose between power and usability. 
 
 | Pillar | Problem it Solves | Key Capability |
 |--------|-------------------|----------------|
-| **Autonomous Intelligence** | "I have data but don't know which test to run" | Upload data + ask a question in plain English -- get validated results and a report |
+| **Autonomous Intelligence** | "I have data but don't know which test to run" | Upload data + ask a question in plain English -- get validated results and a report. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md. |
 | **Journal Integration** | "I need to verify the statistics in this manuscript" | Parse manuscripts, extract claims, validate consistency -- a statistical-verification layer for research papers |
 | **Universal Platform** | "My whole lab / department / journal needs this" | Multi-tenant RBAC, Python and R SDKs, LMS integration, GDPR compliance, SSO |
 
@@ -34,7 +34,7 @@ StickForStats makes statistical analysis accessible to researchers at every skil
 
 **SmartProfiler** -- Upload a dataset and SmartProfiler automatically detects variable types (continuous, categorical, ordinal), identifies distributions, flags quality issues, and infers possible research questions before you run a single test.
 
-**Natural Language Interface** -- Describe your research question in plain English via the NaturalLanguageBar. Intent detection parses your query, maps it to the appropriate statistical test, and returns results with full Guardian validation.
+**Natural Language Interface** -- Describe your research question in plain English via the NaturalLanguageBar. Intent detection parses your query, maps it to the appropriate statistical test, and returns results with full Guardian validation. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 
 **AutonomousCascadeEngine** -- When the Guardian system detects assumption violations, the cascade engine automatically falls back to appropriate alternative tests. A parametric t-test that fails the normality check is seamlessly rerouted to Mann-Whitney U with full documentation of the decision path.
 
@@ -413,6 +413,7 @@ print(f"Cohen's d = {result.effect_size.cohens_d}")
 print(f"Guardian confidence: {result.guardian.confidence_score}")
 
 # Autonomous analysis -- describe your question in plain English
+# This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 analysis = client.autonomous.query(
     data=my_dataframe,
     question="Is there a significant difference in test scores between the treatment and control groups?"
