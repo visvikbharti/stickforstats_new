@@ -73,6 +73,7 @@ ENTRIES = [
     "Of the four rank tests, Guardian is asked about the Mann-Whitney test only",
     'The regression module ends every run with "performLinearRegression is not a function"',
     "A file of 150,000 rows replaces the Data Profiling module with the error screen",
+    "A perfect rank correlation gets a p-value of 0, and the engine answers with the other rank correlation",
     'The "Measurement Column" menu of a control chart is empty',
     'In three lessons the button that asks the server ends in "is not a function"',
     "Every calculator asks for a project, and none can be made",
@@ -83,10 +84,13 @@ ENTRIES = [
     "The report does not say that rows were left out",
     'A reported "p < .001" is printed as "0.0010"',
     "A figure image or a scanned PDF is not read",
+    "A t-test is recomputed as Student's when its degrees of freedom are printed whole, whatever the sentence says",
     "A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above",
     'The signed-rank route with `zero_method` "pratt" or "zsplit"',
     "The genomics routes report fold changes in the wrong direction when the two groups are not named",
     "The F test of a regression: a p-value of 0, and F = 0 with p = 1 for an exact fit",
+    "A chi-square test of a 2 x 2 table gets two p-values on two routes",
+    "The Friedman route reads `groups` as one list for each subject",
     "The e-mail address, the saved projects and the receipts are kept",
 ]
 FOUR_QUESTIONS = ("Is weight different between the two groups?", "Is there a relationship between weight and height?",
@@ -914,6 +918,190 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertEqual(response.status_code, 400, response.content[:300])
         self.assertEqual(response.json()["error"],
                          "No manuscript text could be extracted from the bundle (no readable manuscript or OCR'able figure was found).")
+
+    def _json(self, url, body):
+        response = self.client.post(url, body, format="json", HTTP_X_FORWARDED_PROTO="https")
+        self.assertEqual(response.status_code, 200, (url, response.content[:200]))
+        return response.json()
+
+    def test_the_answers_advise_a_rank_test_after_their_normality_check(self):
+        flat = one_line(read(FILE))
+        skewed = [0.4, 0.5, 0.7, 0.9, 1.1, 1.4, 1.8, 2.6, 4.1, 7.5, 15.0, 41.0]
+        even = [3.6, 3.9, 4.1, 4.2, 4.4, 4.5, 4.7, 4.8, 5.0, 5.3, 5.6, 6.0]
+        third = [0.3, 0.6, 0.8, 1.0, 1.3, 1.7, 2.2, 3.0, 4.6, 8.0, 12.0, 30.0]
+        check = {"options": {"check_assumptions": True}}
+        t_test = self._json("/api/v1/stats/ttest/", dict(check, test_type="two_sample", data1=skewed, data2=even))["recommendations"]
+        anova = self._json("/api/v1/stats/anova/", dict(check, anova_type="one_way", groups=[skewed, even, third]))["recommendations"]
+        normality = self._json("/api/guardian/validate/normality/", {"data": skewed})
+        self.assertIn("Data may not be normally distributed. Consider the Mann-Whitney U test.", t_test)
+        self.assertIn("Normality assumption violated. Consider the Kruskal-Wallis test.", anova)
+        self.assertEqual((normality["is_normal"], normality["details"]["recommendation"]),
+                         (False, "Consider transformation (log, sqrt) or use non-parametric tests"))
+        for said in ("Data may not be normally distributed. Consider the Mann-Whitney U test.",
+                     "Normality assumption violated. Consider the Kruskal-Wallis test.",
+                     "Consider transformation (log, sqrt) or use non-parametric tests"):
+            self.assertIn(f'"{said}"', flat)
+        # the advice follows from the check: two groups that pass it get none
+        shifted = [value + 0.4 for value in even]
+        passing = self._json("/api/v1/stats/ttest/", dict(check, test_type="two_sample", data1=even, data2=shifted))["recommendations"]
+        self.assertEqual(passing, [])
+        self.assertIn("`POST /api/v1/stats/ttest/`, `POST /api/v1/stats/anova/` and `POST /api/guardian/validate/normality/`", flat)
+
+    def test_a_perfect_rank_correlation(self):
+        import math
+
+        flat = one_line(read(FILE))
+        five = ([1, 2, 3, 4, 5], [1.0, 1.2, 1.9, 4.5, 20.0])
+        eight = (list(range(1, 9)), [0.5, 0.6, 0.9, 1.5, 2.8, 5.0, 9.7, 30.0])
+
+        def route(rows, method):
+            result = self._json("/api/v1/stats/correlation/", {"x": rows[0], "y": rows[1], "method": method})["high_precision_result"]
+            return float(result["correlation_coefficient"]), float(result["p_value"])
+
+        def engine(rows, test):
+            answer = self._json("/api/v1/autonomous/cascade/", {"test": test, "data": {"x": rows[0], "y": rows[1]}})
+            return answer["final_test"], answer["result"]["p_value"]
+
+        for rows in (five, eight):
+            exact = 2 / math.factorial(len(rows[0]))
+            self.assertEqual(route(rows, "spearman"), (1.0, 0.0))
+            coefficient, p_value = route(rows, "kendall")
+            self.assertAlmostEqual(coefficient, 1.0, places=12)
+            self.assertAlmostEqual(p_value, exact, places=15)
+        self.assertEqual((f"{2 / math.factorial(5):.4f}", f"{2 / math.factorial(8):.7f}"), ("0.0167", "0.0000496"))
+        self.assertIn("The exact p-value of five such rows is 0.0167, and of eight 0.0000496;", flat)
+        # the engine answers a request for one rank correlation with the other
+        final, p_value = engine(five, "spearman")
+        self.assertEqual(final, "kendall")
+        self.assertAlmostEqual(p_value, 2 / 120, places=15)
+        final, p_value = engine(five, "kendall")
+        self.assertEqual((final, f"{p_value:.1e}"), ("spearman", "1.4e-24"))
+        self.assertEqual(engine(eight, "kendall"), ("spearman", 0.0))
+        self.assertIn('a request for `spearman` came back with Kendall\'s test (`final_test` "kendall", p = 0.0167), and a request for '
+                      "`kendall` with Spearman's (p = 1.4e-24).", flat)
+        # what the tab prints for a p-value of 0
+        self.assertIn("const BELOW_EPSILON = '< 2.2e-16';", read(SRC / "utils/formatStats.js"))
+        self.assertIn("  if (p === 0) return BELOW_EPSILON;", read(SRC / "utils/formatStats.js"))
+        tab = read(SRC / "components/statistical-analysis/statistical-tests/CorrelationTests.jsx")
+        self.assertIn("{formatPValue(pairwiseCorrelation.pValue)}", tab)
+        self.assertIn("const CORRELATION_URL = '/v1/stats/correlation/';", read(SRC / "components/statistical-analysis/utils/hubTestService.js"))
+        self.assertIn('the tab prints a p-value of 0 as "< 2.2e-16"', flat)
+
+    def test_the_t_test_the_manuscript_check_recomputes(self):
+        from api.v1 import verify_views
+        from scipy import stats
+
+        flat = one_line(read(FILE))
+        for throttle in verify_views.VERIFY_THROTTLES:          # 30 requests an hour without a sign-in
+            patcher = mock.patch.object(throttle, "allow_request", return_value=True)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        first = [11.1, 8.72, 10.65, 8.8, 11.07, 8.44, 9.29, 9.39]
+        second = [-0.63, 17.12, 2.69, 4.16, 8.61, 16.47, 7.12, 23.93, 11.85, 10.27, 14.69, 11.21, 5.65, 8.7, 13.0, 21.46, 13.58, 14.85,
+                  -1.43, 10.39]
+        before = [49.7, 67.6, 65.9, 51.2, 55.3, 49.3, 42.7, 50.2, 46.2, 53.2, 56.8, 48.0]
+        after = [53.4, 67.9, 67.9, 53.5, 54.5, 52.2, 45.8, 54.8, 48.1, 56.1, 59.8, 47.5]
+
+        def long_table(one, other, names):
+            return "group,value\n" + "".join(f"{names[0]},{v}\n" for v in one) + "".join(f"{names[1]},{v}\n" for v in other)
+
+        def checked(sentence, table):
+            text = f"Methods. Two groups were compared. Results. The groups differed ({sentence})."
+            response = self.client.post("/api/v1/verify/analyze/", {"text": text, "data": SimpleUploadedFile("data.csv", table.encode())},
+                                        format="multipart", HTTP_X_FORWARDED_PROTO="https")
+            self.assertEqual(response.status_code, 200, response.content[:300])
+            claims = response.json()["claims"]
+            self.assertEqual(len(claims), 1, sentence)
+            return claims[0]["verdict"], claims[0]["recomputed"]["test"], claims[0]["recomputed"]["p_value"], claims[0]["assumptions"]["violations"]
+
+        welch, student = stats.ttest_ind(first, second, equal_var=False), stats.ttest_ind(first, second, equal_var=True)
+        two_groups = long_table(first, second, ("control", "treated"))
+        whole = f"Welch's t-test, t({round(welch.df)}) = {welch.statistic:.2f}, p = {welch.pvalue:.3f}"
+        self.assertEqual(whole, "Welch's t-test, t(21) = -0.65, p = 0.522")
+        verdict, test, p_value, violations = checked(whole, two_groups)
+        self.assertEqual((verdict, test, f"{p_value:.3f}"), ("ASSUMPTION_VIOLATED", "independent_t", "0.679"))
+        self.assertAlmostEqual(p_value, student.pvalue, places=12)
+        decimal = f"Welch's t-test, t({welch.df:.2f}) = {welch.statistic:.2f}, p = {welch.pvalue:.3f}"
+        self.assertIn("t(21.38)", decimal)
+        verdict, test, p_value, violations = checked(decimal, two_groups)
+        self.assertEqual((verdict, test), ("ASSUMPTION_VIOLATED", "welch_t"))
+        self.assertAlmostEqual(p_value, welch.pvalue, places=12)
+        self.assertEqual(len(violations), 1)
+        self.assertTrue(violations[0].startswith("Variance homogeneity violated"), violations)
+        paired = stats.ttest_rel(before, after)
+        sentence = f"a paired t-test, t({len(before) - 1}) = {paired.statistic:.2f}, p = {paired.pvalue:.3f}"
+        self.assertEqual(sentence, "a paired t-test, t(11) = -4.41, p = 0.001")
+        verdict, test, p_value, violations = checked(sentence, long_table(before, after, ("before", "after")))
+        self.assertEqual((test, f"{p_value:.3f}"), ("independent_t", "0.485"))
+        self.assertAlmostEqual(p_value, stats.ttest_ind(before, after).pvalue, places=12)
+        verdict, test, p_value, violations = checked(sentence, "before,after\n" + "".join(f"{u},{v}\n" for u, v in zip(before, after)))
+        self.assertEqual((verdict, test, p_value), ("INSUFFICIENT_DATA", "independent_t", None))
+        for said in ('For two groups of 8 and 20 values, "Welch\'s t-test, t(21) = -0.65, p = 0.522" was recomputed as Student\'s t-test, p = 0.679.',
+                     'For 12 pairs, "a paired t-test, t(11) = -4.41, p = 0.001" was recomputed as Student\'s t-test of two groups, p = 0.485,',
+                     'was not recomputed from a table with one column for each occasion ("INSUFFICIENT_DATA")',
+                     'the same two groups with "t(21.38)" were recomputed as Welch\'s t-test and got the verdict "ASSUMPTION_VIOLATED" for '
+                     '"Variance homogeneity violated"'):
+            self.assertIn(said, flat)
+        self.assertEqual((len(first), len(second), len(before)), (8, 20, 12))
+
+    def test_a_two_by_two_table_on_two_routes(self):
+        from scipy import stats
+
+        flat = one_line(read(FILE))
+        table = [[12, 9], [7, 15]]
+        plain, corrected = (stats.chi2_contingency(table, correction=value)[1] for value in (False, True))
+        self.assertEqual((f"{plain:.4f}", f"{corrected:.4f}"), ("0.0946", "0.1724"))
+        self.assertIn("For the table 12, 9 / 7, 15 the first answers p = 0.0946 and the second p = 0.1724.", flat)
+        url = "/api/v1/categorical/chi-square/independence/"
+        asked = self._json(url, {"contingency_table": table})["results"]
+        self.assertAlmostEqual(float(asked["p_value"]), plain, places=12)
+        self.assertIs(asked["yates_correction"], False)
+        with_it = self._json(url, {"contingency_table": table, "yates_correction": True})["results"]
+        self.assertAlmostEqual(float(with_it["p_value"]), corrected, places=12)
+        self.assertIs(with_it["yates_correction"], True)
+        engine = self._json("/api/v1/autonomous/cascade/", {"test": "chi_square_independence", "data": {"table": table}})
+        self.assertEqual(engine["final_test"], "chi_square_independence")
+        self.assertAlmostEqual(engine["result"]["p_value"], corrected, places=12)
+        whole_answer = json.dumps(engine).lower()
+        for word in ("yates", "correction", "continuity"):
+            self.assertNotIn(word, whole_answer)
+        # the tab of the hub asks the first route, sends no word on the correction and shows none
+        service = read(SRC / "components/statistical-analysis/utils/hubTestService.js")
+        self.assertIn("contingency_table: contingencyTable,", service)
+        self.assertEqual(service.count("yates_correction"), 1)
+        self.assertIn("yatesCorrection: hp.yates_correction ?? null,", service)
+        tab = read(SRC / "components/statistical-analysis/statistical-tests/CategoricalTests.jsx").lower()
+        for word in ("yates", "continuity", "correction"):
+            self.assertNotIn(word, tab)
+
+    def test_the_friedman_route_reads_groups_as_subjects(self):
+        from scipy import stats
+
+        flat = one_line(read(FILE))
+        conditions = [[5.1, 6.3, 4.4, 8.0, 5.5, 7.7], [6.0, 7.1, 5.9, 8.4, 6.9, 8.8], [7.9, 8.2, 7.7, 10.1, 8.0, 10.4]]
+        subjects = [list(row) for row in zip(*conditions)]
+        url = "/api/v1/nonparametric/friedman/"
+        right = self._json(url, {"measurements": subjects})["results"]
+        self.assertAlmostEqual(float(right["p_value"]), stats.friedmanchisquare(*conditions).pvalue, places=12)
+        self.assertEqual(right["sample_sizes"], [6, 3])
+        other = self._json(url, {"groups": conditions})["results"]
+        self.assertAlmostEqual(float(other["p_value"]), stats.friedmanchisquare(*subjects).pvalue, places=12)
+        self.assertEqual(other["sample_sizes"], [3, 6])
+        self.assertEqual((f"{float(right['p_value']):.4f}", f"{float(other['p_value']):.4f}"), ("0.0025", "0.0121"))
+        self.assertIn("three conditions measured on six subjects were answered with p = 0.0121 and `sample_sizes` [3, 6], where the test "
+                      "of the three conditions gives p = 0.0025 and `sample_sizes` [6, 3].", flat)
+        # the Kruskal-Wallis route reads the same name as one list for each group
+        kruskal = self._json("/api/v1/nonparametric/kruskal-wallis/", {"groups": conditions})["results"]
+        self.assertAlmostEqual(float(kruskal["p_value"]), stats.kruskal(*conditions).pvalue, places=12)
+        # the two pages that run the test send one row for each subject, under `measurements`
+        hub = read(SRC / "components/statistical-analysis/statistical-tests/NonParametricTests.jsx")
+        self.assertIn("      runBackendTest(endpoints.nonparametric.friedman, {\n        measurements: subjectMajor,", hub)
+        module = read(SRC / "services/NonParametricTestsService.js")
+        self.assertIn("      const requestData = {\n        measurements: data,", module)
+        sent = [name for name in ("components/statistical-analysis/statistical-tests/NonParametricTests.jsx", "services/NonParametricTestsService.js",
+                                  "modules/NonParametricTestsRealProfessional.jsx")
+                if "friedman" in read(SRC / name).lower() and "groups:" in read(SRC / name).split("friedman")[-1][:400]]
+        self.assertEqual(sent, [])
 
     def test_the_paired_test_of_the_page_checks_each_sample(self):
         assumptions = self._t_test("paired")["assumptions"]
