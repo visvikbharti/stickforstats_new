@@ -67,6 +67,9 @@ global.performance = {
   }
 };
 
+// The budget of a test that asserts nothing about time: ten minutes.
+const NO_MACHINE_RUNS_OUT_OF_THIS = 10 * 60 * 1000;
+
 describe('Performance Tests - High Volume Operations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -464,6 +467,12 @@ describe('Performance Tests - Stress Conditions', () => {
       expect(results.filter(r => r.valid).length).toBeGreaterThan(queueSize * 0.99);
     });
 
+    // This test asserts a rate of success and nothing about time. It ran inside Jest's default
+    // budget of five seconds for one test, and on a busy machine its 50,000 validations with a
+    // pause of 10 ms after each of the 50 batches did not fit: it failed with "Exceeded timeout of
+    // 5000 ms", with nothing wrong in the code under test. It now has a budget no machine runs out
+    // of, and between batches it gives way for one turn of the event loop, which is what the pause
+    // was for, and does not wait for a time.
     test('should gracefully degrade under extreme load', async () => {
       const extremeLoad = 50000;
       const batchSize = 1000;
@@ -488,16 +497,17 @@ describe('Performance Tests - Stress Conditions', () => {
           duration: batchDuration
         });
 
-        // Brief pause between batches
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Give way between batches: one turn of the event loop
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
 
       // Should maintain > 95% success rate
       const totalSuccess = successCounts.reduce((sum, b) => sum + b.successCount, 0);
       const successRate = totalSuccess / extremeLoad;
 
+      expect(successCounts).toHaveLength(extremeLoad / batchSize);
       expect(successRate).toBeGreaterThan(0.95);
-    });
+    }, NO_MACHINE_RUNS_OUT_OF_THIS);
   });
 
   describe('Error Recovery Performance', () => {
