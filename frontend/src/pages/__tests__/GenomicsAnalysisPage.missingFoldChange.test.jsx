@@ -12,10 +12,6 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import GenomicsAnalysisPage from '../GenomicsAnalysisPage';
 
-// Each test renders the whole page and waits on its data flow (FileReader, mocked API) for up to
-// 5 s per step. Jest's default budget is 5 s for the whole test, which ran out under a loaded
-// full-suite run ("Exceeded timeout of 5000 ms"), and CI runners can be slower.
-jest.setTimeout(20000);
 
 jest.mock('recharts', () => {
   const Stub = ({ children }) => <div>{children}</div>;
@@ -64,9 +60,9 @@ test('a gene whose fold change is undefined shows a dash, and the table still re
   // FileReader is asynchronous; under a loaded test run the step change can exceed the default
   // 1 s wait.
   fireEvent.click(
-    await screen.findByRole('button', { name: /run differential expression/i }, { timeout: 5000 })
+    await screen.findByRole('button', { name: /run differential expression/i })
   );
-  await screen.findByText(/Gene Results/, {}, { timeout: 5000 });
+  await screen.findByText(/Gene Results/);
 
   const unexpressed = screen.getByRole('row', { name: /UNEXPRESSED/ });
   expect(within(unexpressed).getByText('—')).toBeInTheDocument();

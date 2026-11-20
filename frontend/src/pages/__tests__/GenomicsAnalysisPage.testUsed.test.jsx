@@ -12,10 +12,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import GenomicsAnalysisPage from '../GenomicsAnalysisPage';
 import { describeTestUsed } from '../../utils/genomicsTestUsed';
 
-// Each test renders the whole page and waits on its data flow (FileReader, mocked API) for up to
-// 5 s per step. Jest's default budget is 5 s for the whole test, which ran out under a loaded
-// full-suite run ("Exceeded timeout of 5000 ms"), and CI runners can be slower.
-jest.setTimeout(20000);
 
 jest.mock('recharts', () => {
   const Stub = ({ children }) => <div>{children}</div>;
@@ -68,9 +64,9 @@ const showResults = async () => {
   // FileReader is asynchronous; under a loaded test run the step change can exceed the default
   // 1 s wait.
   fireEvent.click(
-    await screen.findByRole('button', { name: /run differential expression/i }, { timeout: 5000 })
+    await screen.findByRole('button', { name: /run differential expression/i })
   );
-  await screen.findByText(/Gene Results/, {}, { timeout: 5000 });
+  await screen.findByText(/Gene Results/);
 };
 
 describe('describeTestUsed', () => {
@@ -97,7 +93,7 @@ describe('the results table tooltip', () => {
     // MUI opens a Tooltip on mouseover of its child. (@testing-library/user-event is installed but
     // cannot load here: its peer @testing-library/dom is only nested under @testing-library/react.)
     fireEvent.mouseOver(screen.getByText('welch_t_test'));
-    expect(await screen.findByRole('tooltip', {}, { timeout: 5000 })).toHaveTextContent(
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
       "Guardian switched to Welch's t-test (unequal variances)"
     );
   });

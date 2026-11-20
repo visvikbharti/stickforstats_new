@@ -464,19 +464,26 @@ class PlainLanguageTranslator:
     def _translate_fisher_exact(self, r: Dict, mode: str, alpha: float) -> Dict[str, Any]:
         p = r.get("p_value", 1.0)
         sig = p < alpha
-        odds = r.get("effect_size", 1.0)
+        odds = r.get("effect_size")
+        if odds is None:
+            # The odds ratio is written as null when it is not a finite number: a cell of the table
+            # is zero. It is not shown as 1, and not as a number.
+            said = f"the odds ratio is {r.get('statistic_note') or 'not a finite number'}"
+            short = label = "OR not finite"
+        else:
+            said, short, label = f"odds ratio = {odds:.2f}", f"OR = {odds:.3f}", f"OR = {odds:.2f}"
         if mode == OutputMode.PLAIN_ENGLISH:
             if sig:
-                summary = f"There IS a significant association (odds ratio = {odds:.2f})."
+                summary = f"There IS a significant association ({said})."
             else:
                 summary = "There is NO significant association."
         else:
-            summary = f"Fisher's exact test: OR = {odds:.3f}, p = {p:.4f}"
+            summary = f"Fisher's exact test: {short}, p = {p:.4f}"
         return {
             "summary": summary,
             "details": "",
             "is_significant": sig,
-            "effect_size_interpretation": {"category": "odds_ratio", "label": f"OR = {odds:.2f}"},
+            "effect_size_interpretation": {"category": "odds_ratio", "label": label},
             "recommendation": "",
         }
 

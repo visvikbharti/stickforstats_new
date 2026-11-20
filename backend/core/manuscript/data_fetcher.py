@@ -27,7 +27,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-UA = {"User-Agent": "stickforstats-fetch/1.0 (research; mailto:vishalvikashbharti@gmail.com)"}
+from .contact import user_agent
+
+CLIENT = "stickforstats-fetch/1.0"     # the contact address, if any, is the operator's setting (contact.py)
 DEFAULT_MAX_BYTES = 100 * 1024 * 1024  # 100 MB per file
 
 _DATA_EXT = (".csv", ".tsv", ".txt", ".tab", ".xlsx", ".xls")
@@ -64,7 +66,7 @@ class FetchResult:
 
 
 def _get(url: str, max_bytes: int = DEFAULT_MAX_BYTES, head: bool = False):
-    req = urllib.request.Request(url, headers=UA, method="HEAD" if head else "GET")
+    req = urllib.request.Request(url, headers=user_agent(CLIENT), method="HEAD" if head else "GET")
     with urllib.request.urlopen(req, timeout=90) as resp:
         if head:
             return b"", int(resp.headers.get("Content-Length") or 0)

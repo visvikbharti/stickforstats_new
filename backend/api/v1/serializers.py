@@ -11,6 +11,31 @@ from core.hp_nonparametric_comprehensive import (
 )
 
 
+def empty_entries(raw):
+    """1-based positions of the empty entries inside a column sent as comma-separated text.
+
+    The fields below skip an empty entry ("5.1,,4.9" is read as two values). For separate samples that
+    is harmless. Where the position of a value says which unit it belongs to (a paired test, a
+    repeated-measures ANOVA, an ANCOVA with its covariates), skipping it moves every later value one
+    position up, and values of different units are then paired without a word. Those requests are
+    refused instead. Empty entries after the last value (a trailing separator) do not count.
+    """
+    if not isinstance(raw, str):
+        return []
+    tokens = [t.strip() for t in raw.split(",")]
+    while tokens and not tokens[-1]:
+        tokens.pop()
+    return [i + 1 for i, t in enumerate(tokens) if not t]
+
+
+def _columns_of(raw):
+    """The columns of a request's "groups" or "covariates" as sent: [(label, text or None), ...]."""
+    if not isinstance(raw, list):
+        return []
+    return [(str(item.get("name") or i + 1), item.get("data") if isinstance(item.get("data"), str) else None)
+            for i, item in enumerate(raw) if isinstance(item, dict)]
+
+
 class FlexibleDataField(serializers.Field):
     """Field that accepts both string (comma-separated) and list formats"""
 
@@ -205,6 +230,14 @@ class TTestRequestSerializer(serializers.Serializer):
 
         # For paired test, ensure equal lengths
         if test_type == "paired" and "data2" in data:
+            for name in ("data1", "data2"):
+                gaps = empty_entries(getattr(self, "initial_data", {}).get(name))
+                if gaps:
+                    raise serializers.ValidationError(
+                        f"{name} has an empty entry at position {gaps[0]}. In a paired test, position i of data1 and "
+                        "position i of data2 are one pair, so an empty entry cannot be skipped. Remove that pair "
+                        "from both columns."
+                    )
             if len(data["data1"]) != len(data["data2"]):
                 raise serializers.ValidationError("Paired test requires data1 and data2 to have equal length")
 
@@ -458,6 +491,17 @@ class ANOVARequestSerializer(serializers.Serializer):
         # Get normalized values
         anova_type = data["anova_type"]
         groups = data["groups"]
+
+        if anova_type == "repeated_measures":
+            sent = getattr(self, "initial_data", {})
+            for label, text in _columns_of(sent.get("data") if "data" in sent else sent.get("groups")):
+                gaps = empty_entries(text)
+                if gaps:
+                    raise serializers.ValidationError(
+                        f"Condition {label} has an empty entry at position {gaps[0]}. In a repeated-measures ANOVA, "
+                        "position i of every condition is the same subject, so an empty entry cannot be skipped. "
+                        "Remove that subject from every condition."
+                    )
 
         # Validate groups data
         for i, group in enumerate(groups):
@@ -792,6 +836,17 @@ class ANCOVARequestSerializer(serializers.Serializer):
         """Cross-field validation"""
         groups = attrs.get("groups", [])
         covariates = attrs.get("covariates", [])
+
+        sent = getattr(self, "initial_data", {})
+        for kind, key in (("Group", "groups"), ("Covariate", "covariates")):
+            for label, text in _columns_of(sent.get(key)):
+                gaps = empty_entries(text)
+                if gaps:
+                    raise serializers.ValidationError(
+                        f"{kind} {label} has an empty entry at position {gaps[0]}. In an ANCOVA every observation "
+                        "has its covariate value at the same position, so an empty entry cannot be skipped. Remove "
+                        "that observation from its group and from every covariate."
+                    )
 
         if groups and covariates:
             # Total observations should match

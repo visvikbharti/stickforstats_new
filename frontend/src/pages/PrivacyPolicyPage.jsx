@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, Button, Link } from '@mui/material';
+import { EMAIL_ADDRESS_IS_KEPT } from './privacyErasure';
 
 const ISSUES_URL = 'https://github.com/visvikbharti/stickforstats_new/issues';
 
@@ -176,8 +177,8 @@ const PrivacyPolicyPage = () => (
       <Typography variant="body1" paragraph>
         With an account, Privacy settings lets you download part of your account data and close
         your account: that removes your analysis sessions, consents and memberships, anonymises
-        your usage and audit records, clears your name and deactivates the account. Your email
-        address stays in our database, because it is also your username. It does not yet delete
+        your usage and audit records, clears your name and deactivates the account.{' '}
+        {EMAIL_ADDRESS_IS_KEPT} It does not yet delete
         everything saved under an account (for example saved PCA, quality-control,
         confidence-interval or probability-distribution projects, or receipts, which stay linked
         to the deactivated account), so ask us by email if you need the account itself and those

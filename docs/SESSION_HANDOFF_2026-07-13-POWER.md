@@ -150,7 +150,7 @@ Rollback point, tagged on the host as `stickforstats/{backend,frontend}:rollback
 > start from [`README.md`](README.md), which is the undated index.
 
 - ~~**Beta Basic-Auth password has NOT been rotated** off the old one.~~
-  **FALSE.** It *was* rotated on 2026-07-13 (off the weak `qwerty121`). Verified 2026-07-14 by
+  **FALSE.** It *was* rotated on 2026-07-13 (off the weak `<beta password>`). Verified 2026-07-14 by
   `htpasswd -vb` against the live `nginx/ssl/.htpasswd` **and** a 200 through the edge. The secret
   lives only in `/root/stickforstats-beta-access.txt` on the host.
   This one wrong line got repeated for two days, because nothing said which document to trust — it is

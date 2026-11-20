@@ -24,13 +24,14 @@ class LandingValidatorCountTest(SimpleTestCase):
 
         # "9 assumption validators guard ..." (hero) and "9 Validators" (documentation heading)
         counts = [int(n) for n in re.findall(r"(\d+)\s+(?:assumption\s+)?validators\b", source, flags=re.IGNORECASE)]
-        # the trust indicator: <span className="trust-number">9</span> ... Guardian Validators
-        counts += [
-            int(n)
-            for n in re.findall(
-                r'trust-number">(\d+)</span>\s*<span className="trust-label">Guardian Validators', source
-            )
-        ]
 
-        self.assertEqual(len(counts), 3, f"expected the hero, trust indicator and heading counts, found {counts}")
+        self.assertEqual(len(counts), 2, f"expected the hero and the heading counts, found {counts}")
         self.assertEqual(set(counts), {registered}, f"landing page says {counts}; GuardianCore registers {registered}")
+
+    def test_the_two_labels_under_the_buttons_carry_no_number(self):
+        # They read "50 Decimal Precision" and "9 Guardian Validators". Not every result is computed to 50
+        # decimals, and one of the nine validators is run by no check, so both stand without a number.
+        source = LANDING.read_text(encoding="utf-8")
+        self.assertNotIn("trust-number", source)
+        labels = re.findall(r'<span className="trust-label">([^<]+)</span>', source)
+        self.assertEqual(labels, ["High-precision arithmetic", "Guardian assumption checks"])

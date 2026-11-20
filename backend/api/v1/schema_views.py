@@ -1734,11 +1734,17 @@ def _build_paths() -> dict:  # noqa: C901  (intentionally large for completeness
         "post": {
             "tags": [_tag],
             "operationId": "autonomousQuery",
-            "summary": "Natural-language autonomous analysis pipeline",
+            "summary": "Answers 501: this version cannot read a question",
+            "description": (
+                "Every request is answered with status 501 and one sentence under \"error\". "
+                "No file is read and no test is run."
+            ),
             "requestBody": _json_body(_ref("AutonomousQueryRequest")),
             "responses": {
-                "200": _json_response({"type": "object", "additionalProperties": True}),
-                **_error_responses(),
+                "501": _json_response(
+                    {"type": "object", "properties": {"error": {"type": "string"}}, "required": ["error"]},
+                    "Nothing was analysed: this version cannot read a question",
+                ),
             },
         },
     }

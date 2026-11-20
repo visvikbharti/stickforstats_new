@@ -7,11 +7,15 @@ consent management, and data export per GDPR Articles 15-20.
 
 import logging
 from datetime import timedelta
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+# What a data export prints as the grant time of a consent that was refused and never given.
+NEVER_GRANTED = "never granted"
 
 
 class GDPRService:
@@ -45,7 +49,7 @@ class GDPRService:
                 consents[consent_type] = {
                     "label": label,
                     "granted": record.granted,
-                    "granted_at": record.granted_at.isoformat() if record.granted else None,
+                    "granted_at": record.granted_at.isoformat() if record.granted and record.granted_at else None,
                     "revoked_at": record.revoked_at.isoformat() if record.revoked_at else None,
                     "version": record.version,
                 }
@@ -68,20 +72,25 @@ class GDPRService:
         if consent_type not in valid_types:
             return {"error": f"Invalid consent type. Valid: {valid_types}"}
 
-        record, created = ConsentRecord.objects.update_or_create(
-            user=user,
-            consent_type=consent_type,
-            defaults={
-                "granted": granted,
-                "ip_address": ip_address,
-                "user_agent": user_agent or "",
-                "granted_at": timezone.now() if granted else None,
-                "revoked_at": timezone.now() if not granted else None,
-                "version": "1.0",
-            },
-        )
+        now = timezone.now()
+        with transaction.atomic():
+            record, _ = ConsentRecord.objects.select_for_update().get_or_create(user=user, consent_type=consent_type)
+            was_given = record.granted
+            record.granted = granted
+            record.ip_address = ip_address
+            record.user_agent = user_agent or ""
+            record.version = "1.0"
+            if granted:
+                record.granted_at, record.revoked_at = now, None
+            elif was_given:
+                # A withdrawal. The time at which consent was given stays on record.
+                record.revoked_at = now
+            # A "no" to a consent that is not in force changes neither time. A record that a refusal
+            # creates has no grant time and no revocation time: nothing was given, so nothing was
+            # revoked, and the settings page would otherwise show it as "Revoked on" that day.
+            record.save()
 
-        action = "granted" if granted else "revoked"
+        action = "granted" if granted else "withdrew" if was_given else "refused"
         logger.info(f"GDPR: User {user.username} {action} consent for {consent_type}")
 
         return {
@@ -126,7 +135,7 @@ class GDPRService:
                 {
                     "type": record.consent_type,
                     "granted": record.granted,
-                    "granted_at": record.granted_at.isoformat() if record.granted_at else None,
+                    "granted_at": record.granted_at.isoformat() if record.granted_at else NEVER_GRANTED,
                     "revoked_at": record.revoked_at.isoformat() if record.revoked_at else None,
                     "version": record.version,
                 }
@@ -299,6 +308,7 @@ class GDPRService:
                 "Right to data portability (Art. 20)",
                 "Right to object (Art. 21)",
             ],
-            "data_protection_officer": "dpo@stickforstats.org",
+            # No officer and no contact address: the address that stood here was on a domain that does
+            # not belong to the project, and nobody holds that role.
             "supervisory_authority": "Contact your national data protection authority",
         }

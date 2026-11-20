@@ -20,13 +20,6 @@ info:
     - Professional users: 5000 requests/hour
     - Enterprise users: Unlimited
 
-    ## Compliance
-    This API is fully compliant with:
-    - FDA 21 CFR Part 11
-    - GxP guidelines
-    - ISO 9001:2015
-    - HIPAA (when configured)
-
   version: 1.0.0
   contact:
     name: StickForStats API Support

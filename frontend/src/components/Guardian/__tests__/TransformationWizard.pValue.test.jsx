@@ -10,7 +10,6 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TransformationWizard from '../TransformationWizard';
 
-jest.setTimeout(20000);
 
 // Plain functions: CRA's resetMocks would clear jest.fn implementations defined here.
 jest.mock('../../../services/TransformationService', () => ({

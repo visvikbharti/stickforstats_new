@@ -124,9 +124,7 @@ const ProfessionalLanding = ({ onEnter }) => {
 
             {/* Value Proposition */}
             <p className="value-proposition">
-              A statistical analysis platform with built-in Guardian protection
-              that guards against Type I errors before they happen. Trusted by researchers
-              who value scientific integrity over p-hacking.
+              A statistical analysis platform with built-in assumption checks (Guardian).
             </p>
 
             {/* Key Features Grid */}
@@ -148,8 +146,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="feature-item">
                 <div className="feature-icon tests-icon">📊</div>
                 <div className="feature-content">
-                  <h3>46+ Statistical Tests</h3>
-                  <p>Comprehensive suite with educational mode</p>
+                  <h3>Statistical Tests</h3>
+                  <p>With an educational mode</p>
                 </div>
               </div>
             </div>
@@ -165,19 +163,14 @@ const ProfessionalLanding = ({ onEnter }) => {
               </button>
             </div>
 
-            {/* Trust Indicators */}
+            {/* Two things the platform has, without a number: not every result is computed to 50
+                decimals, and one of the nine validators is run by no check. */}
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-number">46+</span>
-                <span className="trust-label">Statistical Tests</span>
+                <span className="trust-label">High-precision arithmetic</span>
               </div>
               <div className="trust-item">
-                <span className="trust-number">50</span>
-                <span className="trust-label">Decimal Precision</span>
-              </div>
-              <div className="trust-item">
-                <span className="trust-number">9</span>
-                <span className="trust-label">Guardian Validators</span>
+                <span className="trust-label">Guardian assumption checks</span>
               </div>
             </div>
           </motion.div>
@@ -291,9 +284,11 @@ const ProfessionalLanding = ({ onEnter }) => {
                 <h4>Data Requirements</h4>
                 <ul className="doc-list">
                   <li>Format: CSV files with headers</li>
-                  <li>Size: Up to 1M observations supported</li>
                   <li>Columns: Numeric and categorical variables</li>
-                  <li>Missing values: Handled automatically with multiple imputation options</li>
+                  <li>
+                    Missing values: counted for every column; you choose whether to keep them, drop
+                    their rows, or fill them with the mean, median or mode
+                  </li>
                 </ul>
               </div>
             </div>
@@ -304,8 +299,8 @@ const ProfessionalLanding = ({ onEnter }) => {
               <div className="doc-content">
                 <h4>What It Does</h4>
                 <p>
-                  Guardian validates statistical assumptions BEFORE running tests, guarding
-                  against the Type I errors and false positives that plague published research.
+                  Guardian checks the assumptions of a test before it runs and reports what it
+                  finds. Not every test has such a check yet.
                 </p>
                 <h4>9 Validators</h4>
                 <ul className="doc-list">

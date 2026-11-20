@@ -117,6 +117,7 @@ records <- df_to_records(df)   # list(list(score=85, hours=3, group="A"), ...)
 ## Autonomous Intelligence Layer
 
 Ask questions in plain English and let StickForStats choose the right analysis:
+This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 
 ```r
 # Smart profiling
@@ -169,7 +170,7 @@ consistency <- sfs_manuscript_consistency("~/papers/draft.pdf")
 | `$regression()` / `sfs_regression()` | `POST /stats/regression/` | Linear/logistic/ridge/lasso |
 | `$descriptive()` / `sfs_descriptive()` | `POST /stats/descriptive/` | Summary statistics |
 | `$profile()` / `sfs_profile()` | `POST /autonomous/profile/` | Smart data profiling |
-| `$query()` / `sfs_query()` | `POST /autonomous/query/` | NL data query |
+| `$query()` / `sfs_query()` | `POST /autonomous/query/` | NL data query. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md. |
 | `$cascade()` / `sfs_cascade()` | `POST /autonomous/cascade/` | Guardian cascade |
 | `$translate()` / `sfs_translate()` | `POST /autonomous/translate/` | Plain-language results |
 | `$manuscript_analyze()` / `sfs_manuscript_analyze()` | `POST /manuscript/analyze/` | Full manuscript review |

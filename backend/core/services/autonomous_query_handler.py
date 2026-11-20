@@ -159,7 +159,9 @@ class AutonomousQueryHandler:
             )
 
         # Step 4: Prepare data for the selected test
-        data_for_test = self._prepare_test_data(df, target_variables, selected_test, profile_result)
+        data_for_test, left_out = self._prepare_test_data_and_count(df, target_variables, selected_test, profile_result)
+        if left_out:
+            warnings.append(left_out)
 
         if data_for_test is None:
             return self._error_result(
@@ -182,14 +184,7 @@ class AutonomousQueryHandler:
         # Step 6: Translate results
         translation = {}
         if cascade_result.result:
-            result_dict = {
-                "statistic": cascade_result.result.statistic,
-                "p_value": cascade_result.result.p_value,
-                "effect_size": cascade_result.result.effect_size,
-                "effect_size_name": cascade_result.result.effect_size_name,
-                "degrees_of_freedom": cascade_result.result.degrees_of_freedom,
-                "additional": cascade_result.result.additional,
-            }
+            result_dict = cascade_result.result.to_dict()
             translation = self.translator.translate(cascade_result.result.test_name, result_dict, mode, alpha)
         else:
             translation = {"summary": "Test execution produced no results.", "details": ""}
@@ -239,16 +234,7 @@ class AutonomousQueryHandler:
                     }
                     for step in cascade_result.cascade_path
                 ],
-                "result": {
-                    "test_name": cascade_result.result.test_name,
-                    "statistic": cascade_result.result.statistic,
-                    "p_value": cascade_result.result.p_value,
-                    "effect_size": cascade_result.result.effect_size,
-                    "effect_size_name": cascade_result.result.effect_size_name,
-                    "additional": cascade_result.result.additional,
-                }
-                if cascade_result.result
-                else None,
+                "result": cascade_result.result.to_dict() if cascade_result.result else None,
                 "guardian_report": cascade_result.guardian_report,
             }
 
@@ -363,6 +349,31 @@ class AutonomousQueryHandler:
         profile_result: SmartProfileResult,
     ) -> Optional[Any]:
         """Prepare data in the format expected by the cascade engine."""
+        return self._prepare_test_data_and_count(df, variables, test_name, profile_result)[0]
+
+    @staticmethod
+    def _complete_rows(df: pd.DataFrame, first: str, second: str):
+        """The two columns on the rows in which both hold a value, and the number of rows left out.
+
+        The columns belong to the same rows (the two variables of a correlation, a before and an
+        after, two categories of the same subjects). A row with a missing value in either column is
+        therefore removed from both. Removing missing values column by column and pairing what is
+        left pairs values from different rows: one missing value in each of two columns turned a
+        correlation of 0.96 into 0.48.
+        """
+        pair = df[[first, second]]
+        complete = pair.dropna()
+        return complete.iloc[:, 0].values, complete.iloc[:, 1].values, int(len(pair) - len(complete))
+
+    def _prepare_test_data_and_count(
+        self,
+        df: pd.DataFrame,
+        variables: List[str],
+        test_name: str,
+        profile_result: SmartProfileResult,
+    ):
+        """The data in the format expected by the cascade engine, and a sentence that says how many
+        rows or values were left out because a value is missing (None when none were)."""
         from ..data_profiler import VariableType
 
         # Filter to valid columns
@@ -375,7 +386,19 @@ class AutonomousQueryHandler:
                     break
 
         if not valid_vars:
-            return None
+            return None, None
+
+        def together(first, second, as_numbers):
+            x, y, left_out = self._complete_rows(df, first, second)
+            note = None
+            if left_out:
+                note = (
+                    f"{left_out} of {len(df)} rows have a missing value in '{first}' or '{second}' and were "
+                    f"left out of both columns; the test used the {len(df) - left_out} complete rows."
+                )
+            if as_numbers:
+                x, y = x.astype(float), y.astype(float)
+            return [x, y], note
 
         # For group comparison tests, we need to split by grouping variable
         group_tests = {"independent_t", "welch_t", "mann_whitney_u", "one_way_anova", "kruskal_wallis"}
@@ -392,36 +415,41 @@ class AutonomousQueryHandler:
                         cont_var = v
 
             if cat_var and cont_var:
+                # Independent groups: a missing value leaves its own row out and nothing else.
                 groups = df.groupby(cat_var)[cont_var].apply(lambda x: x.dropna().values)
-                return {str(k): v for k, v in groups.items()}
+                data = {str(k): v for k, v in groups.items()}
+                left_out = len(df) - sum(len(v) for v in data.values())
+                note = None
+                if left_out:
+                    note = (
+                        f"{left_out} of {len(df)} rows have no value in '{cont_var}' or no group in '{cat_var}' "
+                        f"and were left out."
+                    )
+                return data, note
 
-        # For correlation/regression, return two arrays
+        # For correlation/regression the two columns are two variables of the same rows
         corr_tests = {"pearson", "spearman", "kendall", "linear_regression"}
         if test_name in corr_tests and len(valid_vars) >= 2:
-            x = df[valid_vars[0]].dropna().values
-            y = df[valid_vars[1]].dropna().values
-            # Align lengths
-            min_len = min(len(x), len(y))
-            return [x[:min_len].astype(float), y[:min_len].astype(float)]
+            return together(valid_vars[0], valid_vars[1], as_numbers=True)
 
-        # For categorical tests
+        # For categorical tests the two columns are cross-tabulated row by row
         cat_tests = {"chi_square_independence", "fisher_exact"}
         if test_name in cat_tests and len(valid_vars) >= 2:
-            return [
-                df[valid_vars[0]].dropna().values,
-                df[valid_vars[1]].dropna().values,
-            ]
+            return together(valid_vars[0], valid_vars[1], as_numbers=False)
 
-        # For paired tests
+        # For paired tests the two columns are two measurements of the same rows
         paired_tests = {"paired_t", "wilcoxon_signed_rank"}
         if test_name in paired_tests and len(valid_vars) >= 2:
-            x = df[valid_vars[0]].dropna().values
-            y = df[valid_vars[1]].dropna().values
-            min_len = min(len(x), len(y))
-            return [x[:min_len].astype(float), y[:min_len].astype(float)]
+            return together(valid_vars[0], valid_vars[1], as_numbers=True)
 
-        # Default: return as list of arrays
-        return [df[v].dropna().values.astype(float) for v in valid_vars if pd.api.types.is_numeric_dtype(df[v])]
+        # Default: the columns are separate groups, each cleaned on its own
+        numeric = [v for v in valid_vars if pd.api.types.is_numeric_dtype(df[v])]
+        missing = {v: int(df[v].isna().sum()) for v in numeric}
+        note = None
+        if any(missing.values()):
+            listed = ", ".join(f"'{v}': {n}" for v, n in missing.items() if n)
+            note = f"Missing values were left out column by column ({listed}); the columns were treated as separate groups."
+        return [df[v].dropna().values.astype(float) for v in numeric], note
 
     def _get_next_steps_for_result(
         self,

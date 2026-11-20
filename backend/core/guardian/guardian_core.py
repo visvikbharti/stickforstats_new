@@ -921,11 +921,37 @@ class GuardianCore:
         # the raw columns. Build the analysis arrays accordingly; independent
         # and one-sample designs analyse the arrays as given.
         analysis_arrays = data_arrays
+        pairs_left_out = None
         if design == "paired" and len(data_arrays) >= 2:
-            n = min(len(data_arrays[0]), len(data_arrays[1]))
-            analysis_arrays = [np.asarray(data_arrays[0][:n]) - np.asarray(data_arrays[1][:n])]
+            # Position i of one column is the same unit as position i of the other. Columns of
+            # different length were cut to the shorter one and subtracted, which pairs different
+            # units without a word; they are refused. A pair with a missing value is left out as a pair.
+            first = np.asarray(data_arrays[0], dtype=float).ravel()
+            second = np.asarray(data_arrays[1], dtype=float).ravel()
+            if first.size != second.size:
+                raise GuardianInputError(
+                    "A paired design needs two columns of the same length: position i of one column is the same "
+                    f"unit as position i of the other. The columns hold {first.size} and {second.size} values."
+                )
+            complete = np.isfinite(first) & np.isfinite(second)
+            if int(complete.sum()) < self._MIN_OBSERVATIONS:
+                raise GuardianInputError(
+                    f"A paired design needs at least {self._MIN_OBSERVATIONS} complete pairs; "
+                    f"{int(complete.sum())} of the {first.size} pairs have a value in both columns."
+                )
+            pairs_left_out = (int((~complete).sum()), int(first.size))
+            analysis_arrays = [first[complete] - second[complete]]
 
         information = []
+        if pairs_left_out is not None and pairs_left_out[0]:
+            information.append({
+                "assumption": "paired_design",
+                "test_name": "Complete pairs",
+                "p_value": None,
+                "statistic": None,
+                "message": (f"{pairs_left_out[0]} of {pairs_left_out[1]} pairs have a missing value and were left out "
+                            "as pairs; the checks were run on the differences of the complete pairs."),
+            })
         if welch and len(analysis_arrays) >= 2:
             variance = self.validators["variance_homogeneity"].validate(analysis_arrays, alpha)
 
@@ -1197,6 +1223,13 @@ class GuardianCore:
                 flat = flat[np.isfinite(flat)]
                 if flat.size == 0:
                     raise ValueError("no finite numeric values")
+                # Skewness and kurtosis are not defined for values that do not vary: SciPy returns
+                # NaN for them. NaN is not JSON, so a check of data with one constant group ended in
+                # a server error instead of an answer.
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    shape = [float(stats.skew(flat)), float(stats.kurtosis(flat))]
+                skewness, kurtosis = (value if np.isfinite(value) else None for value in shape)
                 summary[key] = {
                     "n": int(flat.size),
                     "mean": float(np.mean(flat)),
@@ -1204,9 +1237,11 @@ class GuardianCore:
                     "median": float(np.median(flat)),
                     "min": float(np.min(flat)),
                     "max": float(np.max(flat)),
-                    "skewness": float(stats.skew(flat)),
-                    "kurtosis": float(stats.kurtosis(flat)),
+                    "skewness": skewness,
+                    "kurtosis": kurtosis,
                 }
+                if skewness is None or kurtosis is None:
+                    summary[key]["note"] = "skewness and kurtosis are not defined: the values do not vary"
             except (TypeError, ValueError) as exc:
                 summary[key] = {
                     "n": int(np.size(arr)),
@@ -1910,6 +1945,13 @@ class SimilarShapesValidator:
             "statistic": d_stat,
         }
 
+    @staticmethod
+    def _finite_or_none(value) -> Optional[float]:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            value = float(value)
+        return value if np.isfinite(value) else None
+
     def _generate_visual_data(
         self, cleaned: List[np.ndarray], results: List
     ) -> Dict:
@@ -1918,7 +1960,8 @@ class SimilarShapesValidator:
             "group_sizes": [int(a.size) for a in cleaned],
             "medians": [float(np.median(a)) for a in cleaned],
             "iqrs": [float(np.subtract(*np.percentile(a, [75, 25]))) for a in cleaned],
-            "skewness": [float(stats.skew(a)) for a in cleaned],
+            # not defined for a group that does not vary: null, since NaN is not JSON
+            "skewness": [self._finite_or_none(stats.skew(a)) for a in cleaned],
             "pairwise_ks": [
                 {"groups": [i + 1, j + 1], "D": d, "p_value": p}
                 for d, p, i, j in results
@@ -2511,7 +2554,11 @@ class HomoscedasticityValidator:
                 "severity": severity,
                 "p_value": float(p_value),
                 "statistic": float(bp_statistic),
-                "message": f"Homoscedasticity violated (BP test {p_clause(p_value)}, variance ratio={var_ratio:.2f})",
+                "message": (
+                    f"Homoscedasticity violated (BP test {p_clause(p_value)}, "
+                    + ("variance ratio not computed: one half of the fitted range has no residual variance)"
+                       if var_ratio is None else f"variance ratio={var_ratio:.2f})")
+                ),
                 "recommendation": "Consider weighted least squares, robust regression, or transformation",
                 "visual_data": {
                     "fitted_values": y_pred.tolist(),

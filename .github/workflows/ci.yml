@@ -138,12 +138,17 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/image/constraints-live.txt
+            backend/image/build-tools.txt
 
+      # The tests run under the library versions that the image is built with
+      # (backend/image/constraints-live.txt), not under the versions of the day.
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --upgrade -r image/build-tools.txt
+          pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt --build-constraint image/build-tools.txt
 
       - name: Run migrations
         run: python manage.py migrate --run-syncdb

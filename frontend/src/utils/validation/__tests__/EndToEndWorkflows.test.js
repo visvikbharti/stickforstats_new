@@ -57,6 +57,10 @@ global.sessionStorage = {
   clear: jest.fn()
 };
 
+// How long a test waits for something that the code under test does on a timer: two minutes, where
+// the code needs a third of a second.
+const A_DEADLINE_NO_MACHINE_MISSES = 2 * 60 * 1000;
+
 describe('End-to-End Workflow Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -1025,6 +1029,7 @@ describe('End-to-End Workflow Tests', () => {
         },
         mode: 'realtime'
       }));
+      expect(result.current.hasErrors).toBe(false);
 
       // Enter invalid value
       act(() => {
@@ -1036,13 +1041,16 @@ describe('End-to-End Workflow Tests', () => {
         result.current.handleBlur('sampleSize');
       });
 
-      // Wait for the DEBOUNCE to actually flush, rather than for 400ms to elapse. Under parallel
-      // load the debounce can miss a fixed deadline, which made this test fail roughly one run in
-      // two -- a red CI with nothing wrong in the code under test.
+      // The error is there when the hook's debounce of 300 ms has passed and the validation that
+      // the debounce starts has finished. The test waits until it is there. It used to wait a
+      // fixed 400 ms, and then to poll with the testing library's deadline of one second; on a
+      // busy machine the error was not there by then, and the test failed with nothing wrong in
+      // the code under test. It still polls, and passes as soon as the error is there; it gives
+      // up after two minutes, a deadline that a machine which runs tests at all does not miss.
       await waitFor(() => {
         expect(result.current.hasErrors).toBe(true);
-      });
-    });
+      }, { timeout: A_DEADLINE_NO_MACHINE_MISSES });
+    }, A_DEADLINE_NO_MACHINE_MISSES + 60 * 1000);
 
     test('should handle form submission workflow', async () => {
       const onSubmit = jest.fn();

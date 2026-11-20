@@ -154,7 +154,10 @@ async function retryRequest(requestFn, retries = MAX_RETRIES) {
   try {
     return await requestFn();
   } catch (error) {
-    if (retries > 0 && error.status >= 500) {
+    // A server error is asked again, because it may pass. Status 501 is not such an error: the
+    // server says that it cannot do what was asked, and asking again gets the same answer. The
+    // question page sent its file four times, a second apart, before it showed that answer.
+    if (retries > 0 && error.status >= 500 && error.status !== 501) {
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       return retryRequest(requestFn, retries - 1);
     }

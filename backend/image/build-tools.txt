@@ -1,0 +1,17 @@
+# The versions of pip, setuptools and wheel in the backend image.
+#
+# `pip freeze` does not print these three, so image/constraints-live.txt, which was made from
+# it, cannot hold them. They are the versions in the live image, read in the running container
+# on 20 November 2026 with `pip list --format=freeze`. The build installs them first,
+#
+#     pip install --upgrade -r image/build-tools.txt
+#
+# and image/check_installed_versions.py compares them after the install, as it compares the
+# libraries. To see the three in a running container: `pip list --format=freeze`.
+#
+# The same file is given to the install of the libraries as --build-constraint, so that a
+# library that pip builds from source is built with these versions and not with those of the
+# day.
+pip==26.2.2
+setuptools==84.2.1
+wheel==0.48.0

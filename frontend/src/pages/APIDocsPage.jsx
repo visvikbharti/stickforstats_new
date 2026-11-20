@@ -225,10 +225,10 @@ const API_ENDPOINTS = [
   },
   {
     method: 'POST', path: '/api/v1/autonomous/query/', name: 'Natural Language Query',
-    description: 'Ask a statistical question in plain English. The system interprets intent, selects tests, and returns results.',
+    description: 'This version cannot read a question. The route answers every request with status 501 and one sentence; it reads no file and runs no test.',
     auth: 'Token / API Key', category: 'Autonomous Intelligence',
-    request: { body: { query: 'Is there a significant difference between treatment and control?', data_id: 'session_abc123' } },
-    response: { example: { interpretation: 'Two-group comparison', test_selected: 'independent_t_test', results: { t: 3.2, p: 0.004 }, narrative: 'There is a statistically significant difference...' } },
+    request: { body: { query: 'Is there a significant difference between treatment and control?' } },
+    response: { example: { error: 'This version cannot read a question, so nothing was analysed. Run the test you want on its own page.' } },
   },
   {
     method: 'POST', path: '/api/v1/autonomous/cascade/', name: 'Analysis Cascade',

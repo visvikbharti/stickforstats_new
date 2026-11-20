@@ -115,7 +115,7 @@ suggested next analyses).
 sfs query "Is the treatment group different from control?" -f data.csv --alpha 0.05
 ```
 The autonomous pipeline picks an appropriate test, runs it under Guardian, and returns a
-plain-language answer alongside the numbers.
+plain-language answer alongside the numbers. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 
 ### `sfs manuscript` — verify a paper's statistics
 ```bash

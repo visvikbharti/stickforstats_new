@@ -114,9 +114,9 @@ Tech Stack: Django 4.2.10, Django REST Framework, Token Authentication
 
 ### Test User Account
 ```
-Email: vishalvikashbharti@gmail.com
-Password: GODisone@123
-Token: 80f61666027e2d0b96161e18e7fdf5764d1c4251
+Email: <your email address>
+Password: <your password>
+Token: <your token>
 ```
 
 ---
@@ -280,7 +280,7 @@ All tests currently **PASSING**.
 
 ```bash
 # Key commands used during session
-curl -X POST http://localhost:8000/api/auth/login/ -H "Content-Type: application/json" -d '{"username": "vishalvikashbharti@gmail.com", "password": "GODisone@123"}'
+curl -X POST http://localhost:8000/api/auth/login/ -H "Content-Type: application/json" -d '{"username": "<your email address>", "password": "<your password>"}'
 curl -X GET http://localhost:8000/api/auth/me/ -H "Authorization: Token {token}"
 python manage.py runserver
 npm start

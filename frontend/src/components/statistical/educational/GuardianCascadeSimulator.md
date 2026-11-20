@@ -1,9 +1,9 @@
 # Guardian Cascade Simulator — "Why one t-test isn't enough"
 
 `GuardianCascadeSimulator.jsx` is an interactive, in-browser Monte-Carlo lecture demo. It is
-**Figure 8 of the StickForStats manuscript (the calibration benchmark), made interactive** — the same
+**Fig. 7 of the StickForStats manuscript (the calibration benchmark), made interactive** — the same
 scenarios (S1–S6), the same assumption cascade, the same honestly-disclosed S6 limitation, and the
-same fixed seed, so a reader can reproduce the published headline result by pressing **Run**.
+same fixed seed, so a reader can reproduce the submitted headline result by pressing **Run**.
 
 There is also an in-app version of this reference: the **"How to read this simulator"** panel that
 expands directly under the widget's header.
@@ -67,12 +67,12 @@ Exported from `frontend/src/components/statistical/educational/index.js`.
 | **Dot matrix** | One cell per recent experiment; filled = rejected the null (red = false alarm, green = correct detection). |
 | **Routing bars** | Share of tests Guardian sent to Student's t / Welch / Mann-Whitney. |
 | **Verdict card** | Plain-language reading of the scenario; amber on S6. |
-| **Published-benchmark strip** | The exact Fig 8 numbers, so you can confirm the live rates converge to them. |
+| **Submitted-benchmark strip** | The exact Fig. 7 numbers, so you can confirm the live rates converge to them. |
 | **Verify result alert** | Third-party corroboration the cascade matches the deployed engine on a concrete draw. |
 
 ---
 
-## The six scenarios (mirror manuscript Fig 8, Part A)
+## The six scenarios (mirror the manuscript's Fig. 7, panel A)
 
 | ID | Data | Naïve (reported) | Guardian (reported) | Routing |
 | --- | --- | --- | --- | --- |

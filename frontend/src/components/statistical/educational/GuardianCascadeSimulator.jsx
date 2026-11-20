@@ -36,7 +36,7 @@ import { formatPClause } from '../../../utils/formatStats';
  * An interactive "Why one t-test isn't enough" lecture demo.
  *
  * This is a *fast in-browser Monte-Carlo* that reproduces the manuscript's
- * Figure 8 calibration benchmark (scenarios S1-S6, n = 55 vs 36 unbalanced,
+ * Fig. 7 calibration benchmark (scenarios S1-S6, n = 55 vs 36 unbalanced,
  * alpha = 0.05). It hands the same simulated experiment to two analysts:
  *   - a "naive" analyst who always runs a pooled Student's t-test, and
  *   - the Guardian cascade, which checks assumptions first
@@ -325,7 +325,7 @@ function drawGroups(sc, shift, rng) {
   return { a, b };
 }
 
-/* ---- scenario metadata (mirrors the manuscript Fig 8, Part A) ---- */
+/* ---- scenario metadata (mirrors the manuscript's Fig. 7, panel A) ---- */
 const SCENARIOS = [
   {
     id: 0,
@@ -441,7 +441,7 @@ const GUIDE_CONTROLS = [
   ],
   [
     'Fixed setup (n = 55 vs 36, α = 0.05)',
-    'Not adjustable — these are the manuscript’s benchmark conditions, which is why the live rates line up with the published numbers.',
+    'Not adjustable — these are the manuscript’s benchmark conditions, which is why the live rates line up with the submitted numbers.',
   ],
 ];
 
@@ -471,8 +471,8 @@ const GUIDE_READOUTS = [
     'A plain-language reading of the current scenario. It turns amber on S6 to flag the openly-disclosed limitation.',
   ],
   [
-    'Published-benchmark strip',
-    'The exact Fig 8 numbers for the current scenario, so you can confirm the live simulation is converging to the published result.',
+    'Submitted-benchmark strip',
+    'The exact Fig. 7 numbers for the current scenario, so you can confirm the live simulation is converging to the submitted result.',
   ],
   [
     'Verify result alert',
@@ -506,7 +506,7 @@ const GUIDE_SCENARIOS = [
 
 const GUIDE_USES = [
   'Students: pick S2 and watch the naïve t-test’s false-positive rate double while Guardian holds ~0.06 — then read the routing bars to see why it happened.',
-  'Reviewers: press Run across S1–S6, confirm the live rates settle onto the published-benchmark strip, then press Verify to prove the sim matches the deployed engine.',
+  'Reviewers: press Run across S1–S6, confirm the live rates settle onto the submitted-benchmark strip, then press Verify to prove the sim matches the deployed engine.',
   'Instructors: step through the scenarios live, use New draw for sampling variability, and use Verify as a live “the classroom demo is faithful to production” moment.',
 ];
 
@@ -1013,7 +1013,7 @@ const GuardianCascadeSimulator = () => {
       </Typography>
       <Alert severity="info" icon={<BoltIcon fontSize="inherit" />} sx={{ mt: 1.5 }}>
         These meters are a <b>fast in-browser simulation that reproduces the backend calibration
-        benchmark</b> (manuscript Fig 8) within Monte-Carlo error — not the production engine
+        benchmark</b> (manuscript Fig. 7) within Monte-Carlo error — not the production engine
         analysing your data. Use the button below to send the displayed draw through the{' '}
         <b>real</b> Guardian and verify the routing matches.
       </Alert>
@@ -1351,7 +1351,7 @@ const GuardianCascadeSimulator = () => {
         </Typography>
       </Paper>
 
-      {/* Published-benchmark strip (Type I mode only) */}
+      {/* Submitted-benchmark strip (Type I mode only) */}
       {!isPower && (
         <Paper
           variant="outlined"
@@ -1364,7 +1364,7 @@ const GuardianCascadeSimulator = () => {
           }}
         >
           <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, display: 'block', mb: 0.5 }}>
-            COMPARED AGAINST THE PUBLISHED BENCHMARK (FIG 8, PART A)
+            COMPARED AGAINST THE SUBMITTED BENCHMARK (FIG. 7, PANEL A)
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 18px' }}>
             <BenchStat k="Naïve, reported:" v={sc.paperNaive} monoFont={monoFont} />
@@ -1462,7 +1462,7 @@ const GuardianCascadeSimulator = () => {
         variant="caption"
         sx={{ display: 'block', mt: 2.5, color: 'text.disabled', fontFamily: monoFont }}
       >
-        This component is Figure 8 of the manuscript, made interactive — the same S1–S6 scenarios,
+        This component is Fig. 7 of the manuscript, made interactive — the same S1–S6 scenarios,
         the same cascade, the same honest S6 caveat. A reviewer can reproduce the headline result by
         pressing Run.
       </Typography>
@@ -1625,7 +1625,7 @@ function GuardianSimulatorGuide({ monoFont }) {
       sx={{ mt: 1.5, p: { xs: 1.75, sm: 2.25 }, borderRadius: 2, bgcolor: 'background.subtle' }}
     >
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '80ch' }}>
-        This widget is <b>Figure 8 of the manuscript, made interactive</b>. It draws two groups of
+        This widget is <b>Fig. 7 of the manuscript, made interactive</b>. It draws two groups of
         numbers, hands the <i>identical</i> data to two analysts — one who always runs a pooled
         Student&rsquo;s t-test, one who runs the assumption-checking Guardian cascade — and counts how
         often each is wrong over thousands of repeats. Everything you see is a fast in-browser
@@ -1669,7 +1669,7 @@ function GuardianSimulatorGuide({ monoFont }) {
         variant="caption"
         sx={{ display: 'block', mt: 1.5, color: 'text.disabled', fontFamily: monoFont }}
       >
-        Reference: Bharti &amp; Chakraborty — StickForStats calibration benchmark (Fig 8), seed
+        Reference: Bharti &amp; Chakraborty — StickForStats calibration benchmark (Fig. 7), seed
         20260706.
       </Typography>
     </Paper>

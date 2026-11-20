@@ -26,10 +26,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies
+# Install Python dependencies, in the versions of the image that is live.
+#
+# requirements.txt gives ranges. Installed by itself, it takes whatever versions pip resolves on
+# the day of the build, so every new image used to change the libraries under every page along
+# with the application's code. image/constraints-live.txt holds the versions of the live image;
+# pip installs under it, and fails if one of them cannot be installed. The check after it fails
+# the build if anything was installed that the file does not name, or in another version.
+# pip, setuptools and wheel have their versions in image/build-tools.txt, and the check
+# compares those three as well. Two of the libraries (factor-analyzer and autograd-gamma) come
+# as source and are built during the install, in a build environment of their own that the
+# constraints do not reach; --build-constraint holds the tools of that environment to the same
+# file.
 COPY requirements.txt .
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt
+COPY image/ image/
+RUN pip install --upgrade -r image/build-tools.txt && \
+    pip install -r requirements.txt -c image/constraints-live.txt -c image/build-tools.txt --build-constraint image/build-tools.txt && \
+    python image/check_installed_versions.py image/constraints-live.txt --tools image/build-tools.txt
 
 # Stage 2: Production image
 FROM python:3.11-slim-bookworm AS production

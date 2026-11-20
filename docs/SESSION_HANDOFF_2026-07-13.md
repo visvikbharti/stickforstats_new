@@ -16,7 +16,7 @@ Both open to-dos from 2026-07-11 are closed.
 
 1. **Visual click-through — DONE**, but with **Playwright**, not the Claude-in-Chrome extension
    (which still refuses to pair). Guardian and Power verified green on production.
-2. **Beta Basic-Auth password — ROTATED** off `qwerty121`, verified through the public edge.
+2. **Beta Basic-Auth password — ROTATED** off `<beta password>`, verified through the public edge.
 
 And the click-through **earned its keep**: it found a **P0 that the whole 747b848 audit missed** —
 three components crashed at render time, including the chi-square screen. Fixing that then exposed a
@@ -108,9 +108,9 @@ Evidence (GIFs + 13 stills): **`artifacts_clickthrough_2026-07-13/`** (see its R
 
 ## 3. Beta Basic-Auth password — ROTATED ✅
 
-- Was the weak `qwerty121`. Now a **28-char random alphanumeric**, hashed with **bcrypt `$2y$`**
+- Was the weak `<beta password>`. Now a **28-char random alphanumeric**, hashed with **bcrypt `$2y$`**
   (nginx on alpine/musl accepts it — an upgrade from the old `$apr1$` MD5).
-- Verified through the public edge: new → **200**, `qwerty121` → **401**, no creds → **401**.
+- Verified through the public edge: new → **200**, `<beta password>` → **401**, no creds → **401**.
 - `/root/stickforstats-beta-access.txt` rewritten (chmod 600). Backup:
   `/opt/stickforstats_new/nginx/ssl/.htpasswd.bak.20260713-091420`.
 - nginx reads `/etc/nginx/ssl/.htpasswd` (`nginx.conf:105-106`), bind-mounted from
