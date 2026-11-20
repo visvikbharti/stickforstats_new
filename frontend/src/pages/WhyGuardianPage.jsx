@@ -10,7 +10,7 @@ import { GuardianCascadeSimulator } from '../components/statistical/educational'
  * ("Why one t-test isn't enough"). The same component is also embedded in the
  * Hypothesis Testing module's "Why Guardian?" tab; this page gives it a clean
  * top-level URL (/why-guardian) that the top navigation links to and that can
- * be cited directly (e.g. for manuscript reviewers reproducing Figure 8).
+ * be cited directly (e.g. for manuscript reviewers reproducing Fig. 7).
  */
 const WhyGuardianPage = () => (
   <Box sx={{ py: { xs: 2, sm: 4 } }}>
@@ -24,7 +24,7 @@ const WhyGuardianPage = () => (
       </Box>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: '80ch' }}>
         A live, interactive demonstration of why StickForStats checks assumptions before every test.
-        It reproduces the manuscript&rsquo;s calibration benchmark (Figure&nbsp;8) right in your browser:
+        It reproduces the manuscript&rsquo;s calibration benchmark (Fig.&nbsp;7) right in your browser:
         the same simulated data is handed to a na&iuml;ve pooled t-test and to the Guardian cascade, and
         you watch the false-positive rate diverge as the experiments pile up. Expand
         &ldquo;How to read this simulator&rdquo; below if it&rsquo;s your first time.

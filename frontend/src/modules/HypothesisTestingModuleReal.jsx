@@ -31,7 +31,7 @@ import { HighPrecisionStatisticalService } from '../services/HighPrecisionStatis
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 
 // Interactive "why assumptions matter" lecture demo (backend-anchored to the
-// real Guardian engine). Introduces the module with the Fig 8 cascade benchmark.
+// real Guardian engine). Introduces the module with the Fig. 7 cascade benchmark.
 import { GuardianCascadeSimulator } from '../components/statistical/educational';
 
 // Initialize service

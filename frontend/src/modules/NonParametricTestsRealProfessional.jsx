@@ -74,7 +74,7 @@ import { NonParametricTestsService } from '../services/NonParametricTestsService
 import { REAL_EXAMPLE_DATASETS } from '../data/RealExampleDatasets';
 
 // Interactive "why non-parametric routing matters" lecture demo, backend-anchored
-// to the real Guardian engine (reproduces the Fig 8 cascade calibration benchmark).
+// to the real Guardian engine (reproduces the Fig. 7 cascade calibration benchmark).
 import { GuardianCascadeSimulator } from '../components/statistical/educational';
 import { isSignificant, formatPValue } from '../utils/formatStats';
 

@@ -183,7 +183,7 @@ const ShowcaseHomePage = () => {
             <Typography variant="body1" color="text.secondary" sx={{ maxWidth: '70ch' }}>
               Watch a na&iuml;ve t-test&rsquo;s false-positive rate double while the Guardian cascade
               holds it near 5% &mdash; a live, reproducible demonstration of the manuscript&rsquo;s
-              calibration benchmark (Figure&nbsp;8), running right in your browser.
+              calibration benchmark (Fig.&nbsp;7), running right in your browser.
             </Typography>
           </Box>
           <Button
