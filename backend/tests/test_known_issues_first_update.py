@@ -540,18 +540,23 @@ class WhatTheServerAnswersTest(APITestCase):
         self.assertEqual((f'{float(answer["statistics"]["f_p_value"]):.8e}', f'{float(answer["p_values"]["X1"]):.8e}'),
                          ("2.23265900e-10", "2.23265894e-10"))
         self.assertIn("2.23265900e-10 was reported for 2.23265894e-10 in one example.", text)
-        # an exact function of two predictors
+        # an exact function of two predictors: one table is answered with F = 0 and p = 1, another with status 500
         rows = [[1, 2], [2, 1], [3, 5], [4, 3], [5, 8], [6, 2]]
         status, answer = ask("multiple_linear", rows, [1 + 2 * a - b for a, b in rows])
         self.assertEqual((status, answer["statistics"], answer["metrics"]["r_squared"]),
                          (200, {"f_statistic": "0.0", "f_p_value": "1.0"}, "1.0"))
-        self.assertIn("the answer says `f_statistic` 0 and `f_p_value` 1, with an R squared of 1.", text)
+        other = [[1, 2], [2, 1], [3, 4], [4, 3], [5, 6], [6, 2]]
+        self.assertEqual(ask("multiple_linear", other, [1 + 2 * a - b for a, b in other]), (500, {"error": ""}))
+        self.assertIn("the answer depends on how the arithmetic rounds. For a = 1, 2, ..., 6, b = 2, 1, 5, 3, 8, 2 and "
+                      "y = 1 + 2a - b the answer says `f_statistic` 0 and `f_p_value` 1, with an R squared of 1; with "
+                      "b = 2, 1, 4, 3, 6, 2 the same request is answered with status 500 and an empty message.", text)
         self.assertIn("a request of two rows are answered with status 500 and an empty message.", text)
         self.assertIn("It shows a dash for the standard error and the p-value of the intercept, which the server sends.", text)
         # what the page shows of that answer: five decimals of the standard errors, two of the AIC
         self.assertEqual([f'{float(answer["standard_errors"][name]):.5f}' for name in ("X1", "X2")], ["0.00000", "0.00000"])
         self.assertEqual(f'{float(answer["metrics"]["aic"]):.2f}', "-1339.50")
-        self.assertIn("it shows standard errors of 0.00000 and an AIC of -1339.50 in one example", text)
+        self.assertIn("For an exact fit with two predictors it shows the same message in the second example, and standard "
+                      "errors of 0.00000 and an AIC of -1339.50 in the first.", text)
         # the server sends the standard error and the p-value of the intercept
         self.assertIn("intercept", answer["standard_errors"])
         self.assertIn("intercept", answer["p_values"])

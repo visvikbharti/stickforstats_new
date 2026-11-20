@@ -349,11 +349,14 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   smaller it is: 2.23265900e-10 was reported for 2.23265894e-10 in one example. The p-values of
   the coefficients, under `p_values`, are computed another way and are right; with one predictor
   the p-value of the slope is the p-value of the F test. When the response is an exact function
-  of two or more predictors, the answer says `f_statistic` 0 and `f_p_value` 1, with an R squared
-  of 1. An exact line with one predictor, a response that does not vary and a request of two rows
-  are answered with status 500 and an empty message. The page does not show the F test. For an
-  exact line it shows "Request failed with status code 500". For an exact fit with two predictors
-  it shows standard errors of 0.00000 and an AIC of -1339.50 in one example. It shows a dash for
+  of two or more predictors, the answer depends on how the arithmetic rounds. For a = 1, 2, ...,
+  6, b = 2, 1, 5, 3, 8, 2 and y = 1 + 2a - b the answer says `f_statistic` 0 and `f_p_value` 1,
+  with an R squared of 1; with b = 2, 1, 4, 3, 6, 2 the same request is answered with status 500
+  and an empty message. An exact line with one predictor, a response that does not vary and a
+  request of two rows are answered with status 500 and an empty message. The page does not show
+  the F test. For an exact line it shows "Request failed with status code 500". For an exact fit
+  with two predictors it shows the same message in the second example, and standard errors of
+  0.00000 and an AIC of -1339.50 in the first. It shows a dash for
   the standard error and the p-value of the intercept, which the server sends.
 - **Until it is fixed:** with one predictor, read the p-value of the slope (`p_values.X1`) for the
   test of the whole model. With several, compute the p-value from `f_statistic` and its degrees of
