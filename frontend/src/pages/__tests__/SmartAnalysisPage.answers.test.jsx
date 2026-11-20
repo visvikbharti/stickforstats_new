@@ -48,10 +48,11 @@ beforeEach(() => {
   apiClient.post.mockImplementation((url) => {
     if (url.endsWith('/profile/')) return Promise.resolve({ data: JSON.parse(JSON.stringify(saved.profile)) });
     if (url.endsWith('/query/')) {
-      // what the HTTP client hands over for an answer with status 501
-      const refused = new Error('Request failed with status code 501');
-      refused.response = { status: saved.refusal.status, data: JSON.parse(JSON.stringify(saved.refusal.body)) };
-      return Promise.reject(refused);
+      // What the client of this application (services/api.js) hands over for an answer with a
+      // status of 400 or more: an error whose message is the "error" of the answer.
+      return Promise.reject(Object.assign(new Error(saved.refusal.body.error), {
+        name: 'ApiError', code: `HTTP_${saved.refusal.status}`, status: saved.refusal.status,
+      }));
     }
     return Promise.reject(new Error(`unexpected request to ${url}`));
   });
@@ -120,8 +121,12 @@ test('after a question the page shows the sentence of the server where the answe
   for (const text of [/Analysis failed/, /Statistically Significant/i, /Guardian Confidence Score/i, /Why this test\?/i, /Suggested Next Steps/i]) {
     expect(screen.queryByText(text)).not.toBeInTheDocument();
   }
-  // the question was sent with the file, and nothing else was asked of the server
+  // the question was sent with the file, once, and nothing else was asked of the server
   expect(apiClient.post).toHaveBeenCalledTimes(2);
+  const [address, body] = apiClient.post.mock.calls[1];
+  expect(address).toBe('/v1/autonomous/query/');
+  expect([...body.keys()]).toEqual(['file', 'query', 'mode', 'alpha']);
+  expect(body.get('query')).toBe(saved.question);
 });
 
 test('the sentence can be closed', async () => {
@@ -131,6 +136,20 @@ test('the sentence can be closed', async () => {
   await screen.findByText(SENTENCE);
   fireEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: /close/i }));
   expect(screen.queryByText(SENTENCE)).not.toBeInTheDocument();
+});
+
+test('an answer handed over as the bare HTTP library does is read too', async () => {
+  apiClient.post.mockImplementation((url) => {
+    if (url.endsWith('/profile/')) return Promise.resolve({ data: JSON.parse(JSON.stringify(saved.profile)) });
+    const refused = new Error('Request failed with status code 501');
+    refused.response = { status: saved.refusal.status, data: JSON.parse(JSON.stringify(saved.refusal.body)) };
+    return Promise.reject(refused);
+  });
+  renderPage();
+  await upload();
+  await ask();
+  expect(await screen.findByText(SENTENCE)).toBeInTheDocument();
+  expect(screen.queryByText(/Request failed with status code/)).not.toBeInTheDocument();
 });
 
 test('when no answer comes at all the page says so in the same place', async () => {
