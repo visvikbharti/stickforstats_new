@@ -65,6 +65,7 @@ ENTRIES = [
     "The Guided Wizard runs no analysis",
     'Mean difference, confidence interval and effect size read "N/A"',
     "Normality is checked on the two samples, not on their differences",
+    "The Friedman test leaves out a subject who has a value of 0",
     "The guidelines tell the reader to choose a test from a normality test",
     "The paired t-test shows no mean difference",
     "The debugger of a paired test says that it has no numeric data",
@@ -1073,6 +1074,39 @@ class WhatTheServerAnswersTest(APITestCase):
         tab = read(SRC / "components/statistical-analysis/statistical-tests/CategoricalTests.jsx").lower()
         for word in ("yates", "continuity", "correction"):
             self.assertNotIn(word, tab)
+
+    def test_the_friedman_page_leaves_out_a_subject_with_a_value_of_zero(self):
+        from scipy import stats
+
+        flat = one_line(read(FILE))
+        # the line of the page that reads a 0 as a missing value, and the one that then leaves the subject out
+        page = read(SRC / "modules/NonParametricTestsRealProfessional.jsx")
+        self.assertIn("            const block = dataGroups.map(g => g.values[i] || null).filter(v => v !== null);\n"
+                      "            if (block.length === dataGroups.length) {\n              blockedData.push(block);", page)
+        for words in ("left out", "omitted", "excluded", "dropped", "skipped"):
+            self.assertNotIn(words, page.lower())
+        # the test that types the values into the page and reads its request: the same values as here
+        confirmed = read(SRC / "modules/__tests__/NonParametricFriedman.aValueOfZero.test.jsx")
+        conditions = [[3, 0, 5, 4, 6, 2, 7, 1], [5, 2, 6, 6, 7, 4, 9, 3], [8, 4, 9, 7, 9, 6, 12, 5]]
+        for name, values in zip(("Self Study", "Online Course", "In-Person"), conditions):
+            self.assertIn(f"  '{name}': {values},", confirmed)
+        self.assertIn("  expect(rows).toHaveLength(7);\n  expect(rows).toEqual(ROWS.filter((_, subject) => subject !== 1));", confirmed)
+        self.assertIn("`frontend/src/modules/__tests__/NonParametricFriedman.aValueOfZero.test.jsx`", flat)
+        # what the route answers for the seven rows the page sends, and for the eight that were typed
+        eight = [list(row) for row in zip(*conditions)]
+        seven = [row for subject, row in enumerate(eight) if subject != 1]
+        url = "/api/v1/nonparametric/friedman/"
+        sent, typed = (self._json(url, {"measurements": rows, "condition_names": ["Self Study", "Online Course", "In-Person"]})["results"]
+                       for rows in (seven, eight))
+        self.assertEqual((sent["sample_sizes"], typed["sample_sizes"]), ([7, 3], [8, 3]))
+        self.assertAlmostEqual(float(sent["p_value"]), stats.friedmanchisquare(*[list(column) for column in zip(*seven)]).pvalue, places=12)
+        self.assertAlmostEqual(float(typed["p_value"]), stats.friedmanchisquare(*conditions).pvalue, places=12)
+        self.assertEqual((f"{float(sent['p_value']):.5f}", f"{float(typed['p_value']):.5f}"), ("0.00091", "0.00034"))
+        self.assertIn("were sent as seven rows: the answer is the test of the seven, p = 0.00091, where the test of all eight gives "
+                      "p = 0.00034.", flat)
+        # the hub keeps a 0: it drops what is no number, and a 0 is one
+        hub = read(SRC / "components/statistical-analysis/statistical-tests/NonParametricTests.jsx")
+        self.assertIn("      return data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));", hub)
 
     def test_the_friedman_route_reads_groups_as_subjects(self):
         from scipy import stats

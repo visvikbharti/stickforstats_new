@@ -58,6 +58,24 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** check the differences yourself, or run the paired test in the analysis
   hub (`/statistical-analysis-tools`), where Guardian checks the differences.
 
+## The non-parametric tests page (`/modules/nonparametric-real`)
+
+### The Friedman test leaves out a subject who has a value of 0
+
+- **Where:** the Friedman test of `/modules/nonparametric-real`, with values typed into its fields.
+- **What happens:** the page builds one row for each subject from the values under the conditions,
+  and it reads a value of 0 as a missing value. A subject with a 0 under any condition is left out
+  of the request, the test is computed on the other subjects, and no message says so. Eight
+  subjects under three conditions, the second with a 0 under the first condition, were sent as
+  seven rows: the answer is the test of the seven, p = 0.00091, where the test of all eight gives
+  p = 0.00034. Confirmed by a test that types these values into the page and reads the request it
+  makes (`frontend/src/modules/__tests__/NonParametricFriedman.aValueOfZero.test.jsx`); not seen in
+  a browser. The Friedman test on the Statistical Tests page of the hub reads its columns another
+  way and keeps a 0.
+- **Until it is fixed:** for data that hold a 0, run the Friedman test on the Statistical Tests
+  page of the hub (`/statistical-analysis-tools`), or send one row for each subject to
+  `POST /api/v1/nonparametric/friedman/`.
+
 ## The analysis hub (`/statistical-analysis-tools`)
 
 ### The guidelines tell the reader to choose a test from a normality test
