@@ -23,7 +23,7 @@ npm run android
 ## Features
 
 - Quick statistical analysis (t-test, ANOVA, correlation, descriptive)
-- Smart analysis with natural language queries
+- Smart analysis with natural language queries. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 - Guardian assumption validation
 - SQS manuscript quality scoring
 - Certification exam system
