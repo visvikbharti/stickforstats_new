@@ -63,9 +63,14 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 ### The guidelines tell the reader to choose a test from a normality test
 
 - **Where:** "Guidelines for Statistical Testing" on the Statistical Tests page, before a category
-  of tests is chosen.
+  of tests is chosen; and the answers of `POST /api/v1/stats/ttest/`, `POST /api/v1/stats/anova/`
+  and `POST /api/guardian/validate/normality/`.
 - **What happens:** the text says "Use normality tests before parametric tests" and "Parametric
-  tests for normal data, non-parametric for others". Choosing between a test and its rank
+  tests for normal data, non-parametric for others". The three routes give the same advice when
+  their own normality check rejects: the field `recommendations` of the first two says "Data may
+  not be normally distributed. Consider the Mann-Whitney U test." or "Normality assumption
+  violated. Consider the Kruskal-Wallis test.", and `details.recommendation` of the third says
+  "Consider transformation (log, sqrt) or use non-parametric tests". Choosing between a test and its rank
   counterpart from a normality test on the same data changes the error rate of the test that is
   then run.
 - **Until it is fixed:** choose the test from the design of the study and the kind of outcome, and
@@ -152,6 +157,22 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   the limit lies differs from browser to browser.
 - **Until it is fixed:** profile a file of at most 100,000 rows, or a sample of the rows. After
   the error screen, open the hub again; the file has to be chosen again.
+
+### A perfect rank correlation gets a p-value of 0, and the engine answers with the other rank correlation
+
+- **Where:** Spearman's correlation on the Correlation tab of the hub, which asks
+  `POST /api/v1/stats/correlation/`; and `POST /api/v1/autonomous/cascade/` with the test
+  `spearman` or `kendall`.
+- **What happens:** when the second column rises with the first in every row, the first route
+  answers Spearman's correlation with a coefficient of 1 and a p-value of 0, and the tab prints a
+  p-value of 0 as "< 2.2e-16". The exact p-value of five such rows is 0.0167, and of eight
+  0.0000496; Kendall's test on the same route gives these two values. The second route does not
+  answer with the test it was asked for: for five such rows a request for `spearman` came back
+  with Kendall's test (`final_test` "kendall", p = 0.0167), and a request for `kendall` with
+  Spearman's (p = 1.4e-24).
+- **Until it is fixed:** for a rank correlation of 1, do not report the p-value of Spearman's
+  correlation. Take Kendall's from the first route, and read `final_test` in an answer of the
+  second.
 
 ## Statistical quality control (`/sqc-analysis`)
 
@@ -280,6 +301,23 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
 - **Until it is fixed:** give the manuscript as a file with a text layer (a PDF with text, DOCX,
   LaTeX or JATS-XML), and check by hand the statistics that stand only in a figure.
 
+### A t-test is recomputed as Student's when its degrees of freedom are printed whole, whatever the sentence says
+
+- **Where:** the report of the manuscript check, for a sentence with a t statistic.
+- **What happens:** the check takes the kind of t-test from the degrees of freedom in the brackets
+  and not from the words beside them. With a decimal point they are recomputed as Welch's t-test;
+  whole, as Student's t-test of two independent groups, also where the sentence says "Welch's
+  t-test" or "a paired t-test". For two groups of 8 and 20 values, "Welch's t-test, t(21) =
+  -0.65, p = 0.522" was recomputed as Student's t-test, p = 0.679. For 12 pairs, "a paired
+  t-test, t(11) = -4.41, p = 0.001" was recomputed as Student's t-test of two groups, p = 0.485,
+  from a table with a column of groups, and was not recomputed from a table with one column for
+  each occasion ("INSUFFICIENT_DATA"). The verdict on assumptions is about the test that was
+  recomputed. It also counts unequal variances against Welch's t-test, which does not assume
+  equal variances: the same two groups with "t(21.38)" were recomputed as Welch's t-test and got
+  the verdict "ASSUMPTION_VIOLATED" for "Variance homogeneity violated".
+- **Until it is fixed:** for a Welch's or a paired t-test, do not read the recomputed p-value or
+  the verdict as a check of the reported test. Recompute such a result yourself.
+
 ## The API
 
 ### A Mann-Whitney test with one very small group is exact up to 1,000 values in the other group, and approximate above
@@ -362,6 +400,31 @@ not repaired yet. Each entry says where it is, what happens, and what to do unti
   test of the whole model. With several, compute the p-value from `f_statistic` and its degrees of
   freedom, the number of predictors and the number of rows less that number less one. Do not read
   a `f_p_value` of 0, or an F of 0 beside an R squared of 1, as a result.
+
+### A chi-square test of a 2 x 2 table gets two p-values on two routes
+
+- **Where:** `POST /api/v1/categorical/chi-square/independence/`, which the Categorical Tests tab
+  of the hub asks, and `POST /api/v1/autonomous/cascade/` with the test `chi_square_independence`.
+- **What happens:** the first route computes the test without the continuity correction unless
+  the request holds `"yates_correction": true`, and its answer says which under
+  `yates_correction`. The second applies the correction to every 2 x 2 table, and no word of its
+  answer says so. For the table 12, 9 / 7, 15 the first answers p = 0.0946 and the second p =
+  0.1724. The tab sends no `yates_correction`, shows the first value, and does not say that it
+  is the uncorrected one.
+- **Until it is fixed:** for a 2 x 2 table, say which of the two you report. The first route
+  computes either one on request; the second computes the corrected one only.
+
+### The Friedman route reads `groups` as one list for each subject
+
+- **Where:** `POST /api/v1/nonparametric/friedman/`, called with the data under `groups`.
+- **What happens:** the route reads `measurements`, one row for each subject. It reads `groups`
+  the same way, where the Kruskal-Wallis route reads `groups` as one list for each group. A caller
+  who sends one list for each condition gets another test: three conditions measured on six
+  subjects were answered with p = 0.0121 and `sample_sizes` [3, 6], where the test of the three
+  conditions gives p = 0.0025 and `sample_sizes` [6, 3]. The two pages that run the test send
+  `measurements` with one row for each subject.
+- **Until it is fixed:** send `measurements` with one row for each subject, and read
+  `sample_sizes` in the answer: the first number is the number of subjects.
 
 ## Closing an account
 
