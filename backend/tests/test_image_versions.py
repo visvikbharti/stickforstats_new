@@ -68,19 +68,19 @@ class TheConstraintsFileTest(SimpleTestCase):
 class TheFileOfTheBuildToolsTest(SimpleTestCase):
     def test_it_gives_one_exact_version_for_pip_setuptools_and_wheel_and_for_nothing_else(self):
         lines = [line for line in TOOLS.read_text(encoding="utf-8").split("\n") if line and not line.startswith("#")]
-        self.assertEqual(lines, ["pip==26.3", "setuptools==84.2.1", "wheel==0.48.0"])
-        self.assertEqual(check.read_tools(lines), {"pip": "26.3", "setuptools": "84.2.1", "wheel": "0.48.0"})
+        self.assertEqual(lines, ["pip==26.2.2", "setuptools==84.2.1", "wheel==0.48.0"])
+        self.assertEqual(check.read_tools(lines), {"pip": "26.2.2", "setuptools": "84.2.1", "wheel": "0.48.0"})
 
     def test_the_two_files_share_no_package(self):
         self.assertFalse(set(pins()) & check.NOT_LISTED_BY_PIP_FREEZE)
         self.assertNotIn("versions of its day", CONSTRAINTS.read_text(encoding="utf-8"))
 
     def test_a_file_of_tools_that_names_another_package_or_leaves_one_out_is_refused(self):
-        for lines in (["pip==26.3", "setuptools==84.2.1"], ["pip==26.3", "setuptools==84.2.1", "wheel==0.48.0", "scipy==1.17.1"], []):
+        for lines in (["pip==26.2.2", "setuptools==84.2.1"], ["pip==26.2.2", "setuptools==84.2.1", "wheel==0.48.0", "scipy==1.17.1"], []):
             with self.assertRaises(ValueError):
                 check.read_tools(lines)
         with self.assertRaises(ValueError):
-            check.read_tools(["pip>=26.3", "setuptools==84.2.1", "wheel==0.48.0"])
+            check.read_tools(["pip>=26.2.2", "setuptools==84.2.1", "wheel==0.48.0"])
 
 
 class TheBuildTest(SimpleTestCase):
@@ -172,7 +172,7 @@ class TheCheckTest(SimpleTestCase):
             self.assertEqual(code, 1, said)
             self.assertIn("1 difference(s)", said)
 
-    TOOLS_LINES = ["pip==26.3", "setuptools==84.2.1", "wheel==0.48.0"]
+    TOOLS_LINES = ["pip==26.2.2", "setuptools==84.2.1", "wheel==0.48.0"]
 
     def test_with_their_file_the_three_build_tools_are_compared_too(self):
         same = ["scipy==1.17.1", "numpy==2.4.6", "python_dateutil==2.9.0"]
@@ -183,8 +183,8 @@ class TheCheckTest(SimpleTestCase):
         code, said = self._run(same + ["pip==26.4", "setuptools==84.2.1", "wheel==0.48.0"], self.TOOLS_LINES)
         self.assertEqual(code, 1, said)
         self.assertIn("1 difference(s)", said)
-        self.assertIn("pip: 26.4 is installed; the file of the build tools gives 26.3", said)
-        code, said = self._run(same + ["pip==26.3", "setuptools==84.2.1"], self.TOOLS_LINES)
+        self.assertIn("pip: 26.4 is installed; the file of the build tools gives 26.2.2", said)
+        code, said = self._run(same + ["pip==26.2.2", "setuptools==84.2.1"], self.TOOLS_LINES)
         self.assertEqual(code, 1, said)
         self.assertIn("wheel: the file of the build tools gives 0.48.0; it is not installed", said)
         # a list made with `pip freeze`, which leaves the three out, does not pass for one that holds them
@@ -199,7 +199,7 @@ class TheCheckTest(SimpleTestCase):
     def test_in_the_build_the_installed_tools_are_compared_as_well(self):
         # the build runs the check without a list: it reads what is installed, the three included
         libraries = dict(self.PINS)
-        three = {"pip": "26.3", "setuptools": "84.2.1", "wheel": "0.48.0"}
+        three = {"pip": "26.2.2", "setuptools": "84.2.1", "wheel": "0.48.0"}
 
         def installed(with_the_tools=False):
             return {**libraries, **three} if with_the_tools else dict(libraries)
@@ -222,7 +222,7 @@ class TheCheckTest(SimpleTestCase):
                 self.assertIn("setuptools: 85.0.0 is installed; the file of the build tools gives 84.2.1", said.getvalue())
 
     def test_the_constraints_file_may_not_name_one_of_the_three(self):
-        lines = [f"{name}=={version}" for name, version in self.PINS.items()] + ["pip==26.3"]
+        lines = [f"{name}=={version}" for name, version in self.PINS.items()] + ["pip==26.2.2"]
         with self.assertRaises(ValueError):
             self._run(lines, None, lines)
 
