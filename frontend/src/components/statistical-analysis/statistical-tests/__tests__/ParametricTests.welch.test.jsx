@@ -33,7 +33,6 @@ jest.mock('../../../../context/SettingsContext', () => ({
   useSettings: () => ({ expertMode: false, shouldBlockTest: () => true }),
 }));
 
-jest.setTimeout(20000);
 
 const demoRows = fs
   .readFileSync(path.join(__dirname, 'fixtures', 'guardian_demo_long.csv'), 'utf8')

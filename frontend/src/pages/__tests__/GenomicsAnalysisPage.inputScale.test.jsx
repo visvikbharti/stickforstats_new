@@ -11,10 +11,6 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import GenomicsAnalysisPage from '../GenomicsAnalysisPage';
 
-// Each test renders the whole page and waits on its data flow (FileReader, mocked API) for up to
-// 5 s per step. Jest's default budget is 5 s for the whole test, which ran out under a loaded
-// full-suite run ("Exceeded timeout of 5000 ms"), and CI runners can be slower.
-jest.setTimeout(20000);
 
 jest.mock('recharts', () => {
   const Stub = ({ children }) => <div>{children}</div>;
@@ -78,12 +74,12 @@ const upload = async (csv) => {
   fireEvent.change(screen.getByLabelText(/choose csv file/i), { target: { files: [file] } });
   // FileReader is asynchronous; under a loaded test run the step change can exceed the default
   // 1 s wait.
-  await screen.findByText('Configure Groups', {}, { timeout: 5000 });
+  await screen.findByText('Configure Groups');
 };
 
 const runAnalysis = async () => {
   fireEvent.click(screen.getByRole('button', { name: /run differential expression/i }));
-  await screen.findByTestId('results-input-scale', {}, { timeout: 5000 });
+  await screen.findByTestId('results-input-scale');
   expect(global.fetch).toHaveBeenCalledTimes(1);
   return JSON.parse(global.fetch.mock.calls[0][1].body);
 };

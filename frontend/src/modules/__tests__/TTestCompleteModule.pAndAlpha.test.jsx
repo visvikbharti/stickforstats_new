@@ -14,7 +14,6 @@ import axios from 'axios';
 import guardianService from '../../services/GuardianService';
 import TTestCompleteModule from '../TTestCompleteModule';
 
-jest.setTimeout(20000);
 
 jest.mock('axios', () => ({
   __esModule: true,

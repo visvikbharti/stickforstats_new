@@ -16,10 +16,6 @@ import axios from 'axios';
 import guardianService from '../../services/GuardianService';
 import ANOVACompleteModule from '../ANOVACompleteModule';
 
-// Each test renders the whole module and waits up to 5 s for the mocked Guardian report. Jest's
-// default budget is 5 s for the whole test, which ran out for the genomics page tests under a
-// loaded full-suite run ("Exceeded timeout of 5000 ms"), and CI runners can be slower.
-jest.setTimeout(20000);
 
 jest.mock('axios', () => ({
   __esModule: true,
@@ -64,7 +60,7 @@ const runWith = async (confidence, violations) => {
   );
   fireEvent.click(screen.getByRole('tab', { name: /Analysis/ }));
   fireEvent.click(screen.getByRole('button', { name: 'submit test groups' }));
-  expect(await screen.findByText('Guardian Assumption Report', {}, { timeout: 5000 })).toBeInTheDocument();
+  expect(await screen.findByText('Guardian Assumption Report')).toBeInTheDocument();
 };
 
 afterEach(() => jest.clearAllMocks());
