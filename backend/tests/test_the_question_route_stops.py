@@ -137,6 +137,27 @@ class WhatIsLeftTest(SimpleTestCase):
 
 
 class WhereTheRouteIsDescribedTest(SimpleTestCase):
+    def test_the_four_documents_that_promise_a_question_say_that_it_is_not_read(self):
+        # Each of these documents says in so many places that a question in plain English is read. The promise
+        # stays where it stood, and one sentence stands beside it.
+        sentence = "This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md."
+        places = {"README.md": 4, "sdk/python/README.md": 2, "sdk/r/README.md": 2, "docs/CLI_QUICKSTART.md": 1}
+        for name, count in places.items():
+            text = (ROOT / name).read_text(encoding="utf-8")
+            self.assertEqual(text.count(sentence), count, name)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for promise in ("describe your research question in plain English, and receive validated results",
+                        "ask a question in plain English -- get validated results and a report",
+                        "Intent detection parses your query, maps it to the appropriate statistical test",
+                        "# Autonomous analysis -- describe your question in plain English"):
+            after = readme[readme.index(promise):]
+            self.assertLess(after.index(sentence), 260, promise)
+        # and the sentence is what the route does
+        self.assertIn("### The question box answers no question: this version cannot read one",
+                      (ROOT / "KNOWN_ISSUES.md").read_text(encoding="utf-8"))
+        answer = APIClient().post(URL, {"query": "Is there a difference?", "data": ROWS}, format="json")
+        self.assertEqual((answer.status_code, answer.json()), (501, {"error": THE_QUESTION_IS_NOT_READ}))
+
     def test_the_schema(self):
         from api.v1.schema_views import build_openapi_spec
 

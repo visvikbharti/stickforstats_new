@@ -175,6 +175,7 @@ profile = client.autonomous.profile(
 print(profile.recommendations)
 
 # Natural-language query
+# This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 answer = client.autonomous.query(
     question="Is there a significant difference between groups?",
     data={"group1": [1, 2, 3], "group2": [4, 5, 6]},
@@ -283,6 +284,7 @@ sfs analyze --file data.csv --test regression --dependent y --predictors "x1,x2"
 sfs profile --file data.csv
 
 # Natural-language query
+# This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 sfs query "compare groups" --file data.csv
 
 # Manuscript review (internal-consistency, no data needed)
