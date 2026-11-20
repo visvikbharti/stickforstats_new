@@ -119,7 +119,7 @@ recommendations.
 
 ### %sfs_query -- Natural Language Queries
 
-Ask a plain-English research question about your data.
+Ask a plain-English research question about your data. This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md.
 
 ```python
 %sfs_query "Is there a significant difference between treatment groups?" --data df

@@ -138,11 +138,12 @@ class WhatIsLeftTest(SimpleTestCase):
 
 class WhereTheRouteIsDescribedTest(SimpleTestCase):
     @override_settings(RATE_LIMIT_ENABLED=False, SECURE_SSL_REDIRECT=False)     # the last lines send one request
-    def test_the_four_documents_that_promise_a_question_say_that_it_is_not_read(self):
+    def test_the_six_documents_that_promise_a_question_say_that_it_is_not_read(self):
         # Each of these documents says in so many places that a question in plain English is read. The promise
         # stays where it stood, and one sentence stands beside it.
         sentence = "This version does not read the question: the route answers that it cannot. See KNOWN_ISSUES.md."
-        places = {"README.md": 4, "sdk/python/README.md": 2, "sdk/r/README.md": 2, "docs/CLI_QUICKSTART.md": 1}
+        places = {"README.md": 4, "sdk/python/README.md": 2, "sdk/r/README.md": 2, "docs/CLI_QUICKSTART.md": 1,
+                  "sdk/jupyter/README.md": 1, "mobile/README.md": 1}
         for name, count in places.items():
             text = (ROOT / name).read_text(encoding="utf-8")
             self.assertEqual(text.count(sentence), count, name)
